@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Philipp Bucher
+//                   Philipp Bucher (https://github.com/philbucher)
 
 // System includes
 #include <utility>
@@ -20,6 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/builtin_timer.h"
 
 namespace Kratos {
@@ -271,6 +272,28 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParallelUtilsContinue, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, -1.0), output(nsize, 3.3);
+
+    IndexPartition<unsigned int>(data_vector.size()).for_each(
+        [&](unsigned int i){
+            if (i%4 == 0) return; // this is the equivalent of "continue" in a regular loop
+
+            output[i] = 2.0*data_vector[i];
+            }
+        );
+
+    for(unsigned int i=0; i<output.size(); ++i) {
+        if (i%4 == 0) {
+            KRATOS_CHECK_DOUBLE_EQUAL(output[i], 3.3);
+        } else {
+            KRATOS_CHECK_DOUBLE_EQUAL(output[i], -2.0);
+        }
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
 {
     int nsize = 1e3;
@@ -380,6 +403,102 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(min, reference_min );
     KRATOS_CHECK_EQUAL(max, reference_max );
     KRATOS_CHECK_EQUAL(sub, reference_sub );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, 5.0);
+
+    // basic version
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each(data_vector, [](double& item){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reductions
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each<SumReduction<double>>(data_vector, [](double& item){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reduction and TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, 5.0);
+
+    // basic version
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each(
+        [&](unsigned int i){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reductions
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
+        [&](unsigned int i){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each(std::vector<double>(),
+        [&](unsigned int i, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reduction and TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
+        [&](unsigned int i, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)

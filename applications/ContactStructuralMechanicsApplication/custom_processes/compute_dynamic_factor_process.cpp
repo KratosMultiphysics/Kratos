@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -27,9 +28,6 @@ void ComputeDynamicFactorProcess::Execute()
     // Getting process info
     ProcessInfo& r_process_info = mrThisModelPart.GetProcessInfo();
 
-    // Getting logistic factor
-    double logistic_factor = 1.0;
-
     // Impact time duration
     const double max_gap_factor = r_process_info.Has(MAX_GAP_FACTOR) ? r_process_info[MAX_GAP_FACTOR] : 1.0;
     const double max_gap_threshold = r_process_info.Has(MAX_GAP_THRESHOLD) ? r_process_info[MAX_GAP_THRESHOLD] : 0.0;
@@ -37,26 +35,21 @@ void ComputeDynamicFactorProcess::Execute()
 
     // We iterate over the node
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    #pragma omp parallel for firstprivate(logistic_factor)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
+    block_for_each(r_nodes_array, [&max_gap_threshold, &common_epsilon, &max_gap_factor](NodeType& rNode) {
         // Computing only on SLAVE nodes
-        if (it_node->Is(SLAVE) && it_node->Is(ACTIVE)) {
+        if (rNode.Is(SLAVE) && rNode.Is(ACTIVE)) {
             // Weighted values
-            const double normal_area  = it_node->GetValue(NODAL_AREA);
-            const double current_gap  = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/normal_area;
-            it_node->SetValue(NORMAL_GAP, current_gap);
-            const double previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1)/normal_area;
+            const double normal_area  = rNode.GetValue(NODAL_AREA);
+            const double current_gap  = rNode.FastGetSolutionStepValue(WEIGHTED_GAP)/normal_area;
+            rNode.SetValue(NORMAL_GAP, current_gap);
+            const double previous_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1)/normal_area;
 
             // Computing actual logistic factor
             if (max_gap_threshold > 0.0 && current_gap <= 0.0) {
-                logistic_factor = ComputeLogisticFactor(max_gap_threshold, current_gap);
-                it_node->SetValue(INITIAL_PENALTY, common_epsilon * (1.0 + logistic_factor * max_gap_factor));
+                const double logistic_factor = ComputeLogisticFactor(max_gap_threshold, current_gap);
+                rNode.SetValue(INITIAL_PENALTY, common_epsilon * (1.0 + logistic_factor * max_gap_factor));
             } else {
-                it_node->SetValue(INITIAL_PENALTY, common_epsilon);
+                rNode.SetValue(INITIAL_PENALTY, common_epsilon);
             }
 
             // If we change from a situation of not contact toa  one of contact
@@ -64,10 +57,10 @@ void ComputeDynamicFactorProcess::Execute()
                 double dynamic_factor = std::abs(current_gap)/std::abs(current_gap - previous_gap);
                 dynamic_factor = (dynamic_factor > 1.0) ? 1.0 : dynamic_factor;
                 KRATOS_DEBUG_ERROR_IF(dynamic_factor <= 0.0) << "DYNAMIC_FACTOR cannot be negative" << std::endl; // NOTE: THIS IS SUPPOSED TO BE IMPOSSIBLE (WE ARE USING ABS VALUES!!!!)
-                it_node->SetValue(DYNAMIC_FACTOR, dynamic_factor);
+                rNode.SetValue(DYNAMIC_FACTOR, dynamic_factor);
             }
         }
-    }
+    });
 
     KRATOS_CATCH("");
 }
@@ -75,7 +68,7 @@ void ComputeDynamicFactorProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-double ComputeDynamicFactorProcess::ComputeLogisticFactor(
+inline double ComputeDynamicFactorProcess::ComputeLogisticFactor(
     const double MaxGapThreshold,
     const double CurrentGap
     )

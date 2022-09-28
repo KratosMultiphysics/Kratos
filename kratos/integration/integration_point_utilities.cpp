@@ -15,6 +15,90 @@
 
 namespace Kratos
 {
+    void IntegrationPointUtilities::CreateIntegrationPoints1D(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const IntegrationInfo& rIntegrationInfo)
+    {
+        if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GAUSS) {
+            IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+                rIntegrationPoints, rSpansLocalSpace, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        } else if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GRID) {
+            IntegrationPointUtilities::CreateIntegrationPoints1DGrid(
+                rIntegrationPoints, rSpansLocalSpace, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        }
+        else {
+            KRATOS_ERROR << "Integration with given quadrature method not implemented for 1d structures. "
+                << "Additional provided information: - rSpansLocalSpace: " << rSpansLocalSpace << std::endl;
+        }
+    }
+
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        auto integration_point_iterator = rIntegrationPoints.begin();
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_point_iterator,
+                IntegrationPointsPerSpan,
+                rSpansLocalSpace[i], rSpansLocalSpace[i + 1]);
+        }
+    }
+
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1DGrid(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan + num_spans + 1;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IndexType counter = 0;
+        double last_weight = 0.0;
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            const double increment = (rSpansLocalSpace[i + 1] - rSpansLocalSpace[i]) / (IntegrationPointsPerSpan + 1);
+            const double weight = std::abs(increment);
+            rIntegrationPoints[counter].X() = rSpansLocalSpace[i];
+            rIntegrationPoints[counter].Weight() = (weight / 2) + (last_weight / 2);
+            counter++;
+
+            for (IndexType j = 1; j < IntegrationPointsPerSpan + 1; ++j)
+            {
+                rIntegrationPoints[counter].X() = rSpansLocalSpace[i] + j * increment;
+                rIntegrationPoints[counter].Weight() = weight;
+                counter++;
+            }
+            last_weight = weight;
+        }
+        rIntegrationPoints[counter].X() = rSpansLocalSpace[rSpansLocalSpace.size() - 1];
+        rIntegrationPoints[counter].Weight() = (last_weight / 2);
+    }
+
     void IntegrationPointUtilities::IntegrationPoints1D(
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU,

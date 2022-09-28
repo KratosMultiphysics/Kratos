@@ -328,7 +328,10 @@ class NodalData(Attribute):
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
-            return "Vector"
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
         else:
             raise Exception("Invalid dimensions.")
 
@@ -367,7 +370,10 @@ class GeometrycalObjectData(Attribute):
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
-            return "Vector"
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
         else:
             raise Exception("Invalid dimensions.")
 

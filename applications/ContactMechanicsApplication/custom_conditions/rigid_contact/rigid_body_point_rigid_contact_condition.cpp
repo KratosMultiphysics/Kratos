@@ -93,13 +93,13 @@ RigidBodyPointRigidContactCondition::~RigidBodyPointRigidContactCondition()
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::GetDofList(DofsVectorType& rConditionDofList,
-				    ProcessInfo& rCurrentProcessInfo)
+				    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     rConditionDofList.resize(0);
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetDofList(rConditionDofList, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -109,13 +109,13 @@ void RigidBodyPointRigidContactCondition::GetDofList(DofsVectorType& rConditionD
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::EquationIdVector(EquationIdVectorType& rResult,
-					  ProcessInfo& rCurrentProcessInfo)
+					  const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     rResult.resize( 0, false );
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.EquationIdVector(rResult, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -794,7 +794,7 @@ void RigidBodyPointRigidContactCondition::VectorToSkewSymmetricTensor( const Vec
 //***********************************************************************************
 
 
-int RigidBodyPointRigidContactCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int RigidBodyPointRigidContactCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   return 0;
 }

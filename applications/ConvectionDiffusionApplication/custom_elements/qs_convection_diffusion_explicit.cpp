@@ -924,7 +924,7 @@ void QSConvectionDiffusionExplicit<TDim,TNumNodes>::QSCalculateTau(
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::IntegrationMethod QSConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 /***********************************************************************************/

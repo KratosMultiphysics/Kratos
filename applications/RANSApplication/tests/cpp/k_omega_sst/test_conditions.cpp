@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaKBasedWall2D2N_EquationIdVector, Kra
     auto& r_model_part = RansKOmegaSSTOmegaKBasedWall2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
+    FluidTestUtilities::RunEntityEquationIdVectorTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaKBasedWall2D2N_GetDofList, KratosRansFastSuite)
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaKBasedWall2D2N_GetDofList, KratosRan
     auto& r_model_part = RansKOmegaSSTOmegaKBasedWall2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityGetDofListTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
+    FluidTestUtilities::RunEntityGetDofListTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaKBasedWall2D2N_CalculateLocalSystem, KratosRansFastSuite)
@@ -146,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaUBasedWall2D2N_EquationIdVector, Kra
     auto& r_model_part = RansKOmegaSSTOmegaUBasedWall2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityEquationIdVectorTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
+    FluidTestUtilities::RunEntityEquationIdVectorTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaUBasedWall2D2N_GetDofList, KratosRansFastSuite)
@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaUBasedWall2D2N_GetDofList, KratosRan
     auto& r_model_part = RansKOmegaSSTOmegaUBasedWall2D2NSetUp(model);
 
     // Test:
-    FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunEntityGetDofListTest(r_model_part, {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
+    FluidTestUtilities::RunEntityGetDofListTest(r_model_part.Conditions(), r_model_part.GetProcessInfo(), {&TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaUBasedWall2D2N_CalculateLocalSystem, KratosRansFastSuite)

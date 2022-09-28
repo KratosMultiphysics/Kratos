@@ -62,7 +62,7 @@ ConstitutiveLaw::SizeType HerschelBulkley3DLaw::WorkingSpaceDimension() {
     return 3;
 }
 
-ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() const {
     return 6;
 }
 
@@ -76,8 +76,8 @@ void  HerschelBulkley3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
-    
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
     Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
     Vector& StressVector                  = rValues.GetStressVector();
@@ -87,21 +87,21 @@ void  HerschelBulkley3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
     const double m    = MaterialProperties[REGULARIZATION_COEFFICIENT];
     const double k = MaterialProperties[POWER_LAW_K];
     const double n = MaterialProperties[POWER_LAW_N];
-        
-    const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] 
+
+    const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2]
                                 + S[3]*S[3] + S[4]*S[4] + S[5]*S[5]);
-    
-    const double min_gamma_dot = 1e-6; 
+
+    const double min_gamma_dot = 1e-6;
 
     //limit the gamma_dot to a minimum so to ensure that the case of gamma_dot=0 is not problematic
     const double g = std::max(gamma_dot, min_gamma_dot);
-    
+
     const double Regularization = 1.0 - std::exp(-m*g);
     const double mu_effective = k*std::pow(g,n-1) + Regularization * sigma_y / g;
-    
+
     const double trS = S[0]+S[1]+S[2];
     const double eps_vol = trS/3.0;
-    
+
     //computation of stress
     StressVector[0] = 2.0*mu_effective*(S[0] - eps_vol);
     StressVector[1] = 2.0*mu_effective*(S[1] - eps_vol);
@@ -118,7 +118,7 @@ void  HerschelBulkley3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 //         }
 //         else
 //         {
-// 
+//
 //                 const double x0 =             pow(S[3], 2);
 //                 const double x1 =             pow(S[4], 2);
 //                 const double x2 =             pow(S[5], 2);
@@ -198,21 +198,22 @@ void  HerschelBulkley3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 //                 C(5,3)=x39;
 //                 C(5,4)=x41;
 //                 C(5,5)=x36*(x15 + x2*x37);
-// 
+//
 //         }
-            
+
     }
-	  
+
 }
 
 
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
-int HerschelBulkley3DLaw::Check(const Properties& rMaterialProperties,
-                              const GeometryType& rElementGeometry,
-                              const ProcessInfo& rCurrentProcessInfo)
-{    
+int HerschelBulkley3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
     if( rMaterialProperties[YIELD_STRESS] <= 0.00 ) {
         KRATOS_ERROR << "Incorrect or missing YIELD_STRESS provided in process info for HerschelBulkley3DLaw: " << rMaterialProperties[YIELD_STRESS] << std::endl;
     }

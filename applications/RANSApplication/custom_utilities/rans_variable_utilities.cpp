@@ -320,14 +320,38 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
 
             const auto& r_geometry = rElement.GetGeometry();
             const auto& r_shape_functions =
-                r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-            p_constitutive_law->InitializeMaterial(r_properties, r_geometry, row(r_shape_functions, 0));
+                r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+            p_constitutive_law->InitializeMaterial(r_properties, r_geometry,
+                                                row(r_shape_functions, 0));
 
             rElement.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
         }
     });
 
     KRATOS_CATCH("");
+}
+
+void KRATOS_API(RANS_APPLICATION)
+    CalculateNodalNormal(
+        ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](ModelPart::NodeType& rNode){
+        rNode.FastGetSolutionStepValue(NORMAL) = ZeroVector(3);
+    });
+
+    std::unordered_map<IndexType, Vector> nodal_areas;
+
+    block_for_each(rModelPart.Conditions(), [](ModelPart::ConditionType& rCondition) {
+        const array_1d<double, 3>& r_normal = rCondition.GetValue(NORMAL) / rCondition.GetGeometry().size();
+
+        for (auto& r_node : rCondition.GetGeometry()) {
+            r_node.SetLock();
+            r_node.FastGetSolutionStepValue(NORMAL) += r_normal;
+            r_node.UnSetLock();
+        }
+    });
+
+    rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 
 // template instantiations

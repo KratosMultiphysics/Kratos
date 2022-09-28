@@ -34,7 +34,7 @@ Element::Pointer TransientConvectionDiffusionFICExplicitElement<TDim,TNumNodes>:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void TransientConvectionDiffusionFICExplicitElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void TransientConvectionDiffusionFICExplicitElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -63,7 +63,7 @@ void TransientConvectionDiffusionFICExplicitElement<TDim,TNumNodes>::CalculateLo
 template< unsigned int TDim, unsigned int TNumNodes >
 void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector,
-                        ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -130,7 +130,7 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
         array_1d <double, TNumNodes> AuxMVector2;
 
         noalias(AuxMVector1) = Variables.rho_dot_c * Variables.N;
-        noalias(AuxMVector2) = Variables.rho_dot_c * 0.5 * prod(Variables.GradNT,Variables.HVector);
+        noalias(AuxMVector2) = Variables.rho_dot_c * 0.5 * prod(Variables.GradNT,Variables.HvVector);
 
         //// M matrix
         BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );

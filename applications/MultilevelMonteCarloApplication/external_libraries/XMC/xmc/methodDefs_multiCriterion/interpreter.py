@@ -1,3 +1,6 @@
+# TODO Improve function names
+
+
 def interpretationStructure():
     """
     This function returns the typical output of a MultiCriterion's interpreter,
@@ -8,7 +11,7 @@ def interpretationStructure():
     structure = {
         "stop": False,  # stop algorithm
         "updateHierarchy": True,
-        "updateTolerance": True,  # for continuation-type algorithms
+        "updateTolerance": False,  # for continuation-type algorithms
         "updateIndexSpace": False,
         "updateSampleNumberSpace": False,
     }
@@ -30,7 +33,7 @@ def interpretAsConvergenceAndIterationBounds(flags):
     This is the common interpreter which expects three booleans as input:
     1. Is convergence achieved?
     2. Is the number of iterations greater than the lower bound?
-    3. Is the number of iterations greater than the uppder bound?
+    3. Is the number of iterations greater than the upper bound?
     """
     flag = flags[2] or (flags[0] and flags[1])
     interpretation = interpretAsStoppingFlag([flag])
@@ -58,4 +61,13 @@ def interpretAsMultipleAlternativeConvergencesAndIterationBounds(flags):
     """
     flag = [any(flags[0:-2]), flags[-2], flags[-1]]
     interpretation = interpretAsConvergenceAndIterationBounds([flag])
+    return interpretation
+
+
+def interpretAsConvergenceIterationBoundsAndToleranceUpdate(flags):
+    """Like ``interpretAsConvergenceAndIterationBounds`` with tolerance update.
+
+    The last flag tells whether to update tolerance."""
+    interpretation = interpretAsConvergenceAndIterationBounds(flags[:-1])
+    interpretation["updateTolerance"] = flags[-1]
     return interpretation

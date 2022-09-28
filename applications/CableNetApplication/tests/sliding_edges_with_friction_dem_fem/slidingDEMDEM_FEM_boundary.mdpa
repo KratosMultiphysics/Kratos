@@ -1371,7 +1371,6 @@ End Conditions
 
 Begin SubModelPart 0 // DEM-FEM-Wall. Group name: innerTruss
   Begin SubModelPartData // DEM-FEM-Wall. Group name: innerTruss
-  PROPERTIES_ID 0
   RIGID_BODY_MOTION 0
   FREE_BODY_MOTION 0
   IS_GHOST 0
@@ -2631,7 +2630,6 @@ End SubModelPart
 
 Begin SubModelPart 1 // DEM-FEM-Wall. Group name: edgeCable
   Begin SubModelPartData // DEM-FEM-Wall. Group name: edgeCable
-  PROPERTIES_ID 1
   RIGID_BODY_MOTION 0
   FREE_BODY_MOTION 0
   IS_GHOST 0

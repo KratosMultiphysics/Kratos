@@ -118,7 +118,6 @@ public:
         , mData()
         , mInitialPosition()
         , mNodeLock()
-        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
     }
@@ -131,7 +130,6 @@ public:
         , mData()
         , mInitialPosition()
         , mNodeLock()
-        , mReferenceCounter(0)
     {
         KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
         CreateSolutionStepData();
@@ -146,7 +144,6 @@ public:
         , mData()
         , mInitialPosition(NewX)
         , mNodeLock()
-        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
     }
@@ -160,7 +157,6 @@ public:
         , mData()
         , mInitialPosition(NewX, NewY)
         , mNodeLock()
-        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
     }
@@ -174,7 +170,6 @@ public:
         , mData()
         , mInitialPosition(NewX, NewY, NewZ)
         , mNodeLock()
-        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
     }
@@ -188,7 +183,6 @@ public:
         , mData()
         , mInitialPosition(rThisPoint)
         , mNodeLock()
-        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
     }
@@ -242,7 +236,6 @@ public:
         , mData()
         , mInitialPosition(NewX, NewY, NewZ)
         , mNodeLock()
-        , mReferenceCounter(0)
     {
     }
 
@@ -427,12 +420,18 @@ public:
         return mNodalData.GetSolutionStepData();
     }
 
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
     {
         return mData;
     }
 
-    const DataValueContainer& Data() const
+    DataValueContainer& GetData()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& GetData() const
     {
         return mData;
     }
@@ -726,6 +725,11 @@ public:
 
     /** returns all of the Dofs  */
     DofsContainerType& GetDofs()
+    {
+        return mDofs;
+    }
+
+    const DofsContainerType& GetDofs() const
     {
         return mDofs;
     }
@@ -1035,7 +1039,7 @@ private:
     ///@{
     //*********************************************
     //this block is needed for refcounting
-    mutable std::atomic<int> mReferenceCounter;
+    mutable std::atomic<int> mReferenceCounter{0};
 
     friend void intrusive_ptr_add_ref(const NodeType* x)
     {

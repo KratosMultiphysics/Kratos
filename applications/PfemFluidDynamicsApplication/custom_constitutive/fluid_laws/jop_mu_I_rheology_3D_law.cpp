@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType JopMuIRheology3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType JopMuIRheology3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType JopMuIRheology3DLaw::GetStrainSize() const { return 6; }
 
     void JopMuIRheology3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -123,7 +123,7 @@ namespace Kratos
     //*****************************************************************************
 
     int JopMuIRheology3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                   const ProcessInfo &rCurrentProcessInfo)
+                                   const ProcessInfo &rCurrentProcessInfo) const
     {
 
         if (rMaterialProperties[STATIC_FRICTION] <= 0.0)

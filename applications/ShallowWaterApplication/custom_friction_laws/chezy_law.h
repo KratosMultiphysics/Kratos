@@ -22,7 +22,6 @@
 
 // Project includes
 #include "friction_law.h"
-#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -69,10 +68,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default Constructor
+     */
     ChezyLaw() {}
 
-    /// Destructor.
+    /**
+     * @brief Constructor with data
+     */
+    ChezyLaw(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Destructor
+     */
     virtual ~ChezyLaw() {}
 
     ///@}
@@ -87,7 +98,10 @@ public:
     /**
      * @brief Initialize the friction law variables
      */
-    void Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo) override;
+    void Initialize(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo) override;
 
     /**
      * @brief Calculate the LHS coefficient for the given data
@@ -128,19 +142,6 @@ public:
         buffer << "ChezyLaw";
         return buffer.str();
     }
-    
-    /**
-     * @brief Print information about this object.
-     */
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ChezyLaw";
-    }
-
-    /**
-     * @brief Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends

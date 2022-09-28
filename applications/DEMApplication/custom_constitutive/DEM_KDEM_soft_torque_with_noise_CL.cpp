@@ -14,25 +14,16 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_soft_torque_with_noise::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_soft_torque_with_noise to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
-    void DEM_KDEM_soft_torque_with_noise::Initialize(SphericContinuumParticle* owner_sphere) {
+    void DEM_KDEM_soft_torque_with_noise::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) {
         #pragma omp critical
         {
-            if (!owner_sphere->Has(PERTURBED_TAU_ZERO)) {
-                srand(owner_sphere->GetId());
-                const double perturbed_tau_zero = rand_normal(DEM_KDEM::GetTauZero(owner_sphere), owner_sphere->GetProperties()[KDEM_STANDARD_DEVIATION_TAU_ZERO]);
-                owner_sphere->SetValue(PERTURBED_TAU_ZERO, perturbed_tau_zero);
+            if (!element1->Has(PERTURBED_TAU_ZERO)) {
+                srand(element1->GetId());
+                mPerturbedTauZero = rand_normal(DEM_KDEM::GetTauZero(element1), (*mpProperties)[KDEM_STANDARD_DEVIATION_TAU_ZERO]);
             }
-            if (!owner_sphere->Has(PERTURBED_INTERNAL_FRICTION)) {
-                srand(owner_sphere->GetId());
-                const double perturbed_internal_fricc = rand_normal(DEM_KDEM::GetInternalFricc(owner_sphere), owner_sphere->GetProperties()[KDEM_STANDARD_DEVIATION_FRICTION]);
-                owner_sphere->SetValue(PERTURBED_INTERNAL_FRICTION, perturbed_internal_fricc);
+            if (!element1->Has(PERTURBED_INTERNAL_FRICTION)) {
+                srand(element1->GetId());
+                mPerturbedInternalFriction = rand_normal(DEM_KDEM::GetInternalFricc(element1), (*mpProperties)[KDEM_STANDARD_DEVIATION_FRICTION]);
             }
         }
     }
@@ -56,11 +47,11 @@ namespace Kratos {
     }
 
     double DEM_KDEM_soft_torque_with_noise::GetTauZero(SphericContinuumParticle* element1) {
-        return element1->GetValue(PERTURBED_TAU_ZERO);
+        return mPerturbedTauZero;
     }
 
     double DEM_KDEM_soft_torque_with_noise::GetInternalFricc(SphericContinuumParticle* element1) {
-        return element1->GetValue(PERTURBED_INTERNAL_FRICTION);
+        return mPerturbedInternalFriction;
     }
 
     double DEM_KDEM_soft_torque_with_noise::rand_normal(const double mean, const double stddev) {

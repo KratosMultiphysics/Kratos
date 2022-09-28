@@ -31,7 +31,7 @@ namespace Kratos
   AxisymmetricLineLoadCondition::AxisymmetricLineLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : LineLoadCondition(NewId, pGeometry, pProperties)
   {
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
   }
 
   //************************************************************************************
@@ -199,7 +199,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  int AxisymmetricLineLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int AxisymmetricLineLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

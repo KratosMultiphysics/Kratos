@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 #include "containers/model.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
@@ -63,7 +63,7 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class TrilinosLaplacianMeshMovingStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -72,7 +72,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosLaplacianMeshMovingStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef Variable<double> VariableType;
 
@@ -92,7 +92,7 @@ public:
                                         bool CalculateMeshVelocities = true,
                                         int EchoLevel = 0)
         :
-        SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part),
+        ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part),
         mrReferenceModelPart(model_part)
     {
         KRATOS_TRY
@@ -313,7 +313,7 @@ private:
                 it->Id(), it->pGetGeometry(), it->pGetProperties()));
 
         // Optimize communicaton plan
-        ParallelFillCommunicator CommunicatorGeneration(*mpmesh_model_part);
+        ParallelFillCommunicator CommunicatorGeneration(*mpmesh_model_part, mrReferenceModelPart.GetCommunicator().GetDataCommunicator());
         CommunicatorGeneration.Execute();
     }
 

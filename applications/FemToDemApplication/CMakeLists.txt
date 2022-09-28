@@ -7,6 +7,7 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -18,6 +19,7 @@ include_directories(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplicati
 include_directories(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
@@ -68,7 +70,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
+target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore KratosConstitutiveLawsCore)
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -107,3 +109,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosFemToDemApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFemToDemApplication" PARENT_SCOPE)

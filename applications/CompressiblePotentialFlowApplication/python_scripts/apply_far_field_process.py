@@ -29,7 +29,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
                 "mach_number_limit": 0.94,
-                "mach_number_squared_limit": 3.0,
+                "mach_number_squared_limit": -1,
                 "critical_mach": 0.99,
                 "upwind_factor_constant": 1.0,
                 "initialize_flow_field": true,
@@ -59,17 +59,38 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
-        self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
-        self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
-        self.free_stream_velocity[2] = 0.0
+
+        self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        if self.domain_size == 2:
+            # By convention 2D airfoils are in the xy plane
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+            self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
+            self.free_stream_velocity[2] = 0.0
+        else: # self.domain_size == 3
+            # By convention 3D wings and aircrafts:
+            # y axis along the span
+            # z axis pointing upwards
+            # TODO: Add sideslip angle beta
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+            self.free_stream_velocity[1] = 0.0
+            self.free_stream_velocity[2] = round(self.u_inf*math.sin(self.angle_of_attack),8)
+
+        self.free_stream_velocity_direction = self.free_stream_velocity / self.u_inf
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY_DIRECTION,self.free_stream_velocity_direction)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(KratosCFD.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_SQUARED_LIMIT,self.mach_number_squared_limit)
+
+        if self.mach_number_squared_limit > 0.0:
+            self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,math.sqrt(self.mach_number_squared_limit))
+            warn_msg = 'Both mach_number_squared_limit and mach_number_limit are defined. Using mach_number_squared_limit = ' + str(self.mach_number_squared_limit)
+            KratosMultiphysics.Logger.PrintWarning('ApplyFarFieldProcess', warn_msg)
+        else:
+            self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
+
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.CRITICAL_MACH,self.critical_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWIND_FACTOR_CONSTANT,self.upwind_factor_constant)
 

@@ -449,9 +449,6 @@ namespace Kratos {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
 
-            //Initializing the non linear iteration for the current element
-            rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
-
             //basic operations for the element considered
             rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
@@ -479,9 +476,6 @@ namespace Kratos {
             const ProcessInfo& CurrentProcessInfo) override
         {
             int k = OpenMPUtils::ThisThread();
-
-            //Initializing the non linear iteration for the current element
-            rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
@@ -513,7 +507,6 @@ namespace Kratos {
             KRATOS_TRY
             int k = OpenMPUtils::ThisThread();
 
-            rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
             rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
             rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
             //rCurrentCondition.CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
@@ -542,8 +535,6 @@ namespace Kratos {
 
             int k = OpenMPUtils::ThisThread();
 
-            //Initializing the non linear iteration for the current condition
-            rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
             rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
@@ -681,7 +672,6 @@ namespace Kratos {
                 auto itElem = rModelPart.Elements().ptr_begin()+k;
                 int thread_id = OpenMPUtils::ThisThread();
 
-                (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
                 //KRATOS_WATCH(LHS_Contribution);
                 //basic operations for the element considered
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
