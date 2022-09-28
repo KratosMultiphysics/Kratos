@@ -24,6 +24,7 @@
 #include "geometries/geometry_data.h"
 
 // Application includes
+#include "custom_elements/data_containers/qs_vms/rans_qs_vms_adjoint_element_data.h"
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_derivatives.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
 #include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
@@ -70,92 +71,7 @@ public:
     ///@name Classes
     ///@{
 
-    class Fluid
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        using TResidualsDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
-
-        ///@}
-        ///@name Classes
-        ///@{
-
-        class Primal
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            using Data = typename TResidualsDerivatives::Data;
-
-            using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
-
-            ///@}
-        };
-
-        class StateDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            class SecondDerivatives
-            {
-            public:
-                ///@name Type Definitions
-                ///@{
-
-                using Data = typename TResidualsDerivatives::Data;
-
-                using Acceleration = typename TResidualsDerivatives::SecondDerivatives;
-
-                ///@}
-
-            };
-
-            ///@}
-            ///@name Classes
-            ///@{
-
-            class FirstDerivatives
-            {
-            public:
-                ///@name Type Definitions
-                ///@{
-
-                using Data = typename TResidualsDerivatives::Data;
-
-                using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
-
-                using Pressure = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
-
-                using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename RansQSVMSDerivativeUtilities<TDim>::template TurbulenceVariableDerivative<TNumNodes, KEpsilonElementData::KElementData<TDim>>>;
-
-                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename RansQSVMSDerivativeUtilities<TDim>::template TurbulenceVariableDerivative<TNumNodes, KEpsilonElementData::EpsilonElementData<TDim>>>;
-
-                ///@}
-            };
-
-            ///@}
-        };
-
-        class SensitivityDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            using Data = typename TResidualsDerivatives::Data;
-
-            using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
-
-            ///@}
-        };
-
-    ///@}
-    };
+    using Fluid = RansQSVMSAdjointElementData<TDim, TNumNodes, KEpsilonElementData::KElementData<TDim>, KEpsilonElementData::EpsilonElementData<TDim>>;
 
     class TurbulenceModelEquation1
     {
