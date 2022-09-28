@@ -1,0 +1,2 @@
+class ExaquteException(Exception):
+    pass

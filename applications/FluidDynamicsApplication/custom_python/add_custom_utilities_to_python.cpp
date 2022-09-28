@@ -27,7 +27,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/fluid_post_process_utilities.h"
+#include "custom_utilities/fluid_auxiliary_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
@@ -169,21 +169,28 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
 
-    // Post process utilities
-    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
-        .def(py::init<>())
-        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
+    // Auxiliary utilities
+    py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
+        .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart);})
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
+        .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
+        .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
         ;
 
     py::class_<FluidTestUtilities>(m, "FluidTestUtilities")
-        .def_static("RandomFillNodalHistoricalVariable", &FluidTestUtilities::RandomFillNodalHistoricalVariable<double>)
-        .def_static("RandomFillNodalHistoricalVariable", &FluidTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>)
-        .def_static("RandomFillNodalNonHistoricalVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, double>)
-        .def_static("RandomFillNodalNonHistoricalVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, double>)
-        .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, double>)
-        .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        .def_static("RandomFillHistoricalVariable", &FluidTestUtilities::RandomFillHistoricalVariable<double>)
+        .def_static("RandomFillHistoricalVariable", &FluidTestUtilities::RandomFillHistoricalVariable<array_1d<double, 3>>)
+        .def_static("RandomFillNonHistoricalVariable", [](ModelPart::NodesContainerType& rNodesContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rNodesContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNonHistoricalVariable", [](ModelPart::NodesContainerType& rNodesContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rNodesContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNonHistoricalVariable", [](ModelPart::ConditionsContainerType& rConditionsContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rConditionsContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNonHistoricalVariable", [](ModelPart::ConditionsContainerType& rConditionsContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rConditionsContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNonHistoricalVariable", [](ModelPart::ElementsContainerType& rElementsContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNonHistoricalVariable", [](ModelPart::ElementsContainerType& rElementsContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillNonHistoricalVariable(rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);})
         ;
 
 }

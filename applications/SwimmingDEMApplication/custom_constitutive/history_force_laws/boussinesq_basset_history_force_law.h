@@ -22,7 +22,7 @@ namespace Kratos {
             mOldDaitchePresentCoefficient(0.0),
             mOldBassetTerm(ZeroVector(3)){}
 
-        BoussinesqBassetHistoryForceLaw(Parameters& r_parameters);
+        BoussinesqBassetHistoryForceLaw(Parameters r_parameters);
 
         ~BoussinesqBassetHistoryForceLaw(){}
 

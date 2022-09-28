@@ -17,7 +17,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateN
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
 
 class ScalarTurbulenceModelRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Scalar turbulence model formulation base class
 
         This solves the variable given in self.GetSolvingVariable(), using element and conditions
@@ -30,7 +30,14 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        defaults = Kratos.Parameters(r"""{
+        self.BackwardCompatibilityHelper(settings, deprecated_settings_dict)
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.echo_level = settings["echo_level"].GetInt()
+
+        super().__init__(model_part, settings, deprecated_settings_dict)
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r"""{
             "relative_tolerance"    : 1e-3,
             "absolute_tolerance"    : 1e-5,
             "max_iterations"        : 200,
@@ -39,13 +46,19 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             "linear_solver_settings": {
                 "solver_type"  : "amgcl"
             },
-            "boundary_flags": ["INLET", "STRUCTURE"]
+            "boundary_flags": ["INLET", "STRUCTURE"],
+            "wall_function_settings": {
+                "wall_function_region_type": "logarithmic_region_only",
+                "wall_friction_velocity_calculation_method": "velocity_based"
+            }
         }""")
 
-        settings.ValidateAndAssignDefaults(defaults)
-        self.echo_level = settings["echo_level"].GetInt()
-
-        super().__init__(model_part, settings)
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        if "wall_function_settings" in deprecated_settings_dict.keys():
+            if settings.Has("wall_function_settings"):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Found \"wall_function_settings\" in deprecated settings as well as in formulation settings. Continuing with formulation based settings.")
+            else:
+                settings.AddValue("wall_function_settings", deprecated_settings_dict["wall_function_settings"].Clone())
 
     @abstractmethod
     def GetSolvingVariable(self):
@@ -174,19 +187,14 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         else:
             raise Exception("Unsupported stabilization method")
 
-    def SetWallFunctionSettings(self, settings):
+    def SetWallFunctionSettings(self):
+        wall_function_settings = self.GetParameters()["wall_function_settings"]
+        wall_function_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["wall_function_settings"])
         self.condition_name = self.GetConditionNamePrefix()
 
         if (self.condition_name != ""):
-            if (settings.Has("wall_function_region_type")):
-                wall_function_region_type = settings["wall_function_region_type"].GetString()
-            else:
-                wall_function_region_type = "logarithmic_region_only"
-
-            if (settings.Has("wall_friction_velocity_calculation_method")):
-                wall_friction_velocity_calculation_method = settings["wall_friction_velocity_calculation_method"].GetString()
-            else:
-                wall_friction_velocity_calculation_method = "velocity_based"
+            wall_function_region_type = wall_function_settings["wall_function_region_type"].GetString()
+            wall_friction_velocity_calculation_method = wall_function_settings["wall_friction_velocity_calculation_method"].GetString()
 
             if (wall_function_region_type == "logarithmic_region_only"):
                 if (wall_friction_velocity_calculation_method == "velocity_based"):

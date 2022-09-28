@@ -55,6 +55,7 @@ public:
     LockObject(LockObject const& rOther) = delete;
 
     /// Move constructor.
+    KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
     LockObject(LockObject&& rOther) noexcept
 #ifdef KRATOS_SMP_OPENMP
 			: mLock(rOther.mLock)

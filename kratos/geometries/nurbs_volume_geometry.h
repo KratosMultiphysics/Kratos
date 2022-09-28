@@ -239,6 +239,26 @@ public:
     ///@name Get and Set functions
     ///@{
 
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegreeU,
+        const SizeType PolynomialDegreeV,
+        const SizeType PolynomialDegreeW,
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rKnotsW)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegreeU = PolynomialDegreeU;
+        mPolynomialDegreeV = PolynomialDegreeV;
+        mPolynomialDegreeW = PolynomialDegreeW;
+        mKnotsU = rKnotsU;
+        mKnotsV = rKnotsV;
+        mKnotsW = rKnotsW;
+
+        CheckAndFitKnotVectors();
+    }
+
     /**
      * @return returns the polynomial degree 'p' in u direction.
      **/
@@ -542,6 +562,19 @@ public:
 
         return result;
     }
+
+    ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(
+            { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },
+            { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+    }
+
     ///@}
     ///@name Integration Points
     ///@{
@@ -551,7 +584,8 @@ public:
      * @return integration points.
      **/
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;
@@ -663,7 +697,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsVolumeShapeFunction shape_function_container(
@@ -704,10 +739,8 @@ public:
                 nonzero_control_points(j) = pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...
@@ -903,6 +936,20 @@ public:
     }
 
     ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -1079,7 +1126,7 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 template<class TPointType>
 const GeometryData NurbsVolumeGeometry<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TPointType>

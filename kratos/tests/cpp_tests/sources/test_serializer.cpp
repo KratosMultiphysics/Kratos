@@ -7,7 +7,7 @@
 //  License:     BSD License
 //           Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 //
 
@@ -246,6 +246,22 @@ namespace Kratos {
                 { "3",   10.258 }
             };
             std::unordered_map<std::string, double> object_to_be_loaded;
+
+            TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(SerializerSet, KratosCoreFastSuite)
+        {
+            std::set<std::string> object_to_be_saved {"aaa", "bbb", "ccc"};
+            std::set<std::string> object_to_be_loaded;
+
+            TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(SerializerUnorderedSet, KratosCoreFastSuite)
+        {
+            std::unordered_set<std::string> object_to_be_saved {"aaa", "bbb", "ccc"};
+            std::unordered_set<std::string> object_to_be_loaded;
 
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }

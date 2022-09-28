@@ -58,7 +58,7 @@ ConstitutiveLaw::SizeType Newtonian3DLaw::WorkingSpaceDimension() {
     return 3;
 }
 
-ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() const {
     return 6;
 }
 
@@ -189,7 +189,7 @@ void Newtonian3DLaw::CalculateDerivative(
 int Newtonian3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     // Check viscosity value
     KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)

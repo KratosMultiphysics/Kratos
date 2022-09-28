@@ -34,7 +34,7 @@ Its main applications are:
 - [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
 Some main modules are:
-- [External Solvers](applications/ExternalSolversApplication/README.md)
+- [Linear Solvers](applications/LinearSolversApplication/README.md)
 - [Trilinos](applications/TrilinosApplication/README.md)
 - [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)

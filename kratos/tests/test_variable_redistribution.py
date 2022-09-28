@@ -1,20 +1,14 @@
 from KratosMultiphysics import *
-try:
-    from KratosMultiphysics.FSIApplication import *
-    have_fsi = True
-except ImportError:
-    have_fsi = False
-
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.testing.utilities as TestingUtilities
+import KratosMultiphysics.gid_output_process
 
-@UnitTest.skipUnless(have_fsi,"Missing required application: FSIApplication")
-class VariableRedistributionTest(UnitTest.TestCase):
+class TestVariableRedistributionUtility(UnitTest.TestCase):
 
     def setUp(self):
         self.input_file = "redistribution_test"
-        self.work_folder = "auxiliar_files_for_python_unittest/RedistributionTest"
+        self.work_folder = "auxiliar_files_for_python_unittest/variable_redistribution_utility"
 
         self.domain_size = 3
         self.redistribution_iterations = 100
@@ -29,7 +23,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(self.work_folder,__file__):
             KratosUtilities.DeleteTimeFiles('.')
 
-    def testLinearFunction(self):
+    def test_linear_function(self):
         def Flag1Check(node):
             return node.GetSolutionStepValue(FLAG_VARIABLE) == 1.0
 
@@ -41,45 +35,37 @@ class VariableRedistributionTest(UnitTest.TestCase):
             ReferenceSolution,
             PRESSURE,
             NODAL_PAUX,
-            TEMPERATURE
-        )
+            TEMPERATURE)
 
-    def testSharpCorners(self):
-
+    def test_sharp_corners(self):
         def FlagDefinedCheck(node):
             return node.GetSolutionStepValue(FLAG_VARIABLE) > 0.0
 
         def ReferenceSolution(node,variable):
             node.SetSolutionStepValue(variable, 10.*node.X + node.Y)
 
-
         self.RunTestCase(
             FlagDefinedCheck,
             ReferenceSolution,
             PRESSURE,
             NODAL_PAUX,
-            TEMPERATURE
-        )
+            TEMPERATURE)
 
-    def testQuadratic(self):
-
+    def test_quadratic(self):
         def FlagDefinedCheck(node):
             return node.GetSolutionStepValue(FLAG_VARIABLE) > 0.0
 
         def ReferenceSolution(node,variable):
             node.SetSolutionStepValue(variable, node.X*node.X + node.Y*node.Z)
 
-
         self.RunTestCase(
             FlagDefinedCheck,
             ReferenceSolution,
             PRESSURE,
             NODAL_PAUX,
-            TEMPERATURE
-        )
+            TEMPERATURE)
 
-    def testVector(self):
-
+    def test_vector(self):
         def FlagDefinedCheck(node):
             return node.GetSolutionStepValue(FLAG_VARIABLE) > 0.0
 
@@ -90,21 +76,19 @@ class VariableRedistributionTest(UnitTest.TestCase):
             value[2] = 500
             node.SetSolutionStepValue(variable, value)
 
-
         self.RunTestCase(
             FlagDefinedCheck,
             ReferenceSolution,
             VELOCITY,
             VORTICITY,
-            ACCELERATION
-        )
+            ACCELERATION)
 
     def test_quad_elements_quadratic_scalar_field(self):
         # Read mdpa and set test model part
         self.domain_size = 2
         self.input_file = "two_dim_unstructured_square_quads"
         self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
-        self.SetUpProblem()
+        self._SetUpProblem()
 
         # Set scalar origin field
         for node in self.model_part.Nodes:
@@ -130,23 +114,22 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.redistribution_iterations)
 
         if self.print_output:
-            self.InitializeOutput()
-            self.PrintOutput()
-            self.FinalizeOutput()
+            self._PrintOutput()
 
         # Check results
-        self.CheckDoubleResults(self.model_part, reference_variable, result_variable)
+        self._CheckDoubleResults(self.model_part, reference_variable, result_variable)
 
     def test_quad_elements_quadratic_vector_field_non_historical(self):
         # Read mdpa and set test model part
         self.domain_size = 2
         self.input_file = "two_dim_unstructured_square_quads"
         self.work_folder = "auxiliar_files_for_python_unittest/mdpa_files"
-        self.SetUpProblem()
+        self._SetUpProblem()
 
         # Set scalar origin field
         for node in self.model_part.Nodes:
             node.SetValue(VELOCITY, [node.X**2 + node.Y**2, node.X + node.Y, 0.0])
+        self.model_part.GetCommunicator().SynchronizeNonHistoricalVariable(VELOCITY)
 
         # Perform the variable redistribution test (first make point and then distribute again)
         reference_variable = VELOCITY
@@ -168,61 +151,56 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.redistribution_iterations)
 
         if self.print_output:
-            self.InitializeOutput()
-            self.PrintOutput()
-            self.FinalizeOutput()
+            self._PrintOutput()
 
         # Check results
-        self.CheckArrayResults(self.model_part, reference_variable, result_variable)
+        self._CheckArrayResults(self.model_part, reference_variable, result_variable)
 
     def RunTestCase(self,inteface_check,set_reference,reference_variable,intermediate_variable,result_variable):
         # Read mdpa and set test model part
-        self.SetUpProblem()
+        self._SetUpProblem()
 
         for node in self.model_part.Nodes:
             if inteface_check(node):
-                node.Set(INTERFACE,True)
                 set_reference(node,reference_variable)
-
-        self.GenerateInterface()
+        self.model_part.GetCommunicator().SynchronizeVariable(reference_variable)
 
         VariableRedistributionUtility.ConvertDistributedValuesToPoint(
-            self.interface_model_part,
+            self.model_part,
+            self.model_part.Conditions,
             reference_variable,
             intermediate_variable)
 
         VariableRedistributionUtility.DistributePointValues(
-            self.interface_model_part,
+            self.model_part,
+            self.model_part.Conditions,
             intermediate_variable,
             result_variable,
             self.redistribution_tolerance,
             self.redistribution_iterations)
 
         if self.print_output:
-            self.InitializeOutput()
-            self.PrintOutput()
-            self.FinalizeOutput()
+            self._PrintOutput()
 
         if KratosGlobals.Kernel.HasDoubleVariable(reference_variable.Name()):
-            self.CheckDoubleResults(self.interface_model_part, reference_variable,result_variable)
+            self._CheckDoubleResults(self.model_part, reference_variable,result_variable)
         elif KratosGlobals.Kernel.HasArrayVariable(reference_variable.Name()):
-            self.CheckArrayResults(self.interface_model_part, reference_variable,result_variable)
+            self._CheckArrayResults(self.model_part, reference_variable,result_variable)
         else:
             self.fail("Failing due to incorrect test definition: Wrong variable type")
 
-    def testNodalArea(self):
+    def test_nodal_area(self):
         self.input_file = "square10"
 
-        self.SetUpProblem()
+        self._SetUpProblem()
 
         for node in self.model_part.Nodes:
-            node.Set(INTERFACE,True)
             node.SetSolutionStepValue(PRESSURE,1.0)
-
-        self.GenerateInterface()
+        self.model_part.GetCommunicator().SynchronizeVariable(PRESSURE)
 
         VariableRedistributionUtility.ConvertDistributedValuesToPoint(
-            self.interface_model_part,
+            self.model_part,
+            self.model_part.Conditions,
             PRESSURE,
             TEMPERATURE)
 
@@ -231,19 +209,18 @@ class VariableRedistributionTest(UnitTest.TestCase):
             for node in cond.GetNodes():
                 nodal_area = node.GetSolutionStepValue(NODAL_PAUX)
                 node.SetSolutionStepValue(NODAL_PAUX,nodal_area+area/3.0)
+        self.model_part.GetCommunicator().AssembleCurrentData(NODAL_PAUX)
 
         if self.print_output:
-            self.InitializeOutput()
-            self.PrintOutput()
-            self.FinalizeOutput()
+            self._PrintOutput()
 
-        self.CheckDoubleResults(self.interface_model_part, TEMPERATURE, NODAL_PAUX)
+        self._CheckDoubleResults(self.model_part, TEMPERATURE, NODAL_PAUX)
 
-
-    def SetUpProblem(self):
+    def _SetUpProblem(self):
         with UnitTest.WorkFolderScope(self.work_folder,__file__):
-            current_model = Model()
-            self.model_part = current_model.CreateModelPart("Model")
+            self.current_model = Model()
+            self.model_part = self.current_model.CreateModelPart("Interface")
+
             self.model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
             self.model_part.AddNodalSolutionStepVariable(PRESSURE)
             self.model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
@@ -253,25 +230,17 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.model_part.AddNodalSolutionStepVariable(ACCELERATION)
 
             self.model_part.ProcessInfo[DOMAIN_SIZE] = self.domain_size
-            TestingUtilities.ReadModelPart(self.input_file, self.model_part)
-
             self.model_part.SetBufferSize(1)
 
-    def GenerateInterface(self):
-        current_model = Model()
-        self.interface_model_part = current_model.CreateModelPart("Interface")
+            TestingUtilities.ReadModelPart(self.input_file, self.model_part)
 
-        interface_model_part_generator = InterfacePreprocess()
-        interface_model_part_generator.GenerateTriangleInterfacePart(self.model_part,self.interface_model_part)
-
-
-    def CheckDoubleResults(self, model_part, reference_variable,result_variable):
+    def _CheckDoubleResults(self, model_part, reference_variable,result_variable):
         for node in model_part.Nodes:
             reference = node.GetSolutionStepValue(reference_variable)
             result = node.GetSolutionStepValue(result_variable)
             self.assertAlmostEqual(reference, result, delta=self.check_tolerance)
 
-    def CheckArrayResults(self, model_part, reference_variable,result_variable):
+    def _CheckArrayResults(self, model_part, reference_variable,result_variable):
         for node in model_part.Nodes:
             reference = node.GetSolutionStepValue(reference_variable)
             result = node.GetSolutionStepValue(result_variable)
@@ -279,41 +248,31 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.assertAlmostEqual(reference[1], result[1], delta=self.check_tolerance)
             self.assertAlmostEqual(reference[2], result[2], delta=self.check_tolerance)
 
-    def InitializeOutput(self):
-        gid_mode = GiDPostMode.GiD_PostBinary
-        multifile = MultiFileFlag.SingleFile
-        deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = WriteConditionsFlag.WriteConditions
-        self.gid_io = GidIO(self.input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
-
-        mesh_name = 0.0
-        self.gid_io.InitializeMesh( mesh_name)
-        self.gid_io.WriteMesh( self.model_part.GetMesh() )
-        self.gid_io.FinalizeMesh()
-        self.gid_io.InitializeResults(mesh_name,(self.model_part).GetMesh())
-
-    def FinalizeOutput(self):
-        self.gid_io.FinalizeResults()
-
-    def PrintOutput(self):
-        label = self.model_part.ProcessInfo[TIME]
-        self.gid_io.WriteNodalResults(PRESSURE,self.model_part.Nodes,label,0)
-        self.gid_io.WriteNodalResults(NODAL_PAUX,self.model_part.Nodes,label,0)
-        self.gid_io.WriteNodalResults(TEMPERATURE,self.model_part.Nodes,label,0)
-        self.gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,label,0)
-        self.gid_io.WriteNodalResults(VORTICITY,self.model_part.Nodes,label,0)
-        self.gid_io.WriteNodalResults(ACCELERATION,self.model_part.Nodes,label,0)
-
+    def _PrintOutput(self):
+        gid_output_settings = KratosMultiphysics.Parameters(r'''{
+            "Parameters" : {
+                "model_part_name" : "Interface",
+                "output_name" : "test_variable_redistribution",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags": {
+                            "GiDPostMode": "GiD_PostBinary",
+                            "WriteDeformedMeshFlag": "WriteUndeformed",
+                            "WriteConditionsFlag": "WriteConditions",
+                            "MultiFileFlag": "SingleFile"
+                        },
+                        "nodal_results" : ["PRESSURE", "NODAL_PAUX", "TEMPERATURE", "VELOCITY", "VORTICITY", "ACCELERATION"]
+                    }
+                }
+            }
+        }''')
+        gid_output_process = KratosMultiphysics.gid_output_process.Factory(gid_output_settings ,self.current_model)
+        gid_output_process.ExecuteInitialize()
+        gid_output_process.ExecuteBeforeSolutionLoop()
+        gid_output_process.ExecuteInitializeSolutionStep()
+        gid_output_process.PrintOutput()
+        gid_output_process.ExecuteFinalizeSolutionStep()
+        gid_output_process.ExecuteFinalize()
 
 if __name__ == '__main__':
-    test = VariableRedistributionTest()
-    test.setUp()
-    test.print_output = True
-    test.testLinearFunction()
-    test.testSharpCorners()
-    test.testVector()
-    test.testQuadratic()
-    test.testNodalArea()
-    test.test_quad_elements_quadratic_scalar_field()
-    test.test_quad_elements_quadratic_vector_field_non_historical()
-    test.tearDown()
+    UnitTest.main()

@@ -30,12 +30,15 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         # Set the ELEMENTAL_DISTANCES value
         # This is required for the discontinuous elements tests
         n_nodes = len(computing_model_part.Elements[1].GetNodes())
+        n_edges = computing_model_part.Elements[1].GetGeometry().EdgesNumber()
+        elem_edge_dist = KratosMultiphysics.Vector(n_edges, -1.0)
         for element in computing_model_part.Elements:
             elem_dist = KratosMultiphysics.Vector(n_nodes)
             elem_nodes = element.GetNodes()
             for i_node in range(n_nodes):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
 
         # Set up the initial velocity condition
         if self.slip_interface:

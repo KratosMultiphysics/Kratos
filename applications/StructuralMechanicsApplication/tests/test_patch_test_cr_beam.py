@@ -612,12 +612,12 @@ class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
 
         out1 = mp.Elements[1].CalculateOnIntegrationPoints(KratosMultiphysics.MOMENT,mp.ProcessInfo)
         out2 = mp.Elements[2].CalculateOnIntegrationPoints(KratosMultiphysics.MOMENT,mp.ProcessInfo)
-        self.assertAlmostEqual(out1[0][2], 165000.0)
-        self.assertAlmostEqual(out1[1][2], 110000.0)
-        self.assertAlmostEqual(out1[2][2], 55000.0)
-        self.assertAlmostEqual(out2[2][2], 165000.0)
-        self.assertAlmostEqual(out2[1][2], 110000.0)
-        self.assertAlmostEqual(out2[0][2], 55000.0)
+        self.assertAlmostEqual(out1[0][2], -165000.0)
+        self.assertAlmostEqual(out1[1][2], -110000.0)
+        self.assertAlmostEqual(out1[2][2], -55000.0)
+        self.assertAlmostEqual(out2[2][2], -165000.0)
+        self.assertAlmostEqual(out2[1][2], -110000.0)
+        self.assertAlmostEqual(out2[0][2], -55000.0)
 
 
 class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):

@@ -79,23 +79,17 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Check(
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIntegrationMethod()
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
-
-template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::ResidualsContributions(
-    Data& rData)
-    : mrData(rData)
-{
-}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGaussPointResidualsContributions(
     VectorF& rResidual,
+    Data& rData,
     const double W,
     const Vector& rN,
-    const Matrix& rdNdX)
+    const Matrix& rdNdX) const
 {
     for (IndexType a = 0; a < TNumNodes; ++a) {
         const IndexType row = a * TBlockSize;
@@ -105,79 +99,74 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGauss
             double value = 0.0;
 
             // Adding RHS derivative terms
-            value += W * rN[a] * mrData.mBodyForce[i]; // v*BodyForce
-            value += mrData.mDensity * W * mrData.mTauOne * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mBodyForce[i];
-            value -= mrData.mDensity * W * mrData.mTauOne * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mMomentumProjection[i];
-            value -= W * mrData.mTauTwo * rdNdX(a, i) * mrData.mMassProjection;
+            value += W * rN[a] * rData.mBodyForce[i]; // v*BodyForce
+            value += rData.mDensity * W * rData.mTauOne * rData.mConvectiveVelocityDotDnDx[a] * rData.mBodyForce[i];
+            value -= rData.mDensity * W * rData.mTauOne * rData.mConvectiveVelocityDotDnDx[a] * rData.mMomentumProjection[i];
+            value -= W * rData.mTauTwo * rdNdX(a, i) * rData.mMassProjection;
 
             // Adding LHS derivative terms
-            value -= W * mrData.mDensity * rN[a] * mrData.mEffectiveVelocityDotVelocityGradient[i];
-            value -= W * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mTauOne * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradient[i];
-            value -= W * mrData.mTauOne * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mPressureGradient[i];
-            value += W * rdNdX(a, i) * mrData.mPressure;
-            value -= W * mrData.mTauTwo * rdNdX(a, i) * mrData.mVelocityDotNabla;
+            value -= W * rData.mDensity * rN[a] * rData.mEffectiveVelocityDotVelocityGradient[i];
+            value -= W * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mTauOne * rData.mDensity * rData.mEffectiveVelocityDotVelocityGradient[i];
+            value -= W * rData.mTauOne * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mPressureGradient[i];
+            value += W * rdNdX(a, i) * rData.mPressure;
+            value -= W * rData.mTauTwo * rdNdX(a, i) * rData.mVelocityDotNabla;
 
             // Adding Mass term derivatives
-            value -= W * mrData.mDensity * rN[a] * mrData.mRelaxedAcceleration[i];
-            value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mRelaxedAcceleration[i];
+            value -= W * rData.mDensity * rN[a] * rData.mRelaxedAcceleration[i];
+            value -= W * rData.mTauOne * rData.mDensity * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rData.mRelaxedAcceleration[i];
 
             rResidual[row + i] += value;
         }
 
         double value = 0.0;
 
-        const double forcing = mrData.mBodyForceDotDnDx[a] - mrData.mMomentumProjectionDotDnDx[a];
-        value += W * mrData.mTauOne * forcing;
-        value -= W * mrData.mTauOne * mrData.mDensity * mrData.mEffectiveVelocityDotVelocityGradientDotShapeGradient[a];
-        value -= W * rN[a] * mrData.mVelocityDotNabla;
-        value -= W * mrData.mTauOne * mrData.mPressureGradientDotDnDx[a];
+        const double forcing = rData.mBodyForceDotDnDx[a] - rData.mMomentumProjectionDotDnDx[a];
+        value += W * rData.mTauOne * forcing;
+        value -= W * rData.mTauOne * rData.mDensity * rData.mEffectiveVelocityDotVelocityGradientDotShapeGradient[a];
+        value -= W * rN[a] * rData.mVelocityDotNabla;
+        value -= W * rData.mTauOne * rData.mPressureGradientDotDnDx[a];
 
         // Adding mass term derivatives
-        value -=  W * mrData.mTauOne * mrData.mDensity * mrData.mRelaxedAccelerationDotDnDx[a];
+        value -=  W * rData.mTauOne * rData.mDensity * rData.mRelaxedAccelerationDotDnDx[a];
 
         rResidual[row + TDim] += value;
     }
 
-    this->AddViscousTerms(rResidual, W);
+    ResidualsContributions::AddViscousTerms(rData, rResidual, W);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddViscousTerms(
+    Data& rData,
     VectorF& rResidual,
-    const double W) const
+    const double W)
 {
     for (IndexType a = 0; a < TNumNodes; ++a) {
         const IndexType row = a * TBlockSize;
         const IndexType local_row = a * TBlockSize;
 
         for (IndexType i = 0; i < TDim; ++i) {
-            rResidual[row + i] -= W * mrData.mViscousTermRHSContribution[local_row + i];
+            rResidual[row + i] -= W * rData.mViscousTermRHSContribution[local_row + i];
         }
 
-        rResidual[row + TDim] -= W * mrData.mViscousTermRHSContribution[local_row + TDim];
+        rResidual[row + TDim] -= W * rData.mViscousTermRHSContribution[local_row + TDim];
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::SecondDerivatives(
-    Data& rData)
-    : mrData(rData)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaussPointResidualsDerivativeContributions(
+template <unsigned int TComponentIndex>
+void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TComponentIndex>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
+    Data& rData,
     const int NodeIndex,
-    const int DirectionIndex,
     const double W,
     const Vector& rN,
-    const Matrix& rdNdX)
+    const Matrix& rdNdX) const
 {
     rResidualDerivative.clear();
 
-    const double coeff_1 = W * mrData.mDensity;
-    const double coeff_2 = coeff_1 * mrData.mTauOne;
+    const double coeff_1 = W * rData.mDensity;
+    const double coeff_2 = coeff_1 * rData.mTauOne;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (IndexType a = 0; a < TNumNodes; ++a) {
@@ -186,29 +175,31 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives::CalculateGaus
         double value = 0.0;
 
         value -= coeff_1 * rN[a] * rN[NodeIndex];
-        value -= coeff_2 * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
+        value -= coeff_2 * rData.mDensity * rData.mConvectiveVelocityDotDnDx[a] * rN[NodeIndex];
 
-        rResidualDerivative[col + DirectionIndex] += value;
-        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, DirectionIndex) * rN[NodeIndex];
+        rResidualDerivative[col + TComponentIndex] += value;
+        rResidualDerivative[col + TDim] -= coeff_2 * rdNdX(a, TComponentIndex) * rN[NodeIndex];
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
+void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(
     const Element& rElement,
     ConstitutiveLaw& rConstitutiveLaw,
     const ProcessInfo& rProcessInfo)
-    : mrElement(rElement),
-      mrConstitutiveLaw(rConstitutiveLaw)
 {
     KRATOS_TRY
 
+    // set the element and constitutive law pointers
+    mpElement = &rElement;
+    mpConstitutiveLaw = &rConstitutiveLaw;
+
     // this method gathers values which are constants for all gauss points.
 
-    const auto& r_geometry = mrElement.GetGeometry();
+    const auto& r_geometry = mpElement->GetGeometry();
 
     // get values from properties
-    const auto& properties = mrElement.GetProperties();
+    const auto& properties = mpElement->GetProperties();
     mDensity = properties.GetValue(DENSITY);
     mDynamicViscosity = properties.GetValue(DYNAMIC_VISCOSITY);
 
@@ -244,7 +235,7 @@ QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Data(
 
     // setting up primal constitutive law
     InitializeConstitutiveLaw(mConstitutiveLawValues, mStrainRate, mShearStress, mC,
-                              r_geometry, mrElement.GetProperties(), rProcessInfo);
+                              r_geometry, mpElement->GetProperties(), rProcessInfo);
 
     // setting up adjoint derivative variables
     mStrainRateDerivative.resize(TStrainSize);
@@ -262,7 +253,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     using element_utilities = FluidElementUtilities<TNumNodes>;
     using derivative_utilities = QSVMSDerivativeUtilities<TDim>;
 
-    const auto& r_geometry = mrElement.GetGeometry();
+    const auto& r_geometry = mpElement->GetGeometry();
 
     // get gauss point evaluated values
     FluidCalculationUtilities::EvaluateInPoint(
@@ -296,8 +287,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
 
     // ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     // this is ok under the hypothesis that no history dependent behavior is employed
-    mrConstitutiveLaw.CalculateMaterialResponseCauchy(mConstitutiveLawValues);
-    mrConstitutiveLaw.CalculateValue(mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(mConstitutiveLawValues);
+    mpConstitutiveLaw->CalculateValue(mConstitutiveLawValues, EFFECTIVE_VISCOSITY, mEffectiveViscosity);
 
     element_utilities::GetStrainMatrix(rdNdX, mStrainMatrix);
     noalias(mViscousTermRHSContribution) = prod(trans(mStrainMatrix), mShearStress);
@@ -420,9 +411,19 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::InitializeConstitutiveLaw(
 // template instantiations
 template class QSVMSResidualDerivatives<2, 3>;
 template class QSVMSResidualDerivatives<2, 4>;
+template class QSVMSResidualDerivatives<2, 3>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<2, 3>::SecondDerivatives<1>;
+template class QSVMSResidualDerivatives<2, 4>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<2, 4>::SecondDerivatives<1>;
 
 template class QSVMSResidualDerivatives<3, 4>;
 template class QSVMSResidualDerivatives<3, 8>;
+template class QSVMSResidualDerivatives<3, 4>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<3, 4>::SecondDerivatives<1>;
+template class QSVMSResidualDerivatives<3, 4>::SecondDerivatives<2>;
+template class QSVMSResidualDerivatives<3, 8>::SecondDerivatives<0>;
+template class QSVMSResidualDerivatives<3, 8>::SecondDerivatives<1>;
+template class QSVMSResidualDerivatives<3, 8>::SecondDerivatives<2>;
 
 
 } // namespace Kratos

@@ -264,7 +264,7 @@ public:
 		  }
 
 		  // Transfer elemental variables
-		  p_element->Data() = it->Data();
+		  p_element->GetData() = it->GetData();
 		  p_element->GetValue(SPLIT_ELEMENT) = false;
 		  NewElements.push_back(p_element);
 
@@ -389,7 +389,7 @@ public:
                     CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
                     // Create the new conditions
-                    bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
+                    bool create_condition =  TriangleSplit::Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
                     if(create_condition==true)
                     {
@@ -421,7 +421,7 @@ public:
                             pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
                             // Transfer condition variables
-                            pcond->Data() = it->Data();
+                            pcond->GetData() = it->GetData();
                             pcond->GetValue(SPLIT_ELEMENT) = false;
                             NewConditions.push_back(pcond);
 

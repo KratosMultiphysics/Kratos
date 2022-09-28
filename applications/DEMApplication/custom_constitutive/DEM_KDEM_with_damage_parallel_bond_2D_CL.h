@@ -8,7 +8,7 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_with_damage_parallel_bond_2D : public DEM_KDEM_with_damage_parallel_bond {
 
-        //typedef DEM_KDEM_with_damage_parallel_bond BaseClassType;
+        typedef DEM_KDEM_with_damage_parallel_bond BaseClassType;
 
     public:
 
@@ -22,6 +22,9 @@ namespace Kratos {
 
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
 
+        void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
+                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1,
+                                             SphericContinuumParticle* element2, double indentation) override;
 
     private:
 

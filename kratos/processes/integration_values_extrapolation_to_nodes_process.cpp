@@ -239,7 +239,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 
     // Remove average variable
     block_for_each(r_nodes_array, [&](Node<3>& rNode){
-        auto& data = rNode.Data();
+        auto& data = rNode.GetData();
         data.Erase(*mpAverageVariable);
 
         // We erase the doubles values

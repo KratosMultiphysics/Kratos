@@ -24,18 +24,17 @@
 #include "includes/model_part.h"
 #include "custom_utilities/mapper_local_system.h"
 
-namespace Kratos
-{
-namespace MappingMatrixUtilities
-{
+namespace Kratos {
 
 template<class TSparseSpace, class TDenseSpace>
-void KRATOS_API(MAPPING_APPLICATION) InitializeSystemVector(
+class KRATOS_API(MAPPING_APPLICATION) MappingMatrixUtilities
+{
+public:
+static void InitializeSystemVector(
     Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpVector,
     const std::size_t VectorSize);
 
-template<class TSparseSpace, class TDenseSpace>
-void KRATOS_API(MAPPING_APPLICATION) BuildMappingMatrix(
+static void BuildMappingMatrix(
     Kratos::unique_ptr<typename TSparseSpace::MatrixType>& rpMappingMatrix,
     Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorOrigin,
     Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorDestination,
@@ -44,14 +43,13 @@ void KRATOS_API(MAPPING_APPLICATION) BuildMappingMatrix(
     std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
     const int EchoLevel);
 
-template<class TSparseSpace, class TDenseSpace>
-void KRATOS_API(MAPPING_APPLICATION) CheckRowSum(
+static void CheckRowSum(
     const typename TSparseSpace::MatrixType& rM,
     const std::string& rBaseFileName,
     const bool ThrowError = false,
     const double Tolerance = 1e-15);
 
-}  // namespace MappinMatrixUtilities.
+};
 
 }  // namespace Kratos.
 
