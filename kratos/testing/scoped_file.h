@@ -10,6 +10,9 @@
 //  Main authors:    Máté Kelemen
 //
 
+
+#pragma once
+
 // STL includes
 #include <filesystem>
 #include <fstream>
