@@ -773,7 +773,7 @@ protected:
 				NeedRotation[j] = true;
 				rotations_needed++;
 
-				if (TDim == 2) LocalRotationOperator2D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
+				if constexpr (TDim == 2) LocalRotationOperator2D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 				else LocalRotationOperator3D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 			}
 

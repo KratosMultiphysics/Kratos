@@ -19,11 +19,6 @@ class WaveSolver(ShallowWaterBaseSolver):
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
         KM.Logger.PrintInfo(self.__class__.__name__, "Shallow water primitive DOFs added correctly.")
 
-    def AddVariables(self):
-        super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
-
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)

@@ -91,7 +91,7 @@ class TestRBFShapeFunctionsUtility(KratosUnittest.TestCase):
             [1.0,0.0,0.0],
             [0.0,1.0,0.0],
             [-1.0,0.0,0.0],
-            [-1.0,0.0,0.0]]
+            [-0.99,0.0,0.0]]
         cloud_coords = KratosMultiphysics.Matrix(len(cloud_points_array), 3)
         for i in range(len(cloud_points_array)):
             for j in range(3):
@@ -109,10 +109,10 @@ class TestRBFShapeFunctionsUtility(KratosUnittest.TestCase):
             eigen_col_piv_qr)
 
         N_expected = KratosMultiphysics.Vector(4)
-        N_expected[0] = 0.35228579471383387
-        N_expected[1] = 0.29542841057233227
-        N_expected[2] = 0.3522857947138338
-        N_expected[3] = 0.0
+        N_expected[0] = 0.3477832764687009
+        N_expected[1] = 0.2813057493661467
+        N_expected[2] = -11.243513620898828
+        N_expected[3] = 11.61442459506398
         self.assertVectorAlmostEqual(N_container, N_expected, 8)
 
     def PostProcess(self, output_name):

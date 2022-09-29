@@ -24,10 +24,10 @@
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
-#include "custom_constitutive/hyper_elastic_simo_taylor_neo_hookean_3d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
-#include "custom_constitutive/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_simo_taylor_neo_hookean_3d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos

@@ -41,18 +41,16 @@ class Procedures(DEM_procedures.Procedures):
 
         root = main_path + '/' + problem_name
         post_path = root + '_Post_Files'
-        data_and_results = root + '_Results_and_Data'
         graphs_path = root + '_Graphs'
-        MPI_results = root + '_MPI_results'
 
         if mpi.rank == 0 and do_print_results:
-            for directory in [post_path, data_and_results, graphs_path, MPI_results]:
+            for directory in [post_path, graphs_path]:
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))
 
         self.Barrier()
 
-        return [post_path, data_and_results, graphs_path, MPI_results]
+        return [post_path, graphs_path]
 
     def PreProcessModel(self, DEM_parameters):
         Logger.PrintInfo("Creating MPIer...")

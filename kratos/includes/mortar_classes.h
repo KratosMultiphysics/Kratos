@@ -818,7 +818,7 @@ public:
             noalias(DeltaN1[i]) = zero_vector_slave;
             noalias(DeltaN2[i]) = zero_vector_master;
         }
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             for (IndexType i = 0; i < DoFSizeMasterGeometry; ++i) {
                 DeltaDetjSlave[i + DoFSizeSlaveGeometry] = 0.0;
                 noalias(DeltaPhi[i + DoFSizeSlaveGeometry]) = zero_vector_slave;
@@ -834,7 +834,7 @@ public:
     virtual void ResetDerivatives()
     {
         // Derivatives
-        if (TDim == 3) { // Derivative of the cell vertex
+        if constexpr (TDim == 3) { // Derivative of the cell vertex
             // Auxiliar zero matrix
             const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
             for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
@@ -1534,7 +1534,7 @@ public:
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
                 }
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (IndexType i = DoFSizeSlaveGeometry; i < DoFSizePairedGeometry; ++i) {
                         DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                         DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
@@ -1552,7 +1552,7 @@ public:
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (IndexType i = DoFSizeSlaveGeometry; i < DoFSizePairedGeometry; ++i) {
                         DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
                         DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n2;

@@ -22,25 +22,21 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        tolerance = 1e-3
-        if self.time > 0.2:
-            node = self.spheres_model_part.GetNode(1)
-            normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
-            self.assertAlmostEqual(normal_impact_vel, 6.135616337653889, delta=tolerance)
-
-            node = self.spheres_model_part.GetNode(2)
-            normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
-            self.assertAlmostEqual(normal_impact_vel, 3.532381836682557, delta=tolerance)
-
-            node = self.spheres_model_part.GetNode(3)
-            normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
-            self.assertAlmostEqual(normal_impact_vel, 9.828777134668575, delta=tolerance)
-
-            self.check_mark_1 = True
+        tolerance = 1e-5
+        for node in self.spheres_model_part.Nodes:
+            final_bouncing_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
+            if node.Id == 1:
+                if self.time > 0.1999 and self.time < 0.2001:
+                    self.assertAlmostEqual(final_bouncing_vel, 5.931185649037769, delta = tolerance)
+            if node.Id == 2:
+                if self.time > 0.1999 and self.time < 0.2001:
+                    self.assertAlmostEqual(final_bouncing_vel, 7.508694851840698, delta = tolerance)
+            if node.Id == 3:
+                if self.time > 0.1999 and self.time < 0.2001:
+                    self.assertAlmostEqual(final_bouncing_vel, 8.440679872036805, delta = tolerance)
 
 
     def Finalize(self):
-        self.assertTrue(self.check_mark_1)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
