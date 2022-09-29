@@ -276,6 +276,7 @@ public:
         
         for (int k = 0; k < nconditions; k++)
         {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
             ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
             h += cond.mConvectionCoefficient;
         }
