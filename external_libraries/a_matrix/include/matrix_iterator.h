@@ -4,16 +4,11 @@ namespace AMatrix {
 
 template <typename TDataType>
 class RandomAccessIterator
-{
+    : public std::iterator<std::random_access_iterator_tag, TDataType> {
     TDataType* _p_data;
 
    public:
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = TDataType;
-    using difference_type = std::ptrdiff_t;
-    using pointer = TDataType*;
-    using reference = TDataType&;
-
+    using base_type = std::iterator<std::random_access_iterator_tag, TDataType>;
     using typename base_type::difference_type;
     RandomAccessIterator() = default;
     RandomAccessIterator(RandomAccessIterator const& Other) = default;

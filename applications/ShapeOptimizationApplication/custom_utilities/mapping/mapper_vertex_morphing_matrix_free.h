@@ -153,7 +153,7 @@ public:
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             GetVertexMorphingRadius(node_i),
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
@@ -222,7 +222,7 @@ public:
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             GetVertexMorphingRadius(node_i),
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
@@ -283,7 +283,7 @@ public:
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             GetVertexMorphingRadius(node_i),
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
@@ -353,7 +353,7 @@ public:
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             GetVertexMorphingRadius(node_i),
+                                                                             mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
@@ -539,7 +539,9 @@ private:
     void CreateFilterFunction()
     {
         std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type));
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
     }
 
     // --------------------------------------------------------------------------
@@ -596,17 +598,11 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(design_node));
+            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;
         }
-    }
-
-    // --------------------------------------------------------------------------
-    double GetVertexMorphingRadius(const NodeType& rNode) const override
-    {
-        return mFilterRadius;
     }
 
     // --------------------------------------------------------------------------

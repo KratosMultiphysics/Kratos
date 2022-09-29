@@ -20,7 +20,6 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/node.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -61,8 +60,6 @@ public:
     // Type definitions for better reading later
     typedef array_1d<double,3> array_3d;
 
-    typedef Node<3> NodeType;
-
   /// Pointer definition of Mapper
   KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
@@ -95,28 +92,16 @@ public:
   virtual void Update(){};
 
   // --------------------------------------------------------------------------
-  virtual void Map(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable)
-  {
-      KRATOS_ERROR << "Please implement this method in the derrived class.";
-  };
+  virtual void Map(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void Map(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable)
-  {
-      KRATOS_ERROR << "Please implement this method in the derrived class.";
-  }
+  virtual void Map(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void InverseMap(const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable)
-  {
-      KRATOS_ERROR << "Please implement this method in the derrived class.";
-  }
+  virtual void InverseMap(const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable)
-  {
-      KRATOS_ERROR << "Please implement this method in the derrived class.";
-  }
+  virtual void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) = 0;
 
   // --------------------------------------------------------------------------
 
@@ -170,11 +155,6 @@ protected:
   ///@}
   ///@name Protected Operations
   ///@{
-
-  virtual double GetVertexMorphingRadius(const NodeType& rNode) const
-  {
-      KRATOS_ERROR << "Please implement this method in the derrived class.";
-  }
 
   ///@}
   ///@name Protected  Access

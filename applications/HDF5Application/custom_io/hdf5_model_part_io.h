@@ -53,9 +53,6 @@ public:
     /// Constructor.
     ModelPartIO(File::Pointer pFile, std::string const& rPrefix);
 
-    /// Constructor.
-    ModelPartIO(File::Pointer pFile, std::string const& rPrefix, const Variable<double>& rUpdatedMeshIndicationVariable, const double UpdateMeshIndicationVariableValue);
-
     ///@}
     ///@name Operations
     ///@{
@@ -103,9 +100,6 @@ protected:
 
     File::Pointer mpFile;
     const std::string mPrefix;
-    const Variable<double>& mUpdatedMeshIndicationVariable;
-    const bool mIsUpdateMeshIndicationVariableUsed;
-    const double mUpdateMeshIndicationVariableValue;
 
     ///@}
 

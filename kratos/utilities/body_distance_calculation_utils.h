@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Laresse
 //                   Riccardo Rossi
-//
+//                    
 //
 
 #include "includes/model_part.h"
@@ -431,12 +431,10 @@ private:
     /*@{ */
 
 
-    class CompareElementDistance
+    class CompareElementDistance : public std::binary_function<const Element::Pointer, const Element::Pointer, bool >
     {
     public:
-        using first_argument_type = const Element::Pointer;
-        using second_argument_type = const Element::Pointer;
-        using result_type = bool;
+
         CompareElementDistance(const Variable<double>& rDistanceVar) : mrDistanceVar(rDistanceVar) { }
 
         bool operator()(const Element::Pointer a,

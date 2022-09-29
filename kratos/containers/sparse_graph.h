@@ -88,7 +88,7 @@ public:
     /// Destructor.
     virtual ~SparseGraph(){}
 
-    /// Copy constructor.
+    /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
     :
         mGraph(rOther.mGraph)
@@ -203,7 +203,7 @@ public:
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(rRowIndices.size()).for_each([&](IndexType i){
                     rRowIndices[i] = 0;
-                });
+                });            
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph())
@@ -224,7 +224,7 @@ public:
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){
                     rColIndices[i] = 0;
-                });
+                });            
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph()){
@@ -245,9 +245,9 @@ public:
     }
 
     //this function returns the Graph as a single vector
-    //in the form of
-    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row
-    //every row is pushed back one after the other
+    //in the form of 
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
+    //every row is pushed back one after the other 
     std::vector<IndexType> ExportSingleVectorRepresentation() const
     {
         std::vector< IndexType > single_vector_representation;
@@ -258,7 +258,7 @@ public:
         for(const auto& item : this->GetGraph()){
             IndexType I = item.first;
             single_vector_representation.push_back(I); //we store the index of the rows
-            single_vector_representation.push_back(item.second.size()); //the number of items in the row
+            single_vector_representation.push_back(item.second.size()); //the number of items in the row 
             for(auto J : item.second)
                 single_vector_representation.push_back(J); //the columns
         }
@@ -267,11 +267,11 @@ public:
 
     void AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)
     {
-        //IndexType graph_size = rSingleVectorRepresentation[0];
-        //we actually do not need the graph_size since it will be reconstructed,
+        //IndexType graph_size = rSingleVectorRepresentation[0]; 
+        //we actually do not need the graph_size since it will be reconstructed, 
         //however it is important that the graph_size is stored to make the single_vector
         //representation also compatible with the sparse_contiguous_row_graph
-
+        
         IndexType counter = 1;
         while(counter < rSingleVectorRepresentation.size())
         {
@@ -294,15 +294,13 @@ public:
     ///@}
     ///@name Access
     ///@{
-    class const_iterator_adaptor
+    class const_iterator_adaptor : public std::iterator<
+        std::forward_iterator_tag,
+        typename GraphType::value_type
+        >
 	{
 		const_row_iterator map_iterator;
 	public:
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = typename GraphType::value_type;
-        using difference_type = std::ptrdiff_t;
-        using pointer = typename GraphType::value_type*;
-        using reference = typename GraphType::value_type&;
 		const_iterator_adaptor(const_row_iterator it) :map_iterator(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it)
             : map_iterator(it.map_iterator) {}
@@ -416,7 +414,7 @@ private:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const
-    {
+    {   
         std::vector< IndexType > IJ = ExportSingleVectorRepresentation();
         rSerializer.save("IJ",IJ);
     }

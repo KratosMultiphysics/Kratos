@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//
+//                    
 //
 
 #if !defined(KRATOS_POINTER_VECTOR_MAP_H_INCLUDED )
@@ -583,12 +583,9 @@ protected:
     ///@}
 
 private:
-    class CompareKey
+    class CompareKey : public std::binary_function<value_type, key_type, bool>
     {
     public:
-        using first_argument_type = value_type;
-        using second_argument_type = key_type;
-        using result_type = bool;
         bool operator()(value_type const& a, key_type b) const
         {
             return TCompareType()(a.first, b);
@@ -607,13 +604,10 @@ private:
 //       bool operator()(value_type& a, value_type& b) const
 //       {return TCompareType()(a.first, b.first);}
 //     };
-    class EqualKeyTo
+    class EqualKeyTo : public std::binary_function<value_type&, value_type&, bool>
     {
         key_type mKey;
     public:
-        using first_argument_type = value_type&;
-        using second_argument_type = value_type&;
-        using result_type = bool;
         explicit EqualKeyTo(key_type k) : mKey(k) {}
         bool operator()(value_type const& a, value_type const& b) const
         {
@@ -748,4 +742,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINTER_VECTOR_MAP_H_INCLUDED  defined
+#endif // KRATOS_POINTER_VECTOR_MAP_H_INCLUDED  defined 

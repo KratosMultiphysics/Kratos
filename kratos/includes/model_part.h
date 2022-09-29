@@ -72,11 +72,9 @@ class Model;
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-    class GetModelPartName
+    class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
     {
     public:
-        using argument_type = const ModelPart* const;
-        using result_type = std::string;
         std::string const& operator()(const ModelPart& rModelPart) const
         {
             return rModelPart.Name();
@@ -1377,7 +1375,7 @@ public:
         const std::string& rGeometryTypeName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-
+    
     /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
@@ -1400,7 +1398,7 @@ public:
         const std::vector<IndexType>& rGeometryNodeIds
         );
 
-    /**
+    /** 
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1412,7 +1410,7 @@ public:
         GeometryType::PointsArrayType pGeometryNodes
         );
 
-    /**
+    /** 
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1447,7 +1445,7 @@ public:
         const std::string& rGeometryIdentifierName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-
+    
         /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added. Must be registered.

@@ -35,11 +35,9 @@ namespace Kratos
 template<class TGeometryType>
 class GeometryContainer
 {
-    class GetGeometryId
+    class GetGeometryId : public std::unary_function<const TGeometryType* const, std::size_t>
     {
     public:
-        using argument_type = const TGeometryType*;
-        using result_type = std::size_t;
         std::size_t const& operator()(const TGeometryType& rGeometry) const
         {
             return rGeometry.Id();

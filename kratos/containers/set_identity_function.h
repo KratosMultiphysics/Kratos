@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//
+//                    
 //
 
 
@@ -31,11 +31,9 @@ namespace Kratos
 	/// Identity function is for having the object also as key in sets
 	/**
 	*/
-	template<class TDataType> class SetIdentityFunction
+	template<class TDataType> class SetIdentityFunction : public std::unary_function<TDataType, TDataType>
 	{
 	public:
-        using argument_type = TDataType;
-        using result_type = TDataType;
 		TDataType& operator()(TDataType& data)
 		{
 			return data;
@@ -51,4 +49,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_IDENTITY_FUNCTION_H_INCLUDED  defined
+#endif // KRATOS_SET_IDENTITY_FUNCTION_H_INCLUDED  defined 

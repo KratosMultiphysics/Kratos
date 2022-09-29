@@ -91,6 +91,7 @@ class InitializePreviousSolutionStepValuesProcess(Kratos.Process):
                         self.variable, self.value, self.model_part.Nodes, 1)
                 # most general case - space varying function (possibly also time varying)
                 else:
+                    # needs a way with the new master to set previous time steps values
                     self.cpp_apply_function_utility.ApplyFunction(
                         self.variable, old_time, 1)
 

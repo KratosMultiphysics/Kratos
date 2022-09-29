@@ -73,7 +73,6 @@ void AddCustomIOToPython(pybind11::module& m)
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
         .def(py::init<HDF5::File::Pointer, std::string const&>())
-        .def(py::init<HDF5::File::Pointer, std::string const&, const Variable<double>&, const double>())
         ;
 
     py::class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
@@ -96,7 +95,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteElementFlags", &HDF5::ElementFlagValueIO::WriteElementFlags)
         .def("ReadElementFlags", &HDF5::ElementFlagValueIO::ReadElementFlags)
-        ;
+        ; 
 
     py::class_<HDF5::ElementDataValueIO, HDF5::ElementDataValueIO::Pointer>(
         m,"HDF5ElementDataValueIO")
@@ -110,7 +109,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteConditionFlags", &HDF5::ConditionFlagValueIO::WriteConditionFlags)
         .def("ReadConditionFlags", &HDF5::ConditionFlagValueIO::ReadConditionFlags)
-        ;
+        ; 
 
     py::class_<HDF5::ConditionDataValueIO, HDF5::ConditionDataValueIO::Pointer>(
         m,"HDF5ConditionDataValueIO")
@@ -124,7 +123,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalFlags", &HDF5::NodalFlagValueIO::WriteNodalFlags)
         .def("ReadNodalFlags", &HDF5::NodalFlagValueIO::ReadNodalFlags)
-        ;
+        ; 
 
     py::class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
         m,"HDF5NodalDataValueIO")

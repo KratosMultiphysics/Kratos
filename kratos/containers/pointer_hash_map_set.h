@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//
+//                    
 //
 
 
@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 /// PointerHashMapSet is a hash implemenetation of the PointerVectorSet.
-/** This container is like a set but is built over a hash map in order
+/** This container is like a set but is built over a hash map in order 
 	to allow the key to be a part of the value. It is important to mention
 	that the value is not constant and if the key inside the value changed
 	outside results in inconsistence condition.
@@ -97,15 +97,10 @@ public:
 private:
 	///@name Nested clases
 	///@{
-	class iterator_adaptor
+	class iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
 	{
 		ptr_iterator map_iterator;
 	public:
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = data_type;
-        using difference_type = std::ptrdiff_t;
-        using pointer = data_type*;
-        using reference = data_type&;
 		iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
 		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		iterator_adaptor& operator++() { map_iterator++; return *this; }
@@ -118,15 +113,10 @@ private:
 		ptr_iterator const& base() const { return map_iterator; }
 	};
 
-	class const_iterator_adaptor
+	class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
 	{
 		ptr_const_iterator map_iterator;
 	public:
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = data_type;
-        using difference_type = std::ptrdiff_t;
-        using pointer = data_type*;
-        using reference = data_type&;
 		const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
@@ -357,7 +347,7 @@ public:
         return mData.capacity();
     }
 
-
+ 
     ///@}
     ///@name Access
     ///@{
@@ -375,7 +365,7 @@ public:
     }
 
 
-
+ 
     ///@}
     ///@name Inquiry
     ///@{
@@ -588,4 +578,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined
+#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined 

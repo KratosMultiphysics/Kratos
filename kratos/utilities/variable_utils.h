@@ -645,13 +645,13 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes,
-        const unsigned int Step = 0)
+        NodesContainerType& rNodes
+        )
     {
         KRATOS_TRY
 
         block_for_each(rNodes, [&](Node<3>& rNode) {
-            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
+            rNode.FastGetSolutionStepValue(rVariable) = rValue;
         });
 
         KRATOS_CATCH("")

@@ -30,7 +30,6 @@
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
 #include "utilities/variable_utils.h"
-#include "utilities/parallel_utilities.h"
 #include "utilities/element_size_calculator.h"
 
 #include "spatial_containers/spatial_containers.h"
@@ -74,7 +73,8 @@ public:
     // For better reading
     typedef array_1d<double,3> array_3d;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef ModelPart::ElementType::GeometryType GeometryType;
+
+    using GeometryType = ModelPart::ElementType::GeometryType;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
@@ -114,7 +114,7 @@ public:
             "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
         KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
-        CalculateAreaNormalsFromConditions();
+        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
         CalculateUnitNormals();
 
         KRATOS_CATCH("");
@@ -273,31 +273,31 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeVolume()
+    double ComputeVolume(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         std::function<double(const GeometryType&)> volume_method;
 
-        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         int number_of_nodes = -1;
-        if (mrModelPart.NumberOfElements() > 0) {
-            number_of_nodes = mrModelPart.Elements().front().GetGeometry().PointsNumber();
+        if (rModelPart.NumberOfElements() > 0) {
+            number_of_nodes = rModelPart.Elements().front().GetGeometry().PointsNumber();
 
-            block_for_each(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            block_for_each(rModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
                 KRATOS_ERROR_IF(static_cast<int>(rElement.GetGeometry().PointsNumber()) != number_of_nodes)
                     << "Mismatching geometries with different number of nodes "
                        "found in "
-                    << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
+                    << rModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
                     << number_of_nodes << ", current_element_id = " << rElement.Id()
                     << ", current element's geometry's number of nodes = "
                     << rElement.GetGeometry().PointsNumber() << " ].\n";
             });
         }
-        number_of_nodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
+        number_of_nodes = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
 
         KRATOS_ERROR_IF(number_of_nodes == -1)
-            << "No elements were found in " << mrModelPart.Name()
+            << "No elements were found in " << rModelPart.Name()
             << ". Please use a model part with elements.\n";
 
         if (domain_size == 2) {
@@ -346,44 +346,45 @@ public:
         }
 
         const double volume = block_for_each<SumReduction<double>>(
-            mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            rModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
                 return volume_method(rElement.GetGeometry());
             });
 
-        return mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(volume);
+        return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(volume);
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
     void ComputeVolumeShapeDerivatives(
+        ModelPart& rModelPart,
         const Variable<array_3d>& rDerivativeVariable)
     {
         KRATOS_TRY
 
         using CUInt = const unsigned int;
 
-        VariableUtils().SetNonHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
+        VariableUtils().SetHistoricalVariableToZero(rDerivativeVariable, rModelPart.Nodes());
 
-        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         int number_of_nodes = -1;
-        if (mrModelPart.NumberOfElements() > 0) {
-            number_of_nodes = mrModelPart.Elements().front().GetGeometry().PointsNumber();
+        if (rModelPart.NumberOfElements() > 0) {
+            number_of_nodes = rModelPart.Elements().front().GetGeometry().PointsNumber();
 
-            block_for_each(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            block_for_each(rModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
                 KRATOS_ERROR_IF(static_cast<int>(rElement.GetGeometry().PointsNumber()) != number_of_nodes)
                     << "Mismatching geometries with different number of nodes "
                        "found in "
-                    << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
+                    << rModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
                     << number_of_nodes << ", current_element_id = " << rElement.Id()
                     << ", current element's geometry's number of nodes = "
                     << rElement.GetGeometry().PointsNumber() << " ].\n";
             });
         }
-        number_of_nodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
+        number_of_nodes = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
 
         KRATOS_ERROR_IF(number_of_nodes == -1)
-            << "No elements were found in " << mrModelPart.Name()
+            << "No elements were found in " << rModelPart.Name()
             << ". Please use a model part with elements.\n";
 
         std::function<double(CUInt, CUInt, const GeometryType&)> volume_derivative_method;
@@ -428,7 +429,7 @@ public:
                          << domain_size << " ].\n";
         }
 
-        block_for_each(mrModelPart.Elements(), [&](ModelPart::ElementType& rElement){
+        block_for_each(rModelPart.Elements(), [&](ModelPart::ElementType& rElement){
             auto& r_geometry = rElement.GetGeometry();
             for (int c = 0; c < static_cast<int>(r_geometry.PointsNumber()); ++c) {
                 auto& r_node = r_geometry[c];
@@ -437,14 +438,14 @@ public:
                     const double derivative_value = volume_derivative_method(c, k, r_geometry);
 
                     r_node.SetLock();
-                    auto& r_derivative_value = r_node.GetValue(rDerivativeVariable);
+                    auto& r_derivative_value = r_node.FastGetSolutionStepValue(rDerivativeVariable);
                     r_derivative_value[k] += derivative_value;
                     r_node.UnSetLock();
                 }
             }
         });
 
-        mrModelPart.GetCommunicator().AssembleNonHistoricalData(rDerivativeVariable);
+        rModelPart.GetCommunicator().AssembleCurrentData(rDerivativeVariable);
 
         KRATOS_CATCH("");
     }
@@ -546,31 +547,111 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void CalculateAreaNormalsFromConditions()
+    void CalculateAreaNormals(ConditionsArrayType& rConditions, int dimension)
     {
         KRATOS_TRY
 
         //resetting the normals
-        VariableUtils().SetHistoricalVariableToZero(NORMAL, mrModelPart.Nodes());
+        array_1d<double,3> zero = Vector(3);
+        noalias(zero) = ZeroVector(3);
 
-        //calculating the normals and summing up at nodes
-        const array_1d<double,3> local_coords = ZeroVector(3);
-        block_for_each(mrModelPart.Conditions(), [&](Condition& rCond)
+        for(auto & cond_i : rConditions)
         {
-            auto& r_geometry = rCond.GetGeometry();
+            Element::GeometryType& rNodes = cond_i.GetGeometry();
+            for(unsigned int in = 0; in<rNodes.size(); in++)
+                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
+        }
 
-            const array_1d<double,3> normal = r_geometry.Normal(local_coords);
-            const double coeff = 1.0/r_geometry.size();
-
-            for(auto& node_i : r_geometry)
+        //calculating the normals and storing on the conditions
+        array_1d<double,3> An;
+        if(dimension == 2)
+        {
+            for(auto & cond_i : rConditions)
             {
-                node_i.SetLock();
-                noalias(node_i.FastGetSolutionStepValue(NORMAL)) += coeff * normal;
-                node_i.UnSetLock();
+                if (cond_i.GetGeometry().PointsNumber() == 2)
+                    CalculateNormal2D(cond_i,An);
             }
-        });
+        }
+        else if(dimension == 3)
+        {
+            array_1d<double,3> v1;
+            array_1d<double,3> v2;
+            for(auto & cond_i : rConditions)
+            {
+                //calculate the normal on the given condition
+                if (cond_i.GetGeometry().PointsNumber() == 3)
+                    CalculateNormal3DTriangle(cond_i,An,v1,v2);
+                else if (cond_i.GetGeometry().PointsNumber() == 4)
+                    CalculateNormal3DQuad(cond_i,An,v1,v2);
+                else
+                    KRATOS_ERROR << "Calculation of surface normal not implemented for the given surface conditions!";
+            }
+        }
+
+        //adding the normals to the nodes
+        for(auto & cond_i : rConditions)
+        {
+            Geometry<Node<3> >& pGeometry = cond_i.GetGeometry();
+            double coeff = 1.00/pGeometry.size();
+	        const array_1d<double,3>& normal = cond_i.GetValue(NORMAL);
+            for(unsigned int i = 0; i<pGeometry.size(); i++)
+                noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+        }
 
         KRATOS_CATCH("")
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal2D(Condition& cond, array_1d<double,3>& An)
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
+        An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+        An[2] =    0.00;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal3DTriangle(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        v1[0] = pGeometry[1].X() - pGeometry[0].X();
+        v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+        v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+        v2[0] = pGeometry[2].X() - pGeometry[0].X();
+        v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+        v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+        MathUtils<double>::CrossProduct(An,v1,v2);
+        An *= 0.5;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal3DQuad(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        v1[0] = pGeometry[2].X() - pGeometry[0].X();
+        v1[1] = pGeometry[2].Y() - pGeometry[0].Y();
+        v1[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+        v2[0] = pGeometry[3].X() - pGeometry[1].X();
+        v2[1] = pGeometry[3].Y() - pGeometry[1].Y();
+        v2[2] = pGeometry[3].Z() - pGeometry[1].Z();
+
+        MathUtils<double>::CrossProduct(An,v1,v2);
+        An *= 0.5;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
     }
 
     // --------------------------------------------------------------------------
