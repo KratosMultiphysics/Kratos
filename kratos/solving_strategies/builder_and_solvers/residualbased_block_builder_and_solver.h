@@ -270,12 +270,6 @@ public:
 
                     //assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-
-                    ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
-                    #pragma omp critical
-                    {
-                      h += cond.mConvectionCoefficient;
-                    }
                 }
             }
         }
@@ -284,23 +278,6 @@ public:
 
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
-
-        // Write convection coefficient
-        h = h / nconditions;
-        const int step    = CurrentProcessInfo[STEP];
-        const double time = CurrentProcessInfo[TIME];
-        std::ofstream file_ConvCoeff;
-        if (step == 1) {
-          file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::out);
-          file_ConvCoeff << "STEP | TIME | AVERAGE CONV. COEFF. (H)" << std::endl;
-          file_ConvCoeff << step << " " << time << " " << h << std::endl;
-        }
-        else if (step%10 == 0) {
-          file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::app);
-          file_ConvCoeff << step << " " << time << " " << h << std::endl;
-        }
-        if (file_ConvCoeff.is_open())
-          file_ConvCoeff.close();
 
         KRATOS_CATCH("")
     }
