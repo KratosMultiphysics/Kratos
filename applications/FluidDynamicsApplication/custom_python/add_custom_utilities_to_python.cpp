@@ -178,6 +178,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
         ;
 
 }
