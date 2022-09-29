@@ -120,7 +120,6 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const GeometryType& r_geometry = GetGeometry();
 
     double denominator = 1.0;
     const double small_cut_instability_tolerance = 0.01;
