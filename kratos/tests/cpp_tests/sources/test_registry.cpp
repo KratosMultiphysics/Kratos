@@ -102,8 +102,6 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     registry_item.RemoveItem("sub_value_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_value_item"));
-
-    KRATOS_WATCH(registry_item.ToJson());
 }
 
 
