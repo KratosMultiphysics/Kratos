@@ -13,7 +13,7 @@ from importlib import import_module
 
 def Create(settings, model, solver_name):
     # We assume that the location of analysis stage is in the same application as the solver or it is completely specified
-    module_name = settings["analysis_module"].GetString()
+    module_name = settings["analysis_stage"].GetString()
     imported_module = import_module(module_name)
 
     if settings.Has("analysis_name"):
