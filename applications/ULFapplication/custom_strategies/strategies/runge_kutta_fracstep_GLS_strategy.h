@@ -25,7 +25,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 //#include "incompressible_fluid_application.h"
 #include "ULF_application.h"
@@ -35,7 +35,7 @@
 
 
 #include <stdio.h>      /* printf */
-#include <math.h>       /* cos */
+#include <cmath>       /* cos */
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
@@ -96,7 +96,7 @@ namespace Kratos
     class TLinearSolver
     >
     class RungeKuttaFracStepStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
     {
     public:
       /**@name Type Definitions */
@@ -107,7 +107,7 @@ namespace Kratos
 
       KRATOS_CLASS_POINTER_DEFINITION(  RungeKuttaFracStepStrategy );
 
-      typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+      typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
       typedef typename BaseType::TDataType TDataType;
 
@@ -156,7 +156,7 @@ namespace Kratos
 			       //unsigned int laplacian_form = 2, //1 = laplacian, 2 = discrete laplacian
 			       //bool predictor_corrector = false
 			       )
-      : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+      : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
 	{
 	  KRATOS_TRY
 	    //std::cout << "SONO QUI" << std::endl;
@@ -243,7 +243,7 @@ namespace Kratos
 	  Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
 	  //int id=1;
-	  if (TDim==2)
+	  if constexpr (TDim==2)
 	    {
 	      Fluid2DGLS_expl el(1, p_null_geom);
 
@@ -251,7 +251,7 @@ namespace Kratos
                 KRATOS_THROW_ERROR(std::logic_error,  "Incompressible Runge Kutta Strategy requires utilization of Fluid2DGLS_expl elements " , "");
 	    }
 
-	  if (TDim==3)
+	  if constexpr (TDim==3)
 	    {
 	      KRATOS_THROW_ERROR(std::logic_error,  "not Runge Kutta Strategy for 3D problems " , "");
 	      //            Fluid3DGLS_expl el(1, p_null_geom);
@@ -680,7 +680,7 @@ namespace Kratos
 	  }
         double one_sixth = 0.166666666666667;
 	
-        if (TDim==2)
+        if constexpr (TDim==2)
 	  {
             //allocation of work space
             boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
@@ -737,7 +737,7 @@ namespace Kratos
                 //reusing aux for the third node
 	      }
 	  }
-        if (TDim==3)
+        if constexpr (TDim==3)
 	  {
             KRATOS_WATCH("Last step in 3D")
 	      
@@ -1010,18 +1010,18 @@ namespace Kratos
 			if (row_index==col_index)
 			  {
 			    //Mconsistent(row_index,col_index) += temp * 2.0;
-			    if (TDim==2)
+			    if constexpr (TDim==2)
 			      Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
-			    else if (TDim==3)
+			    else if constexpr (TDim==3)
 			      Mconsistent(row_index,col_index) += 0.2*temp * 2.0;
 			  }
 			else
 			  {
 			  
 			    //Mconsistent(row_index,col_index) += temp ;
-			    if (TDim==2)
+			    if constexpr (TDim==2)
 			      Mconsistent(row_index,col_index) += 0.25*temp ;
-			    else if (TDim==3)
+			    else if constexpr (TDim==3)
 			      Mconsistent(row_index,col_index) += 0.2*temp;
 			  
 			  }

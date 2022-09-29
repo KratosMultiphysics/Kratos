@@ -11,7 +11,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 // External includes
 
 
@@ -21,7 +21,6 @@
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
-#include "containers/vector_map.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
 #include "includes/indexed_object.h"

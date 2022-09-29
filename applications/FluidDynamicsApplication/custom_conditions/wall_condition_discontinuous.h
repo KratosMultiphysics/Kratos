@@ -261,11 +261,11 @@ public:
             if(!this->Is(SLIP) )
             {
                 const GeometryType& rGeom = this->GetGeometry();
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
                 const unsigned int NumGauss = IntegrationPoints.size();
                 Vector GaussWeights = ZeroVector(NumGauss);
 
-                MatrixType N = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+                MatrixType N = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                 array_1d<double,3> Normal;
                 this->CalculateNormal(Normal); //this already contains the area
@@ -381,11 +381,11 @@ public:
         {
             const unsigned int LocalSize = TNumNodes;
             const GeometryType& rGeom = this->GetGeometry();
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
             const unsigned int NumGauss = IntegrationPoints.size();
             Vector GaussWeights = ZeroVector(NumGauss);
 
-            MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             array_1d<double,3> Normal;
             this->CalculateNormal(Normal); //this already contains the area

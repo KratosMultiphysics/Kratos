@@ -1,9 +1,7 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
 from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
 

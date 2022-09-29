@@ -19,7 +19,7 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //default builder and solver
 #include "custom_solvers/solution_builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
@@ -33,7 +33,7 @@ template<class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class ExplicitHamiltonStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
 
@@ -41,7 +41,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitHamiltonStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::BuilderAndSolverType BuilderAndSolverType;
 
@@ -68,7 +68,7 @@ public:
         ModelPart& model_part,
         bool MoveMeshFlag = false
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
     }
 
@@ -80,7 +80,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
         KRATOS_TRY
 

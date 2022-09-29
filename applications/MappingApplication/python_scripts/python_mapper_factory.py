@@ -6,49 +6,34 @@
 # This way users won't notice / won't have to change their code
 
 import KratosMultiphysics as KM
-from KratosMultiphysics.MappingApplication import MapperFactory
 
 from importlib import import_module
 
-def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
+def _InternalCreateMapper(mapper_factory, err_info, model_part_origin, model_part_destination, mapper_settings):
     if not isinstance(mapper_settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     mapper_type = mapper_settings["mapper_type"].GetString()
 
     # use the MappingApp if it has the requested mapper
-    if MapperFactory.HasMapper(mapper_type):
-        return MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
+    if mapper_factory.HasMapper(mapper_type):
+        return mapper_factory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
     else:
         mapper_module = import_module(mapper_type)
         return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
 
-    list_avail_mappers = MapperFactory.GetRegisteredMapperNames()
+    list_avail_mappers = mapper_factory.GetRegisteredMapperNames()
 
-    err_msg  = 'The requested mapper "{}" is not available in serial (non-MPI)\n'.format(mapper_type)
+    err_msg  = 'The requested mapper "{}" is not available in {}\n'.format(mapper_type, err_info)
     err_msg += 'The following mappers are available:'
     for avail_mapper in list_avail_mappers:
         err_msg += '\n\t{}'.format(avail_mapper)
     raise Exception(err_msg)
 
+
+def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
+    return _InternalCreateMapper(KM.MapperFactory, "serial (non-MPI)", model_part_origin, model_part_destination, mapper_settings)
 
 def CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings):
-    if not isinstance(mapper_settings, KM.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-
-    mapper_type = mapper_settings["mapper_type"].GetString()
-
-    # use the MappingApp if it has the requested mapper
-    if MapperFactory.HasMPIMapper(mapper_type):
-        return MapperFactory.CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings)
-    else:
-        mapper_module = import_module(mapper_type)
-        return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
-
-    list_avail_mappers = MapperFactory.GetRegisteredMPIMapperNames()
-
-    err_msg  = 'The requested mapper "{}" is not available in MPI\n'.format(mapper_type)
-    err_msg += 'The following mappers are available:'
-    for avail_mapper in list_avail_mappers:
-        err_msg += '\n\t{}'.format(avail_mapper)
-    raise Exception(err_msg)
+    from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
+    return _InternalCreateMapper(MPIMapperFactory, "MPI", model_part_origin, model_part_destination, mapper_settings)

@@ -12,6 +12,7 @@
 //
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
+#include "incompressible_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
@@ -72,6 +73,14 @@ namespace Kratos
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+            std::vector<int>& rValues,
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
@@ -360,6 +369,8 @@ namespace Kratos
     // Template class instantiation
 
     template class AdjointBasePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;

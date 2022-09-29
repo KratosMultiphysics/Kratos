@@ -1,11 +1,11 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -68,8 +68,14 @@ public:
     /// Pointer definition of ContactResidualBasedEliminationBuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedEliminationBuilderAndSolver);
 
+    /// Builder and solver base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+
     /// Definitions dependent of the base class
     typedef ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > BaseType;
+
+    /// The definition of the current class
+    typedef ContactResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     /// Base types definitions
     typedef typename BaseType::TSchemeType TSchemeType;
@@ -101,6 +107,27 @@ public:
     ///@name Life Cycle
     ///@{
 
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ContactResidualBasedEliminationBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ContactResidualBasedEliminationBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
     /** Constructor.
      */
     ContactResidualBasedEliminationBuilderAndSolver(
@@ -122,6 +149,19 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseBuilderAndSolverType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
+    }
 
     /**
      * @brief It organises the dofset in order to speed up the building phase
@@ -189,6 +229,32 @@ public:
         BaseType::SetUpSystem(rModelPart);
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "contact_residual_elimination_builder_and_solver"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "contact_residual_elimination_builder_and_solver";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -219,6 +285,15 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -232,7 +307,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables 
     ///@{

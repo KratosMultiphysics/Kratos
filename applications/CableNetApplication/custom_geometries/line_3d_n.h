@@ -570,10 +570,9 @@ public:
 
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
+    void ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
     }
 
 
@@ -858,7 +857,7 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 template<class TPointType>
 const GeometryData Line3DN<TPointType>::msGeometryData(
         &msGeometryDimension,
-        GeometryData::GI_GAUSS_2,
+        GeometryData::IntegrationMethod::GI_GAUSS_2,
         Line3DN<TPointType>::AllIntegrationPoints(),
         Line3DN<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );

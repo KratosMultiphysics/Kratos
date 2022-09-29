@@ -34,7 +34,7 @@ def run_stages(project_path,n_stages):
 
 if __name__ == "__main__":
 
-    n_stages = 11
-    project_path = r"C:\Users\noordam\Documenten\Kratos\applications\GeoMechanicsApplication\test_examples\1D-Consolidation_all_stages"
+    n_stages = int(sys.argv[2])
+    project_path = sys.argv[1]
 
     run_stages(project_path, n_stages)

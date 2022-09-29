@@ -31,6 +31,9 @@ void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, Num
 template <int NumNodes>
 BoundedVector<double,NumNodes> AssignDistancesToElement();
 
+template <int NumNodes>
+BoundedVector<double,NumNodes> GetDistanceValues();
+
 void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical);
 
 template <int NumNodes>

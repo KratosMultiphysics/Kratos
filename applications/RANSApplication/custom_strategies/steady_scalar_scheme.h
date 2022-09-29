@@ -84,12 +84,14 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rDofSet, [](DofType& pDof) {
-            if (pDof.IsFree()) {
-                const double value = pDof.GetSolutionStepValue(1);
-                pDof.GetSolutionStepValue() = value;
-            }
-        });
+        if (rModelPart.GetBufferSize() > 1) {
+            block_for_each(rDofSet, [](DofType& pDof) {
+                if (pDof.IsFree()) {
+                    const double value = pDof.GetSolutionStepValue(1);
+                    pDof.GetSolutionStepValue() = value;
+                }
+            });
+        }
 
         KRATOS_CATCH("");
     }
@@ -226,7 +228,6 @@ protected:
     {
         KRATOS_TRY;
 
-        rItem.InitializeNonLinearIteration(rCurrentProcessInfo);
         rItem.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         rItem.CalculateLocalVelocityContribution(
             mDampingMatrix[ThreadId], rRHS_Contribution, rCurrentProcessInfo);

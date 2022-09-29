@@ -22,7 +22,7 @@ model_part_str = '''-Main- model part
     Number of sub model parts : 2
     Current solution step index : 0
 
-    Number of Geometries  : 0
+    Number of Geometries  : 9
     Mesh 0 :
         Number of Nodes       : 6
         Number of Properties  : 1
@@ -92,6 +92,7 @@ class TestObjectPrinting(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 

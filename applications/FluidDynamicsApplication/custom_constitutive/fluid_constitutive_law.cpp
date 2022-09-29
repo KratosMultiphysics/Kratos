@@ -42,9 +42,11 @@ void FluidConstitutiveLaw::CalculateMaterialResponseCauchy(Parameters& rValues) 
                  << std::endl;
 }
 
-int FluidConstitutiveLaw::Check(const Properties& rMaterialProperties,
+int FluidConstitutiveLaw::Check(
+    const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo) const
+{
     KRATOS_ERROR << "Calling base "
                     "FluidConstitutiveLaw::Check "
                     "method. This class should not be instantiated. Please "
@@ -91,7 +93,7 @@ ConstitutiveLaw::SizeType FluidConstitutiveLaw::WorkingSpaceDimension() {
     return 0;
 }
 
-ConstitutiveLaw::SizeType FluidConstitutiveLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType FluidConstitutiveLaw::GetStrainSize() const {
     KRATOS_ERROR << "Calling base "
                     "FluidConstitutiveLaw::GetStrainSize "
                     "method. This class should not be instantiated. Please "

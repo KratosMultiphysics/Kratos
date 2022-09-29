@@ -322,7 +322,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int LineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

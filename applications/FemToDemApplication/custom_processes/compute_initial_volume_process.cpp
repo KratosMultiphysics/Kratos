@@ -20,18 +20,18 @@ namespace Kratos {
 
 ComputeInitialVolumeProcess::ComputeInitialVolumeProcess(
     ModelPart& rModelPart)
-    : mrModelPart(rModelPart) 
+    : mrModelPart(rModelPart)
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
     std::size_t dimension = r_process_info[DOMAIN_SIZE];
-    mDimension = dimension;    
+    mDimension = dimension;
     mPressureName = (dimension == 2) ? "Normal_Load" : "Pressure_Load";
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeInitialVolumeProcess::Execute() 
+void ComputeInitialVolumeProcess::Execute()
 {
     const std::vector<std::string>& submodel_parts_names = mrModelPart.GetSubModelPartNames();
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
@@ -56,7 +56,7 @@ double ComputeInitialVolumeProcess::ComputeInitialVolumeSubModel(
         // #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rSubModel.Nodes().size()); i++) {
             auto it_node = it_node_begin + i;
-            const auto dist_increment = it_node->GetInitialPosition() - 
+            const auto dist_increment = it_node->GetInitialPosition() -
                 it_node_begin->GetInitialPosition();
             distance = inner_prod(dist_increment, dist_increment);
             max_distance = (distance > max_distance) ? distance : max_distance;
@@ -65,6 +65,7 @@ double ComputeInitialVolumeProcess::ComputeInitialVolumeSubModel(
         return Globals::Pi * std::pow(max_distance, 2) * 0.25;
     } else { // 3D
         // TODO
+        return 0.0;
     }
 }
 
@@ -89,12 +90,12 @@ void ComputeInitialVolumeProcess::AssignInitialVolumeToNodes(
 /***********************************************************************************/
 
 int ComputeInitialVolumeProcess::GetPressureIdSubModel(
-    const std::string& rSubModelName 
+    const std::string& rSubModelName
 )
 {
     const IndexType ref_string_size = (mDimension == 2) ? 18 : 20;
     const IndexType string_size = rSubModelName.size();
-    
+
     if (rSubModelName.size() == ref_string_size) { // from 1 to 9
         return std::stoi(rSubModelName.substr(string_size - 1, string_size));
     } else if (rSubModelName.size() == ref_string_size + 1) { // from 10 to 99

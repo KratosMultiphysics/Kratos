@@ -23,8 +23,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/model.h"
-#include "spatial_containers/spatial_containers.h"
-
 #include "includes/kratos_components.h"
 
 namespace Kratos
@@ -62,7 +60,7 @@ public:
             ? ModelerParameters["echo_level"].GetInt()
             : 0)
     {}
-   
+
     /// Constructor with Model
     Modeler(
         Model& rModel,
@@ -99,6 +97,14 @@ public:
     /// Convert the geometry model or import analysis suitable models.
     virtual void SetupModelPart()
     {}
+
+    /// This method provides the defaults parameters to avoid conflicts between the different constructors
+    virtual const Parameters GetDefaultParameters() const
+    {
+        KRATOS_ERROR << "Calling the base Modeler class GetDefaultParameters. Please implement the GetDefaultParameters in your derived model class." << std::endl;
+        const Parameters default_parameters = Parameters(R"({})");
+        return default_parameters;
+    }
 
     ///@}
     ///@name Operators

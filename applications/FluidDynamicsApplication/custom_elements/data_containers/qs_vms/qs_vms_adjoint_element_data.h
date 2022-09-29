@@ -18,12 +18,9 @@
 // External includes
 
 // Project includes
-#include "includes/node.h"
-#include "includes/process_info.h"
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
 
 // Application includes
+#include "custom_elements/data_containers/fluid_adjoint_derivatives.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.h"
 
@@ -35,17 +32,106 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 class QSVMSAdjointElementData
 {
-public:
-    ///@name Type Definitions
+private:
+    ///@name Private Type Definitions
     ///@{
 
     using IndexType = std::size_t;
 
-    using NodeType = Node<3>;
-
-    using GeometryType = Geometry<NodeType>;
-
     using TResidualsDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
+
+    using Data = typename TResidualsDerivatives::Data;
+
+    using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
+
+    using PressureDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
+
+    template<unsigned int TDirectionIndex>
+    using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes, TDirectionIndex>>;
+
+    template<unsigned int TDirectionIndex>
+    using ShapeDerivatives = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes, TDirectionIndex>>;
+
+    template<unsigned int TDirectionIndex>
+    using AccelerationDerivativeContributions = typename TResidualsDerivatives::template SecondDerivatives<TDirectionIndex>;
+
+    static constexpr IndexType ElementDataContainerIndex = 0;
+
+    static constexpr IndexType ResidualColumnOffset = 0;
+
+    ///@}
+
+public:
+    ///@name Template Type Definitions
+    ///@{
+
+    using Residual = CalculationDataContainers<
+                        std::tuple<
+                            Data>,
+                        std::tuple<
+                            SubAssembly<ResidualsContributions, ElementDataContainerIndex, 0, ResidualColumnOffset>>
+                        >;
+
+    using ResidualStateVariableFirstDerivatives = typename std::conditional<
+                                                        TDim == 2,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<VelocityDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<VelocityDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<PressureDerivativeContributions,    ElementDataContainerIndex, 2, ResidualColumnOffset>>
+                                                            >,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<VelocityDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<VelocityDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<VelocityDerivativeContributions<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>,
+                                                                SubAssembly<PressureDerivativeContributions,    ElementDataContainerIndex, 3, ResidualColumnOffset>>
+                                                            >
+                                                        >::type;
+
+    using ResidualStateVariableSecondDerivatives = typename std::conditional<
+                                                        TDim == 2,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<AccelerationDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<AccelerationDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<ZeroDerivatives<TNumNodes, 3>,          ElementDataContainerIndex, 2, ResidualColumnOffset>>
+                                                            >,
+                                                        CalculationDataContainers<
+                                                            std::tuple<
+                                                                Data>,
+                                                            std::tuple<
+                                                                SubAssembly<AccelerationDerivativeContributions<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                                SubAssembly<AccelerationDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                                SubAssembly<AccelerationDerivativeContributions<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>,
+                                                                SubAssembly<ZeroDerivatives<TNumNodes, 4>,          ElementDataContainerIndex, 3, ResidualColumnOffset>>
+                                                            >
+                                                        >::type;
+
+    using ResidualShapeDerivatives = typename std::conditional<
+                                            TDim == 2,
+                                            CalculationDataContainers<
+                                                std::tuple<
+                                                    Data>,
+                                                std::tuple<
+                                                    SubAssembly<ShapeDerivatives<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                    SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>>
+                                                >,
+                                            CalculationDataContainers<
+                                                std::tuple<
+                                                    Data>,
+                                                std::tuple<
+                                                    SubAssembly<ShapeDerivatives<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
+                                                    SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
+                                                    SubAssembly<ShapeDerivatives<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>>
+                                                >
+                                            >::type;
 
     ///@}
     ///@name Static Operations
@@ -57,77 +143,7 @@ public:
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
 
-    ///@}
-    ///@name Classes
-    ///@{
-
-    class Primal
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        using Data = typename TResidualsDerivatives::Data;
-
-        using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
-
-        ///@}
-    };
-
-    class StateDerivatives
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        class SecondDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            using Data = typename TResidualsDerivatives::Data;
-
-            using Acceleration = typename TResidualsDerivatives::SecondDerivatives;
-
-            ///@}
-
-        };
-
-        ///@}
-        ///@name Classes
-        ///@{
-
-        class FirstDerivatives
-        {
-        public:
-            ///@name Type Definitions
-            ///@{
-
-            using Data = typename TResidualsDerivatives::Data;
-
-            using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>>;
-
-            using Pressure = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
-
-            ///@}
-        };
-
-        ///@}
-    };
-
-    class SensitivityDerivatives
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        using Data = typename TResidualsDerivatives::Data;
-
-        using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>>;
-
-        ///@}
-    };
+    static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     ///@}
 };

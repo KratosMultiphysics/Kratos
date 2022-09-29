@@ -75,6 +75,8 @@ public:
      **/
     static std::size_t GetCurrentMemoryUsage();
 
+    static std::string HumanReadableSize(std::size_t InBytes);
+
     ///@}
     ///@name Input and output
     ///@{
@@ -97,12 +99,6 @@ public:
   ///@}
 
 private:
-    ///@name Private Operations
-    ///@{
-
-    std::string HumanReadableSize(std::size_t InBytes) const;
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 

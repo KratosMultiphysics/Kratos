@@ -15,7 +15,8 @@ class TimeBasedAsciiFileWriterUtility:
         default_settings = KratosMultiphysics.Parameters('''{
             "file_name"  : "",
             "output_path": "",
-            "write_buffer_size" : -1
+            "write_buffer_size" : -1,
+            "file_extension" : "dat"
         }''')
         # write_buffer_size: -1 means we use the system default
         # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
@@ -33,6 +34,10 @@ class TimeBasedAsciiFileWriterUtility:
         # file name and folder path specifications and check
         self.file_name = Path(params["file_name"].GetString())
         self.output_path = Path(params["output_path"].GetString())
+        self.file_extension = params["file_extension"].GetString()
+        if not self.file_extension.startswith("."):
+            self.file_extension = "." + self.file_extension
+            
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
@@ -129,8 +134,8 @@ class TimeBasedAsciiFileWriterUtility:
             raise Exception('No "file_name" was specified!')
 
         # check and correct file extension
-        if self.file_name.suffix != ".dat":
-            self.file_name = self.file_name.with_suffix(".dat")
+        if self.file_name.suffix != self.file_extension:
+            self.file_name = self.file_name.with_suffix(self.file_extension)
 
         if self.file_name.parent != Path(): # check if folder was specified in "file_name"
             warn_msg  = 'Path contained wrongly in "file_name" "{}", this will be ignored in the future\n'.format(self.file_name)
@@ -140,4 +145,4 @@ class TimeBasedAsciiFileWriterUtility:
         self.file_name = self.output_path / self.file_name
 
         # make sure that the path to the desired output folder exists
-        self.output_path.mkdir(parents=True, exist_ok=True)
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))

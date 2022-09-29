@@ -1,0 +1,95 @@
+{
+    "problem_data": {
+        "problem_name": "single_patch_refined_model",
+        "echo_level": 0,
+        "parallel_type": "OpenMP",
+        "start_time": 0,
+        "end_time": 0.010000000000000009
+    },
+    "solver_settings": {
+        "model_part_name": "IgaModelPart",
+        "domain_size": 1,
+        "echo_level": 0,
+        "buffer_size": 2,
+        "analysis_type": "non_linear",
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "material_import_settings": {
+            "materials_filename": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_materials.json"
+        },
+        "time_stepping": {
+            "time_step": 0.1
+        },
+        "rotation_dofs": false,
+        "reform_dofs_at_each_step": false,
+        "line_search": false,
+        "compute_reactions": true,
+        "block_builder": true,
+        "clear_storage": false,
+        "move_mesh_flag": true,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 0.001,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 0.001,
+        "max_iteration": 100,
+        "solver_type": "static",
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_qr"
+        },
+        "auxiliary_variables_list": ["VECTOR_LAGRANGE_MULTIPLIER","FORCE"],
+        "auxiliary_dofs_list": ["VECTOR_LAGRANGE_MULTIPLIER"],
+        "auxiliary_reaction_list": ["FORCE"]
+    },
+    "modelers": [{
+        "modeler_name": "CadIoModeler",
+        "Parameters": {
+            "echo_level": 0,
+            "cad_model_part_name": "IgaModelPart",
+            "geometry_file_name": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_geometry.cad.json"
+        }
+    }, {
+        "modeler_name": "IgaModeler",
+        "Parameters": {
+            "echo_level": 0,
+            "cad_model_part_name": "IgaModelPart",
+            "analysis_model_part_name": "IgaModelPart",
+            "physics_file_name": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange_physics.iga.json"
+        }
+    }],
+    "processes": {
+        "dirichlet_process_list": [{
+            "kratos_module": "KratosMultiphysics",
+            "python_module": "assign_vector_variable_to_conditions_process",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Support_2",
+                "variable_name": "DISPLACEMENT",
+                "value": [0, 0, 0],
+                "interval": [0, "End"]
+            }
+        }],
+        "neumann_process_list": [{
+            "kratos_module": "KratosMultiphysics",
+            "python_module": "assign_vector_variable_to_conditions_process",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Load_3",
+                "variable_name": "DEAD_LOAD",
+                "value": [1, 0, 0],
+                "interval": [0, "End"]
+            }
+        }],
+        "json_check_process": [{
+            "python_module": "from_json_check_result_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "check_variables": ["DISPLACEMENT"],
+                "input_file_name": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange_result.json",
+                "model_part_name": "IgaModelPart.Load_3",
+                "time_frequency": 0.0
+            }
+        }]
+    }
+}

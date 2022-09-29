@@ -21,6 +21,8 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -233,5 +235,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_DIMENSION_H_INCLUDED  defined
-
-

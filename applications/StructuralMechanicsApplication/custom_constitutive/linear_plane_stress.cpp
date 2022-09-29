@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_constitutive/linear_plane_stress.h"
-
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -89,31 +89,17 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    this->CheckClearElasticMatrix(C);
-
-    const double c1 = E / (1.00 - NU * NU);
-    const double c2 = c1 * NU;
-    const double c3 = 0.5*E / (1 + NU);
-
-    C(0, 0) = c1;
-    C(0, 1) = c2;
-    C(1, 0) = c2;
-    C(1, 1) = c1;
-    C(2, 2) = c3;
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rC, rValues);
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void LinearPlaneStress::CalculatePK2Stress(
-    const Vector& rStrainVector,
-    Vector& rStressVector,
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
 )
 {
@@ -136,15 +122,15 @@ void LinearPlaneStress::CalculatePK2Stress(
 void LinearPlaneStress::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
     //1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
 
     // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double, 2, 2> F2x2;
+    BoundedMatrix<double,2,2> F2x2;
     for (unsigned int i = 0; i<2; ++i)
         for (unsigned int j = 0; j<2; ++j)
             F2x2(i, j) = F(i, j);
 
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
+    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
 
     for (unsigned int i = 0; i<2; ++i)
         E_tensor(i, i) -= 1.0;

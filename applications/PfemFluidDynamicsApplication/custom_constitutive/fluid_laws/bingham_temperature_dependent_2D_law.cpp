@@ -52,7 +52,7 @@ std::string BinghamTemperatureDependent2DLaw::Info() const { return "BinghamTemp
 //*****************************************************************************
 
 int BinghamTemperatureDependent2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                        const ProcessInfo& rCurrentProcessInfo) {
+                        const ProcessInfo& rCurrentProcessInfo) const {
 
     if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for BinghamTemperatureDependent2DLaw: "

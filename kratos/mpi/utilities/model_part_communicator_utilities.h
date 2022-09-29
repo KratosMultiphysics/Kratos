@@ -55,15 +55,37 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create and assign an MPI Communicator for a ModelPart instance.
-    /** Note that this does not initialize the communicator, since the ModelPart
+    /// Create and assign an MPICommunicator for a ModelPart instance.
+    /** Note that this does not initialize the Communicator, since the ModelPart
      *  may not yet contain nodes (or anything else) when this is called.
-     *  @param rThisModelPart The model part that will get an MPI communicator.
+     *  @param rThisModelPart The ModelPart that will get an MPICommunicator.
+     *  @param rDataCommunicator The DataCommunicator that will be used for the MPICommunicator.
      */
-    static inline void SetMPICommunicator(ModelPart& rThisModelPart)
+    static inline void SetMPICommunicator(ModelPart& rThisModelPart, const DataCommunicator& rDataCommunicator)
+    {
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        VariablesList * p_variables_list = &rThisModelPart.GetNodalSolutionStepVariablesList();
+        rThisModelPart.SetCommunicator(Kratos::make_shared<MPICommunicator>(p_variables_list, rDataCommunicator));
+    }
+
+    /// Create and assign an MPICommunicator for a ModelPart instance and its SubModelParts.
+    /** Note that this does not initialize the Communicator, since the ModelPart
+     *  may not yet contain nodes (or anything else) when this is called.
+     *  @param rThisModelPart The ModelPart that will get an MPICommunicator.
+     *  @param rDataCommunicator The DataCommunicator that will be used for the MPICommunicator.
+     */
+    static inline void SetMPICommunicatorRecursively(ModelPart& rThisModelPart, const DataCommunicator& rDataCommunicator)
+    {
+        SetMPICommunicator(rThisModelPart, rDataCommunicator);
+        for (auto& r_smp : rThisModelPart.SubModelParts()) {
+            SetMPICommunicatorRecursively(r_smp, rDataCommunicator);
+        }
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please use the one that accepts a DataCommunicator") static inline void SetMPICommunicator(ModelPart& rThisModelPart)
     {
         VariablesList * p_variables_list = &rThisModelPart.GetNodalSolutionStepVariablesList();
-        rThisModelPart.SetCommunicator(Kratos::make_shared<MPICommunicator>(p_variables_list));
+        rThisModelPart.SetCommunicator(Kratos::make_shared<MPICommunicator>(p_variables_list, DataCommunicator::GetDefault()));
     }
 
     ///@}

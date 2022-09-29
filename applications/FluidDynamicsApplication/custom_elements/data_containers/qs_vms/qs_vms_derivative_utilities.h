@@ -30,7 +30,6 @@
 
 // Application includes
 #include "custom_utilities/fluid_adjoint_utilities.h"
-#include "custom_utilities/fluid_adjoint_variable_information.h"
 
 namespace Kratos
 {
@@ -50,7 +49,12 @@ public:
 
     using IndexType = std::size_t;
 
-    using AdjointVariableInformationType = AdjointVariableInformation::VariableInformation<TDim>;
+    using DependentVariablesListType = std::vector<
+                                            std::tuple<
+                                                const Variable<double>&,
+                                                std::vector<const Variable<double>*>
+                                            >
+                                        >;
 
     using DerivativeGradientsArray = std::array<const Variable<double>*, 9>;
 
@@ -73,15 +77,21 @@ public:
     ///@name Classes
     ///@{
 
+    template<unsigned int TComponentIndex = 0>
     class Derivative
     {
     public:
+        ///@name Type definitions
+        ///@{
+
+        static constexpr IndexType ComponentIndex = TComponentIndex;
+
+        ///@}
         ///@name Life Cycle
         ///@{
 
         Derivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -94,7 +104,7 @@ public:
         ///@name Operations
         ///@{
 
-        std::vector<AdjointVariableInformationType> GetEffectiveViscosityDependentVariables() const { return std::vector<AdjointVariableInformationType>{{}}; }
+        DependentVariablesListType GetEffectiveViscosityDependentVariables() const { return DependentVariablesListType({}); }
 
         ///@}
 
@@ -103,7 +113,6 @@ public:
         ///@{
 
         const IndexType mNodeIndex;
-        const IndexType mDirectionIndex;
         const GeometryType& mrGeometry;
         const double mW;
         const Vector& mrN;
@@ -115,14 +124,16 @@ public:
         ///@}
     };
 
-    template<unsigned int TNumNodes>
-    class VelocityDerivative : public Derivative
+    template<unsigned int TNumNodes, unsigned int TComponentIndex>
+    class VelocityDerivative : public Derivative<TComponentIndex>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = Derivative;
+        using BaseType = Derivative<TComponentIndex>;
+
+        static constexpr IndexType ComponentIndex = BaseType::ComponentIndex;
 
         static constexpr double VelocityDerivativeFactor = 1.0;
 
@@ -136,7 +147,6 @@ public:
 
         VelocityDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -144,8 +154,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative),
-              mVariableInformation(DirectionIndex)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -153,7 +162,7 @@ public:
         ///@name Operations
         ///@{
 
-        const Variable<double>& GetDerivativeVariable() const { return mVariableInformation.GetVariable(); }
+        const Variable<double>& GetDerivativeVariable() const;
 
         array_1d<double, TDim> CalculateEffectiveVelocityDerivative(const array_1d<double, TDim>& rVelocity) const;
 
@@ -164,23 +173,18 @@ public:
             const Matrix& rNodalVelocity) const;
 
         ///@}
-    private:
-        ///@name Private Members
-        ///@{
-
-        const AdjointVariableInformation::VelocityInformation<TDim> mVariableInformation;
-
-        ///@}
     };
 
     template<unsigned int TNumNodes>
-    class PressureDerivative : public Derivative
+    class PressureDerivative : public Derivative<0>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = Derivative;
+        using BaseType = Derivative<0>;
+
+        static constexpr IndexType ComponentIndex = BaseType::ComponentIndex;
 
         static constexpr double VelocityDerivativeFactor = 0.0;
 
@@ -194,7 +198,6 @@ public:
 
         PressureDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -202,7 +205,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -223,14 +226,16 @@ public:
         ///@}
     };
 
-    template<unsigned int TNumNodes>
-    class ShapeDerivative : public Derivative
+    template<unsigned int TNumNodes, unsigned int TComponentIndex>
+    class ShapeDerivative : public Derivative<TComponentIndex>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = Derivative;
+        using BaseType = Derivative<TComponentIndex>;
+
+        static constexpr IndexType ComponentIndex = BaseType::ComponentIndex;
 
         static constexpr double VelocityDerivativeFactor = 0.0;
 
@@ -244,7 +249,6 @@ public:
 
         ShapeDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -252,8 +256,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative),
-              mVariableInformation(DirectionIndex)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -261,7 +264,7 @@ public:
         ///@name Operations
         ///@{
 
-        const Variable<double>& GetDerivativeVariable() const { return mVariableInformation.GetVariable(); }
+        const Variable<double>& GetDerivativeVariable() const;
 
         array_1d<double, TDim> CalculateEffectiveVelocityDerivative(const array_1d<double, TDim>& rVelocity) const;
 
@@ -270,13 +273,6 @@ public:
         void CalculateStrainRateDerivative(
             Vector& rOutput,
             const Matrix& rNodalVelocity) const;
-
-        ///@}
-    private:
-        ///@name Private Members
-        ///@{
-
-        const AdjointVariableInformation::ShapeSensitivityInformation<TDim> mVariableInformation;
 
         ///@}
     };

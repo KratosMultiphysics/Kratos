@@ -6,12 +6,6 @@ include_directories(
   ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
 
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
-
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-
 file(
   GLOB_RECURSE
   KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
@@ -21,7 +15,7 @@ file(
 
 ## Python module
 pybind11_add_module( KratosRANSTrilinosExtension MODULE THIN_LTO ${KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosRANSTrilinosExtension PRIVATE KratosRANSCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
+target_link_libraries( KratosRANSTrilinosExtension PRIVATE KratosRANSCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosRANSTrilinosExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -40,6 +34,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosRANSTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRANSTrilinosExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosRANSTrilinosExtension DESTINATION libs )
@@ -47,3 +44,5 @@ install(TARGETS KratosRANSTrilinosExtension DESTINATION libs )
 ###############################################################################
 ## install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosExtension.py" DESTINATION "KratosMultiphysics/RANSApplication")
+
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRANSTrilinosExtension" PARENT_SCOPE)

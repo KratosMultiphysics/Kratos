@@ -75,7 +75,7 @@
             "residual_absolute_tolerance":        1.0E-9,
             "max_iteration"                      : 15,
             "linear_solver_settings":             {
-                "solver_type":   "ExternalSolversApplication.super_lu"
+                "solver_type":   "LinearSolversApplication.sparse_lu"
             },
             "material_import_settings": {
                 "materials_filename": "element_tests/Cavity_2D_test/ThermalMaterials.json"
