@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_filesystem.h"
+#include "testing/scoped_file.h"
 
 namespace Kratos {
 namespace Testing {
@@ -300,38 +301,6 @@ std::string GetCircularIncludeJSONString(int FileIndex, int IncludeIndex)
     stream << R"({"@include_json":"test_cyclic_)" << FileIndex << "_" << IncludeIndex << R"(.json"})"; // could be nicer with fmtlib or C++20
     return stream.str();
 }
-
-namespace {
-
-class ScopedFile
-{
-public:
-    ScopedFile(std::string&& rPath)
-        : mStream(rPath),
-          mPath(std::move(rPath))
-    {}
-
-    ~ScopedFile()
-    {
-        mStream.close();
-        filesystem::remove(mPath);
-    }
-
-    template <class T>
-    friend ScopedFile& operator<<(ScopedFile& rFile, const T& rContent)
-    {
-        rFile.mStream << rContent;
-        rFile.mStream.flush();
-        return rFile;
-    }
-
-private:
-    std::ofstream mStream;
-
-    const std::string mPath;
-}; // class ScopedFile
-
-} // unnamed namespace
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 {
