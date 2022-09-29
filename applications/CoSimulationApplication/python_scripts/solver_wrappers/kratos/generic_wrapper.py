@@ -16,8 +16,9 @@ def Create(settings, model, solver_name):
     module_name = settings["analysis_module"].GetString()
     imported_module = import_module(module_name)
 
-    analysis_stage_name = settings["analysis_name"].GetString()
-    if analysis_stage_name == "":
+    if settings.Has("analysis_name"):
+        analysis_stage_name = settings["analysis_name"].GetString()
+    else:
         # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of cammel_case
         file_name = module_name.split(".")[-1]
         # Convert Snake case to Pascal case
