@@ -270,6 +270,12 @@ public:
 
                     //assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+
+                    ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
+                    #pragma omp critical
+                    {
+                      h += cond.mConvectionCoefficient;
+                    }
                 }
             }
         }
