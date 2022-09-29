@@ -23,9 +23,9 @@ def Create(settings, model, solver_name):
         # Convert Snake case to Pascal case
         analysis_stage_name = string.capwords(file_name.replace("_", " ")).replace(" ", "")
     analysis = getattr(imported_module, analysis_stage_name)
-    return Generic(settings, model, solver_name, analysis)
+    return GenericWrapper(settings, model, solver_name, analysis)
 
-class Generic(kratos_base_wrapper.KratosBaseWrapper):
+class GenericWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to a generic analysis of Kratos"""
 
     def __init__(self, settings, model, solver_name, analysis):
