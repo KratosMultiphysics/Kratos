@@ -17,52 +17,20 @@
 
 
 // Project includes
-#include "conservative_condition.h"
-#include "includes/kratos_flags.h"
 #include "includes/checks.h"
+#include "includes/kratos_flags.h"
+
+
+// Application includes
+#include "primitive_condition.h"
 #include "shallow_water_application_variables.h"
+
 
 namespace Kratos
 {
 
 template<std::size_t TNumNodes>
-const Parameters ConservativeCondition<TNumNodes>::GetSpecifications() const
-{
-    const Parameters specifications = Parameters(R"({
-        "required_variables"         : ["MOMENTUM","VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
-        "required_dofs"              : ["MOMENTUM_X","MOMENTUM_Y","HEIGHT"],
-        "compatible_geometries"      : ["Triangle2D3"],
-        "element_integrates_in_time" : false
-    })");
-    return specifications;
-}
-
-template<std::size_t TNumNodes>
-const Variable<double>& ConservativeCondition<TNumNodes>::GetUnknownComponent(int Index) const
-{
-    switch (Index) {
-        case 0: return MOMENTUM_X;
-        case 1: return MOMENTUM_Y;
-        case 2: return HEIGHT;
-        default: KRATOS_ERROR << "WaveCondition::GetUnknownComponent index out of bounds." << std::endl;
-    }
-}
-
-template<std::size_t TNumNodes>
-typename ConservativeCondition<TNumNodes>::LocalVectorType ConservativeCondition<TNumNodes>::GetUnknownVector(ConditionData& rData)
-{
-    std::size_t index = 0;
-    array_1d<double,mLocalSize> unknown;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        unknown[index++] = rData.nodal_q[i][0];
-        unknown[index++] = rData.nodal_q[i][1];
-        unknown[index++] = rData.nodal_h[i];
-    }
-    return unknown;
-}
-
-template<std::size_t TNumNodes>
-void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
+void PrimitiveCondition<TNumNodes>::CalculateGaussPointData(
     ConditionData& rData,
     const IndexType PointIndex,
     const array_1d<double,TNumNodes>& rN)
@@ -71,7 +39,7 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     const double z = inner_prod(rData.nodal_z, rN);
     const array_1d<double,3> v = BaseType::VectorProduct(rData.nodal_v, rN);
     const bool is_supercritical = (norm_2(v) >= std::sqrt(rData.gravity*h));
-    auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
+    const auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
     rData.normal = this->GetGeometry().UnitNormal(integration_point);
 
     rData.height = h;
@@ -95,12 +63,12 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     }
 
     /// Boundary traces
-    const double vel_trace = rData.v_neumann * h;
-    double press_trace = rData.gravity * std::pow(rData.h_dirichlet + z, 2);
+    const double press_trace = rData.gravity * (rData.h_dirichlet + z);
+    const double vel_trace = rData.v_neumann;
 
     /// Convective flux
     array_1d<double,3> conv_flux = v;
-    conv_flux[2] = 1;
+    conv_flux[2] = h;
     conv_flux *= vel_trace;
 
     /// Pressure flux
@@ -112,6 +80,6 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     rData.flux = conv_flux + press_flux;
 }
 
-template class ConservativeCondition<2>;
+template class PrimitiveCondition<2>;
 
 } // namespace Kratos

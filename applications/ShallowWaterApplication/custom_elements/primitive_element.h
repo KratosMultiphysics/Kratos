@@ -10,8 +10,7 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED
-#define KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -20,7 +19,7 @@
 
 
 // Project includes
-#include "primitive_element.h"
+#include "wave_element.h"
 
 namespace Kratos
 {
@@ -48,7 +47,7 @@ namespace Kratos
 
 ///@brief Implementation of a linear element for shallow water problems
 template<std::size_t TNumNodes>
-class BoussinesqElement : public PrimitiveElement<TNumNodes>
+class PrimitiveElement : public WaveElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -60,9 +59,7 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef PrimitiveElement<TNumNodes> BaseType;
-
-    typedef typename BaseType::VectorType VectorType;
+    typedef WaveElement<TNumNodes> BaseType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
 
@@ -80,7 +77,7 @@ public:
     ///@name Pointer definition
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BoussinesqElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PrimitiveElement);
 
     ///@}
     ///@name Life Cycle
@@ -89,27 +86,27 @@ public:
     /**
      * @brief Default constructor
      */
-    BoussinesqElement() : BaseType(){}
+    PrimitiveElement() : BaseType() {}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    BoussinesqElement(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes){}
+    PrimitiveElement(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes) {}
 
     /**
      * @brief Constructor using Geometry
      */
-    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry){}
+    PrimitiveElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry) {}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties){}
+    PrimitiveElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties) {}
 
     /**
      * @brief Destructor
      */
-    ~ BoussinesqElement() override {};
+    ~ PrimitiveElement() override {};
 
     ///@}
     ///@name Operations
@@ -124,7 +121,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<BoussinesqElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<PrimitiveElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -136,7 +133,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<BoussinesqElement<TNumNodes>>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<PrimitiveElement<TNumNodes>>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -153,36 +150,6 @@ public:
         return p_new_elem;
     }
 
-    /**
-     * @brief Calculate the velocity laplacian projection
-     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the elements
-     */
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Calculate the rhs according to the Adams-Moulton scheme
-     * @param rRightHandSideVector Elemental right hand side vector
-     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
-     * @see ResidualBasedAdamsMoultonScheme
-     */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Add the explicit contribution according to the Adams-Bashforth scheme
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    /**
-     * @brief This method provides the specifications/requirements of the element
-     * @return specifications The required specifications/requirements
-     */
-    const Parameters GetSpecifications() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -192,7 +159,7 @@ public:
      */
     std::string Info() const override
     {
-        return "BoussinesqElement";
+        return "PrimitiveElement";
     }
 
     ///@}
@@ -207,50 +174,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddRightHandSide(
-        LocalVectorType& rRHS,
+    void UpdateGaussPointData(
         ElementData& rData,
-        const Matrix& rNContainer,
-        const ShapeFunctionsGradientsType& rDN_DXContainer,
-        const Vector& rWeights);
+        const array_1d<double,TNumNodes>& rN) override;
 
-    void AddDispersionProjection(
-        LocalVectorType& rDispersionH,
-        LocalVectorType& rDispersionU,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
-
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
-
-    void CalculateArtificialViscosity(
-        BoundedMatrix<double,3,3>& rViscosity,
-        BoundedMatrix<double,2,2>& rDiffusion,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
-
-    void AlgebraicResidual(
-        double& rMassResidual,
-        array_1d<double,2>& rFreeSurfaceGradient,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
-
-    void AddDispersiveTerms(
-        LocalVectorType& rVector,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0) override;
-
-    void AddMassTerms(
-        LocalMatrixType& rMatrix,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0) override;
+    double StabilizationParameter(const ElementData& rData) const override;
 
     ///@}
 
@@ -282,7 +210,7 @@ private:
 
     ///@}
 
-}; // Class BoussinesqElement
+}; // Class PrimitiveElement
 
 ///@}
 ///@name Input and output
@@ -294,5 +222,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED  defined

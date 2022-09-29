@@ -10,8 +10,7 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_CONSERVATIVE_CONDITION_H_INCLUDED
-#define KRATOS_CONSERVATIVE_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -40,12 +39,12 @@ namespace Kratos
 
 /**
  * @ingroup ShallowWaterApplication
- * @class ConservativeCondition
+ * @class PrimitiveCondition
  * @brief Implementation of a condition for shallow water waves problems
  * @author Miguel Maso Sotomayor
  */
 template<std::size_t TNumNodes>
-class ConservativeCondition : public WaveCondition<TNumNodes>
+class PrimitiveCondition : public WaveCondition<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -77,7 +76,7 @@ public:
     ///@name Pointer definition
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConservativeCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PrimitiveCondition);
 
     ///@}
     ///@name Life Cycle
@@ -86,27 +85,27 @@ public:
     /**
      * @brief Default constructor
      */
-    ConservativeCondition() : BaseType(){}
+    PrimitiveCondition() : BaseType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    ConservativeCondition(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes){}
+    PrimitiveCondition(IndexType NewId, const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    ConservativeCondition(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry){}
+    PrimitiveCondition(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    ConservativeCondition(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties){}
+    PrimitiveCondition(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
      */
-    ~ ConservativeCondition() override {};
+    ~ PrimitiveCondition() override {};
 
     ///@}
     ///@name Operations
@@ -121,7 +120,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ConservativeCondition<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<PrimitiveCondition<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -133,7 +132,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ConservativeCondition<TNumNodes>>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<PrimitiveCondition<TNumNodes>>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -150,26 +149,12 @@ public:
         return p_new_elem;
     }
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    /**
-     * @brief This method provides the specifications/requirements of the element
-     * @return specifications The required specifications/requirements
-     */
-    const Parameters GetSpecifications() const override;
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
     /**
      * @brief Turn back information as a string.
      */
     std::string Info() const override
     {
-        return "ConservativeCondition";
+        return "PrimitiveCondition";
     }
 
     ///@}
@@ -188,10 +173,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    const Variable<double>& GetUnknownComponent(int Index) const override;
-
-    LocalVectorType GetUnknownVector(ConditionData& rData) override;
 
     void CalculateGaussPointData(
         ConditionData& rData,
@@ -233,7 +214,7 @@ private:
 
     ///@}
 
-}; // Class ConservativeCondition
+}; // Class PrimitiveCondition
 
 ///@}
 ///@name Type Definitions
@@ -250,5 +231,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CONSERVATIVE_CONDITION_H_INCLUDED  defined

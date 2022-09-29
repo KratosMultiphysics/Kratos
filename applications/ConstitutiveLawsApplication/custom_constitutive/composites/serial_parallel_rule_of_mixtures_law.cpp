@@ -1354,7 +1354,6 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             rValue.resize(dimension, dimension, false);
         noalias(rValue) = rParameterValues.GetDeformationGradientF();
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) {
 
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
