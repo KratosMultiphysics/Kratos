@@ -1569,10 +1569,10 @@ public:
      * @param Dimension number of components in output
      */
     Vector GetValuesVector(
-                                const ModelPart::NodesContainerType& rNodes,
-                                const Variable<array_1d<double,3>>& rVar,
-                                const unsigned int Dimension=3
-                                );
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const unsigned int Dimension=3
+        );
 
     /**
      * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
