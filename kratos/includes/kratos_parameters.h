@@ -15,10 +15,6 @@
 #if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
 #define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
-// System includes
-#include <map>
-#include <set>
-
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
