@@ -72,12 +72,9 @@ def __ModuleInitDetail():
                     "\nMPI was not initialized. Running in serial mode."
                 ]
                 Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
-    # Define Kratos globals
-    kratos_globals_def = kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
-    
+
     # Detect kratos library version
-    Kernel = kratos_globals_def.Kernel
-    python_version = Kernel.PythonVersion()
+    python_version = Kernel(using_mpi).PythonVersion()
     python_version = python_version.replace("Python","")
     kratos_version_info = python_version.split(".")
 
@@ -87,7 +84,7 @@ def __ModuleInitDetail():
             kratos_version_info[0], kratos_version_info[1]
         ))
 
-    return kratos_globals_def
+    return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
 
