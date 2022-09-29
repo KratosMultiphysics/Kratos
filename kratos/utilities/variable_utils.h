@@ -1556,7 +1556,7 @@ public:
                                 const unsigned int Step
                                 );
 
-/**
+    /**
      * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
      * flattened so that the components of interest appear in the output vector.
      * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
@@ -1586,9 +1586,9 @@ public:
      * @param Step step in the database
      */
     Vector GetValuesVector(
-                                const ModelPart::NodesContainerType& rNodes,
-                                const Variable<double>& rVar
-                    );
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar
+        );
 
     /**
      * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
@@ -1601,10 +1601,10 @@ public:
      * @param Step database step to which we will write
      */
     void SetValuesVector(
-                                ModelPart::NodesContainerType& rNodes,
-                                const Variable<array_1d<double,3>>& rVar,
-                                const Vector& rData
-                                );
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const Vector& rData
+        );
 
     /**
      * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
@@ -1617,10 +1617,10 @@ public:
      * @param Step database step to which we will write
      */
     void SetValuesVector(
-                                ModelPart::NodesContainerType& rNodes,
-                                const Variable<double>& rVar,
-                                const Vector& rData
-                                );
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar,
+        const Vector& rData
+        );
 
 
     ///@}
