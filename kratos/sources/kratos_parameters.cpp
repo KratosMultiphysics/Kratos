@@ -212,10 +212,10 @@ Parameters::Parameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
-nlohmann::json Parameters::ReadFile(std::string FileName)
+nlohmann::json Parameters::ReadFile(const std::filesystem::path& rFileName)
 {
     std::ifstream new_file;
-    new_file.open(FileName.c_str(),std::ios::in);
+    new_file.open(rFileName, std::ios::in);
 
     std::stringstream strStream;
     strStream << new_file.rdbuf();
@@ -241,7 +241,7 @@ Parameters::Parameters(const std::string& rJsonString)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::SolveIncludes(nlohmann::json& rJson, const std::string& rFileName, std::vector<std::string>& rIncludeSequence)
+void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::string>& rIncludeSequence)
 {
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
 

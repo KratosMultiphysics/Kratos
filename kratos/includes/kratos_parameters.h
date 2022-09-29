@@ -22,6 +22,10 @@
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 
+// STL includes
+#include <filesystem>
+
+
 namespace Kratos
 {
 ///@addtogroup KratosCore
@@ -1041,14 +1045,14 @@ private:
      * @param rIncludeSequence a stack containing the current sequence of included JSON files
      * @return This method leaves in rJson the final json object with no include dependencies
      */
-    void SolveIncludes(nlohmann::json& rJson, const std::string& rFileName, std::vector<std::string>& rIncludeSequence);
+    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::string>& rIncludeSequence);
 
     /**
-     * @brief This method read a json file
-     * @param rJson The json file name
-     * @return The json object obtained from reading the file
+     * @brief This method parses a json file.
+     * @param rFileName The JSON file's name.
+     * @return The JSON object obtained from parsing the file.
      */
-    nlohmann::json ReadFile(std::string FileName);
+    nlohmann::json ReadFile(const std::filesystem::path& rFileName);
 
 }; // Parameters class
 
