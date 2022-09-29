@@ -158,6 +158,10 @@ public:
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
+    ///@}
+    ///@name Inquiry
+    ///@{
+
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
