@@ -134,6 +134,12 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    static std::string OSName();
+
+    static std::string PythonVersion();
+
+    static std::string Compiler();
+
     void PrintParallelismSupportInfo() const;
 
     ///@}
