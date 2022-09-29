@@ -1045,7 +1045,7 @@ private:
      * @param rIncludeSequence a stack containing the current sequence of included JSON files
      * @return This method leaves in rJson the final json object with no include dependencies
      */
-    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::string>& rIncludeSequence);
+    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence);
 
     /**
      * @brief This method parses a json file.

@@ -232,7 +232,7 @@ Parameters::Parameters(const std::string& rJsonString)
     mpValue = mpRoot.get();
 
     // A stack containing the current sequence of included JSONs
-    std::vector<std::string> include_sequence;
+    std::vector<std::filesystem::path> include_sequence;
 
     // Recursively resolve json links
     SolveIncludes(*mpValue, "root", include_sequence);
@@ -241,7 +241,7 @@ Parameters::Parameters(const std::string& rJsonString)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::string>& rIncludeSequence)
+void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence)
 {
     std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
 
@@ -262,7 +262,7 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::pat
                 s.emplace(&act_it.value(), act_it.value().begin());
             } else if (act_it.key() == "@include_json") {
                 // Check whether the included file exists
-                const auto included_file_path = FilesystemExtensions::ResolveSymlinks(*act_it);
+                const std::filesystem::path included_file_path = FilesystemExtensions::ResolveSymlinks(*act_it);
                 KRATOS_ERROR_IF_NOT(std::filesystem::is_regular_file(included_file_path)) << "File not found: '" << *act_it << "'";
 
                 nlohmann::json included_json= ReadFile(included_file_path);
@@ -305,7 +305,7 @@ Parameters::Parameters(std::ifstream& rStringStream)
     mpValue = mpRoot.get();
 
     // A stack containing the current sequence of included JSONs
-    std::vector<std::string> include_sequence;
+    std::vector<std::filesystem::path> include_sequence;
 
     // Recursively resolve json links
     SolveIncludes(*mpValue, "root", include_sequence);
