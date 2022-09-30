@@ -21,8 +21,12 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
+
+// Element data containers
 #include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
+#include "custom_elements/data_containers/k_omega/k_element_data.h"
+#include "custom_elements/data_containers/k_omega/omega_element_data.h"
 
 // Include base h
 #include "rans_qs_vms_adjoint_element_data.h"
@@ -89,11 +93,18 @@ GeometryData::IntegrationMethod RansQSVMSAdjointElementData<TDim, TNumNodes, TTu
 }
 
 // template instantiations
-
+// k-epsilon
 template class RansQSVMSAdjointElementData<2, 3, KEpsilonElementData::KElementData<2>, KEpsilonElementData::EpsilonElementData<2>>;
 template class RansQSVMSAdjointElementData<2, 4, KEpsilonElementData::KElementData<2>, KEpsilonElementData::EpsilonElementData<2>>;
 
 template class RansQSVMSAdjointElementData<3, 4, KEpsilonElementData::KElementData<3>, KEpsilonElementData::EpsilonElementData<3>>;
 template class RansQSVMSAdjointElementData<3, 8, KEpsilonElementData::KElementData<3>, KEpsilonElementData::EpsilonElementData<3>>;
+
+// k-omega
+template class RansQSVMSAdjointElementData<2, 3, KOmegaElementData::KElementData<2>, KOmegaElementData::OmegaElementData<2>>;
+template class RansQSVMSAdjointElementData<2, 4, KOmegaElementData::KElementData<2>, KOmegaElementData::OmegaElementData<2>>;
+
+template class RansQSVMSAdjointElementData<3, 4, KOmegaElementData::KElementData<3>, KOmegaElementData::OmegaElementData<3>>;
+template class RansQSVMSAdjointElementData<3, 8, KOmegaElementData::KElementData<3>, KOmegaElementData::OmegaElementData<3>>;
 
 } // namespace Kratos

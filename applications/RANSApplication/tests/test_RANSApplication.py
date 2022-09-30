@@ -39,7 +39,8 @@ from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTPeriodic
 from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
 ### adjoint two element test_classes
-from adjoint_two_elements_tests import AdjointTwoElementsTest
+from adjoint_ke_two_elements_tests import AdjointKEpsilonTwoElementsTest
+from adjoint_kw_two_elements_tests import AdjointKOmegaTwoElementsTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -76,7 +77,7 @@ def AssembleTestSuites():
     smallSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     # adding adjoint two element tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointTwoElementsTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKEpsilonTwoElementsTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -123,7 +124,8 @@ def AssembleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
 
-    # allSuite.addTests(validationSuite)
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKOmegaTwoElementsTest]))
 
     return suites
 

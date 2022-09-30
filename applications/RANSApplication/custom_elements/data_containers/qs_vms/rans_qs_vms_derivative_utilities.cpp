@@ -20,8 +20,13 @@
 #include "utilities/element_size_calculator.h"
 
 // Application includes
+// k-epsilon
 #include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
+// k-omega
+#include "custom_elements/data_containers/k_omega/k_element_data.h"
+#include "custom_elements/data_containers/k_omega/omega_element_data.h"
+
 
 // Include base h
 #include "rans_qs_vms_derivative_utilities.h"
@@ -63,11 +68,19 @@ void RansQSVMSDerivativeUtilities<TDim>::TurbulenceVariableDerivative<TNumNodes,
 
 // template instantiations
 
+// k-epsilon
 template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, KEpsilonElementData::KElementData<2>>;
 template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, KEpsilonElementData::EpsilonElementData<2>>;
 
 template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KEpsilonElementData::KElementData<3>>;
 template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KEpsilonElementData::EpsilonElementData<3>>;
+
+// k-omega
+template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, KOmegaElementData::KElementData<2>>;
+template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, KOmegaElementData::OmegaElementData<2>>;
+
+template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KOmegaElementData::KElementData<3>>;
+template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KOmegaElementData::OmegaElementData<3>>;
 
 template class RansQSVMSDerivativeUtilities<2>;
 template class RansQSVMSDerivativeUtilities<3>;
