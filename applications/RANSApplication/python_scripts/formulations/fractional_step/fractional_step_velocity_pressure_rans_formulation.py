@@ -322,6 +322,12 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def ElementHasNodalProperties(self):
         return True
 
+    def GetElementNames(self):
+        return ["FractionalStep"]
+
+    def GetConditionNames(self):
+        return [self.condition_name]
+
     def _CheckTransientConvergence(self, variable, settings):
         relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(
             self.GetBaseModelPart(),

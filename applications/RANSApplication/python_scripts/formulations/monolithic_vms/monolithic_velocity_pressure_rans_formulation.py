@@ -125,7 +125,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             },
             "wall_function_settings": {
                 "wall_function_region_type": "logarithmic_region_only",
-                "wall_friction_velocity_calculation_method": "velocity_based"
+                "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
             }
         }""")
 
@@ -333,11 +333,19 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 raise Exception(msg)
 
     def GetStrategy(self):
-        return self.solver
+        if (hasattr(self, "solver")):
+            return self.solver
+        else:
+            return None
 
     def ElementHasNodalProperties(self):
         return self.flow_solver_formulation.element_has_nodal_properties
 
+    def GetElementNames(self):
+        return [self.flow_solver_formulation.element_name]
+
+    def GetConditionNames(self):
+        return [self.condition_name]
+
     def GetConditionNamePrefix(self):
         return "RansVMSMonolithic"
-

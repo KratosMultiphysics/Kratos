@@ -150,7 +150,10 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         return False
 
     def GetStrategy(self):
-        return self.solver
+        if (hasattr(self, "solver")):
+            return self.solver
+        else:
+            return None
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -216,6 +219,12 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
 
     def ElementHasNodalProperties(self):
         return False
+
+    def GetElementNames(self):
+        return [self.element_name]
+
+    def GetConditionNames(self):
+        return [self.condition_name]
 
     def _CreateAlgebraicFluxCorrectedSteadyScalarScheme(self, relaxation_factor):
         if (self.IsPeriodic()):

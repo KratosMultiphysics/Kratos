@@ -7,6 +7,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.RANSApplication as KratosRANS
 
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
@@ -80,6 +81,8 @@ class CoupledRANSSolver(PythonSolver):
                 raise Exception("Ramp up interval should only have two values indicating ramp up start time and end time.")
         else:
             self.ramp_up_interval = None
+
+        self.main_model_part.ProcessInfo[KratosRANS.RANS_IS_STEADY] = self.is_steady
 
         self.is_converged = False
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
