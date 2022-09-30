@@ -254,7 +254,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         """
 
         # Ensure properties defined
-        KratosMultiphysics.AuxiliaryModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
+        KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
 
         # Calculation automatically the normalization factors
         if self.automatic_normalization_factor:
@@ -394,7 +394,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.main_model_part.RemoveSubModelPart("Contact")
 
         # Ensure properties defined
-        KratosMultiphysics.AuxiliaryModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
+        KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).RecursiveEnsureModelPartOwnsProperties()
 
         # We create the contact submodelparts
         self.main_model_part.CreateSubModelPart("Contact")

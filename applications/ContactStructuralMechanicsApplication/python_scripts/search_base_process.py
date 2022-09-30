@@ -118,8 +118,8 @@ class SearchBaseProcess(KM.Process):
                 # We remove the submodelpart
                 self.main_model_part.RemoveSubModelPart("Contact")
 
-                KM.AuxiliaryModelPartUtilities(self.main_model_part).EnsureModelPartOwnsProperties(True)
-                KM.AuxiliaryModelPartUtilities(self.main_model_part.GetRootModelPart()).EnsureModelPartOwnsProperties(True)
+                KM.AuxiliarModelPartUtilities(self.main_model_part).EnsureModelPartOwnsProperties(True)
+                KM.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).EnsureModelPartOwnsProperties(True)
 
                 # We create the submodelpart
                 self.search_model_part = self.main_model_part.CreateSubModelPart("Contact")
@@ -174,7 +174,7 @@ class SearchBaseProcess(KM.Process):
             master_slave_process.Execute()
 
         # Setting the integration order and active check factor
-        KM.AuxiliaryModelPartUtilities(self._get_process_model_part()).RecursiveEnsureModelPartOwnsProperties(True)
+        KM.AuxiliarModelPartUtilities(self._get_process_model_part()).RecursiveEnsureModelPartOwnsProperties(True)
         for prop in self._get_process_model_part().GetProperties():
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
             prop[CSMA.CONSIDER_TESSELLATION] = self.settings["consider_tessellation"].GetBool()
@@ -485,7 +485,7 @@ class SearchBaseProcess(KM.Process):
                 sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
             else:
                 sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
-            KM.AuxiliaryModelPartUtilities(sub_search_model_part).RecursiveEnsureModelPartOwnsProperties(True)
+            KM.AuxiliarModelPartUtilities(sub_search_model_part).RecursiveEnsureModelPartOwnsProperties(True)
             if sub_search_model_part.RecursivelyHasProperties(100 + int(key)):
                 return sub_search_model_part.GetProperties(100 + int(key))
             else:
