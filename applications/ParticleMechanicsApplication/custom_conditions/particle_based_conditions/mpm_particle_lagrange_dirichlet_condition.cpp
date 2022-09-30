@@ -224,7 +224,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     if (counter >= number_of_nodes-1)
         apply_constraints = false;
-     
+        
     if (apply_constraints)
     {
         Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
@@ -242,7 +242,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                     auto volume = r_geometry.GetGeometryParent(0).Area();
                     for (unsigned int k = 0; k < dimension; k++)
                     {
-                        lagrange_matrix(i* dimension+k, i* dimension+k) = m_penalty/mpc_counter /  this->GetIntegrationWeight() * volume ;
+                        lagrange_matrix(i* dimension+k, i* dimension+k) = m_penalty/mpc_counter /  this->GetIntegrationWeight() * volume ; 
                     }
                 }
         }
@@ -265,7 +265,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                     for (unsigned int j = 0; j < dimension; j++)
                     {
-                        gap_function[index+j] = r_displacement[j] - m_imposed_displacement[j] ;
+                        gap_function[index+j] = r_displacement[j] ;
                     }
 
 
@@ -283,10 +283,10 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             
             right_hand_side += prod(lagrange_matrix, gap_function);
 
-            // //add imposed displacement
-            // for (unsigned int j = 0; j < dimension; j++){
-            //     right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
-            // }
+            //add imposed displacement
+            for (unsigned int j = 0; j < dimension; j++){
+                right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
+            }
 
             right_hand_side *= this->GetIntegrationWeight();
             noalias(rRightHandSideVector) = -right_hand_side;
