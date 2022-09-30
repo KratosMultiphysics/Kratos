@@ -17,8 +17,8 @@ import KratosMultiphysics as KM
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication.response_functions import response_function_factory as sho_response_factory
-from .response_data_io import GetObjectiveValue
-from .response_data_io import GetObjectiveSensitivityValues
+from KratosMultiphysics.ShapeOptimizationApplication.response_data_io import GetObjectiveValue
+from KratosMultiphysics.ShapeOptimizationApplication.response_data_io import GetObjectiveSensitivityValues
 try:
     from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
 except ImportError:
