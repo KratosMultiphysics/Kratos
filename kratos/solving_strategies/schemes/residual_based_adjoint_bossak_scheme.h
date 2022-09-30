@@ -37,6 +37,9 @@
 #include "utilities/variable_utils.h"
 #include "includes/cfd_variables.h"
 
+#include "../../applications/LinearSolversApplication/external_libraries/eigen3/Eigen/Dense"
+#include "../../applications/LinearSolversApplication/external_libraries/eigen3/Eigen/SVD"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -85,23 +88,19 @@ public:
         ) : mpResponseFunction(pResponseFunction)
     {
         Parameters default_parameters(R"({
-            "name"                                             : "adjoint_bossak",
-            "scheme_type"                                      : "bossak",
-            "alpha_bossak"                                     : -0.3,
-            "stabilization_coefficient"                        : 0.0,
-            "elemental_stabilization_coefficient_variable_name": "PLEASE_SPECIFY_SCALAR_VARIABLE_NAME",
-            "stabilization_matrix_calculation_point"           : "initialize",
-            "stabilization_residual_scaling_vector"            : [1.0],
-            "stabilization_derivative_scaling_vector"          : [1.0]
+            "name"                                   : "adjoint_bossak",
+            "scheme_type"                            : "bossak",
+            "alpha_bossak"                           : -0.3,
+            "stabilization_coefficient"              : 0.0,
+            "stabilization_matrix_calculation_point" : "initialize",
+            "stabilization_residual_scaling_vector"  : [1.0],
+            "stabilization_derivative_scaling_vector": [1.0]
         })");
 
         Settings.ValidateAndAssignDefaults(default_parameters);
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
 
         mStabilizationCoefficient = Settings["stabilization_coefficient"].GetDouble();
-        if (mStabilizationCoefficient > 0.0 ) {
-            mpElementStabilizationCoefficientVariable = &KratosComponents<Variable<double>>::Get(Settings["elemental_stabilization_coefficient_variable_name"].GetString());
-        }
         KRATOS_ERROR_IF(mStabilizationCoefficient < 0.0)
             << "stabilization_coefficient should be non-negative. [ "
                "stabilization_coefficient = "
@@ -254,10 +253,6 @@ public:
         mStabilizationTLS.resize(num_threads);
 
         VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS, rModelPart.Nodes());
-
-        if (mStabilizationCoefficient > 0.0) {
-            VariableUtils().SetNonHistoricalVariableToZero(*mpElementStabilizationCoefficientVariable, rModelPart.Elements());
-        }
 
         if (mStabilizationCoefficient > 0.0 && mDiffusionMatrixCalculationPoint == DiffusionMatrixCalculationPoint::INITIALIZE) {
             CalculateElementDiffusionMatrices(rModelPart);
@@ -511,6 +506,8 @@ protected:
     std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
 
     struct StabilizationTLS {
+        Eigen::MatrixXd SVDMatrix;
+        LocalSystemMatrixType StabilizationPrimalSteadyMatrix;
         LocalSystemMatrixType EquationDiffusionMatrix;
     };
 
@@ -600,18 +597,44 @@ protected:
 
         auto& r_tls = mStabilizationTLS[k];
 
+        // get primal steady matrix
+        /*
+        \[
+            \frac{\partial \underline{\tilde{F}}}{\partial\underline{w}}
+        \]
+        */
+        rCurrentElement.Calculate(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES,
+                                  r_tls.StabilizationPrimalSteadyMatrix,
+                                  rCurrentProcessInfo);
+
+
         const auto& r_geometry = rCurrentElement.GetGeometry();
         const IndexType number_of_nodes = r_geometry.PointsNumber();
-        const IndexType local_size = rLHS_Contribution.size2();
+        const IndexType local_size = r_tls.StabilizationPrimalSteadyMatrix.size2();
         const IndexType number_of_equations = local_size / number_of_nodes;
 
         // resize matrices
-        if (r_tls.EquationDiffusionMatrix.size1() != number_of_nodes || r_tls.EquationDiffusionMatrix.size2() != number_of_nodes) {
+        if (r_tls.SVDMatrix.rows() != static_cast<int>(r_tls.StabilizationPrimalSteadyMatrix.size1()) || r_tls.SVDMatrix.cols() != static_cast<int>(r_tls.StabilizationPrimalSteadyMatrix.size2())) {
+            r_tls.SVDMatrix.resize(r_tls.StabilizationPrimalSteadyMatrix.size1(), r_tls.StabilizationPrimalSteadyMatrix.size2());
             r_tls.EquationDiffusionMatrix.resize(number_of_nodes, number_of_nodes, false);
         }
 
+        // multiply by scaling factors and construct svd matrix
+        for (IndexType i = 0; i < r_tls.StabilizationPrimalSteadyMatrix.size1(); ++i) {
+            const double i_coeff = i % number_of_equations;
+            for (IndexType j = 0; j < r_tls.StabilizationPrimalSteadyMatrix.size2(); ++j) {
+                r_tls.SVDMatrix(i, j) =
+                    r_tls.StabilizationPrimalSteadyMatrix(i, j) *
+                    mStabilizationDerivativeScalingVector[i_coeff] *
+                    mStabilizationResidualScalingVector[j % number_of_equations];
+            }
+        }
+
+        // compute the singular values for current equation
+        Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::NoQRPreconditioner> svd(r_tls.SVDMatrix);
+
         // get the maximum singular value
-        const double sigma_1 = rCurrentElement.GetValue(*mpElementStabilizationCoefficientVariable);
+        const double sigma_1 = svd.singularValues()[0];
 
         // add diffusion matrix
         noalias(r_tls.EquationDiffusionMatrix) = rCurrentElement.GetValue(ADJOINT_STABILIZATION_DIFFUSION_MATRIX);
@@ -629,6 +652,8 @@ protected:
                 }
             }
         }
+
+        rCurrentElement.SetValue(ADJOINT_STABILIZATION_COEFFICIENT, (mStabilizationCoefficient * sigma_1));
 
         KRATOS_CATCH("");
     }
@@ -810,7 +835,6 @@ private:
     DiffusionMatrixCalculationPoint mDiffusionMatrixCalculationPoint;
 
     double mStabilizationCoefficient;
-    const Variable<double>* mpElementStabilizationCoefficientVariable = nullptr;
     Vector mStabilizationResidualScalingVector;
     Vector mStabilizationDerivativeScalingVector;
 

@@ -50,7 +50,6 @@ class ModelPartController:
             "mesh_motion" : {
                 "apply_mesh_solver" : false
             },
-            "iteration_directory": "optimization_iterations",
             "write_iteration_restart_files": false
         }""")
 
@@ -79,8 +78,7 @@ class ModelPartController:
 
         self.design_surface = None
         self.damping_utility = None
-
-        self.iteration_directory = self.model_settings["iteration_directory"].GetString()
+        self.direction_dampings = []
         self.is_iteration_restart_files_written = self.model_settings["write_iteration_restart_files"].GetBool()
 
     # --------------------------------------------------------------------------

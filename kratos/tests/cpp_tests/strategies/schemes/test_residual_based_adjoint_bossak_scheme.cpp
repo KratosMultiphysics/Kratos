@@ -31,6 +31,7 @@
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/adjoint_extensions.h"
+#include "utilities/math_utils.h"
 
 
 namespace Kratos
@@ -1033,7 +1034,7 @@ double SolvePrimalProblem(
     }
 
     return response_value;
-    };
+}
 
 void SolveAdjointProblem(
     Model& rModel,
@@ -1066,10 +1067,27 @@ void SolveAdjointProblem(
     adjoint_model_part.CloneTimeStep(EndTime + 2. * DeltaTime);
     adjoint_model_part.CloneTimeStep(EndTime + DeltaTime);
     rModelPartUpdateMethod(adjoint_model_part);
+    Matrix primal_matrix, eigen_vectors, eigen_values;
     for (double current_time = EndTime + DeltaTime; current_time >= StartTime + 1.5 * DeltaTime;)
     {
         current_time -= DeltaTime;
         adjoint_model_part.CloneTimeStep(current_time);
+        if (SchemeSettings["stabilization_coefficient"].GetDouble() > 0.0) {
+            for (auto& r_element : adjoint_model_part.Elements()) {
+                r_element.Calculate(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES, primal_matrix, adjoint_model_part.GetProcessInfo());
+                MathUtils<double>::GaussSeidelEigenSystem(primal_matrix, eigen_vectors, eigen_values, 1e-12, 100);
+                double max_eigen_value = 0.0;
+                for (unsigned int i = 0; i < primal_matrix.size1(); ++i) {
+                    max_eigen_value = std::max(max_eigen_value, eigen_values(i, i));
+                }
+
+                if (max_eigen_value > 0.0) {
+                    r_element.SetValue(RESIDUAL_NORM, std::sqrt(max_eigen_value));
+                } else {
+                    r_element.SetValue(RESIDUAL_NORM, 0.0);
+                }
+            }
+        }
         adjoint_solver.Solve();
         sensitivity_builder.UpdateSensitivities();
     }
@@ -1181,6 +1199,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_Stabilization_Elements, Kra
                 "scheme_type"                            : "bossak",
                 "alpha_bossak"                           : -0.3,
                 "stabilization_coefficient"              : 2.0,
+
                 "stabilization_matrix_calculation_point" : "none",
                 "stabilization_residual_scaling_vector"  : [3.0],
                 "stabilization_derivative_scaling_vector": [5.0]
