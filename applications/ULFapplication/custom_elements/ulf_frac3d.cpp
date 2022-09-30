@@ -68,7 +68,7 @@ namespace Kratos
 {
 //static variables
 /*
-namespace UlfFrac3D_auxiliaryies
+namespace UlfFrac3D_auxiliaries
 {
 
 boost::numeric::ublas::bounded_matrix<double,6,12> msB; //
@@ -85,7 +85,7 @@ array_1d<double,6> ms_temp_vec;
 	array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension//
 	array_1d<double,4> msN = ZeroVector(4);//
 }
-using  namespace UlfFrac3D_auxiliaryies;
+using  namespace UlfFrac3D_auxiliaries;
 */
 
 //************************************************************************************

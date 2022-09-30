@@ -390,7 +390,7 @@ public:
             ConstructMatrixStructure_FluidDivergenceMatrixD( mD,  BaseType::GetModelPart());
 
             double density_str=10000.0;
-            BuildAuxiliaryiesFSI(mD, density_str, BaseType::GetModelPart());
+            BuildAuxiliariesFSI(mD, density_str, BaseType::GetModelPart());
             mA+=mD;
             */
             pBuilderAndSolver->ApplyDirichletConditions(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
@@ -862,7 +862,7 @@ private:
         KRATOS_CATCH("")
 
     }
-    void BuildAuxiliaryiesFSI(
+    void BuildAuxiliariesFSI(
         TSystemMatrixType& mD, double density_str,
         ModelPart& r_model_part) //TSystemMatrixType& WorkMatrix, double density_str,	ModelPart& r_model_part)
     {

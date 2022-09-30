@@ -216,7 +216,7 @@ class ULFStrategyPythonInc:
         self.builder_and_solver.AssembleMassMatrices(self.MPconsistent, self.MPinv, self.model_part)
 
         # now build the D = GT matrix
-        self.builder_and_solver.BuildAuxiliaryies(self.D, self.model_part)
+        self.builder_and_solver.BuildAuxiliaries(self.D, self.model_part)
 
         # print self.D
         # penalizing fixed DOF
