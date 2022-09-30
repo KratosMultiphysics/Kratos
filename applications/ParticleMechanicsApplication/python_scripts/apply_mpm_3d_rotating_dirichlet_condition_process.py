@@ -24,6 +24,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
                 "rotation_center"           : [0.0, 0.0, 0.0],
                 "rotation_velocity"         : [0.0, 0.0, 0.0],
                 "compute_rotation_center"   : false,
+                "is_equal_distributed"      : false,
                 "rotation_option"           : ""
             }  """ )
 
