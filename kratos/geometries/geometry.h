@@ -239,7 +239,7 @@ public:
     }
 
     /// Standard Constructor with a Name
-    Geometry(std::string GeometryName)
+    Geometry(const std::string& GeometryName)
         : mId(GenerateId(GeometryName))
         , mpGeometryData(&GeometryDataInstance())
     {
@@ -323,7 +323,7 @@ public:
     }
 
     Geometry(
-        std::string GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
         : mId(GenerateId(GeometryName))

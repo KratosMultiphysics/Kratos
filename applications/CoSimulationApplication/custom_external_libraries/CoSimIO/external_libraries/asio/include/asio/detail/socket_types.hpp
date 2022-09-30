@@ -24,7 +24,7 @@
 #  error WinSock.h has already been included
 # endif // defined(_WINSOCKAPI_) && !defined(_WINSOCK2API_)
 # if defined(__BORLANDC__)
-#  include <stdlib.h> // Needed for __errno
+#  include <cstdlib> // Needed for __errno
 #  if !defined(_WSPIAPI_H_)
 #   define _WSPIAPI_H_
 #   define ASIO_WSPIAPI_H_DEFINED

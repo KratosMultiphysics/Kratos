@@ -174,6 +174,22 @@ public:
      */
     static ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry);
 
+    /**
+     * @brief This function maps the velocity of the nodes "on the skin" by the use of RBF interpolation
+     * to the variable EMBEDDED_VELOCITY of the nodes which correspond to the cut cells in the volume.
+     * It is designed for use together with the "embedded solver"
+     * @param rVolumeModelPart is the destination domain on which EMBEDDED_VELOCITY will be calculated
+     * @param rSkinModelPart is the skin of the object from which the velocity will be taken
+     * @param SearchRadius is the radius which will be used in searching the neighbours. It needs to be sufficiently large otherwise the method will fail in the calculation of the RBF basis
+     * NOTE: historical variable VELOCITY is assumed to be present on the nodes of the rSkinModelPArt 
+     * NOTE: non historical variable EMBEDDED_VELOCITY is assumed to be present in rVolumeModelPart prior to calling the function
+     */
+    static void MapVelocityFromSkinToVolumeRBF(
+        ModelPart& rVolumeModelPart,
+        ModelPart& rSkinModelPart,
+        const double SearchRadius
+        );
+
     ///@}
 private:
 

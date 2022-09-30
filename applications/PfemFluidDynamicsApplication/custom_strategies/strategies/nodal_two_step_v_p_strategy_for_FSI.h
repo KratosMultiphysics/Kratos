@@ -36,7 +36,7 @@
 #include "nodal_two_step_v_p_strategy.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 
