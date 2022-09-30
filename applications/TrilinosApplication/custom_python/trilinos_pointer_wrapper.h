@@ -163,7 +163,7 @@ private:
     ///@}
 }; // Class AuxiliaryMatrixWrapper
 
-/// Auxiliaryty Trilinos vector pointer wrapper class
+/// Auxiliarty Trilinos vector pointer wrapper class
 /** This class is intended to handle the Trilinos space matrices exportation to Python.
  * Since the vector pointer cannot be exported to Python by means of PyBind, it is stored
  * in this auxilary class, which is the object that is exported to python. The exportation

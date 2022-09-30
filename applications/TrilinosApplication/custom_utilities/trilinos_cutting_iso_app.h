@@ -239,8 +239,6 @@ public:
         ierr = IDs_non_overlapping_graph->GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
         if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 249", "");
 
-        //KRATOS_WATCH('line333')
-
         //NOW WE MUST CREATE THE VECTOR CONTAINING BOTH OWNED AND NOT OWNED NODES.
         //ACTUALLY THEY'RE CREATED THE SAME WAY, BUT THE OWNER PROCESSOR IS THE ONE THAT SETS THE IDS
         //ONCE DONE, THESE IDs ARE SHARED AND NODES THAT ARE REAPETED ARE CREATED TWICE BY DIFFERENT PROCESSOR BUT WITH THE SAME ID number.
@@ -264,14 +262,10 @@ public:
         ierr = Partition_overlap->ExtractCopy(local_Partition_ov,nnodes);
         KRATOS_ERROR_IF(ierr < 0) << "epetra failure in line" << __LINE__ << std::endl;
 
-        ///KRATOS_WATCH('line349')
-
         for (int index=0; index!=nnodes; ++index)  //now we have to save the nodes!.
         {
-            // KRATOS_WATCH(auxiliary);
             if (used_nodes[index]==true)
             {
-                //KRATOS_WATCH(index)
                 int node_number= int(local_IDs_ov[index]);
 
                 ModelPart::NodesContainerType::iterator it_node = this_model_part.Nodes().begin()+index; //CHANGE THIS! this only work if the nodes in the original model part are consecutive. or??
@@ -296,8 +290,6 @@ public:
         new_model_part.Nodes().Sort();
 
         new_model_part.Nodes().Unique();
-
-        //KRATOS_WATCH('line404')
 
         //NOW WE MUST COPY THE CONDITIONS
         int triangle_ID = number_of_old_conditions + conditions_before;
