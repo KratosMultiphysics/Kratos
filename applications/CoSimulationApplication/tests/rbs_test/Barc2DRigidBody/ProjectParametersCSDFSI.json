@@ -2,11 +2,11 @@
     "problem_data": {
         "problem_name": "RigidBody",
         "start_time": 0.0,
-        "end_time": 5.0
+        "end_time": 0.05
     },
     "solver_settings": {
         "domain_size": 3,
-        "echo_level": 1,
+        "echo_level": 0,
         "buffer_size": 3,
         "model_import_settings": {
             "input_type": "none",
@@ -48,7 +48,9 @@
             }
         ]
     },
-    "output_processes": [],
+    "output_processes": [
+         
+    ],
     "processes": {
         "gravity": [],
         "initial_conditions_process_list": [

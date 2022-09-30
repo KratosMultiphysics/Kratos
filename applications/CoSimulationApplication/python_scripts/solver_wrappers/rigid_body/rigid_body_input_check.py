@@ -116,7 +116,7 @@ def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
         dof = dof_data["dof"].GetString()
         if dof not in available_dofs:
             msg = 'The degree of freedom "'+dof+'" is not among the available ones. '
-            msg += 'Select one of the following: '+str(available_dofs)[1,-1]
+            msg += 'Select one of the following: '+str(available_dofs)[1:-1]
             raise Exception(msg)
         # Repeated DOFs are not allowed since they can create contradictions
         if dof in dof_settings_processed:

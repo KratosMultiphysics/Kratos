@@ -4,7 +4,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 5.0
+        "end_time": 0.05
     },
     "output_processes": {
         "gid_output": [],
@@ -66,7 +66,7 @@
     "solver_settings": {
         "solver_type": "ale_fluid",
         "ale_boundary_parts": [
-            "NoSlip2D_structure"
+            "NoSlip2D_Boundary_NoSlipStructure"
         ],
         "mesh_motion_solver_settings": {
             "solver_type": "structural_similarity",
@@ -102,7 +102,7 @@
             "material_import_settings": {
                 "materials_filename": "rbs_test/Barc2DRigidBody/FluidMaterials.json"
             },
-            "echo_level": 1,
+            "echo_level": 0,
             "compute_reactions": true,
             "dynamic_tau": 0.1,
             "predictor_corrector": false,
@@ -134,16 +134,14 @@
                 "scaling": false,
                 "use_block_matrices_if_possible": true
             },
-            "volume_model_part_name": "FluidParts_fluid",
+            "volume_model_part_name": "FluidParts_Fluid",
             "skin_parts": [
-                "AutomaticInlet2D_inlet",
-                "Outlet2D_outlet",
+                "AutomaticInlet2D_Boundary_Inlet",
+                "Outlet2D_Boundary_Outlet",
                 "Slip2D",
-                "NoSlip2D_structure"
+                "NoSlip2D_Boundary_NoSlipStructure"
             ],
-            "no_skin_parts": [
-                "Drag_structure"
-            ],
+            "no_skin_parts": [],
             "time_stepping": {
                 "automatic_time_step": false,
                 "time_step": 0.005
@@ -152,61 +150,35 @@
         }
     },
     "processes": {
-        "initial_conditions_process_list": [],
+        "initial_conditions_process_list": [
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantVectorValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "VELOCITY",
+                    "modulus": 4.0,
+                    "direction": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
         "boundary_conditions_process_list": [
             {
                 "python_module": "apply_inlet_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_Boundary_Inlet",
                     "variable_name": "VELOCITY",
                     "interval": [
                         0.0,
-                        1.5
+                        "End"
                     ],
-                    "modulus": "15.26*t/1.5",
-                    "direction": "automatic_inwards_normal"
-                }
-            },
-            {
-                "python_module": "apply_inlet_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "variable_name": "VELOCITY",
-                    "interval": [
-                        1.5,
-                        2.5
-                    ],
-                    "modulus": "15.26",
-                    "direction": "automatic_inwards_normal"
-                }
-            },
-            {
-                "python_module": "apply_inlet_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "variable_name": "VELOCITY",
-                    "interval": [
-                        2.5,
-                        4.0
-                    ],
-                    "modulus": "15.26*(4-t)/1.5",
-                    "direction": "automatic_inwards_normal"
-                }
-            },
-            {
-                "python_module": "apply_inlet_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "variable_name": "VELOCITY",
-                    "interval": [
-                        4.0,
-                        5.0
-                    ],
-                    "modulus": "0",
+                    "modulus": "4*(0.05-t)/0.05",
                     "direction": "automatic_inwards_normal"
                 }
             },
@@ -214,7 +186,7 @@
                 "python_module": "apply_outlet_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.Outlet2D_outlet",
+                    "model_part_name": "FluidModelPart.Outlet2D_Boundary_Outlet",
                     "variable_name": "PRESSURE",
                     "constrained": true,
                     "value": 0.0,
@@ -226,7 +198,7 @@
                 "python_module": "apply_noslip_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.NoSlip2D_structure"
+                    "model_part_name": "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure"
                 }
             },
             {
@@ -242,7 +214,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_Boundary_Inlet",
                     "variable_name": "MESH_DISPLACEMENT",
                     "interval": [
                         0.0,
@@ -265,7 +237,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.Outlet2D_outlet",
+                    "model_part_name": "FluidModelPart.Outlet2D_Boundary_Outlet",
                     "variable_name": "MESH_DISPLACEMENT",
                     "interval": [
                         0.0,
@@ -288,7 +260,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "FixVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.NoSlip2D_structure",
+                    "model_part_name": "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
                     "variable_name": "MESH_DISPLACEMENT",
                     "interval": [
                         0.0,
@@ -306,7 +278,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D.Slip2D_top_bottom",
+                    "model_part_name": "FluidModelPart.Slip2D",
                     "variable_name": "MESH_DISPLACEMENT",
                     "interval": [
                         0.0,
@@ -331,7 +303,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorByDirectionProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.FluidParts_fluid",
+                    "model_part_name": "FluidModelPart.FluidParts_Fluid",
                     "variable_name": "BODY_FORCE",
                     "modulus": 0.0,
                     "constrained": false,

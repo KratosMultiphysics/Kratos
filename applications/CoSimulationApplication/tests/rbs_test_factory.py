@@ -59,14 +59,14 @@ class CoSimTestFactory(KratosUnittest.TestCase):
             self.test.Run()
 
 
-class RBSStandaloneTest(RBSTestFactory):
+class TestRBSStandalone(RBSTestFactory):
     file_name = "rbs_test/RBS_standalone/RBS_standalone"
 
-class RBSRBSTest(CoSimTestFactory):
+class TestRBSRBS(CoSimTestFactory):
     file_name = "rbs_test/RBS_RBS/RBS_RBS"
 
 @KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication", "MappingApplication", "LinearSolversApplication")
-class Barc2DRigidBodyTest(CoSimTestFactory):
+class TestBarc2DRigidBody(CoSimTestFactory):
     file_name = "rbs_test/Barc2DRigidBody/Barc2DRigidBody"
 
 

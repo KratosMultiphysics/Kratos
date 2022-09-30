@@ -6,7 +6,7 @@
         "end_time" : 4.0,
         "echo_level" : 0,
         "print_colors" : true,
-        "parallel_type" : "MPI"
+        "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
