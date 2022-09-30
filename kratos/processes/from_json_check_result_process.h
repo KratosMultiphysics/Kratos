@@ -75,7 +75,7 @@ public:
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ElementsContainerType        ElementsArrayType;
 
-    /// The node type definiton
+    /// The node type definition
     typedef Node<3> NodeType;
 
     /// The definition of the index type

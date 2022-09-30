@@ -36,7 +36,7 @@ FastTransferBetweenModelPartsProcess::FastTransferBetweenModelPartsProcess(
 {
     KRATOS_TRY
 
-    // If the entities are replicated or transfered
+    // If the entities are replicated or transferred
     if (ReplicateEntities) {
         this->Set(MODIFIED, true);
     } else {

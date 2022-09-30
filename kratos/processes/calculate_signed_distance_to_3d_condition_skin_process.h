@@ -1377,7 +1377,7 @@ private:
          Timer::Start("Calculate Distances2");
          ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
          int nodes_size = nodes.size();
-//         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+//         // first of all we reset the node distance to 1.00 which is the maximum distance in our normalized space.
 //#pragma omp parallel for firstprivate(nodes_size)
 //         for(int i = 0 ; i < nodes_size ; i++)
 //             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
@@ -1402,7 +1402,7 @@ private:
 //         Timer::Start("Calculate Distances2");
 //         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
 //         int nodes_size = nodes.size();
-////         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+////         // first of all we reset the node distance to 1.00 which is the maximum distance in our normalized space.
 //#pragma omp parallel for firstprivate(nodes_size)
 //         for(int i = 0 ; i < nodes_size ; i++)
 //             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
@@ -1448,7 +1448,7 @@ private:
           Timer::Start("Calculate Distances");
           ConfigurationType::data_type& nodes = mOctreeNodes;
           int nodes_size = nodes.size();
-          // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
+          // first of all we reste the node distance to 1.00 which is the maximum distance in our normalized space.
 
         IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
             nodes[Index]->Distance() = 1.00;

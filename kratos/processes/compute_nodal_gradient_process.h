@@ -85,7 +85,7 @@ struct AuxiliarVariableVectorRetriever
 };
 
 /**
- * @brief This struct is used in order to retrieve values without loosing performance
+ * @brief This struct is used in order to retrieve values without losing performance
  */
 template<bool THistorical>
 struct VariableVectorRetriever

@@ -199,8 +199,8 @@ private:
  * @class SimpleMortarMapperProcess
  * @brief This is basic mapper of values between domains using mortar formulation
  * @details Using the dual mortar formulation the resolution of the system of equations is not needed.
- * Several types of constructors are avaible depending of the needs.
- * If the pairs sets are not provided a serach will be performed using a KDTree
+ * Several types of constructors are available depending of the needs.
+ * If the pairs sets are not provided a search will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
@@ -304,7 +304,7 @@ public:
      * @brief Default constructor
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
-     * @param rThisVariable The variable to transfer and be transfered
+     * @param rThisVariable The variable to transfer and be transferred
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
      */
@@ -321,7 +321,7 @@ public:
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
      * @param rOriginVariable The variable to transfer
-     * @param rDestinationVariable The variable to be transfered
+     * @param rDestinationVariable The variable to be transferred
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
      */
@@ -597,13 +597,13 @@ private:
     /**
      * @brief This method checks if all components of a vector are true
      * @param rVectorToCheck The vector to check
-     * @return result True if all componets are true
+     * @return result True if all components are true
      */
     bool CheckWholeVector(std::vector<bool>& rVectorToCheck);
 
     /**
      * @brief This method computes the residual matrix of the mapping
-     * @param rResidualMatrix The matrix containing the residual of the mappping
+     * @param rResidualMatrix The matrix containing the residual of the mapping
      * @param rSlaveGeometry The slave geometry
      * @param rMasterGeometry The master geometry
      * @param rThisMortarOperators The mortar operators
@@ -620,7 +620,7 @@ private:
      * @param rA The LHS of the system
      * @param rb The RHS of the system
      * @param VariableSize The size of the variable
-     * @param rResidualMatrix The matrix containing the residual of the mappping
+     * @param rResidualMatrix The matrix containing the residual of the mapping
      * @param rSlaveGeometry The slave geometry
      * @param rInverseConectivityDatabase The inverse database that will be used to assemble the system
      * @param rThisMortarOperators The mortar operators
@@ -639,7 +639,7 @@ private:
      * @brief This method assembles the RHS
      * @param rb The RHS of the system
      * @param VariableSize The size of the variable
-     * @param rResidualMatrix The matrix containing the residual of the mappping
+     * @param rResidualMatrix The matrix containing the residual of the mapping
      * @param rSlaveGeometry The slave geometry
      * @param rInverseConectivityDatabase The inverse database that will be used to assemble the system
      */
@@ -652,12 +652,12 @@ private:
         );
 
     /**
-     * @brief This method executes the explicit mapping (when no linear solver is avalaible)
+     * @brief This method executes the explicit mapping (when no linear solver is available)
      */
     void ExecuteExplicitMapping();
 
     /**
-     * @brief This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
+     * @brief This method executes the mapping when a linear solver is available and a system of equations can be solved
      */
     void ExecuteImplicitMapping();
 

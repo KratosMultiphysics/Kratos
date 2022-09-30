@@ -92,7 +92,7 @@ public:
         const double RelativeTolerance);
 
     /**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     * @brief Construct a new Apply Ray Casting Process object using an already created search structure
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
@@ -102,7 +102,7 @@ public:
         const double RelativeTolerance);
 
     /**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     * @brief Construct a new Apply Ray Casting Process object using an already created search structure
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
