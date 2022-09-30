@@ -45,6 +45,7 @@ EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
     mApplyToAllNegativeCutNodes = ThisParameters["apply_to_all_negative_cut_nodes"].GetBool();
     mUseMLSShapeFunctions = ThisParameters["use_mls_shape_functions"].GetBool();
     mIncludeIntersectionPoints = ThisParameters["include_intersection_points"].GetBool();
+    mSlipLength = ThisParameters["slip_length"].GetDouble();
 
     // Set whether nodal distances will be modified to avoid levelset zeros
     mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
@@ -170,6 +171,9 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeClouds(NodesCloudMapType& rC
 
 void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)
 {
+    // Count number of positive small cuts
+    std::size_t n_small_cut_pos = 0;
+
     for (auto slave_node : neg_nodes_element) {
         // Check whether node was already added because of a previous element
         if (!rCloudsMap.count(slave_node)) {
@@ -177,41 +181,28 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             const std::size_t n_cloud_nodes = pos_nodes_element.size();
 
             // Get nodal distances
-            const double dist_slave = slave_node->FastGetSolutionStepValue(DISTANCE);
+            double dist_slave = slave_node->FastGetSolutionStepValue(DISTANCE);
             double sum_dist_cloud_nodes = 0.0;
             for (auto pos_node : pos_nodes_element) {
                 sum_dist_cloud_nodes += pos_node->FastGetSolutionStepValue(DISTANCE);
             }
             //TODO: case: small cut for positive side - change!!!  // TODO: scale slave_distance using edge length/elements size?
-            if (sum_dist_cloud_nodes < 1e-10) {
+            // --> apply boundary condition by making negative distance very small
+            // TODO: tolerance ???
+            if (sum_dist_cloud_nodes < 1e-4) {
+                dist_slave = sum_dist_cloud_nodes;
                 sum_dist_cloud_nodes = n_cloud_nodes;
+                n_small_cut_pos++;
             }
 
-            // Calculate averaged coordinates of intersection points
-            /*array_1d<double,3> avg_int_pt_coord;
-            avg_int_pt_coord[0] = 0.0;
-            avg_int_pt_coord[1] = 0.0;
-            avg_int_pt_coord[2] = 0.0;
-
-            std::size_t n_intersections = 0;
-            for (auto neg_node : neg_nodes_element) {
-                double dist_neg_node = neg_node->FastGetSolutionStepValue(DISTANCE);
-                for (auto pos_node : pos_nodes_element) {
-                    double dist_pos_node = pos_node->FastGetSolutionStepValue(DISTANCE);
-                    // 2D: Calculate intersection point
-                    const double int_pt_rel_location = std::abs(dist_neg_node/(dist_pos_node-dist_neg_node));
-                    avg_int_pt_coord += *neg_node + int_pt_rel_location * (*pos_node - *neg_node);
-                    n_intersections++;
-                }
-            }
-            avg_int_pt_coord /= n_intersections;*/
-
-            // Get boundary condition value for averaged intersection point  // TODO  different boundary condition?!?
+            // TODO Get boundary condition value at structural interface from variable ???
             //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
-            const double value_bc = 0.0; //std::pow(avg_int_pt_coord[0],2) + std::pow(avg_int_pt_coord[1],2);
+            // Scale enforcement of boundary condition using the slip length
+            const double value_gamma = 0.0;
+            const double slip_length_mod = (mSlipLength < 1.0) ? mSlipLength : 1.0;
 
             // Calculate weight
-            const double cloud_node_weight = dist_slave / sum_dist_cloud_nodes;
+            const double cloud_node_weight = slip_length_mod / n_cloud_nodes + dist_slave / sum_dist_cloud_nodes * (1 - slip_length_mod);
             KRATOS_WATCH(cloud_node_weight);
 
             // Save positive element nodes (cloud nodes) and weights (linear interpolation of averaged positive nodes and averaged intersection points)
@@ -223,7 +214,7 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
 
             //Calculate offset for master-slave constraint
             // const double offset = value_bc;
-            const double offset = value_bc - dist_slave * value_bc * n_cloud_nodes / sum_dist_cloud_nodes;
+            const double offset = value_gamma * (1 - slip_length_mod) * (1 - dist_slave * n_cloud_nodes / sum_dist_cloud_nodes);
 
             // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
             rOffsetsMap.insert(std::make_pair(slave_node, offset));
@@ -231,6 +222,7 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             KRATOS_WATCH("Added local averaged cloud including intersection points for a negative node of a cut element");
         }
     }
+    KRATOS_WATCH(n_small_cut_pos);
 }
 
 void EmbeddedLocalConstraintProcess::AddMLSNodeClouds(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)

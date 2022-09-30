@@ -181,10 +181,6 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             for (auto pos_node : pos_nodes_element) {
                 sum_dist_cloud_nodes += pos_node->FastGetSolutionStepValue(DISTANCE);
             }
-            //TODO: case: small cut for positive side - change!!!  // TODO: scale slave_distance using edge length/elements size?
-            if (sum_dist_cloud_nodes < 1e-10) {
-                sum_dist_cloud_nodes = n_cloud_nodes;
-            }
 
             // Calculate averaged coordinates of intersection points
             array_1d<double,3> avg_int_pt_coord;
@@ -209,9 +205,18 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);  // TODO =0.0 if value_bc = 0.0 ???
             const double value_bc = std::pow(avg_int_pt_coord[0],2) + std::pow(avg_int_pt_coord[1],2);
 
+            //Calculate offset for master-slave constraint
+            double offset = value_bc - dist_slave * value_bc * n_cloud_nodes / sum_dist_cloud_nodes;
+
             // Calculate weight
-            const double cloud_node_weight = dist_slave / sum_dist_cloud_nodes;
+            double cloud_node_weight = dist_slave / sum_dist_cloud_nodes;
             KRATOS_WATCH(cloud_node_weight);
+
+            //TODO: case: small cut for positive side - change!!!  // TODO: scale slave_distance using edge length/elements size?
+            if (sum_dist_cloud_nodes < 1e-10) {
+                offset = value_bc;
+                cloud_node_weight = 0.0;
+            }
 
             // Save positive element nodes (cloud nodes) and weights (linear interpolation of averaged positive nodes and averaged intersection points)
             CloudDataVectorType cloud_data_vector(n_cloud_nodes);
@@ -219,9 +224,6 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
                 auto i_data = std::make_pair(pos_nodes_element[i_pos_node], cloud_node_weight);
                 cloud_data_vector(i_pos_node) = i_data;
             }
-
-            //Calculate offset for master-slave constraint
-            const double offset = value_bc - dist_slave * value_bc * n_cloud_nodes / sum_dist_cloud_nodes;
 
             // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
             rOffsetsMap.insert(std::make_pair(slave_node, offset));

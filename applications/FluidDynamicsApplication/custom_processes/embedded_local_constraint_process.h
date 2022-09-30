@@ -105,13 +105,14 @@ public:
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"({
-            "model_part_name" : "",
+            "model_part_name"                 : "",
             "apply_to_all_negative_cut_nodes" : true,
-            "use_mls_shape_functions" : true,
-            "include_intersection_points" : true,
-            "avoid_zero_distances" : true,
-            "deactivate_negative_elements" : true,
-            "deactivate_intersected_elements" : false
+            "use_mls_shape_functions"         : true,
+            "include_intersection_points"     : true,
+            "avoid_zero_distances"            : true,
+            "deactivate_negative_elements"    : true,
+            "deactivate_intersected_elements" : false,
+            "slip_length"                     : 0.0
         })" );
 
         return default_parameters;
@@ -197,6 +198,7 @@ private:
     bool mApplyToAllNegativeCutNodes;
     bool mUseMLSShapeFunctions;
     bool mIncludeIntersectionPoints;
+    double mSlipLength;
 
     bool mAvoidZeroDistances;
 

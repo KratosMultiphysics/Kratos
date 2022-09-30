@@ -18,6 +18,7 @@ class EmbeddedFormulation(object):
         self.element_name = None
         self.small_cut_treatment = None
         self.apply_constraints_to_all_cut_elements = True
+        self.slip_length = 0.0
         self.condition_name = None
         self.process_info_data = {}
         self.element_has_nodal_properties = False
@@ -101,7 +102,8 @@ class EmbeddedFormulation(object):
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
         if formulation_settings["is_slip"].GetBool():
-            self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
+            self.slip_length = formulation_settings["slip_length"].GetDouble()
+            self.process_info_data[KratosCFD.SLIP_LENGTH] = self.slip_length
 
     def _SetUpClassicEmbeddedAusasNavierStokes(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -323,6 +325,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
         self.small_cut_treatment = self.embedded_formulation.small_cut_treatment
         self.apply_constraints_to_all_cut_elements = self.embedded_formulation.apply_constraints_to_all_cut_elements
+        self.slip_length = self.embedded_formulation.slip_length
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -466,7 +469,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied Local Constraints.")
             self.apply_LocalConstraints = False
         if self.apply_LocalConstraintsABC:
-            self.GetLocalConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
+            self.GetLocalConstraintProcess(use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements, slip_length=self.slip_length).Execute()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied Local-BC Constraints.")
             self.apply_LocalConstraintsABC = False
 
@@ -616,7 +619,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._mls_constraint_process = KratosCFD.EmbeddedMLSConstraintProcess(self.model, settings)
         return self._mls_constraint_process
 
-    def GetLocalConstraintProcess(self, use_mls_sf=False, use_bc=False, apply_to_all=True):
+    def GetLocalConstraintProcess(self, use_mls_sf=False, use_bc=False, apply_to_all=True, slip_length=0.0):
         if not hasattr(self, '_local_constraint_process'):
             # Create a single point constraint for all negative nodes of intersected elements
             # NOTE: the nodal distances will still be modified slightly to avoid levelset zeros (tol=1e-12)
@@ -629,6 +632,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
             settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
+            settings.AddEmptyValue("slip_length").SetDouble(slip_length)
             self._local_constraint_process = KratosCFD.EmbeddedLocalConstraintProcess(self.model, settings)
         return self._local_constraint_process
 
