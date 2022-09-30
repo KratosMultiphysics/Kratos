@@ -159,8 +159,12 @@ public:
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
 
+    ///@}
+    ///@name Access
+    ///@{
+
     /**
-     * This sets the build level
+     * @brief This sets the build level
      * @param Level The build level
      * @details
      * {
@@ -218,6 +222,24 @@ public:
         return "implicit_solving_strategy";
     }
 
+    /**
+     * @brief This method sets the flag mStiffnessMatrixIsBuilt
+     * @param StiffnessMatrixIsBuilt The flag that tells if the stiffness matrix is built
+     */
+    void SetStiffnessMatrixIsBuilt(const bool StiffnessMatrixIsBuilt)
+    {
+        mStiffnessMatrixIsBuilt = StiffnessMatrixIsBuilt;
+    }
+
+    /**
+     * @brief This method gets the flag mStiffnessMatrixIsBuilt
+     * @return mStiffnessMatrixIsBuilt: The flag that tells if the stiffness matrix is built
+     */
+    bool GetStiffnessMatrixIsBuilt() const
+    {
+        return mStiffnessMatrixIsBuilt;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -235,8 +257,8 @@ protected:
     ///@{
 
     // Settings for the rebuilding of the stiffness matrix
-    int mRebuildLevel;
-    bool mStiffnessMatrixIsBuilt;
+    int mRebuildLevel;            /// The current rebuild level
+    bool mStiffnessMatrixIsBuilt; /// A flag indicating if the stiffness matrix has been built
 
     ///@}
     ///@name Protected member Variables
