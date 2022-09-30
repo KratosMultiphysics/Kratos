@@ -51,16 +51,6 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
     * Deterministic,
     * Adaptive.
 
-### Continuation Multilevel Monte Carlo
-
-* A set of decreasing tolerances is used and updated on the fly to adaptively estimate the hierarchy and run MLMC.
-* Levels of parallelism:
-    * Between levels,
-    * Between samples,
-    * On each sample at solver level.
-* Hierarchy update:
-    * Adaptive.
-
 ### Asynchronous Monte Carlo
 
 * This algorithm is equivalent to MC, but designed for running in distributed environments. It avoids idle times and keeps at maximum the computational efficiency.
@@ -82,6 +72,15 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
 * Hierarchy update:
     * Deterministic.
 
+### Continuation Multilevel Monte Carlo
+
+* A set of decreasing tolerances is used and updated on the fly to adaptively estimate the hierarchy and run MLMC.
+* Levels of parallelism:
+    * Between levels,
+    * Between samples,
+    * On each sample at solver level.
+* Hierarchy update:
+    * Adaptive.
 
 ## Statistical tools
 
@@ -99,7 +98,6 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
   <img src="https://render.githubusercontent.com/render/math?math=h_P:=f(S_p,N),p\in[1,P]"> .
 </p>
 
-
 ## Convergence criteria
 
 * Convergence is achieved if the estimator of interest reaches a desired tolerance with respect to the true estimator with a given confidence.
@@ -113,8 +111,6 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
     * Sample variance criteria (MC only),
     * Higher order (up to the fourth) moments criteria (MC only).
 
-
-
 ## Hierarchy
 
 * Hierarchy strategies:
@@ -126,7 +122,6 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
     * geometric error estimate: the analysis of the hessian of the numerical solution controls the mesh refinement.
     * divergence-free error estimate: the analysis of the mass conservation controls the mesh refinement (suitable only for CFD cases). Requires compiling `EXAQUTE_SANDBOX_APPLICATION`. *In progress*.
 
-
 ## External Libraries
 
 MultilevelMonteCarloApplication makes use of third part libraries.
@@ -134,7 +129,7 @@ Information about these libraries can be found in their respective pages, which 
 
 ### XMC
 
-[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a Python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the environment variable `XMC_BACKEND=external` should be set.
+[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) [3] is a Python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the environment variable `XMC_BACKEND=external` should be set.
 
 ### PyCOMPSs
 
@@ -171,9 +166,9 @@ The MultilevelMonteCarloApplication is OPEN SOURCE. The main code and program st
 ## Main References
 [1] Tosi, R., Amela, R., Badia, R. M. & Rossi, R. (2021). A Parallel Dynamic Asynchronous Framework for Uncertainty Quantification by Hierarchical Monte Carlo Algorithms. Journal of Scientific Computing. https://doi.org/10.1007/s10915-021-01598-6
 
-[2] Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
+[2] Tosi, R., Núñez, M., Pons-Prats, J., Principe, J. & Rossi, R. (2022). On the use of ensemble averaging techniques to accelerate the Uncertainty Quantification of CFD predictions in wind engineering. Journal of Wind Engineering and Industrial Aerodynamics. https://doi.org/10.1016/j.jweia.2022.105105
 
-[3] Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
+[3] Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
 
 [4] Ejarque, J., Böhm, S., Tosi, R., Núñez, M., & Badia, R. M. (2021). D4.5 Framework development and release. ExaQUte consortium.
 
