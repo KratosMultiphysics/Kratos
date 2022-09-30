@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_EPSILON_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H)
-#define KRATOS_K_EPSILON_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H
+#if !defined(KRATOS_K_OMEGA_SST_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H)
+#define KRATOS_K_OMEGA_SST_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H
 
 // System includes
 
@@ -26,20 +26,20 @@
 // Application includes
 #include "custom_elements/data_containers/qs_vms/rans_qs_vms_adjoint_element_data.h"
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_derivatives.h"
-#include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
-#include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
+#include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/k_element_data_derivatives.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data_derivatives.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
 #include "custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.h"
 #include "custom_elements/data_containers/qs_vms/rans_qs_vms_derivative_utilities.h"
-#include "custom_elements/data_containers/k_epsilon/k_element_data.h"
-#include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
 
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
-namespace KEpsilonElementData
+namespace KOmegaSSTElementData
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -74,10 +74,10 @@ public:
     using Fluid = RansQSVMSAdjointElementData<
                     TDim,
                     TNumNodes,
-                    QSVMSDerivativeUtilities<TDim>::template VelocityDerivative,
-                    QSVMSDerivativeUtilities<TDim>::template ShapeDerivative,
-                    KEpsilonElementData::KElementData<TDim>,
-                    KEpsilonElementData::EpsilonElementData<TDim>
+                    RansQSVMSDerivativeUtilities<TDim>::template KOmegaSSTVelocityDerivative,
+                    RansQSVMSDerivativeUtilities<TDim>::template KOmegaSSTShapeDerivative,
+                    KOmegaSSTElementData::KElementData<TDim>,
+                    KOmegaSSTElementData::OmegaElementData<TDim>
                     >;
 
     class TurbulenceModelEquation1
@@ -86,7 +86,7 @@ public:
         ///@name Classes
         ///@{
 
-        using EquationDataType = KEpsilonElementData::KElementDataDerivatives<TDim, TNumNodes>;
+        using EquationDataType = KOmegaSSTElementData::KElementDataDerivatives<TDim, TNumNodes>;
 
         using TResidualsDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
 
@@ -121,7 +121,7 @@ public:
 
                 using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
 
-                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
+                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::OmegaDerivative>;
 
                 ///@}
             };
@@ -165,7 +165,7 @@ public:
         ///@name Classes
         ///@{
 
-        using EquationDataType = KEpsilonElementData::EpsilonElementDataDerivatives<TDim, TNumNodes>;
+        using EquationDataType = KOmegaSSTElementData::OmegaElementDataDerivatives<TDim, TNumNodes>;
 
         using TResidualsDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
 
@@ -200,7 +200,7 @@ public:
 
                 using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
 
-                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::EpsilonDerivative>;
+                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::OmegaDerivative>;
 
                 ///@}
             };
@@ -239,7 +239,7 @@ public:
 
     ///@}
 };
-} // namespace KEpsilonElementData
+} // namespace KOmegaSSTElementData
 } // namespace Kratos
 
-#endif // KRATOS_K_EPSILON_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H
+#endif // KRATOS_K_OMEGA_SST_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H

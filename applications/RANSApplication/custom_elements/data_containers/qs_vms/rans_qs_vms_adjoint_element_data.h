@@ -33,6 +33,8 @@ namespace Kratos
 template <
     unsigned int TDim,
     unsigned int TNumNodes,
+    template<unsigned int, unsigned int> class TVelocityDerivative,
+    template<unsigned int, unsigned int> class TShapeDerivative,
     class TTurbulenceModelElementData1,
     class TTurbulenceModelElementData2>
 class RansQSVMSAdjointElementData
@@ -52,10 +54,10 @@ private:
     using PressureDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template PressureDerivative<TNumNodes>>;
 
     template<unsigned int TDirectionIndex>
-    using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes, TDirectionIndex>>;
+    using VelocityDerivativeContributions = typename TResidualsDerivatives::template VariableDerivatives<TVelocityDerivative<TNumNodes, TDirectionIndex>>;
 
     template<unsigned int TDirectionIndex>
-    using ShapeDerivatives = typename TResidualsDerivatives::template VariableDerivatives<typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes, TDirectionIndex>>;
+    using ShapeDerivatives = typename TResidualsDerivatives::template VariableDerivatives<TShapeDerivative<TNumNodes, TDirectionIndex>>;
 
     template<unsigned int TDirectionIndex>
     using AccelerationDerivativeContributions = typename TResidualsDerivatives::template SecondDerivatives<TDirectionIndex>;

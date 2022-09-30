@@ -182,7 +182,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     mReactionTerm += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
     mReactionTerm = std::max(mReactionTerm, 0.0);
 
-    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mBlendedGamma / mTurbulentKinematicViscosity);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, 1.0) * (mBlendedGamma);
 
     KRATOS_CATCH("");
 }

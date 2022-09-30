@@ -54,7 +54,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
         self.adjoint_element_map = {
             ("QSVMS", ) : "QSVMSAdjoint",
             ("QSVMS", "RansKEpsilonKRFC", "RansKEpsilonEpsilonRFC") : "RansKEpsilonQSVMSRFCAdjoint",
-            ("QSVMS", "RansKOmegaKRFC", "RansKOmegaOmegaRFC") : "RansKOmegaQSVMSRFCAdjoint"
+            ("QSVMS", "RansKOmegaKRFC", "RansKOmegaOmegaRFC") : "RansKOmegaQSVMSRFCAdjoint",
+            ("QSVMS", "RansKOmegaSSTKRFC", "RansKOmegaSSTOmegaRFC") : "RansKOmegaSSTQSVMSRFCAdjoint"
         }
 
         self.adjoint_condition_map = {
@@ -65,7 +66,10 @@ class AdjointRANSSolver(CoupledRANSSolver):
             ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonUBasedWall") : "RansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint",
             # k-omega conditions
             ("RansVMSMonolithicKBasedWall", "", "RansKOmegaOmegaKBasedWall") : "RansKOmegaVMSKBasedOmegaKBasedWallAdjoint",
-            ("RansVMSMonolithicKBasedWall", "", "RansKOmegaOmegaUBasedWall") : "RansKOmegaVMSKBasedOmegaUBasedWallAdjoint"
+            ("RansVMSMonolithicKBasedWall", "", "RansKOmegaOmegaUBasedWall") : "RansKOmegaVMSKBasedOmegaUBasedWallAdjoint",
+            # k-omega-sst conditions
+            ("RansVMSMonolithicKBasedWall", "", "RansKOmegaSSTOmegaKBasedWall") : "RansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint",
+            ("RansVMSMonolithicKBasedWall", "", "RansKOmegaSSTOmegaUBasedWall") : "RansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint"
         }
 
         self.min_buffer_size = 2

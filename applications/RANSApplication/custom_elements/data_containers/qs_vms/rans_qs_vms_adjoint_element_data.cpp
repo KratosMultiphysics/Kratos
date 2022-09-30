@@ -27,6 +27,10 @@
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
 #include "custom_elements/data_containers/k_omega/k_element_data.h"
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
+#include "custom_elements/data_containers/qs_vms/rans_qs_vms_derivative_utilities.h"
 
 // Include base h
 #include "rans_qs_vms_adjoint_element_data.h"
@@ -51,8 +55,8 @@ std::vector<const Variable<double>*> GetQSVMSAdjointDofsList<3>()
 }
 } // namespace
 
-template <unsigned int TDim, unsigned int TNumNodes, class TTurbulenceModelElementData1, class TTurbulenceModelElementData2>
-void RansQSVMSAdjointElementData<TDim, TNumNodes, TTurbulenceModelElementData1, TTurbulenceModelElementData2>::Check(
+template <unsigned int TDim, unsigned int TNumNodes, template<unsigned int, unsigned int> class TVelocityDerivative, template<unsigned int, unsigned int> class TShapeDerivative, class TTurbulenceModelElementData1, class TTurbulenceModelElementData2>
+void RansQSVMSAdjointElementData<TDim, TNumNodes, TVelocityDerivative, TShapeDerivative, TTurbulenceModelElementData1, TTurbulenceModelElementData2>::Check(
     const Element& rElement,
     const ProcessInfo& rProcessInfo)
 {
@@ -80,31 +84,39 @@ void RansQSVMSAdjointElementData<TDim, TNumNodes, TTurbulenceModelElementData1, 
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, class TTurbulenceModelElementData1, class TTurbulenceModelElementData2>
-std::vector<const Variable<double>*> RansQSVMSAdjointElementData<TDim, TNumNodes, TTurbulenceModelElementData1, TTurbulenceModelElementData2>::GetDofVariablesList()
+template <unsigned int TDim, unsigned int TNumNodes, template<unsigned int, unsigned int> class TVelocityDerivative, template<unsigned int, unsigned int> class TShapeDerivative, class TTurbulenceModelElementData1, class TTurbulenceModelElementData2>
+std::vector<const Variable<double>*> RansQSVMSAdjointElementData<TDim, TNumNodes, TVelocityDerivative, TShapeDerivative, TTurbulenceModelElementData1, TTurbulenceModelElementData2>::GetDofVariablesList()
 {
     return GetQSVMSAdjointDofsList<TDim>();
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, class TTurbulenceModelElementData1, class TTurbulenceModelElementData2>
-GeometryData::IntegrationMethod RansQSVMSAdjointElementData<TDim, TNumNodes, TTurbulenceModelElementData1, TTurbulenceModelElementData2>::GetIntegrationMethod()
+template <unsigned int TDim, unsigned int TNumNodes, template<unsigned int, unsigned int> class TVelocityDerivative, template<unsigned int, unsigned int> class TShapeDerivative, class TTurbulenceModelElementData1, class TTurbulenceModelElementData2>
+GeometryData::IntegrationMethod RansQSVMSAdjointElementData<TDim, TNumNodes, TVelocityDerivative, TShapeDerivative, TTurbulenceModelElementData1, TTurbulenceModelElementData2>::GetIntegrationMethod()
 {
     return TResidualsDerivatives::GetIntegrationMethod();
 }
 
 // template instantiations
 // k-epsilon
-template class RansQSVMSAdjointElementData<2, 3, KEpsilonElementData::KElementData<2>, KEpsilonElementData::EpsilonElementData<2>>;
-template class RansQSVMSAdjointElementData<2, 4, KEpsilonElementData::KElementData<2>, KEpsilonElementData::EpsilonElementData<2>>;
+template class RansQSVMSAdjointElementData<2, 3, QSVMSDerivativeUtilities<2>::VelocityDerivative, QSVMSDerivativeUtilities<2>::ShapeDerivative, KEpsilonElementData::KElementData<2>, KEpsilonElementData::EpsilonElementData<2>>;
+template class RansQSVMSAdjointElementData<2, 4, QSVMSDerivativeUtilities<2>::VelocityDerivative, QSVMSDerivativeUtilities<2>::ShapeDerivative, KEpsilonElementData::KElementData<2>, KEpsilonElementData::EpsilonElementData<2>>;
 
-template class RansQSVMSAdjointElementData<3, 4, KEpsilonElementData::KElementData<3>, KEpsilonElementData::EpsilonElementData<3>>;
-template class RansQSVMSAdjointElementData<3, 8, KEpsilonElementData::KElementData<3>, KEpsilonElementData::EpsilonElementData<3>>;
+template class RansQSVMSAdjointElementData<3, 4, QSVMSDerivativeUtilities<3>::VelocityDerivative, QSVMSDerivativeUtilities<3>::ShapeDerivative, KEpsilonElementData::KElementData<3>, KEpsilonElementData::EpsilonElementData<3>>;
+template class RansQSVMSAdjointElementData<3, 8, QSVMSDerivativeUtilities<3>::VelocityDerivative, QSVMSDerivativeUtilities<3>::ShapeDerivative, KEpsilonElementData::KElementData<3>, KEpsilonElementData::EpsilonElementData<3>>;
 
 // k-omega
-template class RansQSVMSAdjointElementData<2, 3, KOmegaElementData::KElementData<2>, KOmegaElementData::OmegaElementData<2>>;
-template class RansQSVMSAdjointElementData<2, 4, KOmegaElementData::KElementData<2>, KOmegaElementData::OmegaElementData<2>>;
+template class RansQSVMSAdjointElementData<2, 3, QSVMSDerivativeUtilities<2>::VelocityDerivative, QSVMSDerivativeUtilities<2>::ShapeDerivative, KOmegaElementData::KElementData<2>, KOmegaElementData::OmegaElementData<2>>;
+template class RansQSVMSAdjointElementData<2, 4, QSVMSDerivativeUtilities<2>::VelocityDerivative, QSVMSDerivativeUtilities<2>::ShapeDerivative, KOmegaElementData::KElementData<2>, KOmegaElementData::OmegaElementData<2>>;
 
-template class RansQSVMSAdjointElementData<3, 4, KOmegaElementData::KElementData<3>, KOmegaElementData::OmegaElementData<3>>;
-template class RansQSVMSAdjointElementData<3, 8, KOmegaElementData::KElementData<3>, KOmegaElementData::OmegaElementData<3>>;
+template class RansQSVMSAdjointElementData<3, 4, QSVMSDerivativeUtilities<3>::VelocityDerivative, QSVMSDerivativeUtilities<3>::ShapeDerivative, KOmegaElementData::KElementData<3>, KOmegaElementData::OmegaElementData<3>>;
+template class RansQSVMSAdjointElementData<3, 8, QSVMSDerivativeUtilities<3>::VelocityDerivative, QSVMSDerivativeUtilities<3>::ShapeDerivative, KOmegaElementData::KElementData<3>, KOmegaElementData::OmegaElementData<3>>;
+
+// k-omega-sst
+template class RansQSVMSAdjointElementData<2, 3, RansQSVMSDerivativeUtilities<2>::KOmegaSSTVelocityDerivative, RansQSVMSDerivativeUtilities<2>::KOmegaSSTShapeDerivative, KOmegaSSTElementData::KElementData<2>, KOmegaSSTElementData::OmegaElementData<2>>;
+template class RansQSVMSAdjointElementData<2, 4, RansQSVMSDerivativeUtilities<2>::KOmegaSSTVelocityDerivative, RansQSVMSDerivativeUtilities<2>::KOmegaSSTShapeDerivative, KOmegaSSTElementData::KElementData<2>, KOmegaSSTElementData::OmegaElementData<2>>;
+
+template class RansQSVMSAdjointElementData<3, 4, RansQSVMSDerivativeUtilities<3>::KOmegaSSTVelocityDerivative, RansQSVMSDerivativeUtilities<3>::KOmegaSSTShapeDerivative, KOmegaSSTElementData::KElementData<3>, KOmegaSSTElementData::OmegaElementData<3>>;
+template class RansQSVMSAdjointElementData<3, 8, RansQSVMSDerivativeUtilities<3>::KOmegaSSTVelocityDerivative, RansQSVMSDerivativeUtilities<3>::KOmegaSSTShapeDerivative, KOmegaSSTElementData::KElementData<3>, KOmegaSSTElementData::OmegaElementData<3>>;
+
 
 } // namespace Kratos

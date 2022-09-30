@@ -99,6 +99,9 @@ KratosRANSApplication::KratosRANSApplication()
       // k-omega adjoint elements
       mRansKOmegaQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRansKOmegaQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      // k-omega-sst adjoint elements
+      mRansKOmegaSSTQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaSSTQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       // k-epsilon adjoint conditions
       mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -108,7 +111,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaVMSKBasedOmegaKBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaVMSKBasedOmegaKBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega-sst adjoint conditions
+      mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -188,6 +196,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( RANS_SCALAR_2_ADJOINT_2 )
     KRATOS_REGISTER_VARIABLE( RANS_SCALAR_2_ADJOINT_3 )
     KRATOS_REGISTER_VARIABLE( RANS_AUX_ADJOINT_SCALAR_2 )
+
+    // primal solution location storage variables
+    KRATOS_REGISTER_VARIABLE(RANS_PRIMAL_SOLUTION_LOCATION_1)
 
     // registering elements
     // registering incompressible potential flow elements
@@ -303,6 +314,10 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansKOmegaQSVMSRFCAdjoint2D3N", mRansKOmegaQSVMSRFCAdjoint2D3N);
     KRATOS_REGISTER_ELEMENT("RansKOmegaQSVMSRFCAdjoint3D4N", mRansKOmegaQSVMSRFCAdjoint3D4N);
 
+    // registering k-omega-sst adjoint elements
+    KRATOS_REGISTER_ELEMENT("RansKOmegaSSTQSVMSRFCAdjoint2D3N", mRansKOmegaSSTQSVMSRFCAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaSSTQSVMSRFCAdjoint3D4N", mRansKOmegaSSTQSVMSRFCAdjoint3D4N);
+
     // registering k-epsilon adjoint conditions
     KRATOS_REGISTER_CONDITION("RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N", mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N);
     KRATOS_REGISTER_CONDITION("RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N", mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N);
@@ -316,5 +331,12 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansKOmegaVMSKBasedOmegaUBasedWallAdjoint2D2N", mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaVMSKBasedOmegaUBasedWallAdjoint3D3N", mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint3D3N);
+
+    // registering k-omega-sst adjoint conditions
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint2D2N", mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint3D3N", mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint2D2N", mRansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint3D3N", mRansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint3D3N);
 }
 } // namespace Kratos.

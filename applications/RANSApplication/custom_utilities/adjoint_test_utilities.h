@@ -14,6 +14,9 @@
 #define KRATOS_ADJOINT_TEST_UTILITIES_H_INCLUDED
 
 // System includes
+#include <cmath>
+#include <sstream>
+#include <iomanip>
 #include <functional>
 #include <tuple>
 
@@ -31,6 +34,82 @@
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
+
+
+/**
+ * @brief Based on python version of is_close
+ *
+ * The core KRATOS_CHECK_RELATIVE_NEAR fails when your first argument is zero and
+ * second argument is close to zero (but more than the numeric_limits<double>::epsilon()).
+ * So then the check fails. There are situations where I cannot use NEAR_CHECKS because this
+ * testing framework is used in all element data derivative testing, and some of them has to check
+ * large numbers so KRATOS_CHECK_NEAR will fail at those test. So this hybrid version is implemented
+ * by following the python is_close.
+ *
+ * Based on the following formula:
+ *      abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+ *
+ **/
+#define KRATOS_CHECK_IS_CLOSE(a, b, relative_tolerance, absolute_tolerance)   \
+    {                                                                         \
+        if (std::abs(a - b) >                                                 \
+            std::max(relative_tolerance * std::max(std::abs(a), std::abs(b)), \
+                     absolute_tolerance)) {                                   \
+            std::stringstream msg;                                            \
+            msg << std::scientific << std::setprecision(16);                  \
+            msg << "Check failed because " << #a << " = " << a                \
+                << " is not close to " << #b << " = " << b                    \
+                << " within the relative tolerance " << relative_tolerance    \
+                << " or absolute tolerance " << absolute_tolerance;           \
+            KRATOS_ERROR << msg.str();                                        \
+        }                                                                     \
+    }
+
+/**
+ * @brief Based on python version of is_close
+ *
+ * The core KRATOS_CHECK_VECTOR_RELATIVE_NEAR fails when your first argument is zero and
+ * second argument is close to zero (but more than the numeric_limits<double>::epsilon()).
+ * So then the check fails. There are situations where I cannot use NEAR_CHECKS because this
+ * testing framework is used in all element data derivative testing, and some of them has to check
+ * large numbers so KRATOS_CHECK_VECTOR_NEAR will fail at those test. So this hybrid version is implemented
+ * by following the python is_close.
+ *
+ * Based on the following formula:
+ *      abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+ *
+ **/
+#define KRATOS_CHECK_VECTOR_IS_CLOSE(a, b, relative_tolerance, absolute_tolerance)      \
+    {                                                                                   \
+        KRATOS_ERROR_IF_NOT(a.size() == b.size())                                       \
+            << "Check failed because vector arguments do not have the same "            \
+               "size:"                                                                  \
+            << std::endl                                                                \
+            << "First argument has size " << a.size() << ", "                           \
+            << "second argument has size " << b.size() << "." << std::endl;             \
+        for (std::size_t i = 0; i < a.size(); i++) {                                    \
+            if (std::abs(a[i] - b[i]) >                                                 \
+                std::max(relative_tolerance * std::max(std::abs(a[i]), std::abs(b[i])), \
+                         absolute_tolerance)) {                                         \
+                std::stringstream msg;                                                  \
+                msg << std::scientific << std::setprecision(16);                        \
+                msg << "Check failed because " << #a << "[" << i                        \
+                    << "]  = " << a[i] << " is not close to " << #b << "["              \
+                    << i << "] = " << b[i] << " within the relative tolerance "         \
+                    << relative_tolerance << " or absolute tolerance "                  \
+                    << absolute_tolerance << "." << std::endl;                          \
+                msg << std::endl << "Vector " << #a << " values:" << std::endl;         \
+                for (std::size_t i = 0; i < a.size(); ++i) {                            \
+                    msg << #a << "[" << i << "] = " << a[i] << std::endl;               \
+                }                                                                       \
+                msg << std::endl << "Vector " << #b << " values:" << std::endl;         \
+                for (std::size_t i = 0; i < b.size(); ++i) {                            \
+                    msg << #b << "[" << i << "] = " << b[i] << std::endl;               \
+                }                                                                       \
+                KRATOS_ERROR << msg.str();                                              \
+            }                                                                           \
+        }                                                                               \
+    }
 
 namespace Kratos
 {
@@ -65,8 +144,10 @@ public:
         const std::function<void(ModelPart&)>& rUpdateFunction,
         const IndexType BufferSize,
         const double Perturbation,
-        const double Tolerance)
+        const double RelativeTolerance,
+        const double AbsoluteTolerance = -1.0)
     {
+        const double absolute_tolerance = (AbsoluteTolerance == -1.0) ? RelativeTolerance * 1e-3 : AbsoluteTolerance;
         using TAdjointElementDataType = typename TAdjointElementDerivativeDataType::DataType;
         constexpr IndexType derivative_dimension = TAdjointElementDerivativeDataType::TDerivativeDimension;
 
@@ -145,10 +226,10 @@ public:
                                          r_process_info, r_integration_method, adjoint_element_data);
 
             // check whether primal and derivatives have the same coefficients
-            KRATOS_CHECK_VECTOR_NEAR(ref_velocity, adjoint_velocity, Tolerance);
-            KRATOS_CHECK_NEAR(ref_viscosity, adjoint_viscosity, Tolerance);
-            KRATOS_CHECK_NEAR(ref_reaction_term, adjoint_reaction_term, Tolerance);
-            KRATOS_CHECK_NEAR(ref_source_term, adjoint_source_term, Tolerance);
+            KRATOS_CHECK_VECTOR_IS_CLOSE(ref_velocity, adjoint_velocity, RelativeTolerance, absolute_tolerance);
+            KRATOS_CHECK_IS_CLOSE(ref_viscosity, adjoint_viscosity, RelativeTolerance, absolute_tolerance);
+            KRATOS_CHECK_IS_CLOSE(ref_reaction_term, adjoint_reaction_term, RelativeTolerance, absolute_tolerance);
+            KRATOS_CHECK_IS_CLOSE(ref_source_term, adjoint_source_term, RelativeTolerance, absolute_tolerance);
 
             GeometryType::JacobiansType J;
             r_geometry.Jacobian(J, r_integration_method);
@@ -206,10 +287,10 @@ public:
                     PerturbNodalVariable(r_geometry[c], derivative_variable, -Perturbation);
 
                     // compare finite difference values with analytical derivatives
-                    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(fd_velocity_derivative, analytical_velocity_derivative, Tolerance);
-                    KRATOS_CHECK_RELATIVE_NEAR(fd_viscosity_derivative, analytical_viscosity_derivative, Tolerance);
-                    KRATOS_CHECK_RELATIVE_NEAR(fd_reaction_term_derivative, analytical_reaction_term_derivative, Tolerance);
-                    KRATOS_CHECK_RELATIVE_NEAR(fd_source_term_derivative, analytical_source_term_derivative, Tolerance);
+                    KRATOS_CHECK_VECTOR_IS_CLOSE(fd_velocity_derivative, analytical_velocity_derivative, RelativeTolerance, absolute_tolerance);
+                    KRATOS_CHECK_IS_CLOSE(fd_viscosity_derivative, analytical_viscosity_derivative, RelativeTolerance, absolute_tolerance);
+                    KRATOS_CHECK_IS_CLOSE(fd_reaction_term_derivative, analytical_reaction_term_derivative, RelativeTolerance, absolute_tolerance);
+                    KRATOS_CHECK_IS_CLOSE(fd_source_term_derivative, analytical_source_term_derivative, RelativeTolerance, absolute_tolerance);
                 }
             }
         }

@@ -80,6 +80,7 @@
 // adjoint element data containers
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega/qsvms_rfc_adjoint_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/qsvms_rfc_adjoint_element_data.h"
 
 // adjoint conditions
 #include "custom_conditions/two_equation_turbulence_model_adjoint_condition.h"
@@ -91,7 +92,9 @@
 // k-omega condition data containers
 #include "custom_conditions/data_containers/k_omega/vms_monolithic_kk_based_omega_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/vms_monolithic_ku_based_omega_wall_condition_data.h"
-
+// k-omega-sst condition data containers
+#include "custom_conditions/data_containers/k_omega_sst/vms_monolithic_kk_based_omega_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega_sst/vms_monolithic_ku_based_omega_wall_condition_data.h"
 
 namespace Kratos
 {
@@ -289,6 +292,10 @@ private:
     const TwoEquationTurbulenceModelAdjointElement<2, 3, KOmegaElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKOmegaQSVMSRFCAdjoint2D3N;
     const TwoEquationTurbulenceModelAdjointElement<3, 4, KOmegaElementData::QSVMSRFCAdjointElementData<3, 4>> mRansKOmegaQSVMSRFCAdjoint3D4N;
 
+    // k-omega-sst turbulence model adjoint elements
+    const TwoEquationTurbulenceModelAdjointElement<2, 3, KOmegaSSTElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKOmegaSSTQSVMSRFCAdjoint2D3N;
+    const TwoEquationTurbulenceModelAdjointElement<3, 4, KOmegaSSTElementData::QSVMSRFCAdjointElementData<3, 4>> mRansKOmegaSSTQSVMSRFCAdjoint3D4N;
+
     // k-epsilon turbulence model adjoint conditions
     const TwoEquationTurbulenceModelAdjointCondition<2, 2, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonKBasedWallConditionData<2, 2>> mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint2D2N;
     const TwoEquationTurbulenceModelAdjointCondition<3, 3, KEpsilonWallConditionData::VMSMonolithicKBasedEpsilonKBasedWallConditionData<3, 3>> mRansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint3D3N;
@@ -302,6 +309,13 @@ private:
 
     const TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<2, 2>> mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint2D2N;
     const TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<3, 3>> mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint3D3N;
+
+    // k-omega-sst turbulence model adjoint conditions
+    const TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaKBasedWallConditionData<2, 2>> mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint2D2N;
+    const TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaKBasedWallConditionData<3, 3>> mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint3D3N;
+
+    const TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<2, 2>> mRansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint2D2N;
+    const TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<3, 3>> mRansKOmegaSSTVMSKBasedOmegaUBasedWallAdjoint3D3N;
 
     ///@}
     ///@name Un accessible methods

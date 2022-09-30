@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_OMEGA_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H)
-#define KRATOS_K_OMEGA_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H
+#if !defined(KRATOS_K_OMEGA_SST_VMS_MONOLITHIC_U_BASED_OMEGA_K_BASED_WALL_CONDITION_DATA_H)
+#define KRATOS_K_OMEGA_SST_VMS_MONOLITHIC_U_BASED_OMEGA_K_BASED_WALL_CONDITION_DATA_H
 
 // System includes
 
@@ -24,26 +24,22 @@
 #include "geometries/geometry_data.h"
 
 // Application includes
-#include "custom_elements/data_containers/qs_vms/rans_qs_vms_adjoint_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_derivatives.h"
-#include "custom_elements/data_containers/k_omega/omega_element_data_derivatives.h"
-#include "custom_elements/data_containers/k_omega/k_element_data_derivatives.h"
-#include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
-#include "custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.h"
-#include "custom_elements/data_containers/qs_vms/rans_qs_vms_derivative_utilities.h"
-#include "custom_elements/data_containers/k_omega/k_element_data.h"
-#include "custom_elements/data_containers/k_omega/omega_element_data.h"
+#include "custom_conditions/vms_monolithic_k_based_wall_condition_derivatives.h"
+#include "custom_conditions/vms_monolithic_k_based_wall_condition_derivative_utilities.h"
+
+#include "custom_conditions/scalar_wall_flux_condition_derivatives.h"
+#include "custom_conditions/data_containers/k_omega_sst/omega_u_based_wall_condition_data_derivatives.h"
 
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
-namespace KOmegaElementData
+namespace KOmegaSSTWallConditionData
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class QSVMSRFCAdjointElementData
+class VMSMonolithicKBasedOmegaUBasedWallConditionData
 {
 public:
     ///@name Type Definitions
@@ -60,35 +56,30 @@ public:
     ///@{
 
     static void Check(
-        const Element& rElement,
+        const Condition& rCondition,
         const ProcessInfo& rProcessInfo);
 
     static std::vector<const Variable<double>*> GetDofVariablesList();
 
-    static std::vector<const Variable<double>*> GetPrimalSecondDerivativeVariablesList();
+    static void InitializeCondition(
+        Condition& rCondition,
+        const ProcessInfo& rProcessInfo);
 
     ///@}
     ///@name Classes
     ///@{
 
-    using Fluid = RansQSVMSAdjointElementData<
-                    TDim,
-                    TNumNodes,
-                    QSVMSDerivativeUtilities<TDim>::template VelocityDerivative,
-                    QSVMSDerivativeUtilities<TDim>::template ShapeDerivative,
-                    KOmegaElementData::KElementData<TDim>,
-                    KOmegaElementData::OmegaElementData<TDim>
-                    >;
-
-    class TurbulenceModelEquation1
+    class Fluid
     {
     public:
-        ///@name Classes
+        ///@name Type Definitions
         ///@{
 
-        using EquationDataType = KOmegaElementData::KElementDataDerivatives<TDim, TNumNodes>;
+        using TResidualsDerivatives = VMSMonolithicKBasedWallConditionDerivatives<TDim, TNumNodes>;
 
-        using TResidualsDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
+        ///@}
+        ///@name Classes
+        ///@{
 
         class Primal
         {
@@ -117,27 +108,13 @@ public:
 
                 using Data = typename TResidualsDerivatives::Data;
 
-                using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::UDerivative>;
+                using Velocity = typename TResidualsDerivatives::template VariableDerivatives<typename VMSMonolithicKBasedWallConditionDerivativeUtilities<TDim>::VelocityDerivative>;
 
-                using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
+                using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename VMSMonolithicKBasedWallConditionDerivativeUtilities<TDim>::KDerivative>;
 
-                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::OmegaDerivative>;
-
-                ///@}
-            };
-
-            class SecondDerivatives
-            {
-            public:
-                ///@name Type Definitions
-                ///@{
-
-                using Data = typename TResidualsDerivatives::Data;
-
-                using TurbulenceModelVariableRate1 = typename TResidualsDerivatives::SecondDerivatives;
+                using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename VMSMonolithicKBasedWallConditionDerivativeUtilities<TDim>::NonRelatedDerivative>;
 
                 ///@}
-
             };
 
             ///@}
@@ -151,12 +128,12 @@ public:
 
             using Data = typename TResidualsDerivatives::Data;
 
-            using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::ShapeDerivative>;
+            using Shape = typename TResidualsDerivatives::template VariableDerivatives<typename VMSMonolithicKBasedWallConditionDerivativeUtilities<TDim>::ShapeDerivative>;
 
             ///@}
         };
 
-        ///@}
+    ///@}
     };
 
     class TurbulenceModelEquation2
@@ -165,9 +142,9 @@ public:
         ///@name Classes
         ///@{
 
-        using EquationDataType = KOmegaElementData::OmegaElementDataDerivatives<TDim, TNumNodes>;
+        using EquationDataType = KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<TDim>;
 
-        using TResidualsDerivatives = ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
+        using TResidualsDerivatives = ScalarWallFluxConditionDerivatives<TDim, TNumNodes, typename EquationDataType::Data>;
 
         class Primal
         {
@@ -201,19 +178,6 @@ public:
                 using TurbulenceModelVariable1 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::KDerivative>;
 
                 using TurbulenceModelVariable2 = typename TResidualsDerivatives::template VariableDerivatives<typename EquationDataType::OmegaDerivative>;
-
-                ///@}
-            };
-
-            class SecondDerivatives
-            {
-            public:
-                ///@name Type Definitions
-                ///@{
-
-                using Data = typename TResidualsDerivatives::Data;
-
-                using TurbulenceModelVariableRate2 = typename TResidualsDerivatives::SecondDerivatives;
 
                 ///@}
             };
@@ -239,7 +203,7 @@ public:
 
     ///@}
 };
-} // namespace KOmegaElementData
+} // namespace KOmegaSSTWallConditionData
 } // namespace Kratos
 
-#endif // KRATOS_K_OMEGA_QS_VMS_RFC_ADJOINT_ELEMENT_DATA_H
+#endif // KRATOS_K_OMEGA_SST_VMS_MONOLITHIC_U_BASED_OMEGA_K_BASED_WALL_CONDITION_DATA_H

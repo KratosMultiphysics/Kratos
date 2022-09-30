@@ -89,6 +89,14 @@ class CoupledRANSSolver(PythonSolver):
         self.move_mesh = self.settings["move_mesh"].GetBool()
         self.echo_level = self.settings["echo_level"].GetInt()
 
+        if (self.settings["time_scheme_settings"].Has("ramp_up_interval")):
+            self.ramp_up_interval = self.settings["time_scheme_settings"]["ramp_up_interval"].GetVector()
+            self.ramp_up_interval = sorted(self.ramp_up_interval)
+            if (len(self.ramp_up_interval) != 2):
+                raise Exception("Ramp up interval should only have two values indicating ramp up start time and end time.")
+        else:
+            self.ramp_up_interval = None
+
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
 
