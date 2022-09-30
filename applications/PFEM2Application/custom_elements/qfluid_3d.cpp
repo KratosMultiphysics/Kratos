@@ -37,7 +37,7 @@ namespace Kratos
   QFluid3D::QFluid3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
   {
-    //InitializeAuxiliaryies();
+    //InitializeAuxiliaries();
   }
 
   Element::Pointer QFluid3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const

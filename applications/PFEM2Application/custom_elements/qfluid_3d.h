@@ -185,7 +185,7 @@ namespace Kratos
     static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
     static array_1d<double,4> ms_u_DN;
 
-    static void InitializeAuxiliaryies()
+    static void InitializeAuxiliaries()
     {
       msMassFactors = ZeroMatrix(4,4);
       msMassFactors(0,0) = 0.25;
