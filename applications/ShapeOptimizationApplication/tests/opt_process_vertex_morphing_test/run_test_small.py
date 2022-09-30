@@ -19,7 +19,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 # Additional imports
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -46,7 +46,7 @@ parameters["optimization_settings"]["output"]["design_output_mode"].SetString("w
 
 model = KM.Model()
 
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================

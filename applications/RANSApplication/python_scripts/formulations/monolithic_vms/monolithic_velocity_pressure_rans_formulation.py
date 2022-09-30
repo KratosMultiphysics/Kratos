@@ -77,7 +77,7 @@ class StabilizedFormulation(object):
         self.process_data[Kratos.OSS_SWITCH] = int(use_oss)
 
 class MonolithicVelocityPressureRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Incompressible Variational-Multi-Scale Navier Stokes formulation
 
         This RansFormulation solves VELOCITY, and PRESSURE with Variational-Multi-Scale (VMS) formulated
@@ -90,10 +90,23 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
+        self.BackwardCompatibilityHelper(settings, deprecated_settings_dict)
         super().__init__(model_part, settings)
 
-        ##settings string in json format
-        default_settings = Kratos.Parameters("""
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        self.min_buffer_size = 2
+        self.echo_level = settings["echo_level"].GetInt()
+
+        self.flow_solver_formulation = StabilizedFormulation(settings["flow_solver_formulation"])
+        self.flow_solver_formulation.SetProcessInfo(self.GetBaseModelPart())
+
+        self.SetMaxCouplingIterations(1)
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters("""
         {
             "formulation_name": "monolithic",
             "maximum_iterations": 10,
@@ -120,20 +133,18 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             "additional_frozen_turbulence_constants": {
                 "a1"  : 0.31
             },
-            "wall_function_settings": {}
+            "wall_function_settings": {
+                "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based",
+                "wall_function_region_type": "logarithmic_region_only"
+            }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        self.min_buffer_size = 2
-        self.echo_level = settings["echo_level"].GetInt()
-
-        self.flow_solver_formulation = StabilizedFormulation(settings["flow_solver_formulation"])
-        self.flow_solver_formulation.SetProcessInfo(self.GetBaseModelPart())
-
-        self.SetMaxCouplingIterations(1)
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        if "wall_function_settings" in deprecated_settings_dict.keys():
+            if settings.Has("wall_function_settings"):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Found \"wall_function_settings\" in deprecated settings as well as in formulation settings. Continuing with formulation based settings.")
+            else:
+                settings.AddValue("wall_function_settings", deprecated_settings_dict["wall_function_settings"].Clone())
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()
@@ -325,32 +336,34 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             process_info.SetValue(KratosRANS.TURBULENCE_RANS_A1, self.GetParameters()["additional_frozen_turbulence_constants"]["a1"].GetDouble())
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Frozen turbulence assumption is used. Added respective constants.")
 
-        Kratos.Logger.PrintWarning(self.__class__.__name__, "Constants are applied.")
+    def SetWallFunctionSettings(self):
+        wall_function_settings = self.GetParameters()["wall_function_settings"]
+        wall_function_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["wall_function_settings"])
+        self.condition_name = self.GetConditionNamePrefix()
 
-    def SetWallFunctionSettings(self, settings=None):
-        formulation_settings = self.GetParameters()["wall_function_settings"]
-        if settings is not None:
-            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
-                settings = formulation_settings
+        if (self.condition_name != ""):
+            wall_function_region_type = wall_function_settings["wall_function_region_type"].GetString()
+            wall_friction_velocity_calculation_method = wall_function_settings["wall_friction_velocity_calculation_method"].GetString()
+
+            if (wall_function_region_type == "logarithmic_region_only"):
+                if (wall_friction_velocity_calculation_method == "velocity_based"):
+                    self.condition_name = self.condition_name + "UBasedWall"
+                elif (wall_friction_velocity_calculation_method ==
+                    "turbulent_kinetic_energy_based"):
+                    self.condition_name = self.condition_name + "KBasedWall"
+                else:
+                    msg = "Unsupported wall friction velocity calculation method. [ wall_friction_velocity_calculation_method = \"" + wall_friction_velocity_calculation_method + "\" ].\n"
+                    msg += "Supported methods are:\n"
+                    msg += "\tvelocity_based\n"
+                    msg += "\tturbulent_kinetic_energy_based\n"
+                    raise Exception(msg)
             else:
-                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
-        else:
-            settings = formulation_settings
+                msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+                msg += "Supported wall function region types are:\n"
+                msg += "\tlogarithmic_region_only\n"
+                raise Exception(msg)
 
-        wall_function_region_type = "logarithmic_region_only"
-        if (settings.Has("wall_function_region_type")):
-            wall_function_region_type = settings["wall_function_region_type"].GetString()
-
-        if (wall_function_region_type == "logarithmic_region_only"):
-            self.condition_name = "RansVMSMonolithicKBasedWall"
-        else:
-            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
-            msg += "Supported wall function region types are:\n"
-            msg += "\tlogarithmic_region_only\n"
-            raise Exception(msg)
-
-        AddWallPropertiesUpdateProcess(self, settings)
+        AddWallPropertiesUpdateProcess(self, wall_function_settings)
 
     def GetStrategy(self):
         if (hasattr(self, "solver")):
@@ -468,3 +481,5 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             del adjoint_model
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response based interpolation errors for adaptive mesh refinement.")
+    def GetConditionNamePrefix(self):
+        return "RansVMSMonolithic"

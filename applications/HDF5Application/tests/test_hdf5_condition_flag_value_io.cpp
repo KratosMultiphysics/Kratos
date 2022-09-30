@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
     for (auto& r_condition : r_write_model_part.Conditions())
     {
         TestModelPartFactory::AssignDataValueContainer(
-            r_condition.Data(), r_condition, variables_list);
+            r_condition.GetData(), r_condition, variables_list);
     }
 
     Parameters io_params(R"(
@@ -73,8 +73,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
     {
         HDF5::ConditionType& r_read_condition =
             r_read_model_part.Conditions()[r_write_condition.Id()];
-        CompareDataValueContainers(r_read_condition.Data(), r_read_condition,
-                                   r_write_condition.Data(), r_write_condition);
+        CompareDataValueContainers(r_read_condition.GetData(), r_read_condition,
+                                   r_write_condition.GetData(), r_write_condition);
     }
 }
 

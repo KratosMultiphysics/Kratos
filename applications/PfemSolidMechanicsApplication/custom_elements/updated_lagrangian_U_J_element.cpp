@@ -1420,7 +1420,7 @@ namespace Kratos
 
       Vector KuJ(number_of_nodes*dimension);
       noalias( KuJ ) = prod( trans( rVariables.B), (ConstVector) );
-      
+
 
       Matrix SecondMatrix(dimension*number_of_nodes, number_of_nodes);
       noalias(  SecondMatrix ) = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
@@ -1681,7 +1681,7 @@ namespace Kratos
       // Not Lumped Mass Matrix (numerical integration):
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 

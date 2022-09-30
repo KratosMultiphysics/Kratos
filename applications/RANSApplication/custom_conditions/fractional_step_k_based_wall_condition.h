@@ -450,7 +450,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Input and output

@@ -18,6 +18,7 @@
 #include "custom_processes/apply_constant_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
 #include "custom_processes/periodic_interface_process.hpp"
+#include "custom_processes/poromechanics_face_load_control_module_process.hpp"
 
 
 namespace Kratos
@@ -44,6 +45,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def( py::init< ModelPart&, Parameters>());
     py::class_<PeriodicInterfaceProcess, PeriodicInterfaceProcess::Pointer, Process>
     (m, "PeriodicInterfaceProcess")
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<PoromechanicsFaceLoadControlModuleProcess, PoromechanicsFaceLoadControlModuleProcess::Pointer, Process>
+    (m, "PoromechanicsFaceLoadControlModuleProcess")
     .def( py::init< ModelPart&, Parameters>());
 }
 

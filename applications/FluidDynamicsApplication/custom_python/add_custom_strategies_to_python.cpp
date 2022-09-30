@@ -30,14 +30,15 @@
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
+#include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta.h"
+#include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_bfecc.h"
 
 // adjoint schemes
 #include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
@@ -48,8 +49,8 @@
 #include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 
 // lss schemes
-#include "custom_strategies/schemes/lss_bossak_forward_scheme.h"
-#include "custom_strategies/schemes/lss_bossak_backward_scheme.h"
+// #include "custom_strategies/schemes/lss_bossak_forward_scheme.h"
+// #include "custom_strategies/schemes/lss_bossak_backward_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -67,7 +68,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     //********************************************************************
@@ -83,6 +84,30 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
         typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
         ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyForwardEuler")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyBFECC<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyBFECC<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyBFECC<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyBFECC")
     .def(py::init<ModelPart&, bool, int>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
@@ -160,17 +185,17 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         .def(py::init<const double, const std::size_t, const std::size_t>())
         ;
 
-    using  LeastSquaresShadowingBossakForwardSchemeType = LSSBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
-        (m, "LSSBossakForwardScheme")
-        .def(py::init<AdjointResponseFunction::Pointer, FluidLSSSensitivity::Pointer, FluidLSSVariableUtilities::Pointer, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
-        ;
+    // using  LeastSquaresShadowingBossakForwardSchemeType = LSSBossakForwardScheme<SparseSpaceType, LocalSpaceType>;
+    // py::class_<LeastSquaresShadowingBossakForwardSchemeType, typename LeastSquaresShadowingBossakForwardSchemeType::Pointer, BaseSchemeType>
+    //     (m, "LSSBossakForwardScheme")
+    //     .def(py::init<AdjointResponseFunction::Pointer, FluidLSSSensitivity::Pointer, FluidLSSVariableUtilities::Pointer, const double, const double, const double, const IndexType, const IndexType, const IndexType>())
+    //     ;
 
-    using  LeastSquaresShadowingBossakBackwardSchemeType = LSSBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<LeastSquaresShadowingBossakBackwardSchemeType, typename LeastSquaresShadowingBossakBackwardSchemeType::Pointer, BaseSchemeType>
-        (m, "LSSBossakBackwardScheme")
-        .def(py::init<FluidLSSVariableUtilities::Pointer, const Variable<Vector>&, const double, const std::size_t, const std::size_t, const std::size_t>())
-        ;
+    // using  LeastSquaresShadowingBossakBackwardSchemeType = LSSBossakBackwardScheme<SparseSpaceType, LocalSpaceType>;
+    // py::class_<LeastSquaresShadowingBossakBackwardSchemeType, typename LeastSquaresShadowingBossakBackwardSchemeType::Pointer, BaseSchemeType>
+    //     (m, "LSSBossakBackwardScheme")
+    //     .def(py::init<FluidLSSVariableUtilities::Pointer, const Variable<Vector>&, const double, const std::size_t, const std::size_t, const std::size_t>())
+    //     ;
 
 }
 

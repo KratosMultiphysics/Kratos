@@ -41,15 +41,15 @@ namespace
 {
 
 void SetTkeBasedUtau(ModelPart& rModelPart) {
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 0);
 }
 
 void SetUBasedUtauLinear(ModelPart& rModelPart) {
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
 }
 
 void SetUBasedUtauLogarithmic(ModelPart& rModelPart) {
-    FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 500.0, 1000.0, 0);
+    FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, 500.0, 1000.0, 0);
 }
 
 ModelPart& CreateRansKEpsilonVMSKBasedEpsilonUBased2D2NModelPart(
@@ -60,32 +60,32 @@ ModelPart& CreateRansKEpsilonVMSKBasedEpsilonUBased2D2NModelPart(
 {
     const auto& set_variable_values = [&](ModelPart& rModelPart) {
         rVelocitySetMethod(rModelPart);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 20.0, 30.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 15.0, 25.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 50.0, 100.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 20.0, 30.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 15.0, 25.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 10.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 0);
 
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 2.0, 3.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 2.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 5.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, MESH_VELOCITY, 0.0, 0.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY, 2.0, 3.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 2.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 5.0, 10.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, NORMAL, 2.0, 3.0, 1);
 
         // following values do not need to be set when OSS projections are supported by Adjoints
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
 
         auto& r_process_info = rModelPart.GetProcessInfo();
         r_process_info.SetValue(DOMAIN_SIZE, 2);

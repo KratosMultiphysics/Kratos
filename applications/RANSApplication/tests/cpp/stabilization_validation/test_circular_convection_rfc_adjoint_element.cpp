@@ -40,11 +40,11 @@ ModelPart& CreateRansCircularConvectionRFCAdjoint2D3NModelPart(
     const std::string& rElementName)
 {
     const auto& set_variable_values = [](ModelPart& rModelPart) {
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY_POTENTIAL, 50.0, 100.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY_POTENTIAL_RATE, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY_POTENTIAL, 50.0, 100.0, 0);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY_POTENTIAL_RATE, 50.0, 100.0, 0);
 
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY_POTENTIAL, 50.0, 100.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY_POTENTIAL_RATE, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY_POTENTIAL, 50.0, 100.0, 1);
+        FluidTestUtilities::RandomFillHistoricalVariable(rModelPart, VELOCITY_POTENTIAL_RATE, 50.0, 100.0, 1);
 
         auto& r_process_info = rModelPart.GetProcessInfo();
         r_process_info.SetValue(DOMAIN_SIZE, 2);
@@ -140,8 +140,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointGetDofListTest, Kratos
     Model model;
     auto& model_part = CreateRansCircularConvectionRFCAdjoint2D3NModelPart(model, "RansCircularConvectionRFCAdjoint2D3N");
 
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetDofListTest(
-        model_part,
+    FluidTestUtilities::RunEntityGetDofListTest(
+        model_part.Elements(), model_part.GetProcessInfo(),
         {&RANS_SCALAR_1_ADJOINT_1});
 }
 
@@ -150,8 +150,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointEquationIdVectorTest, 
     Model model;
     auto& model_part = CreateRansCircularConvectionRFCAdjoint2D3NModelPart(model, "RansCircularConvectionRFCAdjoint2D3N");
 
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityEquationIdVectorTest(
-        model_part,
+    FluidTestUtilities::RunEntityEquationIdVectorTest(
+        model_part.Elements(), model_part.GetProcessInfo(),
         {&RANS_SCALAR_1_ADJOINT_1});
 }
 
@@ -160,8 +160,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointGetValuesVectorTest, K
     Model model;
     auto& model_part = CreateRansCircularConvectionRFCAdjoint2D3NModelPart(model, "RansCircularConvectionRFCAdjoint2D3N");
 
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetValuesVectorTest(
-        model_part,
+    FluidTestUtilities::RunEntityGetValuesVectorTest(
+        model_part.Elements(),
         {&RANS_SCALAR_1_ADJOINT_1});
 }
 
@@ -170,8 +170,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointGetFirstDerivativesVec
     Model model;
     auto& model_part = CreateRansCircularConvectionRFCAdjoint2D3NModelPart(model, "RansCircularConvectionRFCAdjoint2D3N");
 
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetFirstDerivativesVectorTest(
-        model_part,
+    FluidTestUtilities::RunEntityGetFirstDerivativesVectorTest(
+        model_part.Elements(),
         [](const ModelPart::NodeType& rNode) -> Vector { return ZeroVector(1); });
 }
 
@@ -181,8 +181,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointGetSecondDerivativesVe
     auto& model_part = CreateRansCircularConvectionRFCAdjoint2D3NModelPart(model, "RansCircularConvectionRFCAdjoint2D3N");
 
     Vector temp(1);
-    FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::RunEntityGetSecondDerivativesVectorTest(
-        model_part,
+    FluidTestUtilities::RunEntityGetSecondDerivativesVectorTest(
+        model_part.Elements(),
         [&](const ModelPart::NodeType& rNode) -> Vector {
             temp[0] = rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_3);
             return temp;

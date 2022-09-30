@@ -60,7 +60,7 @@
                 },
                 "wall_function_settings": {
                     "wall_function_region_type": "logarithmic_region_only",
-                    "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
+                    "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
                 }
             },
             "k_epsilon_solver_settings": {

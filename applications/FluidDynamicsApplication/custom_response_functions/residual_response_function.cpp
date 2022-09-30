@@ -359,7 +359,7 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
             GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_deriv;
             const Matrix& rJ = J[g];
             const Matrix& rDN_De = DN_De[g];
-            const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
+            const double inv_detJ = 1.0 / MathUtils<double>::Det(rJ);
             GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
             ShapeParameter deriv;

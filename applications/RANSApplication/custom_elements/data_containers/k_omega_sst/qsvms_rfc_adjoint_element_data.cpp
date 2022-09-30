@@ -92,7 +92,7 @@ void QSVMSRFCAdjointElementData<TDim, TNumNodes>::Check(
 {
     KRATOS_TRY
 
-    Fluid::TResidualsDerivatives::Check(rElement, rProcessInfo);
+    Fluid::Check(rElement, rProcessInfo);
     TurbulenceModelEquation1::TResidualsDerivatives::Check(rElement, rProcessInfo);
     TurbulenceModelEquation2::TResidualsDerivatives::Check(rElement, rProcessInfo);
 

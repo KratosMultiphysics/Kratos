@@ -23,7 +23,6 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/smp_storage.h"
 #include "utilities/time_discretization.h"
 
 // Application includes
@@ -213,7 +212,7 @@ public:
         Element::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        TLS& r_tls = mSMPStorage.GetThreadLocalStorage();
+        TLS& r_tls = mSMPStorage;
 
         CalculateEntityLHSContribution(
             rLHS_Contribution, rEquationId, rCurrentElement, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
@@ -237,7 +236,7 @@ public:
         Condition::EquationIdVectorType& rEquationId,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        TLS& r_tls = mSMPStorage.GetThreadLocalStorage();
+        TLS& r_tls = mSMPStorage;
 
         CalculateEntityLHSContribution(
             rLHS_Contribution, rEquationId, rCurrentCondition, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,
@@ -424,7 +423,8 @@ private:
 
     FluidAdjointSlipUtilities mAdjointSlipUtilities;
 
-    SMPStorage<TLS> mSMPStorage;
+    static TLS mSMPStorage;
+    #pragma omp threadprivate(mSMPStorage)
 
     ///@}
     ///@name Private Operations
@@ -440,7 +440,7 @@ private:
     {
         KRATOS_TRY;
 
-        TLS& r_tls = mSMPStorage.GetThreadLocalStorage();
+        TLS& r_tls = mSMPStorage;
 
         CalculateEntityLHSContribution<TEntityType>(
             rLHS, rEquationId, rEntity, r_tls.mResidualFirstDerivatives, r_tls.mRotatedResidualFirstDerivatives,

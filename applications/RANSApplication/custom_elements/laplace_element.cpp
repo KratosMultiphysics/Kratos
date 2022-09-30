@@ -39,7 +39,7 @@ void LaplaceElement<TDim, TNumNodes>::EquationIdVector(
     const Variable<double>& r_variable = this->GetVariable();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = Element::GetGeometry()[i].GetDof(r_variable).EquationId();
+        rResult[i] = this->GetGeometry()[i].GetDof(r_variable).EquationId();
     }
 }
 
@@ -55,7 +55,7 @@ void LaplaceElement<TDim, TNumNodes>::GetDofList(
     const Variable<double>& r_variable = this->GetVariable();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
+        rElementalDofList[i] = this->GetGeometry()[i].pGetDof(r_variable);
     }
 }
 
@@ -92,7 +92,7 @@ void LaplaceElement<TDim, TNumNodes>::GetValuesArray(
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod LaplaceElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

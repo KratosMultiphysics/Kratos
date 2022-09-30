@@ -22,6 +22,7 @@
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "utilities/compute_neighbour_list_functor.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/pointer_communicator.h"
 
 // Application includes

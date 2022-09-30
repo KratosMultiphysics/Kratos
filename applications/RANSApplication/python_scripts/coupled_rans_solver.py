@@ -322,7 +322,8 @@ class CoupledRANSSolver(PythonSolver):
                                                   self.domain_size)
 
         self.formulation = FormulationFactory(self.main_model_part,
-                                self.settings["formulation_settings"])
+                                self.settings["formulation_settings"],
+                                self.deprecated_settings)
 
         self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
         self.formulation.SetConstants(self.settings["constants"])
@@ -330,11 +331,8 @@ class CoupledRANSSolver(PythonSolver):
 
         self.is_periodic = self.formulation.IsPeriodic()
 
-        if "wall_function_settings" in self.deprecated_settings.keys():
-            IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define them seperately for all leaf formulations.")
-            self.formulation.SetWallFunctionSettings(self.deprecated_settings["wall_function_settings"])
-        else:
-            self.formulation.SetWallFunctionSettings()
+        self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
+        self.formulation.SetWallFunctionSettings()
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady = True
@@ -356,6 +354,14 @@ class CoupledRANSSolver(PythonSolver):
                         variable_tolerance_data["absolute_tolerance"].GetDouble()])
         else:
             self.is_steady = False
+
+        if (self.settings["time_scheme_settings"].Has("ramp_up_interval")):
+            self.ramp_up_interval = self.settings["time_scheme_settings"]["ramp_up_interval"].GetVector()
+            self.ramp_up_interval = sorted(self.ramp_up_interval)
+            if (len(self.ramp_up_interval) != 2):
+                raise Exception("Ramp up interval should only have two values indicating ramp up start time and end time.")
+        else:
+            self.ramp_up_interval = None
 
         self.main_model_part.ProcessInfo[KratosRANS.RANS_IS_STEADY] = self.is_steady
 
@@ -698,7 +704,7 @@ class CoupledRANSSolver(PythonSolver):
         return self.is_steady
 
     def IsConverged(self):
-        if (self.is_steady):
+        if (self.IsSteadySimulation()):
             current_time = self.main_model_part.ProcessInfo[Kratos.TIME]
             if (self.ramp_up_interval is not None):
                 if (current_time >= self.ramp_up_interval[0] and current_time <= self.ramp_up_interval[1]):

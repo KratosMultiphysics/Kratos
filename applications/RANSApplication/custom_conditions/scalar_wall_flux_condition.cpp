@@ -187,7 +187,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
     KRATOS_CATCH("");
 }
 template <unsigned int TDim, unsigned int TNumNodes, class TScalarWallFluxConditionData>
-GeometryData::IntegrationMethod  ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::GetIntegrationMethod()
+GeometryData::IntegrationMethod  ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }

@@ -379,7 +379,7 @@ namespace Kratos
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
       // KC permeability constitutive equation
-      bool KozenyCarman = false; 
+      bool KozenyCarman = false;
       if( GetProperties().Has(KOZENY_CARMAN) ){
          KozenyCarman = GetProperties()[KOZENY_CARMAN];
       }
@@ -388,7 +388,7 @@ namespace Kratos
       }
       GetProperties().SetValue(KOZENY_CARMAN, KozenyCarman);
 
-      double initial_porosity  = 0.3; 
+      double initial_porosity  = 0.3;
       if( GetProperties().Has(INITIAL_POROSITY) ){
          initial_porosity = GetProperties()[INITIAL_POROSITY];
       }
@@ -467,7 +467,7 @@ namespace Kratos
    }
 
    //************************************************************************************
-   //         Matrix due to the the water pressure contribution to the internal forces   
+   //         Matrix due to the the water pressure contribution to the internal forces
    void SmallDisplacementUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -521,7 +521,7 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension);
 
-      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 	
+      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) );
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int j = 0; j < number_of_nodes; j++) {
@@ -588,11 +588,11 @@ namespace Kratos
 
 
       //contribution of the internal and external forces
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
 
 
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
+      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
@@ -612,16 +612,16 @@ namespace Kratos
    }
 
    // **********************************************************************************
-   //    mass balance equation of the mixture (aka: Darcy's Law ) 
+   //    mass balance equation of the mixture (aka: Darcy's Law )
    void SmallDisplacementUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
-      // a convective term may go here. not coded yet. 
+      // a convective term may go here. not coded yet.
       KRATOS_CATCH("")
    }
 
    // **********************************************************************************
-   //    linear momentum balance equation of the fluid phase (aka: Darcy's Law ) 
+   //    linear momentum balance equation of the fluid phase (aka: Darcy's Law )
    void SmallDisplacementUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -660,7 +660,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void SmallDisplacementUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
+   void SmallDisplacementUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables,
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -669,13 +669,13 @@ namespace Kratos
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       unsigned int dofs_per_node = 2*dimension + 1;
 
-      rVolumeForce *= rVariables.detF0; 
+      rVolumeForce *= rVariables.detF0;
       double density_mixture0 = GetProperties().GetValue(DENSITY);
       if ( density_mixture0 > 0) {
-         rVolumeForce /= density_mixture0; 
+         rVolumeForce /= density_mixture0;
       }
       else {
-         return; 
+         return;
       }
 
       double density_water =GetProperties().GetValue(DENSITY_WATER);
@@ -693,7 +693,7 @@ namespace Kratos
          }
       }
 
-      rVolumeForce /= rVariables.detF0; 
+      rVolumeForce /= rVariables.detF0;
       rVolumeForce *=density_mixture0;
       return;
 
@@ -755,7 +755,7 @@ namespace Kratos
 
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
@@ -766,7 +766,7 @@ namespace Kratos
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
 
-      //double porosity = 1.0 - (1.0-porosity0) / Variables.detF0; 
+      //double porosity = 1.0 - (1.0-porosity0) / Variables.detF0;
       double porosity = porosity0; // no se actualiza
       double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
       double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
@@ -822,7 +822,7 @@ namespace Kratos
 
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
@@ -831,7 +831,7 @@ namespace Kratos
 
 
 
-      double CurrentPermeability = GetProperties()[PERMEABILITY]; 
+      double CurrentPermeability = GetProperties()[PERMEABILITY];
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -950,12 +950,12 @@ namespace Kratos
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             aux += rVariables.DN_DX(i, iDim);
          }
-         ElementSize += fabs( aux); 
+         ElementSize += fabs( aux);
       }
       ElementSize *= sqrt( double(dimension) );
-      ElementSize = 4.0/ ElementSize; 
+      ElementSize = 4.0/ ElementSize;
 
-      ProcessInfo SomeProcessInfo; 
+      ProcessInfo SomeProcessInfo;
       std::vector< double> Mmodulus;
       GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
@@ -969,13 +969,13 @@ namespace Kratos
 
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
-      rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+      rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2);
 
       if ( rStabFactor < 0.0)
-         rStabFactor = 0.0; 
+         rStabFactor = 0.0;
       rStabFactor *=  StabilizationFactor;
 
-      return rStabFactor; 
+      return rStabFactor;
 
       KRATOS_CATCH("")
    }

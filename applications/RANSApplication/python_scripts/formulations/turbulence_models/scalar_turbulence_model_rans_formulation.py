@@ -9,7 +9,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import Initialize
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Scalar turbulence model formulation base class
 
         This solves the variable given in self.GetSolvingVariable(), using element and conditions
@@ -23,7 +23,7 @@ class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
 
-        super().__init__(model_part, settings)
+        super().__init__(model_part, settings, deprecated_settings_dict)
 
     def Initialize(self):
         InitializeYPlusVariablesInConditions(self.GetBaseModelPart())
@@ -32,16 +32,7 @@ class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
         super().Initialize()
 
     def SetWallFunctionSettings(self, settings=None):
-        formulation_settings = self.GetParameters()["wall_function_settings"]
-        if settings is not None:
-            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
-                settings = formulation_settings
-            else:
-                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
-        else:
-            settings = formulation_settings
-
+        settings = self.GetParameters()["wall_function_settings"]
         self.condition_name = self.GetConditionNamePrefix()
 
         if (self.condition_name != ""):

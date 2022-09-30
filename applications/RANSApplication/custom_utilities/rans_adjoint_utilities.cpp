@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "utilities/geometrical_sensitivity_utility.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 #include "rans_application_variables.h"
 

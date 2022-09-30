@@ -54,15 +54,15 @@ class CustomProcessTest(UnitTest.TestCase):
 
     def setUp(self):
         # reinitialize variables for each test
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.ACCELERATION, 0.0, 10.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.ACCELERATION, 20.0, 50.0, 1)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 20.0, 100.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 50.0, 100.0, 1)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.ACCELERATION, 0.0, 10.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.ACCELERATION, 20.0, 50.0, 1)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 20.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 50.0, 100.0, 1)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
         Kratos.VariableUtils().SetVariable(Kratos.DENSITY, 1.0, self.model_part.Nodes)
 
@@ -219,8 +219,8 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        KratosCFD.FluidTestUtilities.RandomFillNodalNonHistoricalVariable(self.model_part.Nodes, Kratos.DENSITY, 2, 0.0, 50.0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalNonHistoricalVariable(self.model_part.Nodes, Kratos.VELOCITY, 2, 0.0, 50.0)
+        KratosCFD.FluidTestUtilities.RandomFillNonHistoricalVariable(self.model_part.Nodes, Kratos.DENSITY, 2, 0.0, 50.0)
+        KratosCFD.FluidTestUtilities.RandomFillNonHistoricalVariable(self.model_part.Nodes, Kratos.VELOCITY, 2, 0.0, 50.0)
 
         for node in self.model_part.Nodes:
             v = Kratos.Vector(4)

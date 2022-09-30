@@ -15,6 +15,7 @@
 #include <random>
 
 // External includes
+#include <span/span.hpp>
 
 // Project includes
 #include "testing/testing.h"
@@ -24,6 +25,8 @@
 #include "containers/system_vector.h"
 #include "includes/key_hash.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/amgcl_csr_conversion_utilities.h"
+#include "utilities/amgcl_csr_spmm_utilities.h"
 
 namespace Kratos {
 namespace Testing {
@@ -201,8 +204,8 @@ bool CheckGraph(
 }
 
 bool CheckCSRGraphArrays(
-    const vector<SparseTestingInternals::IndexType>& rRowIndices,
-    const vector<SparseTestingInternals::IndexType>& rColIndices,
+    const Kratos::span<SparseTestingInternals::IndexType>& rRowIndices,
+    const Kratos::span<SparseTestingInternals::IndexType>& rColIndices,
     const MatrixMapType& rReferenceGraph)
 {
     auto N = rRowIndices.size()-1;
@@ -311,7 +314,8 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
     SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     //check exporting
-    vector<SparseTestingInternals::IndexType> row_index, col_index;
+    std::vector<IndexType> row_index;
+    std::vector<IndexType> col_index;
     Agraph.ExportCSRArrays(row_index, col_index);
 
     SparseTestingInternals::CheckCSRGraphArrays(row_index, col_index, reference_A_map);
@@ -551,6 +555,117 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorOperations, KratosCoreFastSuite)
     for(unsigned int i=0; i<c.size(); ++i)
         KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
+{
+    const auto connectivities = SparseTestingInternals::ElementConnectivities();
+    auto reference_A_map = SparseTestingInternals::GetReferenceMatrixAsMap();
+
+    SparseContiguousRowGraph<> Agraph(40);
+    for(const auto& c : connectivities)
+        Agraph.AddEntries(c);
+    Agraph.Finalize();
+
+    CsrMatrix<double> A(Agraph);
+
+    A.BeginAssemble();   
+    for(const auto& c : connectivities){   
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+
+    auto pAmgcl = AmgclCSRConversionUtilities::ConvertToAmgcl(A);
+
+    std::vector<double> x(A.size1(), 1.0);
+
+    std::vector<double> y(A.size1(), 0.0);
+
+    amgcl::backend::spmv(1.0,*pAmgcl, x, 1.0, y);
+
+    double sum=0;
+    for(auto& item : y)
+       sum += item;
+
+    KRATOS_CHECK_EQUAL(sum,496);
+
+    auto pAconverted = AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl); //NOTE that A,Aconverted and pAmgcl all have the same data!
+    auto reference_map = A.ToMap();
+    auto converted_A_map = pAconverted->ToMap();
+    for(const auto& item : reference_map)
+        KRATOS_CHECK_EQUAL(item.second, converted_A_map[item.first]);
+    for(const auto& item : converted_A_map)
+        KRATOS_CHECK_EQUAL(item.second, reference_map[item.first]);
+
+    //matrix matrix multiplication
+    CsrMatrix<double>::Pointer pC = AmgclCSRSpMMUtilities::SparseMultiply(A,*pAconverted); //C=A*Aconverted
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSuite)
+{
+    // matrix A
+    //[[1,0,0,7,2],
+    // [0,3,0,0,0],
+    // [0,0,0,7,7]]
+    SparseContiguousRowGraph<> Agraph(3);
+    Agraph.AddEntry(0,0); Agraph.AddEntry(0,3);  Agraph.AddEntry(0,4); 
+    Agraph.AddEntry(1,1); 
+    Agraph.AddEntry(2,3);  Agraph.AddEntry(2,4); 
+    Agraph.Finalize();
+
+    CsrMatrix<double> A(Agraph);
+    A.BeginAssemble();   
+    A.AssembleEntry(1.0,0,0); A.AssembleEntry(7.0,0,3); A.AssembleEntry(2.0,0,4);
+    A.AssembleEntry(3.0,1,1);
+    A.AssembleEntry(7.0,2,3); A.AssembleEntry(7.0,2,4);
+    A.FinalizeAssemble();
+
+    // matrix B
+    //[[1,0,0],
+    // [0,2,3],
+    // [0,3,0],
+    // [0,0,0],
+    // [5,0,6]]
+    SparseContiguousRowGraph<> Bgraph(5);
+    Bgraph.AddEntry(0,0); 
+    Bgraph.AddEntry(1,1); Bgraph.AddEntry(1,2);
+    Bgraph.AddEntry(2,1);
+    Bgraph.AddEntry(3,0);
+    Bgraph.AddEntry(4,0); Bgraph.AddEntry(4,2);  
+    Bgraph.Finalize();
+
+    CsrMatrix<double> B(Bgraph);
+
+    B.BeginAssemble();   
+    B.AssembleEntry(1.0,0,0); 
+    B.AssembleEntry(2.0,1,1); B.AssembleEntry(3.0,1,2); 
+    B.AssembleEntry(3.0,2,1); 
+    B.AssembleEntry(0.0,3,0); 
+    B.AssembleEntry(5.0,4,0);  B.AssembleEntry(6.0,4,2); 
+    B.FinalizeAssemble();
+
+    //Cref = A@B
+    //[[11,  0, 12],
+    // [ 0,  6,  9],
+    // [35,  0, 42]]
+    SparseTestingInternals::MatrixMapType Cref{
+        {{0,0},11.0}, {{0,2},12.0},
+        {{1,1},6.0}, {{1,2},9.0},
+        {{2,0},35.0}, {{2,2},42.0}
+        };
+
+    CsrMatrix<double>::Pointer pC = AmgclCSRSpMMUtilities::SparseMultiply(A,B); //C=A*B
+    auto& C = *pC;
+
+    for(const auto& item : Cref)
+    {
+        IndexType I = item.first.first;
+        IndexType J = item.first.second;
+        double ref_value = item.second;
+        KRATOS_CHECK_EQUAL(ref_value,C(I,J));
+    }
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(RectangularMatrixConstruction, KratosCoreFastSuite)
 {

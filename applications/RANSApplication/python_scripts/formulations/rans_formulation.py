@@ -1,10 +1,10 @@
+from abc import abstractmethod, ABC
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
-
-from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
-class RansFormulation:
+class RansFormulation(ABC):
     def __init__(self, base_computing_model_part, settings):
         """RansFormulation base class
 
@@ -23,6 +23,15 @@ class RansFormulation:
         self.__list_of_processes = []
         self.__move_mesh = False
 
+    @abstractmethod
+    def GetDefaultParameters(self):
+        """Returns default parameters used in this formulation
+
+        Returns:
+            Kratos.Parameters: Parameters of this formulation
+        """
+        pass
+
     def GetParameters(self):
         """Returns parameters used in this formulation
 
@@ -30,6 +39,11 @@ class RansFormulation:
             Kratos.Parameters: Parameters of this formulation
         """
         return self.__settings
+
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        """Recursively calls BackwardCompatibilityHelper methods of existing formulations in this formulaton
+        """
+        self.__ExecuteRansFormulationMethods("BackwardCompatibilityHelper", [settings, deprecated_settings_dict])
 
     def GetDomainSize(self):
         """Returns domain size
@@ -321,26 +335,10 @@ class RansFormulation:
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
 
-    def SetWallFunctionSettings(self, settings=None):
-        """Sets wall function settings recursively
+    def SetWallFunctionSettings(self):
+        """Sets wall function settings
         """
-        if settings is not None:
-            IssueDeprecationWarning(self.__class__.__name__, "SetWallFunctionSettings with parameters argument is deprecated. Please update formulation to use the same method without any input arguments.")
-            self.__wall_function_settings = settings
-
-        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
-
-    def GetWallFunctionSettings(self):
-        """Returns wall function settings
-
-        Returns:
-            Kratos.Parameters: Wall function settings used for formulations
-        """
-        IssueDeprecationWarning(self.__class__.__name__, "GetWallFunctionSettings is deprecated. Use formulation specific settings.")
-        if (hasattr(self, "_RansFormulation__wall_function_settings")):
-            return self.__wall_function_settings
-        else:
-            raise Exception(self.__class__.__name__ + " needs to use \"SetWallFunctionSettings\" first before calling \"GetWallFunctionSettings\".")
+        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings")
 
     def GetBaseModelPart(self):
         """Returns base model part used in the formulation
@@ -441,7 +439,7 @@ class RansFormulation:
         """Returns strategy used in this formulation, if used any.
 
         Returns:
-            Kratos.SolvingStrategy: Strategy used in this formulation, None if not used.
+            Kratos.ImplicitSolvingStrategy: Strategy used in this formulation, None if not used.
         """
         return None
 

@@ -17,7 +17,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosO
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetTimeDerivativeVariablesRecursively
 
 class ScalarRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Scalar formulation base class
 
         This solves the variable given in self.GetSolvingVariable(), using element and conditions
@@ -30,7 +30,14 @@ class ScalarRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        defaults = Kratos.Parameters(r"""{
+
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.echo_level = settings["echo_level"].GetInt()
+
+        super().__init__(model_part, settings)
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r"""{
             "relative_tolerance"    : 1e-3,
             "absolute_tolerance"    : 1e-5,
             "max_iterations"        : 200,
@@ -45,11 +52,6 @@ class ScalarRansFormulation(RansFormulation):
                 "solver_type"  : "amgcl"
             }
         }""")
-
-        settings.ValidateAndAssignDefaults(defaults)
-        self.echo_level = settings["echo_level"].GetInt()
-
-        super().__init__(model_part, settings)
 
     @abstractmethod
     def GetSolvingVariable(self):

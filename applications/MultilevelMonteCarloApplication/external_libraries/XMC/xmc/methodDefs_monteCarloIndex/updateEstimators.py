@@ -1,10 +1,11 @@
 import xmc.tools as tools
 
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
-#TODO When MomentEstimator is updated to specs, one level of nesting will have to be added above solver level: each element of sampleGroup is to be a list of sample components; as of now, it is just a single component.
+# TODO When MomentEstimator is updated to specs, one level of nesting will have to be added above solver level: each element of sampleGroup is to be a list of sample components; as of now, it is just a single component.
 
-@ExaquteTask(estimators=INOUT,samples={Type: COLLECTION_IN, Depth: 3})
+
+@task(keep=True, estimators=INOUT, samples={Type: COLLECTION_IN, Depth: 3})
 def updatePartialQoiEstimators_Task(estimators, samples):
     """
     Update a list of estimators with a set of samples.
@@ -18,7 +19,7 @@ def updatePartialQoiEstimators_Task(estimators, samples):
     """
 
     # Iterate over estimators
-    for iEst,_ in enumerate(estimators):
+    for iEst, _ in enumerate(estimators):
         # Get subset of samples for component iEst
         # as array expected by update methud: (event, solver).
         # Example:
@@ -31,7 +32,7 @@ def updatePartialQoiEstimators_Task(estimators, samples):
         estimators[iEst].update(sampleSubset)
 
 
-@ExaquteTask(origin=IN, destination=INOUT)
+@task(keep=True, origin=IN, destination=INOUT)
 def assignByIndex_Task(destination, origin, mapping):
     """
     Assign elements into a list, according to an index.
@@ -42,11 +43,11 @@ def assignByIndex_Task(destination, origin, mapping):
     - mapping: list of integers such that origin[i] must go to destination[mapping[i]]
     """
 
-    for i,j in enumerate(mapping):
+    for i, j in enumerate(mapping):
         destination[j] = origin[i]
 
 
-@ExaquteTask(costEstimator=INOUT,times={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, costEstimator=INOUT, times={Type: COLLECTION_IN, Depth: 2})
 def updateCostEstimator_Task(costEstimator, times):
     """
     Update cost estimator with a set of time samples.

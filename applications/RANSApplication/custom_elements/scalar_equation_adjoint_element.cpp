@@ -284,7 +284,7 @@ void ScalarEquationAdjointElement<TDim, TNumNodes, TAdjointElementData>::Initial
 
         const GeometryType& r_geometry = this->GetGeometry();
         const auto& r_shape_functions =
-            row(r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
+            row(r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1), 0);
 
         // This constitutive law should return nu + nu_t
         mpConstitutiveLaw->InitializeMaterial(r_properties, r_geometry, r_shape_functions);
@@ -702,7 +702,7 @@ void ScalarEquationAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddScal
         GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_deriv;
         const Matrix& rJ = J[g];
         const Matrix& rDN_De = DN_De[g];
-        const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
+        const double inv_detJ = 1.0 / MathUtils<double>::Det(rJ);
         GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
         row_index = 0;

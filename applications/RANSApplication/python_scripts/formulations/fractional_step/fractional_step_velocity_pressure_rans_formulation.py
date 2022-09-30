@@ -21,7 +21,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import Initialize
 from KratosMultiphysics.RANSApplication.formulations.utilities import AddWallPropertiesUpdateProcess
 
 class FractionalStepVelocityPressureRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Incompressible Fractional Step Navier Stokes formulation
 
         This RansFormulation solves VELOCITY, and PRESSURE with Fractional Step formulated
@@ -34,10 +34,26 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
+        self.BackwardCompatibilityHelper(settings, deprecated_settings_dict)
         super().__init__(model_part, settings)
 
-        ##settings string in json format
-        default_settings = Kratos.Parameters("""
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        self.min_buffer_size = 3
+
+        self.echo_level = settings["echo_level"].GetInt()
+        self.SetMaxCouplingIterations(1)
+
+        self.nu_t_convergence_utility = RansNutUtility(
+            self.GetBaseModelPart(),
+            settings["coupling_settings"]["relative_tolerance"].GetDouble(),
+            settings["coupling_settings"]["absolute_tolerance"].GetDouble(),
+            self.echo_level)
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters("""
         {
             "formulation_name": "fractional_step",
             "predictor_corrector": false,
@@ -51,7 +67,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "wall_function_settings":{},
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
@@ -93,23 +108,18 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             {
                 "relative_tolerance": 1e-3,
                 "absolute_tolerance": 1e-5
+            },
+            "wall_function_settings": {
+                "wall_function_region_type": "logarithmic_region_only"
             }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        self.min_buffer_size = 3
-
-        self.echo_level = settings["echo_level"].GetInt()
-        self.SetMaxCouplingIterations(1)
-
-        self.nu_t_convergence_utility = RansNutUtility(
-            self.GetBaseModelPart(),
-            settings["coupling_settings"]["relative_tolerance"].GetDouble(),
-            settings["coupling_settings"]["absolute_tolerance"].GetDouble(),
-            self.echo_level)
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        if "wall_function_settings" in deprecated_settings_dict.keys():
+            if settings.Has("wall_function_settings"):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Found \"wall_function_settings\" in deprecated settings as well as in formulation settings. Continuing with formulation based settings.")
+            else:
+                settings.AddValue("wall_function_settings", deprecated_settings_dict["wall_function_settings"].Clone())
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()
@@ -309,20 +319,10 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def SetWallFunctionSettings(self, settings=None):
-        formulation_settings = self.GetParameters()["wall_function_settings"]
-        if settings is not None:
-            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
-                settings = formulation_settings
-            else:
-                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
-        else:
-            settings = formulation_settings
-
-        wall_function_region_type = "logarithmic_region_only"
-        if (settings.Has("wall_function_region_type")):
-            wall_function_region_type = settings["wall_function_region_type"].GetString()
+    def SetWallFunctionSettings(self):
+        wall_function_settings = self.GetParameters()["wall_function_settings"]
+        wall_function_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["wall_function_settings"])
+        wall_function_region_type = wall_function_settings["wall_function_region_type"].GetString()
 
         if (wall_function_region_type == "logarithmic_region_only"):
             self.condition_name = "RansFractionalStepKBasedWall"
@@ -338,7 +338,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             msg += "\twerner_wengle_wall_condition\n"
             raise Exception(msg)
 
-        AddWallPropertiesUpdateProcess(self, settings)
+        AddWallPropertiesUpdateProcess(self, wall_function_settings)
 
     def ElementHasNodalProperties(self):
         return True

@@ -19,15 +19,11 @@
 #include "containers/model.h"
 
 #include "includes/define.h"
-#include "includes/shared_pointers.h"
 #include "includes/model_part.h"
-#include "containers/pointer_vector.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
@@ -51,7 +47,7 @@ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
-typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 
 struct PrimalResults
 {
@@ -61,13 +57,13 @@ struct PrimalResults
     virtual void LoadCurrentSolutionStep(ModelPart& rModelPart) const = 0;
 };
 
-class PrimalStrategy : public SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
+class PrimalStrategy : public ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrimalStrategy);
 
     PrimalStrategy(ModelPart& rModelPart, PrimalResults::Pointer pPrimalResults)
-        : SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
+        : ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
           mpPrimalResults(pPrimalResults)
     {
         auto p_scheme =
@@ -101,7 +97,7 @@ private:
     SolvingStrategyType::Pointer mpSolver;
 };
 
-class AdjointStrategy : public SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
+class AdjointStrategy : public ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStrategy);
@@ -110,7 +106,7 @@ public:
                     Kratos::shared_ptr<PrimalResults> pPrimalResults,
                     AdjointResponseFunction::Pointer pResponseFunction,
                     Parameters SchemeSettings)
-        : SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
+        : ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>(rModelPart),
           mpPrimalResults(pPrimalResults)
     {
         auto p_linear_solver =
@@ -182,7 +178,7 @@ public:
     typedef Kratos::intrusive_ptr<PrimalElement> Pointer;
     typedef Kratos::unique_ptr<PrimalElement> UniquePointer;
 
-    static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -286,7 +282,7 @@ public:
     typedef Kratos::intrusive_ptr<PrimalCondition> Pointer;
     typedef Kratos::unique_ptr<PrimalCondition> UniquePointer;
 
-    static Pointer Create(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -446,7 +442,7 @@ public:
     typedef Kratos::unique_ptr<AdjointElement> UniquePointer;
 
 
-    static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -645,7 +641,7 @@ public:
     typedef Kratos::unique_ptr<AdjointCondition> UniquePointer;
 
 
-    static Pointer Create(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -966,12 +962,12 @@ void InitializePrimalModelPart(ModelPart& rModelPart, const bool IsWithCondition
         r_node.AddDof(DISPLACEMENT_X, REACTION_X);
     }
     auto p_element =
-        PrimalElement::Create(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
+        PrimalElement::CreateEntity(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
     rModelPart.AddElement(p_element);
     auto& node1 = rModelPart.GetNode(1);
     auto& node2 = rModelPart.GetNode(2);
     if (IsWithConditions) {
-        auto p_condition = PrimalCondition::Create(rModelPart.pGetNode(2));
+        auto p_condition = PrimalCondition::CreateEntity(rModelPart.pGetNode(2));
         rModelPart.AddCondition(p_condition);
     }
     node2.FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
@@ -999,11 +995,11 @@ void InitializeAdjointModelPart(ModelPart& rModelPart, const bool IsWithConditio
         r_node.AddDof(ADJOINT_VECTOR_1_X);
     }
     auto p_adjoint_element =
-        AdjointElement::Create(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
+        AdjointElement::CreateEntity(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
     rModelPart.AddElement(p_adjoint_element);
 
     if (IsWithConditions) {
-        auto p_adjoint_condition = AdjointCondition::Create(rModelPart.pGetNode(2));
+        auto p_adjoint_condition = AdjointCondition::CreateEntity(rModelPart.pGetNode(2));
         rModelPart.AddCondition(p_adjoint_condition);
     }
 }
@@ -1037,7 +1033,7 @@ double SolvePrimalProblem(
     }
 
     return response_value;
-}
+    };
 
 void SolveAdjointProblem(
     Model& rModel,

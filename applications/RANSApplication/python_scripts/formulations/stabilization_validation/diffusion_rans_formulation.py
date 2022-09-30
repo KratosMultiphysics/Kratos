@@ -13,7 +13,7 @@ from KratosMultiphysics.RANSApplication.formulations.scalar_rans_formulation imp
 from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
 
 class DiffusionRansFormulation(ScalarRansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings):
         default_settings = Kratos.Parameters(r'''
         {
             "formulation_name": "circular_convection",
@@ -28,7 +28,8 @@ class DiffusionRansFormulation(ScalarRansFormulation):
 
         super().__init__(
             model_part,
-            settings["diffusion_solver_settings"])
+            settings["diffusion_solver_settings"],
+            deprecated_settings)
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)

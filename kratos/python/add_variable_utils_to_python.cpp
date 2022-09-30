@@ -463,6 +463,25 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("ApplyFixity", ApplyFixity<Variable<double>>)
         .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
+        .def("GetSolutionStepValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const unsigned int,
+                            const unsigned int>(&VariableUtils::GetSolutionStepValuesVector))
+        .def("GetSolutionStepValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<double>&,
+                            const unsigned int>(&VariableUtils::GetSolutionStepValuesVector))
+        .def("SetSolutionStepValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const Vector&,
+                            const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
+        .def("SetSolutionStepValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<double>&,
+                            const Vector&,
+                            const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
         .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable<Variable<double>>)
@@ -473,12 +492,19 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("SumElementVectorVariable", &VariableUtils::SumElementVectorVariable)
         .def("AddDof", &VariableUtils::AddDof<Variable<double>>)
         .def("AddDof", &VariableUtils::AddDofWithReaction<Variable<double>>)
+        .def_static("AddDofsList", &VariableUtils::AddDofsList)
+        .def_static("AddDofsList", &VariableUtils::AddDofsWithReactionsList)
         .def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
         .def("UpdateCurrentToInitialConfiguration", &VariableUtils::UpdateCurrentToInitialConfiguration)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
-        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
+        .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector)
+        .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector)
+        .def("SetCurrentPositionsVector", &VariableUtils::SetCurrentPositionsVector)
+        .def("SetInitialPositionsVector", &VariableUtils::SetInitialPositionsVector)
+        ;
 
     AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
     AddCopyModelPartFlaggedInterface<double>(python_variable_utils);

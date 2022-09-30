@@ -20,18 +20,13 @@ HELP: Enables the adaptative meshing technique
 QUESTION: Extrapolate_Pressure_Load#CB#(true,false)
 VALUE: false
 HELP: Enables the blast loading extrapolation
-QUESTION: Displacement_Perturbed_Tangent_Computation#CB#(true,false)
-VALUE: false
-HELP: Enables the adaptative meshing technique
+
 
 TITLE:Solver_Settings
 QUESTION: Solution_Type#CB#(Static,Dynamic)
 VALUE: Dynamic
-QUESTION: Scheme_Type#CB#(Newmark)
+QUESTION: Scheme_Type#CB#(Newmark,Bossak)
 VALUE: Newmark
-QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
-VALUE: Newton-Raphson
-DEPENDENCIES: (Newton-Raphson,HIDE,Desired_Iterations,#CURRENT#,HIDE,Max_Radius_Factor,#CURRENT#,HIDE,Min_Radius_Factor,#CURRENT#)(Arc-Length,RESTORE,Desired_Iterations,#CURRENT#,RESTORE,Max_Radius_Factor,#CURRENT#,RESTORE,Min_Radius_Factor,#CURRENT#)
 QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion,FemDem_Residual_criterion)
 VALUE: FemDem_Residual_criterion
 DEPENDENCIES: (Displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(Residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(And_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(Or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
@@ -47,20 +42,9 @@ QUESTION: Residual_Absolute_Tolerance
 VALUE: 1.0E-9
 QUESTION: Max_Iterations
 VALUE: 15
-QUESTION: Desired_Iterations
-VALUE: 4
-HELP: The larger this number, the larger the radius
-QUESTION: Max_Radius_Factor
-VALUE: 10.0
-HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
-QUESTION: Min_Radius_Factor
-VALUE: 0.1
-HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
-QUESTION: Move_Mesh#CB#(true,false)
-VALUE: false
-QUESTION: Solver_Type#CB#(skyline_lu_factorization,SuperLUSolver,BICGSTABSolver,amgcl,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
+QUESTION: Solver_Type#CB#(skyline_lu_factorization,amgcl,pardiso_lu)
 VALUE: amgcl
-HELP: OpenMP solvers: skyline_lu_factorization (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+HELP: OpenMP solvers: skyline_lu_factorization (Direct), pardiso_lu (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.).
 
 TITLE:Output_Configuration
 QUESTION: Write_Solid_Displacement#CB#(true,false)
@@ -107,11 +91,13 @@ VALUE: true
 QUESTION: Density
 VALUE: 2500.00
 QUESTION: Young_Modulus
-VALUE: 1.00e9
+VALUE: 1.00e8
 QUESTION: Poisson_Ratio
 VALUE: 0.2
-QUESTION: Particle_Friction
-VALUE: 0.5773502691896257
+QUESTION: Static_Friction
+VALUE: 0.58
+QUESTION: Dynamic_Friction
+VALUE: 0.58
 QUESTION: Cohesion
 VALUE: 0.0
 QUESTION: Friction_Angle
@@ -138,7 +124,7 @@ VALUE: -9.81
 QUESTION: GravityZ
 VALUE: 0.0
 QUESTION: MaxTimeStep
-VALUE: 5e-5
+VALUE: 1e-5
 
 END PROBLEM DATA
 

@@ -71,7 +71,7 @@ template<unsigned int TDim, class TPrimalBaseType>
 int RansKOmegaSSTNewtonianLaw<TDim, TPrimalBaseType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

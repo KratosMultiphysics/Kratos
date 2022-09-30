@@ -85,7 +85,7 @@ void IsotropicDamageSimoJuPlaneStrain2DLaw::CalculateCharacteristicSize( double&
 
 int IsotropicDamageSimoJuPlaneStrain2DLaw::Check(const Properties& rMaterialProperties,
                                                 const GeometryType& rElementGeometry,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const
 {
 
     int ierr = HyperElasticPlastic3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);

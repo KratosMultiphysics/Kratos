@@ -10,7 +10,7 @@ import KratosMultiphysics.HDF5Application.core as core
 from KratosMultiphysics.HDF5Application.core import AssignOperationsToController
 from KratosMultiphysics.HDF5Application.core import CreateControllerWithFileIO
 from KratosMultiphysics.HDF5Application.core import AssignControllerToProcess
-from KratosMultiphysics.HDF5Application.core.processes import ControllerProcess
+from KratosMultiphysics.HDF5Application.core.processes import OrderedOperationProcess
 from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
 from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
@@ -177,6 +177,6 @@ def Factory(parameters, model):
     Kratos.Logger.PrintInfo("PrimalHDF5OutputProcess", "PrimalHDF5OutputProcess created.")
     return process
 
-class PrimalHDF5OutputProcess(ControllerProcess):
+class PrimalHDF5OutputProcess(OrderedOperationProcess):
     def IsOutputStep(self):
         return False

@@ -27,7 +27,6 @@
 
 // Application includes
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
-#include "custom_utilities/fluid_adjoint_variable_information.h"
 
 namespace Kratos
 {
@@ -47,20 +46,20 @@ public:
 
     using IndexType = std::size_t;
 
-    using AdjointVariableInformationType = AdjointVariableInformation::VariableInformation<TDim>;
+    using DependentVariablesListType = typename QSVMSDerivativeUtilities<TDim>::DependentVariablesListType;
 
     ///@}
     ///@name Classes
     ///@{
 
     template<unsigned int TNumNodes, class TElementData>
-    class TurbulenceVariableDerivative : public QSVMSDerivativeUtilities<TDim>::Derivative
+    class TurbulenceVariableDerivative : public QSVMSDerivativeUtilities<TDim>::template Derivative<0>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = typename QSVMSDerivativeUtilities<TDim>::Derivative;
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template Derivative<0>;
 
         using ElementDataType = TElementData;
 
@@ -76,7 +75,6 @@ public:
 
         TurbulenceVariableDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -84,7 +82,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -115,14 +113,14 @@ public:
      *
      * @tparam TNumNodes
      */
-    template<unsigned int TNumNodes>
-    class KOmegaSSTVelocityDerivative : public QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>
+    template<unsigned int TNumNodes, unsigned int TComponentIndex>
+    class KOmegaSSTVelocityDerivative : public QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes, TComponentIndex>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>;
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes, TComponentIndex>;
 
         static constexpr double VelocityDerivativeFactor = 1.0;
 
@@ -136,7 +134,6 @@ public:
 
         KOmegaSSTVelocityDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -144,7 +141,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -152,7 +149,7 @@ public:
         ///@name Operations
         ///@{
 
-        std::vector<AdjointVariableInformationType> GetEffectiveViscosityDependentVariables() const;
+        DependentVariablesListType GetEffectiveViscosityDependentVariables() const;
 
         ///@}
     };
@@ -167,14 +164,14 @@ public:
      *
      * @tparam TNumNodes
      */
-    template<unsigned int TNumNodes>
-    class KOmegaSSTShapeDerivative : public QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>
+    template<unsigned int TNumNodes, unsigned int TComponentIndex>
+    class KOmegaSSTShapeDerivative : public QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes, TComponentIndex>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>;
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes, TComponentIndex>;
 
         static constexpr double VelocityDerivativeFactor = 0.0;
 
@@ -188,7 +185,6 @@ public:
 
         KOmegaSSTShapeDerivative(
             const IndexType NodeIndex,
-            const IndexType DirectionIndex,
             const GeometryType& rGeometry,
             const double W,
             const Vector& rN,
@@ -196,7 +192,7 @@ public:
             const double WDerivative,
             const double DetJDerivative,
             const Matrix& rdNdXDerivative)
-            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+            : BaseType(NodeIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
         {
         }
 
@@ -204,7 +200,7 @@ public:
         ///@name Operations
         ///@{
 
-        std::vector<AdjointVariableInformationType> GetEffectiveViscosityDependentVariables() const;
+        DependentVariablesListType GetEffectiveViscosityDependentVariables() const;
 
         ///@}
     };

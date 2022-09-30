@@ -55,7 +55,7 @@
                 },
                 "wall_function_settings": {
                     "wall_function_region_type": "logarithmic_region_only",
-                    "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
+                    "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
                 }
             },
             "k_omega_solver_settings": {
@@ -69,6 +69,10 @@
                     "linear_solver_settings": {
                         "solver_type": "<LINEAR_SOLVER_TYPE>",
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "turbulent_specific_energy_dissipation_rate_solver_settings": {

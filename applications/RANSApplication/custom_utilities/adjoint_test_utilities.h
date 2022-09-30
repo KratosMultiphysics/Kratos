@@ -238,7 +238,7 @@ public:
             GeometricalSensitivityUtility::ShapeFunctionsGradientType adjoint_dNdX_derivative;
             const Matrix& rJ = J[g];
             const Matrix& rDN_De = DN_De[g];
-            const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
+            const double inv_detJ = 1.0 / MathUtils<double>::Det(rJ);
             GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
             for (IndexType c = 0; c < 3; ++c) {

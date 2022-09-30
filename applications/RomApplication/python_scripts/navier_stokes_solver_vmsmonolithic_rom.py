@@ -14,6 +14,8 @@ def CreateSolver(model, custom_settings):
 class ROMSolver(NavierStokesSolverMonolithic):
 
     def __init__(self, model, custom_settings):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'navier_stokes_solver_vmsmonolithic_rom\'", "class is deprecated. Use the generic\'RomSolver\' one instead.")
+
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 

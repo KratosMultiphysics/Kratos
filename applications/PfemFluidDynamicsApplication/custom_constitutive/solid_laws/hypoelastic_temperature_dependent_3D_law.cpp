@@ -45,7 +45,7 @@ ConstitutiveLaw::Pointer HypoelasticTemperatureDependent3DLaw::Clone() const { r
 HypoelasticTemperatureDependent3DLaw::~HypoelasticTemperatureDependent3DLaw() {}
 
 int HypoelasticTemperatureDependent3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                            const ProcessInfo& rCurrentProcessInfo) {
+                            const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
         << "Incorrect or missing YOUNG_MODULUS provided in process info for HypoelasticTemperatureDependent3DLaw: "

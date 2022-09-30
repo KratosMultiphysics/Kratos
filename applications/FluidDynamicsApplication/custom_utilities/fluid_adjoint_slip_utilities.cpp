@@ -26,6 +26,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/sensitivity_utilities.h"
 #include "utilities/global_pointer_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "custom_utilities/fluid_calculation_utilities.h"

@@ -8,7 +8,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.scalar_rans_formulation import ScalarRansFormulation
 
 class BodyForceGovernedCDRRansFormulation(ScalarRansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings):
         default_settings = Kratos.Parameters(r'''
         {
             "formulation_name": "body_force_governed_cdr",
@@ -23,7 +23,8 @@ class BodyForceGovernedCDRRansFormulation(ScalarRansFormulation):
 
         super().__init__(
             model_part,
-            settings["body_force_governed_cdr_solver_settings"])
+            settings["body_force_governed_cdr_solver_settings"],
+            deprecated_settings)
 
     def GetSolvingVariable(self):
         return KratosRANS.VELOCITY_POTENTIAL
