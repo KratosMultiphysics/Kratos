@@ -28,7 +28,7 @@ void ALMVariablesCalculationProcess::Execute()
 
     /* We compute the penalty factor */
 
-    // Auxiliar values
+    // Auxiliary values
     const double epsilon = std::numeric_limits<double>::epsilon();
     const double tolerance = 1.0e-12;
 

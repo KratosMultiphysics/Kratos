@@ -370,7 +370,7 @@ protected:
      */
     void ResetWeightedGap(ModelPart& rModelPart) override
     {
-        // Auxiliar zero array
+        // Auxiliary zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // We reset the weighted values
