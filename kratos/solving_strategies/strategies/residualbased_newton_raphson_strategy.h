@@ -86,8 +86,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -1109,7 +1107,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     ///@}
     ///@name Access
-
     ///@{
 
     /**
@@ -1144,7 +1141,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         return mDx;
     }
-
 
     /**
      * @brief Set method for the flag mKeepSystemConstantDuringIterations
@@ -1225,7 +1221,6 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@{
 
     ///@}
-
   protected:
     ///@name Static Member Variables
     ///@{
@@ -1280,7 +1275,6 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param b The RHS vector of the system of equations
      * @param MoveMesh The flag that allows to move the mesh
      */
-
     virtual void UpdateDatabase(
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
@@ -1343,7 +1337,6 @@ class ResidualBasedNewtonRaphsonStrategy
     /**
      * @brief This method prints information after reach the max number of iterations
      */
-
     virtual void MaxIterationsExceeded()
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
