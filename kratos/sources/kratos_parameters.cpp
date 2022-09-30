@@ -262,7 +262,8 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::pat
                 s.emplace(&act_it.value(), act_it.value().begin());
             } else if (act_it.key() == "@include_json") {
                 // Check whether the included file exists
-                const std::filesystem::path included_file_path = FilesystemExtensions::ResolveSymlinks(act_it->get<std::filesystem::path>());
+                const std::string included_file_path_string = *act_it;
+                const std::filesystem::path included_file_path = FilesystemExtensions::ResolveSymlinks(std::filesystem::path(included_file_path_string));
                 KRATOS_ERROR_IF_NOT(std::filesystem::is_regular_file(included_file_path)) << "File not found: '" << *act_it << "'";
 
                 nlohmann::json included_json= ReadFile(included_file_path);
