@@ -29,6 +29,10 @@ try:
     from KratosMultiphysics.CompressiblePotentialFlowApplication import potential_flow_response_function_factory as potential_flow_response_factory
 except ImportError:
     potential_flow_response_factory = None
+try:
+    from KratosMultiphysics.RANSApplication.response_functions import rans_response_function_factory as rans_response_factory
+except ImportError:
+    rans_response_factory = None
 
 import time as timer
 
@@ -44,13 +48,13 @@ class IterationScope:
     def __enter__(self):
         if (self.is_evaluated_in_folder):
             self.scope.mkdir(parents=True, exist_ok=True)
-            sys.path.insert(0, str(self.scope.absolute()))            
+            sys.path.insert(0, str(self.scope.absolute()))
             os.chdir(str(self.scope))
 
     def __exit__(self, exc_type, exc_value, traceback):
         if (self.is_evaluated_in_folder):
             os.chdir(self.currentPath)
-            sys.path.remove(str(self.scope.absolute()))            
+            sys.path.remove(str(self.scope.absolute()))
 
 
 # ==============================================================================
@@ -123,11 +127,13 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "face_angle",
             "airfoil_angle_of_attack",
             "airfoil_chord_length",
-            "airfoil_perimeter"
+            "airfoil_perimeter",
+            "geometric_centroid_deviation"
         ]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         cps_response_functions = ["adjoint_lift_potential_jump", "stochastic_adjoint_lift_potential_jump"]
         convdiff_response_functions = ["point_temperature"]
+        rans_respone_functions = ["lift_to_drag"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():
@@ -149,6 +155,8 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                 response_functions[response_id] = potential_flow_response_factory.CreateResponseFunction(response_id, response_settings, model)
             elif response_type in sho_response_functions:
                 response_functions[response_id] = sho_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            elif response_type in rans_respone_functions:
+                response_functions[response_id] = rans_response_factory.CreateResponseFunction(response_id, response_settings, model)
             else:
                 raise NameError("The response function '{}' of type '{}' is not available.".format(response_id, response_type))
 
