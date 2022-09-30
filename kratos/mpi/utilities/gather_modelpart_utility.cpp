@@ -159,7 +159,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
 
     if (r_comm.IsDistributed())
     {
-      ParallelFillCommunicator(destination_model_part).Execute();
+      ParallelFillCommunicator(destination_model_part, r_comm).Execute();
     }
 
     KRATOS_CATCH("");

@@ -192,6 +192,7 @@ std::vector<std::string> FileNameDataCollector::GetSortedFileNamesList(
     SortListOfFileNameData(file_name_data_list, rFlagsSortingOrder);
 
     std::vector<std::string> result;
+    result.reserve(file_name_data_list.size());
     for (const auto& r_item : file_name_data_list) {
         result.push_back(r_item.GetFileName());
     }

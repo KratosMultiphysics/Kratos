@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -107,9 +106,9 @@ class FluidMeshingDomain(object):
         size = self.dimension
         refining_box = self.settings["spatial_refining_box"]
         if(refining_box["use_refining_box"].GetBool()):
-            self.MeshingParameters.SetUseRefiningBox(True) 
-            self.MeshingParameters.SetRefiningBoxMinimumPoint(refining_box["lower_point"][0].GetDouble(),refining_box["lower_point"][1].GetDouble(),refining_box["lower_point"][2].GetDouble()) 
-            self.MeshingParameters.SetRefiningBoxMaximumPoint(refining_box["upper_point"][0].GetDouble(),refining_box["upper_point"][1].GetDouble(),refining_box["upper_point"][2].GetDouble()) 
+            self.MeshingParameters.SetUseRefiningBox(True)
+            self.MeshingParameters.SetRefiningBoxMinimumPoint(refining_box["lower_point"][0].GetDouble(),refining_box["lower_point"][1].GetDouble(),refining_box["lower_point"][2].GetDouble())
+            self.MeshingParameters.SetRefiningBoxMaximumPoint(refining_box["upper_point"][0].GetDouble(),refining_box["upper_point"][1].GetDouble(),refining_box["upper_point"][2].GetDouble())
             self.MeshingParameters.SetRefiningBoxTimeInterval(refining_box["initial_time"].GetDouble(),refining_box["final_time"].GetDouble())
             self.MeshingParameters.SetRefiningBoxMeshSize(refining_box["mesh_size"].GetDouble())
 
@@ -149,7 +148,6 @@ class FluidMeshingDomain(object):
     #
     def SetMeshingParameters(self):
 
-        # Create MeshingParameters
         self.MeshingParameters = KratosDelaunay.MeshingParameters()
         self.MeshingParameters.Initialize()
 
@@ -168,9 +166,9 @@ class FluidMeshingDomain(object):
 
             bounding_box = self.settings["spatial_bounding_box"]
             if(bounding_box["use_bounding_box"].GetBool()):
-              self.MeshingParameters.SetUseBoundingBox(True) 
-              self.MeshingParameters.SetBoundingBoxLowerPoint(bounding_box["lower_point"][0].GetDouble(),bounding_box["lower_point"][1].GetDouble(),bounding_box["lower_point"][2].GetDouble()) 
-              self.MeshingParameters.SetBoundingBoxUpperPoint(bounding_box["upper_point"][0].GetDouble(),bounding_box["upper_point"][1].GetDouble(),bounding_box["upper_point"][2].GetDouble()) 
+              self.MeshingParameters.SetUseBoundingBox(True)
+              self.MeshingParameters.SetBoundingBoxLowerPoint(bounding_box["lower_point"][0].GetDouble(),bounding_box["lower_point"][1].GetDouble(),bounding_box["lower_point"][2].GetDouble())
+              self.MeshingParameters.SetBoundingBoxUpperPoint(bounding_box["upper_point"][0].GetDouble(),bounding_box["upper_point"][1].GetDouble(),bounding_box["upper_point"][2].GetDouble())
               self.MeshingParameters.SetBoundingBoxTimeInterval(bounding_box["initial_time"].GetDouble(),bounding_box["final_time"].GetDouble())
 
     #

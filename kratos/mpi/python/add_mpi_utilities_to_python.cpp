@@ -52,6 +52,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     .def_static("SetMPICommunicator", [](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator){
         ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
     })
+    .def("SetMPICommunicatorRecursively", &ModelPartCommunicatorUtilities::SetMPICommunicatorRecursively)
     .def_static("SetMPICommunicator", [](ModelPart& rModelPart){
         KRATOS_WARNING("ModelPartCommunicatorUtilities") << "This function is deprecated, please use the one that accepts a DataCommunicator" << std::endl;
         // passing the default data comm as a temp solution until this function is removed to avoid the deprecation warning in the interface
@@ -91,7 +92,8 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<DistributedModelPartInitializer>(m, "DistributedModelPartInitializer")
-        .def(py::init<ModelPart&, int>())
+        .def(py::init<ModelPart&, const DataCommunicator&, int>())
+        .def("CopySubModelPartStructure", &DistributedModelPartInitializer::CopySubModelPartStructure)
         .def("Execute", &DistributedModelPartInitializer::Execute)
         ;
 

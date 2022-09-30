@@ -96,7 +96,7 @@ public:
         ModelPart &rModelPart,
         ModelPart &rSkinModelPart,
         const std::string LevelSetType = "continuous",
-        const std::vector<std::string> InterpolatedSkinVariables = {}) :
+        const std::vector<std::string>& InterpolatedSkinVariables = {}) :
         mrModelPart(rModelPart),
         mrSkinModelPart(rSkinModelPart),
         mLevelSetType(LevelSetType == "continuous" ? Continuous : Discontinuous),
