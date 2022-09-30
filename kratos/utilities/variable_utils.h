@@ -1556,6 +1556,71 @@ public:
                                 const unsigned int Step
                                 );
 
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const unsigned int Dimension=3
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const Vector& rData
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar,
+        const Vector& rData
+        );
 
 
     ///@}
