@@ -80,7 +80,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         this_mortar_condition_matrices.Initialize();
 
         if (ComputeDualLM) {
-            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
@@ -110,7 +110,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
                     // Calculate the kinematic variables
                     ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
-                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
 
                     this_mortar_condition_matrices.CalculateMortarOperators(kinematic_variables, integration_weight);
@@ -227,7 +227,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         this_mortar_condition_matrices.Initialize();
 
         if (ComputeDualLM) {
-            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
@@ -258,7 +258,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
                     // Calculate the kinematic variables
                     ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
-                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
 
                     this_mortar_condition_matrices.CalculateMortarOperators(kinematic_variables, integration_weight);
@@ -421,7 +421,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         rPreviousMortarOperators.Initialize();
 
         if (ComputeDualLM) {
-            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
@@ -456,7 +456,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
                     // Calculate the kinematic variables
                     ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
-                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
 
                     rPreviousMortarOperators.CalculateMortarOperators(kinematic_variables, integration_weight);
@@ -639,12 +639,12 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-double AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(
+double AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(
     const PairedCondition* pCondition,
     const Vector& rNSlave
     )
 {
-    const double radius = AuxiliarOperationsUtilities::CalculateRadius(pCondition, rNSlave);
+    const double radius = AuxiliaryOperationsUtilities::CalculateRadius(pCondition, rNSlave);
     const double thickness = pCondition->GetProperties()[THICKNESS];
     return (2.0 * Globals::Pi * radius/thickness);
 }
@@ -652,7 +652,7 @@ double AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double AuxiliarOperationsUtilities::CalculateRadius(
+double AuxiliaryOperationsUtilities::CalculateRadius(
     const PairedCondition* pCondition,
     const Vector& rNSlave
     )

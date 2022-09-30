@@ -261,7 +261,7 @@ public:
             // The nodes array
             auto& r_nodes_array = rModelPart.Nodes();
 
-            // Auxiliar values
+            // Auxiliary values
             struct AuxValues {
                 std::size_t dof_id = 0;
                 double residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
@@ -271,7 +271,7 @@ public:
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
 
-            // Auxiliar displacement DoF check
+            // Auxiliary displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
             [](const VariableData& rCurrVar) -> bool {return true;};
             const std::function<bool(const VariableData&)> check_with_rot =

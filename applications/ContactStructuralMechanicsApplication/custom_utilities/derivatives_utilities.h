@@ -422,10 +422,10 @@ private:
         );
 
     /**
-     * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param rDiffVector The auxiliar vector of difference of two normal vectors
+     * @brief This method computes the auxiliary matrix used to keep unitary the normal
+     * @param rDiffVector The auxiliary vector of difference of two normal vectors
      * @param rDeltaNormal The vector containing the delta normal
-     * @return The auxiliar matrix computed
+     * @return The auxiliary matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const array_1d<double, 3>& rDiffVector,
@@ -433,11 +433,11 @@ private:
         );
 
     /**
-     * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param rDiffMatrix The auxiliar matrix of difference of two normal matrices
+     * @brief This method computes the auxiliary matrix used to keep unitary the normal
+     * @param rDiffMatrix The auxiliary matrix of difference of two normal matrices
      * @param rDeltaNormal The matrix containing the delta normal
      * @param iGeometry The index of the node of the geometry computed
-     * @return The auxiliar matrix computed
+     * @return The auxiliary matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const BoundedMatrix<double, TNumNodes, TDim>& rDiffMatrix,
@@ -457,8 +457,8 @@ private:
         );
 
     /**
-     * @brief This method computes the equivalent indexes to the auxiliar hash
-     * @param AuxIndex The auxiliar index to decompose
+     * @brief This method computes the equivalent indexes to the auxiliary hash
+     * @param AuxIndex The auxiliary index to decompose
      * @param riBelongSlaveStart The index of the first/slave segment and first node
      * @param riBelongSlaveEnd The index of the first/slave segment and end node
      * @param riBelongMasterStart The index of the second/master segment and first node
