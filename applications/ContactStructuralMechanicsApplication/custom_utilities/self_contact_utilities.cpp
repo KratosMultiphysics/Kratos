@@ -307,7 +307,7 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
         }
     }
 
-    // We create an auxiliar model part to add the MASTER flag
+    // We create an auxiliary model part to add the MASTER flag
     rModelPart.CreateSubModelPart("AuxMasterModelPart");
     ModelPart& aux_model_part = rModelPart.GetSubModelPart("AuxMasterModelPart");
 
@@ -315,13 +315,13 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
     std::sort( master_conditions_ids.begin(), master_conditions_ids.end() );
     master_conditions_ids.erase( std::unique( master_conditions_ids.begin(), master_conditions_ids.end() ), master_conditions_ids.end() );
 
-    // Add to the auxiliar model part
+    // Add to the auxiliary model part
     aux_model_part.AddConditions(master_conditions_ids);
 
     // Set the flag
     VariableUtils().SetFlag(MASTER, true, aux_model_part.Conditions());
 
-    // Remove auxiliar model part
+    // Remove auxiliary model part
     rModelPart.RemoveSubModelPart("AuxMasterModelPart");
 
     // Now we iterate over the conditions to set the nodes indexes
