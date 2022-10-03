@@ -1049,10 +1049,6 @@ namespace Kratos
 				penalization = 0.95;
 			}
 
-			// if(freesurfaceNodes>2){
-			//   penalization=0.6;
-			// }
-
 			double ElementalVolume = Element.Volume();
 
 			array_1d<double, 6> Edges(6, 0.0);
@@ -1098,9 +1094,6 @@ namespace Kratos
 					{
 						Edges[i] = 0;
 					}
-					// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-					//   Edges[i]=0;
-					// }
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
 						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
 					{
@@ -1433,9 +1426,6 @@ namespace Kratos
 			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			// array_1d<double,3> CoorDifference(3,0.0);
-			// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 			Edges[0] = sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
@@ -1498,8 +1488,6 @@ namespace Kratos
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-
-				// array_1d<double,3> NewPosition(3,0.0);
 				unsigned int maxCount = 3;
 				double LargestEdge = 0;
 
@@ -1764,9 +1752,6 @@ namespace Kratos
 			array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			// array_1d<double,3> CoorDifference(3,0.0);
-			// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
-			// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 			Edges[0] = sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
@@ -1781,7 +1766,6 @@ namespace Kratos
 				for (unsigned int j = 0; j < i; j++)
 				{
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 					Counter += 1;
 					Edges[Counter] = sqrt(SquaredLength);
@@ -1804,9 +1788,6 @@ namespace Kratos
 					{
 						Edges[i] = 0;
 					}
-					// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-					//   Edges[i]=0;
-					// }
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
 						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
 					{

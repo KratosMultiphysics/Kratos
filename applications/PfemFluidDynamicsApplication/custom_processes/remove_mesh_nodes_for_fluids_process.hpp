@@ -629,11 +629,6 @@ namespace Kratos
 						}
 						else if (in->IsNot(INLET))
 						{
-							// else 	 {
-
-							// std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
-							// here we loop over the neighbouring nodes and if there are nodes
-							// with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
 							unsigned int k = 0;
 							unsigned int counter = 0;
 							for (std::vector<Node<3>::Pointer>::iterator nn = neighbours.begin(); nn != neighbours.begin() + n_points_in_radius; nn++)
@@ -675,7 +670,6 @@ namespace Kratos
 									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 								}
 
-								// distance_remove ++;
 							}
 							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
 							{
@@ -1293,7 +1287,6 @@ namespace Kratos
 									if (j == (neighb_nodes.size() - 1))
 									{
 										eElement[i].Set(TO_ERASE);
-										// std::cout<<"_________________________          erased an isolated wall element node"<<std::endl;
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
@@ -1590,11 +1583,9 @@ namespace Kratos
 					{
 						// getting the data of the solution step
 						array_1d<double, 3> &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-
 						const array_1d<double, 3> &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
 						const array_1d<double, 3> &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 						noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
-						// node_data = (0.5*node0_data + 0.5*node1_data);
 					}
 				}
 				else if (KratosComponents<Variable<int>>::Has(variable_name))
@@ -1625,7 +1616,6 @@ namespace Kratos
 								node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2())
 							{
 								noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
-								// node_data = (0.5*node0_data + 0.5*node1_data);
 							}
 						}
 					}
