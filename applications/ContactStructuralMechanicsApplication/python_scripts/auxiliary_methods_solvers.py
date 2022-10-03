@@ -5,7 +5,7 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import sys
 import sys
 
-def  AuxiliarContactSettings():
+def  AuxiliaryContactSettings():
     contact_settings = KM.Parameters("""
     {
         "contact_settings" :
@@ -57,7 +57,7 @@ def  AuxiliarContactSettings():
 
     return contact_settings
 
-def  AuxiliarMPCContactSettings():
+def  AuxiliaryMPCContactSettings():
     contact_settings = KM.Parameters("""
     {
         "mpc_contact_settings" :
@@ -73,7 +73,7 @@ def  AuxiliarMPCContactSettings():
 
     return contact_settings
 
-def  AuxiliarExplicitContactSettings():
+def  AuxiliaryExplicitContactSettings():
     contact_settings = KM.Parameters("""
     {
         "contact_settings" :
@@ -89,7 +89,7 @@ def  AuxiliarExplicitContactSettings():
 
     return contact_settings
 
-def  AuxiliarSetSettings(settings, contact_settings):
+def  AuxiliarySetSettings(settings, contact_settings):
     mortar_type = contact_settings["mortar_type"].GetString()
     if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
@@ -98,7 +98,7 @@ def  AuxiliarSetSettings(settings, contact_settings):
 
     return settings
 
-def  AuxiliarMPCSetSettings(settings, contact_settings):
+def  AuxiliaryMPCSetSettings(settings, contact_settings):
     # Setting the parameters
     if not settings["compute_reactions"].GetBool():
         KM.Logger.PrintInfo("Compute reactions", "Storage must be cleared each step. Switching to True")
@@ -106,7 +106,7 @@ def  AuxiliarMPCSetSettings(settings, contact_settings):
 
     return settings
 
-def  AuxiliarValidateSettings(solver):
+def  AuxiliaryValidateSettings(solver):
     default_settings = solver.GetDefaultParameters()
     default_settings.RecursivelyAddMissingParameters(solver.settings)
     solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
@@ -119,7 +119,7 @@ def  AuxiliarValidateSettings(solver):
         KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         solver.settings["reform_dofs_at_each_step"].SetBool(True)
 
-def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
+def  AuxiliaryAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":
         main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
         main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
@@ -148,14 +148,14 @@ def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
 
-def  AuxiliarMPCAddVariables(main_model_part, contact_type = ""):
+def  AuxiliaryMPCAddVariables(main_model_part, contact_type = ""):
     main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
     main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
     main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)  # Add normal contact gap
     if contact_type == "Frictional":
         main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP) # Add contact slip
 
-def  AuxiliarAddDofs(main_model_part, mortar_type = ""):
+def  AuxiliaryAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
         KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, main_model_part)
     elif "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
@@ -169,7 +169,7 @@ def  AuxiliarAddDofs(main_model_part, mortar_type = ""):
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, main_model_part)
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, main_model_part)
 
-def  AuxiliarSolve(mechanical_solution_strategy):
+def  AuxiliarySolve(mechanical_solution_strategy):
     # The steps of the solve are Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep(), FinalizeSolutionStep()
     mechanical_solution_strategy.Solve()
     # mechanical_solution_strategy.Initialize()
@@ -178,7 +178,7 @@ def  AuxiliarSolve(mechanical_solution_strategy):
     # mechanical_solution_strategy.SolveSolutionStep()
     # mechanical_solution_strategy.FinalizeSolutionStep()
 
-def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
+def  AuxiliaryComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
     if settings["time_stepping"].Has("time_step"):
         delta_time = settings["time_stepping"]["time_step"].GetDouble()
         if contact_settings.Has("inner_loop_adaptive"):
@@ -212,7 +212,7 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
     else:
         raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not defined!")
 
-def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
+def  AuxiliaryCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.
     if contact_settings["fancy_convergence_criterion"].GetBool():
         table = KM.TableStreamUtility()
@@ -253,7 +253,7 @@ def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_sett
 
     return conv_params
 
-def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
+def  AuxiliaryCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
     if contact_settings["rescale_linear_solver"].GetBool():
         linear_solver = KM.ScalingSolver(linear_solver, False)
     mortar_type = contact_settings["mortar_type"].GetString()
@@ -303,13 +303,13 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
     else:
         return linear_solver
 
-def  AuxiliarPureSlipCheck(model_part):
+def  AuxiliaryPureSlipCheck(model_part):
     # Check if the properties have friction coefficient
     aux_sum_friction_coeff = sum(prop.GetValue(KM.FRICTION_COEFFICIENT) for prop in model_part.GetProperties() if prop.Has(KM.FRICTION_COEFFICIENT))
     # Check value
     return aux_sum_friction_coeff < sys.float_info.epsilon
 
-def  AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliaryLineSearch(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     return CSMA.LineSearchContactStrategy(computing_model_part,
                                             mechanical_scheme,
@@ -323,7 +323,7 @@ def  AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, 
                                             newton_parameters
                                             )
 
-def  AuxiliarNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliaryNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("adaptative_strategy", contact_settings["adaptative_strategy"])
     newton_parameters.AddValue("split_factor", contact_settings["split_factor"])
@@ -342,7 +342,7 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, mechanical_converge
                                                             post_process
                                                             )
 
-def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
+def  AuxiliaryMPCNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
     newton_parameters.AddValue("update_each_nl_iteration", contact_settings["update_each_nl_iteration"])

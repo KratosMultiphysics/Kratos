@@ -118,7 +118,7 @@ void NormalCheckProcess::Execute()
     VariableUtils().ResetFlag(MARKER, r_elements_array);
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
-    // Declare auxiliar coordinates
+    // Declare auxiliary coordinates
     CoordinatesArrayType aux_coords;
 
     // Iterate over elements

@@ -416,7 +416,7 @@ public:
 
                 // We solve one loop
                 r_process_info[NL_ITERATION_NUMBER] = 1;
-                is_converged = AuxiliarSolveSolutionStep();
+                is_converged = AuxiliarySolveSolutionStep();
 
                 // We check the convergence
                 if (r_process_info[NL_ITERATION_NUMBER] == 1) r_process_info[NL_ITERATION_NUMBER] = 2; // Trigger check
@@ -428,7 +428,7 @@ public:
                 }
             }
         } else {
-            is_converged = AuxiliarSolveSolutionStep();
+            is_converged = AuxiliarySolveSolutionStep();
         }
 
         return is_converged;
@@ -438,9 +438,9 @@ public:
 
 
     /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise. (auxiliar method)
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise. (auxiliary method)
      */
-    bool AuxiliarSolveSolutionStep()
+    bool AuxiliarySolveSolutionStep()
     {
         // Getting flag INTERACTION
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
@@ -758,7 +758,7 @@ private:
 //             ++counter;
 //         }
 //
-//         // Auxiliar classes
+//         // Auxiliary classes
 //         Matrix original_relation_matrix, relation_matrix;
 //         Vector original_constant_vector, constant_vector;
 //         ModelPart::DofsVectorType original_master_dofs, master_dofs, original_slave_dofs, slave_dofs;

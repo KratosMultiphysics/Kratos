@@ -226,7 +226,7 @@ public:
                 const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
                 for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                     tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
-            } else { // We consider the tangent direction as auxiliar
+            } else { // We consider the tangent direction as auxiliary
                 const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
                 array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
