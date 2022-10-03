@@ -15,14 +15,16 @@
 #if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
 #define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
-// System includes
-
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
+
+// STL includes
+#include <filesystem>
+
 
 namespace Kratos
 {
@@ -1035,6 +1037,22 @@ private:
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
     void InternalSetValue(const Parameters& rOtherValue);
+
+    /**
+     * @brief This method solves all the include dependencies in a json file
+     * @param rJson The json object
+     * @param rFileName name of the current json file ("root" if called from the constructor)
+     * @param rIncludeSequence a stack containing the current sequence of included JSON files
+     * @return This method leaves in rJson the final json object with no include dependencies
+     */
+    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence);
+
+    /**
+     * @brief This method parses a json file.
+     * @param rFileName The JSON file's name.
+     * @return The JSON object obtained from parsing the file.
+     */
+    nlohmann::json ReadFile(const std::filesystem::path& rFileName);
 
 }; // Parameters class
 

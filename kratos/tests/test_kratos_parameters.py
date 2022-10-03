@@ -231,6 +231,24 @@ four_levels_defaults = """{
     "string_value": "hello"
 }"""
 
+json_with_includes = """
+{
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+   "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters.json"
+}
+"""
+
+more_levels_json_with_includes = """
+{
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+   "level1":
+   {
+     "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+   },
+   "string_value" : "hello"
+}
+"""
+
 class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -252,6 +270,20 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(self.kp["string_value"].GetString(), "hello")
 
         self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
+
+    def test_kratos_include_parameters(self):
+        param = Parameters(json_with_includes)
+        self.assertEqual(
+            param.WriteJsonString(),
+            self.compact_expected_output
+        )
+
+    def test_kratos_more_levels_include_parameters(self):
+        param = Parameters(more_levels_json_with_includes)
+        self.assertEqual(
+            param.WriteJsonString(),
+            self.compact_expected_output
+        )
 
     def test_kratos_change_parameters(self):
         # now change one item in the sublist
