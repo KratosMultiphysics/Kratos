@@ -119,15 +119,8 @@ namespace Kratos
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
             double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-            bool firstMesh = false;
-            // if (currentTime < 2 * timeInterval)
-            // {
-            //     firstMesh = true;
-            // }
-
             bool box_side_element = false;
             bool wrong_added_node = false;
-
             int number_of_slivers = 0;
 
             bool refiningBox = mrRemesh.UseRefiningBox;
@@ -375,10 +368,6 @@ namespace Kratos
                             }
                         }
                     }
-                    if (firstMesh == true)
-                    {
-                        Alpha *= 1.15;
-                    }
 
                     if (numinlet > 0)
                     {
@@ -394,7 +383,7 @@ namespace Kratos
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
+                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
                         if (dimension == 2)
                         {
