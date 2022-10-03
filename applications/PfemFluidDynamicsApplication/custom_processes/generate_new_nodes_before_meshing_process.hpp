@@ -112,7 +112,7 @@ namespace Kratos
 			if (!(refiningBox == true && currentTime > initialTimeRefiningBox && currentTime < finalTimeRefiningBox))
 			{
 				refiningBox = false;
-				}
+			}
 
 			if (currentTime < 2 * timeInterval)
 			{
@@ -741,12 +741,17 @@ namespace Kratos
 			unsigned int freesurfaceNodes = 0;
 			unsigned int inletNodes = 0;
 			bool toEraseNodeFound = false;
+			double rigidNodeLocalMeshSize = 0;
+			double rigidNodeMeshCounter = 0;
+			bool suitableElementForSecondAdd = true;
 
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
+					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(BOUNDARY))
 				{
@@ -763,6 +768,18 @@ namespace Kratos
 				if (Element[pn].Is(INLET))
 				{
 					inletNodes++;
+				}
+			}
+
+			if (rigidNodeMeshCounter > 0)
+			{
+				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				double tolerance = 1.8;
+				double ratio = rigidWallMeshSize / meanMeshSize;
+				if (ratio > tolerance)
+				{
+					meanMeshSize *= 0.5;
+					meanMeshSize += 0.5 * rigidWallMeshSize;
 				}
 			}
 
@@ -911,7 +928,6 @@ namespace Kratos
 						if (ElementalVolume > BiggestVolumes[nn])
 						{
 
-							bool suitableElement = true;
 							if (maxCount < 3 && LargestEdge > limitEdgeLength)
 							{
 								array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
@@ -924,12 +940,12 @@ namespace Kratos
 										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
 										{
 											// std::cout << " the nodes has more or less the same position of a previously inserted node" << NewPositions[j][0] << " " << NewPositions[j][1] << " versus " << NewPosition[0] << " " << NewPosition[1] << std::endl;
-											suitableElement = false;
+											suitableElementForSecondAdd = false;
 										}
 									}
 								}
 
-								if (suitableElement == true)
+								if (suitableElementForSecondAdd == true)
 								{
 									NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
 									NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
@@ -975,12 +991,17 @@ namespace Kratos
 			unsigned int freesurfaceNodes = 0;
 			unsigned int inletNodes = 0;
 			bool toEraseNodeFound = false;
+			double rigidNodeLocalMeshSize = 0;
+			double rigidNodeMeshCounter = 0;
+			bool suitableElementForSecondAdd = true;
 
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
+					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
@@ -993,6 +1014,18 @@ namespace Kratos
 				if (Element[pn].Is(INLET))
 				{
 					inletNodes++;
+				}
+			}
+
+			if (rigidNodeMeshCounter > 0)
+			{
+				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				double tolerance = 1.8;
+				double ratio = rigidWallMeshSize / meanMeshSize;
+				if (ratio > tolerance)
+				{
+					meanMeshSize *= 0.5;
+					meanMeshSize += 0.5 * rigidWallMeshSize;
 				}
 			}
 
@@ -1181,7 +1214,7 @@ namespace Kratos
 						if (ElementalVolume > BiggestVolumes[nn])
 						{
 
-							bool suitableElement = true;
+							// bool suitableElement = true;
 
 							if (maxCount < 6 && LargestEdge > limitEdgeLength)
 							{
@@ -1196,12 +1229,12 @@ namespace Kratos
 										double diffZ = fabs(NewPositions[j][2] - NewPosition[2]) - meanMeshSize * 0.5;
 										if (diffX < 0 && diffY < 0 && diffZ < 0) // the node is in the same zone of a previously inserted node
 										{
-											suitableElement = false;
+											suitableElementForSecondAdd = false;
 										}
 									}
 								}
 
-								if (suitableElement == true)
+								if (suitableElementForSecondAdd == true)
 								{
 									NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
 									NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
@@ -1279,10 +1312,10 @@ namespace Kratos
 				if (Element[pn].Is(INLET))
 				{
 					inletNodes++;
-			}
+				}
 
 				if (refiningBox == true)
-			{
+				{
 
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
@@ -1291,12 +1324,12 @@ namespace Kratos
 					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
 					array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
 					if (mrRemesh.Refine->CriticalRadius > mrRemesh.RefiningBoxMeshSize)
-				{
+					{
 						if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].Y() > RefiningBoxMinimumPoint[1] &&
 							Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].Y() < RefiningBoxMaximumPoint[1])
 						{
 							meanMeshSize = mrRemesh.RefiningBoxMeshSize;
-				}
+						}
 						else if ((Element[pn].X() < RefiningBoxMinimumPoint[0] && Element[pn].X() > (minExternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
 						{
 							seperation = Element[pn].X() - RefiningBoxMinimumPoint[0];
@@ -1574,10 +1607,10 @@ namespace Kratos
 				if (Element[pn].Is(INLET))
 				{
 					inletNodes++;
-			}
+				}
 
 				if (refiningBox == true)
-			{
+				{
 
 					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
@@ -1586,13 +1619,13 @@ namespace Kratos
 					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
 					array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
 					if (mrRemesh.Refine->CriticalRadius > mrRemesh.RefiningBoxMeshSize)
-				{
+					{
 						if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].X() < RefiningBoxMaximumPoint[0] &&
 							Element[pn].Y() > RefiningBoxMinimumPoint[1] && Element[pn].Y() < RefiningBoxMaximumPoint[1] &&
 							Element[pn].Z() > RefiningBoxMinimumPoint[2] && Element[pn].Z() < RefiningBoxMaximumPoint[2])
 						{
 							meanMeshSize = mrRemesh.RefiningBoxMeshSize;
-				}
+						}
 						else if ((Element[pn].X() < RefiningBoxMinimumPoint[0] && Element[pn].X() > (minExternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
 						{
 							seperation = Element[pn].X() - RefiningBoxMinimumPoint[0];
@@ -1720,7 +1753,7 @@ namespace Kratos
 				if (freesurfaceNodes > 0)
 				{
 					penalization = 1.2; // to avoid to gain too much volume during remeshing step
-			}
+				}
 
 				if (rigidNodes > 0 && penalizationRigid == true)
 				{
@@ -2067,7 +2100,6 @@ namespace Kratos
 				{
 					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 				}
-
 			}
 
 			// set the coordinates to the original value

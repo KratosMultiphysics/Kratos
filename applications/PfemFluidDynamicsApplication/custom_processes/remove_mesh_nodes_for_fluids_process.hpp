@@ -389,18 +389,16 @@ namespace Kratos
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
-
-
+			double meshSize = mrRemesh.Refine->CriticalRadius;
 			double initialTimeForRefinement = mrRemesh.RefiningBoxInitialTime;
 			double finalTimeForRefinement = mrRemesh.RefiningBoxFinalTime;
 			bool refiningBox = mrRemesh.UseRefiningBox;
-			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
-
 			if (!(refiningBox == true && currentTime > initialTimeForRefinement && currentTime < finalTimeForRefinement))
 			{
 				refiningBox = false;
 			}
 
+			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 			unsigned int erased_nodes = 0;
 			for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
 				 ie != mrModelPart.ElementsEnd(); ie++)
@@ -427,12 +425,25 @@ namespace Kratos
 						EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
 				}
 			}
-
+			double numberOfcriticalNodes = 0;
+			double erasedCriticalNodes = 0;
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
 
 				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
-				double meshSize = mrRemesh.Refine->CriticalRadius;
+				meshSize = mrRemesh.Refine->CriticalRadius;
+				double rigidNodeLocalMeshSize = 0;
+				double rigidNodeMeshCounter = 0;
+				NodeWeakPtrVectorType &rN = in->GetValue(NEIGHBOUR_NODES);
+
+				for (unsigned int i = 0; i < rN.size(); i++)
+				{
+					if (rN[i].Is(RIGID))
+					{
+						rigidNodeLocalMeshSize += rN[i].FastGetSolutionStepValue(NODAL_H_WALL);
+						rigidNodeMeshCounter += 1.0;
+					}
+				}
 
 				if (refiningBox == true)
 				{
@@ -444,6 +455,20 @@ namespace Kratos
 					else if (dimension == 3)
 					{
 						meshSize = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
+					}
+				}
+				bool cricalNode = false;
+				if (rigidNodeMeshCounter > 0 && refiningBox == false)
+				{
+					double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+					double tolerance = 2.0;
+					double ratio = rigidWallMeshSize / meshSize;
+					if (ratio > tolerance)
+					{
+						meshSize *= 0.5;
+						meshSize += 0.5 * rigidWallMeshSize;
+						numberOfcriticalNodes += 1.0;
+						cricalNode = true;
 					}
 				}
 
@@ -459,8 +484,7 @@ namespace Kratos
 				if (in->Is(TO_SPLIT) || in->Is(CONTACT))
 					on_contact_tip = true;
 
-				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED))
-				// if( in->IsNot(NEW_ENTITY) )
+				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED) && in->IsNot(RIGID) && in->IsNot(SOLID))
 				{
 					unsigned int neighErasedNodes = 0;
 					radius = 0.6 * meshSize;
@@ -543,7 +567,6 @@ namespace Kratos
 							if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 							{
 
-								// if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && (freeSurfaceNeighNodes==dimension || rigidNeighNodes==dimension)){
 								if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes == dimension)
 								{
 									NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
@@ -552,11 +575,7 @@ namespace Kratos
 									array_1d<double, 3> sumOfPreviousVelocities = in->FastGetSolutionStepValue(VELOCITY, 1);
 									double sumOfPressures = in->FastGetSolutionStepValue(PRESSURE, 0);
 									double counter = 1.0;
-									// std::cout<<"I WAS GOING TO ERASE THIS NODE: "<<std::endl;
-									// std::cout<<"sumOfCoordinates: "<< sumOfCoordinates<<std::endl;
-									// std::cout<<"sumOfCurrentVelocities: "<< sumOfCurrentVelocities<<std::endl;
-									// std::cout<<"sumOfPressures: "<< sumOfPressures<<std::endl;
-									// std::cout<<"freeSurfaceNeighNodes "<<freeSurfaceNeighNodes<<"   rigidNeighNodes "<<rigidNeighNodes<<std::endl;
+
 									for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 									{
 										counter += 1.0;
@@ -587,10 +606,6 @@ namespace Kratos
 										in->FastGetSolutionStepValue(VELOCITY_Z, 0) = sumOfCurrentVelocities[2] / counter;
 										in->FastGetSolutionStepValue(VELOCITY_Z, 1) = sumOfPreviousVelocities[2] / counter;
 									}
-									// std::cout<<"NOW ITS VARIABLES ARE: "<<std::endl;
-									// std::cout<<"Coordinates: "<< in->X()<<" " << in->Y()<<" " << in->Z()<<std::endl;
-									// std::cout<<"CurrentVelocities: "<<in->FastGetSolutionStepValue(VELOCITY_X,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Y,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Z,0)  <<std::endl;
-									// std::cout<<"Pressures: "<<in->FastGetSolutionStepValue(PRESSURE,0) <<std::endl;
 								}
 								else
 								{
@@ -607,7 +622,10 @@ namespace Kratos
 										in->Set(TO_ERASE);
 										any_node_removed = true;
 										inside_nodes_removed++;
-
+										if (cricalNode == true)
+										{
+											erasedCriticalNodes += 1.0;
+										}
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -655,6 +673,10 @@ namespace Kratos
 							if (counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip)
 							{ // Can be inserted in the boundary refine
 								in->Set(TO_ERASE);
+								if (cricalNode == true)
+								{
+									erasedCriticalNodes += 1.0;
+								}
 								if (mEchoLevel > 1)
 									std::cout << "     Removed Boundary Node [" << in->Id() << "] on Distance " << std::endl;
 								any_node_removed = true;
@@ -670,6 +692,10 @@ namespace Kratos
 							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
 							{
 								in->Set(TO_ERASE);
+								if (cricalNode == true)
+								{
+									erasedCriticalNodes += 1.0;
+								}
 								if (mEchoLevel > 1)
 									std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
 								any_node_removed = true;
@@ -682,57 +708,11 @@ namespace Kratos
 							}
 						}
 					}
-					// else {
-					// if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes>0 && freeSurfaceNeighNodes<=dimension){
-					// 	NodeWeakPtrVectorType& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
-					// 	array_1d<double,3> sumOfCoordinates=in->Coordinates();
-					// 	array_1d<double,3> sumOfCurrentVelocities=in->FastGetSolutionStepValue(VELOCITY,0);
-					// 	array_1d<double,3> sumOfPreviousVelocities=in->FastGetSolutionStepValue(VELOCITY,1);
-					// 	double sumOfPressures=in->FastGetSolutionStepValue(PRESSURE,0);
-					// 	double counter=1.0;
-					// 	// std::cout<<"I WAS GOING TO ERASE THIS NODE: "<<std::endl;
-					// 	// std::cout<<"sumOfCoordinates: "<< sumOfCoordinates<<std::endl;
-					// 	// std::cout<<"sumOfCurrentVelocities: "<< sumOfCurrentVelocities<<std::endl;
-					// 	// std::cout<<"sumOfPressures: "<< sumOfPressures<<std::endl;
-					// 	// std::cout<<"freeSurfaceNeighNodes "<<freeSurfaceNeighNodes<<"   rigidNeighNodes "<<rigidNeighNodes<<std::endl;
-					// 	for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-					// 	  {
-					// 	    counter+=1.0;
-					// 	    noalias(sumOfCoordinates)+=(*nn)->Coordinates();
-					// 	    noalias(sumOfCurrentVelocities)+=(*nn)->FastGetSolutionStepValue(VELOCITY,0);
-					// 	    noalias(sumOfPreviousVelocities)+=(*nn)->FastGetSolutionStepValue(VELOCITY,1);
-					// 	    sumOfPressures+=(*nn)->FastGetSolutionStepValue(PRESSURE,0);
-					// 	  }
-					// 	in->X() =sumOfCoordinates[0]/counter;
-					// 	in->Y() =sumOfCoordinates[1]/counter;
-					// 	in->X0() =sumOfCoordinates[0]/counter;
-					// 	in->Y0() =sumOfCoordinates[1]/counter;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
-					// 	in->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
-					// 	in->FastGetSolutionStepValue(VELOCITY_X,0)=sumOfCurrentVelocities[0]/counter;
-					// 	in->FastGetSolutionStepValue(VELOCITY_Y,0)=sumOfCurrentVelocities[1]/counter;
-					// 	in->FastGetSolutionStepValue(VELOCITY_X,1)=sumOfPreviousVelocities[0]/counter;
-					// 	in->FastGetSolutionStepValue(VELOCITY_Y,1)=sumOfPreviousVelocities[1]/counter;
-					// 	in->FastGetSolutionStepValue(PRESSURE,0)=sumOfPressures/counter;
-					// 	if(dimension==3){
-					// 	  in->Z() =sumOfCoordinates[2]/counter;
-					// 	  in->Z0() =sumOfCoordinates[2]/counter;
-					// 	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
-					// 	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
-					// 	  in->FastGetSolutionStepValue(VELOCITY_Z,0)=sumOfCurrentVelocities[2]/counter;
-					// 	  in->FastGetSolutionStepValue(VELOCITY_Z,1)=sumOfPreviousVelocities[2]/counter;
-					// 	}
-					// 	// std::cout<<"NOW ITS VARIABLES ARE: "<<std::endl;
-					// 	// std::cout<<"Coordinates: "<< in->X()<<" " << in->Y()<<" " << in->Z()<<std::endl;
-					// 	// std::cout<<"CurrentVelocities: "<<in->FastGetSolutionStepValue(VELOCITY_X,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Y,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Z,0)  <<std::endl;
-					// 	// std::cout<<"Pressures: "<<in->FastGetSolutionStepValue(PRESSURE,0) <<std::endl;
-					// }
-					// }
 				}
 			}
 
+			std::cout << "numberOfcriticalNodes " << numberOfcriticalNodes << std::endl;
+			std::cout << "erasedCriticalNodes " << erasedCriticalNodes << std::endl;
 			if (erased_nodes > 0)
 			{
 				if (mEchoLevel > 1)
@@ -766,7 +746,6 @@ namespace Kratos
 			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
 			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
 			double wallLength = 0;
-
 			array_1d<double, 3> CoorDifference = eElement[1].Coordinates() - eElement[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 			Edges[0] = sqrt(SquaredLength);
@@ -793,6 +772,18 @@ namespace Kratos
 					}
 				}
 			}
+
+			// double wallLength = 0;
+			// double rigidNodeMeshCounter = 0;
+			// for (unsigned int i = 0; i < eElement.size(); i++)
+			// {
+			// 	if (eElement[i].Is(RIGID))
+			// 	{
+			// 		wallLength += eElement[i].FastGetSolutionStepValue(NODAL_H_WALL);
+			// 		rigidNodeMeshCounter += 1.0;
+			// 	}
+			// }
+			// wallLength *= 1.0 / rigidNodeMeshCounter;
 
 			////////  to compare the triangle height to wall edge length /////////
 			for (unsigned int i = 0; i < eElement.size(); i++)
@@ -840,7 +831,7 @@ namespace Kratos
 				}
 			}
 
-			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separeted elelements in the water front
+			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separeted elements in the water front
 			if (longDamBreak == true)
 			{
 				for (unsigned int i = 0; i < numNodes; i++)
@@ -1126,21 +1117,21 @@ namespace Kratos
 			{
 				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-					if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
-						baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
-						baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
-					{
+				if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
+					baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
+					baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
+				{
 					criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
-					}
+				}
 				else
-					{
+				{
 					criticalVolume = 0.01 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
-					}
+				}
 				double meanSize = 0.5 * (mrRemesh.RefiningBoxMeshSize + mrRemesh.Refine->CriticalRadius);
 				if ((baricenterX > (RefiningBoxMinimumPoint[0] - meanSize) && baricenterX < (RefiningBoxMaximumPoint[0] + meanSize)) ||
 					(baricenterY > (RefiningBoxMinimumPoint[1] - meanSize) && baricenterY < (RefiningBoxMaximumPoint[1] + meanSize)) ||
 					(baricenterZ > (RefiningBoxMinimumPoint[2] - meanSize) && baricenterZ < (RefiningBoxMaximumPoint[2] + meanSize))) // transition zone
-					{
+				{
 					safetyCoefficient3D *= 0.8;
 				}
 			}

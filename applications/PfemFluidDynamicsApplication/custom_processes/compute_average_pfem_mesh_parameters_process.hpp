@@ -112,9 +112,6 @@ namespace Kratos
     double fluidNodes = 0;
     double meanNodalSize = 0;
 
-    // double refinedFluidNodes = 0;
-    // double refinedMeanNodalSize = 0;
-
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     // unsigned int count=0;
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
@@ -141,13 +138,6 @@ namespace Kratos
               meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
                   }
                 }
-          // else{
-          //   if (i_node->Is(FLUID))
-          //   {
-          //     refinedFluidNodes += 1.0;
-          //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-          //   }
-          // }
               }
         else if (dimension == 3)
             {
@@ -161,19 +151,10 @@ namespace Kratos
               meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
                   }
                 }
-          // else
-          // {
-          //   if (i_node->Is(FLUID))
-          //   {
-          //     refinedFluidNodes += 1.0;
-          //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-          //   }
-          // }
                   }
                 }
               }
     meanNodalSize *= 1.0 / fluidNodes;
-    // refinedMeanNodalSize *= 1.0 / refinedFluidNodes;
 
     mrRemesh.Refine->CriticalRadius = meanNodalSize;
     mrRemesh.Refine->InitialRadius = meanNodalSize;
@@ -183,9 +164,6 @@ namespace Kratos
       mrRemesh.RefiningBoxMeshSize *= 0.8;
         }
 
-    // std::cout << fluidNodes << " nodes in Not Refined area with mean element size: " << mrRemesh.Refine->CriticalRadius << std::endl;
-    // std::cout << refinedFluidNodes << " nodes in Refined area with mean element size:  " << mrRemesh.RefiningBoxMeshSize << std::endl;
-    // std::cout << " othermeanNodalSize " << refinedMeanNodalSize << std::endl;
 
     double smallSize = meanNodalSize;
 
@@ -226,12 +204,6 @@ namespace Kratos
     maxInternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] - mrRemesh.RefiningBoxMeshSize;
     maxInternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] - mrRemesh.RefiningBoxMeshSize;
 
-    // std::cout<<" RefiningBoxMinimumPoint "<<mrRemesh.RefiningBoxMinimumPoint <<std::endl;
-    // std::cout<<" minExternalPointRefiningBox "<<mrRemesh.RefiningBoxMinExternalPoint <<std::endl;
-    // std::cout<<" minInternalPointRefiningBox "<<mrRemesh.RefiningBoxMinInternalPoint <<std::endl;
-    // std::cout<<"     RefiningBoxMaximumPoint "<<mrRemesh.RefiningBoxMaximumPoint <<std::endl;
-    // std::cout<<"     maxExternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxExternalPoint <<std::endl;
-    // std::cout<<"     maxInternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxInternalPoint <<std::endl;
 
       KRATOS_CATCH(" ")
     }
