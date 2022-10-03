@@ -898,7 +898,7 @@ namespace Kratos
 						}
 					}
 
-					if (suitableElement == true)
+					if (suitableElement)
 					{
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
@@ -945,7 +945,7 @@ namespace Kratos
 									}
 								}
 
-								if (suitableElementForSecondAdd == true)
+								if (suitableElementForSecondAdd)
 								{
 									NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
 									NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
@@ -1174,7 +1174,7 @@ namespace Kratos
 						}
 					}
 
-					if (suitableElement == true)
+					if (suitableElement)
 					{
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
@@ -1222,7 +1222,7 @@ namespace Kratos
 									}
 								}
 
-								if (suitableElementForSecondAdd == true)
+								if (suitableElementForSecondAdd)
 								{
 									NodesIDToInterpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
 									NodesIDToInterpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();

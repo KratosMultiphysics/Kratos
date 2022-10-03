@@ -541,7 +541,7 @@ namespace Kratos
           numcoplanar++;
         }
 
-        if (fabs(coplanar) <= ortho)
+        if (std::fabs(coplanar) <= ortho)
         {
           numorthogonal++;
         }
@@ -760,7 +760,7 @@ namespace Kratos
       for (unsigned int j = i + 1; j < lpofa.size2(); ++j)
       {
         double projection = inner_prod(FaceNormals[i], FaceNormals[j]);
-        if (fabs(projection) >= 0.99)
+        if (std::fabs(projection) >= 0.99)
         {
           FaceCoincidentNormals[i] += 1;
           FaceCoincidentNormals[j] += 1;
@@ -914,7 +914,7 @@ namespace Kratos
         if (ProjectedArea < 0)
         { // projection outside of the face
 
-          if (FaceArea < AreaTolerance * fabs(ProjectedArea))
+          if (FaceArea < AreaTolerance * std::fabs(ProjectedArea))
             distorted = true;
         }
       }
