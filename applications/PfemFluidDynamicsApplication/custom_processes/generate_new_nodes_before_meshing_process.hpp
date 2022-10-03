@@ -1153,8 +1153,6 @@ namespace Kratos
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-
-				// array_1d<double,3> NewPosition(3,0.0);
 				unsigned int maxCount = 6;
 				double LargestEdge = 0;
 
@@ -1213,9 +1211,6 @@ namespace Kratos
 					{
 						if (ElementalVolume > BiggestVolumes[nn])
 						{
-
-							// bool suitableElement = true;
-
 							if (maxCount < 6 && LargestEdge > limitEdgeLength)
 							{
 								array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
