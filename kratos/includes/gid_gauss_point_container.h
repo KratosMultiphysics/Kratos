@@ -579,21 +579,18 @@ public:
                                                     ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
                                                     ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
                                                     ValuesOnIntPoint[index](0,2) );
-                                }
-                                else if(ValuesOnIntPoint[index].size1() ==1
+                                } else if(ValuesOnIntPoint[index].size1() ==1
                                         && ValuesOnIntPoint[index].size2() ==6) {
                                     GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                     ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
                                                     ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
                                                     ValuesOnIntPoint[index](0,5) );
-                                }
-                                else if(ValuesOnIntPoint[index].size1() ==1
+                                } else if(ValuesOnIntPoint[index].size1() ==1
                                         && ValuesOnIntPoint[index].size2() ==3) {
                                     GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                     ValuesOnIntPoint[index](0,1), 0.0,
                                                     ValuesOnIntPoint[index](0,2), 0.0, 0.0);
-                                }
-                                else if(ValuesOnIntPoint[index].size1() ==1
+                                } else if(ValuesOnIntPoint[index].size1() ==1
                                         && ValuesOnIntPoint[index].size2() ==4) {
                                     GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                     ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
