@@ -293,9 +293,9 @@ namespace Kratos
 
                     if (rigidNodeMeshCounter > 0 && refiningBox == false)
                     {
-                        double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        const double ratio = rigidWallMeshSize / meanMeshSize;
                         double tolerance = 1.8;
-                        double ratio = rigidWallMeshSize / meanMeshSize;
                         if (currentTime < 10 * timeInterval)
                         {
                             tolerance = 1.5;

@@ -458,9 +458,9 @@ namespace Kratos
 				}
 				if (rigidNodeMeshCounter > 0 && refiningBox == false)
 				{
-					double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-					double tolerance = 2.0;
-					double ratio = rigidWallMeshSize / meshSize;
+					const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+					const double ratio = rigidWallMeshSize / meshSize;
+					const double tolerance = 2.0;
 					if (ratio > tolerance)
 					{
 						meshSize *= 0.5;
@@ -468,8 +468,8 @@ namespace Kratos
 					}
 				}
 
-				double size_for_distance_boundary = 0.6 * meshSize;
-				double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
+				const double size_for_distance_boundary = 0.6 * meshSize;
+				const double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
 
 				if (in->Is(TO_ERASE))
 				{

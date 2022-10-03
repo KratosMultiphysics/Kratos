@@ -773,9 +773,9 @@ namespace Kratos
 
 			if (rigidNodeMeshCounter > 0)
 			{
-				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-				double tolerance = 1.8;
-				double ratio = rigidWallMeshSize / meanMeshSize;
+				const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				const double ratio = rigidWallMeshSize / meanMeshSize;
+				const double tolerance = 1.8;
 				if (ratio > tolerance)
 				{
 					meanMeshSize *= 0.5;
@@ -783,8 +783,8 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.4 * meanMeshSize;
-			double safetyCoefficient2D = 1.5;
+			const double limitEdgeLength = 1.4 * meanMeshSize;
+			const double safetyCoefficient2D = 1.5;
 			double penalization = 1.0; // to penalize adding node, penalization here should be smaller than 1
 			if (rigidNodes > 1)
 			{
@@ -1019,9 +1019,9 @@ namespace Kratos
 
 			if (rigidNodeMeshCounter > 0)
 			{
-				double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
-				double tolerance = 1.8;
-				double ratio = rigidWallMeshSize / meanMeshSize;
+				const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				const double ratio = rigidWallMeshSize / meanMeshSize;
+				const double tolerance = 1.8;
 				if (ratio > tolerance)
 				{
 					meanMeshSize *= 0.5;
@@ -1029,8 +1029,8 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.25 * meanMeshSize;
-			double safetyCoefficient3D = 1.6;
+			const double limitEdgeLength = 1.25 * meanMeshSize;
+			const double safetyCoefficient3D = 1.6;
 			double penalization = 1.0; // penalization here should be smaller than 1
 			if (rigidNodes > 2)
 			{
@@ -1424,7 +1424,7 @@ namespace Kratos
 				}
 			}
 
-			double safetyCoefficient2D = 1.5;
+			const double safetyCoefficient2D = 1.5;
 
 			double ElementalVolume = Element.Area();
 
@@ -1494,7 +1494,7 @@ namespace Kratos
 			{
 				dangerousElement = true;
 			}
-			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
+			const double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
@@ -1756,8 +1756,7 @@ namespace Kratos
 				}
 			}
 
-			double safetyCoefficient3D = 1.6;
-
+			const double safetyCoefficient3D = 1.6;
 			double ElementalVolume = Element.Volume();
 
 			array_1d<double, 6> Edges(6, 0.0);
@@ -1856,7 +1855,7 @@ namespace Kratos
 			{
 				dangerousElement = true;
 			}
-			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
+			const double limitEdgeLength = 1.6 * meanMeshSize * penalization;
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
