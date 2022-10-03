@@ -150,7 +150,7 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
     double error_overall= 0.0;
     double energy_norm_overall = 0.0;
 
-    // Auxiliar GP vectors
+    // Auxiliary GP vectors
     std::vector<double> error_integration_point, strain_energy;
 
     #pragma omp parallel for reduction(+:error_overall, energy_norm_overall) firstprivate(error_integration_point,strain_energy)
