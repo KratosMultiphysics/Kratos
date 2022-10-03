@@ -425,8 +425,7 @@ namespace Kratos
 						EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
 				}
 			}
-			double numberOfcriticalNodes = 0;
-			double erasedCriticalNodes = 0;
+
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
 
@@ -457,7 +456,6 @@ namespace Kratos
 						meshSize = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
 					}
 				}
-				bool cricalNode = false;
 				if (rigidNodeMeshCounter > 0 && refiningBox == false)
 				{
 					double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
@@ -467,8 +465,6 @@ namespace Kratos
 					{
 						meshSize *= 0.5;
 						meshSize += 0.5 * rigidWallMeshSize;
-						numberOfcriticalNodes += 1.0;
-						cricalNode = true;
 					}
 				}
 
@@ -622,10 +618,6 @@ namespace Kratos
 										in->Set(TO_ERASE);
 										any_node_removed = true;
 										inside_nodes_removed++;
-										if (cricalNode == true)
-										{
-											erasedCriticalNodes += 1.0;
-										}
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -673,10 +665,6 @@ namespace Kratos
 							if (counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip)
 							{ // Can be inserted in the boundary refine
 								in->Set(TO_ERASE);
-								if (cricalNode == true)
-								{
-									erasedCriticalNodes += 1.0;
-								}
 								if (mEchoLevel > 1)
 									std::cout << "     Removed Boundary Node [" << in->Id() << "] on Distance " << std::endl;
 								any_node_removed = true;
@@ -692,10 +680,6 @@ namespace Kratos
 							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
 							{
 								in->Set(TO_ERASE);
-								if (cricalNode == true)
-								{
-									erasedCriticalNodes += 1.0;
-								}
 								if (mEchoLevel > 1)
 									std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
 								any_node_removed = true;
@@ -711,8 +695,6 @@ namespace Kratos
 				}
 			}
 
-			std::cout << "numberOfcriticalNodes " << numberOfcriticalNodes << std::endl;
-			std::cout << "erasedCriticalNodes " << erasedCriticalNodes << std::endl;
 			if (erased_nodes > 0)
 			{
 				if (mEchoLevel > 1)
