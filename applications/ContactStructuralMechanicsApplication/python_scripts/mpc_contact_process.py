@@ -14,8 +14,8 @@ import sys
 # Import base search process
 import KratosMultiphysics.ContactStructuralMechanicsApplication.search_base_process as search_base_process
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
 
 class MPCContactProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the contact using a mortar MPC formulation
@@ -182,12 +182,12 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
             if "PureSlip" in contact_type:
                 self.pure_slip = True
             else:
-                auxiliar_total_friction_coefficient = 0.0
+                auxiliary_total_friction_coefficient = 0.0
                 for key in self.settings["search_model_part"].keys():
                     if self.settings["search_model_part"][key].size() > 0:
-                        auxiliar_total_friction_coefficient += self.contact_settings["friction_coefficients"][key].GetDouble()
-                if auxiliar_total_friction_coefficient < sys.float_info.epsilon:
-                    self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
+                        auxiliary_total_friction_coefficient += self.contact_settings["friction_coefficients"][key].GetDouble()
+                if auxiliary_total_friction_coefficient < sys.float_info.epsilon:
+                    self.pure_slip = auxiliary_methods_solvers.AuxiliaryPureSlipCheck(self.main_model_part)
                 else:
                     self.pure_slip = False
 

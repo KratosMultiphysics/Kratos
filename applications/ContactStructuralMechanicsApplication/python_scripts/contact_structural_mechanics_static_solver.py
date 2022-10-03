@@ -7,8 +7,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the implicit solver (the explicit one is derived from it)
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_static_solver
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
 
 # Import the contact convergence criteria factory
 from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import ContactConvergenceCriteriaFactory
@@ -44,7 +44,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
             self.linear_solver_settings = KM.Parameters("""{}""")
 
         # Setting default configurations true by default
-        auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
+        auxiliary_methods_solvers.AuxiliarySetSettings(self.settings, self.contact_settings)
 
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
@@ -60,14 +60,14 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+        auxiliary_methods_solvers.AuxiliaryValidateSettings(self)
 
     def AddVariables(self):
 
         super().AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddVariables(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Variables ADDED")
 
@@ -76,7 +76,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         super().AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddDofs(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
 
@@ -100,7 +100,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
             self.Clear()
 
         mechanical_solution_strategy = self._GetSolutionStrategy()
-        auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
+        auxiliary_methods_solvers.AuxiliarySolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
@@ -113,7 +113,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
+        return auxiliary_methods_solvers.AuxiliaryComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
@@ -125,7 +125,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
-        return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
+        return auxiliary_methods_solvers.AuxiliaryCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
     def _CreateConvergenceCriterion(self):
         convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
@@ -133,7 +133,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     def _CreateLinearSolver(self):
         linear_solver = super()._CreateLinearSolver()
-        return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
+        return auxiliary_methods_solvers.AuxiliaryCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
 
     def _CreateBuilderAndSolver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
@@ -180,17 +180,17 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         self.linear_solver = self._GetLinearSolver()
         self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
         self.builder_and_solver = self._GetBuilderAndSolver()
-        return auxiliar_methods_solvers.AuxiliarLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+        return auxiliary_methods_solvers.AuxiliaryLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         self.mechanical_scheme = self._GetScheme()
         self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
         self.builder_and_solver = self._GetBuilderAndSolver()
-        return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+        return auxiliary_methods_solvers.AuxiliaryNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     @classmethod
     def GetDefaultParameters(cls):
-        this_defaults = auxiliar_methods_solvers.AuxiliarContactSettings()
+        this_defaults = auxiliary_methods_solvers.AuxiliaryContactSettings()
         this_defaults.RecursivelyAddMissingParameters(super(ContactStaticMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults

@@ -8,14 +8,14 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStruct
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_static_solver
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
 
 # Import convergence_criteria_factory
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
 def GetDefaults():
-    return auxiliar_methods_solvers.AuxiliarMPCContactSettings()
+    return auxiliary_methods_solvers.AuxiliaryMPCContactSettings()
 
 def CreateSolver(model, custom_settings):
     return MPCContactStaticSolver(model, custom_settings)
@@ -42,7 +42,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
 
         # Setting the parameters
-        auxiliar_methods_solvers.AuxiliarMPCSetSettings(self.settings, self.mpc_contact_settings)
+        auxiliary_methods_solvers.AuxiliaryMPCSetSettings(self.settings, self.mpc_contact_settings)
 
         # Logger
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Construction finished")
@@ -50,7 +50,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+        auxiliary_methods_solvers.AuxiliaryValidateSettings(self)
 
     def AddVariables(self):
 
@@ -58,7 +58,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
 
         # We add the contact related variables
         contact_type = self.mpc_contact_settings["contact_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarMPCAddVariables(self.main_model_part, contact_type)
+        auxiliary_methods_solvers.AuxiliaryMPCAddVariables(self.main_model_part, contact_type)
 
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Initializing ...")
@@ -73,7 +73,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Finished initialization.")
 
     def ComputeDeltaTime(self):
-        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.mpc_contact_settings)
+        return auxiliary_methods_solvers.AuxiliaryComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.mpc_contact_settings)
 
     #### Private functions ####
 
@@ -92,7 +92,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         self.mechanical_scheme = self._GetScheme()
         self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
         self.builder_and_solver = self._GetBuilderAndSolver()
-        return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
+        return auxiliary_methods_solvers.AuxiliaryMPCNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
 
     @classmethod
     def GetDefaultParameters(cls):
