@@ -6,7 +6,11 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
+# Import importlib to be able to load analysis stages from a string
 from importlib import import_module
+
+# Import string for capwords function
 import string
 
 class ThreadManager:
@@ -103,6 +107,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
             if hasattr(analysis_stage_module, "Create"):
                  return analysis_stage_module.Create(self.model, self.project_parameters)
             else:
+                KM.Logger.PrintWarning("KratosBaseWrapper", "The analysis_stage_module (" + module_name + ") does not have a \"Create\" function, trying to create the AnalysisStage directly...")
                 if self.settings["solver_wrapper_settings"].Has("analysis_name"):
                     analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_name"].GetString()
                 else:
