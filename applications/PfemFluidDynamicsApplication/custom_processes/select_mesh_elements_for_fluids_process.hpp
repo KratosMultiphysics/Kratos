@@ -119,15 +119,8 @@ namespace Kratos
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
             double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-            bool firstMesh = false;
-            if (currentTime < 2 * timeInterval)
-            {
-                firstMesh = true;
-            }
-
             bool box_side_element = false;
             bool wrong_added_node = false;
-
             int number_of_slivers = 0;
 
             bool refiningBox = mrRemesh.UseRefiningBox;
@@ -184,6 +177,9 @@ namespace Kratos
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
                     unsigned int isolatedNodesInTheElement = 0;
+                    double rigidNodeLocalMeshSize = 0;
+                    double rigidNodeMeshCounter = 0;
+
                     for (unsigned int pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -220,6 +216,12 @@ namespace Kratos
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
+                            if (vertices.back().Is(RIGID))
+                            {
+                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
+                                rigidNodeMeshCounter += 1.0;
+                            }
+
                             numrigid++;
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
@@ -281,6 +283,22 @@ namespace Kratos
                     }
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
+
+                    if (rigidNodeMeshCounter > 0 && refiningBox == false)
+                    {
+                        const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        const double ratio = rigidWallMeshSize / meanMeshSize;
+                        double tolerance = 1.8;
+                        if (currentTime < 10 * timeInterval)
+                        {
+                            tolerance = 1.5;
+                        }
+                        if (ratio > tolerance && numfreesurf == 0 && previouslyFreeSurfaceNodes == 0)
+                        {
+                            meanMeshSize *= 0.5;
+                            meanMeshSize += 0.5 * rigidWallMeshSize;
+                        }
+                    }
 
                     if (refiningBox == true)
                     {
@@ -350,10 +368,6 @@ namespace Kratos
                             }
                         }
                     }
-                    if (firstMesh == true)
-                    {
-                        Alpha *= 1.15;
-                    }
 
                     if (numinlet > 0)
                     {
@@ -369,7 +383,7 @@ namespace Kratos
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
+                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
                         if (dimension == 2)
                         {
