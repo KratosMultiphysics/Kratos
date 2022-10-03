@@ -7,7 +7,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from importlib import import_module
-
+import string
 
 class ThreadManager:
     """Class for setting and ressting the number of threads a context should use."""
@@ -98,8 +98,20 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def __GetAnalysisStage(self):
         if self.settings["solver_wrapper_settings"].Has("analysis_stage_module"):
-            analysis_stage_module = import_module(self.settings["solver_wrapper_settings"]["analysis_stage_module"].GetString())
-            return analysis_stage_module.Create(self.model, self.project_parameters)
+            module_name = self.settings["solver_wrapper_settings"]["analysis_stage_module"].GetString()
+            analysis_stage_module = import_module(module_name)
+            if hasattr(analysis_stage_module, "Create"):
+                 return analysis_stage_module.Create(self.model, self.project_parameters)
+            else:
+                if self.settings["solver_wrapper_settings"].Has("analysis_name"):
+                    analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_name"].GetString()
+                else:
+                    # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of cammel_case
+                    file_name = module_name.split(".")[-1]
+                    # Convert Snake case to Pascal case
+                    analysis_stage_name = string.capwords(file_name.replace("_", " ")).replace(" ", "")
+                analysis = getattr(analysis_stage_module, analysis_stage_name)
+                return analysis(self.model, self.project_parameters)
         else:
             return self._CreateAnalysisStage()
 
