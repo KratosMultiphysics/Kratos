@@ -393,6 +393,7 @@ void KratosConstitutiveLawsApplication::Register()
     // Rules of mixtures
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw2D", mParallelRuleOfMixturesLaw2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw3D", mParallelRuleOfMixturesLaw3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TractionSeparationLaw3D", mTractionSeparationLaw3D);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPragerDruckerPrager", mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager);
