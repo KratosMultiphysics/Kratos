@@ -22,6 +22,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "constraints/linear_master_slave_constraint.h"
 
 namespace Kratos
 {
@@ -212,7 +213,7 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVar
     const auto& r_var_z = (*rVars[2]);
 
     // Reference constraint
-    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    const auto& r_clone_constraint = LinearMasterSlaveConstraint();
 
     IndexType master_index = 0;
     for (auto& r_master_node : rHostedGeometry)
@@ -286,7 +287,7 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVar
     const VariableType& r_var = (*rVars[0]);
 
     // Reference constraint
-    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    const auto& r_clone_constraint = LinearMasterSlaveConstraint();
 
     IndexType master_index = 0;
     for (auto& r_master_node : rHostedGeometry)
