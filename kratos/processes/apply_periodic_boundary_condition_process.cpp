@@ -153,26 +153,26 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    struct auxiliary {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;};
-    const IndexType num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), auxiliary(), [&](Node<3>& rNode, auxiliary& aux){
-        aux.counter = 0;
-        TransformNode(rNode.Coordinates(), aux.transformed_slave_coordinates);
+    struct TLS_container {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;};
+    const IndexType num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), TLS_container(), [&](Node<3>& rNode, TLS_container& tls_container){
+        tls_container.counter = 0;
+        TransformNode(rNode.Coordinates(), tls_container.transformed_slave_coordinates);
 
         // Finding the host element for this node
-        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(aux.transformed_slave_coordinates, aux.shape_function_values, aux.p_host_cond, mSearchMaxResults, mSearchTolerance);
+        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(tls_container.transformed_slave_coordinates, tls_container.shape_function_values, tls_container.p_host_cond, mSearchMaxResults, mSearchTolerance);
         if(is_found) {
-            ++aux.counter;
+            ++tls_container.counter;
             for (unsigned int j = 0; j < num_vars; j++) {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
                 // Checking if the variable is a vector variable
                 if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {   // TODO: Look for a better alternative to do this.
-                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rNode, aux.p_host_cond->GetGeometry(), aux.shape_function_values, var_name);
+                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, var_name);
                 } else if (KratosComponents<VariableType>::Has(var_name)) {
-                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rNode, aux.p_host_cond->GetGeometry(), aux.shape_function_values, var_name);
+                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, var_name);
                 }
             }
         }
-        return aux.counter;
+        return tls_container.counter;
     });
 
     KRATOS_WARNING_IF("ApplyPeriodicConditionProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
