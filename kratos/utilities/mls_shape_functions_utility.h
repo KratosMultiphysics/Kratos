@@ -36,8 +36,6 @@ class MLSShapeFunctionsUtility
 
 public:
 
-    using DenseSpace = UblasSpace<double, Matrix, Vector>;
-
     /**
      * @brief Calculate the kernel value
      * This function calculates the exponential kernel value in one point

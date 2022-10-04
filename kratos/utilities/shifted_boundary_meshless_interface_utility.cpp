@@ -9,97 +9,27 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_SHIFTED_BOUNDARY_INTERFACE_UTILITIES )
-#define  KRATOS_SHIFTED_BOUNDARY_INTERFACE_UTILITIES
-
 // System includes
 
 // External includes
 
 // Project includes
-#include "containers/model.h"
-#include "containers/pointer_vector.h"
-#include "includes/define.h"
-#include "includes/key_hash.h"
+#include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "processes/process.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-
-// Application includes
+#include "utilities/shifted_boundary_meshless_interface_utility.h"
 
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-class ShiftedBoundaryMeshlessInterfaceProcess : public Process
-{
-public:
-
-    ///@name Type Definitions
-    ///@{
-
-    using IndexType = ModelPart::IndexType;
-
-    using NodeType = ModelPart::NodeType;
-
-    using GeometryType = ModelPart::GeometryType;
-
-    using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
-
-    using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
-
-    using RBFShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, Vector&)>;
-
-    using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
-
-    using MLSShapeFunctionsAndGradientsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&, Matrix&)>;
-
-    using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
-
-    using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
-
-    using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
-
-    using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
-
-    ///@}
-    ///@name Pointer Definitions
-
-    /// Pointer definition of ShiftedBoundaryMeshlessInterfaceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ShiftedBoundaryMeshlessInterfaceProcess);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    ShiftedBoundaryMeshlessInterfaceProcess(
+    ShiftedBoundaryMeshlessInterfaceUtility::ShiftedBoundaryMeshlessInterfaceUtility(
         Model& rModel,
         Parameters ThisParameters)
-        : Process()
     {
         // Validate input settings with defaults
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -132,32 +62,20 @@ public:
         mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
     };
 
-    /// Destructor.
-    virtual ~ShiftedBoundaryMeshlessInterfaceProcess() = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void Execute() override
+    void ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator()
     {
         if (mGradientBasedConformingBasis) {
-            CalculateGradientBasedConformingBasis();
+            CalculateGradientBasedConformingExtensionBasis();
         } else {
             if (mMLSConformingBasis) {
-                CalculateConformingExtensionBasis();
+                CalculateMeshlessBasedConformingExtensionBasis();
             } else {
-                CalculateNonConformingExtensionBasis();
+                CalculateMeshlessBasedNonConformingExtensionBasis();
             }
         }
     }
 
-    const Parameters GetDefaultParameters() const override
+    const Parameters ShiftedBoundaryMeshlessInterfaceUtility::GetDefaultParameters() const
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
@@ -171,101 +89,7 @@ public:
         return default_parameters;
     }
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const override
-    {
-        return "ShiftedBoundaryMeshlessInterfaceProcess";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ShiftedBoundaryMeshlessInterfaceProcess";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ModelPart* mpModelPart = nullptr;
-    ModelPart* mpBoundarySubModelPart = nullptr;
-
-    bool mMLSConformingBasis;
-
-    bool mGradientBasedConformingBasis;
-
-    std::size_t mMLSExtensionOperatorOrder;
-
-    const Condition* mpConditionPrototype;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    void CalculateGradientBasedConformingBasis()
+    void ShiftedBoundaryMeshlessInterfaceUtility::CalculateGradientBasedConformingExtensionBasis()
     {
         // Get DOMAIN_SIZE
         const auto& r_process_info = mpModelPart->GetProcessInfo();
@@ -386,7 +210,7 @@ private:
                             i_cl_nod++;
                         }
                         KRATOS_ERROR_IF(std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
-                        // KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceProcess",std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
+                        // KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceUtility",std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
 
                         auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
                         ext_op_map.insert(ext_op_key_data);
@@ -537,7 +361,7 @@ private:
         }
     }
 
-    void CalculateConformingExtensionBasis()
+    void ShiftedBoundaryMeshlessInterfaceUtility::CalculateMeshlessBasedConformingExtensionBasis()
     {
         // Set the required interface flags
         SetInterfaceFlags();
@@ -732,7 +556,7 @@ private:
         }
     }
 
-    void CalculateNonConformingExtensionBasis()
+    void ShiftedBoundaryMeshlessInterfaceUtility::CalculateMeshlessBasedNonConformingExtensionBasis()
     {
         // Set the required interface flags
         SetInterfaceFlags();
@@ -824,7 +648,7 @@ private:
         }
     }
 
-    void SetInterfaceFlags()
+    void ShiftedBoundaryMeshlessInterfaceUtility::SetInterfaceFlags()
     {
         // Initialize flags to false
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
@@ -888,7 +712,7 @@ private:
         }
     }
 
-    bool IsSplit(const GeometryType& rGeometry)
+    bool ShiftedBoundaryMeshlessInterfaceUtility::IsSplit(const GeometryType& rGeometry)
     {
         std::size_t n_neg = 0;
         std::size_t n_pos = 0;
@@ -902,7 +726,7 @@ private:
         return (n_pos != 0 && n_neg != 0);
     }
 
-    bool IsNegative(const GeometryType& rGeometry)
+    bool ShiftedBoundaryMeshlessInterfaceUtility::IsNegative(const GeometryType& rGeometry)
     {
         std::size_t n_neg = 0;
         for (const auto& r_node : rGeometry) {
@@ -913,7 +737,7 @@ private:
         return (n_neg == rGeometry.PointsNumber());
     }
 
-    void SetNodalDistancesVector(
+    void ShiftedBoundaryMeshlessInterfaceUtility::SetNodalDistancesVector(
         const GeometryType& rGeometry,
         Vector& rNodalDistances)
     {
@@ -927,7 +751,7 @@ private:
         }
     }
 
-    ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
+    ShiftedBoundaryMeshlessInterfaceUtility::ModifiedShapeFunctionsFactoryType ShiftedBoundaryMeshlessInterfaceUtility::GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
     {
         switch (rGeometry.GetGeometryType()) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
@@ -941,7 +765,7 @@ private:
         }
     }
 
-    MLSShapeFunctionsAndGradientsFunctionType GetMLSShapeFunctionsAndGradientsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction()
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -971,7 +795,7 @@ private:
         }
     }
 
-    MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction()
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -1001,14 +825,14 @@ private:
         }
     }
 
-    RBFShapeFunctionsFunctionType GetRBFShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::RBFShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction()
     {
         return [&](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
             RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);
         };
     }
 
-    ElementSizeFunctionType GetElementSizeFunction(const GeometryType& rGeometry)
+    ShiftedBoundaryMeshlessInterfaceUtility::ElementSizeFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetElementSizeFunction(const GeometryType& rGeometry)
     {
         switch (rGeometry.GetGeometryType()) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
@@ -1020,7 +844,7 @@ private:
         }
     }
 
-    void SetSplitElementSupportCloud(
+    void ShiftedBoundaryMeshlessInterfaceUtility::SetSplitElementSupportCloud(
         const Element& rSplitElement,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
@@ -1105,7 +929,7 @@ private:
         }
     }
 
-    void SetNegativeNodeSupportCloud(
+    void ShiftedBoundaryMeshlessInterfaceUtility::SetNegativeNodeSupportCloud(
         const NodeType& rNegativeNode,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
@@ -1191,7 +1015,7 @@ private:
         });
     }
 
-    double CalculateKernelRadius(
+    double ShiftedBoundaryMeshlessInterfaceUtility::CalculateKernelRadius(
         const Matrix& rCloudCoordinates,
         const array_1d<double,3>& rOrigin)
     {
@@ -1205,7 +1029,7 @@ private:
         return std::sqrt(squared_rad);
     }
 
-    std::size_t GetRequiredNumberOfPoints()
+    std::size_t ShiftedBoundaryMeshlessInterfaceUtility::GetRequiredNumberOfPoints()
     {
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         switch (n_dim) {
@@ -1232,7 +1056,7 @@ private:
         }
     }
 
-    std::map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights()
+    std::map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights()
     {
         std::map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
         for (auto& r_bd_node : mpModelPart->Nodes()) {
@@ -1291,28 +1115,4 @@ private:
         return sur_bd_nodes_map;
     }
 
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // ShiftedBoundaryMeshlessInterfaceProcess& operator=(ShiftedBoundaryMeshlessInterfaceProcess const& rOther);
-
-    /// Copy constructor.
-    //ShiftedBoundaryMeshlessInterfaceProcess(ShiftedBoundaryMeshlessInterfaceProcess const& rOther);
-
-    ///@}
-
-}; // Class ShiftedBoundaryMeshlessInterfaceProcess
-
 } // namespace Kratos.
-
-#endif // KRATOS_SHIFTED_BOUNDARY_INTERFACE_UTILITIES  defined
