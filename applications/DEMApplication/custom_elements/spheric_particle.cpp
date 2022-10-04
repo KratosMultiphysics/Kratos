@@ -205,7 +205,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     if (this->Is(DEMFlags::HAS_ROTATION)) {
         node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
 
-        Quaternion<double  > Orientation = Quaternion<double>::Identity();
+        Quaternion<double> Orientation = Quaternion<double>::Identity();
         node.GetSolutionStepValue(ORIENTATION) = Orientation;
 
         array_1d<double, 3> angular_momentum;
@@ -862,14 +862,11 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
                     
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-
                     if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-
                         mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
                         mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, data_buffer.mIndentation);
-
-                    } else {
-
+                    }
+                    else {
                         Properties& properties_of_this_contact = GetProperties().GetSubProperties(data_buffer.mpOtherParticle->GetProperties().Id());
                         const double min_radius = std::min(GetRadius(), data_buffer.mpOtherParticle->GetRadius());
                         const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
@@ -1948,10 +1945,6 @@ double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in c
 
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
     KRATOS_TRY
-
-
-
-
 
     if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
 
