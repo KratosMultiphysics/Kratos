@@ -280,7 +280,6 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
 
     data_buffer.mDt = dt;
     data_buffer.mMultiStageRHS = false;
-    data_buffer.mRollingResistance = 0.0;
 
     array_1d<double, 3> additional_forces = ZeroVector(3);
     array_1d<double, 3> additionally_applied_moment = ZeroVector(3);
