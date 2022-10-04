@@ -553,7 +553,7 @@ namespace
         qr_decomposition.Compute(A);
 
         // Set the polynomial basis values at the point of interest
-        array_1d<double,3> p0;
+        array_1d<double,4> p0;
         BoundedMatrix<double,3,4> Dp0_DX;
         EvaluatePolynomialBasis(rX, p0);
         EvaluatePolynomialBasisDerivatives(rX, Dp0_DX);
@@ -675,7 +675,7 @@ namespace
         qr_decomposition.Compute(A);
 
         // Set the polynomial basis values at the point of interest
-        array_1d<double,3> p0;
+        array_1d<double,10> p0;
         BoundedMatrix<double,3,10> Dp0_DX;
         EvaluatePolynomialBasis(rX, p0);
         EvaluatePolynomialBasisDerivatives(rX, Dp0_DX);
