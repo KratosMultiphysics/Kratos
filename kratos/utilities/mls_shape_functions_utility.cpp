@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/global_variables.h"
-#include "utilities/math_utils.h"
+#include "spaces/ublas_space.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 #include "mls_shape_functions_utility.h"
 

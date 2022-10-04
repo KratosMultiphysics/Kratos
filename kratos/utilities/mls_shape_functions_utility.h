@@ -12,9 +12,7 @@
 //                   Zhiming Guo
 //
 
-#if !defined(KRATOS_MLS_SHAPE_FUNCTIONS_UTILITY_H_INCLUDED)
-#define  KRATOS_MLS_SHAPE_FUNCTIONS_UTILITY_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -23,7 +21,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -181,5 +179,3 @@ public:
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MLS_SHAPE_FUNCTIONS_UTILITY_H_INCLUDED  defined
