@@ -218,14 +218,11 @@ void FindGlobalNodalEntityNeighboursProcess<TContainerType>::Clear()
 }
 
 template<class TContainerType>
-std::unordered_map<int, std::vector<int>> FindGlobalNodalEntityNeighboursProcess<TContainerType>::GetNeighbourIds(
-    ModelPart::NodesContainerType& rNodes)
+typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::IdMapType FindGlobalNodalEntityNeighboursProcess<TContainerType>::GetNeighbourIds(const ModelPart::NodesContainerType& rNodes)
 {
     KRATOS_TRY
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    std::unordered_map<int, std::vector<int>> output;
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     auto constructor_functor =  Kratos::ComputeNeighbourListFunctor<ModelPart::NodesContainerType, Variable<GlobalEntityPointersVectorType>>(rNodes, mrOutputVariable);
 
@@ -237,16 +234,38 @@ std::unordered_map<int, std::vector<int>> FindGlobalNodalEntityNeighboursProcess
         }
     );
 
-    block_for_each(rNodes, [&](NodeType& rNode){
+    class MapReducer{
+        public:
+            typedef std::pair<int, std::vector<int>> value_type;
+            typedef IdMapType return_type;
+
+            return_type mMap;
+
+            return_type GetValue()
+            {
+                return mMap;
+            }
+
+            void LocalReduce(value_type function_return_value)
+            {
+                mMap[function_return_value.first] = function_return_value.second;
+            }
+
+            void ThreadSafeReduce(MapReducer& rOther)
+            {
+                const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+                mMap.merge(rOther.mMap);
+            }
+    };
+
+    return block_for_each<MapReducer>(rNodes, [&](auto& rNode){
         auto& r_neighbours = rNode.GetValue(mrOutputVariable);
         std::vector<int> tmp(r_neighbours.size());
         for(unsigned int i=0; i<r_neighbours.size(); ++i) {
             tmp[i] = result_proxy.Get(r_neighbours(i));
         }
-        output[rNode.Id()] = tmp;
+        return std::make_pair(rNode.Id(), tmp);
     });
-
-    return output;
 
     KRATOS_CATCH("");
 }
@@ -256,5 +275,3 @@ template class FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsConta
 template class FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
 
 }  // namespace Kratos.
-
-
