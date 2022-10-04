@@ -28,7 +28,7 @@ class UniversalFileFormatOutputProcess(Kratos.OutputProcess):
 
         self.interpolation_process = None
         if len(settings["extrapolate_gauss_point_variables_to_nodes"].GetStringArray()) > 0:
-            default_interpolation_process_parameters = Kratos.Parameters("""(
+            default_interpolation_process_parameters = Kratos.Parameters("""{
                 "echo_level"                 : 0,
                 "area_average"               : true,
                 "average_variable"           : "NODAL_AREA",
