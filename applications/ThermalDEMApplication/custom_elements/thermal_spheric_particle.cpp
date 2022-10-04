@@ -142,15 +142,9 @@ namespace Kratos
     // Set flags
     mHasMotion = r_process_info[MOTION_OPTION];
 
-    if ((r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
-         r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
-      mHasVariableRadius = true;
-    }
-    else {
-      mHasVariableRadius = false;
-    }
+    mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+                          r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
 
-    // Set flag to store contact parameters during mechanical loop over neighbors
     mStoreContactParam = mHasMotion &&
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
