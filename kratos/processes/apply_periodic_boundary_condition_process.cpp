@@ -149,34 +149,28 @@ template <int TDim>
 void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 {
     const auto timer = BuiltinTimer();
-    const int num_vars = mParameters["variable_names"].size();
+    const unsigned int num_vars = mParameters["variable_names"].size();
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
     IndexType num_slaves_found = 0;
 
-    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), [&](Node<3>& rNode){
-        IndexType counter = 0;
-        Condition::Pointer p_host_cond;
-        VectorType shape_function_values;
-        array_1d<double, 3 > transformed_slave_coordinates;
-        TransformNode(rNode.Coordinates(), transformed_slave_coordinates);
+    struct auxiliary {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;}
+    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), auxiliary(), [&](Node<3>& rNode, auxiliary& aux){
+        aux.counter = 0;
+        TransformNode(rNode.Coordinates(), aux.transformed_slave_coordinates);
 
         // Finding the host element for this node
-        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);
-        if(is_found)
-        {
-            ++counter;
-            for (int j = 0; j < num_vars; j++)
-            {
+        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(aux.transformed_slave_coordinates, aux.shape_function_values, aux.p_host_cond, mSearchMaxResults, mSearchTolerance);
+        if(is_found) {
+            ++aux.counter;
+            for (unsigned int j = 0; j < num_vars; j++) {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
                 // Checking if the variable is a vector variable
-                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name))
-                {   // TODO: Look for a better alternative to do this.
-                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rNode, p_host_cond->GetGeometry() , shape_function_values, var_name);
-                } else if (KratosComponents<VariableType>::Has(var_name))
-                {
-                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rNode, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {   // TODO: Look for a better alternative to do this.
+                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rNode, aux.p_host_cond->GetGeometry(), aux.shape_function_values, var_name);
+                } else if (KratosComponents<VariableType>::Has(var_name)) {
+                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rNode, aux.p_host_cond->GetGeometry(), aux.shape_function_values, var_name);
                 }
             }
         }
