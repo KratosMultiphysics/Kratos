@@ -25,6 +25,11 @@
 namespace Kratos
 {
 
+namespace
+{
+    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+}
+
     double MLSShapeFunctionsUtility::CalculateKernel(
         const array_1d<double,3>& rRadVect,
         const double h)
