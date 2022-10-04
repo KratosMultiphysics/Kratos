@@ -12,7 +12,7 @@
 //
 
 // System includes
- 
+
 // External includes
 
 // Project includes
@@ -83,7 +83,7 @@ void InterpolateDiscontinuousMeshVariableToSkinArray(
 }
 
 // MLS shape functions utility
-void AuxiliaryCalculateShapeFunctions(
+void AuxiliaryCalculateMLSShapeFunctions(
     const std::size_t Dim,
     const std::size_t Order,
     const Matrix& rPoints,
@@ -103,7 +103,7 @@ void AuxiliaryCalculateShapeFunctions(
             MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(rPoints, rX, h, rN);
             break;
         default:
-            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
             break;
         }
     case 3:
@@ -116,16 +116,16 @@ void AuxiliaryCalculateShapeFunctions(
             MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(rPoints, rX, h, rN);
             break;
         default:
-            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
             break;
         }
     default:
-        KRATOS_ERROR << "Wrong provided dimension: " << Dim << std::endl;
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
         break;
     }
 }
 
-void AuxiliaryCalculateShapeFunctionsAndGradients(
+void AuxiliaryCalculateMLSShapeFunctionsAndGradients(
     const std::size_t Dim,
     const std::size_t Order,
     const Matrix& rPoints,
@@ -134,9 +134,7 @@ void AuxiliaryCalculateShapeFunctionsAndGradients(
     Vector& rN,
     Matrix& rDNDX)
 {
-    switch (Dim)
-    {
-    case 2:
+    if (Dim == 2) {
         switch (Order)
         {
         case 1:
@@ -146,10 +144,10 @@ void AuxiliaryCalculateShapeFunctionsAndGradients(
             MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(rPoints, rX, h, rN, rDNDX);
             break;
         default:
-            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
             break;
         }
-    case 3:
+    } else if (Dim == 3) {
         switch (Order)
         {
         case 1:
@@ -159,12 +157,11 @@ void AuxiliaryCalculateShapeFunctionsAndGradients(
             MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,2>(rPoints, rX, h, rN, rDNDX);
             break;
         default:
-            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            KRATOS_ERROR << "Wrong order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
             break;
         }
-    default:
-        KRATOS_ERROR << "Wrong provided dimension: " << Dim << std::endl;
-        break;
+    } else {
+        KRATOS_ERROR << "Wrong dimension: " << Dim << std::endl;
     }
 }
 
@@ -419,12 +416,8 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 
     // MLS shape functions utility
     py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
-        .def_static("CalculateShapeFunctions", &AuxiliaryCalculateShapeFunctions)
-        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>)
-        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>)
-        .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateShapeFunctionsAndGradients)
-        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>)
-        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>)
+        .def_static("CalculateShapeFunctions", &AuxiliaryCalculateMLSShapeFunctions)
+        .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateMLSShapeFunctionsAndGradients)
         ;
 
     // Radial Basis FUnctions utility
