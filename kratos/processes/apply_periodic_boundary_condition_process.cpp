@@ -153,10 +153,8 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    IndexType num_slaves_found = 0;
-
-    struct auxiliary {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;}
-    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), auxiliary(), [&](Node<3>& rNode, auxiliary& aux){
+    struct auxiliary {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;};
+    const IndexType num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), auxiliary(), [&](Node<3>& rNode, auxiliary& aux){
         aux.counter = 0;
         TransformNode(rNode.Coordinates(), aux.transformed_slave_coordinates);
 
@@ -174,7 +172,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
                 }
             }
         }
-        return counter;
+        return aux.counter;
     });
 
     KRATOS_WARNING_IF("ApplyPeriodicConditionProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
