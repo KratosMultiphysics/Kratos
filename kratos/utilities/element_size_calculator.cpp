@@ -223,7 +223,9 @@ double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
     const double h2_eta_derivative = 2 * deta_x * deta_x_derivative + 2 * deta_y * deta_y_derivative;
 
     const double h2 = h2_xi < h2_eta ? h2_xi : h2_eta;
-    const double h2_derivative = h2_xi <= h2_eta ? h2_xi_derivative : h2_eta_derivative;
+    double h2_derivative = h2_xi < h2_eta ? h2_xi_derivative : h2_eta_derivative;
+    if (h2_xi == h2_eta)
+        h2_derivative = std::min(h2_xi_derivative,h2_eta_derivative);
 
     return 0.5 * h2_derivative / std::sqrt(h2);
 
