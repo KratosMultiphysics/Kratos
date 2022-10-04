@@ -18,6 +18,7 @@
 #include "includes/define_python.h"
 #include "linear_solvers_application.h"
 #include "custom_python/add_custom_solvers_to_python.h"
+#include "custom_python/add_ginkgo_solvers_to_python.h"
 #include "custom_python/add_custom_decompositions_to_python.h"
 
 namespace Kratos {
@@ -34,6 +35,7 @@ PYBIND11_MODULE(KratosLinearSolversApplication, m)
         ;
 
     AddCustomSolversToPython(m);
+    AddGinkgoSolversToPython(m);
     AddCustomDecompositionsToPython(m);
 
     m.def("HasMKL", []() {

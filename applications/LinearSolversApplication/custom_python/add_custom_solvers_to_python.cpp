@@ -38,6 +38,10 @@
 #include "custom_solvers/feast_eigensystem_solver.h"
 #endif
 
+// #if defined USE_GINKGO_SOLVER
+#include "custom_solvers/ginkgo_solver.h"
+// #endif
+
 #include "custom_solvers/spectra_sym_g_eigs_shift_solver.h"
 
 #include "factories/standard_linear_solver_factory.h"

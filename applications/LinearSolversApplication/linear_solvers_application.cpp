@@ -26,6 +26,8 @@
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
 #endif
 
+#include "custom_solvers/ginkgo_solver.h"
+
 namespace Kratos
 {
 
@@ -95,6 +97,13 @@ void KratosLinearSolversApplication::Register()
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
 #endif // defined USE_EIGEN_MKL
+
+    // Ginkgo Solver
+    typedef TUblasSparseSpace<double> SpaceType;
+    typedef TUblasDenseSpace<double> LocalSpaceType;
+    typedef GinkgoSolver<SpaceType,  LocalSpaceType> GinkgoSolverType;
+    static auto GinkgoSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,GinkgoSolverType>();
+    KRATOS_REGISTER_LINEAR_SOLVER("ginkgo", GinkgoSolverFactory);
 }
 
 } // namespace Kratos
