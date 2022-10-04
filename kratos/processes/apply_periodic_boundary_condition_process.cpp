@@ -153,6 +153,25 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
+    // Define auxiliary functions // TODO: rVarName should be replaced with a vector of double variables to reduce even more the complexity (calling the KratosComponents is expensive)
+    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::string&)> function_for_vector_variable =
+    [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName) {ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVarName);};
+    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::string&)> function_for_scalar_variable =
+    [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName) {ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVarName);};
+
+    // Fill an auxiliary vector with the functions
+    std::vector<const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::string&)>*> functions_required(num_vars, nullptr);
+    for (unsigned int j = 0; j < num_vars; j++) {
+        const std::string& r_var_name = mParameters["variable_names"][j].GetString();
+        if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_var_name)) {
+            functions_required[j] = &function_for_vector_variable;
+        } else if (KratosComponents<VariableType>::Has(r_var_name)) {
+            functions_required[j] = &function_for_scalar_variable;
+        } else {
+            KRATOS_ERROR << "This only works with scalar and 3 components vector variables. Variable considered: " << r_var_name << std::endl;
+        }
+    }
+
     struct TLS_container {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;};
     const IndexType num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), TLS_container(), [&](Node<3>& rNode, TLS_container& tls_container){
         tls_container.counter = 0;
@@ -160,16 +179,13 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(tls_container.transformed_slave_coordinates, tls_container.shape_function_values, tls_container.p_host_cond, mSearchMaxResults, mSearchTolerance);
-        if(is_found) {
+        if(is_found) 
+        {
             ++tls_container.counter;
-            for (unsigned int j = 0; j < num_vars; j++) {
-                const std::string var_name = mParameters["variable_names"][j].GetString();
-                // Checking if the variable is a vector variable
-                if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {   // TODO: Look for a better alternative to do this.
-                    ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, var_name);
-                } else if (KratosComponents<VariableType>::Has(var_name)) {
-                    ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, var_name);
-                }
+            for (unsigned int j = 0; j < num_vars; j++) 
+            {
+                const std::string& r_var_name = mParameters["variable_names"][j].GetString();
+                (*functions_required[j])(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, r_var_name);
             }
         }
         return tls_container.counter;
