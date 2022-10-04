@@ -153,20 +153,25 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    // Define auxiliary functions // TODO: rVarName should be replaced with a vector of double variables to reduce even more the complexity (calling the KratosComponents is expensive)
-    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::string&)> function_for_vector_variable =
-    [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName) {ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVarName);};
-    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::string&)> function_for_scalar_variable =
-    [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName) {ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVarName);};
+    // Define auxiliary functions
+    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)> function_for_vector_variable =
+    [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::vector<const VariableType*>& rVars) {ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVars);};
+    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)> function_for_scalar_variable =
+    [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::vector<const VariableType*>& rVars) {ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVars);};
 
     // Fill an auxiliary vector with the functions
-    std::vector<const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::string&)>*> functions_required(num_vars, nullptr);
+    std::vector<const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)>*> functions_required(num_vars, nullptr);
+    std::vector<std::vector<const VariableType*>> variables_vector(num_vars, std::vector<const VariableType*>());
     for (unsigned int j = 0; j < num_vars; j++) {
         const std::string& r_var_name = mParameters["variable_names"][j].GetString();
         if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_var_name)) {
             functions_required[j] = &function_for_vector_variable;
+            variables_vector[j].push_back(&KratosComponents<VariableType>::Get(r_var_name + "_X"));
+            variables_vector[j].push_back(&KratosComponents<VariableType>::Get(r_var_name + "_Y"));
+            variables_vector[j].push_back(&KratosComponents<VariableType>::Get(r_var_name + "_Z"));
         } else if (KratosComponents<VariableType>::Has(r_var_name)) {
             functions_required[j] = &function_for_scalar_variable;
+            variables_vector[j].push_back(&KratosComponents<VariableType>::Get(r_var_name));
         } else {
             KRATOS_ERROR << "This only works with scalar and 3 components vector variables. Variable considered: " << r_var_name << std::endl;
         }
@@ -184,8 +189,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
             ++tls_container.counter;
             for (unsigned int j = 0; j < num_vars; j++) 
             {
-                const std::string& r_var_name = mParameters["variable_names"][j].GetString();
-                (*functions_required[j])(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, r_var_name);
+                (*functions_required[j])(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, variables_vector[j]);
             }
         }
         return tls_container.counter;
@@ -196,53 +200,74 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 }
 
 template <int TDim>
-void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
-                                                                                        const std::string& rVarName )
+void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(
+    NodeType& rSlaveNode, 
+    const GeometryType& rHostedGeometry, 
+    const VectorType& rWeights,
+    const std::vector<const VariableType*>& rVars
+    )
 {
-    const auto& r_var_x = KratosComponents<VariableType>::Get(rVarName + std::string("_X"));
-    const auto& r_var_y = KratosComponents<VariableType>::Get(rVarName + std::string("_Y"));
-    const auto& r_var_z = KratosComponents<VariableType>::Get(rVarName + std::string("_Z"));
+    const auto& r_var_x = (*rVars[0]);
+    const auto& r_var_y = (*rVars[1]);
+    const auto& r_var_z = (*rVars[2]);
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
     IndexType master_index = 0;
-    for (auto& master_node : rHostedGeometry)
+    for (auto& r_master_node : rHostedGeometry)
     {
         const double master_weight = rWeights(master_index);
 
         const double constant_x = master_weight * mTransformationMatrixVariable(0,3);
         const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
-        const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
 
-        #pragma omp critical
-        {
-            int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-            auto constraint1 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-            auto constraint2 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-            auto constraint3 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
+        if constexpr (TDim == 3) {
+            const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
 
-            auto constraint4 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-            auto constraint5 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-            auto constraint6 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
-
-            mrMasterModelPart.AddMasterSlaveConstraint(constraint1);
-            mrMasterModelPart.AddMasterSlaveConstraint(constraint2);
-            mrMasterModelPart.AddMasterSlaveConstraint(constraint3);
-            mrMasterModelPart.AddMasterSlaveConstraint(constraint4);
-            mrMasterModelPart.AddMasterSlaveConstraint(constraint5);
-            mrMasterModelPart.AddMasterSlaveConstraint(constraint6);
-
-
-            if (TDim == 3) // TODO: This function can be optimized using template specialization. if constexpr will fail due to unused variables declared
+            #pragma omp critical
             {
-                auto constraint7 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                auto constraint8 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                auto constraint9 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
+                auto p_constraint1 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+                auto p_constraint2 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+                auto p_constraint3 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-                mrMasterModelPart.AddMasterSlaveConstraint(constraint7);
-                mrMasterModelPart.AddMasterSlaveConstraint(constraint8);
-                mrMasterModelPart.AddMasterSlaveConstraint(constraint9);
+                auto p_constraint4 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+                auto p_constraint5 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+                auto p_constraint6 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+
+                auto p_constraint7 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
+                auto p_constraint8 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
+                auto p_constraint9 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint1);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint2);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint3);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint4);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint5);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint6);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint7);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint8);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint9);
+            }
+        } else {
+            #pragma omp critical
+            {
+                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
+                auto p_constraint1 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+                auto p_constraint2 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+                auto p_constraint3 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
+
+                auto p_constraint4 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+                auto p_constraint5 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+                auto p_constraint6 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint1);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint2);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint3);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint4);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint5);
+                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint6);
             }
         }
 
@@ -251,22 +276,26 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVar
 }
 
 template <int TDim>
-void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
-                                                                                        const std::string& rVarName )
+void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(
+    NodeType& rSlaveNode, 
+    const GeometryType& rHostedGeometry, 
+    const VectorType& rWeights,
+    const std::vector<const VariableType*>& rVars 
+    )
 {
-    const VariableType& r_var = KratosComponents<VariableType>::Get(rVarName);
+    const VariableType& r_var = (*rVars[0]);
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
     IndexType master_index = 0;
-    for (auto& master_node : rHostedGeometry)
+    for (auto& r_master_node : rHostedGeometry)
     {
         const double master_weight = rWeights(master_index);
         #pragma omp critical
         {
             int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-            auto constraint = r_clone_constraint.Create(++current_num_constraint,master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
+            auto constraint = r_clone_constraint.Create(++current_num_constraint,r_master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
             mrMasterModelPart.AddMasterSlaveConstraint(constraint);
         }
         master_index++;
