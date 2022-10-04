@@ -92,18 +92,18 @@ namespace Kratos
     {
       for (auto &i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp.NumberOfElements() != 0 ){
-          if( i_mp.Is(BOUNDARY) || i_mp.IsNot(ACTIVE) ){ //wall elements or domain elements (unique model part)
+        if (i_mp.NumberOfElements() != 0)
+        {
+          if (i_mp.Is(BOUNDARY) || i_mp.IsNot(ACTIVE))
+          { // wall elements or domain elements (unique model part)
             for (auto &i_elem : i_mp.Elements())
             {
               i_elem.SetValue(MODEL_PART_NAME, i_mp.Name());
             }
           }
-
         }
       }
     }
-
   }
 
   //*******************************************************************************************
@@ -115,23 +115,23 @@ namespace Kratos
     unsigned int start = 0;
     unsigned int NumberOfSubModelParts = rModelPart.NumberOfSubModelParts();
 
-    if(NumberOfSubModelParts>0){
+    if (NumberOfSubModelParts > 0)
+    {
       for (auto &i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp.NumberOfConditions() != 0 ){
-          if( i_mp.Is(BOUNDARY) && i_mp.NumberOfElements() == 0 ){ // only model parts with conditions (unique model part)
+        if (i_mp.NumberOfConditions() != 0)
+        {
+          if (i_mp.Is(BOUNDARY) && i_mp.NumberOfElements() == 0)
+          { // only model parts with conditions (unique model part)
             for (auto &i_cond : i_mp.Conditions())
             {
               i_cond.SetValue(MODEL_PART_NAME, i_mp.Name());
             }
-
           }
         }
       }
     }
-
   }
-
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -142,20 +142,22 @@ namespace Kratos
     unsigned int start = 0;
     unsigned int NumberOfSubModelParts = rModelPart.NumberOfSubModelParts();
 
-
-    if(NumberOfSubModelParts>0){
+    if (NumberOfSubModelParts > 0)
+    {
       for (auto &i_mp : rModelPart.SubModelParts())
       {
 
-        if( i_mp.NumberOfNodes() != 0 ){
-          if( i_mp.Is(BOUNDARY) ){ // shared model parts for nodes in boundary conditions
+        if (i_mp.NumberOfNodes() != 0)
+        {
+          if (i_mp.Is(BOUNDARY))
+          { // shared model parts for nodes in boundary conditions
             for (auto &i_node : i_mp.Nodes())
             {
               i_node.GetValue(MODEL_PART_NAMES).push_back(i_mp.Name());
             }
-
           }
-          else if( i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) ){ //unique domain model part
+          else if (i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY))
+          { // unique domain model part
             for (auto &i_node : i_mp.Nodes())
             {
               i_node.SetValue(MODEL_PART_NAME, i_mp.Name());
@@ -164,10 +166,7 @@ namespace Kratos
         }
       }
     }
-
-
   }
-
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -184,7 +183,8 @@ namespace Kratos
 
       for (unsigned int i = 0; i < rControlFlags.size(); i++)
       {
-        if( it->Is(rControlFlags[i]) ){
+        if (it->Is(rControlFlags[i]))
+        {
           for (unsigned int i = 0; i < rAssignFlags.size(); i++)
             it->Set(rAssignFlags[i]);
         }
@@ -230,30 +230,31 @@ namespace Kratos
     KRATOS_TRY
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
-    if( dimension == 2 ){
+    if (dimension == 2)
+    {
       for (auto &i_elem : rModelPart.Elements())
       {
-        if( i_elem.GetGeometry().size() == 3 ){
+        if (i_elem.GetGeometry().size() == 3)
+        {
           ModelPartVolume += i_elem.GetGeometry().Area();
         }
       }
     }
-    else{ //dimension == 3
+    else
+    { // dimension == 3
       for (auto &i_elem : rModelPart.Elements())
       {
-	  if( i_elem.GetGeometry().size() == 4 ){
+        if (i_elem.GetGeometry().size() == 4)
+        {
           ModelPartVolume += i_elem.GetGeometry().Volume();
         }
       }
     }
 
-
     return ModelPartVolume;
 
     KRATOS_CATCH(" ")
-
   }
-
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -275,7 +276,6 @@ namespace Kratos
         RigidNodes += 1;
       }
     }
-
 
     if (RigidNodes >= size - 1)
     {
@@ -333,15 +333,16 @@ namespace Kratos
         }
       }
 
-      if(RigidNodes == size){
+      if (RigidNodes == size)
+      {
         if (numouter > 0)
           outer = true;
       }
-      else if(RigidNodes == size-1){
+      else if (RigidNodes == size - 1)
+      {
         if (numouter = numouter)
           outer = true;
       }
-
     }
 
     return outer; // if is outside the body
@@ -380,7 +381,6 @@ namespace Kratos
       std::vector<array_1d<double, 3>> Vertices;
       array_1d<double, 3> Vertex;
 
-
       for (unsigned int i = 0; i < size; ++i)
       {
         Vertex = rGeometry[i].Coordinates();
@@ -390,14 +390,12 @@ namespace Kratos
         Center += Vertex;
       }
 
-
       Center /= (double)size;
 
       array_1d<double, 3> Corner;
 
       double tolerance = 0.05;
       int numouter = 0;
-
 
       for (unsigned int i = 0; i < size; ++i)
       {
@@ -518,7 +516,8 @@ namespace Kratos
 
         double projection = inner_prod(Corner, Normal);
 
-	    if( projection > 0 ){
+        if (projection > 0)
+        {
 
           if (projection < slope)
           {
@@ -537,16 +536,16 @@ namespace Kratos
           numsamedirection++;
         }
 
-	    if(coplanar>extra){
+        if (coplanar > extra)
+        {
           numcoplanar++;
         }
 
-	    if(fabs(coplanar)<=ortho){
+        if (std::abs(coplanar) <= ortho)
+        {
           numorthogonal++;
         }
-
       }
-
 
       int num = (int)size;
 
@@ -556,12 +555,14 @@ namespace Kratos
       if (numouter == (num - 1) && numextra == 1)
         outer = true;
 
-	if(numouter>0 && (numextra>0 && numorthogonal>0) && !rSelfContact){
+      if (numouter > 0 && (numextra > 0 && numorthogonal > 0) && !rSelfContact)
+      {
         outer = true;
         std::cout << "   Element with " << num << " corners accepted:case1 " << std::endl;
       }
 
-	if(numouter==0 && (numextra>(num-2) && numorthogonal>0) && !rSelfContact){
+      if (numouter == 0 && (numextra > (num - 2) && numorthogonal > 0) && !rSelfContact)
+      {
         outer = true;
         std::cout << "   Element with " << num << " corners accepted:case2 " << std::endl;
       }
@@ -602,7 +603,6 @@ namespace Kratos
 
     std::fill(rSlaveVertices.begin(), rSlaveVertices.end(), 0);
 
-
     // Identify subdomains: (non selfcontact elements)
     for (unsigned int i = 0; i < size; ++i)
     {
@@ -620,7 +620,8 @@ namespace Kratos
     }
 
     // NonContact Elements or Selfcontact elements (2D/3D): Number of Slaves = size * (size-1);
-    if(NumberOfSlaves == size*(size-1)){
+    if (NumberOfSlaves == size * (size - 1))
+    {
 
       std::vector<int> NeighbourVertices(size);
       std::fill(NeighbourVertices.begin(), NeighbourVertices.end(), 0);
@@ -669,11 +670,9 @@ namespace Kratos
     if (NumberOfSlaves == 0)
       return MesherUtilities::PointToPoint;
 
-
     return MesherUtilities::NonContact;
 
     KRATOS_CATCH("")
-
   }
 
   //*******************************************************************************************
@@ -741,7 +740,8 @@ namespace Kratos
     }
 
     // check areas
-    if( MaximumFaceArea >= MinimumFaceArea * 1.0e2 ){
+    if (MaximumFaceArea >= MinimumFaceArea * 1.0e2)
+    {
       return true;
     }
 
@@ -760,7 +760,8 @@ namespace Kratos
       for (unsigned int j = i + 1; j < lpofa.size2(); ++j)
       {
         double projection = inner_prod(FaceNormals[i], FaceNormals[j]);
-	    if( fabs(projection) >= 0.99 ){
+        if (std::abs(projection) >= 0.99)
+        {
           FaceCoincidentNormals[i] += 1;
           FaceCoincidentNormals[j] += 1;
         }
@@ -913,7 +914,7 @@ namespace Kratos
         if (ProjectedArea < 0)
         { // projection outside of the face
 
-          if (FaceArea < AreaTolerance * fabs(ProjectedArea))
+          if (FaceArea < AreaTolerance * std::abs(ProjectedArea))
             distorted = true;
         }
       }
