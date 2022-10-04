@@ -49,11 +49,27 @@ namespace Kratos{
         KRATOS_CATCH("")
     }
 
-    void DEMRollingFrictionModelBounded::ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
+    void DEMRollingFrictionModelBounded::ComputeRollingResistance(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3]) {
 
         KRATOS_TRY
 
-        mRollingResistance += fabs(NormalLocalContactForce) * equiv_rolling_friction_coeff;
+        Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+        const double min_radius = std::min(p_element->GetRadius(), p_neighbor->GetRadius());
+        const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
+
+        mRollingResistance += fabs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
+
+        KRATOS_CATCH("")
+    }
+
+    void DEMRollingFrictionModelBounded::ComputeRollingResistanceWithWall(SphericParticle* p_element, Condition* const wall, double LocalContactForce[3]) {
+
+        KRATOS_TRY
+
+        Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * p_element->GetRadius();
+
+        mRollingResistance += fabs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
 
         KRATOS_CATCH("")
     }

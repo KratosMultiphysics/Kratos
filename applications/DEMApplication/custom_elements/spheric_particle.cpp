@@ -861,21 +861,15 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
                     
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                    if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-                        mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                        mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, data_buffer.mIndentation);
-                    }
-                    else {
-                        Properties& properties_of_this_contact = GetProperties().GetSubProperties(data_buffer.mpOtherParticle->GetProperties().Id());
-                        const double min_radius = std::min(GetRadius(), data_buffer.mpOtherParticle->GetRadius());
-                        const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
-
-                        if (equiv_rolling_friction_coeff) {
-                            mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2],  equiv_rolling_friction_coeff, i);
-                        }
-                    }      
+              if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
+                if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
+                  mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
+                  mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, data_buffer.mIndentation);
                 }
+                else {
+                  mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
+                }      
+              }
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -1072,26 +1066,22 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             rigid_element_force[1] -= GlobalContactForce[1];
             rigid_element_force[2] -= GlobalContactForce[2];
 
+
+
+
+            // ROTATION FORCES AND ROLLING FRICTION
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
-                
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-
-                    if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-
-                        mRollingFrictionModel = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
-                        mRollingFrictionModel->ComputeRollingFrictionWithWall(LocalContactForce, this, wall, indentation, mContactMoment);
-
-                    } else {
-
-                        Properties& properties_of_this_contact = GetProperties().GetSubProperties(wall->GetProperties().Id());
-                        const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * GetRadius();
-
-                        if (equiv_rolling_friction_coeff) {
-                            mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2],  equiv_rolling_friction_coeff, i);
-                        }
-                    }      
+              ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
+              
+              if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
+                if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
+                  mRollingFrictionModel = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
+                  mRollingFrictionModel->ComputeRollingFrictionWithWall(LocalContactForce, this, wall, indentation, mContactMoment);
                 }
+                else {
+                  mRollingFrictionModel->ComputeRollingResistanceWithWall(this, wall, LocalContactForce);
+                }      
+              }
             }
 
             //WEAR

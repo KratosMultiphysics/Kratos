@@ -15,7 +15,6 @@
 #include "includes/define.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
-
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/discrete_element.h"
 #include "custom_elements/Particle_Contact_Element.h"
@@ -55,7 +54,9 @@ namespace Kratos{
 
         virtual void InitializeSolutionStep() {}
 
-        virtual void ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {}
+        virtual void ComputeRollingResistance(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3]) {}
+
+        virtual void ComputeRollingResistanceWithWall(SphericParticle* p_element, Condition* const wall, double LocalContactForce[3]) {}
 
         virtual void DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment) {}
     
@@ -70,7 +71,6 @@ namespace Kratos{
         virtual void load(Serializer& rSerializer) {
                     //rSerializer.load("MyMemberName",myMember);
         }
-
     };
 
     //This definition is done here to avoid recursive inclusion of header files

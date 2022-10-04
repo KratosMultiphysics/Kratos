@@ -37,7 +37,9 @@ namespace Kratos{
 
         virtual void InitializeSolutionStep() override;
 
-        virtual void ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) override;
+        virtual void ComputeRollingResistance(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3]) override;
+
+        virtual void ComputeRollingResistanceWithWall(SphericParticle* p_element, Condition* const wall, double LocalContactForce[3]) override;
 
         virtual void DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment) override;
     
