@@ -1,23 +1,32 @@
 # Contents
-* [Cloning Kratos](#cloning-kratos)
-* [Kratos Dependencies](#kratos-dependencies)
-  * [Kratos Core Dependencies](#kratos-core-dependencies)
-    * [Linux Installation](#linux-installation)
-    * [Windows Installation](#windows-installation)
-  * [Specific Application Dependencies](#specific-application-dependencies)
-* [Basic Configuration](#basic-configuration)
-* [Examples](#configuration-scripts-examples)
-  * [Linux](#linux)
-  * [Windows](#windows)
-  * [MacOS](#macos)
-* [Adding Applications](#adding-applications)
-* [Post Compilation](#post-compilation)
-* [Advanced Configuration](#advanced-configuration)
-  * [Building Environment](#building-environment)
-  * [Common Flags](#common-flags)
-  * [Unitary Builds](#unitary-builds)
-  * [MPI-Parallelism](#parallelism)
-  * [TPL Libraries](#tpl-libraries)
+- [Contents](#contents)
+  - [Cloning Kratos](#cloning-kratos)
+  - [Kratos Dependencies](#kratos-dependencies)
+    - [Kratos Core Dependencies](#kratos-core-dependencies)
+    - [Specific Application Dependencies](#specific-application-dependencies)
+  - [Basic Configuration](#basic-configuration)
+  - [Configuration scripts examples](#configuration-scripts-examples)
+    - [Linux](#linux)
+    - [Windows](#windows)
+      - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
+    - [MacOS](#macos)
+  - [Adding Applications](#adding-applications)
+  - [Post Compilation](#post-compilation)
+    - [Linux](#linux-1)
+    - [Windows](#windows-1)
+  - [Advanced Configuration](#advanced-configuration)
+    - [Compilation of Kratos in parallel](#compilation-of-kratos-in-parallel)
+      - [Linux](#linux-2)
+      - [Windows](#windows-2)
+      - [MacOS](#macos-1)
+    - [Building Environment](#building-environment)
+    - [Common Flags](#common-flags)
+    - [Unitary Builds](#unitary-builds)
+    - [Parallelism](#parallelism)
+    - [Logging](#logging)
+    - [TPL-Libraries](#tpl-libraries)
+      - [Tetgen](#tetgen)
+      - [Triangle](#triangle)
 
 ## Cloning Kratos
 
@@ -30,7 +39,6 @@ sudo apt-get install git
 In Windows, you can download it in:
 
 * [Download Git](https://git-scm.com/downloads)
-
 
 
 Once git is installed you can fetch the code by using this command in a terminal:
@@ -63,39 +71,92 @@ Additionaly, Visual Studio is required to compile in Windows.
 
 - #### Windows installation
 
-    - Visual Studio
+  - #####  Microsoft Visual Studio compiler
 
-        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher.
+      - Visual Studio
 
-        * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
+          *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher.
 
-        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
+          * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
-        When compiling Kratos in Windows, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
+          Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
 
-    - CMake
-        * [Download CMake](http://cmake.org/download/)
+          When compiling Kratos in Windows, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
 
-        Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
+      - CMake
+          * [Download CMake](http://cmake.org/download/)
 
-        Minimum required version: CMake 3.14
+          Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
 
-    - Python
+          Minimum required version: CMake 3.14
 
-        You will need at least *Python* 3.5 (recommended 3.7/3.8) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+      - Python
+
+          You will need at least *Python* 3.7 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+
+          * [Download Python](http://www.python.org/downloads/)
+
+          Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
+
+      - Boost
+
+          The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
+
+          * [Download Boost](http://www.boost.org/users/download/)
+
+          Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
+
+  - #####  MinGW
+
+    *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
+
+    - MSYS2
+
+        First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
+        ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
+
+        ```Shell
+        pacman -Syu
+        ```
+
+        It is very relevant to add to the *Windows* `PATH` your `msys64\mingw64\bin` folder in order that the system locates the binaries.
+
+    - Git
+
+        The first thing you will need is the *Kratos* Multiphysics source code. To download the code you will have to use a git. You can install the default git by using this command:
+
+        ```Shell
+        pacman -S git
+        ```
+
+        Once git is installed you can fetch the code by using these commands:
+
+        ```Shell
+        git clone https://github.com/KratosMultiphysics/Kratos Kratos
+        ```
+    - Dev Packages
+
+        You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
+
+        ```Shell
+        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
+        ```
+
+    - Python 
+        You will need at least *Python* 3.7 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
 
         Please, take special care to download a installer that suits your desired architecture **x86 for 32 bits**  compilations and **x86_64 for 64 bits**  compilations. Otherwise it won't work.
 
+        Unfortunately, we cannot use right now *MSYS2* directly, as the development files are not available (`python3-dev` equivalent to *GNU/Linux*).
+
     - Boost
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward. For that, we will use `pacman` again:
 
-        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
-
-        * [Download Boost](http://www.boost.org/users/download/)
-
-        Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
-
+        ```Shell
+        pacman -S mingw64/mingw-w64-x86_64-boost
+        ```
 
 ### Specific Application Dependencies
 
@@ -103,7 +164,7 @@ Some applications have additional dependencies. Please check the `README` files 
 
 ## Basic Configuration
 
-You can find the new kratos configuration file in Kratos `scripts` folder: `standard_configure.sh` for linux, `standard_configure_max.sh` for MacOS, `standard_configure.bat` for win and others.
+You can find the new kratos configuration file in Kratos `scripts` folder: `standard_configure.sh` for linux, `standard_configure_max.sh` for MacOS, `standard_configure.bat` for win and others. **TODO**
 
 Out of the box Kratos will try to find all necessary libraries in your system automatically, but we recommend you to copy these scripts and modify it according to your preferences. Please take a look at the following configuration options:
 
@@ -260,9 +321,6 @@ If you have a 64-bit system, you might need to also specify it in the configure 
 cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DUSE_EIGEN_MKL=OFF
 ```
-
-
-
 
 ### MacOS
 
@@ -448,7 +506,6 @@ Path where your applications are located. This variable is not necessary but it 
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
 
 Using this option in windows requires elevated privileges (you must run the script as admin)
-
 
 ### Common Flags
 
