@@ -74,5 +74,38 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(finalMessageFound, true);
             KRATOS_CHECK_EQUAL(messageCount, 9);
         }
+
+        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechanicsFastSuite)
+        {
+            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
+            auto projectFile = "ProjectParameters.json";
+
+            auto execute = KratosExecute();
+            
+            bool startProgressFound = false;
+            bool endProgressFound = false;
+            int progressUpdates = 0;
+
+            std::function<void(double)> reportProgress = [&startProgressFound, &endProgressFound, &progressUpdates](double progress) 
+            {
+                std::cout << "Progress: " << progress << std::endl;
+                progressUpdates++;
+
+                if(progress == 0.0) {
+                    startProgressFound = true;
+                }
+
+                if(progress == 0.75) {
+                    endProgressFound = true;
+                }
+            };
+            
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, reportProgress, &emptyLog, &emptyCancel);
+
+            KRATOS_CHECK_EQUAL(status, 0);
+            KRATOS_CHECK_EQUAL(startProgressFound, true);
+            KRATOS_CHECK_EQUAL(endProgressFound, true);
+            KRATOS_CHECK_EQUAL(progressUpdates, 10);
+        }
     }
 }

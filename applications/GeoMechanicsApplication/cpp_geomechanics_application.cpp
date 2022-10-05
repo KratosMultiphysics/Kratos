@@ -614,6 +614,7 @@ namespace Kratos
 
         try
         {
+            reportProgress(0.0);
 
             string projectpath = workingDirectory + "/" + projectName;
             auto projectfile = openProjectParamsFile(projectpath);
