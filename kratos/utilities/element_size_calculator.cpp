@@ -126,6 +126,7 @@ double ElementSizeCalculator<2,6>::MinimumElementSize(const Geometry<Node<3> >& 
 
     return minimum_element_size;
 }
+
 // Triangle2D6 version.
 template<>
 double ElementSizeCalculator<2,6>::MinimumElementSizeDerivative(
@@ -280,7 +281,6 @@ double ElementSizeCalculator<2,9>::MinimumElementSizeDerivative(
 
     return element_size_derivative;
 }
-
 
 // Tetrahedra3D4 version.
 template<>
