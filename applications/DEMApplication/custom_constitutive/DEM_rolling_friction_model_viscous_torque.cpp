@@ -5,6 +5,7 @@
 //
 // Description:
 // This model can be found as Model Type B in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
+// ATTENTION: Currently, it only works for spherical particles!
 /////////////////////////////////////////////////
 
 // Project includes
@@ -84,6 +85,7 @@ namespace Kratos {
     const double force = fabs(LocalContactForce[2]);
 
     // Calculate relative translational velocity at the contact due to relative rotation
+    // ATTENTION: It considers only the motion of the particle!
     const array_1d<double, 3>& angular_vel = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
     array_1d<double, 3> arm_vector;

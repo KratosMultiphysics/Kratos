@@ -76,7 +76,6 @@ namespace Kratos{
 
     void DEMRollingFrictionModelBounded::DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment)
     {
-
         KRATOS_TRY
 
         array_1d<double, 3> & rolling_resistance_moment = p_element->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
@@ -114,6 +113,5 @@ namespace Kratos{
 
         KRATOS_CATCH("")
     }
-
 
 }//namespace Kratos
