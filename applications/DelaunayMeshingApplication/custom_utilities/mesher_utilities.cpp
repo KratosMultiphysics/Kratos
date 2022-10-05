@@ -2150,6 +2150,533 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  void MesherUtilities::DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
+                                                          double currentTime,
+                                                          array_1d<double, 3> NodeCoordinates,
+                                                          double &meshSize,
+                                                          bool &insideTransitionZone)
+  {
 
+    KRATOS_TRY
+    const unsigned int numberOfRefiningBoxes = rMeshingVariables.UseRefiningBox.size();
+    meshSize = rMeshingVariables.Refine->CriticalRadius;
+    bool nodeInsideRefiningBox = false;
+
+    for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+    {
+      if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+      {
+        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+
+        if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[1] > RefiningBoxMinimumPoint[1] &&
+            NodeCoordinates[0] < RefiningBoxMaximumPoint[0] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1])
+        {
+          meshSize = rMeshingVariables.RefiningBoxMeshSize[index];
+          nodeInsideRefiningBox = true;
+        }
+      }
+    }
+    if (nodeInsideRefiningBox == false)
+    {
+      meshSize = 1000 * rMeshingVariables.Refine->CriticalRadius; // big number to find the minimum
+      unsigned int counter = 0;
+      for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+      {
+        if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+        {
+          array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+          array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+          array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+          array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+          double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
+          double transitionDistance = 5.0 * fabs(differenceOfSize);
+          double distanceToBox = 0;
+          double coefficient = 0;
+
+          if (NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1])
+          {
+            if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
+            {
+              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
+            {
+              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else
+            {
+              distanceToBox = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+              counter++;
+            }
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if (NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1])
+          {
+            if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
+            {
+              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
+            {
+              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else
+            {
+              distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+              counter++;
+            }
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0])
+          {
+            distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+            counter++;
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0])
+          {
+            distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+            counter++;
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+        }
+      }
+      if (counter == 0)
+      {
+        meshSize = rMeshingVariables.Refine->CriticalRadius;
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  void MesherUtilities::DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
+                                                          double currentTime,
+                                                          array_1d<double, 3> NodeCoordinates,
+                                                          double &meshSize,
+                                                          bool &insideTransitionZone)
+  {
+    KRATOS_TRY
+
+    const unsigned int numberOfRefiningBoxes = rMeshingVariables.UseRefiningBox.size();
+    meshSize = 1000 * rMeshingVariables.Refine->CriticalRadius;
+    bool nodeInsideRefiningBox = false;
+    for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+    {
+      if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+      {
+        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+
+        if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
+            NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1] &&
+            NodeCoordinates[2] > RefiningBoxMinimumPoint[2] && NodeCoordinates[2] < RefiningBoxMaximumPoint[2])
+        {
+          meshSize = rMeshingVariables.RefiningBoxMeshSize[index]; // in the internal domain the size is the one given by the user
+          nodeInsideRefiningBox = true;
+        }
+      }
+    }
+
+    if (nodeInsideRefiningBox == false)
+    {
+      meshSize = rMeshingVariables.Refine->CriticalRadius; // big number to find the minimum
+      unsigned int counter = 0;
+      for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+      {
+        if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
+        {
+          array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+          array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+          array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+          array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+
+          double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
+          double transitionDistance = 5.0 * fabs(differenceOfSize);
+          double distanceToBox = 0;
+          double coefficient = 0;
+
+          if ((NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > minExternalPoint[0] &&
+               NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] &&
+               NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+          {
+            if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
+            {
+              if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+            }
+            else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
+            {
+              if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+            }
+            else
+            {
+              distanceToBox = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+              counter++;
+            }
+
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if ((NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
+                    NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] &&
+                    NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+          {
+            if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
+            {
+              if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+            }
+            else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
+            {
+              if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+              else
+              {
+                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                distanceToBox = sqrt(radius);
+                if (distanceToBox > transitionDistance)
+                {
+                  distanceToBox = transitionDistance;
+                }
+                counter++;
+              }
+            }
+            else
+            {
+              distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+              counter++;
+            }
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if ((NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > minExternalPoint[1] &&
+                    NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
+                    NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+          {
+            if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
+            {
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
+            {
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else
+            {
+              distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              counter++;
+            }
+
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if ((NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] &&
+                    NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
+                    NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+          {
+            if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
+            {
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
+            {
+              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+              distanceToBox = sqrt(radius);
+              if (distanceToBox > transitionDistance)
+              {
+                distanceToBox = transitionDistance;
+              }
+              counter++;
+            }
+            else
+            {
+              distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              counter++;
+            }
+
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if ((NodeCoordinates[2] < RefiningBoxMinimumPoint[2] && NodeCoordinates[2] > minExternalPoint[2] &&
+                    NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
+                    NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
+          {
+            distanceToBox = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+            counter++;
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+          else if ((NodeCoordinates[2] > RefiningBoxMaximumPoint[2] && NodeCoordinates[2] < maxExternalPoint[2] &&
+                    NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] &&
+                    NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
+          {
+            distanceToBox = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+            counter++;
+            coefficient = fabs(distanceToBox) / transitionDistance;
+            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            if (localMeshSize < meshSize)
+            {
+              meshSize = localMeshSize;
+            }
+            insideTransitionZone = true;
+          }
+        }
+      }
+      if (counter == 0)
+      {
+        meshSize = rMeshingVariables.Refine->CriticalRadius;
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
 
 } // Namespace Kratos
