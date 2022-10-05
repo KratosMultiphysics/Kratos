@@ -242,8 +242,14 @@ namespace Kratos
 
 				int CountNodes = 0;
 
-				NewPositions.resize(0);
-				NodesIDToInterpolate.resize(0);
+				//NewPositions.resize(0);
+				//NodesIDToInterpolate.resize(0);
+
+				NewPositions.resize(ElementsToRefine);
+				//BiggestVolumes.resize(ElementsToRefine, false);
+				NodesIDToInterpolate.resize(ElementsToRefine);
+
+
 
 				ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 				for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
@@ -263,9 +269,20 @@ namespace Kratos
 
 				} // elements loop
 
-				mrRemesh.Info->RemovedNodes -= CountNodes;
+				//mrRemesh.Info->RemovedNodes -= CountNodes;
+				//unsigned int maxId = 0;
+				//CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, CountNodes, maxId);
+				mrRemesh.Info->RemovedNodes -= ElementsToRefine;
+				if (CountNodes < ElementsToRefine)
+				{
+					mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
+					NewPositions.resize(CountNodes);
+					//BiggestVolumes.resize(CountNodes, false);
+					NodesIDToInterpolate.resize(CountNodes);
+
+				}
 				unsigned int maxId = 0;
-				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, CountNodes, maxId);
+				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
 			}
 
 			mrRemesh.InputInitializedFlag = false;
@@ -1382,8 +1399,8 @@ namespace Kratos
 					}
 					if (newNode == true)
 					{
-						NewPositions.resize(CountNodes + 1);
-						NodesIDToInterpolate.resize(CountNodes + 1);
+						//NewPositions.resize(CountNodes + 1);
+						//NodesIDToInterpolate.resize(CountNodes + 1);
 						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
