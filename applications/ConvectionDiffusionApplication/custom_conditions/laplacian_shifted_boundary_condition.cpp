@@ -150,9 +150,8 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
 
     // Get meshless geometry data
     const double w = GetValue(INTEGRATION_WEIGHT);
-    //FIXME: Find variables for these
-    const auto& r_N = GetValue(BDF_COEFFICIENTS);
-    const auto& r_DN_DX = GetValue(LOCAL_AXES_MATRIX);
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
+    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
     array_1d<double,3> normal = GetValue(NORMAL);
     normal /= norm_2(normal);
 

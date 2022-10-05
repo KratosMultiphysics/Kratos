@@ -329,7 +329,7 @@ double GaussPointErrorUtility::ExecuteOnConditions(ModelPart& rModelPart)
 
         const double w = it_cond->GetValue(INTEGRATION_WEIGHT);
         const array_1d<double,3>& r_normal = it_cond->GetValue(NORMAL);
-        const auto& r_sh_func_grad = it_cond->GetValue(LOCAL_AXES_MATRIX);
+        const auto& r_sh_func_grad = it_cond->GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
 
         array_1d<double,3> temp_grad = ZeroVector(3);
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -361,7 +361,7 @@ double GaussPointErrorUtility::ExecuteOnConditionsSolution(ModelPart& rModelPart
         const std::size_t n_nodes = r_geom.PointsNumber();
 
         const double w = it_cond->GetValue(INTEGRATION_WEIGHT);
-        const auto& r_sh_func = it_cond->GetValue(BDF_COEFFICIENTS);
+        const auto& r_sh_func = it_cond->GetValue(SHAPE_FUNCTIONS_VECTOR);
 
         double temp = 0.0;
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {

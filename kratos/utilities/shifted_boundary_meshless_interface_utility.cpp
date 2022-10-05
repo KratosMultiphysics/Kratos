@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -367,9 +368,8 @@ namespace Kratos
                     p_cond->SetValue(NORMAL, pos_int_n[i_g] / n_norm);
                     p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
                     p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
-                    //FIXME: Find variables for these
-                    p_cond->SetValue(BDF_COEFFICIENTS, N_container);
-                    p_cond->SetValue(LOCAL_AXES_MATRIX, DN_DX_container);
+                    p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                    p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
                 }
             }
         }
@@ -561,9 +561,8 @@ namespace Kratos
                     p_cond->SetValue(NORMAL, pos_int_n[i_g] / n_norm);
                     p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
                     p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
-                    //FIXME: Find variables for these
-                    p_cond->SetValue(BDF_COEFFICIENTS, N_container);
-                    p_cond->SetValue(LOCAL_AXES_MATRIX, DN_DX_container);
+                    p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                    p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
                 }
             }
         }
@@ -651,9 +650,8 @@ namespace Kratos
                     Matrix DN_DX_container;
                     const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, i_g_coords);
                     p_mls_sh_func(cloud_nodes_coordinates, i_g_coords, mls_kernel_rad, N_container, DN_DX_container);
-                    //FIXME: Find variables for these
-                    p_cond->SetValue(BDF_COEFFICIENTS, N_container);
-                    p_cond->SetValue(LOCAL_AXES_MATRIX, DN_DX_container);
+                    p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
+                    p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
                 }
             }
         }
