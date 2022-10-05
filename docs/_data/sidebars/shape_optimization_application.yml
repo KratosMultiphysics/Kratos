@@ -92,3 +92,46 @@ entries:
     - title: Shape Update Optimization Stanford Bunny
       url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Shape_Update_Optimization_Stanford_Bunny.html
       output: web
+  - title: Siemens NX
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Overview.html
+      output: web
+    - title: Objectives and Constraints
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Objectives_and_constraints.html
+      output: web
+    - title: Design variables
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Design_variables.html
+      output: web
+    - title: Optimization settings
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Optimization_settings.html
+      output: web
+    - title: Run optimization
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Run_optimization.html
+      output: web
+    - title: Import results
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Import_results.html
+      output: web
+    - title: Convergence plot
+      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Convergence_plot.html
+      output: web
+      subfolders:
+      - title: Responses
+        output: web
+        subfolderitems:
+        - title: Average Temperature
+          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/average_temperature.html
+          output: web
+        - title: Kreisselmeier Aggregated Stress
+          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/kreisselmeier_aggregated_stress.html
+          output: web
+        - title: Mass
+          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/mass.html
+          output: web
+        - title: Strain Energy
+          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/strain_energy.html
+          output: web
+        - title: eigen frequency
+          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/eigen_frequency.html
+          output: web
