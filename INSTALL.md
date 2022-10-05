@@ -164,7 +164,7 @@ Some applications have additional dependencies. Please check the `README` files 
 
 ## Basic Configuration
 
-You can find the new kratos configuration file in Kratos `scripts` folder: `standard_configure.sh` for linux, `standard_configure_max.sh` for MacOS, `standard_configure.bat` for win and others. **TODO**
+You can find the new kratos configuration file in Kratos `scripts` folder: `standard_configure.sh` for linux, `standard_configure_mac.sh` for MacOS, `standard_configure.bat` for win and others. **TODO**
 
 Out of the box Kratos will try to find all necessary libraries in your system automatically, but we recommend you to copy these scripts and modify it according to your preferences. Please take a look at the following configuration options:
 
