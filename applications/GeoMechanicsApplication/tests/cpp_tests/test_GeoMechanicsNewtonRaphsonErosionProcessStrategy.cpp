@@ -38,7 +38,9 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, &emptyLog, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, &emptyLog, &emptyCancel);
+
+            KRATOS_CHECK_EQUAL(status, 0);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsFastSuite)
@@ -67,6 +69,7 @@ namespace Kratos
             
             int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, reportTextualProgress, &emptyCancel);
 
+            KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(firstMessageFound, true);
             KRATOS_CHECK_EQUAL(finalMessageFound, true);
             KRATOS_CHECK_EQUAL(messageCount, 9);
