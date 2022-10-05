@@ -111,7 +111,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
                 if self.settings["solver_wrapper_settings"].Has("analysis_name"):
                     analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_name"].GetString()
                 else:
-                    # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of cammel_case
+                    # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of snake_case
                     file_name = module_name.split(".")[-1]
                     # Convert Snake case to Pascal case
                     analysis_stage_name = string.capwords(file_name.replace("_", " ")).replace(" ", "")
