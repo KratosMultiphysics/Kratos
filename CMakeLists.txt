@@ -628,3 +628,6 @@ install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")
+
+# Finally copying the README for the wheels
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/kratos/scripts/wheels)
