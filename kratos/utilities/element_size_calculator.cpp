@@ -133,13 +133,14 @@ double ElementSizeCalculator<2,6>::MinimumElementSizeDerivative(
     const unsigned int DerivativeDirectionIndex,
     const Geometry<Node<3> >& rGeometry)
 {
-    KRATOS_TRY
 
-    const double minimum_element_size_derivative = ElementSizeCalculator<2,3>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    double element_size_derivative = 0.0;
 
-    return minimum_element_size_derivative;
+    if (DerivativeNodeIndex < 3)
+        element_size_derivative = ElementSizeCalculator<2,3>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
 
-    KRATOS_CATCH("");
+    return element_size_derivative;
+
 }
 
 // Quadrilateral2D4 version.
@@ -272,13 +273,12 @@ double ElementSizeCalculator<2,9>::MinimumElementSizeDerivative(
     const unsigned int DerivativeDirectionIndex,
     const Geometry<Node<3> >& rGeometry)
 {
-    KRATOS_TRY
+    double element_size_derivative = 0.0;
 
-    const double minimum_element_size_derivative = ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
 
-    return minimum_element_size_derivative;
-
-    KRATOS_CATCH("");
+    return element_size_derivative;
 }
 
 
@@ -453,9 +453,12 @@ double ElementSizeCalculator<3,10>::MinimumElementSizeDerivative(
 {
     KRATOS_TRY
 
-    const double minimum_element_size_derivative = ElementSizeCalculator<3,4>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    double element_size_derivative = 0.0;
 
-    return minimum_element_size_derivative;
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<3,4>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
 
     KRATOS_CATCH("");
 }
@@ -736,9 +739,12 @@ double ElementSizeCalculator<3,27>::MinimumElementSizeDerivative(
 {
     KRATOS_TRY
 
-    const double minimum_element_size_derivative = ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    double element_size_derivative = 0.0;
 
-    return minimum_element_size_derivative;
+    if (DerivativeNodeIndex < 8)
+        element_size_derivative = ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
 
     KRATOS_CATCH("");
 }
@@ -808,9 +814,12 @@ double ElementSizeCalculator<2,6>::AverageElementSizeDerivative(
 {
     KRATOS_TRY
 
-    const double average_element_size = ElementSizeCalculator<2,3>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    double element_size_derivative = 0.0;
 
-    return average_element_size;
+    if (DerivativeNodeIndex < 3)
+        element_size_derivative = ElementSizeCalculator<2,3>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
 
     KRATOS_CATCH("");
 }
@@ -879,9 +888,13 @@ double ElementSizeCalculator<2,9>::AverageElementSizeDerivative(
     const Geometry<Node<3> >& rGeometry)
 {
 
-    const double average_element_size_derivative = ElementSizeCalculator<2,4>::AverageElementSizeDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, rGeometry);
+    double element_size_derivative = 0.0;
 
-    return average_element_size_derivative;
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<2,4>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
 }
 
 // Tetrahedra3D4 version.
@@ -994,9 +1007,13 @@ double ElementSizeCalculator<3,10>::AverageElementSizeDerivative(
 {
     KRATOS_TRY
 
-    const double average_element_size_derivative = ElementSizeCalculator<3,4>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    double element_size_derivative = 0.0;
 
-    return average_element_size_derivative;
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<3,4>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
 
     KRATOS_CATCH("");
 }
@@ -1204,8 +1221,10 @@ double ElementSizeCalculator<3,27>::AverageElementSizeDerivative(
     const Geometry<Node<3> >& rGeometry)
 {
     KRATOS_TRY
+    double element_size_derivative = 0.0;
 
-    const double element_size_derivative = ElementSizeCalculator<3,8>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    if (DerivativeNodeIndex < 8)
+        element_size_derivative = ElementSizeCalculator<3,8>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
 
     return element_size_derivative;
 
