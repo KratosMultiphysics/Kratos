@@ -390,7 +390,7 @@ namespace Kratos {
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
-                              mRollingFrictionModel->ComputeRollingResistance(this, neighbour_iterator, LocalContactForce);
+                              mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
                             }
                         }
                     }
@@ -409,7 +409,7 @@ namespace Kratos {
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
-                                mRollingFrictionModel->ComputeRollingResistance(this, neighbour_iterator, LocalContactForce);
+                                mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
                             }
                         }
                     }
