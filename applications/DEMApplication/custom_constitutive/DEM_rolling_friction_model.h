@@ -1,8 +1,10 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-// Email: chengshun.shang1996@gmail.com
-// Date: Aug 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - ThermalDEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//
 
 #if !defined(DEM_ROLLING_FRICTION_MODEL_H_INCLUDED)
 #define DEM_ROLLING_FRICTION_MODEL_H_INCLUDED

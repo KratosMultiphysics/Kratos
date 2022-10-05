@@ -1,12 +1,15 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-//              Joaqu¨ªn Iraz¨¢bal
-// Email: chengshun.shang1996@gmail.com
-// Date: Sep 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - ThermalDEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//                 Joaquin Irazabal (jirazabal@cimne.upc.edu)
+//
 
-//This model can be found as BRFM in [Joaqu¨ªn Iraz¨¢bal, 2017, Numerical modelling of granular materials -
-//with spherical discrete particles and the bounded rolling friction model. Application to railway ballast]
+// Description:
+// This model can be found as BRFM in [Joaquin Irazabal, 2017, Numerical modelling of granular materials -
+// with spherical discrete particles and the bounded rolling friction model. Application to railway ballast]
 
 #include "DEM_rolling_friction_model_bounded.h"
 #include "custom_utilities/GeometryFunctions.h"
@@ -53,11 +56,11 @@ namespace Kratos{
 
         KRATOS_TRY
 
-        Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+        Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
         const double min_radius = std::min(p_element->GetRadius(), p_neighbor->GetRadius());
-        const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
+        const double equiv_rolling_friction_coeff = r_properties[ROLLING_FRICTION] * min_radius;
 
-        mRollingResistance += fabs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
+        mRollingResistance += std::abs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
 
         KRATOS_CATCH("")
     }
@@ -66,10 +69,10 @@ namespace Kratos{
 
         KRATOS_TRY
 
-        Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
-        const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * p_element->GetRadius();
+        Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double equiv_rolling_friction_coeff = r_properties[ROLLING_FRICTION] * p_element->GetRadius();
 
-        mRollingResistance += fabs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
+        mRollingResistance += std::abs(LocalContactForce[2]) * equiv_rolling_friction_coeff;
 
         KRATOS_CATCH("")
     }

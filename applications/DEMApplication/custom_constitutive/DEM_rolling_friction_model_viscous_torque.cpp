@@ -1,12 +1,14 @@
-/////////////////////////////////////////////////
-// Main author: Rafael Rangel (CIMNE)
-// Email: rrangel@cimne.upc.edu
-// Date: Oct 2022
+//  Kratos Multi-Physics - ThermalDEM Application
 //
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
+//
+
 // Description:
 // This model can be found as Model Type B in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
 // ATTENTION: Currently, it only works for spherical particles!
-/////////////////////////////////////////////////
 
 // Project includes
 #include "DEM_rolling_friction_model_viscous_torque.h"
@@ -31,8 +33,8 @@ namespace Kratos {
   void DEMRollingFrictionModelViscousTorque::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalCoordSystem_2[3], double LocalContactForce[3], array_1d<double, 3>& mContactMoment)
   {
     // Get rolling friction coefficient
-    Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
-    const double rolling_friction_coefficient = properties_of_this_contact[ROLLING_FRICTION];
+    Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+    const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
     // Calculate equivalent radius (this only works for sphere particles)
     const double my_radius    = p_element->GetRadius();
@@ -40,7 +42,7 @@ namespace Kratos {
     const double equiv_radius = my_radius * other_radius / (my_radius + other_radius);
 
     // Get normal contact force
-    const double force = fabs(LocalContactForce[2]);
+    const double force = std::abs(LocalContactForce[2]);
 
     // Calculate relative translational velocity at the contact between two particles due to relative rotation
     const array_1d<double, 3>& my_angular_vel    = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -75,14 +77,14 @@ namespace Kratos {
   void DEMRollingFrictionModelViscousTorque::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, double LocalCoordSystem_2[3], double LocalContactForce[3], array_1d<double, 3>& mContactMoment)
   {
     // Get rolling friction coefficient
-    Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
-    const double rolling_friction_coefficient = properties_of_this_contact[ROLLING_FRICTION];
+    Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+    const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
     // Get particle radius
     const double radius = p_element->GetRadius();
 
     // Get normal contact force
-    const double force = fabs(LocalContactForce[2]);
+    const double force = std::abs(LocalContactForce[2]);
 
     // Calculate relative translational velocity at the contact due to relative rotation
     // ATTENTION: It considers only the motion of the particle!

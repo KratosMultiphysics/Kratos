@@ -1,10 +1,13 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-// Email: chengshun.shang1996@gmail.com
-// Date: Aug 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - ThermalDEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//
 
-//This model can be found as Model Type A in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
+// Description:
+// This model can be found as Model Type A in [Jun Ai, 2011, Assessment of rolling resistance models in discrete element simulations]
 
 #include "DEM_rolling_friction_model_constant_torque.h"
 #include "custom_utilities/GeometryFunctions.h"
@@ -44,12 +47,12 @@ namespace Kratos{
             const double equiv_radius = my_radius * other_radius / (my_radius + other_radius);
 
             // Get rolling friction coefficient
-            Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
-            const double rolling_friction_coefficient = properties_of_this_contact[ROLLING_FRICTION];
+            Properties& r_properties = p_element->GetProperties().GetSubProperties(p_neighbor->GetProperties().Id());
+            const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
-            mContactMoment[0] -= elementRelAngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * equiv_radius * rolling_friction_coefficient; 
-            mContactMoment[1] -= elementRelAngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * equiv_radius * rolling_friction_coefficient; 
-            mContactMoment[2] -= elementRelAngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * equiv_radius * rolling_friction_coefficient; 
+            mContactMoment[0] -= elementRelAngularVelocity_normalise[0] * std::abs(LocalContactForce[2]) * equiv_radius * rolling_friction_coefficient;
+            mContactMoment[1] -= elementRelAngularVelocity_normalise[1] * std::abs(LocalContactForce[2]) * equiv_radius * rolling_friction_coefficient;
+            mContactMoment[2] -= elementRelAngularVelocity_normalise[2] * std::abs(LocalContactForce[2]) * equiv_radius * rolling_friction_coefficient;
         }
     }
 
@@ -66,12 +69,12 @@ namespace Kratos{
             const double radius = p_element->GetRadius();
 
             // Get rolling friction coefficient
-            Properties& properties_of_this_contact = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
-            const double rolling_friction_coefficient = properties_of_this_contact[ROLLING_FRICTION];
+            Properties& r_properties = p_element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+            const double rolling_friction_coefficient = r_properties[ROLLING_FRICTION];
 
-            mContactMoment[0] -= element1AngularVelocity_normalise[0] * fabs(LocalContactForce[2]) * radius * rolling_friction_coefficient; 
-            mContactMoment[1] -= element1AngularVelocity_normalise[1] * fabs(LocalContactForce[2]) * radius * rolling_friction_coefficient; 
-            mContactMoment[2] -= element1AngularVelocity_normalise[2] * fabs(LocalContactForce[2]) * radius * rolling_friction_coefficient; 
+            mContactMoment[0] -= element1AngularVelocity_normalise[0] * std::abs(LocalContactForce[2]) * radius * rolling_friction_coefficient;
+            mContactMoment[1] -= element1AngularVelocity_normalise[1] * std::abs(LocalContactForce[2]) * radius * rolling_friction_coefficient;
+            mContactMoment[2] -= element1AngularVelocity_normalise[2] * std::abs(LocalContactForce[2]) * radius * rolling_friction_coefficient;
         }
     }
 
