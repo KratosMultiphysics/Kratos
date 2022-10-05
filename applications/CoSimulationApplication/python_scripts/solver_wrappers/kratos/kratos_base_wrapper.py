@@ -109,7 +109,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
             else:
                 KM.Logger.PrintWarning("KratosBaseWrapper", f'The analysis_stage_module "{module_name}" does not have a "Create" function, trying to create the AnalysisStage directly...')
                 if self.settings["solver_wrapper_settings"].Has("analysis_name"):
-                    analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_name"].GetString()
+                    analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_stage_name"].GetString()
                 else:
                     # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of snake_case
                     file_name = module_name.split(".")[-1]
