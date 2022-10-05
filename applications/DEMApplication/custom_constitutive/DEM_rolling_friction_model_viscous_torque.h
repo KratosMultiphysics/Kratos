@@ -1,4 +1,4 @@
-//  Kratos Multi-Physics - ThermalDEM Application
+//  Kratos Multi-Physics - DEM Application
 //
 //  License:       BSD License
 //                 Kratos default license: kratos/license.txt
