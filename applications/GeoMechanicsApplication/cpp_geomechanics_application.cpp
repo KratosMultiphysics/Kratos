@@ -509,7 +509,6 @@ namespace Kratos
         WriteConditionsFlag condition_output = ConditionFlag[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].GetString()];
 
         filename = workingDirectory + "/" + filename;
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Output Filename: " << filename << std::endl;
         GidIO<> gid_io(filename, gid_output_type, multifiles_output, deformed_output, condition_output);
 
         gid_io.InitializeMesh(0.0);
@@ -602,10 +601,10 @@ namespace Kratos
     int KratosExecute::execute_flow_analysis(string workingDirectory, string projectName,
                                              double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                              string criticalHeadBoundaryModelPartName,
-                                             void logCallback(char *),
-                                             void reportProgress(double),
-                                             void reportTextualProgress(char *),
-                                             bool shouldCancel())
+                                             std::function<void(char *)> logCallback,
+                                             std::function<void(double)> reportProgress,
+                                             std::function<void(char *)> reportTextualProgress,
+                                             std::function<bool()> shouldCancel)
     {
         this->SetEchoLevel(1);
 
@@ -758,10 +757,10 @@ namespace Kratos
                     std::ostringstream currentHeadStream;
                     currentHeadStream << std::setprecision(8) << std::noshowpoint << currentHead;
                     std::string currentHeadString = currentHeadStream.str();
-                    
+
                     std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
                     reportTextualProgress(progress.data());
-                    reportProgress(((double) step) / ((double) maxSteps));
+                    reportProgress(((double)step) / ((double)maxSteps));
 
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
