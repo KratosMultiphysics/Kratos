@@ -32,11 +32,11 @@ namespace Kratos{
         KRATOS_ERROR << "This function (DEMRollingFrictionModel::Check) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
-    void DEMRollingFrictionModel::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3], array_1d<double, 3>& mContactMoment, double indentation){
+    void DEMRollingFrictionModel::ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalCoordSystem_2[3], double LocalContactForce[3], array_1d<double, 3>& mContactMoment){
         //KRATOS_ERROR << "This function (DEMRollingFrictionModel::ComputeRollingFriction) shouldn't be accessed, use derived class instead"<<std::endl;
     }
         
-    void DEMRollingFrictionModel::ComputeRollingFrictionWithWall(double LocalContactForce[3], SphericParticle* p_element, Condition* const wall, double indentation, array_1d<double, 3>& mContactMoment){
+    void DEMRollingFrictionModel::ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, double LocalCoordSystem_2[3], double LocalContactForce[3], array_1d<double, 3>& mContactMoment){
         //KRATOS_ERROR << "This function (DEMRollingFrictionModel::ComputeRollingFrictionWithWall) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 

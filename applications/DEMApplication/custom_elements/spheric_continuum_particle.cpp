@@ -386,7 +386,7 @@ namespace Kratos {
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, data_buffer.mLocalCoordSystem[2], LocalContactForce, mContactMoment);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
@@ -405,7 +405,7 @@ namespace Kratos {
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, data_buffer.mLocalCoordSystem[2], LocalContactForce, mContactMoment);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
