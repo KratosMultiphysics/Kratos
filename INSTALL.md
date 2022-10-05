@@ -8,7 +8,9 @@
   - [Configuration scripts examples](#configuration-scripts-examples)
     - [GNU/Linux](#gnulinux)
     - [Windows](#windows)
-      - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
+      - [Visual Studio](#visual-studio)
+        - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
+      - [MinGW](#mingw)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -260,6 +262,8 @@ cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(npr
 
 ### Windows
 
+#### Visual Studio
+
 ```cmd
 rem Set compiler
 set CC=cl.exe
@@ -308,7 +312,8 @@ rem Function to add apps
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
 goto:eof
 ```
-#### Windows Visual Studio compilation configuration
+
+##### Windows Visual Studio compilation configuration
 
 Some of the parameters detailed in the example script above may vary from system to system, or the *Visual Studio* version.
 
@@ -325,7 +330,81 @@ If you have a 64-bit system, you might need to also specify it in the configure 
 cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DUSE_EIGEN_MKL=OFF
 ```
+#### MinGW
 
+In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
+
+```cmd
+cls
+
+@REM Set variables
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
+
+@REM Set basic configuration
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+@REM Decomment the following in case of considering MKL
+@REM if not defined MKLROOT set MKLROOT=C:\PROGRA~2\Intel\oneAPI\mkl\latest\
+
+@REM rem setting environment variables for using intel MKL
+@REM call "%MKLROOT%\env\vars.bat" intel64 lp64
+
+:: you may want to decomment this the first time you compile
+@REM Clean
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+sh %KRATOS_BUILD%\configure_MINGW.sh
+```
+
+And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
+
+```bash
+# Function to add apps
+add_app () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+# Set compiler #NOTE: Currently only GCC is supported, linking error on recent versions of Clang/LLVM, see https://github.com/llvm/llvm-project/issues/53433
+export CC=${CC:-gcc}
+export CXX=${CXX:-g++}
+
+# Set variables
+export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
+export KRATOS_BUILD="${KRATOS_SOURCE}/build"
+export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+export KRATOS_SHARED_MEMORY_PARALLELIZATION=${KRATOS_SHARED_MEMORY_PARALLELIZATION:-"OpenMP"}
+
+# Set basic configuration
+export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"C:/Windows/py.exe"}
+
+# Set applications to compile
+export KRATOS_APPLICATIONS=
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+
+# Configure
+cmake ..                                                                                            \
+-G "MinGW Makefiles"                                                                                \
+-DWIN32=TRUE                                                                                        \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
+-DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
+-DCMAKE_EXE_LINKER_FLAGS="-s"                                                                       \
+-DCMAKE_SHARED_LINKER_FLAGS="-s"                                                                    \
+-H"${KRATOS_SOURCE}"                                                                                \
+-B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
+-DUSE_MPI=OFF                                                                                       \
+-DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
+-DUSE_EIGEN_MKL=OFF
+
+# Buid
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+```
 ### MacOS
 
 ```bash
@@ -376,7 +455,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 In order to add an application you can use the provided macro (`add_app [PATH]` for *GNU/Linux*, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
 
-Its now also possible to compile applications outside kratos source dir:
+Its now also possible to compile applications outside *Kratos* source dir:
 
 *GNU/Linux*:
 ```shell
@@ -391,6 +470,8 @@ CALL :add_app %KRATOS_APP_DIR%/LinearSolversApplication
 CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
 ```
+
+For *Windows* with *MinGW* it works in the same way as in *GNU/Linux* as it works as a bash script.
 
 ## Post Compilation
 
