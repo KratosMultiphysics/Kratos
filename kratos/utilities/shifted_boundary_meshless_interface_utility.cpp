@@ -50,16 +50,24 @@ namespace Kratos
         // Set the order of the MLS extension operator used in the MLS shape functions utility
         mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
 
-        // If true, the MLS basis is created such that it is conforming with the linear FE space of the surrogate boundary
-        mMLSConformingBasis = ThisParameters["mls_conforming_basis"].GetBool();
+        // If true, the basis is created such that it is conforming with the linear FE space of the surrogate boundary
+        mConformingBasis = ThisParameters["conforming_basis"].GetBool();
 
         // If true, the basis is created such that the surrogate boundary gradient is kept
-        mGradientBasedConformingBasis = ThisParameters["gradient_based_conforming_basis"].GetBool();
+        const std::string ext_op_type = ThisParameters["extension_operator_type"].GetString();
+        if (ext_op_type == "MLS") {
+            mExtensionOperator = ExtensionOperator::MLS;
+        } else if (ext_op_type == "RBF") {
+            mExtensionOperator = ExtensionOperator::RBF;
+        } else if (ext_op_type == "gradient_based") {
+            mExtensionOperator = ExtensionOperator::GradientBased;
+        } else {
+            KRATOS_ERROR << "Wrong 'extension_operator_type' provided. Available options are 'MLS', 'RBF' and 'gradient_based'." << std::endl;
+        }
 
         // Check that the basis settings are correct
-        KRATOS_ERROR_IF(mMLSConformingBasis && mGradientBasedConformingBasis) << "Both 'mls_conforming_basis' and 'gradient_based_conforming_basis' are 'true'. Select one." << std::endl;
-        KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceUtility", !mGradientBasedConformingBasis && !mMLSConformingBasis)
-            << "Both 'mls_conforming_basis' and 'gradient_based_conforming_basis' are 'false'. MLS non-conforming basis will be used." << std::endl;
+        KRATOS_ERROR_IF(mExtensionOperator == ExtensionOperator::GradientBased && !mConformingBasis)
+            << "'gradient_based' extension operator can only be used with conforming basis." << std::endl;
 
         // Set the SBD contion prototype to be used in the condition creation
         std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
@@ -69,10 +77,10 @@ namespace Kratos
 
     void ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator()
     {
-        if (mGradientBasedConformingBasis) {
+        if (mExtensionOperator == ExtensionOperator::GradientBased) {
             CalculateGradientBasedConformingExtensionBasis();
         } else {
-            if (mMLSConformingBasis) {
+            if (mConformingBasis) {
                 CalculateMeshlessBasedConformingExtensionBasis();
             } else {
                 CalculateMeshlessBasedNonConformingExtensionBasis();
@@ -86,9 +94,9 @@ namespace Kratos
             "model_part_name" : "",
             "boundary_sub_model_part_name" : "",
             "sbm_interface_condition_name" : "",
-            "mls_extension_operator_order" : 1,
-            "mls_conforming_basis" : true,
-            "gradient_based_conforming_basis" : false
+            "conforming_basis" : true,
+            "extension_operator_type" : "MLS",
+            "mls_extension_operator_order" : 1
         })" );
 
         return default_parameters;

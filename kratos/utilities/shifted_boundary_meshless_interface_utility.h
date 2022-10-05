@@ -52,6 +52,13 @@ public:
     ///@name Type Definitions
     ///@{
 
+    enum class ExtensionOperator
+    {
+        MLS,
+        RBF,
+        GradientBased
+    };
+
     using IndexType = ModelPart::IndexType;
 
     using NodeType = ModelPart::NodeType;
@@ -159,9 +166,9 @@ private:
     ModelPart* mpModelPart = nullptr;
     ModelPart* mpBoundarySubModelPart = nullptr;
 
-    bool mMLSConformingBasis;
+    bool mConformingBasis;
 
-    bool mGradientBasedConformingBasis;
+    ExtensionOperator mExtensionOperator;
 
     std::size_t mMLSExtensionOperatorOrder;
 

@@ -31,9 +31,9 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
+            "conforming_basis" : true,
+            "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
-            "mls_conforming_basis" : true,
-            "gradient_based_conforming_basis" : false,
             "lagrange_multipliers_imposition" : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -90,9 +90,9 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         settings = KratosMultiphysics.Parameters("""{}""")
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
+        settings.AddEmptyValue("conforming_basis").SetBool(self.settings["conforming_basis"].GetBool())
+        settings.AddEmptyValue("extension_operator_type").SetString(self.settings["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
-        settings.AddEmptyValue("mls_conforming_basis").SetBool(self.settings["mls_conforming_basis"].GetBool())
-        settings.AddEmptyValue("gradient_based_conforming_basis").SetBool(self.settings["gradient_based_conforming_basis"].GetBool())
         if self.settings["lagrange_multipliers_imposition"].GetBool():
             sbm_interface_condition_name = "LaplacianShiftedBoundaryLagrangeMultipliersCondition"
         else:
