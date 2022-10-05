@@ -108,18 +108,24 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
                 return analysis_stage_module.Create(self.model, self.project_parameters)
             else:
                 KM.Logger.PrintWarning("KratosBaseWrapper", f'The analysis_stage_module "{module_name}" does not have a "Create" function, trying to create the AnalysisStage directly...')
-                if self.settings["solver_wrapper_settings"].Has("analysis_name"):
-                    analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_stage_name"].GetString()
-                else:
-                    # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of snake_case
-                    file_name = module_name.split(".")[-1]
-                    # Convert Snake case to Pascal case
-                    analysis_stage_name = string.capwords(file_name.replace("_", " ")).replace(" ", "")
+                # We assume that the name of the AnalysisStage is the same as the name of the module in PascalCase instead of snake_case
+                file_name = module_name.split(".")[-1]
+                # Convert Snake case to Pascal case
+                analysis_stage_name = string.capwords(file_name.replace("_", " ")).replace(" ", "")
+
                 # Getting the analysis class
                 if hasattr(analysis_stage_module, analysis_stage_name):
                     analysis = getattr(analysis_stage_module, analysis_stage_name)
                 else:
-                    Exception("\"" + module_name + "\" does not have a \"" + analysis_stage_name + "\" class!")
+                    if self.settings["solver_wrapper_settings"].Has("analysis_name"):
+                        analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_stage_name"].GetString()
+                        if hasattr(analysis_stage_module, analysis_stage_name):
+                            analysis = getattr(analysis_stage_module, analysis_stage_name)
+                        else:
+                            Exception("\"" + module_name + "\" does not have a \"" + analysis_stage_name + "\" class!")
+                    else:
+                        Exception("\"" + module_name + "\" does not have a \"" + analysis_stage_name + "\" class!. Please provide a custom \"" + analysis_stage_name + "\" in your settings")
+                    
                 return analysis(self.model, self.project_parameters)
         else:
             return self._CreateAnalysisStage()
