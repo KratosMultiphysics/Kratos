@@ -6,17 +6,17 @@
     - [Specific Application Dependencies](#specific-application-dependencies)
   - [Basic Configuration](#basic-configuration)
   - [Configuration scripts examples](#configuration-scripts-examples)
-    - [Linux](#linux)
+    - [GNU/Linux](#gnulinux)
     - [Windows](#windows)
       - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
-    - [Linux](#linux-1)
+    - [GNU/Linux](#gnulinux-1)
     - [Windows](#windows-1)
   - [Advanced Configuration](#advanced-configuration)
     - [Compilation of Kratos in parallel](#compilation-of-kratos-in-parallel)
-      - [Linux](#linux-2)
+      - [GNU/Linux](#gnulinux-2)
       - [Windows](#windows-2)
       - [MacOS](#macos-1)
     - [Building Environment](#building-environment)
@@ -30,16 +30,15 @@
 
 ## Cloning Kratos
 
-In order to obtain the source code of Kratos, you will need to clone the repository using git.
+In order to obtain the source code of *Kratos*, you will need to clone the repository using git.
 
-You can install git through the following command in Linux:
+You can install git through the following command in *GNU/Linux*:
 ```Shell
 sudo apt-get install git
 ```
-In Windows, you can download it in:
+In *Windows*, you can download it in:
 
 * [Download Git](https://git-scm.com/downloads)
-
 
 Once git is installed you can fetch the code by using this command in a terminal:
 
@@ -50,15 +49,15 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 ## Kratos Dependencies
 
 ### Kratos Core Dependencies
-  These are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
+  These are the basic dependecies needed to compile the *Kratos* Core and most of the *Kratos* applications.
   * Python3-dev
   * C++17 compiler
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
 
-Additionaly, Visual Studio is required to compile in Windows.
+Additionaly, Visual Studio is required to compile in *Windows*.
 
-- #### Linux installation
+- #### GNU/Linux installation
 
     The command below will install all the packages needed.
 
@@ -75,13 +74,13 @@ Additionaly, Visual Studio is required to compile in Windows.
 
       - Visual Studio
 
-          *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher.
+          *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2017*, but we recommend to use *Visual Studio 2019* or higher.
 
           * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
           Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
 
-          When compiling Kratos in Windows, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
+          When compiling *Kratos* in *Windows*, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
 
       - CMake
           * [Download CMake](http://cmake.org/download/)
@@ -164,9 +163,9 @@ Some applications have additional dependencies. Please check the `README` files 
 
 ## Basic Configuration
 
-You can find the new kratos configuration file in Kratos `scripts` folder: `standard_configure.sh` for linux, `standard_configure_mac.sh` for MacOS, `standard_configure.bat` for win and others. **TODO**
+You can find the new kratos configuration file in *Kratos* `scripts` folder: `standard_configure.sh` for *GNU/Linux*, `standard_configure_mac.sh` for *MacOS*, `standard_configure.bat` for *Windows* and others. In the special case of *Windows* using *MinGW* you will need to copy two scripts (`standard_configure_MINGW.bat` and `standard_configure_MINGW.sh`) both are required, but only the `.bat` file is invoked.
 
-Out of the box Kratos will try to find all necessary libraries in your system automatically, but we recommend you to copy these scripts and modify it according to your preferences. Please take a look at the following configuration options:
+Out of the box *Kratos* will try to find all necessary libraries in your system automatically, but we recommend you to copy these scripts and modify it according to your preferences. Please take a look at the following configuration options:
 
 `KRATOS_BUILD_TYPE`
 
@@ -184,12 +183,12 @@ Compilation Type. Options are `Release`,`RelWithDebInfo`,`Debug`,`FullDebug`,`Cu
 
 `PYTHON_EXECUTABLE`
 
-Path to the python executable that Kratos will use. We recommend that you manually set this in case you have multiple versions of python in the system.
-Ubuntu users need to be extra careful with this as default versions tends to be Python2, while Kratos is preferably compiled with Python3
+Path to the python executable that *Kratos* will use. We recommend that you manually set this in case you have multiple versions of python in the system.
+*Ubuntu* users need to be extra careful with this as default versions tends to be Python2, while *Kratos* is compiled with Python3
 
 `BOOST_ROOT`
 
-Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using apt-get.
+Don't use this unless you have problems during the compilation. Path to boost root directory, set it if you downloaded but without using `apt-get`.
 
 ## Configuration scripts examples
 
@@ -200,22 +199,22 @@ cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configu
 ```
 Then, these scripts can be launched through the system terminal.
 
-Linux
+*GNU/Linux*
 
 ```Shell
 sh /path_to_kratos/scripts/configure.sh
 ```
 
-Windows
+*Windows*
 
 ```Shell
 ./path_to_kratos/scripts/configure.bat
 ```
-Note: after installing Visual Studio, in some Windows systems the console does not have direct access to the Visual Studio Compiler. In order to make sure the compiler is available, try typing 'cl'. Use this console to compile Kratos if the compiler responds. In case of error, instead of using the standard Windows console, open the Native Tools Command Prompt console and launch the compilation from there.
+**NOTE**: after installing Visual Studio, in some *Windows* systems the console does not have direct access to the *Visual Studio Compiler*. In order to make sure the compiler is available, try typing `cl`. Use this console to compile *Kratos* if the compiler responds. In case of error, instead of using the standard *Windows* console, open the *Native Tools Command Prompt* console and launch the compilation from there.
 
 The example scripts for every system are shown next.
 
-### Linux
+### GNU/Linux
 
 ```bash
 # Function to add apps
@@ -375,18 +374,18 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 ## Adding Applications
 
-In order to add an application you can use the provided macro (`add_app [PATH]` for Linux, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
+In order to add an application you can use the provided macro (`add_app [PATH]` for *GNU/Linux*, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
 
 Its now also possible to compile applications outside kratos source dir:
 
-Linux:
+*GNU/Linux*:
 ```shell
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicApplication
 add_app /home/username/development/ExternalApplication  # Example of external Application
 ```
 
-Windows:
+*Windows*:
 ```shell
 CALL :add_app %KRATOS_APP_DIR%/LinearSolversApplication
 CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
@@ -395,14 +394,14 @@ CALL :add_app C:/users/username/development/ExternalApplication  # Example of ex
 
 ## Post Compilation
 
-As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
+As *Kratos* is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the *Kratos* install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
 
-### Linux
+### GNU/Linux
 ```bash
 export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
 ```
-Or set them permanently by adding these lines in your *~/.bashrc*.
+Or set them permanently by adding these lines in your `~/.bashrc`.
 
 ### Windows
 In a *Command Prompt:*
@@ -461,7 +460,7 @@ cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 
 #### Windows
 
-Windows should detect automatically the number of threads of your computer, but many times this mechanism fails. We included several options in order to force the parallel compilation:
+*Windows* should detect automatically the number of threads of your computer, but many times this mechanism fails. We included several options in order to force the parallel compilation:
 
 You can force it manually by commenting this lines in the configuration file, and adding a number of processes of your choice:
 ```ps1
@@ -487,32 +486,31 @@ rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 /p:CL_MPcount=2 /m:2
 ```
 
-Finally you can set parallelism options in the VisualStudio IDE.
+Finally you can set parallelism options in the *VisualStudio IDE*.
 
 **Warning**: Please be careful while mixing parallel builds with unitary builds. See [below](#unitary-builds)
 
 #### MacOS
 
-There is no dedicated support for parallel builds in MacOS, but Linux options should behave very similarly. If you detect a problem please inform us and we will
-try to update this section with the specifics.
+There is no dedicated support for parallel builds in *MacOS*, but *GNU/Linux* options should behave very similarly. If you detect a problem please inform us and we will try to update this section with the specifics.
 
 ### Building Environment
 
-It is possible to configure the build environment for Kratos, that is: where the source is located, which will be the install dir, and how the python files are going to be installed.
+It is possible to configure the build environment for *Kratos*, that is: where the source is located, which will be the install dir, and how the python files are going to be installed.
 
 `KRATOS_SOURCE=Path`
-Path to the source of Kratos. It will target the directory above this script by default.
+Path to the source of *Kratos*. It will target the directory above this script by default.
 
 `KRATOS_BUILD=Path`
-Build directory for Kratos. Makefiles, vsprojects and other artifacts will be stored here. It defaults to Kratos/Build
+Build directory for *Kratos*. Makefiles, vsprojects and other artifacts will be stored here. It defaults to `Kratos/Build`
 
 `KRATOS_APP_DIR=Path`
-Path where your applications are located. This variable is not necessary but it helps to organize the list of applications to be compiled. It defaults to Kratos/Applications
+Path where your applications are located. This variable is not necessary but it helps to organize the list of applications to be compiled. It defaults to `Kratos/Applications`
 
 `KRATOS_INSTALL_PYTHON_USING_LINKS=ON/OFF`
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
 
-Using this option in windows requires elevated privileges (you must run the script as admin)
+Using this option in *Windows* requires elevated privileges (you must run the script as admin)
 
 ### Common Flags
 
@@ -525,7 +523,7 @@ Path to the C compiler. Overrides `CC` environment variable
 Path to the C++ compiler. Overrides `CXX` environment variable
 
 `-DCMAKE_INSTALL_PREFIX=String`
-Install path for Kratos. If not set the installation will be done in `bin/[build_type]`
+Install path for *Kratos*. If not set the installation will be done in `bin/[build_type]`
 
 `-DCMAKE_C_FLAGS=String`
 User defined flags for the C compiler.
@@ -534,42 +532,41 @@ User defined flags for the C compiler.
 User defined flags for the C++ compiler.
 
 `-DBOOST_ROOT=String`
-Root directory for boost. Overrided by BOOST_ROOT environmental variable if defined.
+Root directory for boost. Overrided by `BOOST_ROOT` environmental variable if defined.
 
 `-DPYTHON_EXECUTABLE=String`
-Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by PYTHON_EXECUTABLE environmental variable if defined.
+Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by `PYTHON_EXECUTABLE` environmental variable if defined.
 
 `-DINSTALL_RUNKRATOS=ON/OFF`
 Enables(Default) or Disables the compilation of the embedded python interpreter (aka Runkratos).
 
 `-DKRATOS_BUILD_TESTING=ON/OFF`
-Enables(Default) or Disables the compilation of the C++ unitary tests for Kratos and Applications.
+Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.
 
 ### Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`
 Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
-Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
+Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with `-jx`.
 
 In order to install and compile with this switch please use:
 
-On Linux
+On *GNU/Linux*
 ```shell
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j1
 ```
-On Windows
+On *Windows*
 ```shell
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
 
-Please, beware that using this flag along with a parallel compilation may cause a VERY LARGE use of ram as we hardcoded Kratos compilation so unitary builds try to make as many unitary targets as threads are usable
+Please, beware that using this flag along with a parallel compilation may cause a **VERY LARGE** use of RAM as we hardcoded *Kratos* compilation so unitary builds try to make as many unitary targets as threads are usable.
 We recommed you to disable parallel compilation unless you know what you are doing.
 
 ### Parallelism
 
-Building Kratos with support for MPI requires an advanced configuration of its building script,
-as well as the building of dependencies and parallel applications.
+Building *Kratos* with support for **MPI** requires an advanced configuration of its building script, as well as the building of dependencies and parallel applications.
 Here you can find [guidelines](https://github.com/KratosMultiphysics/Kratos/wiki/Compiling-Kratos-with-MPI-support) for the compilation of Kratos and its dependencies.
 
 ### Logging
@@ -577,28 +574,28 @@ Here you can find [guidelines](https://github.com/KratosMultiphysics/Kratos/wiki
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### TPL-Libraries
-Kratos can make use of TPL libraries that cannot be included in the main compilation processes for a variety of reasons
+*Kratos* can make use of TPL libraries that cannot be included in the main compilation processes for a variety of reasons
 If you want to add support for those libraries, we provide switches to enable them.
 
 Please note that **Kratos will NEVER DISTRIBUTE, RELEASE or COMPILE** with these libraries unless explicitly specified, and the use of these libraries may add additional restrictions on top of BSD.
 
 #### Tetgen
-[Tetgen](http://wias-berlin.de/software/tetgen/) is a library to generate tetrahedral meshes. We provide some utilities that can make use of tetgen. The flags related with Tetgen are the following:
+[Tetgen](http://wias-berlin.de/software/tetgen/) is a library to generate tetrahedral meshes. We provide some utilities that can make use of *Tetgen*. The flags related with *Tetgen* are the following:
 
 `-DUSE_TETGEN_NONFREE_TPL=ON`
-Enables/Disables the use of tetgen and its related utilities in the code. If no other options provided Kratos will try to find tetgen installed on your system.
+Enables/Disables the use of *Tetgen* and its related utilities in the code. If no other options provided *Kratos* will try to find *Tetgen* installed on your system.
 
 `-DUSE_TETGEN_NONFREE_TPL_PATH="${TETGEN_PATH}"`
-Tries to use a local version of tetgen from a given `TETGEN_PATH`
+Tries to use a local version of *Tetgen* from a given `TETGEN_PATH`
 
 `-DUSE_TETGEN_NONFREE_TPL_URL="${TETGEN_URL}"`
-Tries to download and use a version of tetgen from a given `TETGEN_URL`
+Tries to download and use a version of *Tetgen* from a given `TETGEN_URL`
 
 `-DFORCE_TETGEN_NONFREE_TPL_URL`
-Forces to re-download and replace an existing version of tetgen obtained through `USE_TETGEN_NONFREE_TPL_URL`
+Forces to re-download and replace an existing version of *Tetgen* obtained through `USE_TETGEN_NONFREE_TPL_URL`
 
 #### Triangle
-[Triangle](http://www.cs.cmu.edu/~quake/triangle.html) is a library for delaunay triangulation. We provide some utilities in Kratos that depend on this library. The flags related with Triangle are the following:
+[Triangle](http://www.cs.cmu.edu/~quake/triangle.html) is a library for delaunay triangulation. We provide some utilities in *Kratos* that depend on this library. The flags related with *Triangle* are the following:
 
 `-DUSE_TRIANGLE_NONFREE_TPL`
-Enables or disables the use of Triangle and its related utilities in the code.
+Enables or disables the use of *Triangle* and its related utilities in the code.
