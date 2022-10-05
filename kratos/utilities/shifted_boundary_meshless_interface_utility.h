@@ -69,9 +69,7 @@ public:
 
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
 
-    using RBFShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, Vector&)>;
-
-    using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
+    using MeshlessShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
 
     using MLSShapeFunctionsAndGradientsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&, Matrix&)>;
 
@@ -269,14 +267,14 @@ private:
      * This function returns a prototype for the MLS shape functions calculation
      * @return MLSShapeFunctionsFunctionType MLS shape functions call prototype
      */
-    MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction();
+    MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction();
 
     /**
      * @brief Get the RBF shape functions factory object
      * This function returns a prototype for the RBF shape functions calculation
      * @return RBFShapeFunctionsFunctionType RBF shape functions call prototype
      */
-    RBFShapeFunctionsFunctionType GetRBFShapeFunctionsFunction();
+    MeshlessShapeFunctionsFunctionType GetRBFShapeFunctionsFunction();
 
     /**
      * @brief Get the element size function object

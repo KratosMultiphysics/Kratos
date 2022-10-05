@@ -66,6 +66,8 @@ namespace Kratos
         }
 
         // Check that the basis settings are correct
+        KRATOS_ERROR_IF(mExtensionOperator == ExtensionOperator::RBF && !mConformingBasis)
+            << "'RBF' extension operator can only be used with conforming basis." << std::endl;
         KRATOS_ERROR_IF(mExtensionOperator == ExtensionOperator::GradientBased && !mConformingBasis)
             << "'gradient_based' extension operator can only be used with conforming basis." << std::endl;
 
@@ -384,8 +386,8 @@ namespace Kratos
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
         // Get the MLS shape functions function
-        auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
-        // auto p_rbf_sh_func = GetRBFShapeFunctionsFunction();
+        auto p_meshless_sh_func =
+        mExtensionOperator == ExtensionOperator::MLS ? GetMLSShapeFunctionsFunction() : GetRBFShapeFunctionsFunction();
 
         // Get the element size calculation function
         // Note that unique geometry in the mesh is assumed
@@ -394,7 +396,7 @@ namespace Kratos
         // Get max condition id
         std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
 
-        // Loop the elements to create the negative nodes MLS basis
+        // Loop the elements to create the negative nodes extension basis
         NodesCloudMapType ext_op_map;
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
@@ -409,12 +411,11 @@ namespace Kratos
                         PointerVector<NodeType> cloud_nodes;
                         SetNegativeNodeSupportCloud(r_node, cloud_nodes, cloud_nodes_coordinates);
 
-                        // Calculate the MLS basis in the current negative node
+                        // Calculate the extension basis in the current negative node
                         Vector N_container;
                         const array_1d<double,3> r_coords = r_node.Coordinates();
-                        const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-                        p_mls_sh_func(cloud_nodes_coordinates, r_coords, mls_kernel_rad, N_container);
-                        // p_rbf_sh_func(cloud_nodes_coordinates, r_coords, N_container);
+                        const double kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
+                        p_meshless_sh_func(cloud_nodes_coordinates, r_coords, kernel_rad, N_container);
 
                         // Save the extension operator nodal data
                         std::size_t n_cl_nod = cloud_nodes.size();
@@ -805,7 +806,7 @@ namespace Kratos
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction()
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -835,10 +836,10 @@ namespace Kratos
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::RBFShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction()
     {
-        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
-            RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);
+        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+            RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);
         };
     }
 
