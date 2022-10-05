@@ -1020,7 +1020,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         // Auxiliar stress vector
         const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
-        Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
+        Vector delamination_damage_affected_stress_vector  = ZeroVector(VoigtSize);
+        // Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1029,6 +1030,11 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         std::vector<Vector> layer_stress(mConstitutiveLaws.size());
         for (int i=0; i < mConstitutiveLaws.size(); ++i) {
             layer_stress[i].resize(6, false);
+        }
+
+        std::vector<Vector> delamination_damage_affected_stress_matrix(mConstitutiveLaws.size());
+        for (int i=0; i < mConstitutiveLaws.size(); ++i) {
+            delamination_damage_affected_stress_matrix[i].resize(6, false);
         }
 
         std::vector<Vector> interfacial_stress(mConstitutiveLaws.size()-1);
@@ -1054,7 +1060,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             noalias(layer_stress[i_layer]) = rValues.GetStressVector();
-            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(delamination_damage_affected_stress_matrix[i_layer]) = rValues.GetStressVector();
+            // noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
@@ -1129,6 +1136,9 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
             }
 
+            delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i];
+            delamination_damage_affected_stress_matrix[i+1] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i+1];
+
             // End damage calculation
         }
 
@@ -1156,18 +1166,21 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         //     auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
         // }
 
-        double damage_coeff = 1;
+        // double damage_coeff = 1;
 
-        for(int i=1; i < mConstitutiveLaws.size(); ++i) {
-            damage_coeff *= (1-delamination_damage[i]);
+        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+            const double factor = mCombinationFactors[i];
+            delamination_damage_affected_stress_vector += factor * delamination_damage_affected_stress_matrix[i];
         }
 
-        auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
-        auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
-        auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
-        auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
-        auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
-        auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
+        auxiliar_stress_vector = delamination_damage_affected_stress_vector;
+
+        // auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
+        // auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
+        // auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
+        // auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
+        // auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
+        // auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
 
 
         // End calculating output stresses
@@ -1745,7 +1758,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
         // Auxiliar stress vector
         const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
-        Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
+        Vector delamination_damage_affected_stress_vector  = ZeroVector(VoigtSize);
+        // Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1754,6 +1768,11 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
         std::vector<Vector> layer_stress(mConstitutiveLaws.size());
         for (int i=0; i < mConstitutiveLaws.size(); ++i) {
             layer_stress[i].resize(6, false);
+        }
+
+        std::vector<Vector> delamination_damage_affected_stress_matrix(mConstitutiveLaws.size());
+        for (int i=0; i < mConstitutiveLaws.size(); ++i) {
+            delamination_damage_affected_stress_matrix[i].resize(6, false);
         }
 
         std::vector<Vector> interfacial_stress(mConstitutiveLaws.size()-1);
@@ -1780,7 +1799,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             noalias(layer_stress[i_layer]) = rValues.GetStressVector();
-            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(delamination_damage_affected_stress_matrix[i_layer]) = rValues.GetStressVector();
+            // noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
@@ -1858,6 +1878,9 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
                 mstatus_coeff[i] = T_eq / initial_threshold;
             }
 
+            delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i];
+            delamination_damage_affected_stress_matrix[i+1] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i+1];
+
             // End damage calculation
         }
 
@@ -1885,18 +1908,22 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
         //     auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
         // }
 
-        double damage_coeff = 1;
+        // double damage_coeff = 1;
 
-        for(int i=1; i < mConstitutiveLaws.size(); ++i) {
-            damage_coeff *= (1-delamination_damage[i]);
+        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+            const double factor = mCombinationFactors[i];
+            delamination_damage_affected_stress_vector += factor * delamination_damage_affected_stress_matrix[i];
         }
 
-        auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
-        auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
-        auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
-        auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
-        auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
-        auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
+        auxiliar_stress_vector = delamination_damage_affected_stress_vector;
+
+        // auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
+        // auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
+        // auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
+        // auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
+        // auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
+        // auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
+
 
 
         // End calculating output stresses
