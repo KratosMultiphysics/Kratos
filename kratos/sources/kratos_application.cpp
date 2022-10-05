@@ -35,6 +35,8 @@ namespace Kratos {
 
 KratosApplication::KratosApplication(const std::string& ApplicationName)
     : mApplicationName(ApplicationName),
+      // Generic condition
+      mGenericCondition( 0, GeometryType::Pointer(new Geometry<NodeType>())),
       // Point conditions
       mPointCondition2D1N( 0, GeometryType::Pointer(new Point2D<NodeType >(GeometryType::PointsArrayType(1)))),
       mPointCondition3D1N( 0, GeometryType::Pointer(new Point3D<NodeType >(GeometryType::PointsArrayType(1)))),
@@ -140,7 +142,8 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
-
+    //generic condition
+    KRATOS_REGISTER_CONDITION("GenericCondition", mGenericCondition);
     //point conditions
     KRATOS_REGISTER_CONDITION("PointCondition2D1N", mPointCondition2D1N);
     KRATOS_REGISTER_CONDITION("PointCondition3D1N", mPointCondition3D1N);
