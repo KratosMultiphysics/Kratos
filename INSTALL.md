@@ -212,7 +212,8 @@ sh /path_to_kratos/scripts/configure.sh
 ```Shell
 ./path_to_kratos/scripts/configure.bat
 ```
-**NOTE**: after installing Visual Studio, in some *Windows* systems the console does not have direct access to the *Visual Studio Compiler*. In order to make sure the compiler is available, try typing `cl`. Use this console to compile *Kratos* if the compiler responds. In case of error, instead of using the standard *Windows* console, open the *Native Tools Command Prompt* console and launch the compilation from there.
+
+**NOTE**: In case os compiling with *Visual Studio*, after installing *Visual Studio*, in some *Windows* systems the console does not have direct access to the *Visual Studio Compiler*. In order to make sure the compiler is available, try typing `cl`. Use this console to compile *Kratos* if the compiler responds. In case of error, instead of using the standard *Windows* console, open the *Native Tools Command Prompt* console and launch the compilation from there.
 
 The example scripts for every system are shown next.
 
@@ -540,6 +541,8 @@ cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 **Warning**: Please be carefull while mixing parallel builds with unitay builds. See [below](#unitary-builds)
 
 #### Windows
+
+**NOTE:** The following will only apply in the case of compiling with *Visual Studio*, in case of compiling with *MinGW* the same tips as in *GNU/Linux* can be applied.
 
 *Windows* should detect automatically the number of threads of your computer, but many times this mechanism fails. We included several options in order to force the parallel compilation:
 
