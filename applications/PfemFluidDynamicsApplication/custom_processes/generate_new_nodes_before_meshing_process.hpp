@@ -263,15 +263,9 @@ namespace Kratos
 
 				} // elements loop
 
-				mrRemesh.Info->RemovedNodes -= ElementsToRefine;
-				if (CountNodes < ElementsToRefine)
-				{
-					mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
-					NewPositions.resize(CountNodes);
-					NodesIDToInterpolate.resize(CountNodes);
-				}
+				mrRemesh.Info->RemovedNodes -= CountNodes;
 				unsigned int maxId = 0;
-				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
+				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, CountNodes, maxId);
 			}
 
 			mrRemesh.InputInitializedFlag = false;
@@ -1288,10 +1282,11 @@ namespace Kratos
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
 
-			if (rigidNodes > 0 && penalizationRigid == true)
-			{
-				penalization = 1.2;
-			}
+			// if (rigidNodes > 0 && penalizationRigid == true)
+			// if (rigidNodes > 0)
+			// {
+			// 	penalization = 1.2;
+			// }
 
 			const double safetyCoefficient2D = 1.5;
 
@@ -1387,6 +1382,8 @@ namespace Kratos
 					}
 					if (newNode == true)
 					{
+						NewPositions.resize(CountNodes + 1);
+						NodesIDToInterpolate.resize(CountNodes + 1);
 						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
@@ -1444,10 +1441,10 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			if (rigidNodes > 0 && penalizationRigid == true)
-			{
-				penalization = 1.15;
-			}
+			// if (rigidNodes > 0 && penalizationRigid == true)
+			// {
+			// 	penalization = 1.15;
+			// }
 			
 			const double safetyCoefficient3D = 1.6;
 			array_1d<double, 6> Edges(6, 0.0);
