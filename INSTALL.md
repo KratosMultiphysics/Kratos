@@ -428,29 +428,31 @@ from KratosMultiphysics import *
 The result should be:
 
 ```
-   |  /           |
-   ' /   __| _` | __|  _ \   __|
-   . \  |   (   | |   (   |\__ \
-  _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.2
+ |  /           |                  
+ ' /   __| _` | __|  _ \   __|    
+ . \  |   (   | |   (   |\__ \  
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.2."0"-4afb88094a-Release-ARM64
+           Compiled for GNU/Linux and Python3.6 with GCC-8.5
+Compiled with threading and MPI support.
+Maximum number of threads: 1.
+Running without MPI.
 ```
-
-
 ## Advanced Configuration
 
 ### Compilation of Kratos in parallel
 
-We provide several flavours in order to parallelize Kratos compilation. We have divided this option according to the operating system specifics.
+We provide several flavours in order to parallelize *Kratos* compilation. We have divided this option according to the operating system specifics.
 
-#### Linux
+#### GNU/Linux
 
-Linux builds should automatically make use of the maximum number of threads in your computer which is passed to the compiler in the `-j$(nproc)` flag on the last line of the configure file:
+*GNU/Linux* builds should automatically make use of the maximum number of threads in your computer which is passed to the compiler in the `-j$(nproc)` flag on the last line of the configure file:
 ```
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
 
-If your linux flavour does not support the `$(nproc)` shortcut or you simply want to tune this value to some of your liking, you can change it:
+If your *GNU/Linux* flavour does not support the `$(nproc)` shortcut or you simply want to tune this value to some of your liking, you can change it:
 ```
 # Buid (This will make it compile with 2 threads)
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
