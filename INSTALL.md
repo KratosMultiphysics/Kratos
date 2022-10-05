@@ -224,18 +224,18 @@ add_app () {
 }
 
 # Set compiler
-export CC=gcc
-export CXX=g++
+export CC=${CC:-gcc}
+export CXX=${CXX:-g++}
 
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
-export KRATOS_BUILD_TYPE="Release"
-export PYTHON_EXECUTABLE="/usr/bin/python3"
+export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -250,11 +250,13 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+-DUSE_MPI=OFF                                                       \
+-DUSE_EIGEN_MKL=OFF                                                 \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                   \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
-
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
 
 ### Windows
@@ -265,16 +267,19 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_SOURCE=~0,-1%/..
-set KRATOS_BUILD=%KRATOS_SOURCE%/build
-set KRATOS_APP_DIR=applications
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
+
+rem Warning: In windows this option only works if you run through a terminal with admin privileges
+rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 rem Set basic configuration
-set KRATOS_BUILD_TYPE=Release
-set BOOST_ROOT=C:\boost_1_67_0
-set PYTHON_EXECUTABLE=C:\Python37\python.exe
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem Set applications to compile
+set KRATOS_APP_DIR=applications
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
@@ -290,9 +295,10 @@ rem set KRATOS_PARALLEL_BUILD_FLAG=/MP4
 
 rem Configure
 @echo on
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
--DUSE_EIGEN_MKL=OFF        ^
--DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "
+cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
+-DUSE_EIGEN_MKL=OFF                                                                                 ^
+-DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "                                                  ^
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   ^
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
@@ -302,20 +308,19 @@ rem Function to add apps
 :add_app
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
 goto:eof
-
 ```
 #### Windows Visual Studio compilation configuration
 
-Some of the parameters detailed in the example script above may vary from system to system, or the Visual Studio version.
+Some of the parameters detailed in the example script above may vary from system to system, or the *Visual Studio* version.
 
-If you are using Visual Studio 2017, the configure command should be:
+If you are using *Visual Studio 2017*, the configure command should be:
 ```
 cmake -G"Visual Studio 15 2017" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DUSE_EIGEN_MKL=OFF
 ```
-You can check the specific Visual Studio version that you have installed in your system, by checking the Visual Studio Tab 'Help' > 'About Microsoft Visual Studio'.
+You can check the specific *Visual Studio* version that you have installed in your system, by checking the *Visual Studio* Tab 'Help' > 'About Microsoft Visual Studio'.
 
-If you have a 64-bit system, you might need to also specify it in the configure command for some Visual Studio versions with the flag ```-A x64```.
+If you have a 64-bit system, you might need to also specify it in the configure command for some *Visual Studio* versions with the flag ```-A x64```.
 
 ```
 cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
