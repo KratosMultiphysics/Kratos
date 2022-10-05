@@ -117,6 +117,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
                 if hasattr(analysis_stage_module, analysis_stage_name):
                     analysis = getattr(analysis_stage_module, analysis_stage_name)
                 else:
+                    KM.Logger.PrintWarning("KratosBaseWrapper", f'The analysis_stage_module "{module_name}" does not follow the standard way to define the analysis stage name "{analysis_stage_name}" . Trying to retrieve from a custom definition')
                     if self.settings["solver_wrapper_settings"].Has("analysis_name"):
                         analysis_stage_name = self.settings["solver_wrapper_settings"]["analysis_stage_name"].GetString()
                         if hasattr(analysis_stage_module, analysis_stage_name):
