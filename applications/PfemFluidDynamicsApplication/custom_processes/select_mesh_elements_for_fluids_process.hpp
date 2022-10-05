@@ -266,11 +266,11 @@ namespace Kratos
                         {
                             if (dimension == 2)
                             {
-                                SetAlphaForRefinedZones2D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
+                                MesherUtils.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
                             }
                             else if (dimension == 3)
                             {
-                                SetAlphaForRefinedZones3D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
+                                MesherUtils.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
                             }
                             CriticalVolume = 0.05 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
                         }
