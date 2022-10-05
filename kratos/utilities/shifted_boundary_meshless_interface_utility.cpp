@@ -56,6 +56,11 @@ namespace Kratos
         // If true, the basis is created such that the surrogate boundary gradient is kept
         mGradientBasedConformingBasis = ThisParameters["gradient_based_conforming_basis"].GetBool();
 
+        // Check that the basis settings are correct
+        KRATOS_ERROR_IF(mMLSConformingBasis && mGradientBasedConformingBasis) << "Both 'mls_conforming_basis' and 'gradient_based_conforming_basis' are 'true'. Select one." << std::endl;
+        KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceUtility", !mGradientBasedConformingBasis && !mMLSConformingBasis)
+            << "Both 'mls_conforming_basis' and 'gradient_based_conforming_basis' are 'false'. MLS non-conforming basis will be used." << std::endl;
+
         // Set the SBD contion prototype to be used in the condition creation
         std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
         KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
@@ -210,7 +215,6 @@ namespace Kratos
                             i_cl_nod++;
                         }
                         KRATOS_ERROR_IF(std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
-                        // KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInterfaceUtility",std::abs(w_tot - 1.0 ) > 1.0e-12) << "Non-unit total weight " << w_tot << " for ext. operator in node " << r_node.Id() << std::endl;
 
                         auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
                         ext_op_map.insert(ext_op_key_data);
@@ -622,8 +626,6 @@ namespace Kratos
 
                     // Create a new condition with a geometry made up with the basis nodes
                     auto p_prop = rElement.pGetProperties();
-                    // auto p_cond = Kratos::make_intrusive<LaplacianShiftedBoundaryCondition>(++max_cond_id, cloud_nodes);
-                    // p_cond->SetProperties(p_prop); //TODO: Think if we want properties in these conditions or not
                     auto p_cond = mpConditionPrototype->Create(++max_cond_id, cloud_nodes, p_prop);
                     p_cond->Set(ACTIVE, true);
                     mpBoundarySubModelPart->AddCondition(p_cond);
@@ -1021,9 +1023,6 @@ namespace Kratos
     {
         const std::size_t n_nodes = rCloudCoordinates.size1();
         const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
-            // return std::pow(rCloudCoordinates(I,0),2) + std::pow(rOrigin(0),2) - 2.0*rCloudCoordinates(I,0)*rOrigin(0) +
-            //     std::pow(rCloudCoordinates(I,1),2) + std::pow(rOrigin(1),2) - 2.0*rCloudCoordinates(I,1)*rOrigin(1) +
-            //     std::pow(rCloudCoordinates(I,2),2) + std::pow(rOrigin(2),2) - 2.0*rCloudCoordinates(I,2)*rOrigin(2);
             return std::pow(rCloudCoordinates(I,0) - rOrigin(0),2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1),2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2),2);
         });
         return std::sqrt(squared_rad);

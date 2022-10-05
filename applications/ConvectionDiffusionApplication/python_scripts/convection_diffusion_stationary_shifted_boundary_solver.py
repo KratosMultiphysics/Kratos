@@ -104,8 +104,8 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
             else:
                 raise Exception("Unsupported \'element_type\': {}".format(element_type))
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(sbm_interface_condition_name)
-        sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
-        sbm_interface_process.Execute()
+        sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
+        sbm_interface_utility.CalculateExtensionOperator()
 
         # Initialize base solver strategy
         super().Initialize()

@@ -112,8 +112,6 @@ public:
 
     void CalculateExtensionOperator();
 
-    const Parameters GetDefaultParameters() const;
-
     ///@}
     ///@name Access
     ///@{
@@ -121,6 +119,8 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    const Parameters GetDefaultParameters() const;
 
     ///@}
     ///@name Input and output
