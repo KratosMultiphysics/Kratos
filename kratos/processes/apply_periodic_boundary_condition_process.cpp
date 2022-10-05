@@ -155,13 +155,14 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     bin_based_point_locator.UpdateSearchDatabase();
 
     // Define auxiliary functions
-    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)> function_for_vector_variable =
+    using MyFunction = std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)>;
+    const MyFunction function_for_vector_variable =
     [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::vector<const VariableType*>& rVars) {ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVars);};
-    const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)> function_for_scalar_variable =
+    const MyFunction function_for_scalar_variable =
     [this](NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::vector<const VariableType*>& rVars) {ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(rSlaveNode, rHostedGeometry, rWeights, rVars);};
 
     // Fill an auxiliary vector with the functions
-    std::vector<const std::function<void(NodeType&, const GeometryType&, const VectorType&, const std::vector<const VariableType*>&)>*> functions_required(num_vars, nullptr);
+    std::vector<const MyFunction*> functions_required(num_vars, nullptr);
     std::vector<std::vector<const VariableType*>> variables_vector(num_vars, std::vector<const VariableType*>());
     for (unsigned int j = 0; j < num_vars; j++) {
         const std::string& r_var_name = mParameters["variable_names"][j].GetString();
