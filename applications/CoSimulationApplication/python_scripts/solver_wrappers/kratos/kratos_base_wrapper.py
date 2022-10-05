@@ -115,7 +115,11 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
                     file_name = module_name.split(".")[-1]
                     # Convert Snake case to Pascal case
                     analysis_stage_name = string.capwords(file_name.replace("_", " ")).replace(" ", "")
-                analysis = getattr(analysis_stage_module, analysis_stage_name)
+                # Getting the analysis class
+                if hasattr(analysis_stage_module, analysis_stage_name):
+                    analysis = getattr(analysis_stage_module, analysis_stage_name)
+                else:
+                    Exception("\"" + module_name + "\" does not have a \"" + analysis_stage_name + "\" class!")
                 return analysis(self.model, self.project_parameters)
         else:
             return self._CreateAnalysisStage()
