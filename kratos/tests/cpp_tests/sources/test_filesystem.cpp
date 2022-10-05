@@ -20,68 +20,10 @@
 #include "testing/testing.h"
 #include "includes/kratos_filesystem.h"
 #include "utilities/parallel_utilities.h"
+#include "testing/scoped_file.h"
 
 namespace Kratos {
 namespace Testing {
-
-namespace {
-
-class ScopedEntry
-{
-public:
-    ScopedEntry(const std::filesystem::path& rPath)
-        : mPath(rPath)
-    {}
-
-    ScopedEntry(ScopedEntry&& rOther) = default;
-
-    ScopedEntry(const ScopedEntry& rOther) = delete;
-
-    ScopedEntry& operator=(ScopedEntry&& rOther) = delete;
-
-    ScopedEntry& operator=(const ScopedEntry& rOther) = delete;
-
-    virtual ~ScopedEntry()
-    {
-        std::filesystem::is_directory(mPath) ? std::filesystem::remove_all(mPath) : std::filesystem::remove(mPath);
-    }
-
-    operator const std::filesystem::path& () const
-    {
-        return mPath;
-    }
-private:
-    const std::filesystem::path mPath;
-}; // class ScopedEntry
-
-struct ScopedDirectory : public ScopedEntry
-{
-    ScopedDirectory(const std::filesystem::path& rPath)
-        : ScopedEntry(rPath)
-    {
-        std::filesystem::create_directories(rPath);
-    }
-}; // struct ScopedDirectory
-
-struct ScopedFile : public ScopedEntry
-{
-    ScopedFile(const std::filesystem::path& rPath)
-        : ScopedEntry(rPath)
-    {
-        std::ofstream file(rPath);
-    }
-}; // struct ScopedFile
-
-struct ScopedSymlink : public ScopedEntry
-{
-    ScopedSymlink(const std::filesystem::path& rSymlinkPath, const std::filesystem::path& rTargetPath)
-        : ScopedEntry(rSymlinkPath)
-    {
-        std::filesystem::exists(rTargetPath) && std::filesystem::is_directory(rTargetPath) ? std::filesystem::create_directory_symlink(rTargetPath, rSymlinkPath) : std::filesystem::create_symlink(rTargetPath, rSymlinkPath);
-    }
-}; // struct ScopedSymlink
-
-} // unnamed namespace
 
 KRATOS_TEST_CASE_IN_SUITE(FileSystemExists, KratosCoreFastSuite)
 {

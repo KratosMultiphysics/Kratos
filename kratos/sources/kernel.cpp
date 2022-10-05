@@ -117,6 +117,18 @@ std::string Kernel::Version() {
     return GetVersionString();
 }
 
+std::string Kernel::OSName() {
+    return GetOSName();
+}
+
+std::string Kernel::PythonVersion() {
+    return GetPythonVersion();
+}
+
+std::string Kernel::Compiler() {
+    return GetCompiler();
+}
+
 void Kernel::PrintParallelismSupportInfo() const
 {
     #ifdef KRATOS_SMP_NONE
