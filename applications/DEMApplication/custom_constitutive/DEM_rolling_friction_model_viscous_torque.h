@@ -32,8 +32,8 @@ namespace Kratos
 
     // Public methods
     void Check(Properties::Pointer pProp) const override;
-    void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalCoordSystem_2[3], double LocalContactForce[3], array_1d<double, 3>& mContactMoment)   override;
-    void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, double LocalCoordSystem_2[3], double LocalContactForce[3], array_1d<double, 3>& mContactMoment) override;
+    void ComputeRollingFriction(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalCoordSystem_2[3], double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment)   override;
+    void ComputeRollingFrictionWithWall(SphericParticle* p_element, Condition* const wall, double LocalCoordSystem_2[3], double LocalContactForce[3], double indentation, array_1d<double, 3>& mContactMoment) override;
 
   private:
     friend class Serializer;

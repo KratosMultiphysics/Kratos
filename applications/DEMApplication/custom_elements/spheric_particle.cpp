@@ -864,7 +864,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                   mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                  mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, data_buffer.mLocalCoordSystem[2], LocalContactForce, mContactMoment);
+                  mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, data_buffer.mLocalCoordSystem[2], LocalContactForce, data_buffer.mIndentation, mContactMoment);
                 }
                 else {
                   mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
@@ -1076,7 +1076,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                 if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                   mRollingFrictionModel = pCloneRollingFrictionModelWithFEMNeighbour(wall);                
-                  mRollingFrictionModel->ComputeRollingFrictionWithWall(this, wall, data_buffer.mLocalCoordSystem[2], LocalContactForce, mContactMoment);
+                  mRollingFrictionModel->ComputeRollingFrictionWithWall(this, wall, data_buffer.mLocalCoordSystem[2], LocalContactForce, indentation, mContactMoment);
                 }
                 else {
                   mRollingFrictionModel->ComputeRollingResistanceWithWall(this, wall, LocalContactForce);
