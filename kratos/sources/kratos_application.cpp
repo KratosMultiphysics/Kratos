@@ -65,6 +65,8 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mPeriodicConditionCorner( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
 
       // Elements
+      mGenericElement( 0, GeometryType::Pointer(new Geometry<NodeType>())),
+
       mElement2D1N( 0, GeometryType::Pointer(new Point2D<NodeType >(GeometryType::PointsArrayType(1)))),
       mElement2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mElement2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
@@ -172,6 +174,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("PeriodicConditionCorner", mPeriodicConditionCorner)
 
     //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
+    KRATOS_REGISTER_ELEMENT("GenericElement", mGenericElement)
+
     KRATOS_REGISTER_ELEMENT("Element2D1N", mElement2D1N)
     KRATOS_REGISTER_ELEMENT("Element2D2N", mElement2D2N)
     KRATOS_REGISTER_ELEMENT("Element2D3N", mElement2D3N)
