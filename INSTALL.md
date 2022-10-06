@@ -226,18 +226,17 @@ add_app () {
 }
 
 # Set compiler
-export CC=${CC:-gcc}
-export CXX=${CXX:-g++}
+export CC=gcc
+export CXX=g++
 
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
+export KRATOS_BUILD_TYPE="Release"
+export PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -252,13 +251,10 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DUSE_MPI=OFF                                                       \
--DUSE_EIGEN_MKL=OFF                                                 \
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                   \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
 ```
 
 ### Windows
@@ -299,10 +295,9 @@ rem set KRATOS_PARALLEL_BUILD_FLAG=/MP4
 
 rem Configure
 @echo on
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DUSE_EIGEN_MKL=OFF                                                                                 ^
--DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "                                                  ^
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   ^
+cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DUSE_EIGEN_MKL=OFF        ^
+-DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
