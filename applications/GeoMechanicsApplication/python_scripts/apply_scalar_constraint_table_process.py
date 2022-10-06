@@ -58,11 +58,30 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 if settings.Has("is_seepage"):
                     self.params.AddValue("is_seepage",settings["is_seepage"])
 
-                if settings["table"][0].GetInt() == 0 and settings["table"][1].GetInt() == 0:
+                if all(i.GetInt() == 0 for i in settings["table"]):
                     self.process = KratosGeo.ApplyConstantPhreaticLinePressureProcess(self.model_part, self.params)
                 else:
                     self.params.AddValue("table",settings["table"])
                     self.process = KratosGeo.ApplyPhreaticLinePressureTableProcess(self.model_part, self.params)
+            elif settings["fluid_pressure_type"].GetString() == "Phreatic_Multi_Line":
+                self.params.AddValue("gravity_direction",settings["gravity_direction"])
+                self.params.AddValue("out_of_plane_direction",settings["out_of_plane_direction"])
+                self.params.AddValue("x_coordinates",settings["x_coordinates"])
+                self.params.AddValue("y_coordinates",settings["y_coordinates"])
+                self.params.AddValue("z_coordinates",settings["z_coordinates"])
+                self.params.AddValue("specific_weight",settings["specific_weight"])
+
+                if settings.Has("pressure_tension_cut_off"):
+                    self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
+                if settings.Has("is_seepage"):
+                    self.params.AddValue("is_seepage",settings["is_seepage"])
+
+                if all(i.GetInt() == 0 for i in settings["table"]):
+                    self.process = KratosGeo.ApplyConstantPhreaticMultiLinePressureProcess(self.model_part, self.params)
+                else:
+                    self.params.AddValue("table",settings["table"])
+                    self.process = KratosGeo.ApplyPhreaticMultiLinePressureTableProcess(self.model_part, self.params)
             elif settings["fluid_pressure_type"].GetString() == "Interpolate_Line":
                 self.params.AddValue("gravity_direction",settings["gravity_direction"])
                 self.params.AddValue("out_of_plane_direction",settings["out_of_plane_direction"])

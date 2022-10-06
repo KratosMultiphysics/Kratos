@@ -1,11 +1,9 @@
 Begin Table 1 TIME WATER_PRESSURE
   0.0 0.0
   1.0 0.5
-End Table
-
-Begin Table 2 TIME WATER_PRESSURE
-  0.0 0.0
-  1.0 0.0
+  2.0 0.0
+  3.0 -0.5
+  4.0 0.0
 End Table
 
 Begin Properties 1
@@ -1505,7 +1503,6 @@ End SubModelPart
 Begin SubModelPart Fluid_Pressure-auto-1
   Begin SubModelPartTables
     1
-	2
   End SubModelPartTables
   Begin SubModelPartNodes
     1
