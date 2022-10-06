@@ -65,6 +65,7 @@
 #include "utilities/rve_periodicity_utility.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
+#include "utilities/particles_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -730,6 +731,23 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
         .def_static("ComputeConnectedComponentsWithActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck)
         .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
+        ;
+
+    py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        .def_static("CountParticlesInNodes2D", &ParticlesUtilities::CountParticlesInNodes<2>)
+        .def_static("CountParticlesInNodes3D", &ParticlesUtilities::CountParticlesInNodes<3>)
+        .def_static("InterpolateValuesAtPoints", &ParticlesUtilities::InterpolateValuesAtPoints<2,double>)
+        .def_static("InterpolateValuesAtPoints", &ParticlesUtilities::InterpolateValuesAtPoints<3,double>)
+        .def_static("InterpolateValuesAtPoints", &ParticlesUtilities::InterpolateValuesAtPoints<2,std::size_t>)
+        .def_static("InterpolateValuesAtPoints", &ParticlesUtilities::InterpolateValuesAtPoints<3,std::size_t>)
+        .def_static("InterpolateValuesAtPoints", &ParticlesUtilities::InterpolateValuesAtPoints<2,unsigned int>)
+        .def_static("InterpolateValuesAtPoints", &ParticlesUtilities::InterpolateValuesAtPoints<3,unsigned int>)
+        .def_static("MarkOutsiders2D", &ParticlesUtilities::MarkOutsiders<2,double>)
+        .def_static("MarkOutsiders3D", &ParticlesUtilities::MarkOutsiders<3,double>)
+        .def_static("MarkOutsiders2D", &ParticlesUtilities::MarkOutsiders<2,std::size_t>)
+        .def_static("MarkOutsiders3D", &ParticlesUtilities::MarkOutsiders<3,std::size_t>)
+        .def_static("MarkOutsiders2D", &ParticlesUtilities::MarkOutsiders<2,unsigned int>)
+        .def_static("MarkOutsiders3D", &ParticlesUtilities::MarkOutsiders<3,unsigned int>)
         ;
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");
