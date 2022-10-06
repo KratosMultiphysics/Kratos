@@ -90,7 +90,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
         rRightHandSideVector.resize(TNumNodes, false);
 
     array_1d<double, 3> An;
-    if (TDim == 2)
+    if constexpr (TDim == 2)
         CalculateNormal2D(An);
     else
         CalculateNormal3D(An);

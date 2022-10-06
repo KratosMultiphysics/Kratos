@@ -33,7 +33,7 @@
 
 namespace Kratos {
 
-KratosApplication::KratosApplication(const std::string ApplicationName)
+KratosApplication::KratosApplication(const std::string& ApplicationName)
     : mApplicationName(ApplicationName),
       // Point conditions
       mPointCondition2D1N( 0, GeometryType::Pointer(new Point2D<NodeType >(GeometryType::PointsArrayType(1)))),

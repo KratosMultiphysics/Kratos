@@ -1,6 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPFEMSolid
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
@@ -47,7 +46,7 @@ class PloughingUtility(KratosMultiphysics.Process):
                 delta_disp[ii] = delta_disp[ii] / delta_time
             if (node.SolutionStepsDataHas(KratosMultiphysics.VELOCITY)):
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, delta_disp)
-            
+
     def ExecuteAfterOutputStep(self):
 
         for node in self.model_part.GetNodes(0):

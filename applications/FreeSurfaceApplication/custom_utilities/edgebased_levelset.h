@@ -219,7 +219,7 @@ namespace Kratos
             CalculateNormals(mr_model_part.Conditions());
             mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes());
 
-            if (TDim == 3)
+            if constexpr (TDim == 3)
                 DetectEdges3D(mr_model_part.Conditions());
 
             // allocate memory for variables
@@ -376,7 +376,7 @@ namespace Kratos
         {
             if (Cs != 0)
             {
-                if (TDim == 3)
+                if constexpr (TDim == 3)
                     ApplySmagorinsky3D(MolecularViscosity, Cs);
                 else
                     ApplySmagorinsky2D(MolecularViscosity, Cs);
@@ -1530,12 +1530,12 @@ namespace Kratos
             // calculate area normals face-by-face
             array_1d<double, 3> area_normal;
             // 2D case
-            if (TDim == 2)
+            if constexpr (TDim == 2)
             {
                 for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
                     CalculateNormal2D(cond_it, area_normal);
             } // 3D case
-            else if (TDim == 3)
+            else if constexpr (TDim == 3)
             {
                 // help vectors for cross product
                 array_1d<double, 3> v1;
@@ -2351,7 +2351,7 @@ namespace Kratos
             }
 
             // take unstructured meshes into account
-            if (TDim == 2)
+            if constexpr (TDim == 2)
             {
                 for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
                 {
@@ -2362,7 +2362,7 @@ namespace Kratos
                     h_i = sqrt(2.0 * m_i);
                 }
             }
-            else if (TDim == 3)
+            else if constexpr (TDim == 3)
             {
                 for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
                 {

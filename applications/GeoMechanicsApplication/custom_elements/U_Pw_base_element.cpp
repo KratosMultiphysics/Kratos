@@ -153,7 +153,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     // resize mStressVector:
     if ( mStressVector.size() != NumGPoints ) {
        unsigned int VoigtSize = VOIGT_SIZE_3D;
-       if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+       if constexpr (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
        mStressVector.resize(NumGPoints);
        for (unsigned int i=0; i < mStressVector.size(); ++i) {
            mStressVector[i].resize(VoigtSize);
@@ -233,7 +233,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     if (rElementalDofList.size() != N_DOF)
       rElementalDofList.resize( N_DOF );
 
-    if (TDim == 3) {
+    if constexpr (TDim == 3) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -241,7 +241,7 @@ void UPwBaseElement<TDim,TNumNodes>::
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
             rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
         }
-    } else if (TDim == 2) {
+    } else if constexpr (TDim == 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
@@ -360,14 +360,14 @@ void UPwBaseElement<TDim,TNumNodes>::
     if (rResult.size() != N_DOF)
       rResult.resize( N_DOF, false );
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -492,7 +492,7 @@ void UPwBaseElement<TDim,TNumNodes>::
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
             rValues[index++] = 0.0;
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
@@ -527,7 +527,7 @@ void UPwBaseElement<TDim,TNumNodes>::
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = 0.0;
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );

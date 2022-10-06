@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
 
 # Importing the Kratos Library
@@ -78,6 +77,9 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         # Call the structural solver to import the model part from the mdpa
         self.structural_solver.ImportModelPart()
 
+    def PrepareModelPart(self):
+        self.structural_solver.PrepareModelPart()
+
         # Save the convection diffusion settings
         convection_diffusion_settings = self.thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
@@ -97,8 +99,6 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         # Set the saved convection diffusion settings to the new thermal model part
         self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
-    def PrepareModelPart(self):
-        self.structural_solver.PrepareModelPart()
         self.thermal_solver.PrepareModelPart()
 
     def AddDofs(self):

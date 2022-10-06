@@ -140,7 +140,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongings(Element& rThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(Element& rThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given element from mesh with ThisIndex in this modelpart and all its subs.
@@ -151,7 +151,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongings(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(Element::Pointer pThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove the element with given Id from mesh with ThisIndex in parents, itself and children.
@@ -162,7 +162,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given element from mesh with ThisIndex in parents, itself and children.
@@ -173,7 +173,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongingsFromAllLevels(Element& rThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(Element& rThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given element from mesh with ThisIndex in parents, itself and children.
@@ -184,7 +184,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief  It erases all elements identified by "IdentifierFlag" by removing the pointer.
@@ -204,7 +204,7 @@ public:
      * Pointers are erased from this level downwards nodes will be automatically destructured when no pointer is left to them
      * @param IdentifierFlag The flag that identifies the entities to remove
      */
-    void RemoveElementsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveElementsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
     /**
      * @brief Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
@@ -226,7 +226,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongings(Condition& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(Condition& ThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
@@ -235,7 +235,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongings(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(Condition::Pointer pThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove the condition with given Id from mesh with ThisIndex in parents, itself and children.
@@ -246,7 +246,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given condition from mesh with ThisIndex in parents, itself and children.
@@ -257,7 +257,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongingsFromAllLevels(Condition& rThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(Condition& rThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given condition from mesh with ThisIndex in parents, itself and children.
@@ -268,7 +268,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief It erases all conditions identified by "IdentifierFlag" by removing the pointer.
@@ -288,7 +288,7 @@ public:
      * Pointers are erased from this level downwards nodes will be automatically destructured when no pointer is left to them
      * @param IdentifierFlag The flag that identifies the entities to remove
      */
-    void RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
 
     /// To Export a Scalar data (Double/int/...)

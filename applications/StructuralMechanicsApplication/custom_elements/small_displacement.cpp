@@ -132,7 +132,7 @@ void SmallDisplacement::CalculateAll(
         if ( rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize( mat_size, false );
 
-        rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector( mat_size ); //resetting RHS
     }
 
     // Reading integration points and local gradients
@@ -211,7 +211,8 @@ void SmallDisplacement::CalculateKinematicVariables(
 
     // Compute equivalent F
     GetValuesVector(rThisKinematicVariables.Displacements);
-    Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+    Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
+    noalias(strain_vector) = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
     ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
