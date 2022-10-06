@@ -756,10 +756,8 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
                                      double indentation,
                                      unsigned int i)
 {
-    double arm_length = GetInteractionRadius() - indentation;
-
     const double other_young = p_neighbour->GetYoung();
-    arm_length = GetInteractionRadius() - indentation * other_young / (other_young + GetYoung());
+    const double arm_length  = GetInteractionRadius() - indentation * other_young / (other_young + GetYoung());
 
     array_1d<double, 3> arm_vector;
     arm_vector[0] = -LocalCoordSystem2[0] * arm_length;
