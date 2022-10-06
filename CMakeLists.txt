@@ -296,11 +296,11 @@ message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
-message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
+    message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
-message("Python version used for the interface will be ${PYTHON_INTERFACE_VERSION}")
+message(STATUS "Python version used for the interface will be ${PYTHON_INTERFACE_VERSION}")
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -320,7 +320,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # Select shared memory parallelization
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
+    message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 # default to OpenMP
@@ -394,7 +394,6 @@ endif ()
 if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
-
 
 # Follow the symbolic links for the python lib only if needed
 if(${INSTALL_RUNKRATOS} MATCHES ON )
