@@ -123,9 +123,9 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
                         if hasattr(analysis_stage_module, analysis_stage_name):
                             analysis = getattr(analysis_stage_module, analysis_stage_name)
                         else:
-                            Exception("\"" + module_name + "\" does not have a \"" + analysis_stage_name + "\" class!")
+                            raise Exception(f'"\""{module_name}""\" does not have a \"""{analysis_stage_name}""\" class!')
                     else:
-                        Exception("\"" + module_name + "\" does not have a \"" + analysis_stage_name + "\" class!. Please provide a custom \"" + analysis_stage_name + "\" in your settings")
+                        raise Exception(f'"\""{module_name}""\" does not have a \"""{analysis_stage_name}""\" class! Please provide a custom "\"analysis_stage_name"\" in your settings')
                     
                 return analysis(self.model, self.project_parameters)
         else:
