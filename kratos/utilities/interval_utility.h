@@ -103,7 +103,13 @@ private:
 
 /// output stream function
 template <class TValue>
-std::ostream& operator << (std::ostream& rOStream, const IntervalUtility<TValue>& rThis);
+std::ostream& operator << (std::ostream& rOStream, const IntervalUtility<TValue>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : ";
+    rThis.PrintData(rOStream);
+    return rOStream;
+}
 
 
 } // namespace Detail

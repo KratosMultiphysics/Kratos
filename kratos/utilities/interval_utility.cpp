@@ -162,23 +162,9 @@ void IntervalUtility<TValue>::PrintData(std::ostream& rOStream) const
 }
 
 
-template <class TValue>
-std::ostream& operator << (std::ostream& rOStream, const IntervalUtility<TValue>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << " : ";
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
-
-
 template class IntervalUtility<double>;
 
 template class IntervalUtility<int>;
-
-template std::ostream& operator<<(std::ostream&, const IntervalUtility<double>&);
-
-template std::ostream& operator<<(std::ostream&, const IntervalUtility<int>&);
 
 } // namespace Detail
 } // namespace Kratos
