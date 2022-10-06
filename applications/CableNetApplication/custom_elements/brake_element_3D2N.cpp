@@ -55,7 +55,7 @@ BrakeElement3D2N::~BrakeElement3D2N() {}
 
 double BrakeElement3D2N::ReturnReferenceLength() const
 {
-    return GetProperties()[EXPERIMENTAL_LENGTH];
+    return GetProperties()[EXPERIMENTAL_LENGTH];   // defined to fit experimental curves
 }
 
 double BrakeElement3D2N::ReturnCurrentLength() const
