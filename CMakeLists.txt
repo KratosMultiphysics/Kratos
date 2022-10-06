@@ -1,6 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 # Setting some policies
 # No recursive dereferencing
@@ -20,8 +20,8 @@ endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 2)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -51,15 +51,12 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
 # If no test policy enable by default
-if(NOT DEFINED KRATOS_BUILD_TESTING)
-message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
-SET (KRATOS_BUILD_TESTING ON)
-endif(NOT DEFINED KRATOS_BUILD_TESTING)
+option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
-	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
-	SET (CMAKE_INSTALL_MESSAGE NEVER)
+  message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
+  SET (CMAKE_INSTALL_MESSAGE NEVER)
 endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 
 # Set kratos specific module path
@@ -165,9 +162,10 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11 -Wl,--no-as-needed -ldl")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message( FATAL_ERROR "Please use Version 8 or greater")
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
@@ -205,10 +203,10 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		endif()
 		if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
 			# "IntelLLVM": Intel's NextGen LLVM compiler (icx)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -diag-disable 654 -diag-disable 10010 ")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -diag-disable 654 -diag-disable 10010 -diag-disable 1011")
 		else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
 			# "Intel": Intel's Classic compiler (icc)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 ")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 -wd1011")
 		endif()
 		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ")
 		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
@@ -229,30 +227,12 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Old non-compatible versions of VS
-if(${MSVC80})
-  message( "DEPRECATED: detected compiler as MSVC80")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC80})
-
-if(${MSVC90})
-  message( "DEPRECATED: detected compiler as MSVC90")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC90})
-
-if(${MSVC10})
-  message( "DEPRECATED: detected compiler as MSVC10")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC10})
-
-if(${MSVC11})
-  message( "DEPRECATED: detected compiler as MSVC11")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC11})
-
-if(${MSVC12})
-  message( "DEPRECATED: detected compiler as MSVC12")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC12})
+if(${MSVC})
+  if(${MSVC_TOOLSET_VERSION} LESS 141)
+    message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
+    message( FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
+  endif(${MSVC_TOOLSET_VERSION} LESS 141)
+endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
@@ -293,31 +273,30 @@ include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
 if(NOT DEFINED KRATOS_ENABLE_LTO)
-    message("LTO is Disabled")
+    message(STATUS "LTO is Disabled")
     set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
     set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 else(NOT DEFINED KRATOS_ENABLE_LTO)
-    message("LTO is Enabled")
+    message(STATUS "LTO is Enabled")
     if(${CMAKE_COMPILER_IS_GNUCXX})
         set(CMAKE_AR "gcc-ar")
         set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
         set(CMAKE_C_ARCHIVE_FINISH true)
-        set(CMAKE_C_FLAGS "-flto=jobserver")
-        set(CMAKE_CXX_FLAGS "-flto=jobserver")
-        set(CMAKE_SHARED_LINKER_FLAGS "-flto=jobserver")
-    endif(${CMAKE_COMPILER_IS_GNUCXX})
-    if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-        set(CMAKE_C_FLAGS "-flto=thin")
-        set(CMAKE_CXX_FLAGS "-flto=thin")
-        set(CMAKE_SHARED_LINKER_FLAGS "-flto=thin")
-    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto=jobserver")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto=jobserver")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=jobserver")
+    elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto=thin")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto=thin")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=thin")
+    endif()
 endif(NOT DEFINED KRATOS_ENABLE_LTO)
 
 message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
+message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
@@ -646,3 +625,9 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+# Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
+add_subdirectory("scripts/post_install")
+
+# Finally copying the README for the wheels
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/kratos/scripts/wheels)

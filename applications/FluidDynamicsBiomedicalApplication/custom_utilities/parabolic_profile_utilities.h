@@ -106,7 +106,7 @@ private:
     static double GetMaxParabolaValue(
         const double Time,
         const NodeType& rNode,
-        const TInputType& rMaxParabolaValue);
+        TInputType& rMaxParabolaValue);
 
     static double CalculateBoundingBoxCharacteristicLength(const ModelPart& rModelPart);
 

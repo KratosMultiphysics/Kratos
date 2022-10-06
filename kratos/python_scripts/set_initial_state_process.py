@@ -72,7 +72,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "dimension"       : 3,
-            "imposed_strain"  : ["0*t","0*t","0*t",0,0,0,0],
+            "imposed_strain"  : ["0*t","0*t","0*t",0,0,0],
             "imposed_stress"  : [0,0,0,0,0,0],
             "imposed_deformation_gradient"  : [[1,0,0],[0,1,0],[0,0,1]],
             "interval"        : [0.0, 1e30]

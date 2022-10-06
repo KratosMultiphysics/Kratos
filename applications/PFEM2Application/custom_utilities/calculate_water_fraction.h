@@ -392,7 +392,7 @@ namespace Kratos
 							for (unsigned int j = 0; j < (TDim); j++)
 								velocities(i,j) = velocity[j];
 
-							if (TDim==2)
+							if constexpr (TDim==2)
 							{
 								if (geom[i].IsFixed(FRACT_VEL_X) && geom[i].IsFixed(FRACT_VEL_Y))
 								{
@@ -424,7 +424,7 @@ namespace Kratos
 							//boundary_element=true;
 							array_1d<double, 3 > normal;
 							unsigned int free_node=0;
-							if (TDim==2)
+							if constexpr (TDim==2)
 							{
 								fixed_face_area_or_lenght = fabs(sqrt(pow((geom[fixed_nodes[1]].Y()-geom[fixed_nodes[0]].Y()),2 ) + pow( (geom[fixed_nodes[1]].X()-geom[fixed_nodes[0]].X() ),2 ) ) );
 								normal[0] = geom[fixed_nodes[1]].Y()-geom[fixed_nodes[0]].Y();

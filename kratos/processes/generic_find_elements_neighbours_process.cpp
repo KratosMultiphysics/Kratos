@@ -25,7 +25,7 @@ void GenericFindElementalNeighboursProcess::Execute()
     KRATOS_TRY
 
     //finding elemental neighbours of nodes
-    FindGlobalNodalElementalNeighboursProcess nodal_neigh_proc(mrModelPart);
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> nodal_neigh_proc(mrModelPart);
     nodal_neigh_proc.Execute();
 
     const int current_rank = mrModelPart.GetCommunicator().GetDataCommunicator().Rank();

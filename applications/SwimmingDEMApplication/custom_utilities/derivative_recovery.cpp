@@ -815,7 +815,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     DenseMatrix<double> A(n_nodal_neighs, n_poly_terms);
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         A(i, 0) = 1.0;
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             Node<3>& neigh = neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
             TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);

@@ -33,12 +33,16 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     It uses the AnalysisStage as black-box interface to Kratos
     """
     def __init__(self, settings, model, solver_name):
-        input_file_name = settings["solver_wrapper_settings"]["input_file"].GetString()
-        if not input_file_name.endswith(".json"):
-            input_file_name += ".json"
+        # We try to read the input file
+        if settings["solver_wrapper_settings"].Has("input_file"):
+            input_file_name = settings["solver_wrapper_settings"]["input_file"].GetString()
+            if not input_file_name.endswith(".json"):
+                input_file_name += ".json"
 
-        with open(input_file_name,'r') as parameter_file:
-            self.project_parameters = KM.Parameters(parameter_file.read())
+            with open(input_file_name,'r') as parameter_file:
+                self.project_parameters = KM.Parameters(parameter_file.read())
+        else: # The settings are in the root Parameters
+            self.project_parameters = settings["solver_wrapper_settings"]
 
         super().__init__(settings, model, solver_name)
 

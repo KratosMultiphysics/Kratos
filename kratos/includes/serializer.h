@@ -936,7 +936,7 @@ public:
         return msRegisteredObjectsName;
     }
 
-    void Set(Flags ThisFlag)
+    void Set(const Flags ThisFlag)
     {
         mFlags.Set(ThisFlag);
     }
@@ -1162,9 +1162,9 @@ private:
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
         rValue.resize(size);
-	if (size>0) {
-	    mpBuffer->read(&rValue.front(),size);
-	}
+        if (size>0) {
+            mpBuffer->read(rValue.data(), size);
+        }
 
         KRATOS_SERIALIZER_MODE_ASCII
 

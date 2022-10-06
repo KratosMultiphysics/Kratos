@@ -44,7 +44,7 @@ class MaterialsAssignationUtility:
 
                     if subprops.Has(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME):
                         continuum_constitutive_law_instance = globals().get(subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, material_relation, True)
+                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, material_relation, True)    
 
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
 

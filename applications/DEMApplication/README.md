@@ -114,6 +114,7 @@ This package allows you to simulate a wide spectrum of problems involving the in
 * **Guillermo Casas** - *Fluid coupling* - [gcasas@cimne.upc.edu](mailto:gcasas@cimne.upc.edu)
 * **Joaquín Irazabal** - *Particle clusters & DEM-Solid interaction* - [jirazabal@cimne.upc.edu](mailto:jirazabal@cimne.upc.edu)
 * **Joaquín González-Usúa** - *Fluid coupling* - [jgonzalez@cimne.upc.edu](mailto:jgonzalez@cimne.upc.edu)
+* **Chengshun Shang** - *Bonded partcile models* - [cshang@cimne.upc.edu](mailto:cshang@cimne.upc.edu)
 
 
 ## License
