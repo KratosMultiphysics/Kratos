@@ -107,19 +107,28 @@ Parameters IntervalUtility<TValue>::GetDefaultParameters()
 
 
 template <>
-void IntervalUtility<double>::SetBoundaries(double begin, double end) noexcept
+bool IntervalUtility<double>::IsInInterval(double Value) const noexcept
 {
-    const double relative_tolerance = 1e-14;
-    const double absolute_tolerance = 1e-30;
+    constexpr const double relative_tolerance = 1e-14;
+    constexpr const double absolute_tolerance = 1e-30;
 
     // Apply tolerances and avoid under/overflows
-    mBegin = std::min(begin, begin - std::max(relative_tolerance * begin, absolute_tolerance));
-    mEnd = std::max(end, end + std::max(relative_tolerance * end, absolute_tolerance));
+    const double begin = std::min(mBegin, mBegin - std::max(relative_tolerance * std::abs(mBegin), absolute_tolerance));
+    const double end = std::max(mEnd, mEnd + std::max(relative_tolerance * std::abs(mEnd), absolute_tolerance));
+
+    return begin < Value && Value < end;
 }
 
 
 template <>
-void IntervalUtility<int>::SetBoundaries(int begin, int end) noexcept
+bool IntervalUtility<int>::IsInInterval(int Value) const noexcept
+{
+    return mBegin <= Value && Value <= mEnd;
+}
+
+
+template <class TValue>
+void IntervalUtility<TValue>::SetBoundaries(TValue begin, TValue end) noexcept
 {
     mBegin = begin;
     mEnd = end;
