@@ -35,7 +35,7 @@
             "CONTACT_INTERNAL_FRICC": 0.9,
             "ROTATIONAL_MOMENT_COEFFICIENT": 0.0,
             "IS_UNBREAKABLE" : false,
-            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+            "DEM_ROLLING_FRICTION_MODEL_NAME": "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat1", "mat2"],
