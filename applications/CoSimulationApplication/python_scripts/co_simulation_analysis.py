@@ -6,6 +6,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_process import CoSimulationProcess
 
 # Other imports
 import sys
@@ -57,8 +58,23 @@ class CoSimulationAnalysis(AnalysisStage):
         self._GetSolver() # this creates the solver
 
     def Initialize(self):
+        ## Here we initialize user-provided processes
+        self.__CreateListOfProcesses()
+
+        # Initialize
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeCoSimulationInitialize()
+
         self._GetSolver().Initialize()
+        # TODO: Separate the BeforeSolutionLoop() of the analysis from the Initialize() of the analysis and add the corresponding processes
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterCoSimulationInitialize()
+
+        # Doing checks
         self._GetSolver().Check()
+        for process in self._GetListOfProcesses():
+            process.Check()
 
         if self.echo_level > 0:
             self._GetSolver().PrintInfo()
@@ -72,19 +88,47 @@ class CoSimulationAnalysis(AnalysisStage):
             CoSimulationAnalysis.Flush()
 
     def Finalize(self):
+        # Finalize
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeCoSimulationExecuteFinalize()
+
         self._GetSolver().Finalize()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterCoSimulationExecuteFinalize()
 
     def InitializeSolutionStep(self):
         self.step += 1
         cs_tools.cs_print_info(colors.bold("\ntime={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
 
+        # InitializeSolutionStep
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeCoSimulationInitializeSolutionStep()
+
         self._GetSolver().InitializeSolutionStep()
 
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterCoSimulationInitializeSolutionStep()
+
     def FinalizeSolutionStep(self):
+        # FinalizeSolutionStep
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeCoSimulationFinalizeSolutionStep()
+
         self._GetSolver().FinalizeSolutionStep()
 
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterCoSimulationFinalizeSolutionStep()
+
     def OutputSolutionStep(self):
+        # FinalizeSolutionStep
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeCoSimulationOutputSolutionStep()
+
         self._GetSolver().OutputSolutionStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterCoSimulationOutputSolutionStep()
 
         if self.flush_stdout:
             CoSimulationAnalysis.Flush()
@@ -116,6 +160,25 @@ class CoSimulationAnalysis(AnalysisStage):
             simulation_name += self._GetSolver(solver_name)._ClassName() + " - "
         simulation_name = simulation_name[0:-3] # Removing last " - "
         return simulation_name
+
+    def __CreateListOfProcesses(self):
+        """This function creates the processes and the output-processes
+        """
+        order_processes_initialization = self._GetOrderOfProcessesInitialization()
+        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of processes
+        """
+        list_of_processes = []
+        list_of_processes_raw = super()._CreateProcesses(parameter_name, initialization_order, list_of_processes)
+        for process in list_of_processes_raw:
+            if issubclass(process, CoSimulationProcess):
+                list_of_processes.append(process)
+            else:
+                cs_tools.cs_print_info("Process", type(process).__name__) + " not added to the list of processes because is not derived from CoSimulationProcess")
+
+        return list_of_processes
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
