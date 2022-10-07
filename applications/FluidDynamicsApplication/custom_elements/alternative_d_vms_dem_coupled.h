@@ -215,6 +215,8 @@ protected:
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    int mInterpolationOrder = 1;
 
     ///@}
     ///@name Protected Operators
@@ -249,10 +251,7 @@ protected:
         MatrixType& rMassMatrix) override;
 
     void CalculateResistanceTensor(
-        const TElementData& rData,
-        MatrixType& sigma,
-        const double kin_viscosity,
-        const double porosity) const;
+        const TElementData& rData);
 
     void CalculateSpectralRadius(
         const TElementData& rData,
