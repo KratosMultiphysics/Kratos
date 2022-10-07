@@ -44,8 +44,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-class ShiftedBoundaryMeshlessInterfaceUtility
+/**
+ * @brief Utilities for the SBM-WTE extension operator calculation
+ * This class encapsulates several utilities for the calculation of the extension operator
+ * in the Shifted Boundary Method Without Taylor Expansions.
+ */
+class KRATOS_API(KRATOS_CORE) ShiftedBoundaryMeshlessInterfaceUtility
 {
 public:
 
