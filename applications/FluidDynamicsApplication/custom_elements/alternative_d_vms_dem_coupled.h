@@ -92,6 +92,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    typedef GeometryType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
     constexpr static unsigned int Dim = DVMS<TElementData>::Dim;
     constexpr static unsigned int NumNodes = DVMS<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = DVMS<TElementData>::BlockSize;
