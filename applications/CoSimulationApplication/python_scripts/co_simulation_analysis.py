@@ -172,7 +172,7 @@ class CoSimulationAnalysis(AnalysisStage):
         """Create a list of processes
         """
         list_of_processes = []
-        list_of_processes_raw = super()._CreateProcesses(parameter_name, initialization_order, list_of_processes)
+        list_of_processes_raw = super()._CreateProcesses(parameter_name, initialization_order)
         for process in list_of_processes_raw:
             if issubclass(process, CoSimulationProcess):
                 list_of_processes.append(process)
