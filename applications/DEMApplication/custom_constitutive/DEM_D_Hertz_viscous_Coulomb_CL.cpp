@@ -281,7 +281,7 @@ namespace Kratos {
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
 
-            const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            const double ActualElasticShearForce = AuxElasticShearForce;
 
             const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
             const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
