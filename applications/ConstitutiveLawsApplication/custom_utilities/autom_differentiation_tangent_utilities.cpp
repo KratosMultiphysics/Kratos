@@ -53,12 +53,12 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const auto &r_props = rValues.GetMaterialProperties();
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
-  const double Gf = r_props[POISSON_RATIO];
+  const double Gf = r_props[FRACTURE_ENERGY];
   const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
   double threshold;
   YieldSurfaceType::GetInitialUniaxialThreshold(rValues, threshold);
   auto &r_Ct = rValues.GetConstitutiveMatrix();
-  auto &r_strain = rValues.GetStrainVector();
+  const auto &r_strain = rValues.GetStrainVector();
 
   const double cr_Ct0 = nu - 1.0;
   const double cr_Ct1 = -nu;
