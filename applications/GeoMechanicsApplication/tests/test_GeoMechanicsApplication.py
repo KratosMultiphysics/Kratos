@@ -55,8 +55,6 @@ def AssembleTestSuites():
         KratosGeoMechanicsResetDisplacementTests,
         KratosGeoMechanicsSoilStructureInteractionTests,
         KratosGeoMechanicsWaterPressureTests,
-        KratosGeoMechanicsBenchmarkSet1,
-        KratosGeoMechanicsBenchmarkSet2,
         KratosGeoMechanicsElementTypeTests,
         KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
         KratosGeoMechanicsSoilWeightTests,
@@ -78,6 +76,8 @@ def AssembleTestSuites():
     # Create an array with all long tests only for validations
     valid_test_cases = [TestConsecutivePipeLines,
                         KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests,
+                        KratosGeoMechanicsBenchmarkSet1,
+                        KratosGeoMechanicsBenchmarkSet2,
                         KratosGeoMechanicsTransientGroundWaterFlowTests]
 
     # Create an array that contains all the tests from every testCase

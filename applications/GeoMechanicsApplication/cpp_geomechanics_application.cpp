@@ -813,6 +813,8 @@ namespace Kratos
                     }
                 }
 
+                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << workingDirectory << "\\criticalHead.json" << std::endl;
+
                 // output critical head_json
                 ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");
 
@@ -832,6 +834,8 @@ namespace Kratos
 
                 // Close the file
                 CriticalHeadFile.close();
+
+                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
             }
 
             logCallback(strdup(kratosLogBuffer.str().c_str()));
@@ -840,8 +844,10 @@ namespace Kratos
             ResetModelParts();
             return 0;
         }
-        catch (...)
+        catch (const std::exception &exc)
         {
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
+
             logCallback(strdup(kratosLogBuffer.str().c_str()));
             Logger::RemoveOutput(p_output);
 
