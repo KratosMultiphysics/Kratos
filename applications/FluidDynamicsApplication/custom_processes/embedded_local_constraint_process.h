@@ -205,6 +205,9 @@ private:
     bool mDeactivateNegativeElements;
     bool mDeactivateIntersectedElements;
 
+    // Count number of positive small cuts
+    std::size_t mNSmallCutPos;
+
     ///@}
     ///@name Private Operators
     ///@{

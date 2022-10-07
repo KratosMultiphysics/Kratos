@@ -59,19 +59,27 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using DofType = Dof<double>;
+
+    using DofPointerVectorType = std::vector<DofType::Pointer>;
+
+    using MatrixType = Matrix;
+
+    using VectorType = Vector;
+
     using IndexType = ModelPart::IndexType;
 
     using NodeType = ModelPart::NodeType;
 
     using GeometryType = ModelPart::GeometryType;
 
-    using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
+    using MLSShapeFunctionsFunctionType = std::function< void( const MatrixType&, const array_1d<double,3>&, const double, VectorType& ) >;
 
-    using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+    using NodesCloudSetType = std::unordered_set< NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer> >;
 
-    using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
+    using CloudDataVectorType = DenseVector< std::pair<NodeType::Pointer, double> >;
 
-    using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+    using NodesCloudMapType = std::unordered_map< NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer> >;
 
     ///@}
     ///@name Pointer Definitions
