@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # CoSimulation imports
@@ -170,9 +171,41 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of processes
+        Format:
+        "processes" : {
+            initial_processes : [
+                { proces_specific_params },
+                { proces_specific_params }
+            ],
+            boundary_processes : [
+                { proces_specific_params },
+                { proces_specific_params }
+            ]
+        }
+        The order of intialization can be specified by setting it in "initialization_order"
+        if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
+        initialization_order should be a list containing ["boundary_processes", "initial_processes"]
+        see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization
         """
+
+        # First creating raw list
+        list_of_processes_raw = []
+        factory = KratosProcessFactory(self.model)
+        if self.cosim_settings.Has(parameter_name):
+            processes_params = self.cosim_settings[parameter_name]
+
+            # first initialize the processes that depend on the order
+            for processes_names in initialization_order:
+                if processes_params.Has(processes_names):
+                    list_of_processes_raw += factory.ConstructListOfProcesses(processes_params[processes_names])
+
+            # then initialize the processes that don't depend on the order
+            for name, value in processes_params.items():
+                if not name in initialization_order:
+                    list_of_processes_raw += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]
+
+        # Filter only CoSimulationProcesses
         list_of_processes = []
-        list_of_processes_raw = super()._CreateProcesses(parameter_name, initialization_order)
         for process in list_of_processes_raw:
             if issubclass(process, CoSimulationProcess):
                 list_of_processes.append(process)
