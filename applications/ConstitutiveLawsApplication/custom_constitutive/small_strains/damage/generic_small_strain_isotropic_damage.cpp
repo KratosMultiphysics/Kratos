@@ -154,7 +154,12 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateTangen
     const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
 
     if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+        const SizeType softening_type = r_material_properties[SOFTENING_TYPE];
+        if (softening_type == static_cast<SizeType>(SofteningType::Linear))
+            AutomaticDifferentiationTangentUtilities<TConstLawIntegratorType::YieldSurfaceType, 0>::CalculateTangentTensorAutomDiffIsotropicDamage(rValues);
+        else
+            AutomaticDifferentiationTangentUtilities<TConstLawIntegratorType::YieldSurfaceType, 1>::CalculateTangentTensorAutomDiffIsotropicDamage(rValues);
+
     } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (first order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
