@@ -102,8 +102,11 @@ class Optimizer:
 
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX_MAPPED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DC1DX)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DC1DX_MAPPED)
+        for itr in range(1,number_of_constraints+1):
+            nodal_variable = KM.KratosGlobals.GetVariable("HEATMAP_DC"+str(itr)+"DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KM.KratosGlobals.GetVariable("HEATMAP_DC"+str(itr)+"DX_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_S)
         model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_DF1DX)

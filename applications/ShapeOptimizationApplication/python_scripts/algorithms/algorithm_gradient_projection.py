@@ -121,8 +121,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             self.__computeShapeUpdate()
 
-            if self.optimization_iteration > 1:
-                self.__computeSensitivityHeatmap()
+            self.__computeSensitivityHeatmap()
 
             self.__logCurrentOptimizationStep()
 
@@ -141,6 +140,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         def ___ComputeHeatmap(norm_type, sens_type):
 
+            relax_coeff = 0.8
+            # reciprocal relaxation
+            # relax_coeff = 1 / self.optimization_iteration
             heat = []
 
             # read objective gradient
@@ -148,6 +150,22 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
             elif sens_type == "mapped":
                 df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+
+            # DF1DX individual heatmap
+            heatmap_dfdx_name = "HEATMAP_DF1DX"
+            if self.optimization_iteration == 1:
+                heat_dfdx_relaxed = df_dx
+            else:
+                # if sens_type == "mapped":
+                #     heatmap_dfdx_name += "_" + "MAPPED"
+                prev_heat_dfdx = KM.Vector()
+                self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
+                heat_dfdx_relaxed = []
+                for i in range(len(self.design_surface.Nodes)):
+                    for dim in range(3):
+                        heat_dfdx_relaxed.append(relax_coeff * df_dx[3*i+dim] + (1 - relax_coeff) * prev_heat_dfdx[3*i+dim])
+
+            WriteListToNodalVariable(heat_dfdx_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
 
             # normalize objective gradient
             if norm_type == "MAX":
@@ -164,7 +182,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 df_dx_normalized = [0] * len(df_dx)
 
             dc_dx_normalized = {}
-            for constraint in self.constraints:
+            for itr, constraint in enumerate(self.constraints):
                 # read constraint gradients
                 con_id = constraint["identifier"].GetString()
                 if sens_type == "raw":
@@ -188,6 +206,22 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 else:
                     dc_dx_normalized.update({con_id : [0] * len(dci_dx)})
 
+                # DCiDX individual heatmap
+                heatmap_dcidx_name = "HEATMAP_" + "DC" + str(itr+1) + "DX"
+                if self.optimization_iteration == 1:
+                    heat_dcidx_relaxed = dci_dx
+                else:
+                    # if sens_type == "mapped":
+                    #     heatmap_dcidx_name += "_" + "MAPPED"
+                    prev_heat_dcidx = KM.Vector()
+                    self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dcidx, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
+                    heat_dcidx_relaxed = []
+                    for i in range(len(self.design_surface.Nodes)):
+                        for dim in range(3):
+                            heat_dcidx_relaxed.append(relax_coeff * dci_dx[3*i+dim] + (1 - relax_coeff) * prev_heat_dcidx[3*i+dim])
+
+                WriteListToNodalVariable(heat_dcidx_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
+
             # fill heat map for each node
             for i in range(len(self.design_surface.Nodes)):
                 df_dx_i = df_dx_normalized[3*i:3*i+3]
@@ -206,24 +240,27 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 heat_map_name += "_" + "MAPPED"
 
             # Heatmap Relaxed
-            prev_heat = KM.Vector()
-            self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat, KM.KratosGlobals.GetVariable(heat_map_name))
-            heat_relaxed = KM.Vector()
-            self.optimization_utilities.AssembleScalar(self.design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
-            relax_coeff = 0.5
-            for i in range(len(self.design_surface.Nodes)):
-                heat_relaxed[i] = relax_coeff * heat[i] + (1 - relax_coeff) * prev_heat[i]
+            if self.optimization_iteration == 1:
+                heat_relaxed = heat
+            else:
+                prev_heat = KM.Vector()
+                self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
+                heat_relaxed = []
+                # self.optimization_utilities.AssembleScalar(self.design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
+                for i in range(len(self.design_surface.Nodes)):
+                    heat_relaxed.append(relax_coeff * heat[i] + (1 - relax_coeff) * prev_heat[i])
 
-            self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
+            # self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
+            WriteListToNodalVariable(heat_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"), 1)
             WriteListToNodalVariable(heat, self.design_surface, KM.KratosGlobals.GetVariable(heat_map_name), 1)
 
-        ___ComputeHeatmap(norm_type="MAX", sens_type="raw")
+        # ___ComputeHeatmap(norm_type="MAX", sens_type="raw")
         ___ComputeHeatmap(norm_type="MAX", sens_type="mapped")
 
-        ___ComputeHeatmap(norm_type="L2", sens_type="raw")
+        # ___ComputeHeatmap(norm_type="L2", sens_type="raw")
         ___ComputeHeatmap(norm_type="L2", sens_type="mapped")
 
-        ___ComputeHeatmap(norm_type="VALUE", sens_type="raw")
+        # ___ComputeHeatmap(norm_type="VALUE", sens_type="raw")
         ___ComputeHeatmap(norm_type="VALUE", sens_type="mapped")
 
     # --------------------------------------------------------------------------
