@@ -57,6 +57,7 @@ namespace Kratos
             std::function<void(char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](char* message) 
             {
                 messageCount++;
+                std::cout << "Captured: " << message << std::endl;
 
                 if(strcmp(message, "Calculating head level 3m (1/12)") == 0) {
                     firstMessageFound = true;
