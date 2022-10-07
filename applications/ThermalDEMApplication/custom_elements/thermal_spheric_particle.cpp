@@ -141,7 +141,7 @@ namespace Kratos
 
     // Set flags
     mHasMotion = r_process_info[MOTION_OPTION];
-
+    
     mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
                           r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
 
