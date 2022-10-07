@@ -5,10 +5,10 @@
 [![Release][release-image]][releases]
 <a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
 <a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-8.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
-<a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a> ![Platform](https://img.shields.io/badge/platform-🍎MacOS%20|%20🐧GNU/Linux%20|%20🪟Windows-blue)
 
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
-[![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
+[![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics) [![GitHub pull-requests](https://img.shields.io/github/issues-pr/KratosMultiphysics/Kratos.svg)](https://github.com/KratosMultiphysics/Kratos/pull/) [![GitHub issues](https://img.shields.io/github/issues/KratosMultiphysics/Kratos.svg)](https://GitHub.com/KratosMultiphysics/Kratos/issues/) [![GitHub contributors](https://img.shields.io/github/contributors/KratosMultiphysics/Kratos.svg)](https://GitHub.com/KratosMultiphysics/badges/graphs/contributors/)
 
 [release-image]: https://img.shields.io/badge/release-9.2-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
@@ -43,7 +43,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 **Kratos** provides a core which defines the common framework and several application which work like plug-ins that can be extended in diverse fields.
 
 Its main applications are:
-- [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simultion
+- [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simulation
 - [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
 - [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
 - [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
