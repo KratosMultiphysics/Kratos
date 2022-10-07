@@ -23,6 +23,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
         self.cosim_settings = cosim_settings
         self.models = models
+        self.model = KM.Model() # Dummy model, that will be used in the processes factory
 
         # this contains only the optional parameters, not the ones that have to be specified
         problem_data_defaults = KM.Parameters("""{
