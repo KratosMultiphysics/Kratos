@@ -193,6 +193,7 @@ public:
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
+    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
 
     ///@}
@@ -270,6 +271,14 @@ protected:
         VectorType& rRHS) override;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const;
 
     void CalculateStabilizationParameters(
         const TElementData& rData,
