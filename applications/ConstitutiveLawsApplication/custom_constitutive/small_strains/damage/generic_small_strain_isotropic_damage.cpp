@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_utilities/autom_differentiation_tangent_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "generic_small_strain_isotropic_damage.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
