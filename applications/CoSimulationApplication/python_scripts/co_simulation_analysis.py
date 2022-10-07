@@ -176,7 +176,7 @@ class CoSimulationAnalysis(AnalysisStage):
             if issubclass(process, CoSimulationProcess):
                 list_of_processes.append(process)
             else:
-                cs_tools.cs_print_info("Process", type(process).__name__) + " not added to the list of processes because is not derived from CoSimulationProcess")
+                cs_tools.cs_print_info("Process", type(process).__name__ + " not added to the list of processes because is not derived from CoSimulationProcess")
 
         return list_of_processes
 
