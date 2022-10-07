@@ -68,7 +68,7 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 0, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, reportTextualProgress, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, reportTextualProgress, &emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(firstMessageFound, true);
@@ -101,7 +101,7 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 0, 4, 0.1, "PorousDomain.Left_head", &emptyLog, reportProgress, &emptyLog, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, reportProgress, &emptyLog, &emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(startProgressFound, true);
