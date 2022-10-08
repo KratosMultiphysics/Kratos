@@ -155,7 +155,11 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             "[-2, -5]", # invalid order: negatives
         ]]
         for parameters in invalid_parameters:
-            self.assertRaises(Exception, KratosMultiphysics.IntervalUtility, parameters, msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
+            self.assertRaises(
+                Exception,
+                KratosMultiphysics.IntervalUtility,
+                parameters,
+                msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
 
 class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
@@ -310,11 +314,11 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
             "[-2, -5]", # invalid order: negatives
         ]]
         for parameters in invalid_parameters:
-            try:
-                KratosMultiphysics.DiscreteIntervalUtility(parameters)
-                self.assertTrue(False, msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
-            except Exception as exception:
-                pass # expected
+            self.assertRaises(
+                Exception,
+                KratosMultiphysics.IntervalUtility,
+                parameters,
+                msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
     def testIntervalUtilityDefault(self):
         settings = KratosMultiphysics.Parameters()
