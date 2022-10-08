@@ -426,7 +426,7 @@ namespace Kratos
         mContactParamsParticle[neighbor].rolling_resistance = 0.0;
         Properties& properties_of_contact = GetProperties().GetSubProperties(neighbor->GetProperties().Id());
         const double equiv_rolling_friction_coeff = properties_of_contact[ROLLING_FRICTION] * std::min(GetParticleRadius(), neighbor->GetRadius());
-        ComputeRollingResistance(mContactParamsParticle[neighbor].rolling_resistance, LocalContactForceTotal[2], equiv_rolling_friction_coeff, 0);
+        //ComputeRollingResistance(mContactParamsParticle[neighbor].rolling_resistance, LocalContactForceTotal[2], equiv_rolling_friction_coeff, 0);
       }
     }
 
@@ -502,7 +502,7 @@ namespace Kratos
         mContactParamsWall[neighbor].rolling_resistance = 0.0;
         Properties& properties_of_contact = GetProperties().GetSubProperties(neighbor->GetProperties().Id());
         const double equiv_rolling_friction_coeff = properties_of_contact[ROLLING_FRICTION_WITH_WALLS] * GetParticleRadius();
-        ComputeRollingResistance(mContactParamsWall[neighbor].rolling_resistance, LocalContactForceTotal[2], equiv_rolling_friction_coeff, 0);
+        //ComputeRollingResistance(mContactParamsWall[neighbor].rolling_resistance, LocalContactForceTotal[2], equiv_rolling_friction_coeff, 0);
       }
     }
 
@@ -534,8 +534,8 @@ namespace Kratos
     SphericParticle::FinalizeForceComputation(data_buffer);
 
     // Update total rolling resistance coefficient from previous step
-    if (this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION))
-      mPreviousRollResistCoeff = data_buffer.mRollingResistance;
+    //if (this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION))
+      //mPreviousRollResistCoeff = data_buffer.mRollingResistance;
 
     KRATOS_CATCH("")
   }
