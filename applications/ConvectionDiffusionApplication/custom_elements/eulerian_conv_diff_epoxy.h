@@ -170,15 +170,20 @@ private:
 
     double m_specific_heat_capacity = 0.0;
 
+    double m_adjusted_stiffness = 0.0;
+
     double m_thermal_conductivity = 0.0;
 
     double m_adjusted_density = 0.0;
 
     double ComputeDegreeOfCure(double rDegreeOfCure, double Temperature);
+    //double ComputeDegreeOfCure(double rDegreeOfCure, double Temperature, double GlassTransitionTemperature);
 
     double ComputeGlassTransitionTemperature(double DegreeOfCure);
     
-    double ComputePreStrainFactor(double DegreeOfCure, double temperature_previous, double temperature_current);
+    double ComputePreStrainFactor(double DegreeOfCure, double degree_of_cure_previous, double temperature_previous, double temperature_current, double GlassTransitionTemperature);
+
+    double ComputeAdjustedStiffness(double Temperature, double GlassTransitionTemperature);
 
     double ComputeHeatOfReaction(
         double degree_of_cure_previous,
@@ -186,11 +191,13 @@ private:
         double delta_time);
 
     double ComputeAdjustedDensity(
-        double degree_of_cure_previous,
         double degree_of_cure_current,
+        double degree_of_cure_previous,
         double temperature_current,
         double temperature_previous,
         double density_previous);
+    //double GlassTransitionTemperature,
+    
 
     double ComputeSpecificHeatCapacity(
         double Temperature,

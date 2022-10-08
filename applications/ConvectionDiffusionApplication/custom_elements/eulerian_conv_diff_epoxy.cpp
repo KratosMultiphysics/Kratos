@@ -74,6 +74,7 @@ namespace Kratos
         m_glass_transition_temperature = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
         m_heat_of_reaction = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
         m_pre_strain_vector = ZeroVector(GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2));
+  
 
         auto& r_geometry = GetGeometry();
         auto integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -97,6 +98,8 @@ namespace Kratos
                 temperature, m_glass_transition_temperature[i],
                 m_degree_of_cure_vector[i]);
 
+            
+
             conductivity += this->ComputeThermalConductivity(
                 temperature,m_degree_of_cure_vector[i]);
         }
@@ -107,6 +110,7 @@ namespace Kratos
         m_thermal_conductivity = conductivity;
 
         m_adjusted_density = GetProperties()[DENSITY];
+        m_adjusted_stiffness = GetProperties()[YOUNG_MODULUS];
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -439,8 +443,10 @@ namespace Kratos
             //KRATOS_WATCH(temperature)
 
             double degree_of_cure = this->ComputeDegreeOfCure(m_degree_of_cure_vector[i], temperature);
+            //double degree_of_cure = this->ComputeDegreeOfCure(m_degree_of_cure_vector[i], temperature, m_glass_transition_temperature[i]);
             m_heat_of_reaction[i] = ComputeHeatOfReaction(m_degree_of_cure_vector[i], degree_of_cure, rCurrentProcessInfo[DELTA_TIME]);
             m_degree_of_cure_vector[i] = degree_of_cure;
+    
         }
 
         for (IndexType j = 0; j < TNumNodes; j++)
@@ -478,6 +484,7 @@ namespace Kratos
         double specific_heat = 0;
         double conductivity = 0;
         double density = 0;
+        double young_modulus = 0;
         for (IndexType i = 0; i < number_of_integration_points; ++i)
         {
             double temperature = 0;
@@ -500,13 +507,18 @@ namespace Kratos
                 temperature, m_glass_transition_temperature[i],
                 m_degree_of_cure_vector[i]);
             m_pre_strain_vector[i] = this->ComputePreStrainFactor(
-                m_degree_of_cure_vector[i], temperature, previous_temperature);
+                m_degree_of_cure_vector[i], degree_of_cure_vector_previous[i], temperature, m_glass_transition_temperature[i], previous_temperature);
 
             density += this->ComputeAdjustedDensity(
                 previous_temperature, temperature,
-                degree_of_cure_vector_previous[i],
                 m_degree_of_cure_vector[i],
+                degree_of_cure_vector_previous[i], 
                 m_adjusted_density);
+            // m_glass_transition_temperature[i],
+
+            young_modulus += this->ComputeAdjustedStiffness(
+                temperature,
+                m_glass_transition_temperature[i]);
 
             conductivity += this->ComputeThermalConductivity(
                 temperature, m_degree_of_cure_vector[i]);
@@ -515,12 +527,14 @@ namespace Kratos
         specific_heat /= number_of_integration_points;
         conductivity /= number_of_integration_points;
         density /= number_of_integration_points;
+        young_modulus /= number_of_integration_points;
         //KRATOS_WATCH(m_glass_transition_temperature)
         //KRATOS_WATCH(m_degree_of_cure_vector)
         //KRATOS_WATCH(specific_heat)
         m_specific_heat_capacity = specific_heat;
         m_thermal_conductivity = conductivity;
         m_adjusted_density = density;
+        m_adjusted_stiffness = young_modulus;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -604,6 +618,13 @@ namespace Kratos
                 rOutput[i] = m_adjusted_density;
             }
         }
+        else if (rVariable == ADJUSTED_STIFFNESS)
+        {
+            for (IndexType i = 0; i < number_of_integration_points; ++i)
+            {
+                rOutput[i] = m_adjusted_stiffness;
+            }
+        }
         else if (rVariable == CONDUCTIVITY)
         {
             for (IndexType i = 0; i < number_of_integration_points; ++i)
@@ -642,6 +663,25 @@ namespace Kratos
             //: 1.664;
             : KRATOS_ERROR << "KAMAL_SOUROUR_N_FACTOR is not defined."; 
 
+        //double k_chem_1 = A_1 * exp(-E_1 / (8.3145 * Temperature));
+        //double k_chem_2 = A_2 * exp(-E_2 / (8.3145 * Temperature));
+        //double k_diff = 0.00000114;
+        //double c1 = 1.875;
+        //double c2 = 96.982;
+        //double Tg = (0.2783 * DegreeOfCure * 113.0 / (1 - 0.7217 * DegreeOfCure)) + 229.15;
+        //double k_diff_rubber = k_diff * exp(c1 * (Temperature - Tg) / (c2 + Temperature - Tg));
+        //double k_diff_glass = k_diff * exp(-c1 * pow(Tg, 2) * ((1 / Temperature) - (1 / Tg))/ c2 );
+
+       
+
+       // if (Temperature < Tg) {
+         //   double rate_of_conversion = ((k_chem_1* k_diff_glass/(k_chem_1+k_diff_glass))+ (k_chem_2 * k_diff_glass / (k_chem_2 + k_diff_glass)) * pow(DegreeOfCure, m_factor)) * pow((1 - DegreeOfCure), n_factor);
+           // return DegreeOfCure + rate_of_conversion;
+        //}
+        //double rate_of_conversion = ((k_chem_1 * k_diff_rubber / (k_chem_1 + k_diff_rubber)) + (k_chem_2 * k_diff_rubber / (k_chem_2 + k_diff_rubber)) * pow(DegreeOfCure, m_factor)) * pow((1 - DegreeOfCure), n_factor);
+        //return DegreeOfCure + rate_of_conversion;
+        
+
         double rate_of_conversion = ((A_1 * exp(-E_1 / (8.3145 * Temperature)))
             + ((A_2 * exp(-E_2 / (8.3145 * Temperature))) * pow(DegreeOfCure, m_factor))) * pow((1 - DegreeOfCure), n_factor);
 
@@ -665,7 +705,7 @@ namespace Kratos
             : KRATOS_ERROR << "GLASS_TRANSITION_TEMPERATURE_LAMBDA is not defined.";
             //: 0.288;
 
-        double glass_transition_temperature = ((Tg0 + 273.15) + (Tginf - Tg0) * ((lamda * DegreeOfCure) / (1.0 - (1.0 - lamda) * DegreeOfCure)))-273.15;
+        double glass_transition_temperature = ((Tg0 + 273.15) + (Tginf - Tg0) * ((lamda * DegreeOfCure) / (1.0 - (1.0 - lamda) * DegreeOfCure)));
 
         return glass_transition_temperature;
 
@@ -675,31 +715,32 @@ namespace Kratos
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeSpecificHeatCapacity(
         double Temperature, double GlassTransitionTemperature, double DegreeOfCure)
     {
-        double Crub = 2.10;
-        double Crub_alpha = 0.16;
-        double Crub_T = 0.000419;
-        double Cglass = 1.55;
-        double Cglass_T = 0.00244;
-        double Cw = 0.474;
-        double sigma = 107.6;
-        double sigma_T = -0.454;
+        double Crub = 0.8892;
+        double Crub_alpha = -0.019;
+        double Crub_T = 0.00344;
+        double Cglass = 2.125;
+        double Cglass_T = -0.0289;
+        double Cw = 0.357;
+        double sigma = -45.51;
+        double sigma_T = 0.45;
 
-        double specific_heat_capacity = (Crub + Crub_alpha * DegreeOfCure + Crub_T * Temperature + (Cglass + Cglass_T * Temperature - Crub - Crub_alpha * DegreeOfCure - Crub_T * Temperature) /
-            (1.0 + exp(Cw * (Temperature - GlassTransitionTemperature - sigma - sigma_T * Temperature))))*1000.0;
+        double specific_heat_capacity = Crub + Crub_alpha * DegreeOfCure + Crub_T * (Temperature-273.15) + (Cglass + Cglass_T * (Temperature-273.15) - Crub - Crub_alpha * DegreeOfCure - Crub_T * (Temperature-273.15)) /
+            (1.0 + exp(Cw * ((Temperature-273.15) - (GlassTransitionTemperature-273.15) - sigma - sigma_T * (Temperature-273.15))));
 
         return specific_heat_capacity;
+        
     }
-
+    
     template< unsigned int TDim, unsigned int TNumNodes >
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeThermalConductivity(
         double Temperature, double DegreeOfCure)
     {
-        double theta_conductivity = 0.44;
-        double beta_conductivity = -12.1;
-        double gamma_conductivity = 0.061;
+        double theta_conductivity = 0.3703;
+        double beta_conductivity = 0.6123;
+        double gamma_conductivity = 0.0125;
         
 
-        double thermal_conductivity = (1.0  + theta_conductivity * DegreeOfCure) / (beta_conductivity + gamma_conductivity * Temperature);
+        double thermal_conductivity = (1.0  + theta_conductivity * DegreeOfCure) / (beta_conductivity + gamma_conductivity * (Temperature-273.15));
 
         return thermal_conductivity;
     }
@@ -708,18 +749,61 @@ namespace Kratos
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeAdjustedDensity(
         double temperature_previous,
         double temperature_current,
-        double degree_of_cure_previous,
         double degree_of_cure_current,
+        double degree_of_cure_previous,
         double density_previous)
+       
     {
-        double alpha_vr = 0.00019;
-        double gamma_sh_coeff = 0.083;
+        double alpha_vr_glass = 0.000168;
+        double alpha_vr_rubber = 0.000177;
+        double gamma_sh_coeff = 0.0537;
 
+        double Tg = (0.2783 * degree_of_cure_current * 113.0 / (1 - 0.7217 * degree_of_cure_current)) + 229.15;
 
-        double adjusted_density = density_previous/(1.0 + alpha_vr * (temperature_current-temperature_previous) 
-            - (gamma_sh_coeff*(degree_of_cure_current-degree_of_cure_previous)));
+        //double adjusted_density = density_previous / (1.0 + alpha_vr_glass * (temperature_current - temperature_previous)
+          //  - (gamma_sh_coeff * (degree_of_cure_current - degree_of_cure_previous)));
 
+        if (temperature_current < Tg) {
+            double adjusted_density = density_previous / (1.0 + alpha_vr_glass * (temperature_current - temperature_previous)
+                - (gamma_sh_coeff * (degree_of_cure_current - degree_of_cure_previous)));
+            return adjusted_density;
+        }
+        double adjusted_density = density_previous / (1.0 + alpha_vr_rubber * (temperature_current - temperature_previous)
+            - (gamma_sh_coeff * (degree_of_cure_current - degree_of_cure_previous)));
+            
         return adjusted_density;
+    }
+
+
+    template< unsigned int TDim, unsigned int TNumNodes >
+    double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputeAdjustedStiffness(
+        double temperature_current,
+        double GlassTransitionTemperature)
+    {
+        double stiffness_r_0 = 60000000.0;
+        double stiffness_r_inf = 8000000000.0;
+        double T_c1 = -2.4;
+        double T_c2 = 24.6;
+
+        //double T_c1 = T_c1a + T_c1b * temperature_current;
+
+        double T_star = GlassTransitionTemperature - temperature_current;
+
+        double adjusted_stiffness = 0;
+
+        if (T_star < T_c1) 
+        {
+            adjusted_stiffness = stiffness_r_0;
+        }
+        else if (T_star < T_c2)
+        {
+            adjusted_stiffness = stiffness_r_inf;
+        }
+        else // if (T_star >= T_c2)
+        {
+             adjusted_stiffness = stiffness_r_0 + (T_star - T_c1) * (stiffness_r_inf - stiffness_r_0) / (T_c2 - T_c1);
+        }
+        return adjusted_stiffness;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -728,7 +812,7 @@ namespace Kratos
         double degree_of_cure_current,
         double delta_time)
     {
-        double total_heat_of_reaction = 117.0/1000.0;
+        double total_heat_of_reaction = 110.0/1000.0;
 
         const double density = m_adjusted_density;
         const double specific_heat = m_specific_heat_capacity;
@@ -745,16 +829,19 @@ namespace Kratos
     template< unsigned int TDim, unsigned int TNumNodes >
     double EulerianConvectionDiffusionEpoxyElement< TDim, TNumNodes >::ComputePreStrainFactor(
         double DegreeOfCureCurrent,
+        double degree_of_cure_previous,
         double temperature_current,
-        double temperature_previous)
+        double temperature_previous,
+        double GlassTransitionTemperature)
     {
-        const double CTE = 0.4;
+        const double CTE_glass = 0.000056;
+        const double CTE_rubber = 0.000159;
 
-        if (DegreeOfCureCurrent < 0.77) {
-            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (8.233 * DegreeOfCureCurrent - 0.4199)/100.0;
+        if (temperature_current < GlassTransitionTemperature) {
+            double pre_strain_factor = (CTE_glass * (temperature_current - temperature_previous)) - ((DegreeOfCureCurrent-degree_of_cure_previous) * 0.0537/3);
             return pre_strain_factor;
         }
-            double pre_strain_factor = (CTE * (temperature_current - temperature_previous)) - (18.75 * DegreeOfCureCurrent - 8.7915)/100.0;
+            double pre_strain_factor = (CTE_rubber * (temperature_current - temperature_previous)) - ( (DegreeOfCureCurrent-degree_of_cure_previous) * 0.0537/3);
                 return pre_strain_factor;
     }
 //----------------------------------------------------------------------------------------

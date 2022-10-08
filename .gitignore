@@ -3,7 +3,8 @@
 # unless it should be available for everyone
 # Please change the LOCAL gitignore (.git/info/exclude) to cutomize
 # exluding files/folders from being recognized by git
-
+.vs/
+out/
 # Recovery files
 *~
 

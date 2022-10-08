@@ -70,7 +70,7 @@ double& LinearPlaneStressPreStrain::GetValue(const Variable<double>& rThisVariab
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == PRE_STRAIN_FACTOR)
         rValue = m_pre_strain_factor;
-    if (rThisVariable == YOUNGS_MODULUS)
+    if (rThisVariable == YOUNG_MODULUS)
         rValue = m_E;
 
     return rValue;
@@ -79,7 +79,7 @@ double& LinearPlaneStressPreStrain::GetValue(const Variable<double>& rThisVariab
 bool LinearPlaneStressPreStrain::Has(const Variable<double>& rThisVariable)
 
 {
-    if (rThisVariable == PRE_STRAIN_FACTOR || rThisVariable == YOUNGS_MODULUS) {
+    if (rThisVariable == PRE_STRAIN_FACTOR || rThisVariable == YOUNG_MODULUS) {
         return true;
     }
     return false;
@@ -93,7 +93,7 @@ void LinearPlaneStressPreStrain::SetValue(const Variable<double>& rVariable,
         m_pre_strain_factor = Value;
     }
 
-    if (rVariable == YOUNGS_MODULUS) {
+    if (rVariable == YOUNG_MODULUS) {
         m_E = Value;
     }
 }
@@ -152,12 +152,12 @@ void LinearPlaneStressPreStrain::CalculatePK2Stress(
 )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
+    const double m_E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c1 = E / (1.00 - NU * NU);
+    const double c1 = m_E / (1.00 - NU * NU);
     const double c2 = c1 * NU;
-    const double c3 = 0.5* E / (1 + NU);
+    const double c3 = 0.5* m_E / (1 + NU);
 
     Vector strain_with_pre_strain = rStrainVector;
     strain_with_pre_strain[0] += m_pre_strain_factor;

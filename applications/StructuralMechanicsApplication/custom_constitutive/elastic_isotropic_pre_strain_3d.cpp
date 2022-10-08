@@ -255,7 +255,7 @@ Matrix& ElasticIsotropicPrestrain3D::CalculateValue(
 bool ElasticIsotropicPrestrain3D::Has(const Variable<double>& rThisVariable)
 
 {
-    if (rThisVariable == PRE_STRAIN_FACTOR || rThisVariable == YOUNGS_MODULUS) {
+    if (rThisVariable == PRE_STRAIN_FACTOR || rThisVariable == YOUNG_MODULUS) {
         return true;
     }
     return false;
@@ -268,7 +268,7 @@ void ElasticIsotropicPrestrain3D::SetValue(const Variable<double>& rVariable,
     if (rVariable == PRE_STRAIN_FACTOR) {
         m_pre_strain_factor = Value;
     }
-    if (rVariable == YOUNGS_MODULUS) {
+    if (rVariable == YOUNG_MODULUS) {
         m_E = Value;
     }
 }
