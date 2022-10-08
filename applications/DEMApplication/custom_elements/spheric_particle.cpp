@@ -119,7 +119,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mElasticEnergy = rOther.mElasticEnergy;
     mInelasticFrictionalEnergy = rOther.mInelasticFrictionalEnergy;
     mInelasticViscodampingEnergy = rOther.mInelasticViscodampingEnergy;
-    mInelasticRollResistEnergy = rOther.mInelasticRollResistEnergy;
+    mInelasticRollingResistanceEnergy = rOther.mInelasticRollingResistanceEnergy;
     mNeighbourElements = rOther.mNeighbourElements;
     mContactingNeighbourIds = rOther.mContactingNeighbourIds;
     mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
@@ -247,8 +247,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     inelastic_frictional_energy = 0.0;
     double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
     inelastic_viscodamping_energy = 0.0;
-    double& inelastic_rollresist_energy = this->GetInelasticRollResistEnergy();
-    inelastic_rollresist_energy = 0.0;
+    double& inelastic_rollingresistance_energy = this->GetInelasticRollingResistanceEnergy();
+    inelastic_rollingresistance_energy = 0.0;
 
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
@@ -1983,7 +1983,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     if (rVariable == PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY) {
 
-      Output = GetInelasticRollResistEnergy();
+      Output = GetInelasticRollingResistanceEnergy();
 
     }
 
@@ -2211,7 +2211,7 @@ array_1d<double, 3>& SphericParticle::GetForce()                                
 double&              SphericParticle::GetElasticEnergy()                                  { return mElasticEnergy; }
 double&              SphericParticle::GetInelasticFrictionalEnergy()                      { return mInelasticFrictionalEnergy; }
 double&              SphericParticle::GetInelasticViscodampingEnergy()                    { return mInelasticViscodampingEnergy; }
-double&              SphericParticle::GetInelasticRollResistEnergy()                      { return mInelasticRollResistEnergy; }
+double&              SphericParticle::GetInelasticRollingResistanceEnergy()               { return mInelasticRollingResistanceEnergy; }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                                          { GetFastProperties()->SetYoungFromProperties( young);                                            }
 void   SphericParticle::SetPoissonFromProperties(double* poisson)                                      { GetFastProperties()->SetPoissonFromProperties( poisson);                                        }

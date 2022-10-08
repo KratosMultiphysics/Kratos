@@ -419,8 +419,8 @@ namespace Kratos
         if (mPreviousRollResistCoeff != 0.0)
           coeff = mContactParamsParticle[neighbor].rolling_resistance / mPreviousRollResistCoeff;
 
-        mContactParamsParticle[neighbor].rollresist_energy += coeff * (GetInelasticRollResistEnergy() - mPreviousRollResistEnergy);
-        mPreviousRollResistEnergy = GetInelasticRollResistEnergy();
+        mContactParamsParticle[neighbor].rollresist_energy += coeff * (GetInelasticRollingResistanceEnergy() - mPreviousRollResistEnergy);
+        mPreviousRollResistEnergy = GetInelasticRollingResistanceEnergy();
 
         // Compute and store rolling friction coefficient of this interaction for the next step
         mContactParamsParticle[neighbor].rolling_resistance = 0.0;
@@ -495,8 +495,8 @@ namespace Kratos
         if (mPreviousRollResistCoeff != 0.0)
           coeff = mContactParamsWall[neighbor].rolling_resistance / mPreviousRollResistCoeff;
 
-        mContactParamsWall[neighbor].rollresist_energy += coeff * (GetInelasticRollResistEnergy() - mPreviousRollResistEnergy);
-        mPreviousRollResistEnergy = GetInelasticRollResistEnergy();
+        mContactParamsWall[neighbor].rollresist_energy += coeff * (GetInelasticRollingResistanceEnergy() - mPreviousRollResistEnergy);
+        mPreviousRollResistEnergy = GetInelasticRollingResistanceEnergy();
 
         // Compute and store rolling friction coefficient of this interaction for the next step
         mContactParamsWall[neighbor].rolling_resistance = 0.0;

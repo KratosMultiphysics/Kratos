@@ -1790,8 +1790,8 @@ namespace Kratos {
         total_inelastic_frictional_energy = 0.0;
         double& total_inelastic_viscodamping_energy = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
         total_inelastic_viscodamping_energy = 0.0;
-        double& total_inelastic_rollresist_energy = r_process_info[PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY];
-        total_inelastic_rollresist_energy = 0.0;
+        double& total_inelastic_rollingresistance_energy = r_process_info[PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY];
+        total_inelastic_rollingresistance_energy = 0.0;
 
         KRATOS_CATCH("")
     }
