@@ -203,8 +203,6 @@ namespace Kratos {
             for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
         }
 
-        r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
-
         //FinalizeSolutionStep();
 
         ComputeNodalArea();
@@ -490,10 +488,8 @@ namespace Kratos {
     }//SearchFEMOperations
 
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
-
         KRATOS_TRY
 
-        CleanEnergies();
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
