@@ -1953,7 +1953,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     if (rVariable == PARTICLE_GRAVITATIONAL_ENERGY) {
 
-       // Energy relative to the distance from particle to plane containing the origin and whose normal vector is gravity
+       // Energy relative to the origin [0,0,0]
        const double coord[3] = { this->GetGeometry()[0][0], this->GetGeometry()[0][1], this->GetGeometry()[0][2] };
        Output = - this->GetMass() * DEM_INNER_PRODUCT_3(r_process_info[GRAVITY], coord);
 
