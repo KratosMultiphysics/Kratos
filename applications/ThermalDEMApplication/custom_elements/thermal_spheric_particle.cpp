@@ -154,13 +154,9 @@ namespace Kratos
     mContactParamsWall.clear();
 
     // Initialze accumulated energy dissipations
-    mThermalViscodampingEnergy  = 0.0;
-    mThermalFrictionalEnergy    = 0.0;
-    mThermalRollResistEnergy    = 0.0;
     mPreviousViscodampingEnergy = 0.0;
     mPreviousFrictionalEnergy   = 0.0;
     mPreviousRollResistEnergy   = 0.0;
-    mPreviousRollResistCoeff    = 0.0;
 
     KRATOS_CATCH("")
   }
@@ -315,9 +311,8 @@ namespace Kratos
 
     // Heat generation
     // ASSUMPTION: Heat is generated even when neighbor is adiabatic
-    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion) {
+    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
       mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
-    }
 
     // Check if neighbor is adiabatic
     if (CheckAdiabaticNeighbor())
@@ -389,7 +384,6 @@ namespace Kratos
       mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
       mContactParamsParticle[neighbor].frictional_energy   = 0.0;
       mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
-      mContactParamsParticle[neighbor].rolling_resistance  = 0.0;
     }
 
     if (r_process_info[HEAT_GENERATION_OPTION]) {
@@ -402,31 +396,26 @@ namespace Kratos
 
       // Update energy dissipated in this interaction (since last thermal solution) with the difference between
       // current and previous accumulated dissipations
+      // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (0.5 to each particle)
       if (r_process_info[GENERATION_DAMPING_OPTION]) {
-        mContactParamsParticle[neighbor].viscodamping_energy += GetInelasticViscodampingEnergy() - mPreviousViscodampingEnergy;
-        mPreviousViscodampingEnergy = GetInelasticViscodampingEnergy();
+        const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
+        const double increment_viscodamping_energy = 2.0 * (current_viscodamping_energy - mPreviousViscodampingEnergy);
+        mPreviousViscodampingEnergy                = current_viscodamping_energy;
+        mContactParamsParticle[neighbor].viscodamping_energy += increment_viscodamping_energy;
       }
 
       if (r_process_info[GENERATION_SLIDING_OPTION]) {
-        mContactParamsParticle[neighbor].frictional_energy += GetInelasticFrictionalEnergy() - mPreviousFrictionalEnergy;
-        mPreviousFrictionalEnergy = GetInelasticFrictionalEnergy();
+        const double current_frictional_energy   = GetInelasticFrictionalEnergy();
+        const double increment_frictional_energy = 2.0 * (current_frictional_energy - mPreviousFrictionalEnergy);
+        mPreviousFrictionalEnergy                = current_frictional_energy;
+        mContactParamsParticle[neighbor].frictional_energy += increment_frictional_energy;
       }
 
       if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-        // Factor for the contribution of this interaction to the total increase of rolling energy of the particle
-        // (this is the energy increase of the previous step)
-        double coeff = 0.0;
-        if (mPreviousRollResistCoeff != 0.0)
-          coeff = mContactParamsParticle[neighbor].rolling_resistance / mPreviousRollResistCoeff;
-
-        mContactParamsParticle[neighbor].rollresist_energy += coeff * (GetInelasticRollingResistanceEnergy() - mPreviousRollResistEnergy);
-        mPreviousRollResistEnergy = GetInelasticRollingResistanceEnergy();
-
-        // Compute and store rolling friction coefficient of this interaction for the next step
-        mContactParamsParticle[neighbor].rolling_resistance = 0.0;
-        Properties& properties_of_contact = GetProperties().GetSubProperties(neighbor->GetProperties().Id());
-        const double equiv_rolling_friction_coeff = properties_of_contact[ROLLING_FRICTION] * std::min(GetParticleRadius(), neighbor->GetRadius());
-        //ComputeRollingResistance(mContactParamsParticle[neighbor].rolling_resistance, LocalContactForceTotal[2], equiv_rolling_friction_coeff, 0);
+        const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
+        const double increment_rollingresistance_energy = 2.0 * (current_rollingresistance_energy - mPreviousRollResistEnergy);
+        mPreviousRollResistEnergy                       = current_rollingresistance_energy;
+        mContactParamsParticle[neighbor].rollresist_energy += increment_rollingresistance_energy;
       }
     }
 
@@ -465,7 +454,6 @@ namespace Kratos
       mContactParamsWall[neighbor].viscodamping_energy = 0.0;
       mContactParamsWall[neighbor].frictional_energy   = 0.0;
       mContactParamsWall[neighbor].rollresist_energy   = 0.0;
-      mContactParamsWall[neighbor].rolling_resistance  = 0.0;
     }
 
     if (r_process_info[HEAT_GENERATION_OPTION]) {
@@ -478,31 +466,26 @@ namespace Kratos
 
       // Update energy dissipated in this interaction (since last thermal solution) with the difference between
       // current and previous accumulated dissipations
+      // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (1.0 to the particle)
       if (r_process_info[GENERATION_DAMPING_OPTION]) {
-        mContactParamsWall[neighbor].viscodamping_energy += GetInelasticViscodampingEnergy() - mPreviousViscodampingEnergy;
-        mPreviousViscodampingEnergy = GetInelasticViscodampingEnergy();
+        const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
+        const double increment_viscodamping_energy = current_viscodamping_energy - mPreviousViscodampingEnergy;
+        mPreviousViscodampingEnergy                = current_viscodamping_energy;
+        mContactParamsWall[neighbor].viscodamping_energy += increment_viscodamping_energy;
       }
 
       if (r_process_info[GENERATION_SLIDING_OPTION]) {
-        mContactParamsWall[neighbor].frictional_energy += GetInelasticFrictionalEnergy() - mPreviousFrictionalEnergy;
-        mPreviousFrictionalEnergy = GetInelasticFrictionalEnergy();
+        const double current_frictional_energy   = GetInelasticFrictionalEnergy();
+        const double increment_frictional_energy = current_frictional_energy - mPreviousFrictionalEnergy;
+        mPreviousFrictionalEnergy                = current_frictional_energy;
+        mContactParamsWall[neighbor].frictional_energy += increment_frictional_energy;
       }
 
       if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-        // Factor for the contribution of this interaction to the total increase of rolling energy of the particle
-        // (this is the energy increase of the previous step)
-        double coeff = 0.0;
-        if (mPreviousRollResistCoeff != 0.0)
-          coeff = mContactParamsWall[neighbor].rolling_resistance / mPreviousRollResistCoeff;
-
-        mContactParamsWall[neighbor].rollresist_energy += coeff * (GetInelasticRollingResistanceEnergy() - mPreviousRollResistEnergy);
-        mPreviousRollResistEnergy = GetInelasticRollingResistanceEnergy();
-
-        // Compute and store rolling friction coefficient of this interaction for the next step
-        mContactParamsWall[neighbor].rolling_resistance = 0.0;
-        Properties& properties_of_contact = GetProperties().GetSubProperties(neighbor->GetProperties().Id());
-        const double equiv_rolling_friction_coeff = properties_of_contact[ROLLING_FRICTION_WITH_WALLS] * GetParticleRadius();
-        //ComputeRollingResistance(mContactParamsWall[neighbor].rolling_resistance, LocalContactForceTotal[2], equiv_rolling_friction_coeff, 0);
+        const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
+        const double increment_rollingresistance_energy = current_rollingresistance_energy - mPreviousRollResistEnergy;
+        mPreviousRollResistEnergy                       = current_rollingresistance_energy;
+        mContactParamsWall[neighbor].rollresist_energy += increment_rollingresistance_energy;
       }
     }
 
@@ -528,40 +511,23 @@ namespace Kratos
   // Finalization methods
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::FinalizeForceComputation(ParticleDataBuffer& data_buffer) {
-    KRATOS_TRY
-
-    SphericParticle::FinalizeForceComputation(data_buffer);
-
-    // Update total rolling resistance coefficient from previous step
-    //if (this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION))
-      //mPreviousRollResistCoeff = data_buffer.mRollingResistance;
-
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (mHasMotion)
+    if (mHasMotion) {
       SphericParticle::FinalizeSolutionStep(r_process_info);
 
-    if (mIsTimeToSolve) {
       // Remove non-contacting neighbors from maps of contact parameters
-      if (mStoreContactParam) {
+      if (mStoreContactParam)
         CleanContactParameters(r_process_info);
-      }
+    }
 
-      // Update temperature dependent radius
-      if (mHasVariableRadius) {
-        UpdateTemperatureDependentRadius(r_process_info);
-
-        // Update search distance
-        double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
-        ComputeAddedSearchDistance(r_process_info, added_search_distance);
-        SetSearchRadius(GetRadius() + added_search_distance);
-      }
+    // Update temperature dependent radius
+    if (mIsTimeToSolve && mHasVariableRadius) {
+      double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+      UpdateTemperatureDependentRadius(r_process_info);
+      ComputeAddedSearchDistance(r_process_info, added_search_distance);
+      SetSearchRadius(GetRadius() + added_search_distance);
     }
 
     KRATOS_CATCH("")
@@ -582,20 +548,6 @@ namespace Kratos
 
     KRATOS_CATCH("")
   }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info,
-                                                                                                double& thermalDeltDisp,
-                                                                                                double& thermalRelVel,
-                                                                                                SphericParticle* element2) {}
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
-                                                                                              double DeltDisp[3], //IN GLOBAL AXES
-                                                                                              double RelVel[3],   //IN GLOBAL AXES
-                                                                                              double OldLocalCoordSystem[3][3],
-                                                                                              double LocalCoordSystem[3][3],
-                                                                                              SphericParticle* neighbor_iterator) {}
 
   //=====================================================================================================================================================================================
   // Auxiliary computations
@@ -1463,7 +1415,6 @@ namespace Kratos
       null_param.viscodamping_energy = 0.0;
       null_param.frictional_energy   = 0.0;
       null_param.rollresist_energy   = 0.0;
-      null_param.rolling_resistance  = 0.0;
       null_param.impact_velocity.assign(2, 0.0);
       return null_param;
     }
