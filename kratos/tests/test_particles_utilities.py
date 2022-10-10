@@ -76,7 +76,7 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
             node.SetValue(KratosMultiphysics.AUX_INDEX,node.Y)
 
         #historical version
-        is_inside, values = KratosMultiphysics.ParticlesUtilities.InterpolateValuesAtPointsHistorical(locator,coords, KratosMultiphysics.TEMPERATURE, 1e-5)
+        is_inside, values = KratosMultiphysics.ParticlesUtilities.InterpolateValuesAtCoordinatesHistorical(locator,coords, KratosMultiphysics.TEMPERATURE, 1e-5)
         
         self.assertEqual(is_inside[0], False)
         self.assertEqual(is_inside[1], True)
@@ -86,7 +86,7 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
         self.assertEqual(values[2], 0.7)
 
         #non historical version
-        is_inside, values = KratosMultiphysics.ParticlesUtilities.InterpolateValuesAtPointsNonHistorical(locator,coords, KratosMultiphysics.AUX_INDEX, 1e-5)
+        is_inside, values = KratosMultiphysics.ParticlesUtilities.InterpolateValuesAtCoordinatesNonHistorical(locator,coords, KratosMultiphysics.AUX_INDEX, 1e-5)
         
         self.assertEqual(is_inside[0], False)
         self.assertEqual(is_inside[1], True)

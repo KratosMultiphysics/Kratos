@@ -108,7 +108,7 @@ public:
 
             Vector shape_functions;
             Element::Pointer p_element;
-            bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
+            const bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
             if(is_found)
             {
@@ -159,7 +159,7 @@ public:
 
             Vector shape_functions;
             Element::Pointer p_element;
-            bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
+            const bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
             if(!is_found)
             {
@@ -183,7 +183,7 @@ public:
     @param values the interpolated values (only valid if the corresponding value of is_inside is true)
     */
     template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
-    static std::pair< std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtPoints(
+    static std::pair< std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
         BinBasedFastPointLocator<TDim>& rLocator,
         const Matrix& rCoordinates,
         const Variable<TDataType>& rInterpolationVariable,
@@ -202,7 +202,7 @@ public:
 
             Vector shape_functions;
             Element::Pointer p_element;
-            bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
+            const bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
             (interpolations.first)[i] = is_found;
             if(is_found)
