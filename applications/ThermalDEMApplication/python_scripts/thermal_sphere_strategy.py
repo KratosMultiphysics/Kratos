@@ -62,10 +62,10 @@ class ExplicitStrategy(BaseStrategy):
         # Set standard properties
         BaseStrategy.ModifyProperties(self, properties, param)
 
-        # Set pointers: time integration scheme / numerical integration method / constitutive laws (heat transfer models)
+        # Set pointers: constitutive laws (heat transfer models) / time integration scheme / numerical integration method / heat map utilities
+        self.SetConstitutiveLaw(properties)
         self.SetThermalIntegrationScheme(properties)
         self.SetNumericalIntegrationMethod(properties)
-        self.SetConstitutiveLaw(properties)
     
     #----------------------------------------------------------------------------------------------
     def Initialize(self):
@@ -385,44 +385,6 @@ class ExplicitStrategy(BaseStrategy):
         self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
 
     #----------------------------------------------------------------------------------------------
-    def SetThermalIntegrationScheme(self, properties):
-        if properties.Has(THERMAL_INTEGRATION_SCHEME_NAME):
-            input_name = properties[THERMAL_INTEGRATION_SCHEME_NAME]
-        else:
-            input_name = self.thermal_integration_scheme
-
-        if input_name == "forward_euler":
-            class_name = "ThermalForwardEulerScheme"
-        else:
-            raise Exception('ThermalDEM', 'Time integration scheme \'' + input_name + '\' is not implemented.')
-
-        try:
-            object = eval(class_name)()
-        except:
-            raise Exception('The class corresponding to the time integration scheme named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
-        
-        object.SetThermalIntegrationSchemeInProperties(properties, True)
-
-    #----------------------------------------------------------------------------------------------
-    def SetNumericalIntegrationMethod(self, properties):
-        if properties.Has(NUMERICAL_INTEGRATION_METHOD_NAME):
-            input_name = properties[NUMERICAL_INTEGRATION_METHOD_NAME]
-        else:
-            input_name = self.numerical_integration_method
-
-        if input_name == "adaptive_simpson":
-            class_name = "AdaptiveSimpsonQuadrature"
-        else:
-            raise Exception('ThermalDEM', 'Numerical integration method \'' + input_name + '\' is not implemented.')
-
-        try:
-            object = eval(class_name)()
-        except:
-            raise Exception('The class corresponding to the numerical integration method named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
-        
-        object.SetNumericalIntegrationMethodInProperties(properties, True)
-    
-    #----------------------------------------------------------------------------------------------
     def SetConstitutiveLaw(self, properties):
         # Direct conduction
         if self.direct_conduction_model == "batchelor_obrien_simple":
@@ -514,6 +476,44 @@ class ExplicitStrategy(BaseStrategy):
         object.SetRealContactModelInProperties(properties, True)
 
     #----------------------------------------------------------------------------------------------
+    def SetThermalIntegrationScheme(self, properties):
+        if properties.Has(THERMAL_INTEGRATION_SCHEME_NAME):
+            input_name = properties[THERMAL_INTEGRATION_SCHEME_NAME]
+        else:
+            input_name = self.thermal_integration_scheme
+
+        if input_name == "forward_euler":
+            class_name = "ThermalForwardEulerScheme"
+        else:
+            raise Exception('ThermalDEM', 'Time integration scheme \'' + input_name + '\' is not implemented.')
+
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the time integration scheme named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        
+        object.SetThermalIntegrationSchemeInProperties(properties, True)
+
+    #----------------------------------------------------------------------------------------------
+    def SetNumericalIntegrationMethod(self, properties):
+        if properties.Has(NUMERICAL_INTEGRATION_METHOD_NAME):
+            input_name = properties[NUMERICAL_INTEGRATION_METHOD_NAME]
+        else:
+            input_name = self.numerical_integration_method
+
+        if input_name == "adaptive_simpson":
+            class_name = "AdaptiveSimpsonQuadrature"
+        else:
+            raise Exception('ThermalDEM', 'Numerical integration method \'' + input_name + '\' is not implemented.')
+
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the numerical integration method named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        
+        object.SetNumericalIntegrationMethodInProperties(properties, True)
+
+    #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
@@ -561,7 +561,7 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
         # Post options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MAP_HEAT_GENERATION_OPTION, self.PostMapHeatGeneration)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, HEAT_MAP_GENERATION_OPTION, self.PostMapHeatGeneration)
         self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_1, self.heat_map_corner1)
         self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_2, self.heat_map_corner2)
         self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_SUBDIVISIONS,  self.heat_map_subdivisions)

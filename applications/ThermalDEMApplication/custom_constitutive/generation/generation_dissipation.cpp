@@ -63,7 +63,7 @@ namespace Kratos {
     }
 
     // Fill heat map
-    if (r_process_info[MAP_HEAT_GENERATION_OPTION])
+    if (r_process_info[HEAT_MAP_GENERATION_OPTION])
       FillDensityMap(r_process_info, particle, heat_gen_damping, heat_gen_sliding, heat_gen_rolling);
 
     return heat_gen_damping + heat_gen_sliding + heat_gen_rolling;
