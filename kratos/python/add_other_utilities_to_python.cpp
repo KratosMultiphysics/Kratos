@@ -65,6 +65,7 @@
 #include "utilities/rve_periodicity_utility.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
+#include "utilities/particles_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -730,6 +731,41 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
         .def_static("ComputeConnectedComponentsWithActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck)
         .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
+        ;
+
+    py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<2,true>)
+        .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<3,true>)
+        .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<2,false>)
+        .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<3,false>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,double,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,double,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,std::size_t,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,std::size_t,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,unsigned int,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,unsigned int,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,array_1d<double,3>,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,array_1d<double,3>,true>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,double,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,double,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,std::size_t,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,std::size_t,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,array_1d<double,3>,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,array_1d<double,3>,false>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,double, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,double, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,std::size_t, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,std::size_t, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,unsigned int, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, true>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,double, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,double, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,std::size_t, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,std::size_t, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,unsigned int, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, false>)
         ;
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");
