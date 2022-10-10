@@ -416,7 +416,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
-
+    // Generic condition
+    const MeshCondition mGenericCondition;
     // Point conditions
     const MeshCondition mPointCondition2D1N;
     const MeshCondition mPointCondition3D1N;
@@ -446,6 +447,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const PeriodicCondition mPeriodicConditionCorner;
 
     // General elements must be defined
+    const MeshElement mGenericElement;
+
     const MeshElement mElement2D1N;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
