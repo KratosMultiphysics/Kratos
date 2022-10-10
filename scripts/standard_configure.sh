@@ -45,7 +45,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=OFF                                                       \
 -DUSE_EIGEN_MKL=OFF                                                 \
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                   \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
