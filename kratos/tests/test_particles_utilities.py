@@ -27,13 +27,13 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
         particles_mp.CreateNewNode(1,0.0,0.1,0.0)
         particles_mp.CreateNewNode(2,0.2,0.3,0.0)
         particles_mp.CreateNewNode(3,0.7,0.8,0.0)
-        
+
         locator = KratosMultiphysics.BinBasedFastPointLocator2D(mp)
         locator.UpdateSearchDatabase()
 
         #non historical version
         KratosMultiphysics.ParticlesUtilities.CountParticlesInNodesNonHistorical(locator,mp, particles_mp, KratosMultiphysics.AUX_INDEX, 1e-5)
-        
+
         self.assertEqual(mp.Nodes[1].GetValue(KratosMultiphysics.AUX_INDEX), 3.0)
         self.assertEqual(mp.Nodes[2].GetValue(KratosMultiphysics.AUX_INDEX), 0.0)
         self.assertEqual(mp.Nodes[3].GetValue(KratosMultiphysics.AUX_INDEX), 3.0)
@@ -67,7 +67,7 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
 
         #generate particles
         coords = np.array([[-0.01,0.1,0.0],[0.2,0.3,0.0],[0.7,0.8,0.0]])
-        
+
         locator = KratosMultiphysics.BinBasedFastPointLocator2D(mp)
         locator.UpdateSearchDatabase()
 
@@ -77,7 +77,7 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
 
         #historical version
         is_inside, values = KratosMultiphysics.ParticlesUtilities.InterpolateValuesAtCoordinatesHistorical(locator,coords, KratosMultiphysics.TEMPERATURE, 1e-5)
-        
+
         self.assertEqual(is_inside[0], False)
         self.assertEqual(is_inside[1], True)
         self.assertEqual(is_inside[2], True)
@@ -87,7 +87,7 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
 
         #non historical version
         is_inside, values = KratosMultiphysics.ParticlesUtilities.InterpolateValuesAtCoordinatesNonHistorical(locator,coords, KratosMultiphysics.AUX_INDEX, 1e-5)
-        
+
         self.assertEqual(is_inside[0], False)
         self.assertEqual(is_inside[1], True)
         self.assertEqual(is_inside[2], True)
@@ -127,14 +127,14 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
             node.SetValue(KratosMultiphysics.AUX_INDEX,2.0)
 
         #historical version
-        KratosMultiphysics.ParticlesUtilities.MarkOutsiderParticlesHistorical(locator,particles_mp, KratosMultiphysics.TEMPERATURE, -1.0,1e-5) 
+        KratosMultiphysics.ParticlesUtilities.MarkOutsiderParticlesHistorical(locator,particles_mp, KratosMultiphysics.TEMPERATURE, -1.0,1e-5)
         self.assertEqual(particles_mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), -1.0)
         self.assertEqual(particles_mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 1.0)
         self.assertEqual(particles_mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 1.0)
-        
+
 
         #non historical version
-        KratosMultiphysics.ParticlesUtilities.MarkOutsiderParticlesNonHistorical(locator,particles_mp, KratosMultiphysics.AUX_INDEX, -2.0,1e-5) 
+        KratosMultiphysics.ParticlesUtilities.MarkOutsiderParticlesNonHistorical(locator,particles_mp, KratosMultiphysics.AUX_INDEX, -2.0,1e-5)
         self.assertEqual(particles_mp.Nodes[1].GetValue(KratosMultiphysics.AUX_INDEX), -2.0)
         self.assertEqual(particles_mp.Nodes[2].GetValue(KratosMultiphysics.AUX_INDEX), 2.0)
         self.assertEqual(particles_mp.Nodes[3].GetValue(KratosMultiphysics.AUX_INDEX), 2.0)

@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -171,7 +171,7 @@ public:
         });
     }
 
-    /**@brief: this function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable 
+    /**@brief: this function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable
     at those positions. Note that the value is only initialized if the particle is found
     @param rLocator this is a search structure for the volume
     @param rCoordinates positions at which we want to retrieve the interpolation values
