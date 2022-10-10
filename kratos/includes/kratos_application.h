@@ -74,6 +74,7 @@
 
 // Operations
 #include "operations/operation.h"
+#include "operations/foo_operation.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -491,6 +492,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     // Operations
     const Operation mOperation;
+    const FooOperation mFooOperation;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;

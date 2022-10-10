@@ -28,12 +28,8 @@ class KratosOperationFactory(object):
                 operation_string = item["operation"].GetString()
                 operation_settings = item["Parameters"]
                 if KM.Registry.HasItem(operation_string):
-                    # FIXME: Use this once the GetValueItem is exported to Python
-                    # operation_prototype = KM.Registry.GetValueItem(operation_string)
-                    # operation = operation_prototype.Create(self.model, operation_settings)
-                    # TODO: Remove this once we have the registry ready
-                    operation = KM.Operation()
-                    KM.Logger.PrintWarning(f"Here the c++ operation {operation_string} will be constructed")
+                    operation_prototype = KM.Registry.GetOperation(operation_string)
+                    operation = operation_prototype.Create(self.model, operation_settings)
                 else:
                     operation_module_name, operation_name = operation_string.rsplit(".", 1)
                     try:

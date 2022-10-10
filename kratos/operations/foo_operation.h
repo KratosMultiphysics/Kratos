@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Carlos Roig
-//                   Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla
 //
 
 #pragma once
@@ -24,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "operations/operation.h"
 
 namespace Kratos
 {
@@ -32,36 +32,39 @@ namespace Kratos
 ///@{
 
 /**
- * @class Operation
+ * @class FooOperation
  * @ingroup KratosCore
- * @brief The base class for all operations in Kratos.
- * @details The operation is the base class for all operations and defines the interface for them.
- * Execute method is used to execute all the Operation algorithms. Operation parameters must be passed at construction time.
-  @author Carlos Roig
+ * @brief Foo operation to be used while developing
+ * @details This fake operation deriving from the base Operation must be removed after development
   @author Ruben Zorrilla
 */
-class Operation
+class FooOperation : public Operation
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Operation
-    KRATOS_CLASS_POINTER_DEFINITION(Operation);
+    /// Pointer definition of FooOperation
+    KRATOS_CLASS_POINTER_DEFINITION(FooOperation);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    explicit Operation() {}
+    explicit FooOperation() {}
+
+    /// Model and settings constructor
+    explicit FooOperation(
+        Model& rModel,
+        Parameters ThisParameters) {}
 
     /// Destructor.
-    virtual ~Operation() {}
+    virtual ~FooOperation() {}
 
     /// Copy constructor.
     //TODO: Check. It is required by the registry
-    Operation(Operation const& rOther) {}
+    FooOperation(FooOperation const& rOther) {}
 
     ///@}
     ///@name Operators
@@ -84,30 +87,28 @@ public:
      * @param rModel The model to be consider
      * @param ThisParameters The configuration parameters
      */
-    virtual Operation::Pointer Create(
+    Operation::Pointer Create(
         Model& rModel,
-        Parameters ThisParameters) const
+        Parameters ThisParameters) const override
     {
-        KRATOS_ERROR << "Calling base class Create. Please override this method in the corresonding Operation" << std::endl;
-        return nullptr;
+        KRATOS_INFO("FooOperation") << "Create." <<  std::endl;
+        return Kratos::make_shared<FooOperation>(rModel, ThisParameters);
     }
 
     /**
      * @brief Execute method is used to execute the Operation algorithms.
      */
-    virtual void Execute()
+    void Execute() override
     {
-        KRATOS_ERROR << "Calling base class Execute. Please override this method in the corresonding Operation" << std::endl;
+        KRATOS_INFO("FooOperation") << "Execute." <<  std::endl;
     }
-
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    virtual const Parameters GetDefaultParameters() const
+    const Parameters GetDefaultParameters() const override
     {
-        KRATOS_ERROR << "Calling the base Operation class GetDefaultParameters. Please implement the GetDefaultParameters in your derived process class." << std::endl;
+        KRATOS_INFO("FooOperation") << "GetDefaultParameters()." <<  std::endl;
         const Parameters default_parameters = Parameters(R"({})" );
-
         return default_parameters;
     }
 
@@ -128,13 +129,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const
     {
-        return "Operation";
+        return "FooOperation";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Operation";
+        rOStream << "FooOperation";
     }
 
     /// Print object's data.
@@ -153,23 +154,23 @@ private:
     ///@{
 
     /// Assignment operator.
-    Operation& operator=(Operation const& rOther) = delete;
+    FooOperation& operator=(FooOperation const& rOther) = delete;
 
     //TODO: Check. It is required by the registry
-    // Operation(Operation const& rOther) = delete;
+    // FooOperation(FooOperation const& rOther) = delete;
 
     ///@}
-}; // Class Operation
+}; // Class FooOperation
 
 ///@}
 ///@name Input and output
 ///@{
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream, Operation& rThis);
+inline std::istream& operator >> (std::istream& rIStream, FooOperation& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, const Operation& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const FooOperation& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
