@@ -772,6 +772,8 @@ namespace Kratos
                             count += 1;
                     }
 
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Open pipe elements: " << count << std::endl;
+
                     if (count == noPipeElements)
                     {
                         if (abs(currentHead - minCriticalHead) < 1e-9)
