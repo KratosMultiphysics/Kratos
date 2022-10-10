@@ -154,8 +154,8 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
         const auto p_slave_node = r_slave.first;
         auto& r_ext_op_data = r_slave.second;
 
-        // EVEN FASTER, BUT SPEICHERZUGRIFFSFEHLER???
-        /*DofPointerVectorType slave_dofs;
+        // EVEN FASTER??
+        DofPointerVectorType slave_dofs;
         DofPointerVectorType master_dofs;
         MatrixType dof_relation_matrix;
         VectorType dof_offset;
@@ -170,30 +170,30 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
             dof_offset(it_var++) = 0.0;
         }
 
-        std::size_t it_support = 0;
-        for (auto& r_support_data : r_ext_op_data) {
-            const auto p_support_node = r_support_data.first;
-            const double support_node_N = r_support_data.second;
+        std::size_t it_cloud = 0;
+        for (auto& r_cloud_data : r_ext_op_data) {
+            const auto p_cloud_node = r_cloud_data.first;
+            const double cloud_node_N = r_cloud_data.second;
 
             std::size_t it_var = 0;
             for (const auto var : variables) {
-                master_dofs.push_back(p_support_node->pGetDof(*var));
+                master_dofs.push_back(p_cloud_node->pGetDof(*var));
 
                 for (std::size_t j = 0; j < n_var; j++) {
-                    dof_relation_matrix(j, it_support*n_var+it_var) = (j == it_var) ? support_node_N : 0.0;
+                    dof_relation_matrix(j, it_cloud*n_var+it_var) = (j == it_var) ? cloud_node_N : 0.0;
                 }
                 it_var++;
             }
-            it_support++;
+            it_cloud++;
         }
 
         mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
-        slave_dofs, master_dofs, dof_relation_matrix, dof_offset);
-        */
+        master_dofs, slave_dofs, dof_relation_matrix, dof_offset);
+
 
         //p_slave_node->Set(SLAVE);
 
-        //FAST, BUT SPEICHERZUGRIFFSFEHLER???
+        //WORKING VERSION - FAST!!
         /*for (const auto var : variables) {
 
             DofPointerVectorType slave_dofs;
@@ -201,40 +201,26 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
             MatrixType dof_relation_matrix;
             VectorType dof_offset;
 
+            master_dofs.reserve(1);
             slave_dofs.push_back(p_slave_node->pGetDof(*var));
+            master_dofs.reserve(r_ext_op_data.size());
             dof_offset.resize(1, false);
             dof_offset(0) = 0.0;
             dof_relation_matrix.resize(1, r_ext_op_data.size(), false);
 
-            std::size_t it_support = 0;
-            for (auto& r_support_data : r_ext_op_data) {
-                const auto p_support_node = r_support_data.first;
-                const double support_node_N = r_support_data.second;
+            std::size_t it_cloud = 0;
+            for (auto& r_cloud_data : r_ext_op_data) {
+                const auto p_cloud_node = r_cloud_data.first;
+                const double cloud_node_N = r_cloud_data.second;
 
-                master_dofs.push_back(p_support_node->pGetDof(*var));
-                dof_relation_matrix(0, it_support++) = support_node_N;
+                master_dofs.push_back(p_cloud_node->pGetDof(*var));
+                dof_relation_matrix(0, it_cloud++) = cloud_node_N;
             }
 
             mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
-            slave_dofs, master_dofs, dof_relation_matrix, dof_offset);
+            master_dofs, slave_dofs, dof_relation_matrix, dof_offset);
+            KRATOS_WATCH(master_dofs.size());
         }*/
-
-        // WORKING VERSION BUT VERY SLOW IN CREATING THE CONSTRAINTS
-        // Add one master slave constraint for every node of the support cloud (master) of the negative node (slave)
-        // The contributions of each master will be summed up in the BuilderAndSolver to give an equation for the slave dof
-        for (auto& r_support_data : r_ext_op_data) {
-            const auto p_support_node = r_support_data.first;
-            const double support_node_N = r_support_data.second;
-
-            for (const auto var : variables) {
-                // Get variable to constrain
-                //const auto& r_var = KratosComponents<Variable<double>>::Get(var);
-                // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
-                mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
-                *p_support_node, *var, *p_slave_node, *var, support_node_N, 0.0);
-            }
-
-        }
     }
 }
 
