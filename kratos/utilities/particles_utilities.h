@@ -89,18 +89,10 @@ public:
                 rNode.SetValue(rCounterVariable,0.0);
         });
 
-<<<<<<< HEAD
-=======
-            //reset the counter variable
-            block_for_each(rVolumeModelPart.Nodes(), [&rCounterVariable](auto& rNode){
-                rNode.GetValue(rCounterVariable) = 0.0;
-            });
->>>>>>> fcf5badbe86533b27cf804130c3f1a70562519d7
 
         unsigned int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
 
-<<<<<<< HEAD
         //for every interface node (nodes in cut elements)
         block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rCounterVariable, SearchTolerance](const auto& rNode, auto& rTLS)
         {
@@ -108,17 +100,6 @@ public:
             Vector shape_functions;
             Element::Pointer p_element;
             bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
-=======
-            const unsigned int max_results = 10000; 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
-            
-            //for each node in the mesh, count the number of particles in the neighbouring elements
-            block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rCounterVariable](const auto& rNode, auto& rTLS){
-
-                Vector shape_functions;
-                Element::Pointer p_element;
-                const bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), 1e-5);
->>>>>>> fcf5badbe86533b27cf804130c3f1a70562519d7
 
             if(is_found)
             {
@@ -162,7 +143,6 @@ public:
         //for every interface node (nodes in cut elements)
         block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rVariable, &OutsiderValue, SearchTolerance](auto& rNode, auto& rTLS)
         {
-<<<<<<< HEAD
 
             Vector shape_functions;
             Element::Pointer p_element;
@@ -177,23 +157,6 @@ public:
             }
         });
     }
-=======
-            const unsigned int max_results = 10000; 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
-            
-            //for every particle search if it is inside or outside the volume mesh
-            block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rVariable, outsider_value](auto& rNode, auto& rTLS){
-
-                Vector shape_functions;
-                Element::Pointer p_element;
-                bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), 1e-5);
-
-                if(!is_found){
-                    rNode.SetValue(rVariable, outsider_value);
-                }
-            });
-        }
->>>>>>> fcf5badbe86533b27cf804130c3f1a70562519d7
 
     /**@brief provides the value of the interpolated variable "rInterpolationVariable" at all the positions indicated in rCoordinates
     */
@@ -214,16 +177,6 @@ public:
         const auto zero = rInterpolationVariable.Zero();
         IndexPartition(rCoordinates.size1()).for_each(TLS, [&rLocator, &rCoordinates, &interpolations, &rInterpolationVariable, &zero, SearchTolerance](const auto& i, auto& rTLS)
         {
-<<<<<<< HEAD
-=======
-            const unsigned int max_results = 10000; 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
-
-            auto interpolations = std::make_pair(std::vector<bool>(rCoordinates.size1()), std::vector<TScalarType>(rCoordinates.size1()));            
-            
-            //for each particle interpolate the given variable from the volume mesh
-            IndexPartition(rCoordinates.size1()).for_each(TLS, [&rLocator, &rCoordinates, &interpolations, &rInterpolationVariable](const auto& i, auto& rTLS){
->>>>>>> fcf5badbe86533b27cf804130c3f1a70562519d7
 
             Vector shape_functions;
             Element::Pointer p_element;
