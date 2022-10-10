@@ -72,13 +72,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             critical_head_found, length = self.linear_search(file_path, heads)
         return critical_head_found, length
 
-    @parameterized.expand(
-        [('7.1', 1.00E-04, 1.157E-12, 3.43, 3.7, 6, 'test_compare_sellmeijer/HeightAquiferD10L30.gid'),
-         ('7.5', 1.00E-04, 1.157E-12, 5.44, 6.1, 15, 'test_compare_sellmeijer/HeightAquiferD20L60.gid'),
-         ('7.9', 1.00E-04, 1.157E-12, 7.13, 8.1, 24, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30.gid'),
-         ('7.14', 3.00E-04, 1.157E-12, 16.33, 18.2, 16.5, 'test_compare_sellmeijer/HeightAquiferD20L60.gid'),
-         ('7.18', 3.00E-04, 1.157E-12, 21.4, 24.1, 28.5, 'test_compare_sellmeijer/HeightAquiferD30L90.gid')])
+    @parameterized.expand([('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30.gid')])
     def test_sellmeijers_rule_height(self, name, d70, kappa, Hc, Hn, length_n, test_name_gid):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
         os.chdir(file_path)
