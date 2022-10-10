@@ -71,6 +71,15 @@ public:
     /// Destructor.
     virtual ~ParticlesUtilities() {};
 
+    /**@brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within
+    the volume identified in rVolumeModelPart. Then they add one to all the nodes of the element in which the particle
+    is inside
+    @param rLocator this is a search structure for rVolumeModelPart
+    @param rVolumeModelPart: model part on the top of which we will find the particles
+    @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
+    @param rCounterVariable: this is the variable which will be used to store the count (has to be present in the nodes of rVolumeModelPart)
+    @param SearchTolerance: search tolerance used in the spatial search
+    */
     template<unsigned int TDim, bool CounterHasHistory=false >
     static void CountParticlesInNodes(
         BinBasedFastPointLocator<TDim>& rLocator,
@@ -125,8 +134,12 @@ public:
 
     }
 
-    /**
-    this function looks if particle is found in the locator. If it is not, rVariable is marked with the value "OutsiderValue"
+
+    /**@brief: this function looks if particle is found in the locator. If it is not, "rVariable" is marked with the value "OutsiderValue"
+    @param rLocator this is a search structure for the volume
+    @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
+    @param rVariable: variable whose value will be modified on the nodes in rParticlesModelPart
+    @param SearchTolerance: search tolerance used in the spatial search
     */
     template<unsigned int TDim, class TDataType, bool VariableHasHistory >
     static void MarkOutsiderParticles(
@@ -158,7 +171,16 @@ public:
         });
     }
 
-    /**@brief provides the value of the interpolated variable "rInterpolationVariable" at all the positions indicated in rCoordinates
+    /**@brief: this function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable 
+    at those positions. Note that the value is only initialized if the particle is found
+    @param rLocator this is a search structure for the volume
+    @param rCoordinates positions at which we want to retrieve the interpolation values
+    @param rInterpolationVariable: variable whose value that will be interpolated
+    @param SearchTolerance: search tolerance used in the spatial search
+
+    the function returns:
+    @param is_inside a vector of bools telling if the given coordinate falls within the volume
+    @param values the interpolated values (only valid if the corresponding value of is_inside is true)
     */
     template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
     static std::pair< std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtPoints(
