@@ -66,10 +66,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ParticlesUtilities() {};
-
-    /// Destructor.
-    virtual ~ParticlesUtilities() {};
+    ParticlesUtilities() = delete;
 
     /**@brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within
     the volume identified in rVolumeModelPart. Then they add one to all the nodes of the element in which the particle
@@ -252,16 +249,16 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return std::string("ParticlesUtilities");
     };
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {};
+    void PrintInfo(std::ostream& rOStream) const {};
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {};
+    void PrintData(std::ostream& rOStream) const {};
 
 
     ///@}
