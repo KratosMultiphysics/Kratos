@@ -62,7 +62,7 @@ namespace Kratos {
       else if (particle->mNeighborType & WALL_NEIGHBOR)     particle->mGenerationHeatFlux_roll_wall     += heat_gen_rolling;
     }
 
-    // Fill heat density map
+    // Fill heat map
     if (r_process_info[MAP_HEAT_GENERATION_OPTION])
       FillDensityMap(r_process_info, particle, heat_gen_damping, heat_gen_sliding, heat_gen_rolling);
 
