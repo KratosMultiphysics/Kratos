@@ -11,7 +11,6 @@
 //
 //
 
-
 // System includes
 
 // External includes
@@ -35,7 +34,6 @@ void AddGinkgoSolversToPython(pybind11::module& m)
 
     typedef GinkgoSolver<SpaceType,  LocalSpaceType> GinkgoSolverType;
     py::class_<GinkgoSolverType, GinkgoSolverType::Pointer, LinearSolverType>(m,"GinkgoSolver")
-        .def(py::init< >() )
         .def(py::init<Parameters>())
         .def("__str__", PrintObject<LinearSolverType>)
         ;

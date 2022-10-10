@@ -266,18 +266,44 @@ public:
     using vec = gko::matrix::Dense<double>;
     using mtx = gko::matrix::Csr<double, std::int64_t>;
     
-    GinkgoSolver() {}
+    GinkgoSolver() = delete;
 
     GinkgoSolver(Parameters settings)
     {
+        Parameters default_parameters( R"(
+        {
+            "solver_type"           : "CG",
+            "executor"              : "reference",
+            "max_iteration"         : 100,
+            "tolerance"             : 1e-6,
+            "residual_mode"         : "rhs_norm",
+            "preconditioner"        : "none",
+            "jacobi_max_block_size" : 0,
+            "jacobi_accuracy"       : 0.0,
+            "parilu_iterations"     : 1,
+            "parilut_approx_select" : 0,
+            "parilut_limit"         : 1,
+            "isai_power"            : 0,
+        })");
+
+        // Now validate agains defaults -- this also ensures no type mismatch
+        settings.ValidateAndAssignDefaults(default_parameters);
+
+        // specify available options
+        // std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
+        // std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
+        
+        std::set<std::string> available_solvers = {"bicgstab","bicg","cg","cgs","fcg","idr", "gmres","lower_trs", "upper_trs"};
+        std::set<std::string> available_preconditioner = {"none","jacobi","paric","parict","parilu","parilut","ic","ilu","paric-isai","parict-isai","parilu-isai","parilut-isai","ic-isai","ilu-isai","general-isai","spd-isai"};
+        std::set<std::string> available_executors = {"reference", "omp", "cuda"};
+
         /// Select the executor
         if (settings["executor"].GetString() == "reference") {
             mExec = gko::ReferenceExecutor::create();
         } else if (settings["executor"].GetString() == "omp") {
             mExec = gko::OmpExecutor::create();
-        // NYI: Cuda works different.
-        // } else if (settings["executor"].GetString() == "cuda") {
-        //     mExec = gko::CudaExecutor::create();
+        } else if (settings["executor"].GetString() == "cuda") {
+            mExec = gko::CudaExecutor::create(0, gko::OmpExecutor::create());
         } else {
             KRATOS_ERROR << "Invalid executor. Values are: (reference, omp, cuda(NYI)])" << std::endl;
         }
@@ -321,17 +347,12 @@ public:
 
     /**
      * @brief Create stop criterion
-     * 
-     * @param exec 
-     * @param max_iters 
-     * @return std::shared_ptr<const gko::stop::CriterionFactory> 
      */
     auto create_stop_criterion() 
     {
-        auto residual_stop_mode = gko::stop::mode::initial_resnorm;
-        // auto residual_stop_mode = mResidualMode == "rhs_norm" 
-        //     ? gko::stop::mode::initial_resnorm 
-        //     : gko::stop::mode::rhs_norm;
+        auto residual_stop_mode = (mResidualMode == "rhs_norm")
+            ? gko::stop::mode::initial_resnorm 
+            : gko::stop::mode::rhs_norm;
 
         auto residual_stop = gko::share(
             gko::stop::ResidualNorm<double>::build()
@@ -353,10 +374,7 @@ public:
      * @brief Creates the Solver Factory
      * 
      * @tparam SolverIntermediate 
-     * @param inter 
-     * @param exec 
      * @param precond 
-     * @param max_iters 
      * @return std::unique_ptr<gko::LinOpFactory> 
      */
     template <typename SolverIntermediate>
