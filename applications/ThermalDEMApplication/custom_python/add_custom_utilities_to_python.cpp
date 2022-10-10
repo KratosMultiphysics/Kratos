@@ -18,6 +18,7 @@
 #include "custom_utilities/tesselation_utilities_2d.h"
 #include "custom_utilities/tesselation_utilities_3d.h"
 #include "custom_utilities/graph_utilities.h"
+#include "custom_utilities/heat_map_utilities.h"
 
 namespace Kratos
 {
@@ -59,6 +60,11 @@ namespace Kratos
         .def("ExecuteInitialize",           &GraphUtilities::ExecuteInitialize)
         .def("ExecuteFinalizeSolutionStep", &GraphUtilities::ExecuteFinalizeSolutionStep)
         .def("ExecuteFinalize",             &GraphUtilities::ExecuteFinalize);
+
+      py::class_<HeatMapUtilities, HeatMapUtilities::Pointer>(m, "HeatMapUtilities")
+        .def(py::init<>())
+        .def("ExecuteInitialize", &HeatMapUtilities::ExecuteInitialize)
+        .def("ExecuteFinalize",   &HeatMapUtilities::ExecuteFinalize);
     }
 
   } // namespace Python
