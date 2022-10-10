@@ -167,6 +167,12 @@ public:
 
     void Flush();
 
+    /// Terminate access to the HDF5 file.
+    /*
+     *  @throws If the underlying HDF5 call fails.
+     */
+    void Close();
+
     unsigned GetFileSize() const;
 
     std::string GetFileName() const;

@@ -444,6 +444,16 @@ bool Communicator::SynchronizeNonHistoricalVariable(Variable<Quaternion<double>>
     return true;
 }
 
+bool Communicator::SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
 {
     return true;

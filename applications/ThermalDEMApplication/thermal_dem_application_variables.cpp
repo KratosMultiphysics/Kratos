@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 // Project includes
@@ -22,7 +18,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       INDIRECT_CONDUCTION_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       CONVECTION_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       RADIATION_MODEL_POINTER)
-  KRATOS_CREATE_VARIABLE(HeatGenerationMechanism::Pointer,     FRICTION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(HeatGenerationMechanism::Pointer,     GENERATION_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(RealContactModel::Pointer,            REAL_CONTACT_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(std::string,                          THERMAL_INTEGRATION_SCHEME_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          NUMERICAL_INTEGRATION_METHOD_NAME)
@@ -30,7 +26,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(std::string,                          INDIRECT_CONDUCTION_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          CONVECTION_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          RADIATION_MODEL_NAME)
-  KRATOS_CREATE_VARIABLE(std::string,                          FRICTION_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          REAL_CONTACT_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          VORONOI_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          POROSITY_METHOD_NAME)
@@ -40,7 +35,10 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool,                                 INDIRECT_CONDUCTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 CONVECTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 RADIATION_OPTION)
-  KRATOS_CREATE_VARIABLE(bool,                                 FRICTION_HEAT_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 HEAT_GENERATION_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_SLIDING_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_ROLLING_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_DAMPING_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 REAL_CONTACT_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FIXED_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(bool,                                 ADIABATIC)
@@ -54,7 +52,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double,                               CONDUCTION_RADIUS)
   KRATOS_CREATE_VARIABLE(double,                               ISOTHERMAL_CORE_RADIUS)
   KRATOS_CREATE_VARIABLE(double,                               MAX_RADIATION_DISTANCE)
-  KRATOS_CREATE_VARIABLE(double,                               FRICTION_HEAT_CONVERSION)
+  KRATOS_CREATE_VARIABLE(double,                               HEAT_GENERATION_RATIO)
   KRATOS_CREATE_VARIABLE(double,                               AVERAGE_POROSITY)
   KRATOS_CREATE_VARIABLE(double,                               ALPHA_SHAPE_PARAMETER)
   KRATOS_CREATE_VARIABLE(double,                               INTEGRAL_TOLERANCE)

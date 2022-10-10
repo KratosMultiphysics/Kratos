@@ -21,11 +21,12 @@
 // Project includes
 #include "geometries/plane_3d.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/plane_approximation_utility.h"
+#include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {
@@ -414,7 +415,7 @@ namespace Kratos
         const double& rEdgeTolerance)
     {
         // Check if there is a close intersection (repeated intersection point)
-        for (auto aux_pt : rIntersectionPointsVector){
+        for (const auto& aux_pt : rIntersectionPointsVector){
                 const double aux_dist = norm_2(rIntersectionPoint - aux_pt);
                 if (aux_dist < rEdgeTolerance){
                     return true;
@@ -706,7 +707,7 @@ namespace Kratos
     {
         if (TDim == 2 && rNumCutEdges == 1) {
             ComputeExtrapolatedGeometryIntersections(rElement, rEdgesContainer, rNumCutEdges, rCutEdgesRatioVector, rExtraGeomNormal, rCutExtraEdgesRatioVector);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             if (rNumCutEdges == 3) {
                 // if all three cut edges share one node, then the element is intersected and not incised
                 if (CheckIfCutEdgesShareNode(rElement, rEdgesContainer, rCutEdgesRatioVector)) {
@@ -871,7 +872,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if (!mAreNeighboursComputed) {
-            FindGlobalNodalElementalNeighboursProcess find_nodal_elems_process(mrVolumePart);
+            FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elems_process(mrVolumePart);
             find_nodal_elems_process.Execute();
             mAreNeighboursComputed = true;
         }

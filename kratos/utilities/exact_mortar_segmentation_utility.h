@@ -16,7 +16,7 @@
 // System includes
 #include <iostream>
 #include <iomanip>
-#include <math.h>
+#include <cmath>
 
 // External includes
 

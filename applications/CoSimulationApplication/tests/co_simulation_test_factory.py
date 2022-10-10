@@ -17,6 +17,7 @@ have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamics
 have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
+have_mpm_dem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "ParticleMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
 have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 
@@ -69,6 +70,23 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fem_fem/small_2d_plate_feti/implicit_explicit_mixed", "cosim_fem_fem_small_2d_plate_feti_implicit_explicit_mixed")
             self._runTest()
+
+    def test_MPMDEMCoupling(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_mpm_dem_dependencies:
+            self.skipTest("MPM DEM dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_dem","cosim_mpm_dem")
+            self._runTest()
+
+        # removing superfluous dem files after test
+        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("mpm_dem/dempart.post.lst"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Graphs"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_MPI_results"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Post_Files"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Results_and_Data"))
 
 
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):

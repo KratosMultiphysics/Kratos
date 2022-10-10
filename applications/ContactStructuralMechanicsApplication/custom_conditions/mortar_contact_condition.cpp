@@ -183,7 +183,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     // Resizing as needed
     ResizeLHS(rLeftHandSideMatrix);
 
-    // Creating an auxiliar vector
+    // Creating an auxiliary vector
     VectorType aux_right_hand_side_vector = Vector();
 
     // Calculate condition system
@@ -199,7 +199,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Creating an auxiliar matrix
+    // Creating an auxiliary matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Resizing as needed
@@ -312,7 +312,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
 
     // We compute the normal derivatives
-    if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalSlave(derivative_data.DeltaNormalSlave, GetParentGeometry());
+    if constexpr (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalSlave(derivative_data.DeltaNormalSlave, GetParentGeometry());
 
     // Create the mortar operators
     MortarConditionMatrices mortar_operators;
@@ -349,7 +349,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
         // Initialize the mortar operators
         mortar_operators.Initialize();
 
-        if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalMaster(derivative_data.DeltaNormalMaster, r_master_geometry);
+        if constexpr (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalMaster(derivative_data.DeltaNormalMaster, r_master_geometry);
 
         const bool dual_LM =  DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry, r_normal_slave, r_master_geometry, derivative_data, general_variables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(general_variables));
 
@@ -389,7 +389,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
                     if ( ComputeLHS) {
                         /* Update the derivatives */
                         // Update the derivative of the integration vertex (just in 3D)
-                        if (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(general_variables, derivative_data, belong_array, consider_normal_variation, r_slave_geometry, r_master_geometry, r_normal_slave);
+                        if constexpr (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(general_variables, derivative_data, belong_array, consider_normal_variation, r_slave_geometry, r_master_geometry, r_normal_slave);
                         // Update the derivative of DetJ
                         DerivativesUtilitiesType::CalculateDeltaDetjSlave(decomp_geom, general_variables, derivative_data);
                         // Update the derivatives of the shape functions and the gap
@@ -452,7 +452,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     const double velocity_constant = HalfJump ? 0.25 : 0.5;
 //     const double acceleration_constant = HalfJump ? 0.125 : 0.5;
 //
-//     // Some auxiliar values
+//     // Some auxiliary values
 //     PointType center_local_coords;
 //     Vector N_slave, N_master;
 //
@@ -468,7 +468,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     }
 //
 //     Vector delta_disp_vect_slave = prod(trans(delta_disp_mat_slave), N_slave);
-//     if (TDim == 2){
+//     if constexpr (TDim == 2){
 //         delta_disp_vect_slave.resize(3, true);
 //         delta_disp_vect_slave[2] = 0.0;
 //     }
@@ -485,7 +485,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     }
 //
 //     Vector delta_disp_vect_master = prod(trans(delta_disp_mat_master), N_master); // TODO: Check multiplciation is consistent
-//     if (TDim == 2){
+//     if constexpr (TDim == 2){
 //         delta_disp_vect_master.resize(3, true);
 //         delta_disp_vect_slave[2] = 0.0;
 //     }

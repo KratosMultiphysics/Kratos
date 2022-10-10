@@ -54,6 +54,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
+            "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
             "water_pressure_absolute_tolerance": 1.0e-9,
@@ -373,17 +374,23 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            # other_dof_name = "WATER_PRESSURE"
+            # convergence_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            # other_dof_name = "WATER_PRESSURE"
+            # Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
         elif(convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            # Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            other_dof_name = "WATER_PRESSURE"
+            Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
         elif(convergence_criterion.lower() == "water_pressure_criterion"):
@@ -423,6 +430,22 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
+        elif strategy_type.lower() == "newton_raphson_with_piping":
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
+            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
+            solving_strategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
+                                                                                             self.scheme,
+                                                                                             self.linear_solver,
+                                                                                             self.convergence_criterion,
+                                                                                             builder_and_solver,
+                                                                                             self.strategy_params,
+                                                                                             max_iters,
+                                                                                             compute_reactions,
+                                                                                             reform_step_dofs,
+                                                                                             move_mesh_flag)
+
         elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])
