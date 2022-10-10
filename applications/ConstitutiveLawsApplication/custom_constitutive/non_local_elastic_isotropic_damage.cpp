@@ -253,10 +253,17 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         const double beta2t = 0.18;
         const double beta1c = 0.0;
         const double beta2c = 0.095;
+        double k0t,k0c;
 
-        const double k0t = r_material_properties[DAMAGE_THRESHOLD_TENSION];;
-        const double k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];;
-
+        const double k0t0 = r_material_properties[DAMAGE_THRESHOLD_TENSION];
+        const double k0c0 = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
+        if (k0t0==0 || k0c0==0){
+            k0t = fck/E;
+            k0c = (10./3.) * ft/E;
+        }else{
+            k0t = std::min(k0t0,fck/E);
+            k0c = std::min(k0c0,(10./3.) * ft/E);
+        }
         double k0 = k0t  * H  + (1.-H) * k0c;
         double beta1 = beta1t  * H  + (1.-H) * beta1c;
         double beta2 = beta2t  * H  + (1.-H) * beta2c;
