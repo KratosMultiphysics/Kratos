@@ -62,6 +62,10 @@ namespace Kratos {
       else if (particle->mNeighborType & WALL_NEIGHBOR)     particle->mGenerationHeatFlux_roll_wall     += heat_gen_rolling;
     }
 
+    // Fill heat density map
+    if (r_process_info[MAP_HEAT_GENERATION_OPTION])
+      FillDensityMap(r_process_info, particle, heat_gen_damping, heat_gen_sliding, heat_gen_rolling);
+
     return heat_gen_damping + heat_gen_sliding + heat_gen_rolling;
 
     KRATOS_CATCH("")
@@ -74,6 +78,49 @@ namespace Kratos {
     const double k1 = particle->GetParticleConductivity();
     const double k2 = particle->GetNeighborConductivity();
     return k1 / (k1 + k2);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void GenerationDissipation::FillDensityMap(const ProcessInfo& r_process_info, ThermalSphericParticle* particle, const double heat_gen_damping, const double heat_gen_sliding, const double heat_gen_rolling) {
+    KRATOS_TRY
+
+    // Get heat generation coordinates (contact point)
+    array_1d<double, 3> coord = particle->GetParticleCoordinates();
+    array_1d<double, 3> dir;
+    noalias(dir) = particle->GetNeighborCoordinates() - coord;
+
+    const double dist        = DEM_MODULUS_3(dir);
+    const double r1          = particle->GetRadius();
+    const double r2          = particle->GetRadius();
+    const double indentation = r1 + r2 - dist;
+    const double length      = r1 - indentation / 2.0;
+    const double ratio       = length / dist;
+
+    double x = coord[0] + dir[0] * ratio;
+    double y = coord[1] + dir[1] * ratio;
+    double z = coord[2] + dir[2] * ratio;
+
+    // Get map geometry (corner points must have already been adjusted so that all coords_1 < coords_2)
+    array_1d<double, 3> coords_1     = r_process_info[HEAT_MAP_COORDINATES_1];
+    array_1d<double, 3> coords_2     = r_process_info[HEAT_MAP_COORDINATES_2];
+    array_1d<int, 3>    subdivisions = r_process_info[HEAT_MAP_SUBDIVISIONS];
+
+    const double dx = (coords_2[0] - coords_1[0]) / subdivisions[0];
+    const double dy = (coords_2[1] - coords_1[1]) / subdivisions[1];
+    const double dz = (coords_2[2] - coords_1[2]) / subdivisions[2];
+
+    // Check if generation point is inside map boundary
+    if ((x < coords_1[0]) || (x > coords_2[0]) ||
+        (y < coords_1[1]) || (y > coords_2[1]) ||
+        (z < coords_1[2]) || (z > coords_2[2]))
+      return;
+
+    // Determine indexes and fill map arrays
+    const int i_x = (x - coords_1[0]) / dx;
+    const int i_y = (y - coords_1[1]) / dy;
+    const int i_z = (z - coords_1[2]) / dz;
 
     KRATOS_CATCH("")
   }

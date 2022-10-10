@@ -190,7 +190,7 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[1]          = self.fluid_props["fluid_velocity_Y"].GetDouble()
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
-        # Graph writing
+        # Post options
         self.PostGraphParticleTempMin     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
         self.PostGraphParticleTempMax     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
         self.PostGraphParticleTempAvg     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
@@ -199,6 +199,20 @@ class ExplicitStrategy(BaseStrategy):
         self.PostGraphFluxContributions   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
         self.PostGraphGenContributions    = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
         self.PostGraphEnergyContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphEnergyContributions")
+        self.PostMapHeatGeneration        = GetBoolParameterIfItExists(self.DEM_parameters, "PostMapHeatGeneration")
+
+        self.heat_map_corner1         = Vector(3)
+        self.heat_map_corner1[0]      = min(self.thermal_settings["heat_map_corners"][0][0].GetDouble(),self.thermal_settings["heat_map_corners"][1][0].GetDouble())
+        self.heat_map_corner1[1]      = min(self.thermal_settings["heat_map_corners"][0][1].GetDouble(),self.thermal_settings["heat_map_corners"][1][1].GetDouble())
+        self.heat_map_corner1[2]      = min(self.thermal_settings["heat_map_corners"][0][2].GetDouble(),self.thermal_settings["heat_map_corners"][1][2].GetDouble())
+        self.heat_map_corner2         = Vector(3)
+        self.heat_map_corner2[0]      = max(self.thermal_settings["heat_map_corners"][0][0].GetDouble(),self.thermal_settings["heat_map_corners"][1][0].GetDouble())
+        self.heat_map_corner2[1]      = max(self.thermal_settings["heat_map_corners"][0][1].GetDouble(),self.thermal_settings["heat_map_corners"][1][1].GetDouble())
+        self.heat_map_corner2[2]      = max(self.thermal_settings["heat_map_corners"][0][2].GetDouble(),self.thermal_settings["heat_map_corners"][1][2].GetDouble())
+        self.heat_map_subdivisions    = Vector(3)
+        self.heat_map_subdivisions[0] = self.thermal_settings["heat_map_subdivisions"][0].GetInt()
+        self.heat_map_subdivisions[1] = self.thermal_settings["heat_map_subdivisions"][1].GetInt()
+        self.heat_map_subdivisions[2] = self.thermal_settings["heat_map_subdivisions"][2].GetInt()
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
@@ -289,6 +303,17 @@ class ExplicitStrategy(BaseStrategy):
             self.fluid_thermal_conductivity <= 0 or
             self.fluid_heat_capacity        <= 0):
             raise Exception('ThermalDEM', '"global_fluid_properties" must contain positive values for material properties.')
+        
+        # Post options
+        if (self.heat_map_corner1[0] == self.heat_map_corner2[0] or
+            self.heat_map_corner1[1] == self.heat_map_corner2[1] or
+            self.heat_map_corner1[2] == self.heat_map_corner2[2]):
+            raise Exception('ThermalDEM', '"heat_map_corners" must contain two vectors with the X,Y,Z coordinates of points that define opposite corners of a cuboid.')
+        
+        if (self.heat_map_subdivisions[0] < 1 or
+            self.heat_map_subdivisions[1] < 1 or
+            self.heat_map_subdivisions[2] < 1):
+            raise Exception('ThermalDEM', '"heat_map_subdivisions" must contain a vector with 3 positive values for the number of subdivisions in X,Y,Z directions.')
 
     #----------------------------------------------------------------------------------------------
     def SetVoronoiPorosityFlags(self):
@@ -534,6 +559,12 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_HEAT_CAPACITY,        self.fluid_heat_capacity)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
+
+        # Post options
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MAP_HEAT_GENERATION_OPTION, self.PostMapHeatGeneration)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_1, self.heat_map_corner1)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_2, self.heat_map_corner2)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_SUBDIVISIONS,  self.heat_map_subdivisions)
 
     #----------------------------------------------------------------------------------------------
     def CreateCPlusPlusThermalStrategy(self):

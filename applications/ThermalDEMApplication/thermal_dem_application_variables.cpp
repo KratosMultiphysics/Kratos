@@ -39,6 +39,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_SLIDING_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_ROLLING_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 GENERATION_DAMPING_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 MAP_HEAT_GENERATION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 REAL_CONTACT_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FIXED_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(bool,                                 ADIABATIC)
@@ -63,6 +64,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double,                               FLUID_HEAT_CAPACITY)
   KRATOS_CREATE_VARIABLE(double,                               FLUID_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(Vector,                               FLUID_VELOCITY)
+  KRATOS_CREATE_VARIABLE(Vector,                               HEAT_MAP_COORDINATES_1)
+  KRATOS_CREATE_VARIABLE(Vector,                               HEAT_MAP_COORDINATES_2)
+  KRATOS_CREATE_VARIABLE(Vector,                               HEAT_MAP_SUBDIVISIONS)
 
   // Flags (starting from the last value of the DEM Appication)
   KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, IS_ADIABATIC, 18);
