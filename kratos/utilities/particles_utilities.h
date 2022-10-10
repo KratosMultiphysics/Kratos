@@ -66,113 +66,144 @@ public:
     ///@{
 
     /// Default constructor.
-    ParticlesUtilities(){};
+    ParticlesUtilities() {};
 
     /// Destructor.
-    virtual ~ParticlesUtilities(){};
+    virtual ~ParticlesUtilities() {};
 
-    template<unsigned int TDim>
+    template<unsigned int TDim, bool CounterHasHistory=false >
     static void CountParticlesInNodes(
-            BinBasedFastPointLocator<TDim>& rLocator,
-            ModelPart& rVolumeModelPart,
-            const ModelPart& rParticlesModelPart,
-            const Variable<double>& rCounterVariable
-            )
+        BinBasedFastPointLocator<TDim>& rLocator,
+        ModelPart& rVolumeModelPart,
+        const ModelPart& rParticlesModelPart,
+        const Variable<double>& rCounterVariable,
+        const double SearchTolerance=1e-5
+    )
+    {
+        //reset the counter
+        block_for_each(rVolumeModelPart.Nodes(), [&rCounterVariable](auto& rNode)
+        {
+            if constexpr (CounterHasHistory)
+                rNode.FastGetSolutionStepValue(rCounterVariable) = 0.0;
+            else
+                rNode.SetValue(rCounterVariable,0.0);
+        });
+
+
+        unsigned int max_results = 10000;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
+
+        //for every interface node (nodes in cut elements)
+        block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rCounterVariable, SearchTolerance](const auto& rNode, auto& rTLS)
         {
 
-            //reset the EMBEDDED_VELOCITY
-            block_for_each(rVolumeModelPart.Nodes(), [&rCounterVariable](auto& rNode){
-                rNode.GetValue(rCounterVariable) = 0.0;
-            });
+            Vector shape_functions;
+            Element::Pointer p_element;
+            bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
+            if(is_found)
+            {
 
-            unsigned int max_results = 10000; 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
-            
-            //for every interface node (nodes in cut elements)
-            block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rCounterVariable](const auto& rNode, auto& rTLS){
-
-                Vector shape_functions;
-                Element::Pointer p_element;
-                bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), 1e-5);
-
-                if(is_found){
-
-                    auto& r_geom = p_element->GetGeometry();
-                    for(unsigned int i=0; i<r_geom.size(); ++i){
+                auto& r_geom = p_element->GetGeometry();
+                for(unsigned int i=0; i<r_geom.size(); ++i)
+                {
+                    if constexpr (CounterHasHistory)
+                    {
+                        auto& rcounter = r_geom[i].FastGetSolutionStepValue(rCounterVariable);
+                        AtomicAdd(rcounter, 1.0);
+                    }
+                    else
+                    {
                         auto& rcounter = r_geom[i].GetValue(rCounterVariable);
                         AtomicAdd(rcounter, 1.0);
                     }
+
                 }
+            }
 
-            });
+        });
 
-        }
+    }
 
     /**
-    this function looks if particle is found in the locator. If it is not, rVariable is marked with the value "outsider_value"
+    this function looks if particle is found in the locator. If it is not, rVariable is marked with the value "OutsiderValue"
     */
-    template<unsigned int TDim, class TScalarType>
-    static void MarkOutsiders(
-            BinBasedFastPointLocator<TDim>& rLocator,
-            ModelPart& rParticlesModelPart,
-            const Variable<TScalarType>& rVariable,
-            const TScalarType outsider_value
-            )
+    template<unsigned int TDim, class TDataType, bool VariableHasHistory >
+    static void MarkOutsiderParticles(
+        BinBasedFastPointLocator<TDim>& rLocator,
+        ModelPart& rParticlesModelPart,
+        const Variable<TDataType>& rVariable,
+        const TDataType& OutsiderValue,
+        const double SearchTolerance=1e-5
+    )
+    {
+        unsigned int max_results = 10000;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
+
+        //for every interface node (nodes in cut elements)
+        block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rVariable, &OutsiderValue, SearchTolerance](auto& rNode, auto& rTLS)
         {
-            unsigned int max_results = 10000; 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
-            
-            //for every interface node (nodes in cut elements)
-            block_for_each(rParticlesModelPart.Nodes(), TLS, [&rLocator, &rVariable, outsider_value](auto& rNode, auto& rTLS){
 
-                Vector shape_functions;
-                Element::Pointer p_element;
-                bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), 1e-5);
+            Vector shape_functions;
+            Element::Pointer p_element;
+            bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
-                if(!is_found){
-                    rNode.SetValue(rVariable, outsider_value);
-                }
-            });
-        }
+            if(!is_found)
+            {
+                if constexpr (VariableHasHistory)
+                    rNode.FastGetSolutionStepValue(rVariable) = OutsiderValue;
+                else
+                    rNode.SetValue(rVariable, OutsiderValue);
+            }
+        });
+    }
 
     /**@brief provides the value of the interpolated variable "rInterpolationVariable" at all the positions indicated in rCoordinates
     */
-    template<unsigned int TDim, class TScalarType>
-    static std::pair< std::vector<bool>, std::vector<TScalarType> > InterpolateValuesAtPoints(
-            BinBasedFastPointLocator<TDim>& rLocator,
-            const Matrix& rCoordinates,
-            const Variable<TScalarType>& rInterpolationVariable
-            )
+    template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
+    static std::pair< std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtPoints(
+        BinBasedFastPointLocator<TDim>& rLocator,
+        const Matrix& rCoordinates,
+        const Variable<TDataType>& rInterpolationVariable,
+        const double SearchTolerance
+    )
+    {
+        unsigned int max_results = 10000;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
+
+        auto interpolations = std::make_pair(std::vector<bool>(rCoordinates.size1()), std::vector<TDataType>(rCoordinates.size1()));
+
+        //for every interface node (nodes in cut elements)
+        const auto zero = rInterpolationVariable.Zero();
+        IndexPartition(rCoordinates.size1()).for_each(TLS, [&rLocator, &rCoordinates, &interpolations, &rInterpolationVariable, &zero, SearchTolerance](const auto& i, auto& rTLS)
         {
-            unsigned int max_results = 10000; 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
 
-            auto interpolations = std::make_pair(std::vector<bool>(rCoordinates.size1()), std::vector<TScalarType>(rCoordinates.size1()));            
-            
-            //for every interface node (nodes in cut elements)
-            IndexPartition(rCoordinates.size1()).for_each(TLS, [&rLocator, &rCoordinates, &interpolations, &rInterpolationVariable](const auto& i, auto& rTLS){
+            Vector shape_functions;
+            Element::Pointer p_element;
+            bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
-                Vector shape_functions;
-                Element::Pointer p_element;
-                bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), 1e-5);
+            (interpolations.first)[i] = is_found;
+            if(is_found)
+            {
 
-                (interpolations.first)[i] = is_found;
-                if(is_found){
-
-                    auto& r_geom = p_element->GetGeometry();
-                    (interpolations.second)[i] = TScalarType();
-                    for(unsigned int k=0; k<r_geom.size(); ++k){
+                auto& r_geom = p_element->GetGeometry();
+                (interpolations.second)[i] = zero;
+                for(unsigned int k=0; k<r_geom.size(); ++k)
+                {
+                    if constexpr (InterpolationVariableHasHistory)
                         (interpolations.second)[i] += shape_functions[k]*r_geom[k].FastGetSolutionStepValue(rInterpolationVariable);
-                    }
+                    else
+                        (interpolations.second)[i] += shape_functions[k]*r_geom[k].GetValue(rInterpolationVariable);
 
                 }
 
-            });
+            }
 
-            return interpolations;
+        });
 
-        }
+        return interpolations;
+
+    }
 
 
     ///@}
@@ -199,7 +230,10 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return std::string("ParticlesUtilities");};
+    virtual std::string Info() const
+    {
+        return std::string("ParticlesUtilities");
+    };
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {};
@@ -287,10 +321,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    ParticlesUtilities& operator=(ParticlesUtilities const& rOther);
+    ParticlesUtilities& operator=(ParticlesUtilities const& rOther) = delete;
 
     /// Copy constructor.
-    ParticlesUtilities(ParticlesUtilities const& rOther);
+    ParticlesUtilities(ParticlesUtilities const& rOther) = delete;
 
 
     ///@}
@@ -310,11 +344,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                ParticlesUtilities& rThis);
+                                  ParticlesUtilities& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const ParticlesUtilities& rThis)
+                                  const ParticlesUtilities& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
