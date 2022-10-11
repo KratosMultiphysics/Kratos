@@ -109,7 +109,7 @@ namespace Kratos
 				if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
 				{
 					refiningBox = true;
-			}
+				}
 			}
 			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -229,60 +229,40 @@ namespace Kratos
 			else
 			{
 
-				if (ElementsToRefine < 10)
-				{
-					ElementsToRefine = 10;
-				}
-				else
-				{
-					ElementsToRefine *= 3;
-				}
 				std::vector<array_1d<double, 3>> NewPositions;
 				std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
 
 				int CountNodes = 0;
 
-				//NewPositions.resize(0);
-				//NodesIDToInterpolate.resize(0);
-
-				NewPositions.resize(ElementsToRefine);
-				//BiggestVolumes.resize(ElementsToRefine, false);
-				NodesIDToInterpolate.resize(ElementsToRefine);
-
-
+				NewPositions.resize(0);
+				NodesIDToInterpolate.resize(0);
 
 				ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
+				int nodesInTransitionZone = 0;
 				for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 				{
-
 					const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
-
 					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 					if (dimension == 2)
 					{
-						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine);
+						SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine, nodesInTransitionZone);
 					}
 					else if (dimension == 3)
 					{
-						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine);
+						SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, NodesIDToInterpolate, CountNodes, ElementsToRefine, nodesInTransitionZone);
 					}
 
 				} // elements loop
 
-				//mrRemesh.Info->RemovedNodes -= CountNodes;
-				//unsigned int maxId = 0;
-				//CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, CountNodes, maxId);
-				mrRemesh.Info->RemovedNodes -= ElementsToRefine;
+				mrRemesh.Info->RemovedNodes -= CountNodes;
 				if (CountNodes < ElementsToRefine)
 				{
 					mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
 					NewPositions.resize(CountNodes);
-					//BiggestVolumes.resize(CountNodes, false);
 					NodesIDToInterpolate.resize(CountNodes);
-
 				}
 				unsigned int maxId = 0;
-				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
+				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, CountNodes, maxId);
 			}
 
 			mrRemesh.InputInitializedFlag = false;
@@ -1255,7 +1235,8 @@ namespace Kratos
 												std::vector<array_1d<double, 3>> &NewPositions,
 												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 												int &CountNodes,
-												int ElementsToRefine)
+												const int ElementsToRefine,
+												int &nodesInTransitionZone)
 		{
 			KRATOS_TRY
 
@@ -1267,12 +1248,11 @@ namespace Kratos
 
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			double currentTime = rCurrentProcessInfo[TIME];
-
+			const double currentTime = rCurrentProcessInfo[TIME];
+			bool insideTransitionZone = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
-				bool insideBox = false;
-				mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideBox);
+				mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
 			}
 
 			for (unsigned int pn = 0; pn < nds; pn++)
@@ -1289,7 +1269,6 @@ namespace Kratos
 				{
 					freesurfaceNodes++;
 				}
-
 			}
 
 			double penalization = 1.0; // penalization here should be greater than 1
@@ -1298,15 +1277,7 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-
-			// if (rigidNodes > 0 && penalizationRigid == true)
-			// if (rigidNodes > 0)
-			// {
-			// 	penalization = 1.2;
-			// }
-
-			const double safetyCoefficient2D = 1.5;
-
+			const double safetyCoefficient2D = 1.5;		
 			array_1d<double, 3> Edges(3, 0.0);
 			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
 			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
@@ -1385,9 +1356,8 @@ namespace Kratos
 					}
 				}
 
-				if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength)
+				if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
 				{
-
 					bool newNode = true;
 					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
 					{
@@ -1399,13 +1369,17 @@ namespace Kratos
 					}
 					if (newNode == true)
 					{
-						//NewPositions.resize(CountNodes + 1);
-						//NodesIDToInterpolate.resize(CountNodes + 1);
+						NewPositions.resize(CountNodes + 1);
+						NodesIDToInterpolate.resize(CountNodes + 1);
 						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
 						NewPositions[CountNodes] = NewPosition;
 						CountNodes++;
+						if (insideTransitionZone)
+						{
+							nodesInTransitionZone++;
+						}
 					}
 				}
 			}
@@ -1417,7 +1391,8 @@ namespace Kratos
 												std::vector<array_1d<double, 3>> &NewPositions,
 												std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
 												int &CountNodes,
-												int ElementsToRefine)
+												const int ElementsToRefine,
+												int &nodesInTransitionZone)
 		{
 			KRATOS_TRY
 
@@ -1430,11 +1405,10 @@ namespace Kratos
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
-
+			bool insideTransitionZone = false;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
-				bool insideBox = false;
-				mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideBox);
+				mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
 			}
 
 			for (unsigned int pn = 0; pn < nds; pn++)
@@ -1458,11 +1432,7 @@ namespace Kratos
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			// if (rigidNodes > 0 && penalizationRigid == true)
-			// {
-			// 	penalization = 1.15;
-			// }
-			
+
 			const double safetyCoefficient3D = 1.6;
 			array_1d<double, 6> Edges(6, 0.0);
 			array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
@@ -1558,11 +1528,8 @@ namespace Kratos
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-
-				// array_1d<double,3> NewPosition(3,0.0);
 				unsigned int maxCount = 6;
 				double LargestEdge = 0;
-
 				for (unsigned int i = 0; i < 6; i++)
 				{
 					if (Edges[i] > LargestEdge)
@@ -1572,9 +1539,8 @@ namespace Kratos
 					}
 				}
 
-				if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength)
+				if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
 				{
-
 					bool newNode = true;
 					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
 					{
@@ -1586,11 +1552,17 @@ namespace Kratos
 					}
 					if (newNode == true)
 					{
+						NewPositions.resize(CountNodes + 1);
+						NodesIDToInterpolate.resize(CountNodes + 1);
 						array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
 						NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
 						NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
 						NewPositions[CountNodes] = NewPosition;
 						CountNodes++;
+						if (insideTransitionZone)
+						{
+							nodesInTransitionZone++;
+						}
 					}
 				}
 			}

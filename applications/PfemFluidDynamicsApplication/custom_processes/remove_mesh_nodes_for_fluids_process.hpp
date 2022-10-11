@@ -451,13 +451,13 @@ namespace Kratos
 					array_1d<double, 3> NodeCoordinates = in->Coordinates();
 					if (dimension == 2)
 					{
-						bool insideBox = false;
-						mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideBox);
+						bool insideTransitionZone = false;
+						mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideTransitionZone);
 					}
 					else if (dimension == 3)
 					{
-						bool insideBox = false;
-						mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideBox);
+						bool insideTransitionZone = false;
+						mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideTransitionZone);
 					}
 				}
 				if (rigidNodeMeshCounter > 0 && refiningBox == false)

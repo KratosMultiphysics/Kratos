@@ -175,7 +175,7 @@ namespace Kratos
             unsigned outOfRefiningBoxes = true;
             for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
             {
-              double transitionDistanceInInputMesh = 5.0 * mrRemesh.Refine->CriticalRadius;
+              double transitionDistanceInInputMesh = 4.0 * mrRemesh.Refine->CriticalRadius;
               array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
               array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
               if (mrRemesh.UseRefiningBox[index] == true)
@@ -237,7 +237,7 @@ namespace Kratos
           mrRemesh.RefiningBoxMaximumPoint[index][1] += tolerance;
           mrRemesh.RefiningBoxMaximumPoint[index][2] += tolerance;
 
-          double transitionDistance = 5.0 * fabs(differenceOfSize);
+          double transitionDistance = 4.0 * fabs(differenceOfSize);
 
           mrRemesh.RefiningBoxShiftedMinimumPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] - transitionDistance;
           mrRemesh.RefiningBoxShiftedMinimumPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] - transitionDistance;
