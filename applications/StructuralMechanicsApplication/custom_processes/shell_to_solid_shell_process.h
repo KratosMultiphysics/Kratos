@@ -244,11 +244,11 @@ private:
     /**
      * @brief This replaces the previous geometry
      * @param rGeometryModelPart The previous model part
-     * @param rAuxiliarModelPart The new created model part
+     * @param rAuxiliaryModelPart The new created model part
      */
     void ReplacePreviousGeometry(
         ModelPart& rGeometryModelPart,
-        ModelPart& rAuxiliarModelPart
+        ModelPart& rAuxiliaryModelPart
         );
 
     /**
@@ -272,7 +272,7 @@ private:
     void ExportToMDPA();
 
     /**
-     * @brief After we have created the new elements we delete the auxiliar model parts
+     * @brief After we have created the new elements we delete the auxiliary model parts
      */
     void CleanModel();
 

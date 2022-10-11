@@ -41,7 +41,7 @@ void ALMFastInit::Execute()
     // We initialize the penalty parameter
     const double epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
 
-    // Auxiliar zero array
+    // Auxiliary zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // We iterate over the nodes
@@ -58,7 +58,7 @@ void ALMFastInit::Execute()
             // Penalty parameter
             rNode.SetValue(INITIAL_PENALTY, epsilon);
 
-            // Auxiliar values
+            // Auxiliary values
             rNode.SetValue(DYNAMIC_FACTOR, 1.0);
             rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
             if (is_frictional) {
