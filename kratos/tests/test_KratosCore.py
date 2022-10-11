@@ -77,6 +77,7 @@ import test_rbf_shape_functions_utility
 import test_generic_find_elemental_neighbours_process
 import test_graph_utilities
 import test_point_locator
+import test_particles_utilities
 
 if sympy_available:
     import test_sympy_fe_utilities
@@ -171,6 +172,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_graph_utilities.TestGraphUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_rbf_shape_functions_utility.TestRBFShapeFunctionsUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_point_locator.TestPointLocator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_particles_utilities.TestParticlesUtilities]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
