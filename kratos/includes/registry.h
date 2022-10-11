@@ -123,6 +123,11 @@ public:
 
     static RegistryItem& GetItem(std::string const& rItemFullName);
 
+    template<typename TDataType>
+    static TDataType const& GetValue(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).GetValue<TDataType>();
+    }
 
     static void RemoveItem(std::string const& ItemName);
 
