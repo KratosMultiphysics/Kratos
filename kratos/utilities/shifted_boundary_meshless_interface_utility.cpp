@@ -1,7 +1,8 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -14,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/pointer_vector.h"
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
@@ -27,6 +29,91 @@
 
 namespace Kratos
 {
+
+namespace
+{
+    using GeometryType = ShiftedBoundaryMeshlessInterfaceUtility::GeometryType;
+    using ModifiedShapeFunctionsFactoryType = ShiftedBoundaryMeshlessInterfaceUtility::ModifiedShapeFunctionsFactoryType;
+
+    /**
+     * @brief Check if current geometry is split
+     * This method checks if current geometry is split from the nodal historical DISTANCE values
+     * @param rGeometry Geometry to be checked
+     * @return true If split
+     * @return false If not split
+     */
+    bool IsSplit(const GeometryType& rGeometry)
+    {
+        std::size_t n_neg = 0;
+        std::size_t n_pos = 0;
+        for (const auto& r_node : rGeometry) {
+            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+        return (n_pos != 0 && n_neg != 0);
+    }
+
+    /**
+     * @brief Check if current geometry is in negative side
+     * This method checks if current geometry has negative DISTANCE value in all the nodes
+     * @param rGeometry Geometry to be checked
+     * @return true If all nodes are negative
+     * @return false If there is one or more positive nodes
+     */
+    bool IsNegative(const GeometryType& rGeometry)
+    {
+        std::size_t n_neg = 0;
+        for (const auto& r_node : rGeometry) {
+            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
+                n_neg++;
+            }
+        }
+        return (n_neg == rGeometry.PointsNumber());
+    }
+
+    /**
+     * @brief Set the nodal distances vector
+     * This method saves the nodal historical values of DISTANCE in the provided vector
+     * @param rGeometry Geometry from which the nodal values are retrieved
+     * @param rNodalDistances Vector container to store the distance values
+     */
+    void SetNodalDistancesVector(
+        const GeometryType& rGeometry,
+        Vector& rNodalDistances)
+    {
+        const std::size_t n_nodes = rGeometry.PointsNumber();
+        if (rNodalDistances.size() != n_nodes) {
+            rNodalDistances.resize(n_nodes);
+        }
+        std::size_t i = 0;
+        for (const auto& r_node : rGeometry) {
+            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(DISTANCE);
+        }
+    }
+
+    /**
+     * @brief Get the standard modified shape functions factory object
+     * This function returns a prototype for the split shape functions calculation from the provided geometry
+     * @param rGeometry Input geometry
+     * @return ModifiedShapeFunctionsFactoryType Factory to be used for the split shape functions calculation
+     */
+    ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
+    {
+        switch (rGeometry.GetGeometryType()) {
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
+                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
+                    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
+            default:
+                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+        }
+    }
+}
 
     ShiftedBoundaryMeshlessInterfaceUtility::ShiftedBoundaryMeshlessInterfaceUtility(
         Model& rModel,
@@ -121,6 +208,8 @@ namespace Kratos
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -382,6 +471,8 @@ namespace Kratos
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -575,6 +666,8 @@ namespace Kratos
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -721,60 +814,7 @@ namespace Kratos
         }
     }
 
-    bool ShiftedBoundaryMeshlessInterfaceUtility::IsSplit(const GeometryType& rGeometry)
-    {
-        std::size_t n_neg = 0;
-        std::size_t n_pos = 0;
-        for (const auto& r_node : rGeometry) {
-            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
-                n_neg++;
-            } else {
-                n_pos++;
-            }
-        }
-        return (n_pos != 0 && n_neg != 0);
-    }
-
-    bool ShiftedBoundaryMeshlessInterfaceUtility::IsNegative(const GeometryType& rGeometry)
-    {
-        std::size_t n_neg = 0;
-        for (const auto& r_node : rGeometry) {
-            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
-                n_neg++;
-            }
-        }
-        return (n_neg == rGeometry.PointsNumber());
-    }
-
-    void ShiftedBoundaryMeshlessInterfaceUtility::SetNodalDistancesVector(
-        const GeometryType& rGeometry,
-        Vector& rNodalDistances)
-    {
-        const std::size_t n_nodes = rGeometry.PointsNumber();
-        if (rNodalDistances.size() != n_nodes) {
-            rNodalDistances.resize(n_nodes);
-        }
-        std::size_t i = 0;
-        for (const auto& r_node : rGeometry) {
-            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(DISTANCE);
-        }
-    }
-
-    ShiftedBoundaryMeshlessInterfaceUtility::ModifiedShapeFunctionsFactoryType ShiftedBoundaryMeshlessInterfaceUtility::GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
-    {
-        switch (rGeometry.GetGeometryType()) {
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
-        }
-    }
-
-    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction() const
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -804,7 +844,7 @@ namespace Kratos
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction() const
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -834,7 +874,7 @@ namespace Kratos
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction() const
     {
         return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
             RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);
