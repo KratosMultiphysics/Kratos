@@ -255,17 +255,21 @@ private:
 ///@{
 
 #ifndef KRATOS_REGISTER_PROCESS
-#define KRATOS_REGISTER_PROCESS(                                                          \
-    module_name,                                                                          \
-    process_name,                                                                         \
-    process)                                                                              \
-    {                                                                                     \
-        std::stringstream variable_path;                                                  \
-        variable_path << "Process." << module_name << "." << process_name;                \
-        if (!Registry::HasItem(variable_path.str()))                                      \
-        {                                                                                 \
-            Registry::AddItem<RegistryValueItem<process>>(variable_path.str(), process());\
-        }                                                                                 \
+#define KRATOS_REGISTER_PROCESS(                                                                             \
+    module_name,                                                                                             \
+    process_name,                                                                                            \
+    process_prototype)                                                                                       \
+    {                                                                                                        \
+        std::string all_path = std::string("processes.all.") + process_name;                                 \
+        if (!Registry::HasItem(all_path)) {                                                                  \
+            Registry::AddItem<RegistryValueItem<Process>>(all_path, process_prototype);                      \
+        } else {                                                                                             \
+            KRATOS_ERROR << "Process '" << process_name << "' is already registered." << std::endl;          \
+        }                                                                                                    \
+        std::string module_path = std::string("processes.") + module_name + std::string(".") + process_name; \
+        if (!Registry::HasItem(module_path)) {                                                               \
+            Registry::AddItem<RegistryValueItem<Process>>(module_path, process_prototype);                   \
+        }                                                                                                    \
     }
 #endif
 
