@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Carlos Roig
+//                   Ruben Zorrilla
 //
 
 // System includes
@@ -19,18 +20,18 @@
 // Project includes
 #include "includes/kernel.h"
 #include "includes/registry.h"
-#include "processes/process.h"
+#include "operations/operation.h"
 
-// Registering processes
-#include "processes/output_process.h"
+// Registering operations
+#include "operations/foo_operation.h"
 
 namespace Kratos
 {
 
-void KratosApplication::RegisterProcesses()
+void KratosApplication::RegisterOperations()
 {
-    KRATOS_REGISTER_PROCESS("KratosMultiphysics", "Process", Process())
-    KRATOS_REGISTER_PROCESS("KratosMultiphysics", "OutputProcess", OutputProcess())
+    KRATOS_REGISTER_OPERATION("KratosMultiphysics", "Operation", Operation())
+    KRATOS_REGISTER_OPERATION("KratosMultiphysics", "FooOperation", FooOperation())
 }
 
 }
