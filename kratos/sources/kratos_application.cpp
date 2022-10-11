@@ -119,6 +119,9 @@ void KratosApplication::RegisterKratosCore() {
     // Registering all the variables
     KratosApplication::RegisterVariables();
 
+    // Registering all the processes
+    KratosApplication::RegisterProcesses();
+
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();

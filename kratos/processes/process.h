@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/registry.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 
@@ -167,7 +168,7 @@ public:
     {
         return 0;
     }
-    
+
     /**
      * @brief This method clears the assignation of the conditions
      */
@@ -253,6 +254,20 @@ private:
 ///@name Type Definitions
 ///@{
 
+#ifndef KRATOS_REGISTER_PROCESS
+#define KRATOS_REGISTER_PROCESS(                                                          \
+    module_name,                                                                          \
+    process_name,                                                                         \
+    process)                                                                              \
+    {                                                                                     \
+        std::stringstream variable_path;                                                  \
+        variable_path << "Process." << module_name << "." << process_name;                \
+        if (!Registry::HasItem(variable_path.str()))                                      \
+        {                                                                                 \
+            Registry::AddItem<RegistryValueItem<process>>(variable_path.str(), process());\
+        }                                                                                 \
+    }
+#endif
 
 ///@}
 ///@name Input and output

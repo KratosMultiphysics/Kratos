@@ -118,6 +118,12 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
+    template<typename TDataType> TDataType const& GetValue() const
+    {
+        KRATOS_ERROR_IF(mpValue == nullptr) << "Item " << Name() << " does not have value to be returned" << std::endl;
+        return *static_cast<const TDataType*>(mpValue);
+    }
+
     void RemoveItem(std::string const& rItemName);
 
     ///@}
