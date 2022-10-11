@@ -97,7 +97,6 @@ double mRadiusSum;
 double mDt;
 double mOtherRadius;
 double mIndentation;
-double mRollingResistance;
 double mMyCoors[3];
 double mOtherCoors[3];
 double mLocalRelVel[3];
