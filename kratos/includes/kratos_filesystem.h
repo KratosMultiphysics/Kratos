@@ -34,42 +34,27 @@
 #include "includes/define.h"
 
 namespace Kratos {
-// wrapper functions for std::filesystem (part of C++17)
-// the function signatures are identical, hence after moving to C++17 Kratos::filesystem can be replaced with std::filesystem
-// please check the documentation of std::filesystem for the function documentation
 
-// Note: the filesystem functinos have a filesystem::path as input, but currently std::string is used as filesystem::path is not available
-// this should not be a problem for upgrading to std::filesystem, since filesystem::path has a constructor accepting a string
-namespace filesystem {
+namespace [[deprecated]] filesystem {
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 bool KRATOS_API(KRATOS_CORE) exists(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 bool KRATOS_API(KRATOS_CORE) is_regular_file(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 bool KRATOS_API(KRATOS_CORE) is_directory(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 bool KRATOS_API(KRATOS_CORE) create_directory(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 bool KRATOS_API(KRATOS_CORE) create_directories(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 bool KRATOS_API(KRATOS_CORE) remove(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 std::uintmax_t KRATOS_API(KRATOS_CORE) remove_all(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 void KRATOS_API(KRATOS_CORE) rename(const std::string& rPathFrom, const std::string& rPathTo);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 std::string KRATOS_API(KRATOS_CORE) parent_path(const std::string& rPath);
 
-KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 std::string KRATOS_API(KRATOS_CORE) filename(const std::string& rPath);
 
 } // namespace filesystem
