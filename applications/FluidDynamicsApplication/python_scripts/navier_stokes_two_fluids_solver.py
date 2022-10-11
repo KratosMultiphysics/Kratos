@@ -118,12 +118,29 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
-        self.element_name = "TwoFluidNavierStokes"
+        # Set the time integration scheme for two fluid element.
+        self.time_scheme = custom_settings["time_scheme"].GetString()
+
+        if self.time_scheme == "generalised_alpha":
+            self.element_name = "TwoFluidNavierStokesAlphaMethod"
+            self.rho_inf = custom_settings["maximum_spectral_radius"].GetInt()
+            self.main_model_part.ProcessInfo.SetValue(
+                KratosCFD.SPECTRAL_RADIUS_LIMIT, self.rho_inf)
+
+        # Bdf2 time integration time scheme. This option behaves as a TwoFLuidNavierStokesSolver.
+        elif self.time_scheme == "bdf2":
+            self.element_name = "TwoFluidNavierStokes"
+
+        else:
+            raise ValueError(
+                "\'time_scheme\' {} is not implemented. Use \'bdf2\' or \'generalised_alpha\'.".format(self.time_scheme))
+
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
         self.min_buffer_size = 3
+
 
         # Set the levelset characteristic variables and add them to the convection settings
         # These are required to be set as some of the auxiliary processes admit user-defined variables
@@ -234,6 +251,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
+        # Non historical variable is initilized in order to avoid memory problems
+        if self.time_scheme == "generalised_alpha":
+            for node in self.GetComputingModelPart().Nodes:
+                acceleration_alpha_scheme = [0, 0, 0]
+                node.SetValue(KratosMultiphysics.ACCELERATION,
+                              acceleration_alpha_scheme)
+
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -319,6 +344,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
         if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] > 1:
             self._GetAccelerationLimitationUtility().Execute()
+
+                    # According to generalised alpha method a previus time step acceleration needs to be saved.
+        if self.time_scheme == "generalised_alpha":
+            # Previous time step acceleration is saved an non historical variable for the next step
+            alpha_m=0.5*((3-self.rho_inf)/(1+self.rho_inf))
+            alpha_f=1/(1+self.rho_inf)
+            gamma= 0.5+alpha_m-alpha_f
+            dt=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            for node in self.GetComputingModelPart().Nodes:
+                vn=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+                v = node.GetSolutionStepValue(
+                    KratosMultiphysics.VELOCITY, 0)
+                acceleration_n=node.GetValue(KratosMultiphysics.ACCELERATION)
+                acceleration_alpha_method=(v-vn)/(gamma*dt)+((gamma-1)/gamma)*acceleration_n
+                node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_method)
 
     def _PerformLevelSetConvection(self):
         # Solve the levelset convection problem

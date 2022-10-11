@@ -17,10 +17,10 @@ from KratosMultiphysics.sympy_fe_utilities import *
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR"
-divide_by_rho = True                # Divide by density in mass conservation equation
+divide_by_rho = False                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
-time_integration="bdf2"
+time_integration = "bdf2"
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes.cpp"
@@ -274,6 +274,8 @@ for dim in dim_vector:
     vel_subscale_enr = vel_residual_enr * tau1
 
     rv_galerkin_enriched = div_w*penr_gauss
+    # rv_galerkin_enriched = -w_gauss.transpose()*grad_penr
+
 
     if (divide_by_rho):
         rv_galerkin_enriched += qenr_gauss*(volume_error_ratio - div_v[0,0])

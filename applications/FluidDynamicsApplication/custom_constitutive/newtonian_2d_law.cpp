@@ -66,7 +66,8 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const double mu = this->GetEffectiveViscosity(rValues);
 
     const double trace = r_strain_rate[0] + r_strain_rate[1];
-    const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+    // const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+    const double volumetric_part = 0.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
     //computation of stress
     r_viscous_stress[0] = 2.0*mu*(r_strain_rate[0] - volumetric_part);

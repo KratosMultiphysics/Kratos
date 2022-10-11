@@ -25,26 +25,23 @@
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-
-#include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
+#include "custom_processes/energy_splitelements_process.h"
+#include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/Boundary_Windkessel_model.h"
-#include "custom_processes/boussinesq_force_process.h"
-#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
-#include "custom_processes/compute_pressure_coefficient_process.h"
+#include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/distance_modification_process.h"
-#include "custom_processes/distance_smoothing_process.h"
+#include "custom_processes/boussinesq_force_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
-#include "custom_processes/two_fluids_inlet_process.h"
-#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 #include "custom_processes/shock_capturing_physics_based_process.h"
-#include "custom_processes/spalart_allmaras_turbulence_model.h"
-#include "custom_processes/stokes_initialization_process.h"
-#include "custom_processes/compute_y_plus_process.h"
-
+#include "custom_processes/two_fluids_inlet_process.h"
+#include "custom_processes/distance_smoothing_process.h"
+#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
+#include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
+#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -178,13 +175,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ApplyCompressibleNavierStokesBoundaryConditionsProcess, ApplyCompressibleNavierStokesBoundaryConditionsProcess::Pointer, Process>(m, "ApplyCompressibleNavierStokesBoundaryConditionsProcess")
     .def(py::init<Model&, Parameters>())
     ;
-
-    py::class_<ComputePressureCoefficientProcess, ComputePressureCoefficientProcess::Pointer, Process>(m, "ComputePressureCoefficientProcess")
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<ComputeYPlusProcess, ComputeYPlusProcess::Pointer, Process>(m, "ComputeYPlusProcess")
-    .def(py::init<Model&, Parameters>())
+     py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
+    .def(py::init<ModelPart &, unsigned int>())
+    .def("WritingFile",&EnergyCheckProcess::WritingFile)
     ;
 }
 
