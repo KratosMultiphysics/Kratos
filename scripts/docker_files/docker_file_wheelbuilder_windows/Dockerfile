@@ -51,6 +51,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\36; \
     Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
     c:\python\36\python.exe -m pip install --upgrade pip; \
+    c:\python\36\python.exe -m pip install mypy; \
     c:\python\36\python.exe -m pip install --upgrade setuptools wheel
 
 
@@ -61,6 +62,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\37; \
     Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
     c:\python\37\python.exe -m pip install --upgrade pip; \
+    c:\python\37\python.exe -m pip install mypy; \
     c:\python\37\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.8
@@ -70,6 +72,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\38; \
     Start-Process c:\temp\python38.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\38' -Wait; \
     c:\python\38\python.exe -m pip install --upgrade pip; \
+    c:\python\38\python.exe -m pip install mypy; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.9
@@ -79,6 +82,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\39; \
     Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
     c:\python\39\python.exe -m pip install --upgrade pip; \
+    c:\python\39\python.exe -m pip install mypy; \
     c:\python\39\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.10

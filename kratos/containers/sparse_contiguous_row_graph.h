@@ -113,6 +113,11 @@ public:
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         mpComm = rOther.mpComm;
+        mGraph.resize(rOther.mGraph.size());
+        IndexPartition<IndexType>(rOther.mGraph.size()).for_each([&](IndexType i) {
+            mGraph[i] = std::unordered_set<IndexType>();
+        });
+        mLocks.resize(rOther.mLocks.size());
         this->AddEntries(rOther);
     }
 
@@ -366,14 +371,17 @@ public:
     ///@}
     ///@name Access
     ///@{
-    class const_iterator_adaptor : public std::iterator<
-        std::forward_iterator_tag,
-        typename GraphType::value_type
-        >
+    class const_iterator_adaptor
 	{
 		const_row_iterator map_iterator;
         const_row_iterator mbegin;
 	public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = typename GraphType::value_type;
+        using pointer           = typename GraphType::value_type*;
+        using reference         = typename GraphType::value_type&;
+
 		const_iterator_adaptor(const_row_iterator it) :map_iterator(it),mbegin(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it)
             : map_iterator(it.map_iterator),mbegin(it.mbegin) {}

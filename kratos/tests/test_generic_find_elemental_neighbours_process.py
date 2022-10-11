@@ -25,7 +25,7 @@ class TestGenericFindElementalNeighboursProcess(KratosUnittest.TestCase):
         model = self._ImportModelPart(GetFilePath(self.work_folder+ "/"+self.file_name)) #MdpaTriangleDummyModel()
         model_part = model["main"]
         proc = KratosMultiphysics.GenericFindElementalNeighboursProcess(model_part)
-        proc.ExecuteInitialize()
+        proc.Execute()
 
         #expected results. faces which have a null pointer (no neigh elem in face)
         has_neigh_in_faces_dict = {
@@ -44,8 +44,8 @@ class TestGenericFindElementalNeighboursProcess(KratosUnittest.TestCase):
             self.assertEqual(len(this_elem_has_neigh_in_faces),4)
             for face in range(len(this_elem_has_neigh_in_faces)):
                 self.assertEqual(this_elem_has_neigh_in_faces[face],this_elem_expected[face])
-                
-        
+
+
 
     def _ImportModelPart(self,model_path):
         Model = KratosMultiphysics.Model()

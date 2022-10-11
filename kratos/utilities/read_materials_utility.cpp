@@ -501,8 +501,8 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
         parent_model_part_name = model_part_names[i];
 
         // removing the submodelpart-names one-by-one
-        while (parent_model_part_name.find(".") != std::string::npos) {
-            std::size_t found_pos = parent_model_part_name.find_last_of(".");
+        while (parent_model_part_name.find('.') != std::string::npos) {
+            std::size_t found_pos = parent_model_part_name.find_last_of('.');
             parent_model_part_name = parent_model_part_name.substr(0, found_pos);
 
             for (IndexType j = 0; j < i; ++j) {

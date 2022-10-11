@@ -1,0 +1,75 @@
+{
+  "properties": [
+    {
+      "properties_id": 3,
+      "model_part_name": "PorousDomain.Soil-3",
+      "Material": {
+        "constitutive_law": {
+          "name": "SmallStrainUDSM2DPlaneStrainLaw"
+        },
+        "Variables": {
+          "IGNORE_UNDRAINED": false,
+          "BIOT_COEFFICIENT": 1.0,
+          "DENSITY_SOLID": 2338.2845492937236,
+          "DENSITY_WATER": 1000.0,
+          "POROSITY": 0.3,
+          "BULK_MODULUS_SOLID": 20000000000.0,
+          "BULK_MODULUS_FLUID": 2200000000.0,
+          "PERMEABILITY_XX": 86400.0,
+          "PERMEABILITY_YY": 86400.0,
+          "PERMEABILITY_XY": 0.0,
+          "DYNAMIC_VISCOSITY": 9810.0,
+          "UDSM_NAME": "../abc64.dll",
+          "UDSM_NUMBER": 1,
+          "IS_FORTRAN_UDSM": true,
+          "UMAT_PARAMETERS": [
+            0.032,
+            0.16,
+            0.04,
+            1.0,
+            1.15
+          ],
+          "RETENTION_LAW": "SaturatedLaw",
+          "RESIDUAL_SATURATION": 0.06203,
+          "SATURATED_SATURATION": 1.0,
+          "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
+          "VAN_GENUCHTEN_GN": 1.377,
+          "VAN_GENUCHTEN_GL": 1.25,
+          "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
+        }
+      }
+    },
+    {
+      "properties_id": 6,
+      "model_part_name": "PorousDomain.Soil-6",
+      "Material": {
+        "constitutive_law": {
+          "name": "GeoLinearElasticPlaneStrain2DLaw"
+        },
+        "Variables": {
+          "IGNORE_UNDRAINED": true,
+          "BIOT_COEFFICIENT": 1.0,
+          "DENSITY_SOLID": 299.54856560361145,
+          "DENSITY_WATER": 1000.0,
+          "POROSITY": 0.3,
+          "BULK_MODULUS_SOLID": 20000000000.0,
+          "BULK_MODULUS_FLUID": 2200000000.0,
+          "PERMEABILITY_XX": 86400.0,
+          "PERMEABILITY_YY": 86400.0,
+          "PERMEABILITY_XY": 0.0,
+          "DYNAMIC_VISCOSITY": 9810.0,
+          "YOUNG_MODULUS": 10000000.0,
+          "POISSON_RATIO": 0.3,
+          "THICKNESS": 1.0,
+          "RETENTION_LAW": "SaturatedLaw",
+          "RESIDUAL_SATURATION": 0.06203,
+          "SATURATED_SATURATION": 1.0,
+          "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
+          "VAN_GENUCHTEN_GN": 1.377,
+          "VAN_GENUCHTEN_GL": 1.25,
+          "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
+        }
+      }
+    }
+  ]
+}

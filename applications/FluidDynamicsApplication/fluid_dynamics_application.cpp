@@ -240,6 +240,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( MOMENTUM_CORRECTION )
     KRATOS_REGISTER_VARIABLE( DISTANCE_CORRECTION )
 
+    KRATOS_REGISTER_VARIABLE( Y_PLUS )
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
