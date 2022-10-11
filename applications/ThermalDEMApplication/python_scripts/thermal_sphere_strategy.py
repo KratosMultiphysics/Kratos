@@ -111,6 +111,10 @@ class ExplicitStrategy(BaseStrategy):
         if (self.write_graph):
             self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
 
+        # Merge particle heat maps to global heat maps
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
+
     #----------------------------------------------------------------------------------------------
     def Finalize(self):
         BaseStrategy.Finalize(self)
@@ -118,6 +122,10 @@ class ExplicitStrategy(BaseStrategy):
         # Close graph files
         if (self.write_graph):
             self.graph_utils.ExecuteFinalize()
+
+        # Write global heat maps
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils.ExecuteFinalize(self.spheres_model_part)
 
     ####################################### PARTICULAR METHODS #######################################
     #----------------------------------------------------------------------------------------------
@@ -371,6 +379,9 @@ class ExplicitStrategy(BaseStrategy):
             
         if (self.write_graph):
             self.graph_utils = GraphUtilities()
+
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils = HeatMapUtilities()
     
     #----------------------------------------------------------------------------------------------
     def AddThermalVariables(self):
@@ -599,6 +610,9 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphFluxContributions,
                                                self.PostGraphGenContributions,
                                                self.PostGraphEnergyContributions)
+
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils.ExecuteInitialize(self.spheres_model_part)
 
     #----------------------------------------------------------------------------------------------
     def IsTimeToUpdateVoronoi(self):

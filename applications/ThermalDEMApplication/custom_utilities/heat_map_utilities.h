@@ -31,10 +31,23 @@ namespace Kratos
       ~HeatMapUtilities();
 
       // Public methods
-      void ExecuteInitialize (ModelPart& rModelPart);
-      void ExecuteFinalize   (ModelPart& rModelPart);
+      void ExecuteInitialize           (ModelPart& rModelPart);
+      void ExecuteFinalizeSolutionStep (ModelPart& rModelPart);
+      void ExecuteFinalize             (ModelPart& rModelPart);
+
+      // Public variables
+      int mDimX, mDimY, mDimZ;  // Dimensions of heat map matrices
+      std::vector<std::vector<std::vector<double>>> mGlobalHeatMapGenerationDampingPP;  // Global heat map matrix for heat generaion by damping between particle-particle
+      std::vector<std::vector<std::vector<double>>> mGlobalHeatMapGenerationDampingPW;  // Global heat map matrix for heat generaion by damping between particle-wall
+      std::vector<std::vector<std::vector<double>>> mGlobalHeatMapGenerationSlidingPP;  // Global heat map matrix for heat generaion by sliding between particle-particle
+      std::vector<std::vector<std::vector<double>>> mGlobalHeatMapGenerationSlidingPW;  // Global heat map matrix for heat generaion by sliding between particle-wall
+      std::vector<std::vector<std::vector<double>>> mGlobalHeatMapGenerationRollingPP;  // Global heat map matrix for heat generaion by rolling between particle-particle
+      std::vector<std::vector<std::vector<double>>> mGlobalHeatMapGenerationRollingPW;  // Global heat map matrix for heat generaion by rolling between particle-wall
 
     private:
+
+      // Private methods
+      void ResetMap(std::vector<std::vector<std::vector<double>>>& map);
 
       // Assignment operator
       HeatMapUtilities& operator=(HeatMapUtilities const& rOther);

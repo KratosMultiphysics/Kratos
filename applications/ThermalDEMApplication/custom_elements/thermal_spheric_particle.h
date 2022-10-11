@@ -229,9 +229,17 @@ namespace Kratos
       double mTotalHeatFlux;
 
       // Energy properties
-      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction:   viscodamping 
-      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction:   frictional
-      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction:   rolling resistance
+      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction: viscodamping 
+      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction: frictional
+      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction: rolling resistance
+
+      // Heat maps
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPW;  // Local heat map matrix for heat generaion by damping between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPP;  // Local heat map matrix for heat generaion by sliding between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPW;  // Local heat map matrix for heat generaion by sliding between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPP;  // Local heat map matrix for heat generaion by rolling between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPW;  // Local heat map matrix for heat generaion by rolling between particle-wall
 
       // Interaction properties
       bool   mNeighborInContact;          // flag for contact interaction

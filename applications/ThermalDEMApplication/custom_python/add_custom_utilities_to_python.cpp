@@ -63,8 +63,9 @@ namespace Kratos
 
       py::class_<HeatMapUtilities, HeatMapUtilities::Pointer>(m, "HeatMapUtilities")
         .def(py::init<>())
-        .def("ExecuteInitialize", &HeatMapUtilities::ExecuteInitialize)
-        .def("ExecuteFinalize",   &HeatMapUtilities::ExecuteFinalize);
+        .def("ExecuteInitialize",           &HeatMapUtilities::ExecuteInitialize)
+        .def("ExecuteFinalizeSolutionStep", &HeatMapUtilities::ExecuteFinalizeSolutionStep)
+        .def("ExecuteFinalize",             &HeatMapUtilities::ExecuteFinalize);
     }
 
   } // namespace Python
