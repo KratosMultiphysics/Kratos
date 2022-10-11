@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_FILESYSTEM)
-#define KRATOS_FILESYSTEM
+#pragma once
 
 // System includes
 #include <string>
@@ -35,7 +34,17 @@
 
 namespace Kratos {
 
-namespace [[deprecated]] filesystem {
+// deprecated namespaces wrongly issue a warning with GCC 9, hence disabling until removed
+#if defined(__GNUC__) && __GNUC__ == 9
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
+namespace KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly") filesystem {
+
+#if defined(__GNUC__) && __GNUC__ == 9
+#pragma GCC diagnostic pop
+#endif
 
 bool KRATOS_API(KRATOS_CORE) exists(const std::string& rPath);
 
@@ -107,5 +116,3 @@ std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos
-
-#endif // KRATOS_FILESYSTEM defined
