@@ -90,7 +90,7 @@ namespace Kratos {
 
     // Fill heat map
     if (r_process_info[HEAT_MAP_GENERATION_OPTION])
-      FillDensityMap(r_process_info, particle, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
+      FillDensityMap(r_process_info, particle, time, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
 
     return heat_gen_damping_pp + heat_gen_damping_pw + heat_gen_sliding_pp + heat_gen_sliding_pw + heat_gen_rolling_pp + heat_gen_rolling_pw;
 
@@ -111,6 +111,7 @@ namespace Kratos {
   //------------------------------------------------------------------------------------------------------------
   void GenerationDissipation::FillDensityMap(const ProcessInfo& r_process_info,
                                              ThermalSphericParticle* particle,
+                                             const double time,
                                              const double heat_gen_damping_pp,
                                              const double heat_gen_damping_pw,
                                              const double heat_gen_sliding_pp,
@@ -150,17 +151,18 @@ namespace Kratos {
         (z < coords_1[2]) || (z > coords_2[2]))
       return;
 
-    // Determine indexes and fill map arrays
+    // Determine indexes
     const int i_x = (x - coords_1[0]) / dx;
     const int i_y = (y - coords_1[1]) / dy;
     const int i_z = (z - coords_1[2]) / dz;
-
-    particle->mHeatMapGenerationDampingPP[i_x][i_y][i_z] += heat_gen_damping_pp;
-    particle->mHeatMapGenerationDampingPW[i_x][i_y][i_z] += heat_gen_damping_pw;
-    particle->mHeatMapGenerationSlidingPP[i_x][i_y][i_z] += heat_gen_sliding_pp;
-    particle->mHeatMapGenerationSlidingPW[i_x][i_y][i_z] += heat_gen_sliding_pw;
-    particle->mHeatMapGenerationRollingPP[i_x][i_y][i_z] += heat_gen_rolling_pp;
-    particle->mHeatMapGenerationRollingPW[i_x][i_y][i_z] += heat_gen_rolling_pw;
+    
+    // Fill maps with energy (heat power * time)
+    particle->mHeatMapGenerationDampingPP[i_x][i_y][i_z] += heat_gen_damping_pp * time;
+    particle->mHeatMapGenerationDampingPW[i_x][i_y][i_z] += heat_gen_damping_pw * time;
+    particle->mHeatMapGenerationSlidingPP[i_x][i_y][i_z] += heat_gen_sliding_pp * time;
+    particle->mHeatMapGenerationSlidingPW[i_x][i_y][i_z] += heat_gen_sliding_pw * time;
+    particle->mHeatMapGenerationRollingPP[i_x][i_y][i_z] += heat_gen_rolling_pp * time;
+    particle->mHeatMapGenerationRollingPW[i_x][i_y][i_z] += heat_gen_rolling_pw * time;
 
     KRATOS_CATCH("")
   }

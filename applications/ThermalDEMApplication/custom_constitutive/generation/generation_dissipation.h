@@ -34,6 +34,7 @@ namespace Kratos
       double ComputePartitionCoeff (ThermalSphericParticle* particle);
       void   FillDensityMap        (const ProcessInfo& r_process_info,
                                     ThermalSphericParticle* particle,
+                                    const double time,
                                     const double heat_gen_damping_pp,
                                     const double heat_gen_damping_pw,
                                     const double heat_gen_sliding_pp,
