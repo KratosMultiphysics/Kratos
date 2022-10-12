@@ -40,19 +40,9 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
-
-#Install python 3.5
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
-    mkdir c:\python\35; \
-    Start-Process c:\temp\python35.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\35' -Wait; \
-    c:\python\35\python.exe -m pip install --upgrade pip; \
-    c:\python\35\python.exe -m pip install mypy; \
-    c:\python\35\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.6
 RUN powershell.exe -Command \
@@ -94,6 +84,16 @@ RUN powershell.exe -Command \
     c:\python\39\python.exe -m pip install --upgrade pip; \
     c:\python\39\python.exe -m pip install mypy; \
     c:\python\39\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.10
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe -OutFile c:\temp\python310.exe; \
+    mkdir c:\python\310; \
+    Start-Process c:\temp\python310.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\310' -Wait; \
+    c:\python\310\python.exe -m pip install --upgrade pip; \
+    c:\python\310\python.exe -m pip install --upgrade setuptools wheel
+
 
 # #Downloand blas/lapack
 # RUN powershell.exe -Command \
