@@ -21,7 +21,7 @@ endif(POLICY CMP0074)
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION 1)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -621,6 +621,3 @@ install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")
-
-# Finally copying the README for the wheels
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/kratos/scripts/wheels)
