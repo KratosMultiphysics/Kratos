@@ -139,6 +139,53 @@ class TestParticlesUtilities(KratosUnittest.TestCase):
         self.assertEqual(particles_mp.Nodes[2].GetValue(KratosMultiphysics.AUX_INDEX), 2.0)
         self.assertEqual(particles_mp.Nodes[3].GetValue(KratosMultiphysics.AUX_INDEX), 2.0)
 
+    def test_classify_particles_in_elements(self):
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("Main")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+
+        particles_mp = current_model.CreateModelPart("Particles")
+
+        # 3 - 4
+        # | / |
+        # 1 - 2
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,1.0,0.0,0.0)
+        mp.CreateNewNode(3,0.0,1.0,0.0)
+        mp.CreateNewNode(4,1.0,1.0,0.0)
+
+        mp.CreateNewElement("Element2D3N", 1, [1,4,3], mp.GetProperties()[1])
+        mp.CreateNewElement("Element2D3N", 2, [1,2,4], mp.GetProperties()[1])
+
+        #generate particles
+        particles_mp.CreateNewNode(1,0.0,0.1,0.0)
+        particles_mp.CreateNewNode(2,0.2,0.3,0.0)
+        particles_mp.CreateNewNode(3,0.7,0.6,0.0)
+        particles_mp.CreateNewNode(4,0.1,0.15,0.0)
+        particles_mp.Nodes[1].SetValue(KratosMultiphysics.AUX_INDEX,0.0)
+        particles_mp.Nodes[2].SetValue(KratosMultiphysics.AUX_INDEX,1.0)
+        particles_mp.Nodes[3].SetValue(KratosMultiphysics.AUX_INDEX,1.0)
+        particles_mp.Nodes[4].SetValue(KratosMultiphysics.AUX_INDEX,2.0)
+
+        locator = KratosMultiphysics.BinBasedFastPointLocator2D(mp)
+        locator.UpdateSearchDatabase()
+
+        #non historical version
+        KratosMultiphysics.ParticlesUtilities.ClassifyParticlesInElementsNonHistorical(locator,
+            mp,
+            particles_mp,
+            3, #to be changed
+            KratosMultiphysics.AUX_INDEX,
+            KratosMultiphysics.MARKER_LABELS,
+            1e-9
+            )
+
+        self.assertEqual(mp.Elements[1].GetValue(KratosMultiphysics.MARKER_LABELS)[0], 1)
+        self.assertEqual(mp.Elements[1].GetValue(KratosMultiphysics.MARKER_LABELS)[1], 1)
+        self.assertEqual(mp.Elements[1].GetValue(KratosMultiphysics.MARKER_LABELS)[2], 1)
+        self.assertEqual(mp.Elements[2].GetValue(KratosMultiphysics.MARKER_LABELS)[0], 0)
+        self.assertEqual(mp.Elements[2].GetValue(KratosMultiphysics.MARKER_LABELS)[1], 1)
+        self.assertEqual(mp.Elements[2].GetValue(KratosMultiphysics.MARKER_LABELS)[0], 0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
