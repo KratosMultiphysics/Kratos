@@ -40,10 +40,11 @@ namespace Kratos {
 
     // Initialize local maps with zeros
     const int num_of_particles = rModelPart.NumberOfElements();
+    ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
+
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
-      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
       ResetMap(particle.mHeatMapGenerationDampingPP);
       ResetMap(particle.mHeatMapGenerationDampingPW);
       ResetMap(particle.mHeatMapGenerationSlidingPP);
@@ -62,10 +63,11 @@ namespace Kratos {
 
     // Merge local maps to global maps and reset local maps with zeros
     const int num_of_particles = rModelPart.NumberOfElements();
+    ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
+
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
-      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it + i));
       
       // Merge local maps to global maps and reset local maps with zeros
       for (int i = 0; i < mDimX; i++) {
@@ -96,9 +98,9 @@ namespace Kratos {
     if (!r_process_info[HEAT_MAP_GENERATION_OPTION])
       return;
 
-    array_1d<double, 3> coords_1     = r_process_info[HEAT_MAP_COORDINATES_1];
-    array_1d<double, 3> coords_2     = r_process_info[HEAT_MAP_COORDINATES_2];
-    array_1d<int, 3>    subdivisions = r_process_info[HEAT_MAP_SUBDIVISIONS];
+    const array_1d<double, 3> coords_1     = r_process_info[HEAT_MAP_COORDINATES_1];
+    const array_1d<double, 3> coords_2     = r_process_info[HEAT_MAP_COORDINATES_2];
+    const array_1d<int, 3>    subdivisions = r_process_info[HEAT_MAP_SUBDIVISIONS];
 
     // Open files
     std::ofstream file_generation_damping_pp;

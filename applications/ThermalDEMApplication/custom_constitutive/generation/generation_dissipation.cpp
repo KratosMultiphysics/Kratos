@@ -121,7 +121,7 @@ namespace Kratos {
     KRATOS_TRY
 
     // Get heat generation coordinates (contact point)
-    array_1d<double, 3> coord = particle->GetParticleCoordinates();
+    const array_1d<double, 3> coord = particle->GetParticleCoordinates();
     array_1d<double, 3> dir;
     noalias(dir) = particle->GetNeighborCoordinates() - coord;
 
@@ -132,14 +132,14 @@ namespace Kratos {
     const double length      = r1 - indentation / 2.0;
     const double ratio       = length / dist;
 
-    double x = coord[0] + dir[0] * ratio;
-    double y = coord[1] + dir[1] * ratio;
-    double z = coord[2] + dir[2] * ratio;
+    const double x = coord[0] + dir[0] * ratio;
+    const double y = coord[1] + dir[1] * ratio;
+    const double z = coord[2] + dir[2] * ratio;
 
     // Get map geometry (corner points must have already been adjusted so that all coords_1 < coords_2)
-    array_1d<double, 3> coords_1     = r_process_info[HEAT_MAP_COORDINATES_1];
-    array_1d<double, 3> coords_2     = r_process_info[HEAT_MAP_COORDINATES_2];
-    array_1d<int, 3>    subdivisions = r_process_info[HEAT_MAP_SUBDIVISIONS];
+    const array_1d<double, 3> coords_1     = r_process_info[HEAT_MAP_COORDINATES_1];
+    const array_1d<double, 3> coords_2     = r_process_info[HEAT_MAP_COORDINATES_2];
+    const array_1d<int, 3>    subdivisions = r_process_info[HEAT_MAP_SUBDIVISIONS];
 
     const double dx = (coords_2[0] - coords_1[0]) / subdivisions[0];
     const double dy = (coords_2[1] - coords_1[1]) / subdivisions[1];
