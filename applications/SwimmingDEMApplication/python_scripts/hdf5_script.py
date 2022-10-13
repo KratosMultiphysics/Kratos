@@ -51,7 +51,7 @@ class ErrorProjectionPostProcessTool(object):
         element_size = [Element.GetGeometry().Length() for Element in self.error_model_part.Elements]
         self.element_size = np.max(element_size)
 
-        self.reynolds_number = 1/reynolds_number
+        self.reynolds_number = reynolds_number
         # iterations = 0.0
         # for Element in self.error_model_part.Elements:
         #     iterations += Element.GetValue(Fluid.ADJOINT_FLUID_SCALAR_1)
