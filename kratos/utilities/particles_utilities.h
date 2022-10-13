@@ -177,7 +177,7 @@ public:
 
                     if(is_found)
                     {
-                        unsigned int particle_type;
+                        int particle_type;
                         if constexpr (ParticleTypeVariableHasHistory)
                             particle_type = static_cast<int>(rNode.FastGetSolutionStepValue(rParticleTypeVariable));
                         else
