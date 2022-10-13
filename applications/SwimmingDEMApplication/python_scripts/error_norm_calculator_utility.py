@@ -19,7 +19,6 @@ class ErrorNormCalculatorUtility:
         self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
 
         self.rho = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DENSITY)
-        self.nu = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.VISCOSITY)
 
         self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2
 

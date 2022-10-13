@@ -82,6 +82,10 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
         porosity_field = [node.GetSolutionStepValue(Kratos.FLUID_FRACTION) for node in self.fluid_model_part.Nodes]
         self.porosity_mean = np.mean(porosity_field)
+        for node in self.fluid_model_part.Nodes:
+            self.nu = node.GetSolutionStepValue(Kratos.VISCOSITY)
+            break
+        self.reynolds_number = 1/self.nu
 
         self.velocity_L2_error_norm, self.pressure_L2_error_norm, self.error_model_part = self._GetSolver().CalculateL2ErrorNorm()
 
@@ -100,7 +104,8 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                                             self.max_iteration,
                                             self.relax_alpha,
                                             self.lowest_alpha,
-                                            self.damkohler_number)
+                                            self.damkohler_number,
+                                            self.reynolds_number)
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass
