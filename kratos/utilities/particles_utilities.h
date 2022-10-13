@@ -147,7 +147,7 @@ public:
         BinBasedFastPointLocator<TDim>& rLocator,
         ModelPart& rVolumeModelPart,
         const ModelPart& rParticlesModelPart,
-        const unsigned int NumberOfTypes,
+        const int NumberOfTypes,
         const Variable<TScalarType>& rParticleTypeVariable=AUX_INDEX,
         const Variable<Vector>& rClassificationVectorVariable=MARKER_LABELS,
         const double SearchTolerance=1e-5
