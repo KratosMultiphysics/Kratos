@@ -2294,94 +2294,94 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
     if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio)
     {
 
-        // Compute the maximum diagonal value in the enrichment stiffness matrix
-        double max_diag = 0.0;
-        for (unsigned int k = 0; k < NumNodes; ++k)
-        {
-            if (std::abs(rKeeTot(k, k)) > max_diag)
-            {
-                max_diag = std::abs(rKeeTot(k, k));
-            }
-        }
-        if (max_diag == 0.0)
-        {
-            max_diag = 1.0;
-        }
-        // "weakly" impose continuity
-        for (unsigned int i = 0; i < Dim; ++i)
-        {
-            const double di = std::abs(rData.Distance[i]);
-            for (unsigned int j = i + 1; j < NumNodes; ++j)
-            {
-                const double dj = std::abs(rData.Distance[j]);
-                // Check if the edge is cut, if it is, set the penalty constraint
-                if (rData.Distance[i] * rData.Distance[j] < 0.0)
-                {
-                    double sum_d = di + dj;
-                    double Ni = dj / sum_d;
-                    double Nj = di / sum_d;
-                    double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
-                    rKeeTot(i, i) += penalty_coeff * Ni * Ni;
-                    rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
-                    rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
-                    rKeeTot(j, j) += penalty_coeff * Nj * Nj;
-                }
-            }
-        }
-
-        // Enrichment condensation (add to LHS and RHS the enrichment contributions)
-        double det;
-        MatrixType inverse_diag(NumNodes, NumNodes);
-        MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
-
-        const Matrix tmp = prod(inverse_diag, rHtot);
-        noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
-
-        const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
-        noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
-
-        Vector U = ZeroVector(NumNodes * (Dim + 1));
-        U[8] = 5005;
-        const Vector H_U = prod(rHtot, U);
-        const Vector p_enr = prod(inverse_diag, (rRHSeeTot - H_U));
-        KRATOS_WATCH(p_enr);
-        // // -----------------------------------------------------------
-        // "Strongly impose continuity"
-        //----------------------------------------------------------
-        // MatrixType t_mpc_matrix;
-        // CalculateConnectivityMPCsMatrix(rData, t_mpc_matrix);
-        // KRATOS_WATCH(t_mpc_matrix)
-
-        // // // Enrichment condensation (add to LHS and RHS the enrichment contributions)
-        // MatrixType t_transpose_matrix = ZeroMatrix(t_mpc_matrix.size2(), t_mpc_matrix.size1());
-        // for (unsigned int i = 0; i < t_mpc_matrix.size1(); ++i)
+        // // Compute the maximum diagonal value in the enrichment stiffness matrix
+        // double max_diag = 0.0;
+        // for (unsigned int k = 0; k < NumNodes; ++k)
         // {
-        //     for (unsigned int j = 0; j < t_mpc_matrix.size2(); ++j)
+        //     if (std::abs(rKeeTot(k, k)) > max_diag)
         //     {
-        //         t_transpose_matrix(j, i) = t_mpc_matrix(i, j);
+        //         max_diag = std::abs(rKeeTot(k, k));
+        //     }
+        // }
+        // if (max_diag == 0.0)
+        // {
+        //     max_diag = 1.0;
+        // }
+        // // "weakly" impose continuity
+        // for (unsigned int i = 0; i < Dim; ++i)
+        // {
+        //     const double di = std::abs(rData.Distance[i]);
+        //     for (unsigned int j = i + 1; j < NumNodes; ++j)
+        //     {
+        //         const double dj = std::abs(rData.Distance[j]);
+        //         // Check if the edge is cut, if it is, set the penalty constraint
+        //         if (rData.Distance[i] * rData.Distance[j] < 0.0)
+        //         {
+        //             double sum_d = di + dj;
+        //             double Ni = dj / sum_d;
+        //             double Nj = di / sum_d;
+        //             double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+        //             rKeeTot(i, i) += penalty_coeff * Ni * Ni;
+        //             rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
+        //             rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
+        //             rKeeTot(j, j) += penalty_coeff * Nj * Nj;
+        //         }
         //     }
         // }
 
-        // // ( Tt kee T)^-1
-
+        // // Enrichment condensation (add to LHS and RHS the enrichment contributions)
         // double det;
-        // MatrixType inverse_diag;
-        // const Matrix ttxkenr = prod(t_transpose_matrix, rKeeTot);
-        // const Matrix ttxkenrxt = prod(ttxkenr, t_mpc_matrix);
-        // MathUtils<double>::InvertMatrix(ttxkenrxt, inverse_diag, det);
-        // // V T ( Tt kee T)^-1 Tt H
-        // const Matrix msc = prod(rVtot, t_mpc_matrix);
-        // const Matrix msc1 = prod(msc, inverse_diag);
-        // const Matrix msc2 = prod(msc1, t_transpose_matrix);
+        // MatrixType inverse_diag(NumNodes, NumNodes);
+        // MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
 
-        // // Adding erichment contribution to LHS
-        // noalias(rLeftHandSideMatrix) -= prod(msc2, rHtot);
-        // // V T ( Tt kee T)^-1 Tt Fenr
-        // // Adding erichment contribution to RHS
+        // const Matrix tmp = prod(inverse_diag, rHtot);
+        // noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
 
-        // const Vector msc3 = prod(msc2, rRHSeeTot);
+        // const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
+        // noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
 
-        // noalias(rRightHandSideVector) -= msc3;
+        // Vector U = ZeroVector(NumNodes * (Dim + 1));
+        // U[8] = 5005;
+        // const Vector H_U = prod(rHtot, U);
+        // const Vector p_enr = prod(inverse_diag, (rRHSeeTot - H_U));
+        // KRATOS_WATCH(p_enr);
+        // // -----------------------------------------------------------
+        // "Strongly impose continuity"
+        //----------------------------------------------------------
+        MatrixType t_mpc_matrix;
+        CalculateConnectivityMPCsMatrix(rData, t_mpc_matrix);
+        KRATOS_WATCH(t_mpc_matrix)
+
+        // // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        MatrixType t_transpose_matrix = ZeroMatrix(t_mpc_matrix.size2(), t_mpc_matrix.size1());
+        for (unsigned int i = 0; i < t_mpc_matrix.size1(); ++i)
+        {
+            for (unsigned int j = 0; j < t_mpc_matrix.size2(); ++j)
+            {
+                t_transpose_matrix(j, i) = t_mpc_matrix(i, j);
+            }
+        }
+
+        // ( Tt kee T)^-1
+
+        double det;
+        MatrixType inverse_diag;
+        const Matrix ttxkenr = prod(t_transpose_matrix, rKeeTot);
+        const Matrix ttxkenrxt = prod(ttxkenr, t_mpc_matrix);
+        MathUtils<double>::InvertMatrix(ttxkenrxt, inverse_diag, det);
+        // V T ( Tt kee T)^-1 Tt H
+        const Matrix msc = prod(rVtot, t_mpc_matrix);
+        const Matrix msc1 = prod(msc, inverse_diag);
+        const Matrix msc2 = prod(msc1, t_transpose_matrix);
+
+        // Adding erichment contribution to LHS
+        noalias(rLeftHandSideMatrix) -= prod(msc2, rHtot);
+        // V T ( Tt kee T)^-1 Tt Fenr
+        // Adding erichment contribution to RHS
+
+        const Vector msc3 = prod(msc2, rRHSeeTot);
+
+        noalias(rRightHandSideVector) -= msc3;
     }
 }
 
@@ -2441,6 +2441,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateConnectivityMPCsMatrix(
         rConnectivityMatrix((*p_master_nodes_ids)[i], i) = 1.0;
     }
 
+    KRATOS_WATCH(*p_master_nodes_ids)
+    KRATOS_WATCH(*p_slave_nodes_ids)
     // Fill the slave MPC entries
     for (auto slave_id : *p_slave_nodes_ids)
     {
@@ -2456,21 +2458,20 @@ void TwoFluidNavierStokes<TElementData>::CalculateConnectivityMPCsMatrix(
             rConnectivityMatrix(slave_id, j) = mpc_weight * enr_sh_func_master / enr_sh_func_slave;
         }
     }
-    if (master_no = slave_no)
+    if (master_no == slave_no)
     {
-
         // we need to calcuate the M matrix in order to multiply impose a only master node.
-        // SUPER MASTER : p_master_nodes_ids[0]
+        // SUPER MASTER : p_master_nodes_ids[1]
         // AN ARBITRARY SLAVE  :  p_slave_nodes_ids[0]
-        MatrixType rMasterDependencyMatrix = ZeroMatrix(master_no, 1);
 
-        rMasterDependencyMatrix(0, 1) = rConnectivityMatrix((*p_master_nodes_ids)[0],0)/ rConnectivityMatrix((*p_slave_nodes_ids)[0], 1);
-        rMasterDependencyMatrix(1, 1) = 1.0;
-
+        MatrixType rMasterDependencyMatrix;
+        rMasterDependencyMatrix = ZeroMatrix(master_no, 1);
+        rMasterDependencyMatrix(0, 0) = rConnectivityMatrix((*p_slave_nodes_ids)[0], 1) / rConnectivityMatrix((*p_slave_nodes_ids)[0], 0);
+        rMasterDependencyMatrix(1, 0) = 1.0;
         rConnectivityMatrix = prod(rConnectivityMatrix, rMasterDependencyMatrix);
     }
-
 }
+
     template <class TElementData>
     void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         Matrix &rLeftHandSideMatrix,
