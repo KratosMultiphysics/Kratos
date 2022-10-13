@@ -6,7 +6,6 @@ from sympy import *
 mode = "c"
 
 # Strain
-# Strain = DefineVector('Strain', 6)
 Strain0 = Symbol("r_strain[0]")
 Strain1 = Symbol("r_strain[1]")
 Strain2 = Symbol("r_strain[2]")

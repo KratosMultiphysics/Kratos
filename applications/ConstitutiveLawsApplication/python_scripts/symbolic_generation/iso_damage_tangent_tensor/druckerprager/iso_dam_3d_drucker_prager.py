@@ -7,7 +7,6 @@ import math
 mode = "c"
 
 # Strain
-# Strain = DefineVector('Strain', 6)
 Strain0 = Symbol("r_strain[0]")
 Strain1 = Symbol("r_strain[1]")
 Strain2 = Symbol("r_strain[2]")
@@ -22,7 +21,6 @@ Ct = DefineMatrix('r_Ct', 6, 6)
 Seff = DefineVector('Seff', 6)
 Stress = DefineVector('Stress', 6)
 Deviator = DefineVector('Deviator', 6)
-# Pi = math.pi
 
 
 # material parameters

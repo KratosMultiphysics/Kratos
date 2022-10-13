@@ -6,7 +6,6 @@ from sympy import *
 mode = "c"
 
 # Strain
-# Strain = DefineVector('Strain', 6)
 Strain0 = Symbol("r_strain[0]")
 Strain1 = Symbol("r_strain[1]")
 Strain2 = Symbol("r_strain[2]")
@@ -73,7 +72,6 @@ Ct[2,0] = ((Stress[2]).diff(Strain0))
 Ct[2,1] = ((Stress[2]).diff(Strain1))
 Ct[2,2] = ((Stress[2]).diff(Strain2))
 
-# ...
 
 out = OutputMatrix_CollectingFactors(Ct, "r_Ct", mode)
 print(out)
@@ -81,12 +79,3 @@ print(out)
 
 # out = OutputVector_CollectingFactors(Stress, "stress", mode)
 # print(out)
-
-
-# out = OutputVector_CollectingFactors(Seff, "stress", mode)
-# print(out)
-
-# Output:
-'''
-
-'''
