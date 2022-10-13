@@ -216,5 +216,6 @@ template class FluidElementData<3,6,true>;
 // Hexahedra
 template class FluidElementData<3,8,false>;
 template class FluidElementData<3,8,true>;
+template class FluidElementData<3,27,false>;
 
 } // namespace Kratos
