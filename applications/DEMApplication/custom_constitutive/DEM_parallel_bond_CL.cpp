@@ -129,11 +129,18 @@ void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
 
     }
 
-    if(!pProp->Has(BOND_ROTATIONAL_MOMENT_COEFFICIENT)) {
+    if(!pProp->Has(BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)) {
         KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable BOND_ROTATIONAL_MOMENT_COEFFICIENT should be present in the properties when using DEM_parallel_bond_CL. 0.1 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL should be present in the properties when using DEM_parallel_bond_CL. 0.1 value assigned by default."<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
-        pProp->GetValue(BOND_ROTATIONAL_MOMENT_COEFFICIENT) = 0.1;
+        pProp->GetValue(BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL) = 0.1;
+    }
+
+    if(!pProp->Has(BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL should be present in the properties when using DEM_parallel_bond_CL. 0.1 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL) = 0.1;
     }
 
     if(!pProp->Has(BOND_RADIUS_FACTOR)) {
@@ -794,13 +801,13 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         BondedLocalElasticContactForce[1] = mBondedScalingFactor[1] * LocalElasticContactForce[1];
         BondedLocalElasticContactForce[2] = mBondedScalingFactor[2] * LocalElasticContactForce[2];
 
-        ViscoLocalRotationalMoment[0] = - element1AngularVelocity_normalise[0] * fabs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
+        ViscoLocalRotationalMoment[0] = - element1AngularVelocity_normalise[0] * std::abs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
                                         * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        ViscoLocalRotationalMoment[1] = - element1AngularVelocity_normalise[1] * fabs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
+        ViscoLocalRotationalMoment[1] = - element1AngularVelocity_normalise[1] * std::abs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
                                         * properties_of_this_contact[ROLLING_FRICTION]; 
 
-        ViscoLocalRotationalMoment[2] = - element1AngularVelocity_normalise[2] * fabs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
+        ViscoLocalRotationalMoment[2] = - element1AngularVelocity_normalise[2] * std::abs(BondedLocalElasticContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
                                         * properties_of_this_contact[ROLLING_FRICTION]; 
 
     } else {
@@ -839,7 +846,8 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
         //const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
-        const double& bond_rotational_moment_coefficient =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& bond_rotational_moment_coefficient_normal =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL];
+        const double& bond_rotational_moment_coefficient_tangential =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL];
         
         double bond_rotational_moment[3] = {0.0};
         bond_rotational_moment[0]  = ElasticLocalRotationalMoment[0];
@@ -848,7 +856,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         double bond_rotational_moment_normal_modulus = 0.0;
         double bond_rotational_moment_tangential_modulus = 0.0;
 
-        bond_rotational_moment_normal_modulus     = fabs(bond_rotational_moment[2]);
+        bond_rotational_moment_normal_modulus     = std::abs(bond_rotational_moment[2]);
         bond_rotational_moment_tangential_modulus = sqrt(bond_rotational_moment[0] * bond_rotational_moment[0]
                                                     + bond_rotational_moment[1] * bond_rotational_moment[1]);
 
@@ -866,7 +874,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
         }
 
-        if(( fabs(contact_tau) + bond_rotational_moment_coefficient * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
+        if(( std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
             && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
@@ -887,7 +895,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             ViscoLocalRotationalMoment[2] = 0.0;
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
-                && (-1 * contact_sigma + bond_rotational_moment_coefficient * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_sigma_max) 
+                && (-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_sigma_max) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
