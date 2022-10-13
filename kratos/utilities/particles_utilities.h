@@ -158,41 +158,41 @@ public:
     {
         //reset the counter
         Vector zero = ZeroVector(NumberOfTypes);
-        block_for_each(rVolumeModelPart.Elements(), [&rClassificationVectorVariable, &zero](auto& rElement)
-        {
+        block_for_each(rVolumeModelPart.Elements(), [&rClassificationVectorVariable, &zero](auto& rElement){
             rElement.SetValue(rClassificationVectorVariable,zero);
         });
 
 
         unsigned int max_results = 10000;
-        typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
+        auto TLS = std::make_pair(typename BinBasedFastPointLocator<TDim>::ResultContainerType(max_results), Vector());
+        //typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
 
         //for every interface node (nodes in cut elements)
         block_for_each(rParticlesModelPart.Nodes(),
-                        TLS,
-                        [&rLocator, &rParticleTypeVariable, &rClassificationVectorVariable, &NumberOfTypes, SearchTolerance]
-                        (const auto& rNode, auto& rTLS)
-        {
-
-            Vector shape_functions;
-            Element::Pointer p_element;
-            const bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
-
-            if(is_found)
-            {
-                unsigned int particle_type;
-                if constexpr (ParticleTypeVariableHasHistory)
-                    particle_type = static_cast<int>(rNode.FastGetSolutionStepValue(rParticleTypeVariable));
-                else
-                    particle_type = static_cast<int>(rNode.GetValue(rParticleTypeVariable));
-
-                if(particle_type>=0 && particle_type<NumberOfTypes) //we will ignore particles identified by a marker <0 or >NumberOfTypes
+                TLS,
+                [&rLocator, &rParticleTypeVariable, &rClassificationVectorVariable, &NumberOfTypes, SearchTolerance]
+                (const auto& rNode, auto& rTLS)
                 {
-                    auto& rclassification = p_element->GetValue(rClassificationVectorVariable);
-                    AtomicAdd(rclassification[particle_type], 1.0);
-                }
-            }
-        });
+                    auto& results = rTLS.first;
+                    Vector& shape_functions = rTLS.second;
+                    Element::Pointer p_element;
+                    const bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, results.begin(), results.size(), SearchTolerance);
+
+                    if(is_found)
+                    {
+                        unsigned int particle_type;
+                        if constexpr (ParticleTypeVariableHasHistory)
+                            particle_type = static_cast<int>(rNode.FastGetSolutionStepValue(rParticleTypeVariable));
+                        else
+                            particle_type = static_cast<int>(rNode.GetValue(rParticleTypeVariable));
+
+                        if(particle_type>=0 && particle_type<NumberOfTypes) //we will ignore particles identified by a marker <0 or >NumberOfTypes
+                        {
+                            auto& rclassification = p_element->GetValue(rClassificationVectorVariable);
+                            AtomicAdd(rclassification[particle_type], 1.0);
+                        }
+                    }
+                });
     }
 
 
