@@ -55,8 +55,6 @@ Deviator[5] = Seff[5]
 # Rankine yield
 #
 norm_frobenius = sqrt(Seff[0]**2 + Seff[1]**2 + Seff[2]**2+Seff[3]**2 + Seff[4]**2 + Seff[5]**2)
-# if norm_frobenius < 1.0e-10:
-#     norm_frobenius = 1.0
 
 norm_stress_vector[0] = Seff[0] / norm_frobenius
 norm_stress_vector[1] = Seff[1] / norm_frobenius
