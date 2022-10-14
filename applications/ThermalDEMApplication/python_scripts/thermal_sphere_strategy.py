@@ -276,8 +276,6 @@ class ExplicitStrategy(BaseStrategy):
             self.isothermal_core_radius = 1
         if (self.max_radiation_distance < 0 ):
             self.max_radiation_distance = 0
-        if (self.heat_generation_ratio < 0 or self.heat_generation_ratio > 1):
-            raise Exception('ThermalDEM', '"heat_generation_ratio" must be between zero and one.')
         if (self.global_porosity < 0 or self.global_porosity >= 1):
             raise Exception('ThermalDEM', '"global_porosity" must be between zero and one.')
         if (self.alpha_parameter < 0):

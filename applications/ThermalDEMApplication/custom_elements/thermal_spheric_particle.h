@@ -56,7 +56,6 @@ namespace Kratos
         double              viscodamping_energy;
         double              frictional_energy;
         double              rollresist_energy;
-        double              rolling_resistance;
         std::vector<double> impact_velocity;
       };
 
@@ -86,11 +85,8 @@ namespace Kratos
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
-      void FinalizeForceComputation                                         (ParticleDataBuffer& data_buffer) override;
-      void FinalizeSolutionStep                                             (const ProcessInfo& r_process_info) override;
-      void UpdateTemperatureDependentRadius                                 (const ProcessInfo& r_process_info);
-      void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);
-      void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons   (const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbor) override;
+      void FinalizeSolutionStep             (const ProcessInfo& r_process_info) override;
+      void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
       void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
@@ -233,13 +229,9 @@ namespace Kratos
       double mTotalHeatFlux;
 
       // Energy properties
-      double mThermalViscodampingEnergy;  // accumulated thermal energy generated due to viscodamping dissipation
-      double mThermalFrictionalEnergy;    // accumulated thermal energy generated due to frictional dissipation
-      double mThermalRollResistEnergy;    // accumulated thermal energy generated due to rolling resistance dissipation
-      double mPreviousViscodampingEnergy; // accumulated viscodamping energy dissipation from previous interaction
-      double mPreviousFrictionalEnergy;   // accumulated frictional energy dissipation from previous interaction
-      double mPreviousRollResistEnergy;   // accumulated rolling resistance energy dissipation from previous step
-      double mPreviousRollResistCoeff;    // total rolling resistance coefficient from previous step
+      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction:   viscodamping 
+      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction:   frictional
+      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction:   rolling resistance
 
       // Interaction properties
       bool   mNeighborInContact;          // flag for contact interaction

@@ -1,3 +1,5 @@
+from . import python_registry
+
 class KratosGlobalsImpl(object):
 
     def __init__(self, ThisKernel, ApplicationsRoot):

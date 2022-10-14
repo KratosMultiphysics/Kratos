@@ -28,7 +28,7 @@ class KratosOperationFactory(object):
                 operation_string = item["operation"].GetString()
                 operation_settings = item["Parameters"]
                 if KM.Registry.HasItem(operation_string):
-                    operation_prototype = KM.Registry.GetOperation(operation_string)
+                    operation_prototype = KM.Registry.GetItem(operation_string)
                     operation = operation_prototype.Create(self.model, operation_settings)
                 else:
                     operation_module_name, operation_name = operation_string.rsplit(".", 1)

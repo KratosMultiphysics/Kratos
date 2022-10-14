@@ -19,8 +19,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "operations/operation.h"
-#include "operations/foo_operation.h"
-#include "includes/registry.h"
 
 namespace Kratos
 {
@@ -34,16 +32,10 @@ void AddOperationsToPython(pybind11::module& m)
 
     py::class_<Operation, Operation::Pointer>(m,"Operation")
     .def(py::init<>())
-    .def("Create",[](Operation& pSelf, Model& rModel, Parameters Settings){
-        const auto aux = pSelf.Create(rModel, Settings);
-        return aux;})
+    .def("Create",&Operation::Create)
     .def("Execute",&Operation::Execute)
     .def("GetDefaultParameters",&Operation::GetDefaultParameters)
     .def("__str__", PrintObject<Operation>)
-    ;
-
-    py::class_<FooOperation, FooOperation::Pointer, Operation>(m,"FooOperation")
-    .def(py::init<>())
     ;
 }
 

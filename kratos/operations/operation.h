@@ -155,11 +155,30 @@ private:
     /// Assignment operator.
     Operation& operator=(Operation const& rOther) = delete;
 
-    //TODO: Check. It is required by the registry
-    // Operation(Operation const& rOther) = delete;
-
     ///@}
 }; // Class Operation
+
+///@name Type Definitions
+///@{
+
+#ifndef KRATOS_REGISTER_OPERATION
+#define KRATOS_REGISTER_OPERATION(                                                                              \
+    module_name,                                                                                                \
+    operation_name,                                                                                             \
+    operation_prototype)                                                                                        \
+    {                                                                                                           \
+        std::string all_path = std::string("Operations.All.") + operation_name;                                 \
+        if (!Registry::HasItem(all_path)) {                                                                     \
+            Registry::AddItem<RegistryValueItem<Operation>>(all_path, operation_prototype);                     \
+        } else {                                                                                                \
+            KRATOS_ERROR << "Operation '" << operation_name << "' is already registered." << std::endl;         \
+        }                                                                                                       \
+        std::string module_path = std::string("Operations.") + module_name + std::string(".") + operation_name; \
+        if (!Registry::HasItem(module_path)) {                                                                  \
+            Registry::AddItem<RegistryValueItem<Operation>>(module_path, operation_prototype);                  \
+        }                                                                                                       \
+    }
+#endif
 
 ///@}
 ///@name Input and output

@@ -120,7 +120,7 @@ public:
 
     template<typename TDataType> TDataType const& GetValue() const
     {
-        KRATOS_ERROR_IF(mpValue == nullptr) << "Item " << Name() << "Does not have value to be returned" << std::endl;
+        KRATOS_ERROR_IF(mpValue == nullptr) << "Item " << Name() << " does not have value to be returned" << std::endl;
         return *static_cast<const TDataType*>(mpValue);
     }
 

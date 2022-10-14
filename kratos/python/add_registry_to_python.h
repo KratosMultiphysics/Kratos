@@ -18,9 +18,7 @@
 
 // External includes
 
-
 // Project includes
-
 
 namespace Kratos
 {
@@ -33,4 +31,3 @@ void AddRegistryToPython(pybind11::module& m);
 }  // namespace Python.
 
 }  // namespace Kratos.
-
