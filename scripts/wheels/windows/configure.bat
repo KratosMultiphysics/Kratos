@@ -62,6 +62,7 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DINSTALL_RUNKRATOS=OFF                                                                     ^
+-DHDF5_ROOT="c:\hdf5\bin"                                                                   ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 :add_app
