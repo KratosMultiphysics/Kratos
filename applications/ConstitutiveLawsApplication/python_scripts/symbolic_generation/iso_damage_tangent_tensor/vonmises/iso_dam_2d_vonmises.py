@@ -26,7 +26,7 @@ threshold = Symbol("threshold")
 Gf = Symbol("Gf")
 characteristic_length = Symbol("characteristic_length")
 
-
+#plane strain
 c0 = Young / ((1.00 + nu)*(1 - 2 * nu));
 c1 = (1.00 - nu)*c0;
 c2 = c0 * nu;
