@@ -1986,7 +1986,114 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
-  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+  const auto &r_props = rValues.GetMaterialProperties();
+  const double Young = r_props[YOUNG_MODULUS];
+  const double nu = r_props[POISSON_RATIO];
+  const double Gf = r_props[FRACTURE_ENERGY];
+  const double phi = r_props[FRICTION_ANGLE];
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double threshold = r_props[YIELD_STRESS];
+  auto &r_Ct = rValues.GetConstitutiveMatrix();
+  const auto &r_strain = rValues.GetStrainVector();
+  const double sin_phi = std::sin(phi * Globals::Pi / 180.0);
+
+  const double cr_Ct0 = nu - 1.0;
+  const double cr_Ct1 = nu*r_strain[1];
+  const double cr_Ct2 = cr_Ct0*r_strain[0];
+  const double cr_Ct3 = -cr_Ct1 + cr_Ct2;
+  const double cr_Ct4 = nu*r_strain[0];
+  const double cr_Ct5 = cr_Ct0*r_strain[1] - cr_Ct4;
+  const double cr_Ct6 = 2*nu;
+  const double cr_Ct7 = 1.0/(cr_Ct6 - 1);
+  const double cr_Ct8 = nu + 1.0;
+  const double cr_Ct9 = Young/cr_Ct8;
+  const double cr_Ct10 = cr_Ct7*cr_Ct9;
+  const double cr_Ct11 = cr_Ct10*(cr_Ct3 + cr_Ct5);
+  const double cr_Ct12 = 1.7320508075688772*sin_phi;
+  const double cr_Ct13 = cr_Ct12 - 5.196152422706632;
+  const double cr_Ct14 = 1.0/cr_Ct13;
+  const double cr_Ct15 = 2.0*sin_phi;
+  const double cr_Ct16 = cr_Ct14*cr_Ct15;
+  const double cr_Ct17 = nu - 0.5;
+  const double cr_Ct18 = cr_Ct10*cr_Ct17;
+  const double cr_Ct19 = std::pow(cr_Ct18*r_strain[2], 2.0);
+  const double cr_Ct20 = 0.5*cr_Ct1;
+  const double cr_Ct21 = cr_Ct10*(-0.5*cr_Ct2 + cr_Ct20 + cr_Ct5);
+  const double cr_Ct22 = -nu;
+  const double cr_Ct23 = cr_Ct22 + 1.0;
+  const double cr_Ct24 = cr_Ct23*r_strain[1];
+  const double cr_Ct25 = cr_Ct23*r_strain[0];
+  const double cr_Ct26 = cr_Ct1 + cr_Ct25;
+  const double cr_Ct27 = 1.0/(1 - cr_Ct6);
+  const double cr_Ct28 = cr_Ct27*cr_Ct9;
+  const double cr_Ct29 = cr_Ct28*(-0.5*cr_Ct24 + cr_Ct26 - 0.5*cr_Ct4);
+  const double cr_Ct30 = 0.22222222222222227*std::pow(cr_Ct29, 2.0);
+  const double cr_Ct31 = std::sqrt(0.055555555555555552*std::pow(cr_Ct11, 2.0) + cr_Ct19 + 0.22222222222222227*std::pow(cr_Ct21, 2.0) + cr_Ct30);
+  const double cr_Ct32 = 1.0/(-cr_Ct11*cr_Ct16 + cr_Ct31);
+  const double cr_Ct33 = sin_phi - 1;
+  const double cr_Ct34 = 1.0/cr_Ct33;
+  const double cr_Ct35 = std::abs(cr_Ct34*threshold*(sin_phi + 3.0));
+  const double cr_Ct36 = cr_Ct14*cr_Ct33*cr_Ct35;
+  const double cr_Ct37 = cr_Ct32*cr_Ct36;
+  const double cr_Ct38 = cr_Ct0*cr_Ct37;
+  const double cr_Ct39 = cr_Ct16*cr_Ct7;
+  const double cr_Ct40 = 1.0/cr_Ct31;
+  const double cr_Ct41 = 0.055555555555555552*std::pow(cr_Ct11, 1.0)*cr_Ct7;
+  const double cr_Ct42 = 3.0*nu;
+  const double cr_Ct43 = cr_Ct42 - 1.0;
+  const double cr_Ct44 = 0.11111111111111113*std::pow(cr_Ct21, 1.0);
+  const double cr_Ct45 = 0.11111111111111113*std::pow(cr_Ct29, 1.0);
+  const double cr_Ct46 = cr_Ct27*(cr_Ct42 - 2.0);
+  const double cr_Ct47 = cr_Ct40*(cr_Ct41 + cr_Ct43*cr_Ct44*cr_Ct7 + cr_Ct45*cr_Ct46);
+  const double cr_Ct48 = cr_Ct39 - cr_Ct47;
+  const double cr_Ct49 = 1.0/(Gf*Young/(characteristic_length*std::pow(threshold, 2)) - 0.5);
+  const double cr_Ct50 = cr_Ct49;
+  const double cr_Ct51 = cr_Ct32*cr_Ct50;
+  const double cr_Ct52 = cr_Ct51*cr_Ct9;
+  const double cr_Ct53 = cr_Ct3*cr_Ct52;
+  const double cr_Ct54 = cr_Ct15/(5.196152422706632 - cr_Ct12);
+  const double cr_Ct55 = cr_Ct24 + cr_Ct4;
+  const double cr_Ct56 = cr_Ct28*(cr_Ct26 + cr_Ct55);
+  const double cr_Ct57 = 0.055555555555555552*std::pow(cr_Ct56, 1.0);
+  const double cr_Ct58 = 2.0 - cr_Ct42;
+  const double cr_Ct59 = cr_Ct28*(-cr_Ct20 - 0.5*cr_Ct25 + cr_Ct55);
+  const double cr_Ct60 = 0.11111111111111113*std::pow(cr_Ct59, 1.0);
+  const double cr_Ct61 = sqrt(cr_Ct30 + 0.055555555555555552*std::pow(cr_Ct56, 2.0) + 0.22222222222222227*std::pow(cr_Ct59, 2.0) + std::pow(cr_Ct28*r_strain[2]*(cr_Ct22 + 0.5), 2.0));
+  const double cr_Ct62 = 1.0/cr_Ct61;
+  const double cr_Ct63 = cr_Ct54 + cr_Ct62*(cr_Ct43*cr_Ct60 + cr_Ct45*cr_Ct58 + cr_Ct57);
+  const double cr_Ct64 = 0.25*cr_Ct36/std::pow(-cr_Ct11*cr_Ct14*sin_phi + 0.5*cr_Ct31, 2);
+  const double cr_Ct65 = cr_Ct28*cr_Ct64;
+  const double cr_Ct66 = cr_Ct3*cr_Ct65;
+  const double cr_Ct67 = exp(-cr_Ct50*(cr_Ct13*cr_Ct34*(cr_Ct54*cr_Ct56 + cr_Ct61)/cr_Ct35 - 1));
+  const double cr_Ct68 = cr_Ct10*cr_Ct67;
+  const double cr_Ct69 = cr_Ct37*nu;
+  const double cr_Ct70 = cr_Ct43*cr_Ct45;
+  const double cr_Ct71 = cr_Ct40*(cr_Ct41 + cr_Ct44*cr_Ct46 + cr_Ct7*cr_Ct70);
+  const double cr_Ct72 = cr_Ct39 - cr_Ct71;
+  const double cr_Ct73 = cr_Ct54 + cr_Ct62*(cr_Ct57 + cr_Ct58*cr_Ct60 + cr_Ct70);
+  const double cr_Ct74 = cr_Ct19*cr_Ct40;
+  const double cr_Ct75 = cr_Ct68*cr_Ct74*(cr_Ct51 + cr_Ct64)/r_strain[2];
+  const double cr_Ct76 = cr_Ct5*cr_Ct52;
+  const double cr_Ct77 = cr_Ct5*cr_Ct65;
+  const double cr_Ct78 = cr_Ct32*cr_Ct49;
+  const double cr_Ct79 = cr_Ct27*cr_Ct64;
+  const double cr_Ct80 = std::pow(Young, 2)*cr_Ct17*cr_Ct67*cr_Ct7*r_strain[2]/std::pow(cr_Ct8, 2);
+  r_Ct(0,0)=cr_Ct68*(cr_Ct38 - cr_Ct48*cr_Ct53 - cr_Ct63*cr_Ct66);
+  r_Ct(0,1)=-cr_Ct68*(cr_Ct53*cr_Ct72 + cr_Ct66*cr_Ct73 + cr_Ct69);
+  r_Ct(0,2)=-cr_Ct3*cr_Ct75;
+  r_Ct(1,0)=-cr_Ct68*(cr_Ct48*cr_Ct76 + cr_Ct63*cr_Ct77 + cr_Ct69);
+  r_Ct(1,1)=cr_Ct68*(cr_Ct38 - cr_Ct72*cr_Ct76 - cr_Ct73*cr_Ct77);
+  r_Ct(1,2)=-cr_Ct5*cr_Ct75;
+  r_Ct(2,0)=-cr_Ct80*(cr_Ct63*cr_Ct79 + cr_Ct78*(cr_Ct39 - cr_Ct47));
+  r_Ct(2,1)=-cr_Ct80*(cr_Ct73*cr_Ct79 + cr_Ct78*(cr_Ct39 - cr_Ct71));
+  r_Ct(2,2)=cr_Ct18*cr_Ct67*(cr_Ct37 - cr_Ct51*cr_Ct74 - cr_Ct64*cr_Ct74);
+
+
+
+
+
+
+
 }
 
 /***********************************************************************************/
@@ -2076,8 +2183,8 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct32 = 0.055555555555555552*std::pow(cr_Ct16, 1.0)*cr_Ct4;
   const double cr_Ct33 = 3.0*nu;
   const double cr_Ct34 = cr_Ct33 -1.0;
-  const double cr_Ct35 = 0.11111111111111112*std::pow(cr_Ct18, 1.0);
-  const double cr_Ct36 = 0.11111111111111112*std::pow(cr_Ct26, 1.0);
+  const double cr_Ct35 = 0.11111111111111112*(cr_Ct18);
+  const double cr_Ct36 = 0.11111111111111112*(cr_Ct26);
   const double cr_Ct37 = cr_Ct24*(cr_Ct33 - 2.0);
   const double cr_Ct38 = cr_Ct32 + cr_Ct34*cr_Ct35*cr_Ct4 + cr_Ct36*cr_Ct37;
   const double cr_Ct39 = cr_Ct1*cr_Ct29/std::pow(cr_Ct28, 3.0/2.0);
@@ -2087,10 +2194,10 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct43 = cr_Ct25*(-cr_Ct17 - 0.5*cr_Ct22 + cr_Ct41);
   const double cr_Ct44 = cr_Ct1*(cr_Ct29/sqrt(cr_Ct27 + 0.055555555555555552*std::pow(cr_Ct42, 2.0) + 0.22222222222222224*std::pow(cr_Ct43, 2.0) + std::pow(cr_Ct25*r_strain[2]*(cr_Ct19 + 0.5), 2.0)) - 1.0) + 1.0;
   const double cr_Ct45 = cr_Ct44*nu;
-  const double cr_Ct46 = 0.055555555555555552*std::pow(cr_Ct42, 1.0);
+  const double cr_Ct46 = 0.055555555555555552*(cr_Ct42);
   const double cr_Ct47 = cr_Ct34*cr_Ct36;
   const double cr_Ct48 = 2.0 - cr_Ct33;
-  const double cr_Ct49 = 0.11111111111111112*std::pow(cr_Ct43, 1.0);
+  const double cr_Ct49 = 0.11111111111111112*(cr_Ct43);
   const double cr_Ct50 = cr_Ct25*cr_Ct39;
   const double cr_Ct51 = cr_Ct39*cr_Ct9;
   const double cr_Ct52 = cr_Ct51*cr_Ct7/r_strain[2];
