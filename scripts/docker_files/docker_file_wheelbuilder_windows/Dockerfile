@@ -94,6 +94,20 @@ RUN powershell.exe -Command \
     c:\python\310\python.exe -m pip install --upgrade pip; \
     c:\python\310\python.exe -m pip install --upgrade setuptools wheel
 
+# Download and extract boost
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF5/HDF5_1_12_2/source/hdf5-1.12.2.zip -OutFile c:\TEMP\hdf5.zip; \
+    mkdir c:\hdf5; \
+    mkdir c:\hdf5\build; \
+    mkdir c:\hdf5\bin; \
+    mkdir c:\hdf5\source; \
+    7z x c:\TEMP\hdf5.zip -o"c:\hdf5\source"
+
+# Build Hdf5 lib
+RUN cd c:\hdf5\build; \
+    cmake c:\hdf5\source -DCMAKE_INSTALL_PREFIX=c:\hdf5\bin -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
+    cmake --build . --target install -- /property:configuration=Release
 
 # #Downloand blas/lapack
 # RUN powershell.exe -Command \
