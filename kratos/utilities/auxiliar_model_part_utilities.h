@@ -100,7 +100,7 @@ public:
      * @param pNewElement The new element added
      * @param ThisIndex The mesh index
      */
-    void AddElementWithNodes(
+    void AddElementWithNodesToSubModelParts(
         Element::Pointer pNewElement,
         IndexType ThisIndex = 0
         );
@@ -110,7 +110,7 @@ public:
      * @param rElementIds The ids of the elements
      * @param ThisIndex The mesh index
      */
-    void AddElementsWithNodes(
+    void AddElementsWithNodesToSubModelParts(
         const std::vector<IndexType>& rElementIds,
         IndexType ThisIndex = 0
         );
@@ -123,7 +123,7 @@ public:
      * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
-    void AddElementsWithNodes(
+    void AddElementsWithNodesToSubModelParts(
         TIteratorType ItElementsBegin,
         TIteratorType ItElementsEnd,
         IndexType ThisIndex = 0
@@ -157,7 +157,7 @@ public:
      * @param pNewCondition The new condition added
      * @param ThisIndex The mesh index
      */
-    void AddConditionWithNodes(
+    void AddConditionWithNodesToSubModelParts(
         Condition::Pointer pNewCondition,
         IndexType ThisIndex = 0
         );
@@ -167,7 +167,7 @@ public:
      * @param rConditionIds The ids of the conditions
      * @param ThisIndex The mesh index
      */
-    void AddConditionsWithNodes(
+    void AddConditionsWithNodesToSubModelParts(
         const std::vector<IndexType>& rConditionIds,
         IndexType ThisIndex = 0
         );
@@ -180,7 +180,7 @@ public:
      * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
-    void AddConditionsWithNodes(
+    void AddConditionsWithNodesToSubModelParts(
         TIteratorType ItConditionsBegin,
         TIteratorType ItConditionsEnd,
         IndexType ThisIndex = 0

@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-void AuxiliarModelPartUtilities::AddElementWithNodes(
+void AuxiliarModelPartUtilities::AddElementWithNodesToSubModelParts(
     Element::Pointer pNewElement,
     IndexType ThisIndex
     )
@@ -41,7 +41,7 @@ void AuxiliarModelPartUtilities::AddElementWithNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddElementsWithNodes(
+void AuxiliarModelPartUtilities::AddElementsWithNodesToSubModelParts(
     const std::vector<IndexType>& rElementIds,
     IndexType ThisIndex
     )
@@ -62,7 +62,7 @@ void AuxiliarModelPartUtilities::AddElementsWithNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddConditionWithNodes(
+void AuxiliarModelPartUtilities::AddConditionWithNodesToSubModelParts(
     Condition::Pointer pNewCondition,
     IndexType ThisIndex
     )
@@ -79,7 +79,7 @@ void AuxiliarModelPartUtilities::AddConditionWithNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddConditionsWithNodes(
+void AuxiliarModelPartUtilities::AddConditionsWithNodesToSubModelParts(
     const std::vector<IndexType>& rConditionIds,
     IndexType ThisIndex
     )
