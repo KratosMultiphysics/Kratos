@@ -2087,13 +2087,6 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   r_Ct(2,0)=-cr_Ct80*(cr_Ct63*cr_Ct79 + cr_Ct78*(cr_Ct39 - cr_Ct47));
   r_Ct(2,1)=-cr_Ct80*(cr_Ct73*cr_Ct79 + cr_Ct78*(cr_Ct39 - cr_Ct71));
   r_Ct(2,2)=cr_Ct18*cr_Ct67*(cr_Ct37 - cr_Ct51*cr_Ct74 - cr_Ct64*cr_Ct74);
-
-
-
-
-
-
-
 }
 
 /***********************************************************************************/
@@ -2248,7 +2241,96 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
-  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+  const auto &r_props = rValues.GetMaterialProperties();
+  const double Young = r_props[YOUNG_MODULUS];
+  const double nu = r_props[POISSON_RATIO];
+  const double Gf = r_props[FRACTURE_ENERGY];
+  const double phi = r_props[FRICTION_ANGLE];
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double threshold = r_props[YIELD_STRESS];
+  auto &r_Ct = rValues.GetConstitutiveMatrix();
+  const auto &r_strain = rValues.GetStrainVector();
+  const double sin_phi = std::sin(phi * Globals::Pi / 180.0);
+
+  const double cr_Ct0 = nu - 1.0;
+  const double cr_Ct1 = 1.0/(1.0 - 0.5*characteristic_length*std::pow(threshold, 2)/(Gf*Young));
+  const double cr_Ct2 = nu*r_strain[1];
+  const double cr_Ct3 = cr_Ct0*r_strain[0];
+  const double cr_Ct4 = -cr_Ct2 + cr_Ct3;
+  const double cr_Ct5 = nu*r_strain[0];
+  const double cr_Ct6 = cr_Ct0*r_strain[1];
+  const double cr_Ct7 = -cr_Ct5 + cr_Ct6;
+  const double cr_Ct8 = 2*nu;
+  const double cr_Ct9 = 1.0/(cr_Ct8 - 1);
+  const double cr_Ct10 = nu + 1.0;
+  const double cr_Ct11 = Young/cr_Ct10;
+  const double cr_Ct12 = cr_Ct11*cr_Ct9;
+  const double cr_Ct13 = cr_Ct12*(cr_Ct4 + cr_Ct7);
+  const double cr_Ct14 = 1.7320508075688772*sin_phi;
+  const double cr_Ct15 = 1.0/(cr_Ct14 - 5.196152422706632);
+  const double cr_Ct16 = 2.0*sin_phi;
+  const double cr_Ct17 = cr_Ct15*cr_Ct16;
+  const double cr_Ct18 = cr_Ct13*cr_Ct17;
+  const double cr_Ct19 = nu - 0.5;
+  const double cr_Ct20 = cr_Ct12*cr_Ct19;
+  const double cr_Ct21 = std::pow(cr_Ct20*r_strain[2], 2.0);
+  const double cr_Ct22 = 0.5*cr_Ct2;
+  const double cr_Ct23 = cr_Ct12*(cr_Ct22 - 0.5*cr_Ct3 + cr_Ct7);
+  const double cr_Ct24 = -nu;
+  const double cr_Ct25 = cr_Ct24 + 1.0;
+  const double cr_Ct26 = cr_Ct25*r_strain[1];
+  const double cr_Ct27 = cr_Ct25*r_strain[0];
+  const double cr_Ct28 = cr_Ct2 + cr_Ct27;
+  const double cr_Ct29 = 1.0/(1 - cr_Ct8);
+  const double cr_Ct30 = cr_Ct11*cr_Ct29;
+  const double cr_Ct31 = cr_Ct30*(-0.5*cr_Ct26 + cr_Ct28 - 0.5*cr_Ct5);
+  const double cr_Ct32 = 0.22222222222222227*std::pow(cr_Ct31, 2.0);
+  const double cr_Ct33 = sqrt(0.055555555555555552*std::pow(cr_Ct13, 2.0) + cr_Ct21 + 0.22222222222222227*std::pow(cr_Ct23, 2.0) + cr_Ct32);
+  const double cr_Ct34 = sin_phi - 1;
+  const double cr_Ct35 = cr_Ct15*cr_Ct34*fabs(threshold*(sin_phi + 3.0)/cr_Ct34);
+  const double cr_Ct36 = cr_Ct0*(-cr_Ct1*(cr_Ct35/(cr_Ct18 - cr_Ct33) + 1) + 1);
+  const double cr_Ct37 = cr_Ct2 - cr_Ct3;
+  const double cr_Ct38 = cr_Ct17*cr_Ct9;
+  const double cr_Ct39 = 1.0/cr_Ct33;
+  const double cr_Ct40 = 0.055555555555555552*std::pow(cr_Ct13, 1.0)*cr_Ct9;
+  const double cr_Ct41 = 3.0*nu;
+  const double cr_Ct42 = cr_Ct41 - 1.0;
+  const double cr_Ct43 = 0.11111111111111113*std::pow(cr_Ct23, 1.0);
+  const double cr_Ct44 = 0.11111111111111113*std::pow(cr_Ct31, 1.0);
+  const double cr_Ct45 = cr_Ct29*(cr_Ct41 - 2.0);
+  const double cr_Ct46 = cr_Ct38 - cr_Ct39*(cr_Ct40 + cr_Ct42*cr_Ct43*cr_Ct9 + cr_Ct44*cr_Ct45);
+  const double cr_Ct47 = cr_Ct13*cr_Ct15*sin_phi;
+  const double cr_Ct48 = 0.5*cr_Ct33;
+  const double cr_Ct49 = 0.25*cr_Ct1*cr_Ct35;
+  const double cr_Ct50 = cr_Ct49/std::pow(cr_Ct47 - cr_Ct48, 2);
+  const double cr_Ct51 = cr_Ct11*cr_Ct50;
+  const double cr_Ct52 = cr_Ct1*(-cr_Ct35/(-cr_Ct18 + cr_Ct33) + 1);
+  const double cr_Ct53 = nu*(1 - cr_Ct52);
+  const double cr_Ct54 = cr_Ct16/(5.196152422706632 - cr_Ct14);
+  const double cr_Ct55 = cr_Ct26 + cr_Ct5;
+  const double cr_Ct56 = cr_Ct30*(cr_Ct28 + cr_Ct55);
+  const double cr_Ct57 = 0.055555555555555552*std::pow(cr_Ct56, 1.0);
+  const double cr_Ct58 = cr_Ct42*cr_Ct44;
+  const double cr_Ct59 = 2.0 - cr_Ct41;
+  const double cr_Ct60 = cr_Ct30*(-cr_Ct22 - 0.5*cr_Ct27 + cr_Ct55);
+  const double cr_Ct61 = 0.11111111111111113*std::pow(cr_Ct60, 1.0);
+  const double cr_Ct62 = std::pow(cr_Ct32 + 0.055555555555555552*std::pow(cr_Ct56, 2.0) + 0.22222222222222227*std::pow(cr_Ct60, 2.0) + std::pow(cr_Ct30*r_strain[2]*(cr_Ct24 + 0.5), 2.0), -1.0/2.0);
+  const double cr_Ct63 = cr_Ct49/std::pow(-cr_Ct47 + cr_Ct48, 2);
+  const double cr_Ct64 = cr_Ct30*cr_Ct63;
+  const double cr_Ct65 = cr_Ct21*cr_Ct39;
+  const double cr_Ct66 = cr_Ct12*cr_Ct50*cr_Ct65/r_strain[2];
+  const double cr_Ct67 = cr_Ct5 - cr_Ct6;
+  const double cr_Ct68 = cr_Ct38 - cr_Ct39*(cr_Ct40 + cr_Ct43*cr_Ct45 + cr_Ct58*cr_Ct9);
+  const double cr_Ct69 = std::pow(Young, 2)*cr_Ct19*cr_Ct50*cr_Ct9*r_strain[2]/std::pow(cr_Ct10, 2);
+  r_Ct(0,0)=cr_Ct12*(cr_Ct36 + cr_Ct37*cr_Ct46*cr_Ct51);
+  r_Ct(0,1)=-cr_Ct12*(cr_Ct4*cr_Ct64*(cr_Ct54 + cr_Ct62*(cr_Ct57 + cr_Ct58 + cr_Ct59*cr_Ct61)) + cr_Ct53);
+  r_Ct(0,2)=cr_Ct37*cr_Ct66;
+  r_Ct(1,0)=-cr_Ct12*(cr_Ct53 + cr_Ct64*cr_Ct7*(cr_Ct54 + cr_Ct62*(cr_Ct42*cr_Ct61 + cr_Ct44*cr_Ct59 + cr_Ct57)));
+  r_Ct(1,1)=cr_Ct12*(cr_Ct36 + cr_Ct51*cr_Ct67*cr_Ct68);
+  r_Ct(1,2)=cr_Ct66*cr_Ct67;
+  r_Ct(2,0)=-cr_Ct46*cr_Ct69;
+  r_Ct(2,1)=-cr_Ct68*cr_Ct69;
+  r_Ct(2,2)=cr_Ct20*(-cr_Ct52 - cr_Ct63*cr_Ct65 + 1.0);
 }
 
 /***********************************************************************************/
