@@ -5,7 +5,6 @@ class KratosGlobalsImpl(object):
     def __init__(self, ThisKernel, ApplicationsRoot):
         self.__dict__["Kernel"] = ThisKernel
         self.__dict__["ApplicationsRoot"] = ApplicationsRoot
-        self.__dict__["Registry"] = python_registry.PythonRegistry()
 
     def __setattr__(self, name, value):
         if name in self.__dict__:

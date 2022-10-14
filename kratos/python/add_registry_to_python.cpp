@@ -34,7 +34,7 @@ void AddRegistryToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<Registry, Registry::Pointer>(m, "Registry")
+    py::class_<Registry, Registry::Pointer>(m, "CppRegistry")
         .def_static("HasItem", &Registry::HasItem)
         .def_static("GetItem", &Registry::GetItem, py::return_value_policy::reference)
         .def_static("GetOperation", &Registry::GetValue<Operation>, py::return_value_policy::reference)
