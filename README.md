@@ -106,7 +106,7 @@ Organizations contributing to Kratos:
 </br></br>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/tu_braunschweig_isd_logo.png" width="128">
-<p>Institut für Statik und Dynamik</br>Technische Universität Braunschweig</p>
+<p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
 
 </br></br>
 
