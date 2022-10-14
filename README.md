@@ -105,7 +105,7 @@ Organizations contributing to Kratos:
 
 </br></br>
 
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/tu_braunschweig_isd_logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUBraunschweig_logo.svg" width="128">
 <p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
 
 </br></br>
