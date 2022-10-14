@@ -105,9 +105,10 @@ RUN powershell.exe -Command \
     7z x c:\TEMP\hdf5.zip -o"c:\hdf5\source"
 
 # Build Hdf5 lib
-RUN cd c:\hdf5\build; \
-    cmake c:\hdf5\source -DCMAKE_INSTALL_PREFIX=c:\hdf5\bin -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
-    cmake --build . --target install -- /property:configuration=Release
+RUN powershell.exe -Command \
+    cd 'c:/Program Files/CMake/bin/'; \
+    ./cmake.exe -H"c:\hdf5\source\hdf5-1.12.2" -B"c:\hdf5\build" -DCMAKE_INSTALL_PREFIX="c:\hdf5\bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
+    ./cmake.exe --build "c:\hdf5\build" --target install -- /property:configuration=Release
 
 # #Downloand blas/lapack
 # RUN powershell.exe -Command \
