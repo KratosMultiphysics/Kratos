@@ -131,6 +131,67 @@ public:
 
     }
 
+/**@brief: this function takes all the nodes in rParticlesModelPart and finds in which element they fall within
+    the volume identified in rVolumeModelPart. Particles are then classified in the "ClassificationVariable" of type vector, adding 1.0
+    to the entry which corresponds to the "type" of particle, intended as an integer between 0 and NumberOfTypes identifying the particle
+    @param rLocator this is a search structure for rVolumeModelPart
+    @param rVolumeModelPart: model part on the top of which we will find the particles
+    @param rParticlesModelPart: model part in which the "particles" are contained (as Nodes)
+    @param NumberOfTypes number of admissible types of particles (note that the particle type will be interpreted as integer)
+    @param rParticleTypeVariable: this is an integer identifying the "type" of particle.
+                                  Numbers lesser than 0 or higher than NumberofTypes will be silently ignored
+    @param SearchTolerance: search tolerance used in the spatial search
+    */
+    template<unsigned int TDim, class TScalarType, bool ParticleTypeVariableHasHistory=false>
+    static void ClassifyParticlesInElements(
+        BinBasedFastPointLocator<TDim>& rLocator,
+        ModelPart& rVolumeModelPart,
+        const ModelPart& rParticlesModelPart,
+        const int NumberOfTypes,
+        const Variable<TScalarType>& rParticleTypeVariable=AUX_INDEX,
+        const Variable<Vector>& rClassificationVectorVariable=MARKER_LABELS,
+        const double SearchTolerance=1e-5
+    )
+    {
+        //reset the counter
+        Vector zero = ZeroVector(NumberOfTypes);
+        block_for_each(rVolumeModelPart.Elements(), [&rClassificationVectorVariable, &zero](auto& rElement){
+            rElement.SetValue(rClassificationVectorVariable,zero);
+        });
+
+
+        unsigned int max_results = 10000;
+        auto TLS = std::make_pair(typename BinBasedFastPointLocator<TDim>::ResultContainerType(max_results), Vector());
+        //typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
+
+        //for every interface node (nodes in cut elements)
+        block_for_each(rParticlesModelPart.Nodes(),
+                TLS,
+                [&rLocator, &rParticleTypeVariable, &rClassificationVectorVariable, &NumberOfTypes, SearchTolerance]
+                (const auto& rNode, auto& rTLS)
+                {
+                    auto& results = rTLS.first;
+                    Vector& shape_functions = rTLS.second;
+                    Element::Pointer p_element;
+                    const bool is_found = rLocator.FindPointOnMesh(rNode.Coordinates(), shape_functions, p_element, results.begin(), results.size(), SearchTolerance);
+
+                    if(is_found)
+                    {
+                        int particle_type;
+                        if constexpr (ParticleTypeVariableHasHistory)
+                            particle_type = static_cast<int>(rNode.FastGetSolutionStepValue(rParticleTypeVariable));
+                        else
+                            particle_type = static_cast<int>(rNode.GetValue(rParticleTypeVariable));
+
+                        if(particle_type>=0 && particle_type<NumberOfTypes) //we will ignore particles identified by a marker <0 or >NumberOfTypes
+                        {
+                            auto& rclassification = p_element->GetValue(rClassificationVectorVariable);
+                            AtomicAdd(rclassification[particle_type], 1.0);
+                        }
+                    }
+                });
+    }
+
 
     /**@brief: this function looks if particle is found in the locator. If it is not, "rVariable" is marked with the value "OutsiderValue"
     @param rLocator this is a search structure for the volume

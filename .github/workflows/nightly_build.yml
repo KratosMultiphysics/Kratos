@@ -148,7 +148,7 @@ jobs:
     - name: Installing dependencies
       shell: bash
       run: |
-        python3 -m pip install parameterized
+        python3.8 -m pip install parameterized
 
     - name: Build
       run: |
