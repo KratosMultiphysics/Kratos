@@ -95,11 +95,20 @@ Organizations contributing to Kratos:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
 </br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
 
+</br></br>
+
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
 </br><p>Altair Engineering</p>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
 </br><p>Deltares</p>
+
+</br></br>
+
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUBraunschweig_logo.svg" width="128">
+<p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
+
+</br></br>
 
 # Our Users
 Some users of the technologies developed in Kratos are:

@@ -147,7 +147,7 @@ public:
         BinBasedFastPointLocator<TDim>& rLocator,
         ModelPart& rVolumeModelPart,
         const ModelPart& rParticlesModelPart,
-        const unsigned int NumberOfTypes,
+        const int NumberOfTypes,
         const Variable<TScalarType>& rParticleTypeVariable=AUX_INDEX,
         const Variable<Vector>& rClassificationVectorVariable=MARKER_LABELS,
         const double SearchTolerance=1e-5
@@ -177,7 +177,7 @@ public:
 
                     if(is_found)
                     {
-                        unsigned int particle_type;
+                        int particle_type;
                         if constexpr (ParticleTypeVariableHasHistory)
                             particle_type = static_cast<int>(rNode.FastGetSolutionStepValue(rParticleTypeVariable));
                         else
