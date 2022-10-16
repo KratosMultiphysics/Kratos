@@ -110,7 +110,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_constant_torque.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_viscous_torque.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_bounded.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_utilities.cpp
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
