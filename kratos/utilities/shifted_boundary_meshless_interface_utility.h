@@ -302,9 +302,9 @@ private:
      * Positive in this case means that, for each node in the surrogate boundary, only the positive elements are considered
      * for the nodal gradients calculation. The results are stored in a map which entry is each one of the surrogate nodes ids.
      * and the value is another map containing the surrounding nodes and their weighted gradients.
-     * @return std::map<std::size_t, std::map<std::size_t, Vector>> Map with the nodal gradients for each node in the surrogate boundary
+     * @return std::unordered_map<std::size_t, std::map<std::size_t, Vector>> Map with the nodal gradients for each node in the surrogate boundary
      */
-    std::map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights();
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights();
 
     ///@}
     ///@name Private  Access

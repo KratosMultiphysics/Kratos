@@ -1102,9 +1102,9 @@ namespace
         }
     }
 
-    std::map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights()
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights()
     {
-        std::map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
+        std::unordered_map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
         for (auto& r_bd_node : mpModelPart->Nodes()) {
             auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
             if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {
