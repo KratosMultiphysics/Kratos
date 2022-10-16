@@ -35,11 +35,26 @@ namespace Kratos {
     if (!mCompressionStage || time_step % mFrequency != 0.0)
       return;
 
+    // Initialize variables
+    double volume_solid = 0.0;
+
     // Compute total volume
     ComputeTotalVolume();
     
-    // 
+    // Loop over all particles
+    const int num_of_particles = rDEMModelPart.NumberOfElements();
+    ModelPart::ElementsContainerType::iterator it = rDEMModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
+    #pragma omp parallel
+    for (int i = 0; i < num_of_particles; i++) {
+      SphericParticle& particle = dynamic_cast<SphericParticle&> (*(it+i));
 
+      // Loop over neighbors with higher ID number
+      for (unsigned int j = 0; j < particle.mNeighbourElements.size(); j++) {
+        if (particle.mNeighbourElements[i] == NULL || particle.GetId() > particle.mNeighbourElements[j]->GetId())
+          continue;
+
+      }
+    }
   }
 
   //-----------------------------------------------------------------------------------------------------------------------

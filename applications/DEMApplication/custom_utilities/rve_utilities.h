@@ -15,6 +15,7 @@
 #include "includes/model_part.h"
 
 // Project includes
+#include "custom_elements/spheric_particle.h"
 #include "custom_conditions/dem_wall.h"
 
 namespace Kratos
