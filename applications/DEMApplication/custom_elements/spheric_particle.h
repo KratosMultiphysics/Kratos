@@ -213,7 +213,7 @@ array_1d<double, 3>& GetForce();
 virtual double& GetElasticEnergy();
 virtual double& GetInelasticFrictionalEnergy();
 virtual double& GetInelasticViscodampingEnergy();
-virtual double& GetInelasticRollResistEnergy();
+virtual double& GetInelasticRollingResistanceEnergy();
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
@@ -241,7 +241,7 @@ virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "Sphe
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
-double mInelasticRollResistEnergy;
+double mInelasticRollingResistanceEnergy;
 double mPartialRepresentativeVolume;
 
 std::vector<ParticleContactElement*> mBondElements;
@@ -462,7 +462,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mElasticEnergy", mElasticEnergy);
     rSerializer.save("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
-    rSerializer.save("mInelasticRollResistEnergy", mInelasticRollResistEnergy);
+    rSerializer.save("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.save("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
     rSerializer.save("mBondElements", mBondElements);
     rSerializer.save("mNeighbourElements", mNeighbourElements);
@@ -505,7 +505,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mElasticEnergy", mElasticEnergy);
     rSerializer.load("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
-    rSerializer.load("mInelasticRollResistEnergy", mInelasticRollResistEnergy);
+    rSerializer.load("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.load("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
     rSerializer.load("mBondElements", mBondElements);
     rSerializer.load("mNeighbourElements", mNeighbourElements);
