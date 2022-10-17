@@ -1847,6 +1847,7 @@ namespace Kratos {
         mRVE_NumContacts  = 0;
         mRVE_VolSolid     = 0.0;
         mRVE_FabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+        mRVE_CauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
       }
     }
 
@@ -1855,9 +1856,11 @@ namespace Kratos {
       if (!mRVE_Solve) return;
 
       p_particle->mRVESolve     = mRVE_Solve;
+      p_particle->mCoordNum     = 0;
       p_particle->mNumContacts  = 0;
       p_particle->mVolOverlap   = 0.0;
       p_particle->mFabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      p_particle->mCauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1867,6 +1870,7 @@ namespace Kratos {
       mRVE_NumContacts  += p_particle->mNumContacts;
       mRVE_VolSolid     += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
       mRVE_FabricTensor += p_particle->mFabricTensor;
+      mRVE_CauchyTensor += p_particle->mCauchyTensor;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1877,24 +1881,50 @@ namespace Kratos {
       mRVE_VolTotal = RVEComputeTotalVolume();
       RVEComputePorosity();
 
-      // Compute anisotropy
-      Matrix dev = ZeroMatrix(mRVE_Dimension, mRVE_Dimension); // Deviatoric fabric tensor
+      // Compute fabric anisotropy
+      Matrix aux = ZeroMatrix(mRVE_Dimension, mRVE_Dimension); // Deviatoric fabric tensor
       double invariant2;
 
-      for (int i = 0; i < mRVE_FabricTensor.size1(); i++) {
-        for (int j = 0; j < mRVE_FabricTensor.size2(); j++) {
+      for (int i = 0; i < mRVE_Dimension; i++) {
+        for (int j = 0; j < mRVE_Dimension; j++) {
           mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
           if (i == j)
-            dev(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - 0.5);
+            aux(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - 0.5);
           else
-            dev(i,j) = 4.0 * mRVE_FabricTensor(i,j);
+            aux(i,j) = 4.0 * mRVE_FabricTensor(i,j);
         }
       }
       
-      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (dev(1,1)*dev(2,2) - dev(1,2)*dev(2,1));
-      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (dev(1,1)*dev(2,2) + dev(2,2)*dev(3,3) + dev(1,1)*dev(3,3) - dev(1,2)*dev(2,1) - dev(2,3)*dev(3,2) - dev(1,3)*dev(3,1));
-
+      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(1,1)*aux(2,2) - aux(1,2)*aux(2,1));
+      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(1,1)*aux(2,2) + aux(2,2)*aux(3,3) + aux(1,1)*aux(3,3) - aux(1,2)*aux(2,1) - aux(2,3)*aux(3,2) - aux(1,3)*aux(3,1));
       mRVE_Anisotropy = sqrt(invariant2);
+
+      // Compute stresses
+      aux = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      double tr_stress = 0.0; 
+
+      for (int i = 0; i < mRVE_Dimension; i++) {
+        for (int j = 0; j < mRVE_Dimension; j++) {
+          mRVE_CauchyTensor(i,j) /= mRVE_VolTotal;
+          if (i == j)
+            tr_stress += mRVE_CauchyTensor(i,j);
+        }
+      }
+
+      mRVE_EffectStress = tr_stress / mRVE_Dimension;
+
+      for (int i = 0; i < mRVE_Dimension; i++) {
+        for (int j = 0; j < mRVE_Dimension; j++) {
+          if (i == j)
+            aux(i,j) = mRVE_CauchyTensor(i,j) - mRVE_EffectStress;
+          else
+            aux(i,j) = mRVE_CauchyTensor(i,j);
+        }
+      }
+
+      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(1,1)*aux(2,2) - aux(1,2)*aux(2,1));
+      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(1,1)*aux(2,2) + aux(2,2)*aux(3,3) + aux(1,1)*aux(3,3) - aux(1,2)*aux(2,1) - aux(2,3)*aux(3,2) - aux(1,3)*aux(3,1));
+      mRVE_DevStress = sqrt(invariant2);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------

@@ -885,30 +885,39 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
             // HIERARCHICAL MULTISCALE RVE
-            if (mRVESolve && GetId() < data_buffer.mpOtherParticle->GetId() && data_buffer.mIndentation > 0.0) {
-              mNumContacts++;
+            if (mRVESolve && data_buffer.mIndentation > 0.0) {
+              mCoordNum++;
 
-              // Branch vector
-              const double r1 = GetRadius();
-              const double r2 = data_buffer.mpOtherParticle->GetRadius();
-              double d = r1 + r2 - data_buffer.mIndentation;
-              double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
-              double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
+              if (GetId() < data_buffer.mpOtherParticle->GetId()) { // Unique contacts (each binary contact evaluated only once)
+                mNumContacts++;
 
-              // Overlap volume
-              const double r12 = r1 * r1;
-              const double r22 = r2 * r2;
-              const double d2  = d * d;
+                // Branch vector
+                const double r1 = GetRadius();
+                const double r2 = data_buffer.mpOtherParticle->GetRadius();
+                double d = r1 + r2 - data_buffer.mIndentation;
+                double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
+                double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
 
-              if (r_process_info[DOMAIN_SIZE] == 2)
-                mVolOverlap += r12 * std::acos((d2+r12-r22) / (2*d*r1)) + r22 * std::acos((d2+r22-r12) / (2*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
-              else if (r_process_info[DOMAIN_SIZE] == 3)
-                mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2*d*r1+2*d*r2+6*r1*r2-3*r12-3*r22)) / (12*d);
+                // Overlap volume
+                const double r12 = r1 * r1;
+                const double r22 = r2 * r2;
+                const double d2  = d * d;
 
-              // Fabric tensor
-              for (int i = 0; i < mFabricTensor.size1(); i++)
-                for (int j = 0; j < mFabricTensor.size2(); j++)
-                  mFabricTensor(i,j) += normal[i] * normal[j];
+                if (r_process_info[DOMAIN_SIZE] == 2)
+                  mVolOverlap += r12 * std::acos((d2+r12-r22) / (2*d*r1)) + r22 * std::acos((d2+r22-r12) / (2*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
+                else if (r_process_info[DOMAIN_SIZE] == 3)
+                  mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2*d*r1+2*d*r2+6*r1*r2-3*r12-3*r22)) / (12*d);
+
+                // Fabric tensor
+                for (int i = 0; i < mFabricTensor.size1(); i++)
+                  for (int j = 0; j < mFabricTensor.size2(); j++)
+                    mFabricTensor(i,j) += normal[i] * normal[j];
+
+                // Cauchy stress tensor
+                for (int i = 0; i < mCauchyTensor.size1(); i++)
+                  for (int j = 0; j < mCauchyTensor.size2(); j++)
+                    mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
+              }
             }
 
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
@@ -1127,24 +1136,31 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
 
             // HIERARCHICAL MULTISCALE RVE
             if (mRVESolve && indentation > 0.0) {
+              mCoordNum++;
               mNumContacts++;
 
-              // Overlap volume
+              // Branch vector
+              // ATTENTION: Assuming twice the radius for the branch vector!
               const double r = GetRadius();
+              double d = 2 * r - indentation;
+              double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
+              double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
+
+              // Overlap volume
               if (r_process_info[DOMAIN_SIZE] == 2)
                 mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2*r*indentation-indentation*indentation);
               else if (r_process_info[DOMAIN_SIZE] == 3)
                 mVolOverlap += Globals::Pi * indentation*indentation * (3*r-indentation) / 3.0;
 
               // Fabric tensor
-              // ATTENTION: Assuming tiece the radius for the branch vector!
-              double d = 2 * r - indentation;
-              double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
-              double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
-
               for (int i = 0; i < mFabricTensor.size1(); i++)
                 for (int j = 0; j < mFabricTensor.size2(); j++)
-                  mFabricTensor(i, j) += normal[i] * normal[j];
+                  mFabricTensor(i,j) += normal[i] * normal[j];
+
+              // Cauchy stress tensor
+              for (int i = 0; i < mCauchyTensor.size1(); i++)
+                for (int j = 0; j < mCauchyTensor.size2(); j++)
+                  mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
             }
 
         } //ContactType if

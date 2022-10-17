@@ -294,6 +294,8 @@ namespace Kratos {
         double mRVE_Porosity;       // RVE porosity (discounting overlaps)
         double mRVE_VoidRatio;      // RVE void ratio (discounting overlaps)
         double mRVE_Anisotropy;     // Fabric anisotropy
+        double mRVE_EffectStress;   // Mean effective stress
+        double mRVE_DevStress;      // Deviatoric stress
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction
@@ -303,6 +305,7 @@ namespace Kratos {
         std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE walls in positive Z direction
 
         Matrix mRVE_FabricTensor; // Fabric tensor
+        Matrix mRVE_CauchyTensor; // Cauchy stress tensor
 
         // Methods
         void RVEInitialize             (void);
