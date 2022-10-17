@@ -1779,23 +1779,6 @@ namespace Kratos {
         r_model_part.GetCommunicator().SynchronizeVariable(PARTICLE_MOMENT);
     }
 
-    void ExplicitSolverStrategy::CleanEnergies() {
-        
-        KRATOS_TRY
-
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        double& total_elastic_energy = r_process_info[PARTICLE_ELASTIC_ENERGY];
-        total_elastic_energy = 0.0;
-        double& total_inelastic_frictional_energy = r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY];
-        total_inelastic_frictional_energy = 0.0;
-        double& total_inelastic_viscodamping_energy = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
-        total_inelastic_viscodamping_energy = 0.0;
-        double& total_inelastic_rollingresistance_energy = r_process_info[PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY];
-        total_inelastic_rollingresistance_energy = 0.0;
-
-        KRATOS_CATCH("")
-    }
-
     double ExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
         
         KRATOS_TRY
