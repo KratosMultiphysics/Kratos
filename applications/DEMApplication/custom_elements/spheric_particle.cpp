@@ -904,23 +904,23 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 const double d2  = d * d;
 
                 if (r_process_info[DOMAIN_SIZE] == 2)
-                  mVolOverlap += r12 * std::acos((d2+r12-r22) / (2*d*r1)) + r22 * std::acos((d2+r22-r12) / (2*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
+                  mVolOverlap += r12 * std::acos((d2+r12-r22) / (2.0*d*r1)) + r22 * std::acos((d2+r22-r12) / (2.0*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
                 else if (r_process_info[DOMAIN_SIZE] == 3)
-                  mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2*d*r1+2*d*r2+6*r1*r2-3*r12-3*r22)) / (12*d);
+                  mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2.0*d*r1+2.0*d*r2+6.0*r1*r2-3.0*r12-3.0*r22)) / (12.0*d);
 
                 // Rose diagram
-                double angle_xy = atan2(normal[1], normal[0]) * 180/Globals::Pi;
-                double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180/Globals::Pi;
-                if (angle_xy < 0.0) angle_xy += 360;
+                double angle_xy = atan2(normal[1], normal[0]) * 180.0/Globals::Pi;
+                double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180.0/Globals::Pi;
+                if (angle_xy < 0.0) angle_xy += 360.0;
 
                 const int num_subdivisions = 40;
-                const double subdivision_size = 360/num_subdivisions;
+                const double subdivision_size = 360.0/num_subdivisions;
 
                 const int idx_xy = angle_xy/subdivision_size;
                 const int idx_az = azimuth/subdivision_size;
 
-                mRoseDiagram(1,idx_xy) = angle_xy;
-                mRoseDiagram(2,idx_az) = azimuth;
+                mRoseDiagram(0,idx_xy) = angle_xy;
+                mRoseDiagram(1,idx_az) = azimuth;
 
                 // Fabric tensor
                 for (int i = 0; i < mFabricTensor.size1(); i++)
@@ -1162,23 +1162,23 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
 
               // Overlap volume
               if (r_process_info[DOMAIN_SIZE] == 2)
-                mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2*r*indentation-indentation*indentation);
+                mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2.0*r*indentation-indentation*indentation);
               else if (r_process_info[DOMAIN_SIZE] == 3)
-                mVolOverlap += Globals::Pi * indentation*indentation * (3*r-indentation) / 3.0;
+                mVolOverlap += Globals::Pi * indentation*indentation * (3.0*r-indentation) / 3.0;
 
               // Rose diagram
-              double angle_xy = atan2(normal[1], normal[0]) * 180/Globals::Pi;
-              double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180/Globals::Pi;
-              if (angle_xy < 0.0) angle_xy += 360;
+              double angle_xy = atan2(normal[1], normal[0]) * 180.0/Globals::Pi;
+              double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180.0/Globals::Pi;
+              if (angle_xy < 0.0) angle_xy += 360.0;
 
               const int num_subdivisions = 40;
-              const double subdivision_size = 360/num_subdivisions;
+              const double subdivision_size = 360.0/num_subdivisions;
 
               const int idx_xy = angle_xy/subdivision_size;
               const int idx_az = azimuth/subdivision_size;
 
-              mRoseDiagram(1,idx_xy) = angle_xy;
-              mRoseDiagram(2,idx_az) = azimuth;
+              mRoseDiagram(0,idx_xy) = angle_xy;
+              mRoseDiagram(1,idx_az) = azimuth;
 
               // Fabric tensor
               for (int i = 0; i < mFabricTensor.size1(); i++)

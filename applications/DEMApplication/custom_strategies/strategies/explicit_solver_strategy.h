@@ -284,10 +284,12 @@ namespace Kratos {
         //==========================================================================================================================================
 
         // Properties
-        bool   mRVE_Solve;          // Flag for solving RVE in current step
-        int    mRVE_Frequency = 1;  // Frequency of steps for RVE homogenization (hardcoded)
+        bool   mRVE_Solve;          // Flag for evaluating RVE in current step
+        int    mRVE_FreqEval  = 1;  // Frequency for evaluating RVE in steps
+        int    mRVE_FreqWrite = 1;  // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;      // RVE dimension: 2D or 3D
         int    mRVE_NumContacts;    // Total number of contacts in RVE
+        double mRVE_AvgCoordNum;    // Average coordination number per particle
         double mRVE_VolSolid;       // Volume of solid (particles) in RVE discounting overlaps
         double mRVE_VolTotal;       // RVE total volume
         double mRVE_Porosity;       // RVE porosity (discounting overlaps)
@@ -307,12 +309,22 @@ namespace Kratos {
         Matrix mRVE_FabricTensor; // Fabric tensor
         Matrix mRVE_CauchyTensor; // Cauchy stress tensor
 
+        std::ofstream mRVE_FilePorosity;
+        std::ofstream mRVE_FileCoordNumber;
+        std::ofstream mRVE_FileRoseDiagram;
+        std::ofstream mRVE_FileAnisotropy;
+        std::ofstream mRVE_FileFabricTensor;
+        std::ofstream mRVE_FileStress;
+        std::ofstream mRVE_FileCauchyTensor;
+
         // Methods
         void RVEInitialize             (void);
         void RVEInitializeSolutionStep (void);
         void RVEExecuteParticlePre     (SphericParticle* p_particle);
         void RVEExecuteParticlePos     (SphericParticle* p_particle);
         void RVEFinalizeSolutionStep   (void);
+        void Finalize                  (void);
+        void RVEFinalize               (void);
 
         void RVEAssembleWallVectors   (void);
         void RVEAssembleWallVectors2D (void);
@@ -321,6 +333,10 @@ namespace Kratos {
         double RVEComputeTotalVolume    (void);
         double RVEComputeParticleVolume (SphericParticle* p_particle);
         void   RVEComputePorosity       (void);
+
+        void RVEWriteFiles (void);
+        void RVEOpenFiles  (void);
+        void RVECloseFiles (void);
 
         //==========================================================================================================================================
         // HIERARCHICAL MULTISCALE RVE - FINISH

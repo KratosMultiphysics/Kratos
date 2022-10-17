@@ -1810,10 +1810,14 @@ namespace Kratos {
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
 
       // Initialize properties
-      mRVE_Dimension = r_process_info[DOMAIN_SIZE];
+      mRVE_FreqWrite *= mRVE_FreqEval;
+      mRVE_Dimension  = r_process_info[DOMAIN_SIZE];
 
       // Assemble vectors of wall elements
       RVEAssembleWallVectors();
+
+      // Open files
+      RVEOpenFiles();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1821,14 +1825,15 @@ namespace Kratos {
       ModelPart&   r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
 
-      // Set flag for computing RVE in current step
+      // Set flag for evaluating RVE in current step
       const int time_step = r_process_info[TIME_STEPS];
-      mRVE_Solve = (time_step > 0 && time_step % mRVE_Frequency == 0.0);
+      mRVE_Solve = (time_step > 0 && time_step % mRVE_FreqEval == 0.0);
 
       // Initialize variables
       if (mRVE_Solve && time_step > 0) {
-        mRVE_NumContacts  = 0;
-        mRVE_VolSolid     = 0.0;
+        mRVE_NumContacts = 0;
+        mRVE_AvgCoordNum = 0.0;
+        mRVE_VolSolid    = 0.0;
         noalias(mRVE_RoseDiagram)  = ZeroMatrix(2, 40);
         noalias(mRVE_FabricTensor) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
         noalias(mRVE_CauchyTensor) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
@@ -1853,6 +1858,7 @@ namespace Kratos {
       if (!mRVE_Solve) return;
 
       mRVE_NumContacts += p_particle->mNumContacts;
+      mRVE_AvgCoordNum += p_particle->mCoordNum;
       mRVE_VolSolid    += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
       noalias(mRVE_RoseDiagram)  += p_particle->mRoseDiagram;
       noalias(mRVE_FabricTensor) += p_particle->mFabricTensor;
@@ -1862,6 +1868,9 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEFinalizeSolutionStep(void) {
       if (!mRVE_Solve) return;
+
+      // Average coordination number
+      mRVE_AvgCoordNum /= mListOfSphericParticles.size();
 
       // Compute porosity and void ratio
       mRVE_VolTotal = RVEComputeTotalVolume();
@@ -1881,8 +1890,8 @@ namespace Kratos {
         }
       }
       
-      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(1,1)*aux(2,2) - aux(1,2)*aux(2,1));
-      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(1,1)*aux(2,2) + aux(2,2)*aux(3,3) + aux(1,1)*aux(3,3) - aux(1,2)*aux(2,1) - aux(2,3)*aux(3,2) - aux(1,3)*aux(3,1));
+      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
+      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
       mRVE_Anisotropy = sqrt(invariant2);
 
       // Compute stresses
@@ -1908,9 +1917,23 @@ namespace Kratos {
         }
       }
 
-      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(1,1)*aux(2,2) - aux(1,2)*aux(2,1));
-      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(1,1)*aux(2,2) + aux(2,2)*aux(3,3) + aux(1,1)*aux(3,3) - aux(1,2)*aux(2,1) - aux(2,3)*aux(3,2) - aux(1,3)*aux(3,1));
+      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
+      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
       mRVE_DevStress = sqrt(invariant2);
+
+      // Write files
+      RVEWriteFiles();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::Finalize(void) {
+      RVEFinalize();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEFinalize(void) {
+      // Close files
+      RVECloseFiles();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2051,6 +2074,160 @@ namespace Kratos {
     void ExplicitSolverStrategy::RVEComputePorosity(void) {
       mRVE_Porosity  = 1.0 - mRVE_VolSolid / mRVE_VolTotal;
       mRVE_VoidRatio = mRVE_Porosity / (1.0 - mRVE_Porosity);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEWriteFiles(void) {
+      if (!mRVE_FreqWrite) return;
+
+      ModelPart&   r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
+
+      const int    time_step = r_process_info[TIME_STEPS];
+      const double time      = r_process_info[TIME];
+
+      if (mRVE_FilePorosity.is_open())
+        mRVE_FilePorosity << time_step     << " "
+                          << time          << " "
+                          << mRVE_VolTotal << " "
+                          << mRVE_Porosity << " "
+                          << mRVE_VoidRatio
+                          << std::endl;
+
+      if (mRVE_FileCoordNumber.is_open())
+        mRVE_FileCoordNumber << time_step        << " "
+                             << time             << " "
+                             << mRVE_NumContacts << " "
+                             << mRVE_AvgCoordNum
+                             << std::endl;
+
+      if (mRVE_FileRoseDiagram.is_open()) {
+        mRVE_FileRoseDiagram << time_step << " " << time << " ";
+        
+        mRVE_FileRoseDiagram << "[ ";
+        for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(0,i) << " ";
+        mRVE_FileRoseDiagram << "] ";
+
+        mRVE_FileRoseDiagram << "[ ";
+        for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(1,i) << " ";
+        mRVE_FileRoseDiagram << "]";
+
+        mRVE_FileRoseDiagram << std::endl;
+      }
+
+      if (mRVE_FileAnisotropy.is_open())
+        mRVE_FileAnisotropy << time_step << " "
+                            << time      << " "
+                            << mRVE_Anisotropy
+                            << std::endl;
+
+      if (mRVE_FileFabricTensor.is_open()) {
+        if (mRVE_Dimension == 2)
+          mRVE_FileFabricTensor << time_step << " " << time << " "
+                                << "[[" << mRVE_FabricTensor(0,0) << "],[" << mRVE_FabricTensor(0,1) << "]]" << " "
+                                << "[[" << mRVE_FabricTensor(1,0) << "],[" << mRVE_FabricTensor(1,1) << "]]"
+                                << std::endl;
+        else if (mRVE_Dimension == 3)
+          mRVE_FileFabricTensor << time_step << " " << time << " "
+                                << "[[" << mRVE_FabricTensor(0,0) << "],[" << mRVE_FabricTensor(0,1) << "],[" << mRVE_FabricTensor(0,2) << "]]" << " "
+                                << "[[" << mRVE_FabricTensor(1,0) << "],[" << mRVE_FabricTensor(1,1) << "],[" << mRVE_FabricTensor(1,2) << "]]" << " "
+                                << "[[" << mRVE_FabricTensor(2,0) << "],[" << mRVE_FabricTensor(2,1) << "],[" << mRVE_FabricTensor(2,2) << "]]"
+                                << std::endl;
+      }
+
+      if (mRVE_FileStress.is_open())
+        mRVE_FileStress << time_step         << " "
+                        << time              << " "
+                        << mRVE_EffectStress << " "
+                        << mRVE_DevStress
+                        << std::endl;
+
+      if (mRVE_FileCauchyTensor.is_open()) {
+        if (mRVE_Dimension == 2)
+          mRVE_FileCauchyTensor << time_step << " " << time << " "
+                                << "[[" << mRVE_CauchyTensor(0,0) << "],[" << mRVE_CauchyTensor(0,1) << "]]" << " "
+                                << "[[" << mRVE_CauchyTensor(1,0) << "],[" << mRVE_CauchyTensor(1,1) << "]]"
+                                << std::endl;
+        else if (mRVE_Dimension == 3)
+          mRVE_FileCauchyTensor << time_step << " " << time << " "
+                                << "[[" << mRVE_CauchyTensor(0,0) << "],[" << mRVE_CauchyTensor(0,1) << "],[" << mRVE_CauchyTensor(0,2) << "]]" << " "
+                                << "[[" << mRVE_CauchyTensor(1,0) << "],[" << mRVE_CauchyTensor(1,1) << "],[" << mRVE_CauchyTensor(1,2) << "]]" << " "
+                                << "[[" << mRVE_CauchyTensor(2,0) << "],[" << mRVE_CauchyTensor(2,1) << "],[" << mRVE_CauchyTensor(2,2) << "]]"
+                                << std::endl;
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEOpenFiles(void) {
+
+      mRVE_FilePorosity.open("rve_porosity.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FilePorosity) << "Could not open file rve_porosity.txt!" << std::endl;
+      mRVE_FilePorosity << "1 - STEP | ";
+      mRVE_FilePorosity << "2 - TIME | ";
+      mRVE_FilePorosity << "3 - TOTAL VOLUME | ";
+      mRVE_FilePorosity << "4 - POROSITY | ";
+      mRVE_FilePorosity << "5 - VOID RATIO";
+      mRVE_FilePorosity << std::endl;
+
+      mRVE_FileCoordNumber.open("rve_coordination_number.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileCoordNumber) << "Could not open file rve_coordination_number.txt!" << std::endl;
+      mRVE_FileCoordNumber << "1 - STEP | ";
+      mRVE_FileCoordNumber << "2 - TIME | ";
+      mRVE_FileCoordNumber << "3 - NUMBER OF UNIQUE CONTACTS | ";
+      mRVE_FileCoordNumber << "4 - AVG COORDINATION NUMBER";
+      mRVE_FileCoordNumber << std::endl;
+
+      mRVE_FileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
+      mRVE_FileRoseDiagram << "1 - STEP | ";
+      mRVE_FileRoseDiagram << "2 - TIME | ";
+      mRVE_FileRoseDiagram << "3 - [ARRAY OF ANGLES IN XY PLANE] | ";
+      mRVE_FileRoseDiagram << "4 - [ARRAY OF AZIMUTH ANGLES]";
+      mRVE_FileRoseDiagram << std::endl;
+
+      mRVE_FileAnisotropy.open("rve_anisotropy.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileAnisotropy) << "Could not open file rve_anisotropy.txt!" << std::endl;
+      mRVE_FileAnisotropy << "1 - STEP | ";
+      mRVE_FileAnisotropy << "2 - TIME | ";
+      mRVE_FileAnisotropy << "3 - ANISOTROPY";
+      mRVE_FileAnisotropy << std::endl;
+
+      mRVE_FileFabricTensor.open("rve_fabric_tensor.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileFabricTensor) << "Could not open file rve_fabric_tensor.txt!" << std::endl;
+      mRVE_FileFabricTensor << "1 - STEP | ";
+      mRVE_FileFabricTensor << "2 - TIME | ";
+      mRVE_FileFabricTensor << "3 - [[1,1][1,2][1,3]] | ";
+      mRVE_FileFabricTensor << "4 - [[2,1][2,2][2,3]] | ";
+      mRVE_FileFabricTensor << "5 - [[3,1][3,2][3,3]]";
+      mRVE_FileFabricTensor << std::endl;
+
+      mRVE_FileStress.open("rve_stresses.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileStress) << "Could not open file rve_stresses.txt!" << std::endl;
+      mRVE_FileStress << "1 - STEP | ";
+      mRVE_FileStress << "2 - TIME | ";
+      mRVE_FileStress << "3 - MEAN EFFECTIVE STRESS | ";
+      mRVE_FileStress << "4 - DEVIATORIC STRESS";
+      mRVE_FileStress << std::endl;
+
+      mRVE_FileCauchyTensor.open("rve_cauchy_tensor.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileCauchyTensor) << "Could not open file rve_cauchy_tensor.txt!" << std::endl;
+      mRVE_FileCauchyTensor << "1 - STEP | ";
+      mRVE_FileCauchyTensor << "2 - TIME | ";
+      mRVE_FileCauchyTensor << "3 - [[1,1][1,2][1,3]] | ";
+      mRVE_FileCauchyTensor << "4 - [[2,1][2,2][2,3]] | ";
+      mRVE_FileCauchyTensor << "5 - [[3,1][3,2][3,3]]";
+      mRVE_FileCauchyTensor << std::endl;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVECloseFiles(void) {
+      if (mRVE_FilePorosity.is_open())     mRVE_FilePorosity.close();
+      if (mRVE_FileCoordNumber.is_open())  mRVE_FileCoordNumber.close();
+      if (mRVE_FileRoseDiagram.is_open())  mRVE_FileRoseDiagram.close();
+      if (mRVE_FileAnisotropy.is_open())   mRVE_FileAnisotropy.close();
+      if (mRVE_FileFabricTensor.is_open()) mRVE_FileFabricTensor.close();
+      if (mRVE_FileStress.is_open())       mRVE_FileStress.close();
+      if (mRVE_FileCauchyTensor.is_open()) mRVE_FileCauchyTensor.close();
     }
 
     //==========================================================================================================================================

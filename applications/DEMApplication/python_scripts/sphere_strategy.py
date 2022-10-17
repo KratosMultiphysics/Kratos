@@ -418,7 +418,7 @@ class ExplicitStrategy():
         self.cplusplus_strategy.FinalizeSolutionStep()
 
     def Finalize(self):
-        pass
+        self.cplusplus_strategy.Finalize()
 
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
