@@ -291,6 +291,7 @@ bool   mRVESolve;      // Flag for solving RVE in current step
 int    mCoordNum;      // Number of total contacts (coordination number)
 int    mNumContacts;   // Number of unique contacts (with neighbors with higher ID)
 double mVolOverlap;    // Volume of overlap with unique contacts
+Matrix mRoseDiagram;   // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
 Matrix mFabricTensor;  // Fabric tensor with unique contacts
 Matrix mCauchyTensor;  // Cauchy stress tensor with unique contacts
 

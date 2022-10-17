@@ -908,6 +908,20 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 else if (r_process_info[DOMAIN_SIZE] == 3)
                   mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2*d*r1+2*d*r2+6*r1*r2-3*r12-3*r22)) / (12*d);
 
+                // Rose diagram
+                double angle_xy = atan2(normal[1], normal[0]) * 180/Globals::Pi;
+                double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180/Globals::Pi;
+                if (angle_xy < 0.0) angle_xy += 360;
+
+                const int num_subdivisions = 40;
+                const double subdivision_size = 360/num_subdivisions;
+
+                const int idx_xy = angle_xy/subdivision_size;
+                const int idx_az = azimuth/subdivision_size;
+
+                mRoseDiagram(1,idx_xy) = angle_xy;
+                mRoseDiagram(2,idx_az) = azimuth;
+
                 // Fabric tensor
                 for (int i = 0; i < mFabricTensor.size1(); i++)
                   for (int j = 0; j < mFabricTensor.size2(); j++)
@@ -1151,6 +1165,20 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
                 mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2*r*indentation-indentation*indentation);
               else if (r_process_info[DOMAIN_SIZE] == 3)
                 mVolOverlap += Globals::Pi * indentation*indentation * (3*r-indentation) / 3.0;
+
+              // Rose diagram
+              double angle_xy = atan2(normal[1], normal[0]) * 180/Globals::Pi;
+              double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180/Globals::Pi;
+              if (angle_xy < 0.0) angle_xy += 360;
+
+              const int num_subdivisions = 40;
+              const double subdivision_size = 360/num_subdivisions;
+
+              const int idx_xy = angle_xy/subdivision_size;
+              const int idx_az = azimuth/subdivision_size;
+
+              mRoseDiagram(1,idx_xy) = angle_xy;
+              mRoseDiagram(2,idx_az) = azimuth;
 
               // Fabric tensor
               for (int i = 0; i < mFabricTensor.size1(); i++)
