@@ -1,14 +1,13 @@
-# Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
-    def __init__(self, model, parameters, slip_interface, distance):
+class EmbeddedCouetteImposedTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
+    def __init__(self, model, parameters, embedded_velocity, distance):
         super().__init__(model, parameters)
         self.distance = distance
-        self.slip_interface = slip_interface
+        self.embedded_velocity = embedded_velocity
 
     def ModifyAfterSolverInitialize(self):
         super().ModifyAfterSolverInitialize()
@@ -17,15 +16,14 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         computing_model_part = self._GetSolver().GetComputingModelPart()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size == 2:
-            for node in computing_model_part.Nodes:
-                distance = node.Y-self.distance
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
+            distance = lambda node : self.distance - node.Y
         elif domain_size == 3:
-            for node in computing_model_part.Nodes:
-                distance = node.Z-self.distance
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
+            distance = lambda node : self.distance - node.Z
         else:
             raise Exception("DOMAIN_SIZE has not been set in the ProcessInfo container.")
+
+        for node in computing_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance(node))
 
         # Set the ELEMENTAL_DISTANCES value
         # This is required for the discontinuous elements tests
@@ -40,68 +38,62 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
             element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
 
+        # Set the EMBEDDED_VELOCITY in the intersected elements nodes
+        for elem in computing_model_part.Elements:
+            n_pos = 0
+            n_neg = 0
+            for node in elem.GetNodes():
+                if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
+                    n_neg += 1
+                else:
+                    n_pos += 1
+
+            if ((n_pos != 0) and (n_neg != 0)):
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [self.embedded_velocity, 0.0, 0.0])
+
         # Set up the initial velocity condition
         # Note that we also initialize the buffer to avoid artificial inertial residual
         buffer_size = computing_model_part.GetBufferSize()
-        if self.slip_interface:
-            init_v = KratosMultiphysics.Vector([1.0,0.0,0.0])
-            for node in computing_model_part.Nodes:
-                if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
-                    for step in range(buffer_size):
-                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, step, init_v)
+        if domain_size == 2:
+            vel_x = lambda node : (self.embedded_velocity/self.distance)*node.Y
         else:
-            for node in computing_model_part.Nodes:
-                dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                if dist > 0.0:
-                    init_v = KratosMultiphysics.Vector([dist,0.0,0.0])
-                    for step in range(buffer_size):
-                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, step, init_v)
+            vel_x = lambda node : (self.embedded_velocity/self.distance)*node.Z
+
+        for node in computing_model_part.Nodes:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if dist > 0.0:
+                init_v = KratosMultiphysics.Vector([vel_x(node),0.0,0.0])
+                for step in range(buffer_size):
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, step, init_v)
 
     def ApplyBoundaryConditions(self):
         super().ApplyBoundaryConditions()
 
         # Set velocity boundary condition
         main_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
-        if self.slip_interface:
-            for node in main_model_part.GetSubModelPart("Inlet").Nodes:
-                if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
-                    aux_vel = KratosMultiphysics.Vector([1.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                else:
-                    aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+        domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size == 2:
+            vel_x = lambda node : (self.embedded_velocity/self.distance)*node.Y
         else:
-            for node in main_model_part.GetSubModelPart("Inlet").Nodes:
-                dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                if (dist > 0.0):
-                    aux_vel = KratosMultiphysics.Vector([dist,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                else:
-                    aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+            vel_x = lambda node : (self.embedded_velocity/self.distance)*node.Z
 
-            # Set and fix the top boundary velocity
-            for node in main_model_part.GetSubModelPart("Top").Nodes:
-                dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                aux_vel = KratosMultiphysics.Vector([dist,0.0,0.0])
+        for node in main_model_part.GetSubModelPart("Inlet").Nodes:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if dist > 0.0:
+                aux_vel = KratosMultiphysics.Vector([vel_x(node),0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
                 node.Fix(KratosMultiphysics.VELOCITY_X)
                 node.Fix(KratosMultiphysics.VELOCITY_Y)
                 node.Fix(KratosMultiphysics.VELOCITY_Z)
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
-class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
+class EmbeddedCouetteImposedFlowTest(KratosUnittest.TestCase):
 
-    # Continuous level set 2D tests
-    def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D(self):
-        self.distance = 0.25
-        self.slip_flag = False
+    # Embedded element tests
+    def testEmbeddedCouetteImposedFlowEmbeddedWeaklyCompressibleNavierStokes2D(self):
+        self.distance = 1.65
+        self.embedded_velocity = 2.56
         self.settings_filename = "ProjectParameters2D.json"
         self.formulation_settings = KratosMultiphysics.Parameters("""{
             "element_type": "embedded_weakly_compressible_navier_stokes",
@@ -111,67 +103,13 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         self._ReadAndCustomizeTestSettings()
         self._RunEmbeddedCouetteFlowTest()
 
-    def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip(self):
-        self.distance = 0.25
-        self.slip_flag = True
-        self.settings_filename = "ProjectParameters2D.json"
-        self.formulation_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "embedded_weakly_compressible_navier_stokes",
-            "is_slip": true,
-            "dynamic_tau": 1.0
-        }""")
-        self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteFlowTest()
-
-    # Continuous level set 3D tests
-    def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3D(self):
-        self.distance = 0.25
-        self.slip_flag = False
+    def testEmbeddedCouetteImposedFlowEmbeddedWeaklyCompressibleNavierStokes3D(self):
+        self.distance = 1.65
+        self.embedded_velocity = 2.56
         self.settings_filename = "ProjectParameters3D.json"
         self.formulation_settings = KratosMultiphysics.Parameters("""{
             "element_type": "embedded_weakly_compressible_navier_stokes",
             "is_slip": false,
-            "dynamic_tau": 1.0
-        }""")
-        self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteFlowTest()
-
-    def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3DSlip(self):
-        self.distance = 0.25
-        self.slip_flag = True
-        self.settings_filename = "ProjectParameters3D.json"
-        self.formulation_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "embedded_weakly_compressible_navier_stokes",
-            "is_slip": true,
-            "dynamic_tau": 1.0
-        }""")
-        self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteFlowTest()
-
-    # Discontinuous level set tests
-    def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D(self):
-        self.distance = 0.25
-        self.slip_flag = False
-        self.settings_filename = "ProjectParameters2D.json"
-        self.formulation_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
-            "is_slip": true,
-            "slip_length": 1.0e8,
-            "penalty_coefficient": 0.1,
-            "dynamic_tau": 1.0
-        }""")
-        self._ReadAndCustomizeTestSettings()
-        self._RunEmbeddedCouetteFlowTest()
-
-    def testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D(self):
-        self.distance = 0.25
-        self.slip_flag = True
-        self.settings_filename = "ProjectParameters3D.json"
-        self.formulation_settings = KratosMultiphysics.Parameters("""{
-            "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
-            "is_slip": true,
-            "slip_length": 1.0e8,
-            "penalty_coefficient": 0.1,
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
@@ -182,13 +120,13 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         self.check_tolerance = 1.0e-6
         self.check_relative_tolerance = 1.0e-8
         self.print_reference_values = False
-        self.work_folder = "embedded_couette_flow_test"
+        self.work_folder = "embedded_couette_imposed_flow_test"
 
     def _RunEmbeddedCouetteFlowTest(self):
         # Create the test simulation
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
-            simulation = EmbeddedCouetteTestFluidDynamicsAnalysis(self.model, self.parameters, self.slip_flag, self.distance)
+            simulation = EmbeddedCouetteImposedTestFluidDynamicsAnalysis(self.model, self.parameters, self.embedded_velocity, self.distance)
             simulation.Run()
 
     def tearDown(self):
@@ -222,7 +160,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "MainModelPart.fluid_computational_model_part",
-                "output_name"            : "embedded_couette_flow_test",
+                "output_name"            : "embedded_couette_imposed_flow_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"               : {
@@ -249,8 +187,6 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         output_name = gid_output_settings["Parameters"]["output_name"].GetString()
         output_name += "_{0}_{1}d".format(self.formulation_settings["element_type"].GetString(), domain_size)
-        if self.slip_flag:
-            output_name += "_slip"
         gid_output_settings["Parameters"]["output_name"].SetString(output_name)
         self.parameters["output_processes"]["gid_output"].Append(gid_output_settings)
 
@@ -261,16 +197,14 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
             "process_name"  : "JsonOutputProcess",
             "Parameters"    : {
                 "output_variables" : ["VELOCITY","PRESSURE"],
-                "output_file_name" : "reference_embedded_couette_flow_test",
+                "output_file_name" : "reference_embedded_couette_imposed_flow_test",
                 "model_part_name"  : "MainModelPart.Parts_Fluid",
-                "time_frequency"   : 0.1
+                "time_frequency"   : 199.0
             }
         }""")
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         output_file_name = json_output_settings["Parameters"]["output_file_name"].GetString()
         output_file_name += "_{0}_{1}d".format(self.formulation_settings["element_type"].GetString(), domain_size)
-        if self.slip_flag:
-            output_file_name += "_slip"
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
 
@@ -281,18 +215,16 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
             "process_name"  : "FromJsonCheckResultProcess",
             "Parameters"    : {
                 "check_variables"      : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
-                "input_file_name"      : "reference_embedded_couette_flow_test",
+                "input_file_name"      : "reference_embedded_couette_imposed_flow_test",
                 "model_part_name"      : "MainModelPart.Parts_Fluid",
                 "tolerance"            : 0.0,
                 "relative_tolerance"   : 0.0,
-                "time_frequency"       : 0.1
+                "time_frequency"       : 199.0
             }
         }""")
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         input_file_name = json_check_settings["Parameters"]["input_file_name"].GetString()
         input_file_name += "_{0}_{1}d".format(self.formulation_settings["element_type"].GetString(), domain_size)
-        if self.slip_flag:
-            input_file_name += "_slip"
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
