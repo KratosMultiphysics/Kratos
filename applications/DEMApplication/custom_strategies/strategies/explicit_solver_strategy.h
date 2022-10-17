@@ -293,6 +293,7 @@ namespace Kratos {
         double mRVE_VolTotal;       // RVE total volume
         double mRVE_Porosity;       // RVE porosity (discounting overlaps)
         double mRVE_VoidRatio;      // RVE void ratio (discounting overlaps)
+        double mRVE_Anisotropy;     // Fabric anisotropy
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction

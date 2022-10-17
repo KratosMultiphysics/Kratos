@@ -884,31 +884,17 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             // Store contact information needed for later processes
             StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
-            DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
-            DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
-            DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
-            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
-            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
-
-            #ifdef KRATOS_DEBUG
-                DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact");
-                DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact");
-            #endif
-
             // HIERARCHICAL MULTISCALE RVE
-            if (mRVESolve && GetId() < data_buffer.mpOtherParticle->GetId()) {
+            if (mRVESolve && GetId() < data_buffer.mpOtherParticle->GetId() && data_buffer.mIndentation > 0.0) {
               mNumContacts++;
 
-              // Geometry
+              // Branch vector
               const double r1 = GetRadius();
               const double r2 = data_buffer.mpOtherParticle->GetRadius();
-              array_1d<double, 3> branch;
-              array_1d<double, 3> normal;
-              noalias(branch) = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates() - GetGeometry()[0].Coordinates();
-              noalias(normal) = branch;
-              GeometryFunctions::normalize(normal);
-              const double d = DEM_MODULUS_3(branch);
-              
+              double d = r1 + r2 - data_buffer.mIndentation;
+              double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
+              double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
+
               // Overlap volume
               const double r12 = r1 * r1;
               const double r22 = r2 * r2;
@@ -924,6 +910,17 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 for (int j = 0; j < mFabricTensor.size2(); j++)
                   mFabricTensor(i,j) += normal[i] * normal[j];
             }
+
+            DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
+            DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
+            DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
+
+            #ifdef KRATOS_DEBUG
+                DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact");
+                DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact");
+            #endif
         }
     }// for each neighbor
 
@@ -1127,6 +1124,28 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
 
             // Store contact information needed for later processes
             StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
+
+            // HIERARCHICAL MULTISCALE RVE
+            if (mRVESolve && indentation > 0.0) {
+              mNumContacts++;
+
+              // Overlap volume
+              const double r = GetRadius();
+              if (r_process_info[DOMAIN_SIZE] == 2)
+                mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2*r*indentation-indentation*indentation);
+              else if (r_process_info[DOMAIN_SIZE] == 3)
+                mVolOverlap += Globals::Pi * indentation*indentation * (3*r-indentation) / 3.0;
+
+              // Fabric tensor
+              // ATTENTION: Assuming tiece the radius for the branch vector!
+              double d = 2 * r - indentation;
+              double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
+              double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
+
+              for (int i = 0; i < mFabricTensor.size1(); i++)
+                for (int j = 0; j < mFabricTensor.size2(); j++)
+                  mFabricTensor(i, j) += normal[i] * normal[j];
+            }
 
         } //ContactType if
     } //rNeighbours.size loop

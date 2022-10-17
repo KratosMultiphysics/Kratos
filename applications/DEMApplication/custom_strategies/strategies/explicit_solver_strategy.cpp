@@ -521,7 +521,10 @@ namespace Kratos {
         for (int i = 0; i < number_of_particles; i++) {
             RVEExecuteParticlePre(mListOfSphericParticles[i]);
             mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity);
-            RVEExecuteParticlePos(mListOfSphericParticles[i]);
+            #pragma omp critical
+            {
+              RVEExecuteParticlePos(mListOfSphericParticles[i]);
+            }
         }
 
         KRATOS_CATCH("")
@@ -1849,6 +1852,8 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEExecuteParticlePre(SphericParticle* p_particle) {
+      if (!mRVE_Solve) return;
+
       p_particle->mRVESolve     = mRVE_Solve;
       p_particle->mNumContacts  = 0;
       p_particle->mVolOverlap   = 0.0;
@@ -1872,13 +1877,24 @@ namespace Kratos {
       mRVE_VolTotal = RVEComputeTotalVolume();
       RVEComputePorosity();
 
-      // Compute fabric tensor
-      for (int i = 0; i < mRVE_FabricTensor.size1(); i++)
-        for (int j = 0; j < mRVE_FabricTensor.size2(); j++)
-          mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
+      // Compute anisotropy
+      Matrix dev = ZeroMatrix(mRVE_Dimension, mRVE_Dimension); // Deviatoric fabric tensor
+      double invariant2;
 
-      // Deviatoric fabric tensor
-      // Anisotropy
+      for (int i = 0; i < mRVE_FabricTensor.size1(); i++) {
+        for (int j = 0; j < mRVE_FabricTensor.size2(); j++) {
+          mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
+          if (i == j)
+            dev(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - 0.5);
+          else
+            dev(i,j) = 4.0 * mRVE_FabricTensor(i,j);
+        }
+      }
+      
+      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (dev(1,1)*dev(2,2) - dev(1,2)*dev(2,1));
+      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (dev(1,1)*dev(2,2) + dev(2,2)*dev(3,3) + dev(1,1)*dev(3,3) - dev(1,2)*dev(2,1) - dev(2,3)*dev(3,2) - dev(1,3)*dev(3,1));
+
+      mRVE_Anisotropy = sqrt(invariant2);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
