@@ -22,20 +22,16 @@ class PythonRegistry(object):
     def HasItem(self, Name, Context=RegistryContext.ALL):
         if Context == RegistryContext.ALL:
             is_registered_in_cpp = self.__cpp_registry.HasItem(Name)
-            is_registered_in_python = Name in self.__python_registry
+            is_registered_in_python = self.__InternalHasItem(Name)
             return is_registered_in_cpp or is_registered_in_python
         elif Context == RegistryContext.CPP:
             return self.__cpp_registry.HasItem(Name)
         elif Context == RegistryContext.PYTHON:
-            return Name in self.__python_registry
+            return self.__InternalHasItem(Name)
         else:
             raise Exception("Wrong registry context. Accepted options are 'ALL', 'CPP' and 'PYTHON'.")
 
     def AddItem(self, Name, Class):
-        # Split the current item registry name
-        item_keyword, _, class_name = self.__SplitRegistryNameString(Name)
-        all_key = f"{item_keyword}.All.{class_name}"
-
         # Add current item
         # First check if it is already registered in the c++ and Python registries
         # If not registered, add it to the Python registry (note that we do an "All" registry as well as the module one)
@@ -43,18 +39,14 @@ class PythonRegistry(object):
             err_msg = f"Trying to register '{Name}' but it is already registered."
             raise Exception(err_msg)
         else:
-            if self.HasItem(all_key, RegistryContext.ALL):
-                err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
-                raise Exception(err_msg)
-            else:
-                #FIXME: THIS MUST BE HIERARCHICAL
-                self.__python_registry[Name] = Class
-                self.__python_registry[all_key] = Class
-                #FIXME: THIS MUST BE HIERARCHICAL
+            # Add to the corresponding item All block
+            self.__InternalAddItemToAll(Name, Class)
+            # Add item to the corresponding module
+            self.__InternalAddItemToModule(Name, Class)
 
     def RemoveItem(self, Name):
         if self.HasItem(Name, RegistryContext.PYTHON):
-            self.__python_registry.pop(Name)
+            self.__InternalRemoveItem(Name)
         elif self.HasItem(Name, RegistryContext.CPP):
             #TODO: Discuss about removing stuff from the c++ registry. Do we allow it or not?
             # self.__cpp_registry.RemoveItem(Name)
@@ -71,7 +63,7 @@ class PythonRegistry(object):
     def GetItem(self, Name):
         if self.HasItem(Name, RegistryContext.PYTHON):
             # Get the class from the Python registry
-            return self.__python_registry[Name]
+            return self.__InternalGetItem(Name)
         elif self.HasItem(Name, RegistryContext.CPP):
             # Split the registry time to get the item keyword
             item_keyword, _, _ = self.__SplitRegistryNameString(Name)
@@ -117,3 +109,49 @@ class PythonRegistry(object):
         else:
             err_msg = f"'{ItemKeyword}' has not been addded to 'CppGetFunctionNamesMap'."
             raise Exception(err_msg)
+
+    def __InternalHasItem(self, Name):
+        split_name = Name.split('.')
+        aux_dict = self.__python_registry
+        for i_name in split_name[:-1]:
+            if not i_name in aux_dict:
+                return False
+            aux_dict = aux_dict[i_name]
+        return split_name[-1] in aux_dict
+
+    def __InternalGetItem(self, Name):
+        split_name = Name.split('.')
+        aux_dict = self.__python_registry
+        for i_name in split_name[:-1]:
+            aux_dict = aux_dict[i_name]
+        return aux_dict[split_name[-1]]
+
+    def __InternalRemoveItem(self, Name):
+        split_name = Name.split('.')
+        aux_dict = self.__python_registry
+        for i_name in split_name[:-1]:
+            aux_dict = aux_dict[i_name]
+        aux_dict.pop(split_name[-1])
+
+    def __InternalAddItemToAll(self, Name, Class):
+        item_keyword, _, class_name = self.__SplitRegistryNameString(Name)
+        if self.HasItem(f"{item_keyword}.All.{class_name}", RegistryContext.ALL):
+            err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
+            raise Exception(err_msg)
+
+        if item_keyword in self.__python_registry:
+            item_all_dict = self.__python_registry[item_keyword]["All"]
+            item_all_dict[class_name] = Class
+        else:
+            self.__python_registry[item_keyword] = {}
+            self.__python_registry[item_keyword]["All"] = {}
+            self.__python_registry[item_keyword]["All"][class_name] = Class
+
+    def __InternalAddItemToModule(self, Name, Class):
+        split_name = Name.split('.')
+        aux_dict = self.__python_registry
+        for i_name in split_name[:-1]:
+            if not i_name in aux_dict:
+                aux_dict[i_name] = {}
+            aux_dict = aux_dict[i_name]
+        aux_dict[split_name[-1]] = Class
