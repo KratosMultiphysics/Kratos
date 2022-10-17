@@ -1189,7 +1189,7 @@ void SmallStrainUPwDiffOrderElement::
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ ) {
             double HydraulicHead = 0.0;
             for (unsigned int node = 0; node < NumUNodes; ++node)
-                HydraulicHead += NContainer(GPoint, node) * NodalHydraulicHead[node];
+                HydraulicHead += NodalHydraulicHead[node];
 
             rOutput[GPoint] = HydraulicHead;
         }
