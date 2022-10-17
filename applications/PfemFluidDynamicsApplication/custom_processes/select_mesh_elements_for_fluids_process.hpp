@@ -289,7 +289,6 @@ namespace Kratos
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
 
-                    // if (rigidNodeMeshCounter > 0 && refiningBox == false)
                     if (rigidNodeMeshCounter > 0)
                     {
                         const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
@@ -308,7 +307,6 @@ namespace Kratos
 
                     if (refiningBox == true)
                     {
-
                         IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
                     }
 
@@ -404,14 +402,14 @@ namespace Kratos
                                     else
                                     {
                                         const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
+                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
+                                                                   sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
                                         const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
+                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
+                                                                   sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
                                         const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
+                                                                  (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
+                                                                   sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
 
                                         if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
                                         {

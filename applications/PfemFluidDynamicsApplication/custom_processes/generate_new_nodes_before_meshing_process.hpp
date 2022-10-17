@@ -1557,7 +1557,7 @@ namespace Kratos
 				dangerousElement = true;
 			}
 			const double limitEdgeLength = 1.6 * meanMeshSize * penalization;
-			 const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
+			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
