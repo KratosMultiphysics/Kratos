@@ -289,7 +289,8 @@ namespace Kratos
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
 
-                    if (rigidNodeMeshCounter > 0 && refiningBox == false)
+                    // if (rigidNodeMeshCounter > 0 && refiningBox == false)
+                    if (rigidNodeMeshCounter > 0)
                     {
                         const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
                         const double ratio = rigidWallMeshSize / meanMeshSize;

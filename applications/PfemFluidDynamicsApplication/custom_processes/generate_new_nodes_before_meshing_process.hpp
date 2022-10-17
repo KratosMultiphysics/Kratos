@@ -1245,7 +1245,8 @@ namespace Kratos
 			unsigned int rigidNodes = 0;
 			unsigned int freesurfaceNodes = 0;
 			bool toEraseNodeFound = false;
-
+			double rigidNodeLocalMeshSize = 0;
+			double rigidNodeMeshCounter = 0;
 			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			const double currentTime = rCurrentProcessInfo[TIME];
@@ -1260,6 +1261,8 @@ namespace Kratos
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
+					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
@@ -1271,13 +1274,24 @@ namespace Kratos
 				}
 			}
 
+			if (rigidNodeMeshCounter > 0)
+			{
+				const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				const double ratio = rigidWallMeshSize / meanMeshSize;
+				const double tolerance = 1.8;
+				if (ratio > tolerance)
+				{
+					meanMeshSize *= 0.5;
+					meanMeshSize += 0.5 * rigidWallMeshSize;
+				}
+			}
 			double penalization = 1.0; // penalization here should be greater than 1
 
 			if (freesurfaceNodes > 0)
 			{
 				penalization = 1.2; // to avoid to gain too much volume during remeshing step
 			}
-			const double safetyCoefficient2D = 1.5;		
+			const double safetyCoefficient2D = 1.5;
 			array_1d<double, 3> Edges(3, 0.0);
 			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
 			array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
@@ -1341,6 +1355,7 @@ namespace Kratos
 				dangerousElement = true;
 			}
 			const double limitEdgeLength = 1.9 * meanMeshSize * penalization;
+			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
@@ -1356,7 +1371,8 @@ namespace Kratos
 					}
 				}
 
-				if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
+				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
+				// if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
 				{
 					bool newNode = true;
 					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
@@ -1406,6 +1422,8 @@ namespace Kratos
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			bool insideTransitionZone = false;
+			double rigidNodeLocalMeshSize = 0;
+			double rigidNodeMeshCounter = 0;
 			for (unsigned int pn = 0; pn < nds; pn++)
 			{
 				mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, Element[pn].Coordinates(), meanMeshSize, insideTransitionZone);
@@ -1416,6 +1434,8 @@ namespace Kratos
 				if (Element[pn].Is(RIGID))
 				{
 					rigidNodes++;
+					rigidNodeLocalMeshSize += Element[pn].FastGetSolutionStepValue(NODAL_H_WALL);
+					rigidNodeMeshCounter += 1.0;
 				}
 				if (Element[pn].Is(TO_ERASE))
 				{
@@ -1426,6 +1446,19 @@ namespace Kratos
 					freesurfaceNodes++;
 				}
 			}
+
+			if (rigidNodeMeshCounter > 0)
+			{
+				const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+				const double ratio = rigidWallMeshSize / meanMeshSize;
+				const double tolerance = 1.8;
+				if (ratio > tolerance)
+				{
+					meanMeshSize *= 0.5;
+					meanMeshSize += 0.5 * rigidWallMeshSize;
+				}
+			}
+
 			double penalization = 1.0; // penalization here should be greater than 1
 
 			if (freesurfaceNodes > 0)
@@ -1524,6 +1557,7 @@ namespace Kratos
 				dangerousElement = true;
 			}
 			const double limitEdgeLength = 1.6 * meanMeshSize * penalization;
+			 const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
@@ -1539,7 +1573,8 @@ namespace Kratos
 					}
 				}
 
-				if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
+				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
+				// if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
 				{
 					bool newNode = true;
 					for (unsigned int i = 0; i < unsigned(CountNodes); i++)

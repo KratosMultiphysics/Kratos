@@ -460,7 +460,8 @@ namespace Kratos
 						mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideTransitionZone);
 					}
 				}
-				if (rigidNodeMeshCounter > 0 && refiningBox == false)
+				// if (rigidNodeMeshCounter > 0 && refiningBox == false)
+				if (rigidNodeMeshCounter > 0)
 				{
 					const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
 					const double ratio = rigidWallMeshSize / meshSize;
