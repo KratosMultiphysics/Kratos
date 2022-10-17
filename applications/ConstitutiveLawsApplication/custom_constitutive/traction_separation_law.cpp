@@ -1087,7 +1087,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
         for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
-            interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
+            interfacial_stress[i][0] = 2.3 * (MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5)); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
 
@@ -1112,21 +1112,28 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double GIc = 270; // Mode I Energy Release Rate
             const double GIIc = 687; // Mode II Energy Release Rate
             const double Eta = 2.3; // Benzeggagh-Kenane (B-K) Law Coefficient
+            const double Ei = 7700000000; // Tensile modulus of the interface
+            const double Gi = 5900000000; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
             const double tolerance = std::numeric_limits<double>::epsilon();
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
             double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // double T_eq = std::sqrt(3.0 * J2);
             const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             const double mode_mix_factor = std::pow(T_shear / T_eq,2.0);
-            const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor, Eta));
+            // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor, Eta));
+            const double initial_threshold = 51700000;
             const double threshold = status_coeff[i] * initial_threshold;
             const double F = T_eq - threshold;
             if (F > tolerance) {
-                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-                // AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length); // Linear
-                const double AParameter = 1.00 / (Gc * 144000000000 / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
+                // const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+                const double Gc = 270;
+                // const double K = Ei * (1 - mode_mix_factor) + (mode_mix_factor * Gi);
+                const double K = 7700000000;
+                // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
+                const double AParameter = 1.00 / (Gc * K / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
+                KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
 
                 // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
                 delamination_damage[i+1] = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
@@ -1136,12 +1143,16 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
             }
 
-            delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i];
-            delamination_damage_affected_stress_matrix[i+1] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i+1];
-
             // End damage calculation
         }
 
+        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+            if (delamination_damage[i+1] > delamination_damage[i]) {
+                delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i];
+            } else {
+                delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i]) * delamination_damage_affected_stress_matrix[i];
+            }
+        }
         // Calculating output stresses
 
         // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
@@ -1826,7 +1837,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
         for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
-            interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
+            interfacial_stress[i][0] = 2.3 * (MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5)); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
 
@@ -1851,21 +1862,28 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             const double GIc = 270; // Mode I Energy Release Rate
             const double GIIc = 687; // Mode II Energy Release Rate
             const double Eta = 2.3; // Benzeggagh-Kenane (B-K) Law Coefficient
+            const double Ei = 7700000000; // Tensile modulus of the interface
+            const double Gi = 5900000000; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
             const double tolerance = std::numeric_limits<double>::epsilon();
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
             double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // double T_eq = std::sqrt(3.0 * J2);
             const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             const double mode_mix_factor = std::pow(T_shear / T_eq,2.0);
-            const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor, Eta));
+            // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor, Eta));
+            const double initial_threshold = 51700000;
             const double threshold = status_coeff[i] * initial_threshold;
             const double F = T_eq - threshold;
             if (F > tolerance) {
-                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-                // AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length); // Linear
-                const double AParameter = 1.00 / (Gc * 144000000000 / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
+                // const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+                const double Gc = 270; // Benzeggagh-Kenane (B-K) Law
+                // const double K = Ei * (1 - mode_mix_factor) + (mode_mix_factor * Gi);
+                const double K = 7700000000;
+                // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
+                const double AParameter = 1.00 / (Gc * K / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
+                KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
 
                 // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
                 delamination_damage[i+1] = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
@@ -1878,12 +1896,16 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
                 mstatus_coeff[i] = T_eq / initial_threshold;
             }
 
-            delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i];
-            delamination_damage_affected_stress_matrix[i+1] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i+1];
-
             // End damage calculation
         }
 
+        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
+            if (delamination_damage[i+1] > delamination_damage[i]) {
+                delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i+1]) * delamination_damage_affected_stress_matrix[i];
+            } else {
+                delamination_damage_affected_stress_matrix[i] = (1-delamination_damage[i]) * delamination_damage_affected_stress_matrix[i];
+            }
+        }
         // Calculating output stresses
 
         // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
