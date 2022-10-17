@@ -621,7 +621,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             double HydraulicHead = 0.0;
             for (unsigned int node = 0; node < TNumNodes; ++node)
-                HydraulicHead += NodalHydraulicHead[node];
+                HydraulicHead += NContainer(GPoint, node) * NodalHydraulicHead[node];
 
             rOutput[GPoint] = HydraulicHead;
         }
