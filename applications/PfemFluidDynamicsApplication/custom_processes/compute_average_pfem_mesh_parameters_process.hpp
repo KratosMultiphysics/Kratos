@@ -175,7 +175,7 @@ namespace Kratos
             unsigned outOfRefiningBoxes = true;
             for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
             {
-              double transitionDistanceInInputMesh = 4.0 * mrRemesh.Refine->CriticalRadius;
+              const double transitionDistanceInInputMesh = 4.0 * mrRemesh.Refine->CriticalRadius;
               array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
               array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
               if (mrRemesh.UseRefiningBox[index] == true)
@@ -226,8 +226,8 @@ namespace Kratos
           std::cout << "Mesh size inside refining box " << localMeshSize << std::endl;
 
           mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
-          double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
-          double differenceOfSize = outOfBoxesMeanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
+          const double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
+          const double differenceOfSize = outOfBoxesMeanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
 
           mrRemesh.RefiningBoxMinimumPoint[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
           mrRemesh.RefiningBoxMinimumPoint[index][1] += -tolerance;
@@ -237,7 +237,7 @@ namespace Kratos
           mrRemesh.RefiningBoxMaximumPoint[index][1] += tolerance;
           mrRemesh.RefiningBoxMaximumPoint[index][2] += tolerance;
 
-          double transitionDistance = 4.0 * fabs(differenceOfSize);
+          const double transitionDistance = 4.0 * fabs(differenceOfSize);
 
           mrRemesh.RefiningBoxShiftedMinimumPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] - transitionDistance;
           mrRemesh.RefiningBoxShiftedMinimumPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] - transitionDistance;
