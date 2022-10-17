@@ -287,6 +287,7 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighb
 //==========================================================================================================================================
 
 // Properties
+bool   mRVESolve;       // Flag for solving RVE in current step
 int    mNumContacts;    // Number of unique contacts (with neighbors with higher ID)
 double mVolOverlap;     // Volume of overlap with unique contacts
 Matrix mFabricTensor;   // Fabric tensor with unique contacts

@@ -1849,6 +1849,7 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEExecuteParticlePre(SphericParticle* p_particle) {
+      p_particle->mRVESolve     = mRVE_Solve;
       p_particle->mNumContacts  = 0;
       p_particle->mVolOverlap   = 0.0;
       p_particle->mFabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);

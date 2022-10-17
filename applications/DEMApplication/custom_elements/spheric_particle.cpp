@@ -896,7 +896,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             #endif
 
             // HIERARCHICAL MULTISCALE RVE
-            if (GetId() < data_buffer.mpOtherParticle->GetId()) {
+            if (mRVESolve && GetId() < data_buffer.mpOtherParticle->GetId()) {
               mNumContacts++;
 
               // Geometry
