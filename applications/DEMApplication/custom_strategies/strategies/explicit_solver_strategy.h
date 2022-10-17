@@ -250,7 +250,6 @@ namespace Kratos {
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
-        void CleanEnergies();
         void Check_MPI(bool& has_mpi);
         virtual double ComputeCoordinationNumber(double& standard_dev);
 
