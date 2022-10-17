@@ -280,6 +280,48 @@ namespace Kratos {
             return r_model_part.Elements();
         }
 
+        //==========================================================================================================================================
+        // HIERARCHICAL MULTISCALE RVE - START
+        //==========================================================================================================================================
+
+        // Properties
+        bool   mRVE_Solve;          // Flag for solving RVE in current step
+        int    mRVE_Frequency = 1;  // Frequency of steps for RVE homogenization (hardcoded)
+        int    mRVE_Dimension;      // RVE dimension: 2D or 3D
+        int    mRVE_NumContacts;    // Total number of contacts in RVE
+        double mRVE_VolSolid;       // Volume of solid (particles) in RVE discounting overlaps
+        double mRVE_VolTotal;       // RVE total volume
+        double mRVE_Porosity;       // RVE porosity (discounting overlaps)
+        double mRVE_VoidRatio;      // RVE void ratio (discounting overlaps)
+
+        std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
+        std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction
+        std::vector<DEMWall*> mRVE_WallYMin; // Vector of RVE walls in negative Y direction
+        std::vector<DEMWall*> mRVE_WallYMax; // Vector of RVE walls in positive Y direction
+        std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE walls in negative Z direction
+        std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE walls in positive Z direction
+
+        Matrix mRVE_FabricTensor; // Fabric tensor
+
+        // Methods
+        void RVEInitialize             (void);
+        void RVEInitializeSolutionStep (void);
+        void RVEExecuteParticlePre     (SphericParticle* p_particle);
+        void RVEExecuteParticlePos     (SphericParticle* p_particle);
+        void RVEFinalizeSolutionStep   (void);
+
+        void RVEAssembleWallVectors   (void);
+        void RVEAssembleWallVectors2D (void);
+        void RVEAssembleWallVectors3D (void);
+
+        double RVEComputeTotalVolume    (void);
+        double RVEComputeParticleVolume (SphericParticle* p_particle);
+        void   RVEComputePorosity       (void);
+
+        //==========================================================================================================================================
+        // HIERARCHICAL MULTISCALE RVE - FINISH
+        //==========================================================================================================================================
+
     protected:
 
         Parameters mParameters;

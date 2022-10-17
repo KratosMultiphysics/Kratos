@@ -894,6 +894,36 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact");
                 DemDebugFunctions::CheckIfNan(mContactMoment, "NAN in Torque in Ball to Ball contact");
             #endif
+
+            // HIERARCHICAL MULTISCALE RVE
+            if (GetId() < data_buffer.mpOtherParticle->GetId()) {
+              mNumContacts++;
+
+              // Geometry
+              const double r1 = GetRadius();
+              const double r2 = data_buffer.mpOtherParticle->GetRadius();
+              array_1d<double, 3> branch;
+              array_1d<double, 3> normal;
+              noalias(branch) = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates() - GetGeometry()[0].Coordinates();
+              noalias(normal) = branch;
+              GeometryFunctions::normalize(normal);
+              const double d = DEM_MODULUS_3(branch);
+              
+              // Overlap volume
+              const double r12 = r1 * r1;
+              const double r22 = r2 * r2;
+              const double d2  = d * d;
+
+              if (r_process_info[DOMAIN_SIZE] == 2)
+                mVolOverlap += r12 * std::acos((d2+r12-r22) / (2*d*r1)) + r22 * std::acos((d2+r22-r12) / (2*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
+              else if (r_process_info[DOMAIN_SIZE] == 3)
+                mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2*d*r1+2*d*r2+6*r1*r2-3*r12-3*r22)) / (12*d);
+
+              // Fabric tensor
+              for (int i = 0; i < mFabricTensor.size1(); i++)
+                for (int j = 0; j < mFabricTensor.size2(); j++)
+                  mFabricTensor(i,j) += normal[i] * normal[j];
+            }
         }
     }// for each neighbor
 

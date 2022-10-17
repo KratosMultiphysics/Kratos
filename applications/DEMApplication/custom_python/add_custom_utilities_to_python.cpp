@@ -37,7 +37,6 @@
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
 #include "custom_utilities/parallel_bond_utilities.h"
-#include "custom_utilities/rve_utilities.h"
 
 namespace Kratos {
 
@@ -411,11 +410,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
         .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
-
-    py::class_<RVEUtilities, RVEUtilities::Pointer>(m, "RVEUtilities")
-        .def(py::init<>())
-        .def("ExecuteInitialize",           &RVEUtilities::ExecuteInitialize)
-        .def("ExecuteFinalizeSolutionStep", &RVEUtilities::ExecuteFinalizeSolutionStep);
     }
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)

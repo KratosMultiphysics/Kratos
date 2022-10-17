@@ -282,6 +282,22 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour
 
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
 
+//==========================================================================================================================================
+// HIERARCHICAL MULTISCALE RVE - START
+//==========================================================================================================================================
+
+// Properties
+int    mNumContacts;    // Number of unique contacts (with neighbors with higher ID)
+double mVolOverlap;     // Volume of overlap with unique contacts
+Matrix mFabricTensor;   // Fabric tensor with unique contacts
+
+// Methods
+
+
+//==========================================================================================================================================
+// HIERARCHICAL MULTISCALE RVE - FINISH
+//==========================================================================================================================================
+
 protected:
 
 virtual void ComputeBallToRigidFaceContactForceAndMoment(ParticleDataBuffer & data_buffer,

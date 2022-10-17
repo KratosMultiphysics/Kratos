@@ -207,6 +207,8 @@ namespace Kratos {
 
         ComputeNodalArea();
 
+        RVEInitialize();
+
         KRATOS_CATCH("")
     } // Initialize()
 
@@ -517,7 +519,9 @@ namespace Kratos {
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
+            RVEExecuteParticlePre(mListOfSphericParticles[i]);
             mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity);
+            RVEExecuteParticlePos(mListOfSphericParticles[i]);
         }
 
         KRATOS_CATCH("")
@@ -644,6 +648,9 @@ namespace Kratos {
         }
 
         ApplyPrescribedBoundaryConditions();
+
+        RVEInitializeSolutionStep();
+
         KRATOS_CATCH("")
     }
 
@@ -675,6 +682,8 @@ namespace Kratos {
         block_for_each(rElements, [&r_process_info](ModelPart::ElementType& rElement) {
             rElement.FinalizeSolutionStep(r_process_info);
         });
+
+        RVEFinalizeSolutionStep();
 
         //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
         KRATOS_CATCH("")
@@ -1804,4 +1813,214 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
+
+    //==========================================================================================================================================
+    // HIERARCHICAL MULTISCALE RVE - START
+    //==========================================================================================================================================
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEInitialize(void) {
+      ModelPart&   r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
+
+      // Initialize properties
+      mRVE_Dimension = r_process_info[DOMAIN_SIZE];
+
+      // Assemble vectors of wall elements
+      RVEAssembleWallVectors();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEInitializeSolutionStep(void) {
+      ModelPart&   r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
+
+      // Set flag for computing RVE in current step
+      const int time_step = r_process_info[TIME_STEPS];
+      mRVE_Solve = (time_step > 0 && time_step % mRVE_Frequency == 0.0);
+
+      // Initialize variables
+      if (mRVE_Solve && time_step > 0) {
+        mRVE_NumContacts  = 0;
+        mRVE_VolSolid     = 0.0;
+        mRVE_FabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEExecuteParticlePre(SphericParticle* p_particle) {
+      p_particle->mNumContacts  = 0;
+      p_particle->mVolOverlap   = 0.0;
+      p_particle->mFabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEExecuteParticlePos(SphericParticle* p_particle) {
+      if (!mRVE_Solve) return;
+
+      mRVE_NumContacts  += p_particle->mNumContacts;
+      mRVE_VolSolid     += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
+      mRVE_FabricTensor += p_particle->mFabricTensor;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEFinalizeSolutionStep(void) {
+      if (!mRVE_Solve) return;
+
+      // Compute porosity and void ratio
+      mRVE_VolTotal = RVEComputeTotalVolume();
+      RVEComputePorosity();
+
+      // Compute fabric tensor
+      for (int i = 0; i < mRVE_FabricTensor.size1(); i++)
+        for (int j = 0; j < mRVE_FabricTensor.size2(); j++)
+          mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
+
+      // Deviatoric fabric tensor
+      // Anisotropy
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEAssembleWallVectors(void) {
+      if      (mRVE_Dimension == 2) RVEAssembleWallVectors2D();
+      else if (mRVE_Dimension == 3) RVEAssembleWallVectors3D();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEAssembleWallVectors2D(void) {
+      const double eps = std::numeric_limits<double>::epsilon();
+
+      std::vector<DEMWall*> wall_elems_x;
+      std::vector<DEMWall*> wall_elems_y;
+
+      double xmin =  DBL_MAX;
+      double xmax = -DBL_MAX;
+      double ymin =  DBL_MAX;
+      double ymax = -DBL_MAX;
+      
+      ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
+      for (int i = 0; i < r_conditions.size(); i++) {
+        ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+        DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+
+        Condition::GeometryType& geom = p_wall->GetGeometry();
+        double coords1[2] = { geom[0][0], geom[0][1] };
+        double coords2[2] = { geom[1][0], geom[1][1] };
+
+        if (std::abs(coords1[0]-coords2[0]) < eps) {
+          wall_elems_x.push_back(p_wall);
+          if (coords1[0] < xmin) xmin = coords1[0];
+          if (coords1[0] > xmax) xmax = coords1[0];
+        }
+        else if (std::abs(coords1[1]-coords2[1]) < eps) {
+          wall_elems_y.push_back(p_wall);
+          if (coords1[1] < ymin) ymin = coords1[1];
+          if (coords1[1] > ymax) ymax = coords1[1];
+        }
+      }
+
+      for (int i = 0; i < wall_elems_x.size(); i++) {
+        const double x = wall_elems_x[i]->GetGeometry()[0][0];
+        if      (std::abs(x-xmin) < eps) mRVE_WallXMin.push_back(wall_elems_x[i]);
+        else if (std::abs(x-xmax) < eps) mRVE_WallXMax.push_back(wall_elems_x[i]);
+      }
+      for (int i = 0; i < wall_elems_y.size(); i++) {
+        const double y = wall_elems_y[i]->GetGeometry()[0][1];
+        if      (std::abs(y-ymin) < eps) mRVE_WallYMin.push_back(wall_elems_y[i]);
+        else if (std::abs(y-ymax) < eps) mRVE_WallYMax.push_back(wall_elems_y[i]);
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEAssembleWallVectors3D(void) {
+      const double eps = std::numeric_limits<double>::epsilon();
+
+      std::vector<DEMWall*> wall_elems_x;
+      std::vector<DEMWall*> wall_elems_y;
+      std::vector<DEMWall*> wall_elems_z;
+
+      double xmin =  DBL_MAX;
+      double xmax = -DBL_MAX;
+      double ymin =  DBL_MAX;
+      double ymax = -DBL_MAX;
+      double zmin =  DBL_MAX;
+      double zmax = -DBL_MAX;
+
+      ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
+      for (int i = 0; i < r_conditions.size(); i++) {
+        ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+        DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+
+        Condition::GeometryType& geom = p_wall->GetGeometry();
+        double coords1[3] = {geom[0][0], geom[0][1], geom[0][2]};
+        double coords2[3] = {geom[1][0], geom[1][1], geom[1][2]};
+        double coords3[3] = {geom[2][0], geom[2][1], geom[2][2]};
+
+        if (std::abs(coords1[0]-coords2[0]) < eps && std::abs(coords1[0]-coords3[0]) < eps) {
+          wall_elems_x.push_back(p_wall);
+          if (coords1[0] < xmin) xmin = coords1[0];
+          if (coords1[0] > xmax) xmax = coords1[0];
+        }
+        else if (std::abs(coords1[1]-coords2[1]) < eps && std::abs(coords1[1]-coords3[1]) < eps) {
+          wall_elems_y.push_back(p_wall);
+          if (coords1[1] < ymin) ymin = coords1[1];
+          if (coords1[1] > ymax) ymax = coords1[1];
+        }
+        else if (std::abs(coords1[2]-coords2[2]) < eps && std::abs(coords1[2]-coords3[2]) < eps) {
+          wall_elems_z.push_back(p_wall);
+          if (coords1[2] < zmin) zmin = coords1[2];
+          if (coords1[2] > zmax) zmax = coords1[2];
+        }
+      }
+
+      for (int i = 0; i < wall_elems_x.size(); i++) {
+        const double x = wall_elems_x[i]->GetGeometry()[0][0];
+        if      (std::abs(x-xmin) < eps) mRVE_WallXMin.push_back(wall_elems_x[i]);
+        else if (std::abs(x-xmax) < eps) mRVE_WallXMax.push_back(wall_elems_x[i]);
+      }
+      for (int i = 0; i < wall_elems_y.size(); i++) {
+        const double y = wall_elems_y[i]->GetGeometry()[0][1];
+        if      (std::abs(y-ymin) < eps) mRVE_WallYMin.push_back(wall_elems_y[i]);
+        else if (std::abs(y-ymax) < eps) mRVE_WallYMax.push_back(wall_elems_y[i]);
+      }
+      for (int i = 0; i < wall_elems_z.size(); i++) {
+        const double z = wall_elems_z[i]->GetGeometry()[0][2];
+        if      (std::abs(z-zmin) < eps) mRVE_WallZMin.push_back(wall_elems_z[i]);
+        else if (std::abs(z-zmax) < eps) mRVE_WallZMax.push_back(wall_elems_z[i]);
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    double ExplicitSolverStrategy::RVEComputeTotalVolume(void) {
+      double dX = 1.0;
+      double dY = 1.0;
+      double dZ = 1.0;
+
+      if (mRVE_WallXMin.size() > 0 && mRVE_WallXMax.size() > 0)
+        dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+
+      if (mRVE_WallYMin.size() > 0 && mRVE_WallYMax.size() > 0)
+        dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+
+      if (mRVE_WallZMin.size() > 0 && mRVE_WallZMax.size() > 0)
+        dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+
+      return dX * dY * dZ;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    double ExplicitSolverStrategy::RVEComputeParticleVolume(SphericParticle* p_particle) {
+      if      (mRVE_Dimension == 2) return Globals::Pi * p_particle->GetRadius() * p_particle->GetRadius();
+      else if (mRVE_Dimension == 3) return p_particle->CalculateVolume();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEComputePorosity(void) {
+      mRVE_Porosity  = 1.0 - mRVE_VolSolid / mRVE_VolTotal;
+      mRVE_VoidRatio = mRVE_Porosity / (1.0 - mRVE_Porosity);
+    }
+
+    //==========================================================================================================================================
+    // HIERARCHICAL MULTISCALE RVE - FINISH
+    //==========================================================================================================================================
 }
