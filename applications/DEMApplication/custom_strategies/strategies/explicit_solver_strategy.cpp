@@ -1885,7 +1885,7 @@ namespace Kratos {
         for (int j = 0; j < mRVE_Dimension; j++) {
           mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
           if (i == j)
-            aux(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - 0.5);
+            aux(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - 1 / mRVE_Dimension);
           else
             aux(i,j) = 4.0 * mRVE_FabricTensor(i,j);
         }
