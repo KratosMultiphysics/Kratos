@@ -1893,6 +1893,7 @@ namespace Kratos {
       
       if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
       else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
+      if (invariant2 < 0.0) invariant2 = 0.0;
       mRVE_Anisotropy = sqrt(invariant2);
 
       // Compute stresses
@@ -1920,6 +1921,7 @@ namespace Kratos {
 
       if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
       else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
+      if (invariant2 < 0.0) invariant2 = 0.0;
       mRVE_DevStress = sqrt(invariant2);
 
       // Write files
