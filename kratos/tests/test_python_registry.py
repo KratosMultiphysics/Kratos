@@ -80,11 +80,25 @@ class TestPythonRegistry(KratosUnittest.TestCase):
             KratosMultiphysics.Registry.RemoveItem("Processes.All.Process")
 
     def testRemoveItemPython(self):
-        # Add a fake entity to the Python registry and remove it
-        # Note that we remove it from both the module and the all blocks
+        # Remove both the module and the all entries one by one
         KratosMultiphysics.Registry.AddItem("FamilyType.Module.ItemName", object())
         KratosMultiphysics.Registry.RemoveItem("FamilyType.All.ItemName")
         KratosMultiphysics.Registry.RemoveItem("FamilyType.Module.ItemName")
+
+        # Remove complete module
+        KratosMultiphysics.Registry.AddItem("FamilyType.Module.ItemName1", object())
+        KratosMultiphysics.Registry.AddItem("FamilyType.Module.ItemName2", object())
+        KratosMultiphysics.Registry.RemoveItem("FamilyType.All")
+        KratosMultiphysics.Registry.RemoveItem("FamilyType.Module")
+
+        # Remove all items with same keyword
+        # Note that this removes the both the module and the all entries at once
+        KratosMultiphysics.Registry.AddItem("FamilyType.Module.ItemName1", object())
+        KratosMultiphysics.Registry.AddItem("FamilyType.Module.ItemName2", object())
+        KratosMultiphysics.Registry.RemoveItem("FamilyType")
+
+        # Check that registry has no items of FamilyType
+        self.assertFalse(KratosMultiphysics.Registry.HasItem("FamilyType"))
 
     def testGetItemNonRegistered(self):
         # Check that retrieveing a non registered item throws an exception

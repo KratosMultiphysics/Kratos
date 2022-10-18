@@ -42,7 +42,7 @@ class PythonRegistry(object):
             # Add to the corresponding item All block
             self.__InternalAddItemToAll(Name, Class)
             # Add item to the corresponding module
-            self.__InternalAddItemToModule(Name, Class)
+            self.__InternalAddItem(Name, Class)
 
     def RemoveItem(self, Name):
         if self.HasItem(Name, RegistryContext.PYTHON):
@@ -133,21 +133,7 @@ class PythonRegistry(object):
             aux_dict = aux_dict[i_name]
         aux_dict.pop(split_name[-1])
 
-    def __InternalAddItemToAll(self, Name, Class):
-        item_keyword, _, class_name = self.__SplitRegistryNameString(Name)
-        if self.HasItem(f"{item_keyword}.All.{class_name}", RegistryContext.ALL):
-            err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
-            raise Exception(err_msg)
-
-        if item_keyword in self.__python_registry:
-            item_all_dict = self.__python_registry[item_keyword]["All"]
-            item_all_dict[class_name] = Class
-        else:
-            self.__python_registry[item_keyword] = {}
-            self.__python_registry[item_keyword]["All"] = {}
-            self.__python_registry[item_keyword]["All"][class_name] = Class
-
-    def __InternalAddItemToModule(self, Name, Class):
+    def __InternalAddItem(self, Name, Class):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
@@ -155,3 +141,11 @@ class PythonRegistry(object):
                 aux_dict[i_name] = {}
             aux_dict = aux_dict[i_name]
         aux_dict[split_name[-1]] = Class
+
+    def __InternalAddItemToAll(self, Name, Class):
+        item_keyword, _, class_name = self.__SplitRegistryNameString(Name)
+        all_full_name = f"{item_keyword}.All.{class_name}"
+        if self.HasItem(all_full_name, RegistryContext.ALL):
+            err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
+            raise Exception(err_msg)
+        self.__InternalAddItem(all_full_name, Class)
