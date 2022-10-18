@@ -1842,9 +1842,10 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEExecuteParticlePre(SphericParticle* p_particle) {
-      if (!mRVE_Solve) return;
+      p_particle->mRVESolve = mRVE_Solve;
+      if (!mRVE_Solve)
+        return;
 
-      p_particle->mRVESolve     = mRVE_Solve;
       p_particle->mCoordNum     = 0;
       p_particle->mNumContacts  = 0;
       p_particle->mVolOverlap   = 0.0;
