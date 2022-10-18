@@ -251,7 +251,22 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
-  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+  const auto &r_props = rValues.GetMaterialProperties();
+  const double Young = r_props[YOUNG_MODULUS];
+  const double nu = r_props[POISSON_RATIO];
+  const double Gf = r_props[FRACTURE_ENERGY];
+  const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  auto &r_Ct = rValues.GetConstitutiveMatrix();
+  const auto &r_strain = rValues.GetStrainVector();
+
+  const bool has_symmetric_yield_stress = r_props.Has(YIELD_STRESS);
+  const double threshold_compression = has_symmetric_yield_stress ? r_props[YIELD_STRESS] : r_props[YIELD_STRESS_COMPRESSION];
+  const double threshold_tension = has_symmetric_yield_stress ? r_props[YIELD_STRESS] : r_props[YIELD_STRESS_TENSION];
+
+
+
+
 }
 
 /***********************************************************************************/
@@ -1118,7 +1133,23 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
-  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+  const auto &r_props = rValues.GetMaterialProperties();
+  const double Young = r_props[YOUNG_MODULUS];
+  const double nu = r_props[POISSON_RATIO];
+  const double Gf = r_props[FRACTURE_ENERGY];
+  const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  auto &r_Ct = rValues.GetConstitutiveMatrix();
+  const auto &r_strain = rValues.GetStrainVector();
+
+  const bool has_symmetric_yield_stress = r_props.Has(YIELD_STRESS);
+  const double threshold_compression = has_symmetric_yield_stress ? r_props[YIELD_STRESS] : r_props[YIELD_STRESS_COMPRESSION];
+  const double threshold_tension = has_symmetric_yield_stress ? r_props[YIELD_STRESS] : r_props[YIELD_STRESS_TENSION];
+
+
+
+
+  
 }
 
 /***********************************************************************************/
@@ -2486,7 +2517,21 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
-  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+  const auto &r_props = rValues.GetMaterialProperties();
+  const double Young = r_props[YOUNG_MODULUS];
+  const double nu = r_props[POISSON_RATIO];
+  const double Gf = r_props[FRACTURE_ENERGY];
+  const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  auto &r_Ct = rValues.GetConstitutiveMatrix();
+  const auto &r_strain = rValues.GetStrainVector();
+
+  const bool has_symmetric_yield_stress = r_props.Has(YIELD_STRESS);
+  const double threshold_compression = has_symmetric_yield_stress ? r_props[YIELD_STRESS] : r_props[YIELD_STRESS_COMPRESSION];
+  const double threshold_tension = has_symmetric_yield_stress ? r_props[YIELD_STRESS] : r_props[YIELD_STRESS_TENSION];
+
+
+
 }
 
 /***********************************************************************************/
