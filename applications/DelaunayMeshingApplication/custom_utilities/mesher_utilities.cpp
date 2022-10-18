@@ -2166,10 +2166,10 @@ namespace Kratos
     {
       if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
-        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
-        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
-        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
-        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+        const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+        const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+        const array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+        const array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
 
         if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[1] > RefiningBoxMinimumPoint[1] &&
             NodeCoordinates[0] < RefiningBoxMaximumPoint[0] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1])
@@ -2187,12 +2187,13 @@ namespace Kratos
       {
         if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
         {
-          array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
-          array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
-          array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
-          array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
-          double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
-          double transitionDistance = 4.0 * fabs(differenceOfSize);
+          const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+          const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+          const array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+          const array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+
+          const double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
+          const double transitionDistance = 4.0 * fabs(differenceOfSize);
           double distanceToBox = 0;
           double coefficient = 0;
 
@@ -2200,9 +2201,9 @@ namespace Kratos
           {
             if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
             {
-              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
@@ -2212,9 +2213,9 @@ namespace Kratos
             }
             else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
             {
-              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
@@ -2228,7 +2229,7 @@ namespace Kratos
               counter++;
             }
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2239,9 +2240,9 @@ namespace Kratos
           {
             if (NodeCoordinates[1] < RefiningBoxMinimumPoint[1])
             {
-              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
@@ -2251,9 +2252,9 @@ namespace Kratos
             }
             else if (NodeCoordinates[1] > RefiningBoxMaximumPoint[1])
             {
-              double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+              const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
@@ -2267,7 +2268,7 @@ namespace Kratos
               counter++;
             }
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2279,7 +2280,7 @@ namespace Kratos
             distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
             counter++;
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2291,7 +2292,7 @@ namespace Kratos
             distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
             counter++;
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2324,10 +2325,10 @@ namespace Kratos
     {
       if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
       {
-        array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
-        array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
-        array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
-        array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+        const array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+        const array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+        const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+        const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
 
         if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
             NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1] &&
@@ -2347,13 +2348,13 @@ namespace Kratos
       {
         if (rMeshingVariables.UseRefiningBox[index] == true && currentTime > rMeshingVariables.RefiningBoxInitialTime[index] && currentTime < rMeshingVariables.RefiningBoxFinalTime[index])
         {
-          array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
-          array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
-          array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
-          array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
+          const array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
+          const array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
+          const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
+          const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
 
-          double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
-          double transitionDistance = 4.0 * fabs(differenceOfSize);
+          const double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
+          const double transitionDistance = 4.0 * fabs(differenceOfSize);
           double distanceToBox = 0;
           double coefficient = 0;
 
@@ -2365,10 +2366,10 @@ namespace Kratos
             {
               if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2378,10 +2379,10 @@ namespace Kratos
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2391,9 +2392,9 @@ namespace Kratos
               }
               else
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2406,10 +2407,10 @@ namespace Kratos
             {
               if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2419,10 +2420,10 @@ namespace Kratos
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2432,9 +2433,9 @@ namespace Kratos
               }
               else
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2450,7 +2451,7 @@ namespace Kratos
             }
 
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2465,10 +2466,10 @@ namespace Kratos
             {
               if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2478,10 +2479,10 @@ namespace Kratos
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2491,9 +2492,9 @@ namespace Kratos
               }
               else
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2506,10 +2507,10 @@ namespace Kratos
             {
               if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2519,10 +2520,10 @@ namespace Kratos
               }
               else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2532,9 +2533,9 @@ namespace Kratos
               }
               else
               {
-                double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-                double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
+                const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+                const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
                 distanceToBox = sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
@@ -2549,7 +2550,7 @@ namespace Kratos
               counter++;
             }
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2562,8 +2563,8 @@ namespace Kratos
           {
             if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
             {
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
               double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
@@ -2574,8 +2575,8 @@ namespace Kratos
             }
             else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
             {
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+              const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
               double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
@@ -2591,7 +2592,7 @@ namespace Kratos
             }
 
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2604,8 +2605,8 @@ namespace Kratos
           {
             if (NodeCoordinates[2] < RefiningBoxMinimumPoint[2])
             {
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
               double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
@@ -2616,8 +2617,8 @@ namespace Kratos
             }
             else if (NodeCoordinates[2] > RefiningBoxMaximumPoint[2])
             {
-              double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+              const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+              const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
               double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
               distanceToBox = sqrt(radius);
               if (distanceToBox > transitionDistance)
@@ -2633,7 +2634,7 @@ namespace Kratos
             }
 
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2647,7 +2648,7 @@ namespace Kratos
             distanceToBox = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
             counter++;
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
@@ -2661,7 +2662,7 @@ namespace Kratos
             distanceToBox = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
             counter++;
             coefficient = fabs(distanceToBox) / transitionDistance;
-            double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
+            const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
               meshSize = localMeshSize;
