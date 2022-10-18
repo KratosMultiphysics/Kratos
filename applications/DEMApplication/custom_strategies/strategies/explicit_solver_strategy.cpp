@@ -1897,7 +1897,6 @@ namespace Kratos {
       mRVE_Anisotropy = sqrt(invariant2);
 
       // Compute stresses
-      aux = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
       double tr_stress = 0.0; 
 
       for (int i = 0; i < mRVE_Dimension; i++) {
@@ -1910,14 +1909,9 @@ namespace Kratos {
 
       mRVE_EffectStress = tr_stress / mRVE_Dimension;
 
-      for (int i = 0; i < mRVE_Dimension; i++) {
-        for (int j = 0; j < mRVE_Dimension; j++) {
-          if (i == j)
-            aux(i,j) = mRVE_CauchyTensor(i,j) - mRVE_EffectStress;
-          else
-            aux(i,j) = mRVE_CauchyTensor(i,j);
-        }
-      }
+      noalias(aux) = mRVE_CauchyTensor;
+      for (int i = 0; i < mRVE_Dimension; i++)
+        aux(i,i) -= mRVE_EffectStress;
 
       if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
       else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
