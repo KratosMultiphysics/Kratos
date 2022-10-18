@@ -2081,13 +2081,14 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEWriteFiles(void) {
-      if (!mRVE_FreqWrite) return;
-
       ModelPart&   r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
 
       const int    time_step = r_process_info[TIME_STEPS];
       const double time      = r_process_info[TIME];
+
+      if (time_step % mRVE_FreqWrite != 0.0)
+        return;
 
       if (mRVE_FilePorosity.is_open())
         mRVE_FilePorosity << time_step     << " "
