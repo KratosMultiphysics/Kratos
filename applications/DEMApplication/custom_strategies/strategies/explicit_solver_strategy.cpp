@@ -1831,12 +1831,12 @@ namespace Kratos {
 
       // Initialize variables
       if (mRVE_Solve && time_step > 0) {
-        mRVE_NumContacts = 0;
-        mRVE_AvgCoordNum = 0.0;
-        mRVE_VolSolid    = 0.0;
-        noalias(mRVE_RoseDiagram)  = ZeroMatrix(2, 40);
-        noalias(mRVE_FabricTensor) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
-        noalias(mRVE_CauchyTensor) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+        mRVE_NumContacts  = 0;
+        mRVE_AvgCoordNum  = 0.0;
+        mRVE_VolSolid     = 0.0;
+        mRVE_RoseDiagram  = ZeroMatrix(2, 40);
+        mRVE_FabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+        mRVE_CauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
       }
     }
 
@@ -1844,25 +1844,25 @@ namespace Kratos {
     void ExplicitSolverStrategy::RVEExecuteParticlePre(SphericParticle* p_particle) {
       if (!mRVE_Solve) return;
 
-      p_particle->mRVESolve    = mRVE_Solve;
-      p_particle->mCoordNum    = 0;
-      p_particle->mNumContacts = 0;
-      p_particle->mVolOverlap  = 0.0;
-      noalias(p_particle->mRoseDiagram)  = ZeroMatrix(2, 40);
-      noalias(p_particle->mFabricTensor) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
-      noalias(p_particle->mCauchyTensor) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      p_particle->mRVESolve     = mRVE_Solve;
+      p_particle->mCoordNum     = 0;
+      p_particle->mNumContacts  = 0;
+      p_particle->mVolOverlap   = 0.0;
+      p_particle->mRoseDiagram  = ZeroMatrix(2, 40);
+      p_particle->mFabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      p_particle->mCauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEExecuteParticlePos(SphericParticle* p_particle) {
       if (!mRVE_Solve) return;
 
-      mRVE_NumContacts += p_particle->mNumContacts;
-      mRVE_AvgCoordNum += p_particle->mCoordNum;
-      mRVE_VolSolid    += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
-      noalias(mRVE_RoseDiagram)  += p_particle->mRoseDiagram;
-      noalias(mRVE_FabricTensor) += p_particle->mFabricTensor;
-      noalias(mRVE_CauchyTensor) += p_particle->mCauchyTensor;
+      mRVE_NumContacts  += p_particle->mNumContacts;
+      mRVE_AvgCoordNum  += p_particle->mCoordNum;
+      mRVE_VolSolid     += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
+      mRVE_RoseDiagram  += p_particle->mRoseDiagram;
+      mRVE_FabricTensor += p_particle->mFabricTensor;
+      mRVE_CauchyTensor += p_particle->mCauchyTensor;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1895,7 +1895,7 @@ namespace Kratos {
       mRVE_Anisotropy = sqrt(invariant2);
 
       // Compute stresses
-      noalias(aux) = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      aux = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
       double tr_stress = 0.0; 
 
       for (int i = 0; i < mRVE_Dimension; i++) {

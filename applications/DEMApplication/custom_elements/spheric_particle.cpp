@@ -884,19 +884,35 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             // Store contact information needed for later processes
             StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
+            //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE
+            //==========================================================================================================================================
             if (mRVESolve && data_buffer.mIndentation > 0.0) {
               mCoordNum++;
 
+              // Branch vector
+              const double r1 = GetRadius();
+              const double r2 = data_buffer.mpOtherParticle->GetRadius();
+              const double d  = r1 + r2 - data_buffer.mIndentation;
+              const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
+              const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
+
+              // Rose diagram
+              const double rad2deg = 180.0 / Globals::Pi;
+              double angle_xy = rad2deg * atan2(normal[1], normal[0]);
+              double azimuth  = rad2deg * atan2(normal[2], sqrt(normal[0]*normal[0] + normal[1]*normal[1]));
+              if (angle_xy < 0.0) angle_xy += 360.0;
+
+              const int num_subdivisions = 40;
+              const double subdivision_size = 360.0 / num_subdivisions;
+
+              const int idx_xy = angle_xy / subdivision_size;
+              const int idx_az = azimuth  / subdivision_size;
+              mRoseDiagram(0,idx_xy)++;
+              mRoseDiagram(1,idx_az)++;
+
               if (GetId() < data_buffer.mpOtherParticle->GetId()) { // Unique contacts (each binary contact evaluated only once)
                 mNumContacts++;
-
-                // Branch vector
-                const double r1 = GetRadius();
-                const double r2 = data_buffer.mpOtherParticle->GetRadius();
-                double d = r1 + r2 - data_buffer.mIndentation;
-                double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
-                double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
 
                 // Overlap volume
                 const double r12 = r1 * r1;
@@ -907,20 +923,6 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                   mVolOverlap += r12 * std::acos((d2+r12-r22) / (2.0*d*r1)) + r22 * std::acos((d2+r22-r12) / (2.0*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
                 else if (r_process_info[DOMAIN_SIZE] == 3)
                   mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2.0*d*r1+2.0*d*r2+6.0*r1*r2-3.0*r12-3.0*r22)) / (12.0*d);
-
-                // Rose diagram
-                double angle_xy = atan2(normal[1], normal[0]) * 180.0/Globals::Pi;
-                double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180.0/Globals::Pi;
-                if (angle_xy < 0.0) angle_xy += 360.0;
-
-                const int num_subdivisions = 40;
-                const double subdivision_size = 360.0/num_subdivisions;
-
-                const int idx_xy = angle_xy/subdivision_size;
-                const int idx_az = azimuth/subdivision_size;
-
-                mRoseDiagram(0,idx_xy) = angle_xy;
-                mRoseDiagram(1,idx_az) = azimuth;
 
                 // Fabric tensor
                 for (int i = 0; i < mFabricTensor.size1(); i++)
@@ -933,6 +935,9 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                     mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
               }
             }
+            //==========================================================================================================================================
+            // HIERARCHICAL MULTISCALE RVE
+            //==========================================================================================================================================
 
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
@@ -1148,7 +1153,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             // Store contact information needed for later processes
             StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForce, LocalContactForce, ViscoDampingLocalContactForce, sliding);
 
+            //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE
+            //==========================================================================================================================================
             if (mRVESolve && indentation > 0.0) {
               mCoordNum++;
               mNumContacts++;
@@ -1156,29 +1163,29 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               // Branch vector
               // ATTENTION: Assuming twice the radius for the branch vector!
               const double r = GetRadius();
-              double d = 2 * r - indentation;
-              double normal[3] = {-data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2]};
-              double branch[3] = {d * normal[0], d * normal[1], d * normal[2]};
+              const double d = 2 * r - indentation;
+              const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
+              const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
+
+              // Rose diagram
+              const double rad2deg = 180.0 / Globals::Pi;
+              double angle_xy = rad2deg * atan2(normal[1], normal[0]);
+              double azimuth  = rad2deg * atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1]));
+              if (angle_xy < 0.0) angle_xy += 360.0;
+
+              const int num_subdivisions = 40;
+              const double subdivision_size = 360.0 / num_subdivisions;
+
+              const int idx_xy = angle_xy / subdivision_size;
+              const int idx_az = azimuth  / subdivision_size;
+              mRoseDiagram(0,idx_xy)++;
+              mRoseDiagram(1,idx_az)++;
 
               // Overlap volume
               if (r_process_info[DOMAIN_SIZE] == 2)
                 mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2.0*r*indentation-indentation*indentation);
               else if (r_process_info[DOMAIN_SIZE] == 3)
                 mVolOverlap += Globals::Pi * indentation*indentation * (3.0*r-indentation) / 3.0;
-
-              // Rose diagram
-              double angle_xy = atan2(normal[1], normal[0]) * 180.0/Globals::Pi;
-              double azimuth  = atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1])) * 180.0/Globals::Pi;
-              if (angle_xy < 0.0) angle_xy += 360.0;
-
-              const int num_subdivisions = 40;
-              const double subdivision_size = 360.0/num_subdivisions;
-
-              const int idx_xy = angle_xy/subdivision_size;
-              const int idx_az = azimuth/subdivision_size;
-
-              mRoseDiagram(0,idx_xy) = angle_xy;
-              mRoseDiagram(1,idx_az) = azimuth;
 
               // Fabric tensor
               for (int i = 0; i < mFabricTensor.size1(); i++)
@@ -1190,6 +1197,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
                 for (int j = 0; j < mCauchyTensor.size2(); j++)
                   mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
             }
+            //==========================================================================================================================================
+            // HIERARCHICAL MULTISCALE RVE
+            //==========================================================================================================================================
 
         } //ContactType if
     } //rNeighbours.size loop
