@@ -167,6 +167,14 @@ public:
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     /**
+     * A third order tensor to hold shape functions' local second derivatives.
+     * ShapefunctionsLocalGradients function return this
+     * type as its result.
+     */
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
+    ShapeFunctionsSecondDerivativesType;
+
+    /**
      * Type of the normal vector used for normal to edges in geomety.
      */
     typedef typename BaseType::NormalType NormalType;
@@ -1438,6 +1446,71 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
+    }
+
+    /**
+     * returns the second order derivatives of all shape functions
+     * in given arbitrary points
+     * @param rResult a third order tensor which contains the second derivatives
+     * @param rPoint the given point the second order derivatives are calculated in
+     */
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    {
+        if ( rResult.size() != this->PointsNumber() )
+        {
+            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp( this->PointsNumber() );
+            rResult.swap( temp );
+        }
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+            rResult[i].resize( 3, 3, false );
+            noalias( rResult[i] ) = ZeroMatrix( 3, 3 );
+        }
+
+        rResult[0]( 0, 0 ) = 0.0;
+        rResult[0]( 0, 1 ) = 0.0;
+        rResult[0]( 0, 2 ) = 0.0;
+        rResult[0]( 1, 0 ) = 0.0;
+        rResult[0]( 1, 1 ) = 0.0;
+        rResult[0]( 1, 2 ) = 0.0;
+        rResult[0]( 2, 0 ) = 0.0;
+        rResult[0]( 2, 1 ) = 0.0;
+        rResult[0]( 2, 2 ) = 0.0;
+
+
+        rResult[1]( 0, 0 ) = 0.0;
+        rResult[1]( 0, 1 ) = 0.0;
+        rResult[1]( 0, 2 ) = 0.0;
+        rResult[1]( 1, 0 ) = 0.0;
+        rResult[1]( 1, 1 ) = 0.0;
+        rResult[1]( 1, 2 ) = 0.0;
+        rResult[1]( 2, 0 ) = 0.0;
+        rResult[1]( 2, 1 ) = 0.0;
+        rResult[1]( 2, 2 ) = 0.0;
+
+        rResult[2]( 0, 0 ) = 0.0;
+        rResult[2]( 0, 1 ) = 0.0;
+        rResult[2]( 0, 2 ) = 0.0;
+        rResult[2]( 1, 0 ) = 0.0;
+        rResult[2]( 1, 1 ) = 0.0;
+        rResult[2]( 1, 2 ) = 0.0;
+        rResult[2]( 2, 0 ) = 0.0;
+        rResult[2]( 2, 1 ) = 0.0;
+        rResult[2]( 2, 2 ) = 0.0;
+
+        rResult[3]( 0, 0 ) = 0.0;
+        rResult[3]( 0, 1 ) = 0.0;
+        rResult[3]( 0, 2 ) = 0.0;
+        rResult[3]( 1, 0 ) = 0.0;
+        rResult[3]( 1, 1 ) = 0.0;
+        rResult[3]( 1, 2 ) = 0.0;
+        rResult[3]( 2, 0 ) = 0.0;
+        rResult[3]( 2, 1 ) = 0.0;
+        rResult[3]( 2, 2 ) = 0.0;
+
+        return rResult;
     }
 
 

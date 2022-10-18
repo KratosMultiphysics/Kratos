@@ -159,6 +159,14 @@ public:
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     /**
+     * A third order tensor to hold shape functions' local second derivatives.
+     * ShapefunctionsLocalGradients function return this
+     * type as its result.
+     */
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
+    ShapeFunctionsSecondDerivativesType;
+
+    /**
      * Type of the normal vector used for normal to edges in geomety.
      */
     typedef typename BaseType::NormalType NormalType;
@@ -1375,6 +1383,331 @@ private:
 
         return d_shape_f_values;
     }
+
+    /**
+     * returns the second order derivatives of all shape functions
+     * in given arbitrary points
+     * @param rResult a third order tensor which contains the second derivatives
+     * @param rPoint the given point the second order derivatives are calculated in
+     */
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    {
+        if ( rResult.size() != this->PointsNumber() )
+        {
+            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp( this->PointsNumber() );
+            rResult.swap( temp );
+        }
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+            rResult[i].resize( 3, 3, false );
+            noalias( rResult[i] ) = ZeroMatrix( 3, 3 );
+        }
+
+        double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
+        double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
+        double fx3 = 1 - rPoint[0] * rPoint[0];
+        double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
+        double fy2 = 0.5 * ( rPoint[1] + 1 ) * rPoint[1];
+        double fy3 = 1 - rPoint[1] * rPoint[1];
+        double fz1 = 0.5 * ( rPoint[2] - 1 ) * rPoint[2];
+        double fz2 = 0.5 * ( rPoint[2] + 1 ) * rPoint[2];
+        double fz3 = 1 - rPoint[2] * rPoint[2];
+
+        double gx1 = 0.5 * ( 2 * rPoint[0] - 1 );
+        double gx2 = 0.5 * ( 2 * rPoint[0] + 1 );
+        double gx3 = -2.0 * rPoint[0];
+        double gy1 = 0.5 * ( 2 * rPoint[1] - 1 );
+        double gy2 = 0.5 * ( 2 * rPoint[1] + 1 );
+        double gy3 = -2.0 * rPoint[1];
+        double gz1 = 0.5 * ( 2 * rPoint[2] - 1 );
+        double gz2 = 0.5 * ( 2 * rPoint[2] + 1 );
+        double gz3 = -2.0 * rPoint[2];
+
+        double hx1 = 1.0;
+        double hx2 = 1.0;
+        double hx3 = -2.0;
+        double hy1 = 1.0;
+        double hy2 = 1.0;
+        double hy3 = -2.0;
+        double hz1 = 1.0;
+        double hz2 = 1.0;
+        double hz3 = -2.0;
+
+        rResult[0]( 0, 0 ) = hx1 * fy1 * fz1;
+        rResult[0]( 0, 1 ) = gx1 * gy1 * fz1;
+        rResult[0]( 0, 2 ) = gx1 * fy1 * gz1;
+        rResult[0]( 1, 0 ) = gx1 * gy1 * fz1;
+        rResult[0]( 1, 1 ) = fx1 * hy1 * fz1;
+        rResult[0]( 1, 2 ) = fx1 * gy1 * gz1;
+        rResult[0]( 2, 0 ) = gx1 * fy1 * gz1;
+        rResult[0]( 2, 1 ) = fx1 * gy1 * gz1;
+        rResult[0]( 2, 2 ) = fx1 * fy1 * hz1;
+
+        rResult[1]( 0, 0 ) = hx2 * fy1 * fz1;
+        rResult[1]( 0, 1 ) = gx2 * gy1 * fz1;
+        rResult[1]( 0, 2 ) = gx2 * fy1 * gz1;
+        rResult[1]( 1, 0 ) = gx2 * gy1 * fz1;
+        rResult[1]( 1, 1 ) = fx2 * hy1 * fz1;
+        rResult[1]( 1, 2 ) = fx2 * gy1 * gz1;
+        rResult[1]( 2, 0 ) = gx2 * fy1 * gz1;
+        rResult[1]( 2, 1 ) = fx2 * gy1 * gz1;
+        rResult[1]( 2, 2 ) = fx2 * fy1 * hz1;
+
+        rResult[2]( 0, 0 ) = hx2 * fy2 * fz1;
+        rResult[2]( 0, 1 ) = gx2 * gy2 * fz1;
+        rResult[2]( 0, 2 ) = gx2 * fy2 * gz1;
+        rResult[2]( 1, 0 ) = gx2 * gy2 * fz1;
+        rResult[2]( 1, 1 ) = fx2 * hy2 * fz1;
+        rResult[2]( 1, 2 ) = fx2 * gy2 * gz1;
+        rResult[2]( 2, 0 ) = gx2 * fy2 * gz1;
+        rResult[2]( 2, 1 ) = fx2 * gy2 * gz1;
+        rResult[2]( 2, 2 ) = fx2 * fy2 * hz1;
+
+        rResult[3]( 0, 0 ) = hx1 * fy2 * fz1;
+        rResult[3]( 0, 1 ) = gx1 * gy2 * fz1;
+        rResult[3]( 0, 2 ) = gx1 * fy2 * gz1;
+        rResult[3]( 1, 0 ) = gx1 * gy2 * fz1;
+        rResult[3]( 1, 1 ) = fx1 * hy2 * fz1;
+        rResult[3]( 1, 2 ) = fx1 * gy2 * gz1;
+        rResult[3]( 2, 0 ) = gx1 * fy2 * gz1;
+        rResult[3]( 2, 1 ) = fx1 * gy2 * gz1;
+        rResult[3]( 2, 2 ) = fx1 * fy2 * hz1;
+
+        rResult[4]( 0, 0 ) = hx1 * fy1 * fz2;
+        rResult[4]( 0, 1 ) = gx1 * gy1 * fz2;
+        rResult[4]( 0, 2 ) = gx1 * fy1 * gz2;
+        rResult[4]( 1, 0 ) = gx1 * gy1 * fz2;
+        rResult[4]( 1, 1 ) = fx1 * hy1 * fz2;
+        rResult[4]( 1, 2 ) = fx1 * gy1 * gz2;
+        rResult[4]( 2, 0 ) = gx1 * fy1 * gz2;
+        rResult[4]( 2, 1 ) = fx1 * gy1 * gz2;
+        rResult[4]( 2, 2 ) = fx1 * fy1 * hz2;
+
+        rResult[5]( 0, 0 ) = hx2 * fy1 * fz2;
+        rResult[5]( 0, 1 ) = gx2 * gy1 * fz2;
+        rResult[5]( 0, 2 ) = gx2 * fy1 * gz2;
+        rResult[5]( 1, 0 ) = gx2 * gy1 * fz2;
+        rResult[5]( 1, 1 ) = fx2 * hy1 * fz2;
+        rResult[5]( 1, 2 ) = fx2 * gy1 * gz2;
+        rResult[5]( 2, 0 ) = gx2 * fy1 * gz2;
+        rResult[5]( 2, 1 ) = fx2 * gy1 * gz2;
+        rResult[5]( 2, 2 ) = fx2 * fy1 * hz2;
+
+        rResult[6]( 0, 0 ) = hx2 * fy2 * fz2;
+        rResult[6]( 0, 1 ) = gx2 * gy2 * fz2;
+        rResult[6]( 0, 2 ) = gx2 * fy2 * gz2;
+        rResult[6]( 1, 0 ) = gx2 * gy2 * fz2;
+        rResult[6]( 1, 1 ) = fx2 * hy2 * fz2;
+        rResult[6]( 1, 2 ) = fx2 * gy2 * gz2;
+        rResult[6]( 2, 0 ) = gx2 * fy2 * gz2;
+        rResult[6]( 2, 1 ) = fx2 * gy2 * gz2;
+        rResult[6]( 2, 2 ) = fx2 * fy2 * hz2;
+
+        rResult[7]( 0, 0 ) = hx1 * fy2 * fz2;
+        rResult[7]( 0, 1 ) = gx1 * gy2 * fz2;
+        rResult[7]( 0, 2 ) = gx1 * fy2 * gz2;
+        rResult[7]( 1, 0 ) = gx1 * gy2 * fz2;
+        rResult[7]( 1, 1 ) = fx1 * hy2 * fz2;
+        rResult[7]( 1, 2 ) = fx1 * gy2 * gz2;
+        rResult[7]( 2, 0 ) = gx1 * fy2 * gz2;
+        rResult[7]( 2, 1 ) = fx1 * gy2 * gz2;
+        rResult[7]( 2, 2 ) = fx1 * fy2 * hz2;
+
+        rResult[8]( 0, 0 ) = hx3 * fy1 * fz1;
+        rResult[8]( 0, 1 ) = gx3 * gy1 * fz1;
+        rResult[8]( 0, 2 ) = gx3 * fy1 * gz1;
+        rResult[8]( 1, 0 ) = gx3 * gy1 * fz1;
+        rResult[8]( 1, 1 ) = fx3 * hy1 * fz1;
+        rResult[8]( 1, 2 ) = fx3 * gy1 * gz1;
+        rResult[8]( 2, 0 ) = gx3 * fy1 * gz1;
+        rResult[8]( 2, 1 ) = fx3 * gy1 * gz1;
+        rResult[8]( 2, 2 ) = fx3 * fy1 * hz1;
+
+        rResult[9]( 0, 0 ) = hx2 * fy3 * fz1;
+        rResult[9]( 0, 1 ) = gx2 * gy3 * fz1;
+        rResult[9]( 0, 2 ) = gx2 * fy3 * gz1;
+        rResult[9]( 1, 0 ) = gx2 * gy3 * fz1;
+        rResult[9]( 1, 1 ) = fx2 * hy3 * fz1;
+        rResult[9]( 1, 2 ) = fx2 * gy3 * gz1;
+        rResult[9]( 2, 0 ) = gx2 * fy3 * gz1;
+        rResult[9]( 2, 1 ) = fx2 * gy3 * gz1;
+        rResult[9]( 2, 2 ) = fx2 * fy3 * hz1;
+
+        rResult[10]( 0, 0 ) = hx3 * fy2 * fz1;
+        rResult[10]( 0, 1 ) = gx3 * gy2 * fz1;
+        rResult[10]( 0, 2 ) = gx3 * fy2 * gz1;
+        rResult[10]( 1, 0 ) = gx3 * gy2 * fz1;
+        rResult[10]( 1, 1 ) = fx3 * hy2 * fz1;
+        rResult[10]( 1, 2 ) = fx3 * gy2 * gz1;
+        rResult[10]( 2, 0 ) = gx3 * fy2 * gz1;
+        rResult[10]( 2, 1 ) = fx3 * gy2 * gz1;
+        rResult[10]( 2, 2 ) = fx3 * fy2 * hz1;
+
+        rResult[11]( 0, 0 ) = hx1 * fy3 * fz1;
+        rResult[11]( 0, 1 ) = gx1 * gy3 * fz1;
+        rResult[11]( 0, 2 ) = gx1 * fy3 * gz1;
+        rResult[11]( 1, 0 ) = gx1 * gy3 * fz1;
+        rResult[11]( 1, 1 ) = fx1 * hy3 * fz1;
+        rResult[11]( 1, 2 ) = fx1 * gy3 * gz1;
+        rResult[11]( 2, 0 ) = gx1 * fy3 * gz1;
+        rResult[11]( 2, 1 ) = fx1 * gy3 * gz1;
+        rResult[11]( 2, 2 ) = fx1 * fy3 * hz1;
+
+        rResult[12]( 0, 0 ) = hx1 * fy1 * fz3;
+        rResult[12]( 0, 1 ) = gx1 * gy1 * fz3;
+        rResult[12]( 0, 2 ) = gx1 * fy1 * gz3;
+        rResult[12]( 1, 0 ) = gx1 * gy1 * fz3;
+        rResult[12]( 1, 1 ) = fx1 * hy1 * fz3;
+        rResult[12]( 1, 2 ) = fx1 * gy1 * gz3;
+        rResult[12]( 2, 0 ) = gx1 * fy1 * gz3;
+        rResult[12]( 2, 1 ) = fx1 * gy1 * gz3;
+        rResult[12]( 2, 2 ) = fx1 * fy1 * hz3;
+
+        rResult[13]( 0, 0 ) = hx2 * fy1 * fz3;
+        rResult[13]( 0, 1 ) = gx2 * gy1 * fz3;
+        rResult[13]( 0, 2 ) = gx2 * fy1 * gz3;
+        rResult[13]( 1, 0 ) = gx2 * gy1 * fz3;
+        rResult[13]( 1, 1 ) = fx2 * hy1 * fz3;
+        rResult[13]( 1, 2 ) = fx2 * gy1 * gz3;
+        rResult[13]( 2, 0 ) = gx2 * fy1 * gz3;
+        rResult[13]( 2, 1 ) = fx2 * gy1 * gz3;
+        rResult[13]( 2, 2 ) = fx2 * fy1 * hz3;
+
+        rResult[14]( 0, 0 ) = hx2 * fy2 * fz3;
+        rResult[14]( 0, 1 ) = gx2 * gy2 * fz3;
+        rResult[14]( 0, 2 ) = gx2 * fy2 * gz3;
+        rResult[14]( 1, 0 ) = gx2 * gy2 * fz3;
+        rResult[14]( 1, 1 ) = fx2 * hy2 * fz3;
+        rResult[14]( 1, 2 ) = fx2 * gy2 * gz3;
+        rResult[14]( 2, 0 ) = gx2 * fy2 * gz3;
+        rResult[14]( 2, 1 ) = fx2 * gy2 * gz3;
+        rResult[14]( 2, 2 ) = fx2 * fy2 * hz3;
+
+        rResult[15]( 0, 0 ) = hx1 * fy2 * fz3;
+        rResult[15]( 0, 1 ) = gx1 * gy2 * fz3;
+        rResult[15]( 0, 2 ) = gx1 * fy2 * gz3;
+        rResult[15]( 1, 0 ) = gx1 * gy2 * fz3;
+        rResult[15]( 1, 1 ) = fx1 * hy2 * fz3;
+        rResult[15]( 1, 2 ) = fx1 * gy2 * gz3;
+        rResult[15]( 2, 0 ) = gx1 * fy2 * gz3;
+        rResult[15]( 2, 1 ) = fx1 * gy2 * gz3;
+        rResult[15]( 2, 2 ) = fx1 * fy2 * hz3;
+
+        rResult[16]( 0, 0 ) = hx3 * fy1 * fz2;
+        rResult[16]( 0, 1 ) = gx3 * gy1 * fz2;
+        rResult[16]( 0, 2 ) = gx3 * fy1 * gz2;
+        rResult[16]( 1, 0 ) = gx3 * gy1 * fz2;
+        rResult[16]( 1, 1 ) = fx3 * hy1 * fz2;
+        rResult[16]( 1, 2 ) = fx3 * gy1 * gz2;
+        rResult[16]( 2, 0 ) = gx3 * fy1 * gz2;
+        rResult[16]( 2, 1 ) = fx3 * gy1 * gz2;
+        rResult[16]( 2, 2 ) = fx3 * fy1 * hz2;
+
+        rResult[17]( 0, 0 ) = hx2 * fy3 * fz2;
+        rResult[17]( 0, 1 ) = gx2 * gy3 * fz2;
+        rResult[17]( 0, 2 ) = gx2 * fy3 * gz2;
+        rResult[17]( 1, 0 ) = gx2 * gy3 * fz2;
+        rResult[17]( 1, 1 ) = fx2 * hy3 * fz2;
+        rResult[17]( 1, 2 ) = fx2 * gy3 * gz2;
+        rResult[17]( 2, 0 ) = gx2 * fy3 * gz2;
+        rResult[17]( 2, 1 ) = fx2 * gy3 * gz2;
+        rResult[17]( 2, 2 ) = fx2 * fy3 * hz2;
+
+        rResult[18]( 0, 0 ) = hx3 * fy2 * fz2;
+        rResult[18]( 0, 1 ) = gx3 * gy2 * fz2;
+        rResult[18]( 0, 2 ) = gx3 * fy2 * gz2;
+        rResult[18]( 1, 0 ) = gx3 * gy2 * fz2;
+        rResult[18]( 1, 1 ) = fx3 * hy2 * fz2;
+        rResult[18]( 1, 2 ) = fx3 * gy2 * gz2;
+        rResult[18]( 2, 0 ) = gx3 * fy2 * gz2;
+        rResult[18]( 2, 1 ) = fx3 * gy2 * gz2;
+        rResult[18]( 2, 2 ) = fx3 * fy2 * hz2;
+
+        rResult[19]( 0, 0 ) = hx1 * fy3 * fz2;
+        rResult[19]( 0, 1 ) = gx1 * gy3 * fz2;
+        rResult[19]( 0, 2 ) = gx1 * fy3 * gz2;
+        rResult[19]( 1, 0 ) = gx1 * gy3 * fz2;
+        rResult[19]( 1, 1 ) = fx1 * hy3 * fz2;
+        rResult[19]( 1, 2 ) = fx1 * gy3 * gz2;
+        rResult[19]( 2, 0 ) = gx1 * fy3 * gz2;
+        rResult[19]( 2, 1 ) = fx1 * gy3 * gz2;
+        rResult[19]( 2, 2 ) = fx1 * fy3 * hz2;
+
+        rResult[20]( 0, 0 ) = hx3 * fy3 * fz1;
+        rResult[20]( 0, 1 ) = gx3 * gy3 * fz1;
+        rResult[20]( 0, 2 ) = gx3 * fy3 * gz1;
+        rResult[20]( 1, 0 ) = gx3 * gy3 * fz1;
+        rResult[20]( 1, 1 ) = fx3 * hy3 * fz1;
+        rResult[20]( 1, 2 ) = fx3 * gy3 * gz1;
+        rResult[20]( 2, 0 ) = gx3 * fy3 * gz1;
+        rResult[20]( 2, 1 ) = fx3 * gy3 * gz1;
+        rResult[20]( 2, 2 ) = fx3 * fy3 * hz1;
+
+        rResult[21]( 0, 0 ) = hx3 * fy1 * fz3;
+        rResult[21]( 0, 1 ) = gx3 * gy1 * fz3;
+        rResult[21]( 0, 2 ) = gx3 * fy1 * gz3;
+        rResult[21]( 1, 0 ) = gx3 * gy1 * fz3;
+        rResult[21]( 1, 1 ) = fx3 * hy1 * fz3;
+        rResult[21]( 1, 2 ) = fx3 * gy1 * gz3;
+        rResult[21]( 2, 0 ) = gx3 * fy1 * gz3;
+        rResult[21]( 2, 1 ) = fx3 * gy1 * gz3;
+        rResult[21]( 2, 2 ) = fx3 * fy1 * hz3;
+
+        rResult[22]( 0, 0 ) = hx2 * fy3 * fz3;
+        rResult[22]( 0, 1 ) = gx2 * gy3 * fz3;
+        rResult[22]( 0, 2 ) = gx2 * fy3 * gz3;
+        rResult[22]( 1, 0 ) = gx2 * gy3 * fz3;
+        rResult[22]( 1, 1 ) = fx2 * hy3 * fz3;
+        rResult[22]( 1, 2 ) = fx2 * gy3 * gz3;
+        rResult[22]( 2, 0 ) = gx2 * fy3 * gz3;
+        rResult[22]( 2, 1 ) = fx2 * gy3 * gz3;
+        rResult[22]( 2, 2 ) = fx2 * fy3 * hz3;
+
+        rResult[23]( 0, 0 ) = hx3 * fy2 * fz3;
+        rResult[23]( 0, 1 ) = gx3 * gy2 * fz3;
+        rResult[23]( 0, 2 ) = gx3 * fy2 * gz3;
+        rResult[23]( 1, 0 ) = gx3 * gy2 * fz3;
+        rResult[23]( 1, 1 ) = fx3 * hy2 * fz3;
+        rResult[23]( 1, 2 ) = fx3 * gy2 * gz3;
+        rResult[23]( 2, 0 ) = gx3 * fy2 * gz3;
+        rResult[23]( 2, 1 ) = fx3 * gy2 * gz3;
+        rResult[23]( 2, 2 ) = fx3 * fy2 * hz3;
+
+        rResult[24]( 0, 0 ) = hx1 * fy3 * fz3;
+        rResult[24]( 0, 1 ) = gx1 * gy3 * fz3;
+        rResult[24]( 0, 2 ) = gx1 * fy3 * gz3;
+        rResult[24]( 1, 0 ) = gx1 * gy3 * fz3;
+        rResult[24]( 1, 1 ) = fx1 * hy3 * fz3;
+        rResult[24]( 1, 2 ) = fx1 * gy3 * gz3;
+        rResult[24]( 2, 0 ) = gx1 * fy3 * gz3;
+        rResult[24]( 2, 1 ) = fx1 * gy3 * gz3;
+        rResult[24]( 2, 2 ) = fx1 * fy3 * hz3;
+
+        rResult[25]( 0, 0 ) = hx3 * fy3 * fz2;
+        rResult[25]( 0, 1 ) = gx3 * gy3 * fz2;
+        rResult[25]( 0, 2 ) = gx3 * fy3 * gz2;
+        rResult[25]( 1, 0 ) = gx3 * gy3 * fz2;
+        rResult[25]( 1, 1 ) = fx3 * hy3 * fz2;
+        rResult[25]( 1, 2 ) = fx3 * gy3 * gz2;
+        rResult[25]( 2, 0 ) = gx3 * fy3 * gz2;
+        rResult[25]( 2, 1 ) = fx3 * gy3 * gz2;
+        rResult[25]( 2, 2 ) = fx3 * fy3 * hz2;
+
+        rResult[26]( 0, 0 ) = hx3 * fy3 * fz3;
+        rResult[26]( 0, 1 ) = gx3 * gy3 * fz3;
+        rResult[26]( 0, 2 ) = gx3 * fy3 * gz3;
+        rResult[26]( 1, 0 ) = gx3 * gy3 * fz3;
+        rResult[26]( 1, 1 ) = fx3 * hy3 * fz3;
+        rResult[26]( 1, 2 ) = fx3 * gy3 * gz3;
+        rResult[26]( 2, 0 ) = gx3 * fy3 * gz3;
+        rResult[26]( 2, 1 ) = fx3 * gy3 * gz3;
+        rResult[26]( 2, 2 ) = fx3 * fy3 * hz3;
+
+        return rResult;
+    }
+
 
     /**
      * TODO: TO BE VERIFIED
