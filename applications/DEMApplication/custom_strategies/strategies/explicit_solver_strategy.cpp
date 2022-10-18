@@ -2094,6 +2094,8 @@ namespace Kratos {
         mRVE_FilePorosity << time_step     << " "
                           << time          << " "
                           << mRVE_VolTotal << " "
+                          << mRVE_VolSolid << " "
+                          << mRVE_VolTotal-mRVE_VolSolid << " "
                           << mRVE_Porosity << " "
                           << mRVE_VoidRatio
                           << std::endl;
@@ -2169,8 +2171,10 @@ namespace Kratos {
       mRVE_FilePorosity << "1 - STEP | ";
       mRVE_FilePorosity << "2 - TIME | ";
       mRVE_FilePorosity << "3 - TOTAL VOLUME | ";
-      mRVE_FilePorosity << "4 - POROSITY | ";
-      mRVE_FilePorosity << "5 - VOID RATIO";
+      mRVE_FilePorosity << "4 - SOLID VOLUME | ";
+      mRVE_FilePorosity << "5 - VOID VOLUME | ";
+      mRVE_FilePorosity << "6 - POROSITY | ";
+      mRVE_FilePorosity << "7 - VOID RATIO";
       mRVE_FilePorosity << std::endl;
 
       mRVE_FileCoordNumber.open("rve_coordination_number.txt", std::ios::out);
