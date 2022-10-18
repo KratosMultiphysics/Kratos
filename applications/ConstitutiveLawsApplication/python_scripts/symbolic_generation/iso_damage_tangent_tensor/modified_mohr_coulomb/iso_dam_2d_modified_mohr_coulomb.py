@@ -24,9 +24,10 @@ Deviator = DefineVector('Deviator', 3)
 # material parameters
 Young = Symbol("Young")
 nu = Symbol("nu")
-threshold = Symbol("threshold") # f_t
+threshold_tension = Symbol("threshold_tension") # f_t
+threshold_compression = Symbol("threshold_compression") # f_t
 Gf = Symbol("Gf")
-sin_phi = Symbol("sin_phi")
+phi = Symbol("phi") # in rad
 characteristic_length = Symbol("characteristic_length")
 
 
@@ -41,8 +42,8 @@ Seff[1] = c2 * Strain0 + c1 * Strain1;
 Seff[2] = c3 * Strain2;
 
 
-
-pmean = (Seff[0] + Seff[1]) / 3.0
+I1 = (Seff[0] + Seff[1])
+pmean = I1 / 3.0
 Deviator[0] = Seff[0] - pmean
 Deviator[1] = Seff[1] - pmean
 Deviator[2] = Seff[2]
@@ -50,20 +51,29 @@ Deviator[2] = Seff[2]
 
 J2 =  0.5 * (Deviator[0]**2.0 + Deviator[1]**2.0 + pmean**2.0) + Deviator[2]**2.0;
 
-root_3 = math.sqrt(3.0)
+R = abs(threshold_compression / threshold_tension)
+Rmohr = (tan((math.pi / 4.0) + phi / 2.0))**2
 
-CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0)
-TEN0 = 6.0 * pmean * sin_phi / (root_3 * (3.0 - sin_phi)) + sqrt(J2)
-DruckerPragerStress = CFL*TEN0
+alpha_r = R / Rmohr
+sin_phi = sin(phi);
 
-
-A = 1.0 / (Gf * Young / (characteristic_length * threshold**2) - 0.5)
-
-# for drucker prager
-damage_threshold = abs(threshold * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0))
+J3 = Deviator[0] * Deviator[1] - (Deviator[2]**2)
 
 
-damage = 1.0 - (damage_threshold / DruckerPragerStress) * exp(A * (1.0 - DruckerPragerStress / damage_threshold))
+K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sin_phi;
+K2 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) / sin_phi;
+K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
+
+sint3 = (-3.0 * sqrt(3.0) * J3) / (2.0 * J2 * sqrt(J2))
+
+LodeAngle = asin(sint3) / 3.0;
+
+ModifiedMohrCoulombStress = (2.0 * tan(math.pi * 0.25 + phi * 0.5) / cos(phi)) * ((I1 * K3 / 3.0) +sqrt(J2) * (K1 * cos(LodeAngle) - K2 * sin(LodeAngle) * sin_phi / sqrt(3.0)))
+
+A = 1.0 / (Gf * Young * R * R / (characteristic_length * threshold_compression**2) - 0.5)
+
+
+damage = 1.0 - (threshold_compression / ModifiedMohrCoulombStress) * exp(A * (1.0 - ModifiedMohrCoulombStress / threshold_compression))
 
 
 # # Integrated stress
