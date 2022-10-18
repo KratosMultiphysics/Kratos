@@ -66,6 +66,9 @@ public:
     /// Pointer definition of RegistryItem
     KRATOS_CLASS_POINTER_DEFINITION(RegistryItem);
 
+    /// Subregistry item type definition
+    using SubRegistryItemType = std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -103,11 +106,33 @@ public:
         return *insert_result.first->second;
     }
 
-
-
     ///@}
     ///@name Access
     ///@{
+
+    auto begin()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.begin();
+    }
+
+    auto cbegin() const
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.cbegin();
+    }
+
+    auto end()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.end();
+    }
+
+    auto const cend() const
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.cend();
+    }
 
     const std::string& Name() const
     {
@@ -120,7 +145,7 @@ public:
 
     template<typename TDataType> TDataType const& GetValue() const
     {
-        KRATOS_ERROR_IF(mpValue == nullptr) << "Item " << Name() << " does not have value to be returned" << std::endl;
+        KRATOS_ERROR_IF(mpValue == nullptr) << "Item " << Name() << " does not have value to be returned." << std::endl;
         return *static_cast<const TDataType*>(mpValue);
     }
 
@@ -173,7 +198,7 @@ protected:
 
     std::string mName;
     const void* mpValue;
-    std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>> mSubRegistryItem;
+    SubRegistryItemType mSubRegistryItem;
 
     ///@}
     ///@name Protected member Variables

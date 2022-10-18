@@ -121,6 +121,26 @@ public:
     ///@name Access
     ///@{
 
+    auto begin()
+    {
+        return mspRootRegistryItem->begin();
+    }
+
+    auto cbegin() const
+    {
+        return mspRootRegistryItem->cbegin();
+    }
+
+    auto end()
+    {
+        return mspRootRegistryItem->end();
+    }
+
+    auto const cend() const
+    {
+        return mspRootRegistryItem->cend();
+    }
+
     static RegistryItem& GetItem(std::string const& rItemFullName);
 
     template<typename TDataType>

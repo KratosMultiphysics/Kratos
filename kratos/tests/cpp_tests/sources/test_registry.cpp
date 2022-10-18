@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/checks.h"
 #include "includes/registry.h"
 
 namespace Kratos {
@@ -104,19 +105,16 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     KRATOS_WATCH(registry_item.ToJson());
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
 {
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
-
 
     Registry::AddItem<RegistryItem>("item_in_root");
     KRATOS_CHECK(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
     auto& item_in_root = Registry::GetItem("item_in_root");
     KRATOS_CHECK_STRING_EQUAL(item_in_root.Name(),"item_in_root");
-
 
     Registry::AddItem<RegistryItem>("path.to.the.registry.new_item");
     KRATOS_CHECK(Registry::HasItem("item_in_root"));
@@ -131,6 +129,35 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
     Registry::RemoveItem("path.to.the.registry.new_item");
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RegistryIteration, KratosCoreFastSuite)
+{
+    auto& r_item_in_root_1 = Registry::AddItem<RegistryItem>("item_in_root_1");
+    auto& r_sub_item_1_1 = Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1");
+    auto& r_sub_item_1_2 = Registry::AddItem<RegistryItem>("item_in_root_1.subitem_2");
+    auto& r_sub_item_1_1_1 = Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_1");
+    auto& r_sub_item_1_1_2 = Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2");
+    auto& r_sub_item_1_1_3 = Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_3");
+    auto& r_sub_item_1_1_1_1 = Registry::AddItem<RegistryItem>("item_in_root_2.subitem_1.subsubitem_1.subsubsubitem_1");
+
+    // Check subitems iteration
+    std::size_t i = 0;
+    std::array<std::string,2> sub_keys = {"subitem_1","subitem_2"};
+    auto& r_root_item = r_item_in_root_1.GetItem("item_in_root_1");
+    for (auto it = r_root_item.cbegin(); it != r_root_item.cend(); ++it) {
+        KRATOS_CHECK_STRING_EQUAL(std::get<0>(*it), sub_keys[i++])
+    }
+
+    // Check subsubitems iteration
+    i = 0;
+    std::array<std::string,3> sub_sub_keys = {"subsubitem_1","subsubitem_2","subsubitem_3"};
+    auto& r_sub_item_1 = r_item_in_root_1.GetItem("item_in_root_1.subitem_1");
+    for (auto it = r_sub_item_1.cbegin(); it !=  r_sub_item_1.cend(); ++it) {
+        KRATOS_CHECK_STRING_EQUAL(std::get<0>(*it), sub_sub_keys[i++])
+    }
+
+
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
