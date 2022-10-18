@@ -1883,11 +1883,17 @@ namespace Kratos {
 
       for (int i = 0; i < mRVE_Dimension; i++) {
         for (int j = 0; j < mRVE_Dimension; j++) {
-          mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
-          if (i == j)
-            aux(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - (1.0 / mRVE_Dimension));
-          else
-            aux(i,j) = 4.0 * mRVE_FabricTensor(i,j);
+          if (mRVE_NumContacts != 0.0) {
+            mRVE_FabricTensor(i, j) /= mRVE_NumContacts;
+            if (i == j)
+              aux(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - (1.0 / mRVE_Dimension));
+            else
+              aux(i,j) = 4.0 * mRVE_FabricTensor(i,j);
+          }
+          else {
+            mRVE_FabricTensor(i,j) = 0.0;
+            aux(i,j) = 0.0;
+          }
         }
       }
 
