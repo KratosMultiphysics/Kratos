@@ -73,22 +73,22 @@ def __ModuleInitDetail():
                 ]
                 Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
-    # Detect kratos library version
-    python_version = Kernel(using_mpi).PythonVersion()
-    python_version = python_version.replace("Python","")
-    kratos_version_info = python_version.split(".")
-
-    if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
-        print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
-            sys.version_info.major, sys.version_info.minor,
-            kratos_version_info[0], kratos_version_info[1]
-        ))
-
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
 
-# print the process id e.g. for attatching a debugger
+# Detect kratos library version
+python_version = KratosGlobals.Kernel.PythonVersion()
+python_version = python_version.replace("Python","")
+kratos_version_info = python_version.split(".")
+
+if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
+    Logger.PrintWarning("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
+        sys.version_info.major, sys.version_info.minor,
+        kratos_version_info[0], kratos_version_info[1]
+    ))
+    
+# Print the process id e.g. for attatching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 

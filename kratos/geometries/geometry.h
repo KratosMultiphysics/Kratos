@@ -2413,11 +2413,27 @@ public:
     void GlobalCoordinates(
         CoordinatesArrayType& rResult,
         IndexType IntegrationPointIndex
-    ) const
+        ) const
+    {
+        this->GlobalCoordinates(rResult, IntegrationPointIndex, GetDefaultIntegrationMethod());
+    }
+
+    /** 
+    * @brief This method provides the global coordinates to the corresponding integration point
+    * @param rResult The global coordinates
+    * @param IntegrationPointIndex The index of the integration point
+    * @param ThisMethod The integration method
+    * @return The global coordinates
+    */
+    void GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        IndexType IntegrationPointIndex,
+        const IntegrationMethod ThisMethod
+        ) const
     {
         noalias(rResult) = ZeroVector(3);
 
-        const Matrix& N = this->ShapeFunctionsValues();
+        const Matrix& N = this->ShapeFunctionsValues(ThisMethod);
 
         for (IndexType i = 0; i < this->size(); i++)
             noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
