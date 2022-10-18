@@ -1372,7 +1372,6 @@ namespace Kratos
 				}
 
 				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
-				// if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
 				{
 					bool newNode = true;
 					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
@@ -1557,7 +1556,7 @@ namespace Kratos
 				dangerousElement = true;
 			}
 			const double limitEdgeLength = 1.6 * meanMeshSize * penalization;
-			 const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
+			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
@@ -1574,7 +1573,6 @@ namespace Kratos
 				}
 
 				if (((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength) || LargestEdge > extraLimitEdgeLength)
-				// if ((CountNodes < (ElementsToRefine + nodesInTransitionZone) || insideTransitionZone == true) && LargestEdge > limitEdgeLength)
 				{
 					bool newNode = true;
 					for (unsigned int i = 0; i < unsigned(CountNodes); i++)
