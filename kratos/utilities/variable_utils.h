@@ -707,6 +707,24 @@ public:
     }
 
     /**
+     * @brief Set the Non Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the non-historical database
+     * @tparam TContainerType Container type (nodes, elements or conditions)
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rContainer Container to be initialized to zero
+     * @param rVariableArgs Variables to be set to zero
+     */
+    template<class TContainerType, class... TVariableArgs>
+    static void SetNonHistoricalVariablesToZero(
+        TContainerType& rContainer,
+        const TVariableArgs&... rVariableArgs)
+    {
+        block_for_each(rContainer, [&](auto& rEntity){
+            (rEntity.SetValue(rVariableArgs, rVariableArgs.Zero()), ...);
+        });
+    }
+
+    /**
      * @brief Sets the nodal value of any variable to zero
      * @param rVariable reference to the scalar variable to be set
      * @param rNodes reference to the objective node set
@@ -719,6 +737,23 @@ public:
         KRATOS_TRY
         this->SetVariable(rVariable, rVariable.Zero(), rNodes);
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Set the Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the nodal historical database
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rNodes Nodes container to be initialized to zero
+     * @param rVariableArgs Variables to be set to zero
+     */
+    template<class... TVariableArgs>
+    static void SetHistoricalVariablesToZero(
+        NodesContainerType& rNodes,
+        const TVariableArgs&... rVariableArgs)
+    {
+        block_for_each(rNodes, [&](NodeType& rNode){(
+            AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
+        });
     }
 
     /**
@@ -1389,6 +1424,205 @@ public:
         const IndexType BufferPosition = 0
         );
 
+    /**
+     * @brief This function returns the CURRENT coordinates of all the nodes in a consecutive vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the vector is in the form (X X X ....)
+     * in case Dimension == 2 the vector is in the form (X Y X Y X Y ....)
+     * in case Dimension == 3 the vector is in the form (X Y Z X Y Z ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param Dimension number of desired components
+     */
+    Vector GetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const unsigned int Dimension
+        );
+
+    /**
+     * @brief This function returns the INITIAL coordinates of all the nodes in a consecutive vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the vector is in the form (X0 X0 X0 ....)
+     * in case Dimension == 2 the vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+     * in case Dimension == 3 the vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param Dimension number of desired components
+     */
+    Vector GetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const unsigned int Dimension
+        );
+
+    /**
+     * @brief This function represent the "set" counterpart of GetCurrentPositionsVector and allows
+     * setting the CURRENT coordinates of all the nodes considering them stored in a consecutive 1D vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X, Y, Z) plus such variable value
+     * in case Dimension == 1 the expected input vector is in the form (X X X ....)
+     * in case Dimension == 2 the expected input vector is in the form (X Y X Y X Y ....)
+     * in case Dimension == 3 the expected input vector is in the form (X Y Z X Y Z ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param rPositions vector containing the CURRENT positions
+     */
+     void SetCurrentPositionsVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Vector& rPositions
+        );
+
+    /**
+     * @brief This function represent the "set" counterpart of GetInitialPositionsVector and allows
+     * setting the INITIAL coordinates of all the nodes considering them stored in a consecutive 1D vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the expected input vector is in the form (X0 X0 X0 ....)
+     * in case Dimension == 2 the expected input vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+     * in case Dimension == 3 the expected input vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param rPositions vector containing the INITIAL positions
+     */
+    void SetInitialPositionsVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Vector& rPositions
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    Vector GetSolutionStepValuesVector(
+                                const ModelPart::NodesContainerType& rNodes,
+                                const Variable<array_1d<double,3>>& rVar,
+                                const unsigned int Step,
+                                const unsigned int Dimension=3
+                                );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    Vector GetSolutionStepValuesVector(
+                                const ModelPart::NodesContainerType& rNodes,
+                                const Variable<double>& rVar,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetSolutionStepValuesVector(
+                                ModelPart::NodesContainerType& rNodes,
+                                const Variable<array_1d<double,3>>& rVar,
+                                const Vector& rData,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetSolutionStepValuesVector(
+                                ModelPart::NodesContainerType& rNodes,
+                                const Variable<double>& rVar,
+                                const Vector& rData,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const unsigned int Dimension=3
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const Vector& rData
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar,
+        const Vector& rData
+        );
+
+
     ///@}
     ///@name Acces
     ///@{
@@ -1450,6 +1684,12 @@ private:
 
     template <class TContainerType>
     const TContainerType& GetContainer(const ModelPart& rModelPart);
+
+    template<class TDataType>
+    static void AuxiliaryHistoricalValueSetter(
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue,
+        NodeType& rNode);
 
     template <class TContainerType, class TSetterFunction, class TGetterFunction>
     void CopyModelPartFlaggedVariable(

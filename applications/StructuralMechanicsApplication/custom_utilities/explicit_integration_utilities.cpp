@@ -108,7 +108,7 @@ double InnerCalculateDeltaTime(
     // Initialize the value
     double stable_delta_time = 1000.0;
 
-    // Auxiliar parameters
+    // Auxiliary parameters
     bool check_has_all_variables = true;
     double E(0.0), nu(0.0), rho(0.0), alpha(0.0), beta(0.0);
 

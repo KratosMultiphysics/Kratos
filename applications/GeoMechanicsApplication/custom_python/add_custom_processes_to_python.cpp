@@ -39,6 +39,7 @@
 #include "custom_processes/apply_write_result_scalar_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+#include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 
 namespace Kratos
 {
@@ -129,6 +130,10 @@ namespace Python
         class_<DeactivateConditionsOnInactiveElements, DeactivateConditionsOnInactiveElements::Pointer, Process>
             (m, "DeactivateConditionsOnInactiveElements")
             .def(init < ModelPart&>());
+
+        class_<SetAbsorbingBoundaryParametersProcess, SetAbsorbingBoundaryParametersProcess::Pointer, Process>
+            (m, "SetAbsorbingBoundaryParametersProcess")
+            .def(init < ModelPart&, Parameters&>());
 
     }
 }  // namespace Python.

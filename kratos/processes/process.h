@@ -62,7 +62,7 @@ public:
 
     /// Default constructor.
     Process() : Flags() {}
-    explicit Process(Flags options) : Flags( options ) {}
+    explicit Process(const Flags options) : Flags( options ) {}
 
     /// Destructor.
     ~Process() override {}

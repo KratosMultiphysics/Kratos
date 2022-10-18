@@ -63,7 +63,7 @@ public:
 };
 
 template <class Type>
-class MultAndAddValue : public std::binary_function<Type, Type, Type>
+class MultAndAddValue
 {
 private:
     Type Factor; // The value to multiply by

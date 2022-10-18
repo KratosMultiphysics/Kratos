@@ -355,13 +355,16 @@ public:
     ///@}
     ///@name Access
     ///@{
-    class const_iterator_adaptor : public std::iterator<
-        std::forward_iterator_tag,
-        typename GraphType::value_type
-        >
+    class const_iterator_adaptor
 	{
 		const_row_iterator map_iterator;
 	public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = typename GraphType::value_type;
+        using pointer           = typename GraphType::value_type*;
+        using reference         = typename GraphType::value_type&;
+
 		const_iterator_adaptor(const_row_iterator it) :map_iterator(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it)
             : map_iterator(it.map_iterator) {}

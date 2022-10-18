@@ -96,11 +96,14 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
             domain_size,
             KratosBio.INLET_NORMAL)
 
+        # Create an auxiliary volumetric model part with the elements attached to the inlet
+        # On top of accelerating the wall distance calculation, this prevents missbehaviors in presence of complex geometries
+        aux_inlet_model_part = KratosBio.ParabolicProfileUtilities.CreateAndFillInletAuxiliaryVolumeModelPart(inlet_model_part)
+
         # Prepare skin for wall distance calculation
         max_levels = self.settings["parallel_distance_max_levels"].GetInt()
         wall_model_part = self.model.GetModelPart(self.settings["wall_model_part_name"].GetString())
-        root_model_part = wall_model_part.GetRootModelPart()
-        KratosBio.ParabolicProfileUtilities.CalculateWallParallelDistance(wall_model_part, root_model_part, max_levels)
+        KratosBio.ParabolicProfileUtilities.CalculateWallParallelDistance(wall_model_part, aux_inlet_model_part, max_levels)
 
         # Calculate the inlet area to do the flow rate to velocity conversion
         if self.value_is_flow_rate:
