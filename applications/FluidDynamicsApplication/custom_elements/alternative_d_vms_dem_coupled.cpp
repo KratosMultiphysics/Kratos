@@ -573,7 +573,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const array_1d<double,3>& rConvectionVelocity,
     array_1d<double,3> &rMomentumRHS) const
 {
-    const auto& rGeom = this->GetGeometry();
+    //const auto& rGeom = this->GetGeometry();
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,rConvectionVelocity,rData.DN_DX);
@@ -951,6 +951,47 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     noalias(rLocalRHS) -= prod(LHS, values);
 
     noalias(rLocalLHS) += LHS;
+}
+
+template <class TElementData>
+void AlternativeDVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+                                                                                  VectorType& rRightHandSideVector,
+                                                                                  const ProcessInfo& rCurrentProcessInfo)
+{
+    // Resize and intialize output
+    if( rDampMatrix.size1() != LocalSize )
+        rDampMatrix.resize(LocalSize,LocalSize,false);
+
+    if( rRightHandSideVector.size() != LocalSize )
+        rRightHandSideVector.resize(LocalSize,false);
+
+    noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+    if (!TElementData::ElementManagesTimeIntegration) {
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        DenseVector<DenseVector<Matrix>> shape_function_second_derivatives;
+        this->CalculateGeometryData(
+            gauss_weights, shape_functions, shape_derivatives);
+        const unsigned int number_of_gauss_points = gauss_weights.size();
+
+        this->GetShapeSecondDerivatives(shape_function_second_derivatives);
+
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+
+        // Iterate over integration points to evaluate local contribution
+        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+            const auto& r_dndx = shape_derivatives[g];
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),r_dndx, shape_function_second_derivatives[g]);
+            this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
+        }
+    }
 }
 
 template < class TElementData >

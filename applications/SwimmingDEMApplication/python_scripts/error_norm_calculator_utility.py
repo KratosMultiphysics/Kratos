@@ -19,8 +19,9 @@ class ErrorNormCalculatorUtility:
         self.u_characteristic = parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
 
         self.rho = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DENSITY)
-
-        self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2
+        self.nu = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)/self.rho
+        Re = 1/self.nu
+        self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2 * (1 + 1/Re)
 
         self.model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)
         self.model_part.AddNodalSolutionStepVariable(SDEM.SCALAR_ERROR)
@@ -30,7 +31,7 @@ class ErrorNormCalculatorUtility:
         self.velocity_L2_error_norm = self.VectorL2ErrorNorm()
         self.pressure_L2_error_norm = self.ScalarL2ErrorNorm()
 
-        return self.velocity_L2_error_norm/self.u_characteristic, self.pressure_L2_error_norm, self.model_part
+        return self.velocity_L2_error_norm/self.u_characteristic, self.pressure_L2_error_norm/self.p_characteristic, self.model_part
 
     def CalculateH1SemiNorm(self):
 

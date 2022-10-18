@@ -247,6 +247,11 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
+    void CalculateLocalVelocityContribution(
+        MatrixType& rDampMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     // Implementation details of AlternativeDVMSDEMCoupled /////////////////////////////////////////
 
     void AddMassLHS(
