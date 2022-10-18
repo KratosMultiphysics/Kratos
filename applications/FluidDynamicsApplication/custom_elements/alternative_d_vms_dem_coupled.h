@@ -247,6 +247,9 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalVelocityContribution(
         MatrixType& rDampMatrix,
         VectorType& rRightHandSideVector,

@@ -172,8 +172,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
     // Base class does things with constitutive law here.
     DVMS<TElementData>::Initialize(rCurrentProcessInfo);
 
-    mInterpolationOrder = 1;
-
     if(Dim == 2){
         if (NumNodes == 9 || NumNodes == 6)
             mInterpolationOrder = 2;
@@ -199,7 +197,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
     }
 
     mPredictedSubscaleVelocity.resize(number_of_gauss_points);
-    for (unsigned int g = 0; g < number_of_gauss_points; g++)
+
     // The old velocity may be already defined (if restarting)
     // and we want to keep the loaded values in that case.
     if (mOldSubscaleVelocity.size() != number_of_gauss_points)
@@ -207,6 +205,13 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
         mOldSubscaleVelocity.resize(number_of_gauss_points);
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
             mOldSubscaleVelocity[g] = ZeroVector(Dim);
+    }
+
+    if (mViscousResistanceTensor.size() != number_of_gauss_points)
+    {
+        mViscousResistanceTensor.resize(number_of_gauss_points);
+        for (unsigned int g = 0; g < number_of_gauss_points; g++)
+            mViscousResistanceTensor[g] = ZeroMatrix(Dim,Dim);
     }
 }
 
@@ -954,6 +959,41 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
 }
 
 template <class TElementData>
+void AlternativeDVMSDEMCoupled<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
+                                                                   const ProcessInfo& rCurrentProcessInfo)
+{
+    // Resize and intialize output
+    if (rMassMatrix.size1() != LocalSize)
+        rMassMatrix.resize(LocalSize, LocalSize, false);
+
+    noalias(rMassMatrix) = ZeroMatrix(LocalSize, LocalSize);
+
+    if (!TElementData::ElementManagesTimeIntegration) {
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        DenseVector<DenseVector<Matrix>> shape_function_second_derivatives;
+        this->CalculateGeometryData(
+            gauss_weights, shape_functions, shape_derivatives);
+        this->GetShapeSecondDerivatives(shape_function_second_derivatives);
+        const unsigned int number_of_gauss_points = gauss_weights.size();
+
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+
+        // Iterate over integration points to evaluate local contribution
+        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),shape_derivatives[g],shape_function_second_derivatives[g]);
+
+            this->AddMassLHS(data, rMassMatrix);
+        }
+    }
+}
+
+template <class TElementData>
 void AlternativeDVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
                                                                                   VectorType& rRightHandSideVector,
                                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -1100,8 +1140,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddMassStabilization(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
+    BoundedMatrix<double,Dim,Dim> sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
 
     double W = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
@@ -1242,7 +1281,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     constexpr double c2 = DVMS<TElementData>::mTauC2;
     const int p = mInterpolationOrder;
     // BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
+    MatrixType sigma = ZeroMatrix(Dim+1, Dim+1);
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
@@ -1254,6 +1293,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     for (unsigned int d = 0; d < Dim; d++){
         velocity_modulus += Velocity[d] * Velocity[d];
         fluid_fraction_gradient_modulus += std::pow(fluid_fraction_gradient[d],2);
+        sigma(d,d) = mViscousResistanceTensor[rData.IntegrationPointIndex](d,d);
     }
 
     double velocity_norm = std::sqrt(velocity_modulus);
