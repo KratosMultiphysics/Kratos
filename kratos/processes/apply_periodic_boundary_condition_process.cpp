@@ -209,67 +209,28 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVar
     const std::vector<const VariableType*>& rVars
     )
 {
-    const auto& r_var_x = (*rVars[0]);
-    const auto& r_var_y = (*rVars[1]);
-    const auto& r_var_z = (*rVars[2]);
-
     // Reference constraint
     const auto& r_clone_constraint = LinearMasterSlaveConstraint();
 
+    // Constant values
+    array_1d<double, TDim> constants;
+
     IndexType master_index = 0;
-    for (auto& r_master_node : rHostedGeometry)
-    {
+    for (auto& r_master_node : rHostedGeometry) {
         const double master_weight = rWeights(master_index);
 
-        const double constant_x = master_weight * mTransformationMatrixVariable(0,3);
-        const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
+        for (unsigned int i = 0; i < TDim; ++i) {
+            constants[i] = master_weight * mTransformationMatrixVariable(i,3);
+        }
 
-        if constexpr (TDim == 3) {
-            const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
-
-            #pragma omp critical
-            {
-                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-                auto p_constraint1 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-                auto p_constraint2 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-                auto p_constraint3 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
-
-                auto p_constraint4 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-                auto p_constraint5 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-                auto p_constraint6 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
-
-                auto p_constraint7 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                auto p_constraint8 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                auto p_constraint9 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
-
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint1);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint2);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint3);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint4);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint5);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint6);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint7);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint8);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint9);
-            }
-        } else {
-            #pragma omp critical
-            {
-                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-                auto p_constraint1 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-                auto p_constraint2 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-                auto p_constraint3 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
-
-                auto p_constraint4 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-                auto p_constraint5 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-                auto p_constraint6 = r_clone_constraint.Create(++current_num_constraint, r_master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
-
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint1);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint2);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint3);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint4);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint5);
-                mrMasterModelPart.AddMasterSlaveConstraint(p_constraint6);
+        #pragma omp critical
+        {
+            int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
+            for (unsigned int i = 0; i < 3; ++i) {
+                for (unsigned int j = 0; j < TDim; ++j) {
+                    auto p_constraint = r_clone_constraint.Create(++current_num_constraint, r_master_node, (*rVars[i]), rSlaveNode, (*rVars[j]), master_weight * mTransformationMatrixVariable(j,i), constants[j]);
+                    mrMasterModelPart.AddMasterSlaveConstraint(p_constraint);
+                }
             }
         }
 
