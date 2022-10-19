@@ -2270,7 +2270,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct326 = cr_Ct315*(cr_Ct18*cr_Ct325 + cr_Ct19*cr_Ct325 + cr_Ct20*cr_Ct325 - cr_Ct325*cr_Ct39 - cr_Ct325*cr_Ct48);
   const double cr_Ct327 = -cr_Ct303*std::pow(cr_Ct315, 3)*cr_Ct97 - cr_Ct326*cr_Ct98;
   const double cr_Ct328 = cr_Ct306*(cr_Ct28*cr_Ct324*cr_Ct34 + cr_Ct309*cr_Ct89 + cr_Ct310*cr_Ct321 + cr_Ct311*cr_Ct322 + cr_Ct327);
-  const double cr_Ct329 = 0.33333333333333331*acos(cr_Ct320*cr_Ct328*cr_Ct87);
+  const double cr_Ct329 = 0.33333333333333331*std::acos(cr_Ct320*cr_Ct328*cr_Ct87);
   const double cr_Ct330 = std::cos(cr_Ct329);
   const double cr_Ct331 = cr_Ct318*cr_Ct330;
   const double cr_Ct332 = 2.0/(-cr_Ct116*cr_Ct308 - cr_Ct299*cr_Ct308 - cr_Ct301*cr_Ct308 + 1.1547005383792515*cr_Ct331);
