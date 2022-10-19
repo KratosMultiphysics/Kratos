@@ -427,7 +427,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct160 = 1.0*cr_Ct159;
   const double cr_Ct161 = cr_Ct160*cr_Ct18*cr_Ct87;
   const double cr_Ct162 = cr_Ct143*cr_Ct161;
-  const double cr_Ct163 = exp(cr_Ct160*(-2.0*cr_Ct10*cr_Ct86/(cr_Ct88*threshold_compression) + 1.0));
+  const double cr_Ct163 = std::exp(cr_Ct160*(-2.0*cr_Ct10*cr_Ct86/(cr_Ct88*threshold_compression) + 1.0));
   const double cr_Ct164 = cr_Ct163*cr_Ct18;
   const double cr_Ct165 = cr_Ct164*cr_Ct8;
   const double cr_Ct166 = cr_Ct91*nu;
@@ -2711,7 +2711,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct135 = cr_Ct134*cr_Ct3;
   const double cr_Ct136 = cr_Ct135*cr_Ct38;
   const double cr_Ct137 = cr_Ct136*cr_Ct17;
-  const double cr_Ct138 = cr_Ct134*exp(cr_Ct121*(1.0 - 2.0*cr_Ct133*cr_Ct2/(cr_Ct1*threshold_compression)));
+  const double cr_Ct138 = cr_Ct134*std::exp(cr_Ct121*(1.0 - 2.0*cr_Ct133*cr_Ct2/(cr_Ct1*threshold_compression)));
   const double cr_Ct139 = cr_Ct138*cr_Ct23;
   const double cr_Ct140 = cr_Ct3*nu;
   const double cr_Ct141 = cr_Ct27*cr_Ct40;
@@ -2852,7 +2852,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct64 = 0.25*cr_Ct36/std::pow(-cr_Ct11*cr_Ct14*sin_phi + 0.5*cr_Ct31, 2);
   const double cr_Ct65 = cr_Ct28*cr_Ct64;
   const double cr_Ct66 = cr_Ct3*cr_Ct65;
-  const double cr_Ct67 = exp(-cr_Ct50*(cr_Ct13*cr_Ct34*(cr_Ct54*cr_Ct56 + cr_Ct61)/cr_Ct35 - 1));
+  const double cr_Ct67 = std::exp(-cr_Ct50*(cr_Ct13*cr_Ct34*(cr_Ct54*cr_Ct56 + cr_Ct61)/cr_Ct35 - 1));
   const double cr_Ct68 = cr_Ct10*cr_Ct67;
   const double cr_Ct69 = cr_Ct37*nu;
   const double cr_Ct70 = cr_Ct43*cr_Ct45;
@@ -2945,7 +2945,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 	const double cr_Ct47 = cr_Ct46*threshold;
 	const double cr_Ct48 = cr_Ct39*cr_Ct47;
 	const double cr_Ct49 = cr_Ct48*(cr_Ct41*cr_Ct7*(cr_Ct14 + 1.0) + 0.5);
-	const double cr_Ct50 = cr_Ct46*exp(cr_Ct35*(-cr_Ct45/threshold + 1.0));
+	const double cr_Ct50 = cr_Ct46*std::exp(cr_Ct35*(-cr_Ct45/threshold + 1.0));
 	const double cr_Ct51 = cr_Ct42*cr_Ct50;
 	const double cr_Ct52 = nu*threshold;
 	const double cr_Ct53 = cr_Ct12*(cr_Ct32*cr_Ct40 - 0.5);
