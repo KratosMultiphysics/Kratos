@@ -424,7 +424,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct157 = cr_Ct112*cr_Ct135*cr_Ct52*(cr_Ct136*cr_Ct81 - cr_Ct137*cr_Ct77);
   const double cr_Ct158 = cr_Ct134*cr_Ct157 + cr_Ct148 + cr_Ct153*cr_Ct156;
   const double cr_Ct159 = 1.0/(Gf*Young*std::pow(cr_Ct9, 2)/(characteristic_length*std::pow(threshold_compression, 2)) - 0.5);
-  const double cr_Ct160 = 1.0*cr_Ct159;
+  const double cr_Ct160 = cr_Ct159;
   const double cr_Ct161 = cr_Ct160*cr_Ct18*cr_Ct87;
   const double cr_Ct162 = cr_Ct143*cr_Ct161;
   const double cr_Ct163 = std::exp(cr_Ct160*(-2.0*cr_Ct10*cr_Ct86/(cr_Ct88*threshold_compression) + 1.0));
@@ -459,7 +459,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct192 = cr_Ct131*cr_Ct74;
   const double cr_Ct193 = cr_Ct114*(-cr_Ct189*r_strain[4] + cr_Ct190*cr_Ct62) + cr_Ct191*r_strain[3] + cr_Ct192*r_strain[3];
   const double cr_Ct194 = cr_Ct118*cr_Ct188 + cr_Ct138*cr_Ct193;
-  const double cr_Ct195 = 1.0*cr_Ct144;
+  const double cr_Ct195 = cr_Ct144;
   const double cr_Ct196 = cr_Ct154*cr_Ct188;
   const double cr_Ct197 = cr_Ct157*cr_Ct193;
   const double cr_Ct198 = cr_Ct159*cr_Ct87;
@@ -1456,7 +1456,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct25 = cr_Ct24*(-cr_Ct14 - cr_Ct16 - cr_Ct18 + cr_Ct19 + cr_Ct20 + cr_Ct21);
   const double cr_Ct26 = -nu;
   const double cr_Ct27 = std::pow(cr_Ct26 + 0.5, -2);
-  const double cr_Ct28 = 1.0*cr_Ct13;
+  const double cr_Ct28 = cr_Ct13;
   const double cr_Ct29 = 0.5*cr_Ct15;
   const double cr_Ct30 = -cr_Ct29;
   const double cr_Ct31 = 0.5*cr_Ct17;
@@ -1469,7 +1469,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct38 = 0.5*cr_Ct37;
   const double cr_Ct39 = cr_Ct28 + cr_Ct30 + cr_Ct32 - cr_Ct34 + cr_Ct36 + cr_Ct38;
   const double cr_Ct40 = cr_Ct27*std::pow(cr_Ct39, 2);
-  const double cr_Ct41 = 1.0*cr_Ct15;
+  const double cr_Ct41 = cr_Ct15;
   const double cr_Ct42 = 0.5*cr_Ct21;
   const double cr_Ct43 = 0.5*cr_Ct13;
   const double cr_Ct44 = 0.5*cr_Ct19;
@@ -1478,7 +1478,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct47 = std::pow(cr_Ct46, 2);
   const double cr_Ct48 = std::pow(nu - 0.5, -2);
   const double cr_Ct49 = 0.22222222222222227*cr_Ct48;
-  const double cr_Ct50 = 1.0*cr_Ct17;
+  const double cr_Ct50 = cr_Ct17;
   const double cr_Ct51 = 0.5*cr_Ct20;
   const double cr_Ct52 = cr_Ct21 + cr_Ct30 + cr_Ct45 + cr_Ct50 - cr_Ct51;
   const double cr_Ct53 = std::pow(cr_Ct52, 2);
@@ -1652,7 +1652,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct221 = cr_Ct146*(5.196152422706632*cr_Ct75*r_strain[3] - cr_Ct87*r_strain[4]) + cr_Ct219*r_strain[3] + cr_Ct220*r_strain[3];
   const double cr_Ct222 = cr_Ct122*cr_Ct218 + cr_Ct165*cr_Ct221;
   const double cr_Ct223 = cr_Ct186*cr_Ct59;
-  const double cr_Ct224 = 1.0*cr_Ct223;
+  const double cr_Ct224 = cr_Ct223;
   const double cr_Ct225 = cr_Ct224*cr_Ct4;
   const double cr_Ct226 = cr_Ct114*cr_Ct225;
   const double cr_Ct227 = cr_Ct146*(-cr_Ct77*r_strain[5] + 5.196152422706632*cr_Ct95*r_strain[4]) + cr_Ct219*r_strain[4] + cr_Ct220*r_strain[4];
@@ -2671,7 +2671,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct95 = 0.33333333333333331*std::asin(cr_Ct86*cr_Ct89*cr_Ct94);
   const double cr_Ct96 = 0.064150029909958411*cr_Ct44;
   const double cr_Ct97 = 0.037037037037037035*cr_Ct76*std::cos(cr_Ct95) + cr_Ct96*std::sin(cr_Ct95);
-  const double cr_Ct98 = 1.0*nu;
+  const double cr_Ct98 = nu;
   const double cr_Ct99 = 3.4641016151377553*cr_Ct18;
   const double cr_Ct100 = 1.7320508075688772*cr_Ct15;
   const double cr_Ct101 = 1.7320508075688772*cr_Ct34;
@@ -2694,7 +2694,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct118 = cr_Ct117*cr_Ct97*(-cr_Ct105*cr_Ct112*cr_Ct23*cr_Ct91 - cr_Ct114*cr_Ct115*cr_Ct23*cr_Ct94 + cr_Ct37*cr_Ct92*(cr_Ct103*(cr_Ct98 - 0.66666666666666674) + cr_Ct90*(cr_Ct104 - 1.7320508075688772)));
   const double cr_Ct119 = -cr_Ct118 + cr_Ct14 + cr_Ct88;
   const double cr_Ct120 = 1.0/(Gf*Young*std::pow(cr_Ct7, 2)/(characteristic_length*std::pow(threshold_compression, 2)) - 0.5);
-  const double cr_Ct121 = 1.0*cr_Ct120;
+  const double cr_Ct121 = cr_Ct120;
   const double cr_Ct122 = cr_Ct121*cr_Ct22;
   const double cr_Ct123 = cr_Ct122*cr_Ct17;
   const double cr_Ct124 = cr_Ct57*(cr_Ct73 - cr_Ct77);
@@ -2727,7 +2727,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct151 = cr_Ct14 + cr_Ct143 - cr_Ct150;
   const double cr_Ct152 = cr_Ct12 + cr_Ct124*cr_Ct149 + cr_Ct131*(-cr_Ct127*cr_Ct148 - cr_Ct129*cr_Ct149 + cr_Ct54*(cr_Ct125*cr_Ct144 + cr_Ct145*cr_Ct64));
   const double cr_Ct153 = 1.0/r_strain[2];
-  const double cr_Ct154 = 1.0*cr_Ct153;
+  const double cr_Ct154 = cr_Ct153;
   const double cr_Ct155 = -cr_Ct154*cr_Ct81*cr_Ct87;
   const double cr_Ct156 = 10.392304845413264*cr_Ct54*cr_Ct59*r_strain[2];
   const double cr_Ct157 = cr_Ct153*cr_Ct46*cr_Ct68;
@@ -2736,10 +2736,10 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct160 = cr_Ct116*cr_Ct70;
   const double cr_Ct161 = cr_Ct160*cr_Ct57*cr_Ct85*cr_Ct97*(-cr_Ct156 + cr_Ct158 + cr_Ct159);
   const double cr_Ct162 = cr_Ct135*(cr_Ct124*cr_Ct154*cr_Ct46 + cr_Ct130*cr_Ct160*(cr_Ct156 - cr_Ct158 - cr_Ct159));
-  const double cr_Ct163 = cr_Ct139*(cr_Ct120*(cr_Ct155 + 1.0*cr_Ct161) + cr_Ct162);
+  const double cr_Ct163 = cr_Ct139*(cr_Ct120*(cr_Ct155 + cr_Ct161) + cr_Ct162);
   const double cr_Ct164 = cr_Ct122*cr_Ct20;
   const double cr_Ct165 = cr_Ct136*cr_Ct20;
-  const double cr_Ct166 = -1.0*cr_Ct13;
+  const double cr_Ct166 = -cr_Ct13;
   const double cr_Ct167 = cr_Ct135*cr_Ct37;
   const double cr_Ct168 = cr_Ct138*cr_Ct79*cr_Ct89*r_strain[2];
   r_Ct(0,0)=cr_Ct139*(-cr_Ct119*cr_Ct123 - cr_Ct132*cr_Ct137 + cr_Ct4);
@@ -2748,8 +2748,8 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   r_Ct(1,0)=-cr_Ct139*(cr_Ct119*cr_Ct164 + cr_Ct132*cr_Ct165 + cr_Ct140);
   r_Ct(1,1)=cr_Ct139*(-cr_Ct151*cr_Ct164 - cr_Ct152*cr_Ct165 + cr_Ct4);
   r_Ct(1,2)=-cr_Ct163*cr_Ct20;
-  r_Ct(2,0)=-cr_Ct168*(cr_Ct120*(-1.0*cr_Ct118 + cr_Ct166 + 1.0*cr_Ct88) + cr_Ct132*cr_Ct167);
-  r_Ct(2,1)=-cr_Ct168*(cr_Ct120*(1.0*cr_Ct143 - 1.0*cr_Ct150 + cr_Ct166) + cr_Ct152*cr_Ct167);
+  r_Ct(2,0)=-cr_Ct168*(cr_Ct120*(-cr_Ct118 + cr_Ct166 + cr_Ct88) + cr_Ct132*cr_Ct167);
+  r_Ct(2,1)=-cr_Ct168*(cr_Ct120*(cr_Ct143 - cr_Ct150 + cr_Ct166) + cr_Ct152*cr_Ct167);
   r_Ct(2,2)=cr_Ct138*cr_Ct80*(-cr_Ct121*r_strain[2]*(cr_Ct155 + cr_Ct161) - cr_Ct162*r_strain[2] + cr_Ct3);
 }
 
@@ -2930,7 +2930,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 	const double cr_Ct32 = cr_Ct27*cr_Ct30*cr_Ct31;
 	const double cr_Ct33 = -cr_Ct12*cr_Ct9 + cr_Ct17*cr_Ct32;
 	const double cr_Ct34 = 1.0/(Gf*Young/(characteristic_length*std::pow(threshold, 2)) - 0.5);
-	const double cr_Ct35 = 1.0*cr_Ct34;
+	const double cr_Ct35 = cr_Ct34;
 	const double cr_Ct36 = cr_Ct35*(cr_Ct13 + cr_Ct33);
 	const double cr_Ct37 = -cr_Ct22;
 	const double cr_Ct38 = cr_Ct2 - cr_Ct25 + cr_Ct26 + cr_Ct37;
@@ -2963,7 +2963,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 	r_Ct(1,0)=-cr_Ct51*(cr_Ct36*cr_Ct59 + cr_Ct49*cr_Ct59 + cr_Ct52);
 	r_Ct(1,1)=cr_Ct51*(cr_Ct1 - cr_Ct54*cr_Ct59 - cr_Ct55*cr_Ct59);
 	r_Ct(1,2)=-cr_Ct57*cr_Ct58;
-	r_Ct(2,0)=-cr_Ct60*(cr_Ct34*(1.0*cr_Ct13 + cr_Ct33) + cr_Ct49);
+	r_Ct(2,0)=-cr_Ct60*(cr_Ct34*(cr_Ct13 + cr_Ct33) + cr_Ct49);
 	r_Ct(2,1)=-cr_Ct60*(cr_Ct34*cr_Ct53 + cr_Ct55);
 	r_Ct(2,2)=cr_Ct19*cr_Ct51*(-cr_Ct35*cr_Ct61 - cr_Ct47*cr_Ct61 + threshold);
 }
@@ -3199,7 +3199,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct99 = 0.33333333333333331*std::asin(cr_Ct91*cr_Ct93*cr_Ct98);
   const double cr_Ct100 = 0.064150029909958411*cr_Ct44;
   const double cr_Ct101 = cr_Ct100*std::sin(cr_Ct99) + 0.037037037037037035*cr_Ct75*std::cos(cr_Ct99);
-  const double cr_Ct102 = 1.0*nu;
+  const double cr_Ct102 = nu;
   const double cr_Ct103 = 3.4641016151377553*cr_Ct6;
   const double cr_Ct104 = 1.7320508075688772*cr_Ct3;
   const double cr_Ct105 = 1.7320508075688772*cr_Ct32;
@@ -3244,7 +3244,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct144 = cr_Ct123/std::pow(cr_Ct79, 2);
   const double cr_Ct145 = cr_Ct144*cr_Ct36;
   const double cr_Ct146 = 1.0/r_strain[2];
-  const double cr_Ct147 = 1.0*cr_Ct146;
+  const double cr_Ct147 = cr_Ct146;
   const double cr_Ct148 = 10.392304845413264*cr_Ct53*cr_Ct58*r_strain[2];
   const double cr_Ct149 = cr_Ct146*cr_Ct46*cr_Ct67;
   const double cr_Ct150 = cr_Ct138*cr_Ct149;
