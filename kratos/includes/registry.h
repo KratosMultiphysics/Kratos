@@ -121,22 +121,22 @@ public:
     ///@name Access
     ///@{
 
-    auto begin()
+    static auto begin()
     {
         return mspRootRegistryItem->begin();
     }
 
-    auto cbegin() const
+    static auto cbegin()
     {
         return mspRootRegistryItem->cbegin();
     }
 
-    auto end()
+    static auto end()
     {
         return mspRootRegistryItem->end();
     }
 
-    auto const cend() const
+    static auto const cend()
     {
         return mspRootRegistryItem->cend();
     }
