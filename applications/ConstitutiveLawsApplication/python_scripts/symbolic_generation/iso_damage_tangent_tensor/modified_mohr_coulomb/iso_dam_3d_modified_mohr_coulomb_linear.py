@@ -1,6 +1,7 @@
 from KratosMultiphysics.sympy_fe_utilities import *
 from sympy import *
 import math
+# import KratosMultiphysics as KM
 
 
 mode = "c"
@@ -21,12 +22,14 @@ Seff = DefineVector('Seff', 6)
 Stress = DefineVector('Stress', 6)
 Deviator = DefineVector('Deviator', 6)
 
+
 # material parameters
 Young = Symbol("Young")
 nu = Symbol("nu")
-threshold = Symbol("threshold") # f_t
+threshold_tension = Symbol("threshold_tension") # f_t
+threshold_compression = Symbol("threshold_compression") # f_t
 Gf = Symbol("Gf")
-sin_phi = Symbol("sin_phi")
+phi = Symbol("phi") # in rad
 characteristic_length = Symbol("characteristic_length")
 
 
@@ -42,8 +45,8 @@ Seff[3] = c4 * Strain3
 Seff[4] = c4 * Strain4
 Seff[5] = c4 * Strain5
 
-
-pmean = (Seff[0] + Seff[1] + Seff[2]) / 3.0
+I1 = (Seff[0] + Seff[1] + Seff[2])
+pmean = I1 / 3.0
 Deviator[0] = Seff[0] - pmean
 Deviator[1] = Seff[1] - pmean
 Deviator[2] = Seff[2] - pmean
@@ -54,22 +57,30 @@ Deviator[5] = Seff[5]
 
 J2 = 0.5*(Deviator[0]**2+Deviator[1]**2+Deviator[2]**2) + (Deviator[3]**2+Deviator[4]**2+Deviator[5]**2)
 
-root_3 = math.sqrt(3.0)
 
-CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0)
-TEN0 = 6.0 * pmean * sin_phi / (root_3 * (3.0 - sin_phi)) + sqrt(J2)
-DruckerPragerStress = CFL*TEN0
+J3 = Deviator[0] * (Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4]) + Deviator[3] * (-Deviator[3] * Deviator[2] + Deviator[5] * Deviator[4]) + Deviator[5] * (Deviator[3] * Deviator[4] - Deviator[5] * Deviator[1])
 
+R = abs(threshold_compression / threshold_tension)
+Rmohr = (tan((math.pi / 4.0) + phi / 2.0))**2
 
-# for drucker prager
-damage_threshold = abs(threshold * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0))
+alpha_r = R / Rmohr
+sin_phi = sin(phi);
 
+K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sin_phi;
+K2 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) / sin_phi;
+K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
 
-# Assuming Von Mises stress!
-A = -threshold**2 / (2.0 * Young * Gf / characteristic_length);
+sint3 = (-3.0 * sqrt(3.0) * J3) / (2.0 * J2 * sqrt(J2))
+
+LodeAngle = asin(sint3) / 3.0;
+
+ModifiedMohrCoulombStress = (2.0 * tan(math.pi * 0.25 + phi * 0.5) / cos(phi)) * ((I1 * K3 / 3.0) +sqrt(J2) * (K1 * cos(LodeAngle) - K2 * sin(LodeAngle) * sin_phi / sqrt(3.0)))
+
+A = -threshold_compression**2 / (2.0 * Young * Gf *R*R / characteristic_length);
+
 
 # only for linear softening!
-damage = (1.0 - damage_threshold / DruckerPragerStress) / (1.0 + A);
+damage = (1.0 - threshold_compression / ModifiedMohrCoulombStress) / (1.0 + A);
 
 # # Integrated stress
 Stress[0] = (1.0 - damage)*Seff[0]
@@ -121,9 +132,9 @@ Ct[5,2] = ((Stress[5]).diff(Strain2))
 Ct[5,3] = ((Stress[5]).diff(Strain3))
 Ct[5,4] = ((Stress[5]).diff(Strain4))
 Ct[5,5] = ((Stress[5]).diff(Strain5))
-# ...
 
 out = OutputMatrix_CollectingFactors(Ct, "r_Ct", mode)
 print(out)
 
-
+# out = OutputVector_CollectingFactors(Stress, "stress", mode)
+# print(out)
