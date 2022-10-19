@@ -274,7 +274,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct7 = 2.0*nu;
   const double cr_Ct8 = 1.0/(cr_Ct7 - 1.0);
   const double cr_Ct9 = std::abs(threshold_compression/threshold_tension);
-  const double cr_Ct10 = tan(0.5*phi + 0.78539816339744828);
+  const double cr_Ct10 = std::tan(0.5*phi + 0.78539816339744828);
   const double cr_Ct11 = cr_Ct9/std::pow(cr_Ct10, 2);
   const double cr_Ct12 = sin(phi);
   const double cr_Ct13 = cr_Ct11 + 1;
@@ -1433,7 +1433,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct2 = 1.0/(1.0 - 0.5*characteristic_length*std::pow(threshold_compression, 2)/(Gf*Young*std::pow(cr_Ct1, 2)));
   const double cr_Ct3 = 2.0*nu;
   const double cr_Ct4 = 1.0/(cr_Ct3 - 1.0);
-  const double cr_Ct5 = tan(0.5*phi + 0.78539816339744828);
+  const double cr_Ct5 = std::tan(0.5*phi + 0.78539816339744828);
   const double cr_Ct6 = cr_Ct1/std::pow(cr_Ct5, 2);
   const double cr_Ct7 = sin(phi);
   const double cr_Ct8 = cr_Ct6 + 1;
@@ -2575,7 +2575,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
   const double cr_Ct0 = nu - 1.0;
   const double cr_Ct1 = cos(phi);
-  const double cr_Ct2 = tan(0.5*phi + 0.78539816339744828);
+  const double cr_Ct2 = std::tan(0.5*phi + 0.78539816339744828);
   const double cr_Ct3 = 0.5*cr_Ct1*threshold_compression/cr_Ct2;
   const double cr_Ct4 = cr_Ct0*cr_Ct3;
   const double cr_Ct5 = 2*nu;
@@ -3112,7 +3112,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
   const double cr_Ct12 = Young/cr_Ct11;
   const double cr_Ct13 = cr_Ct10*cr_Ct12;
   const double cr_Ct14 = cr_Ct13*(cr_Ct5 + cr_Ct8);
-  const double cr_Ct15 = tan(0.5*phi + 0.78539816339744828);
+  const double cr_Ct15 = std::tan(0.5*phi + 0.78539816339744828);
   const double cr_Ct16 = cr_Ct1/std::pow(cr_Ct15, 2);
   const double cr_Ct17 = sin(phi);
   const double cr_Ct18 = cr_Ct16 + 1;
