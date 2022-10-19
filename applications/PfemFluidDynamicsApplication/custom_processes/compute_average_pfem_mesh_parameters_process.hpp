@@ -219,11 +219,11 @@ namespace Kratos
           mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
         }
 
-        std::cout << "Mesh size out of refining boxes " << outOfBoxesMeanNodalSize << std::endl;
+        std::cout << "Mesh size outside the refining boxes is: " << outOfBoxesMeanNodalSize << std::endl;
         for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
         {
           double localMeshSize = inBoxesMeanNodalSize[index] / inBoxesNodes[index];
-          std::cout << "Mesh size inside refining box " << localMeshSize << std::endl;
+          std::cout << "Mesh size inside refining box n." <<index<<" is: " << localMeshSize << std::endl;
 
           mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
           const double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;

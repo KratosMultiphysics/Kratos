@@ -115,7 +115,7 @@ namespace Kratos
 
 			// double NumberOfNodes = mrModelPart.NumberOfNodes();
 
-			bool any_node_removed = false;
+			bool some_node_is_removed = false;
 
 			int error_nodes_removed = 0;
 			int inside_nodes_removed = 0;
@@ -126,35 +126,35 @@ namespace Kratos
 			{
 				if (mEchoLevel > 1)
 					std::cout << " REMOVE_NODES is TRUE " << std::endl;
-				// bool any_node_removed_on_error = false;
+				// bool some_node_is_removed_due_to_error = false;
 				// ////////////////////////////////////////////////////////////
 				// if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR))
 				// {
 				// 	if (mEchoLevel > 1)
 				// 		std::cout << " REMOVE_NODES_ON_ERROR is TRUE " << std::endl;
 
-				// 	any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
+				// 	some_node_is_removed_due_to_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
 				// }
 				////////////////////////////////////////////////////////////
 				if (mEchoLevel > 1)
 					std::cout << "error_nodes_removed :" << error_nodes_removed << std::endl;
 
-				bool any_node_removed_on_distance = false;
+				bool some_node_is_removed_due_to_distance = false;
 				////////////////////////////////////////////////////////////
 				if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 				{
 					if (mEchoLevel > 1)
 						std::cout << " REMOVE_NODES_ON_DISTANCE is TRUE " << std::endl;
 					// double  MeanRadius=0;
-					any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
+					some_node_is_removed_due_to_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
 				}
 				// REMOVE ON DISTANCE
 				////////////////////////////////////////////////////////////
 
-				if (any_node_removed_on_distance)
-					any_node_removed = true;
+				if (some_node_is_removed_due_to_distance)
+					some_node_is_removed = true;
 
-				if (any_node_removed || mrRemesh.UseBoundingBox == true)
+				if (some_node_is_removed || mrRemesh.UseBoundingBox == true)
 					this->CleanRemovedNodes(mrModelPart);
 			}
 
@@ -298,7 +298,7 @@ namespace Kratos
 		// 	//***SIZES :::: parameters do define the tolerance in mesh size:
 		// 	double size_for_criterion_error = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
 
-		// 	bool any_node_removed = false;
+		// 	bool some_node_is_removed = false;
 
 		// 	MeshErrorCalculationUtilities MeshErrorDistribution;
 		// 	MeshErrorDistribution.SetEchoLevel(mEchoLevel);
@@ -338,13 +338,13 @@ namespace Kratos
 		// 			if (NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
 		// 			{
 		// 				in->Set(TO_ERASE);
-		// 				any_node_removed = true;
+		// 				some_node_is_removed = true;
 		// 				error_removed_nodes++;
 		// 			}
 		// 		}
 		// 	}
 
-		// 	return any_node_removed;
+		// 	return some_node_is_removed;
 
 		// 	KRATOS_CATCH(" ")
 		// }
@@ -356,10 +356,7 @@ namespace Kratos
 			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			//***SIZES :::: parameters do define the tolerance in mesh size:
-
-			bool derefine_wall_tip_contact = false;
-
-			bool any_node_removed = false;
+			bool some_node_is_removed = false;
 
 			// bucket size definition:
 			unsigned int bucket_size = 20;
@@ -373,12 +370,9 @@ namespace Kratos
 			}
 
 			KdtreeType nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
 			////////////////////////////////////////////////////////////
-
 			// all of the nodes in this list will be preserved
 			unsigned int num_neighbours = 100;
-
 			std::vector<Node<3>::Pointer> neighbours(num_neighbours);
 			std::vector<double> neighbour_distances(num_neighbours);
 
@@ -388,7 +382,7 @@ namespace Kratos
 			unsigned int n_points_in_radius;
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			double currentTime = rCurrentProcessInfo[TIME];
+			const double currentTime = rCurrentProcessInfo[TIME];
 			double meshSize = mrRemesh.Refine->CriticalRadius;
 
 			bool refiningBox = false;
@@ -400,7 +394,7 @@ namespace Kratos
 				}
 			}
 
-			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
+			const unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 			unsigned int erased_nodes = 0;
 			for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
 				 ie != mrModelPart.ElementsEnd(); ie++)
@@ -409,13 +403,11 @@ namespace Kratos
 				// coordinates
 				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
 				{
-
 					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
 					{
 						rigidNodes++;
 					}
 				}
-
 				if (dimension == 2)
 				{
 					if (rigidNodes > 0)
@@ -431,7 +423,7 @@ namespace Kratos
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
 
-				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
+				const unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 				meshSize = mrRemesh.Refine->CriticalRadius;
 				double rigidNodeLocalMeshSize = 0;
 				double rigidNodeMeshCounter = 0;
@@ -478,7 +470,7 @@ namespace Kratos
 
 				if (in->Is(TO_ERASE))
 				{
-					any_node_removed = true;
+					some_node_is_removed = true;
 				}
 				bool on_contact_tip = false;
 
@@ -526,7 +518,7 @@ namespace Kratos
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 						{
-							unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
+							const unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
 							if ((nn)->Is(FREE_SURFACE))
 							{
 								freeSurfaceNeighNodes++;
@@ -610,24 +602,12 @@ namespace Kratos
 								}
 								else
 								{
-									// look if we are already erasing any of the other nodes
-									unsigned int contact_nodes = 0;
-									for (std::vector<Node<3>::Pointer>::iterator nn = neighbours.begin(); nn != neighbours.begin() + n_points_in_radius; nn++)
+									in->Set(TO_ERASE);
+									some_node_is_removed = true;
+									inside_nodes_removed++;
+									if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 									{
-										if ((*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT))
-											contact_nodes += 1;
-									}
-
-									if (contact_nodes < 1)
-									{ // we release the node if no other nodes neighbours are being erased
-										in->Set(TO_ERASE);
-										any_node_removed = true;
-										inside_nodes_removed++;
-										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-										{
-											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-										}
-										// distance_remove++;
+										mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 									}
 								}
 							}
@@ -658,7 +638,6 @@ namespace Kratos
 										counter += 1;
 									}
 								}
-
 								k++;
 							}
 
@@ -667,20 +646,7 @@ namespace Kratos
 								in->Set(TO_ERASE);
 								if (mEchoLevel > 1)
 									std::cout << "     Removed Boundary Node [" << in->Id() << "] on Distance " << std::endl;
-								any_node_removed = true;
-								boundary_nodes_removed++;
-
-								if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-								{
-									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-								}
-							}
-							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
-							{
-								in->Set(TO_ERASE);
-								if (mEchoLevel > 1)
-									std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
-								any_node_removed = true;
+								some_node_is_removed = true;
 								boundary_nodes_removed++;
 
 								if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -697,7 +663,7 @@ namespace Kratos
 			{
 				if (mEchoLevel > 1)
 					std::cout << "layer_nodes_removed " << erased_nodes << std::endl;
-				any_node_removed = true;
+				some_node_is_removed = true;
 			}
 			// Build boundary after removing boundary nodes due distance criterion
 			if (mEchoLevel > 1)
@@ -705,7 +671,7 @@ namespace Kratos
 				std::cout << "boundary_nodes_removed " << boundary_nodes_removed << std::endl;
 				std::cout << "inside_nodes_removed " << inside_nodes_removed << std::endl;
 			}
-			return any_node_removed;
+			return some_node_is_removed;
 
 			KRATOS_CATCH(" ")
 		}
@@ -720,7 +686,7 @@ namespace Kratos
 			unsigned int numNodes = eElement.size();
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
+			const unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 
 			array_1d<double, 3> Edges(3, 0.0);
 			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
@@ -790,7 +756,7 @@ namespace Kratos
 						erased_nodes += 1;
 						inside_nodes_removed++;
 
-						unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -817,7 +783,7 @@ namespace Kratos
 							erased_nodes += 1;
 							inside_nodes_removed++;
 
-							unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+							const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 							{
 								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -840,7 +806,7 @@ namespace Kratos
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
-										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -861,7 +827,6 @@ namespace Kratos
 
 			KRATOS_TRY
 			double safetyCoefficient3D = 0.6;
-			// double safetyCoefficient3D=0.7;
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
@@ -951,7 +916,7 @@ namespace Kratos
 						erased_nodes += 1;
 						inside_nodes_removed++;
 
-						unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1011,7 +976,7 @@ namespace Kratos
 					erased_nodes += 1;
 					inside_nodes_removed++;
 
-					unsigned int propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
+					const unsigned int propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
 						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1044,7 +1009,7 @@ namespace Kratos
 							erased_nodes += 1;
 							inside_nodes_removed++;
 
-							unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+							const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 							{
 								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1072,7 +1037,7 @@ namespace Kratos
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
-										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1094,7 +1059,7 @@ namespace Kratos
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
-										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1213,7 +1178,7 @@ namespace Kratos
 					eElement[erasableNode].Set(TO_ERASE);
 					inside_nodes_removed++;
 					erased_nodes += 1;
-					unsigned int propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
+					const unsigned int propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
 						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1252,7 +1217,7 @@ namespace Kratos
 						inside_nodes_removed++;
 						erased_nodes += 1;
 
-						unsigned int propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1264,7 +1229,7 @@ namespace Kratos
 						inside_nodes_removed++;
 						erased_nodes += 1;
 
-						unsigned int propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
