@@ -281,10 +281,12 @@ bool RegistryFile::IsValidEntry(const Parameters& rEntry)
         return false;
     } else {
         for (const auto& r_item : rEntry) {
-            if (!r_item.IsString()) {
-                return false;
-            } else {
+            if (r_item.IsString()) {
                 if (r_item.GetString().find('\n') != std::string::npos) return false;
+            } else {
+                if (!(r_item.IsNumber() || r_item.IsBool())) {
+                    return false;
+                }
             }
         }
     }
