@@ -1877,52 +1877,51 @@ namespace Kratos {
       mRVE_VolTotal = RVEComputeTotalVolume();
       RVEComputePorosity();
 
-      // Compute fabric anisotropy
-      Matrix aux = ZeroMatrix(mRVE_Dimension, mRVE_Dimension); // Deviatoric fabric tensor
-      double invariant2;
-
-      for (int i = 0; i < mRVE_Dimension; i++) {
-        for (int j = 0; j < mRVE_Dimension; j++) {
-          if (mRVE_NumContacts != 0.0) {
-            mRVE_FabricTensor(i, j) /= mRVE_NumContacts;
-            if (i == j)
-              aux(i,j) = 4.0 * (mRVE_FabricTensor(i,j) - (1.0 / mRVE_Dimension));
-            else
-              aux(i,j) = 4.0 * mRVE_FabricTensor(i,j);
-          }
-          else {
-            mRVE_FabricTensor(i,j) = 0.0;
-            aux(i,j) = 0.0;
-          }
-        }
+      // Compute fabric anisotropy and stresses
+      if (mRVE_NumContacts == 0.0) {
+        mRVE_FabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+        mRVE_CauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+        mRVE_Anisotropy   = 0.0;
+        mRVE_EffectStress = 0.0;
+        mRVE_DevStress    = 0.0;
       }
 
-      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
-      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
-      if (invariant2 < 0.0) invariant2 = 0.0;
-      mRVE_Anisotropy = sqrt(invariant2);
+      else {
+        double deviatoric_fabric;
+        double deviatoric_stress;
+        double cauchy_trace = 0.0;
+        double double_dot_product = 0.0;
 
-      // Compute stresses
-      double tr_stress = 0.0; 
+        for (int i = 0; i < mRVE_Dimension; i++) {
+          for (int j = 0; j < mRVE_Dimension; j++) {
+            mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
+            mRVE_CauchyTensor(i,j) /= mRVE_VolTotal;
 
-      for (int i = 0; i < mRVE_Dimension; i++) {
-        for (int j = 0; j < mRVE_Dimension; j++) {
-          mRVE_CauchyTensor(i,j) /= mRVE_VolTotal;
-          if (i == j)
-            tr_stress += mRVE_CauchyTensor(i,j);
+            if (i == j) {
+              deviatoric_fabric = 4.0 * (mRVE_FabricTensor(i,j) - (1.0 / mRVE_Dimension));
+              cauchy_trace += mRVE_CauchyTensor(i,j);
+            }
+            else {
+              deviatoric_fabric = 4.0 * mRVE_FabricTensor(i,j);
+            }
+
+            double_dot_product += 0.5 * deviatoric_fabric * deviatoric_fabric;
+          }
         }
+        mRVE_Anisotropy   = sqrt(double_dot_product);
+        mRVE_EffectStress = cauchy_trace / mRVE_Dimension;
+
+        // Second loop to compute deviatoric stress
+        double_dot_product = 0.0;
+
+        for (int i = 0; i < mRVE_Dimension; i++) {
+          for (int j = 0; j < mRVE_Dimension; j++) {
+            deviatoric_stress = (i==j) ? mRVE_CauchyTensor(i,j)-mRVE_EffectStress : mRVE_CauchyTensor(i,j);
+            double_dot_product += 0.5 * deviatoric_stress * deviatoric_stress;
+          }
+        }
+        mRVE_DevStress = sqrt(double_dot_product);
       }
-
-      mRVE_EffectStress = tr_stress / mRVE_Dimension;
-
-      noalias(aux) = mRVE_CauchyTensor;
-      for (int i = 0; i < mRVE_Dimension; i++)
-        aux(i,i) -= mRVE_EffectStress;
-
-      if      (mRVE_Dimension == 2) invariant2 = 0.5 * (aux(0,0)*aux(1,1) - aux(0,1)*aux(1,0));
-      else if (mRVE_Dimension == 3) invariant2 = 0.5 * (aux(0,0)*aux(1,1) + aux(1,1)*aux(2,2) + aux(0,0)*aux(2,2) - aux(0,1)*aux(1,0) - aux(1,2)*aux(2,1) - aux(0,2)*aux(2,0));
-      if (invariant2 < 0.0) invariant2 = 0.0;
-      mRVE_DevStress = sqrt(invariant2);
 
       // Write files
       RVEWriteFiles();
