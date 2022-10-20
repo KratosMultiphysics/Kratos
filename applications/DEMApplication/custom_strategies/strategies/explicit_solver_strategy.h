@@ -284,19 +284,19 @@ namespace Kratos {
         //==========================================================================================================================================
 
         // Properties
-        bool   mRVE_Solve;          // Flag for evaluating RVE in current step
-        int    mRVE_FreqEval  = 5000;  // Frequency for evaluating RVE in steps
-        int    mRVE_FreqWrite = 1;  // Frequency for writing results as a multiplication factor of the evaluating frequency
-        int    mRVE_Dimension;      // RVE dimension: 2D or 3D
-        int    mRVE_NumContacts;    // Total number of contacts in RVE
-        double mRVE_AvgCoordNum;    // Average coordination number per particle
-        double mRVE_VolSolid;       // Volume of solid (particles) in RVE discounting overlaps
-        double mRVE_VolTotal;       // RVE total volume
-        double mRVE_Porosity;       // RVE porosity (discounting overlaps)
-        double mRVE_VoidRatio;      // RVE void ratio (discounting overlaps)
-        double mRVE_Anisotropy;     // Fabric anisotropy
-        double mRVE_EffectStress;   // Mean effective stress
-        double mRVE_DevStress;      // Deviatoric stress
+        bool   mRVE_Solve;            // Flag for evaluating RVE in current step
+        int    mRVE_FreqEval  = 1000; // Frequency for evaluating RVE in steps
+        int    mRVE_FreqWrite = 1;    // Frequency for writing results as a multiplication factor of the evaluating frequency
+        int    mRVE_Dimension;        // RVE dimension: 2D or 3D
+        int    mRVE_NumContacts;      // Total number of contacts in RVE
+        double mRVE_AvgCoordNum;      // Average coordination number per particle
+        double mRVE_VolSolid;         // Volume of solid (particles) in RVE discounting overlaps
+        double mRVE_VolTotal;         // RVE total volume
+        double mRVE_Porosity;         // RVE porosity (discounting overlaps)
+        double mRVE_VoidRatio;        // RVE void ratio (discounting overlaps)
+        double mRVE_Anisotropy;       // Fabric anisotropy
+        double mRVE_EffectStress;     // Mean effective stress
+        double mRVE_DevStress;        // Deviatoric stress
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction

@@ -898,20 +898,20 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
 
               // Rose diagram
+              const int num_bins      = 40;
+              const double bin_length = 360.0 / num_bins;
+              const double bin_half   = bin_length / 2.0; // to centralize bin at 0 degrees
+
               const double rad2deg = 180.0 / Globals::Pi;
               double angle_xy = rad2deg * atan2(normal[1], normal[0]);
               double azimuth  = rad2deg * atan2(normal[2], sqrt(normal[0]*normal[0] + normal[1]*normal[1]));
 
-              if (angle_xy < 0.0)    angle_xy += 360.0;
-              if (angle_xy >= 360.0) angle_xy -= 360.0;
-              if (azimuth < 0.0)     azimuth  = 0.0;
-              if (azimuth > 180.0)   azimuth  = 180.0;
+              if (angle_xy < -bin_half) angle_xy += 360.0;
+              if (azimuth < 0.0)   azimuth = 0.0;
+              if (azimuth > 180.0) azimuth = 180.0;
 
-              const int num_subdivisions = 40;
-              const double subdivision_size = 360.0 / num_subdivisions;
-
-              const int idx_xy = std::abs(angle_xy / subdivision_size);
-              const int idx_az = std::abs(azimuth  / subdivision_size);
+              const int idx_xy = std::abs((angle_xy+bin_half)/bin_length);
+              const int idx_az = std::abs(azimuth/bin_length);
               mRoseDiagram(0,idx_xy)++;
               mRoseDiagram(1,idx_az)++;
 
@@ -1172,20 +1172,20 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
 
               // Rose diagram
+              const int num_bins      = 40;
+              const double bin_length = 360.0 / num_bins;
+              const double bin_half   = bin_length / 2.0; // to centralize bin at 0 degrees
+
               const double rad2deg = 180.0 / Globals::Pi;
               double angle_xy = rad2deg * atan2(normal[1], normal[0]);
               double azimuth  = rad2deg * atan2(normal[2], sqrt(normal[0]*normal[0]+normal[1]*normal[1]));
               
-              if (angle_xy < 0.0)    angle_xy += 360.0;
-              if (angle_xy >= 360.0) angle_xy -= 360.0;
-              if (azimuth < 0.0)     azimuth  = 0.0;
-              if (azimuth > 180.0)   azimuth  = 180.0;
+              if (angle_xy < -bin_half) angle_xy += 360.0;
+              if (azimuth < 0.0)   azimuth = 0.0;
+              if (azimuth > 180.0) azimuth = 180.0;
 
-              const int num_subdivisions = 40;
-              const double subdivision_size = 360.0 / num_subdivisions;
-
-              const int idx_xy = std::abs(angle_xy / subdivision_size);
-              const int idx_az = std::abs(azimuth / subdivision_size);
+              const int idx_xy = std::abs((angle_xy+bin_half) / bin_length);
+              const int idx_az = std::abs(azimuth  / bin_length);
               mRoseDiagram(0,idx_xy)++;
               mRoseDiagram(1,idx_az)++;
 
