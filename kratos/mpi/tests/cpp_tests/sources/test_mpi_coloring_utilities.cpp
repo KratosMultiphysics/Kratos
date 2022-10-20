@@ -38,7 +38,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, Krat
     std::vector< std::vector< int > > send_list(4);
     send_list[0] = {1,3};
     send_list[1] = {0,2,3};
-    send_list[2]; //does not send to anyone!!
+    // send_list[2]; //does not send to anyone!!
     send_list[3] = {0};
 
     // //expected_recv_list;
@@ -69,7 +69,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationS
     std::vector< std::vector< int > > send_list(4);
     send_list[0] = {1,3};
     send_list[1] = {0,2,3};
-    send_list[2]; //does not send to anyone!!
+    // send_list[2]; //does not send to anyone!!
     send_list[3] = {0};
 
     // //expected_recv_list;
