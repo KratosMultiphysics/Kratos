@@ -441,62 +441,32 @@ public:
      * length otherwise.
      * In the current geometry this function returns the determinant of
      * jacobian
-     *
+     * @todo Could be replaced by something more suitable
      * @return double value contains length or Characteristic
      * length
      * @see Area()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Length() const override
     {
-        // return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
-        // Approximation to avoid errors. Can be improved.
-
-		array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
-		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
-
-		array_1d<double, 3> vx( p1 - p0 );
-
-		return MathUtils<double>::Norm3(vx);
+        return std::sqrt(std::abs( DeterminantOfJacobian( PointType() ) ) );
     }
 
     /** This method calculates and returns area or surface area of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
+     * @todo Could be replaced by something more suitable
      * @return double value contains area or surface
      * area.
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-        //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
-        // Approximation to avoid errors. Can be improved.
-
-        array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
-		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
-		array_1d<double, 3> p2 = BaseType::GetPoint( 2 );
-		array_1d<double, 3> p3 = BaseType::GetPoint( 3 );
-
-		array_1d<double, 3> vx( p1 - p0 );
-		array_1d<double, 3> vy( p2 - p3 );
-
-		double base = MathUtils<double>::Norm3(vx);
-        double length = MathUtils<double>::Norm3(vy);
-
-        return base*length*0.5;
+        return std::abs( DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
     /** This method calculates and returns length, area or volume of
@@ -508,10 +478,6 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double DomainSize() const override
     {
