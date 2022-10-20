@@ -155,6 +155,12 @@ public:
     ///@name Inquiry
     ///@{
 
+    const std::size_t size()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and size() cannot be retrieved." << std::endl;
+        return mSubRegistryItem.size();
+    }
+
     bool HasValue() const
     {
         return (mpValue != nullptr);

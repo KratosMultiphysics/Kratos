@@ -155,7 +155,13 @@ public:
     ///@name Inquiry
     ///@{
 
+    static std::size_t size();
+
     static bool HasItem(std::string const& rItemFullName);
+
+    static bool HasValue(std::string const& rItemFullName);
+
+    static bool HasItems(std::string const& rItemFullName);
 
     ///@}
     ///@name Input and output

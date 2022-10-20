@@ -19,17 +19,127 @@ class PythonRegistry(object):
         # Dictionary to act as Python registry
         self.__python_registry = {}
 
+    def __getitem__(self, Name):
+        if self.HasItem(Name, RegistryContext.PYTHON):
+            # Get the class from the Python registry
+            return self.__InternalGetPythonItem(Name)
+        elif self.HasItem(Name, RegistryContext.CPP):
+            # Get the class from the c++ registry
+            return self.__InternalGetCppItem(Name)
+        else:
+            err_msg = f"Asking to retrieve '{Name}' non-registered item."
+            raise Exception(err_msg)
+
+    def keys(self, Name):
+        # Check if Name registry level is a value
+        if self.HasItem(Name):
+            if not self.HasItems(Name):
+                err_mgs = f"Asking for the keys of '{Name}'. '{Name}' item has no subitems."
+                raise Exception(err_mgs)
+        else:
+            err_msg = f"Asking for the keys of '{Name}' non-registered item."
+            raise Exception(err_msg)
+
+        # Get the c++ registry item keys
+        cpp_keys = None
+        if self.HasItems(Name, RegistryContext.CPP):
+            cpp_keys = self.__InternalGetCppItem(Name).keys()
+        # Get the Python registry item keys
+        # Note that this is a view object of the Python dictionary keys
+        py_keys = None
+        if self.HasItems(Name, RegistryContext.PYTHON):
+            py_keys = self.__InternalGetPythonItem(Name).keys()
+
+        # Return the c++ and Python registry keys in a tuple
+        # Note that we return None if the item was not present in one of the registries
+        return py_keys, cpp_keys
+
+    def NumberOfItems(self, Name):
+        '''Returns the total number of items in the registry
+        '''
+        py_keys, cpp_keys = self.keys(Name)
+        total_items = 0
+        if py_keys is not None:
+            total_items += len(py_keys)
+        if cpp_keys is not None:
+            total_items += len(cpp_keys)
+        return total_items
+
+    def NumberOfPythonItems(self, Name):
+        '''Returns the number of Python registered items
+        '''
+        py_keys, _ = self.keys(Name)
+        total_items = 0
+        if py_keys is not None:
+            total_items += len(py_keys)
+        return total_items
+
+    def NumberOfCppItems(self, Name):
+        '''Returns the number of c++ registered items
+        '''
+        _, cpp_keys = self.keys(Name)
+        total_items = 0
+        if cpp_keys is not None:
+            total_items += len(cpp_keys)
+        return total_items
+
     def HasItem(self, Name, Context=RegistryContext.ALL):
         if Context == RegistryContext.ALL:
             is_registered_in_cpp = self.__cpp_registry.HasItem(Name)
-            is_registered_in_python = self.__InternalHasItem(Name)
+            is_registered_in_python = self.__InternalHasPythonItem(Name)
             return is_registered_in_cpp or is_registered_in_python
         elif Context == RegistryContext.CPP:
             return self.__cpp_registry.HasItem(Name)
         elif Context == RegistryContext.PYTHON:
-            return self.__InternalHasItem(Name)
+            return self.__InternalHasPythonItem(Name)
         else:
             raise Exception("Wrong registry context. Accepted options are 'ALL', 'CPP' and 'PYTHON'.")
+
+    def HasValue(self, Name):
+        '''Checks if Name registry item holds a value
+        '''
+        has_value = False
+        if self.HasItem(Name, RegistryContext.PYTHON):
+            has_value = not isinstance(self.__InternalGetPythonItem(Name), dict)
+        elif self.HasItem(Name, RegistryContext.CPP):
+            has_value = self.__cpp_registry.HasValue(Name)
+        else:
+            err_msg = f"Asking 'HasValue' for the '{Name}' non-registered item."
+            raise Exception(err_msg)
+
+        return has_value
+
+    #TODO: I THINK WE SHOULD FILTER THE REGISTRY CONTEXT IN HERE
+    def HasItems(self, Name, Context=RegistryContext.ALL):
+        '''Checks if Name registry item saves a value
+        '''
+        # Check if current item has subitems in Python registry
+        has_subitems_py = None
+        has_item_py = self.HasItem(Name, RegistryContext.PYTHON)
+        if has_item_py:
+            has_subitems_py = isinstance(self.__InternalGetPythonItem(Name), dict)
+
+        # Check if current item has subitems in c++ registry
+        has_subitems_cpp = None
+        has_item_cpp = self.HasItem(Name, RegistryContext.CPP)
+        if has_item_cpp:
+            has_subitems_cpp = self.__cpp_registry.HasItems(Name)
+
+        # First check that current item is registered
+        if not (has_item_py or has_item_cpp):
+            err_msg = f"Asking 'HasItems' for the '{Name}' non-registered item."
+            raise Exception(err_msg)
+
+        # Return the corresponding result
+        if Context == RegistryContext.ALL:
+            return has_subitems_py or has_subitems_cpp
+        elif Context == RegistryContext.PYTHON:
+            return has_subitems_py
+        elif Context == RegistryContext.CPP:
+            return has_subitems_cpp
+        else:
+            err_msg = f"Wrong registry context '{Context}'"
+            raise Exception(err_msg)
 
     def AddItem(self, Name, Class):
         # Add current item
@@ -56,52 +166,6 @@ class PythonRegistry(object):
             err_msg = f"Asking to remove '{Name}' non-registered item."
             raise Exception(err_msg)
 
-    def RemoveItems(self, Name, Context=RegistryContext.PYTHON):
-        # TODO: Discuss about implementing in here a method to remove a list of items from the Python (not c++) registry
-        pass
-
-    def GetItem(self, Name):
-        if self.HasItem(Name, RegistryContext.PYTHON):
-            # Get the class from the Python registry
-            return self.__InternalGetItem(Name)
-        elif self.HasItem(Name, RegistryContext.CPP):
-            # Split the registry time to get the item keyword
-            item_keyword, _, _ = self.__SplitRegistryNameString(Name)
-
-            # Get the object from the c++ registry by filtering its type keyword
-            get_function_name = self.__GetCppRegistryGetFunctionNameFromItemKeyword(item_keyword)
-            if hasattr(self.__cpp_registry, get_function_name):
-                return getattr(self.__cpp_registry, get_function_name)(Name)
-            else:
-                err_msg = f"Retrieving '{item_keyword}' items from c++ registry is not supported."
-                raise Exception(err_msg)
-        else:
-            err_msg = f"Asking to retrieve '{Name}' non-registered item."
-            raise Exception(err_msg)
-
-    def GetItems(self, Name, Context=RegistryContext.ALL):
-        # TODO: Implement a GetItems or GetKeys method to return a list with the corresponding keys of that levels, like we do with parameters
-        pass
-
-    @staticmethod
-    def __SplitRegistryNameString(Name):
-        '''Split the registry name
-        e.g. for Processes.KratosMultiphysics.ConvectionDiffusionApplication.MyProcess we should get
-        - item_keyword: "Processes"
-        - module_name: "KratosMultiphysics.ConvectionDiffusionApplication"
-        - class_name: "MyProcess"
-        '''
-
-        split_name = Name.split('.')
-        if len(split_name) < 3:
-            err_msg = f"Provided item name '{Name}' is wrong. 'ItemKeyword.Module.ClassName' structure is expected (e.g. 'Processes.KratosMultiphysics.MyProcess')."
-            raise Exception(err_msg)
-        item_keyword = split_name[0]
-        module_name = split_name[1:-1]
-        class_name = split_name[-1]
-
-        return item_keyword, module_name, class_name
-
     @staticmethod
     def __GetCppRegistryGetFunctionNameFromItemKeyword(ItemKeyword):
         if ItemKeyword in PythonRegistry.CppGetFunctionNamesMap:
@@ -110,7 +174,7 @@ class PythonRegistry(object):
             err_msg = f"'{ItemKeyword}' has not been addded to 'CppGetFunctionNamesMap'."
             raise Exception(err_msg)
 
-    def __InternalHasItem(self, Name):
+    def __InternalHasPythonItem(self, Name):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
@@ -119,12 +183,27 @@ class PythonRegistry(object):
             aux_dict = aux_dict[i_name]
         return split_name[-1] in aux_dict
 
-    def __InternalGetItem(self, Name):
+    def __InternalGetPythonItem(self, Name):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
             aux_dict = aux_dict[i_name]
         return aux_dict[split_name[-1]]
+
+    def __InternalGetCppItem(self, Name):
+        # Check if current item has value
+        if self.__cpp_registry.HasValue(Name):
+            # Return the object from the c++ registry by filtering its type keyword
+            item_keyword = Name.split('.')[0]
+            get_function_name = self.__GetCppRegistryGetFunctionNameFromItemKeyword(item_keyword)
+            if hasattr(self.__cpp_registry, get_function_name):
+                return getattr(self.__cpp_registry, get_function_name)(Name)
+            else:
+                err_msg = f"Retrieving '{item_keyword}' items from c++ registry is not supported."
+                raise Exception(err_msg)
+        else:
+            # Return current subitem
+            return self.__cpp_registry.GetItem(Name)
 
     def __InternalRemoveItem(self, Name):
         split_name = Name.split('.')
@@ -143,7 +222,9 @@ class PythonRegistry(object):
         aux_dict[split_name[-1]] = Class
 
     def __InternalAddItemToAll(self, Name, Class):
-        item_keyword, _, class_name = self.__SplitRegistryNameString(Name)
+        split_name = Name.split('.')
+        item_keyword = split_name[0]
+        class_name = split_name[-1]
         all_full_name = f"{item_keyword}.All.{class_name}"
         if self.HasItem(all_full_name, RegistryContext.ALL):
             err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."

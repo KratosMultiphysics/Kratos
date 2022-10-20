@@ -29,11 +29,11 @@ namespace Kratos::Python
 
 namespace
 {
-    pybind11::list registry_item_keys(const std::string& rItemName)
+    pybind11::list registry_item_keys(const RegistryItem& rSelf)
     {
         pybind11::list t;
-        auto& r_registry_item = Kratos::Registry::GetItem(rItemName);
-        for (auto it = r_registry_item.begin(); it != r_registry_item.end(); ++it) {
+        KRATOS_ERROR_IF(!rSelf.HasItems()) << "Asking for the keys of " << rSelf.Name() << "which has no subitems." << std::endl;
+        for (auto it = rSelf.cbegin(); it != rSelf.cend(); ++it) {
             t.append(it->first);
         }
         return t;
@@ -42,7 +42,7 @@ namespace
     pybind11::list registry_keys()
     {
         pybind11::list t;
-        for (auto it = Kratos::Registry::begin(); it != Kratos::Registry::end(); ++it) {
+        for (auto it = Kratos::Registry::cbegin(); it != Kratos::Registry::cend(); ++it) {
             t.append(it->first);
         }
         return t;
@@ -55,16 +55,23 @@ void AddRegistryToPython(pybind11::module& m)
 
     py::class_<RegistryItem, RegistryItem::Pointer>(m, "RegistryItem")
         .def("Name", &RegistryItem::Name)
-        // .def("__iter__", [](RegistryItem& self){return py::make_iterator(self.begin(), self.end());}, py::keep_alive<0,1>()) // Keep RegistryItem alive while the iterator is used
+        .def("HasItems", &RegistryItem::HasItems)
+        .def("HasValue", &RegistryItem::HasValue)
+        .def("keys", &registry_item_keys)
+        .def("size", &RegistryItem::size)
+        // .def("__str__", [](const RegistryItem& rSelf){rSelf.Name();})
         ;
 
     py::class_<Registry, Registry::Pointer>(m, "CppRegistry")
         .def_static("HasItem", &Registry::HasItem)
+        .def_static("HasItems", &Registry::HasItems)
+        .def_static("HasValue", &Registry::HasValue)
         .def_static("GetItem", &Registry::GetItem, py::return_value_policy::reference)
         .def_static("GetOperation", &Registry::GetValue<Operation>, py::return_value_policy::reference)
         .def_static("GetProcess", &Registry::GetValue<Process>, py::return_value_policy::reference)
         .def_static("RemoveItem", &Registry::RemoveItem)
         .def_static("keys", &registry_keys)
+        .def_static("size", &Registry::size)
         ;
 }
 

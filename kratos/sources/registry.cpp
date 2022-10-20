@@ -79,6 +79,11 @@ namespace
         }
     }
 
+    std::size_t Registry::size()
+    {
+        return mspRootRegistryItem->size();
+    }
+
     bool Registry::HasItem(std::string const& rItemFullName)
     {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
@@ -98,6 +103,16 @@ namespace
             }
         }
         return true;
+    }
+
+    bool Registry::HasValue(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).HasValue();
+    }
+
+    bool Registry::HasItems(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).HasItems();
     }
 
     std::string Registry::Info() const
