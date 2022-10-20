@@ -74,19 +74,21 @@ namespace Kratos
                     c.AddSubject(all_loops);
 
                     Clipper2Lib::Paths64 span(1);
-                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
-                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor));
-                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor));
-                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor));
-                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
+                    span[0].resize(5);
+                    span[0][0] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
+                    span[0][1] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor));
+                    span[0][2] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor));
+                    span[0][3] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor));
+                    span[0][4] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
 
                     c.AddClip(span);
                     c.Execute(Clipper2Lib::ClipType::Intersection, Clipper2Lib::FillRule::EvenOdd, span, solution);
 
                     const double span_area = std::abs(Clipper2Lib::Area(span[0])) / factor;
                     double clip_area = std::abs(Clipper2Lib::Area(solution[0])) / factor;
-                    if (solution.size() > 1)
+                    if (solution.size() > 0)
                     {
+                        clip_area = std::abs(Clipper2Lib::Area(solution[0])) / factor;
                         for (IndexType k = 1; k < solution.size(); ++k) {
                             clip_area -= std::abs(Clipper2Lib::Area(solution[k])) / factor;
                         }
@@ -95,7 +97,7 @@ namespace Kratos
                     if (solution.size() == 0) {
                         continue;
                     }
-                    else if (std::abs(clip_area- span_area) < 1e-6) {
+                    else if (std::abs(clip_area- span_area) < 1e-4) {
                         const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
                         IndexType initial_integration_size = rIntegrationPoints.size();

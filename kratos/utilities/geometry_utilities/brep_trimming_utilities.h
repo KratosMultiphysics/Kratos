@@ -10,6 +10,9 @@
 #if !defined(KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED)
 #define KRATOS_BREP_TRIMMING_UTILITIES_H_INCLUDED
 
+// Std includes
+#include <list>
+
 // System includes
 #include "includes/define.h"
 
