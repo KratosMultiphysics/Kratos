@@ -45,14 +45,6 @@ namespace {
           new Triangle3D6<NodeType>(GenerateReferenceNodes3D6()));
   }
 
-  Geometry<NodeType>::Pointer GenerateCurvedTriangle3D6() {
-      auto nodes = GenerateReferenceNodes3D6();
-      nodes[3].Y0() = nodes[3].Y() = 0.1;
-      nodes[4].X0() = nodes[4].X() = 0.4;
-      nodes[4].Y0() = nodes[4].Y() = 0.4;
-      nodes[5].X0() = nodes[5].X() = 0.1;
-      return Geometry<NodeType>::Pointer(new Triangle3D6<NodeType>(nodes));
-  }
 }
 
     ///// Tests
