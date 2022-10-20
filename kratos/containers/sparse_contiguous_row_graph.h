@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED )
-#define  KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -89,7 +87,7 @@ public:
     {
         mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
         mGraph.resize(GraphSize,false);
-        mLocks = std::vector<LockObject>(GraphSize);
+        mLocks = decltype(mLocks)(GraphSize);
 
         // @RiccardoRossi why is this needed? isn't this done with resizing?
         //doing first touching
@@ -117,7 +115,7 @@ public:
         IndexPartition<IndexType>(rOther.mGraph.size()).for_each([&](IndexType i) {
             mGraph[i] = std::unordered_set<IndexType>();
         });
-        mLocks = std::vector<LockObject>(rOther.mLocks.size());
+        mLocks = decltype(mLocks)(rOther.mLocks.size());
         this->AddEntries(rOther);
     }
 
@@ -590,7 +588,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED  defined
-
-
