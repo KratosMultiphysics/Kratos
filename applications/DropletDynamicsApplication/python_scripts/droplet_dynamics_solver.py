@@ -241,9 +241,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
             for element in self.main_model_part.Elements:
                 int_force = element.GetValue(KratosDroplet.EFORCE)
                 element.SetValue(KratosDroplet.EXT_INT_FORCE, int_force)
-                
-            
-            
+       
 
     def FinalizeSolutionStep(self):
 
@@ -267,79 +265,7 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
             # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
             if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
-            
-            #############################
-            # Zero Disance - Structured #
-            #############################
-            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            
-            X_c = 0.5
-            Y_c = X_c
-
-            X_max = 1.0
-            Y_max = 1.0 
-            
-                    
-            XPlusMax = X_max
-            XMinusMax = X_c
-            DistPlusMax = 1.0e5
-            DistMinusMax = -1.0e5
-            XZeroMax = (XPlusMax + XMinusMax) / 2.0
-
- 
-            YPlusMax = Y_max
-            YMinusMax = Y_c
-            DistPlusYMax = 1.0e5
-            DistMinusYMax = -1.0e5
-            YZeroMax = (YPlusMax + YMinusMax) / 2.0
-
-
-            for node in self.main_model_part.Nodes:
-                NodeX = node.X
-                NodeY = node.Y
-                NodeZ = node.Z
-
-                
-                if (abs(NodeY - Y_c) < 1.0e-6 and abs(NodeZ - 1.0) < 1.0e-6):
-                    if (NodeX >= X_c):
-                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist <= DistPlusMax):
-                            DistPlusMax = Dist
-                            XPlusMax = NodeX
-                        if (Dist <= 0.0 and Dist >= DistMinusMax):
-                            DistMinusMax = Dist
-                            XMinusMax = NodeX
-
-                if (abs(NodeX - X_c) < 1.0e-6 and abs(NodeZ - 1.0) < 1.0e-6):
-                    if (NodeY >= Y_c):
-                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist <= DistPlusYMax):
-                            DistPlusYMax = Dist
-                            YPlusMax = NodeY
-                        if (Dist <= 0.0 and Dist >= DistMinusYMax):
-                            DistMinusYMax = Dist
-                            YMinusMax = NodeY
-                
-            
-            if (abs(DistPlusMax - DistMinusMax) > 1.0e-15):
-                XZeroMax = XMinusMax + (-DistMinusMax)/(DistPlusMax - DistMinusMax)*(XPlusMax - XMinusMax)
-            else:
-                XZeroMax = XMinusMax
-
-            
-            if (abs(DistPlusYMax - DistMinusYMax) > 1.0e-15):
-                YZeroMax = YMinusMax + (-DistMinusYMax)/(DistPlusYMax - DistMinusYMax)*(YPlusMax - YMinusMax)
-            else:
-                YZeroMax = YMinusMax
-            
-
-            DEFORMATION = ((YZeroMax-0.5) - (XZeroMax-0.5))/((YZeroMax-0.5) + (XZeroMax-0.5))
-
-            with open("XYZ-Distance_Structured.log", "a") as distLogFile:
-                distLogFile.write( str(TimeStep*DT) + "\t" + "\t" + str(XZeroMax) + "\t" + str(YZeroMax) + "\t" + str(DEFORMATION) + "\n" )
-
-
+         
     def _SetNodalProperties(self):
         super(DropletDynamicsSolver,self)._SetNodalProperties() # Keep it for now, this function might need more parameters for EHD
 
@@ -413,10 +339,10 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
     #         self._distance_gradient_process = self._CreateDistanceGradientProcess()
     #     return self._distance_gradient_process
 
-    # def _GetDistanceCurvatureProcess(self):
-    #     if not hasattr(self, '_distance_curvature_process'):
-    #         self._distance_curvature_process = self._CreateDistanceCurvatureProcess()
-    #     return self._distance_curvature_process
+    def _GetDistanceCurvatureProcess(self):
+        if not hasattr(self, '_distance_curvature_process'):
+            self._distance_curvature_process = self._CreateDistanceCurvatureProcess()
+        return self._distance_curvature_process
 
     # def _GetConsistentNodalPressureGradientProcess(self):
     #     if not hasattr(self, '_consistent_nodal_pressure_gradient_process'):
@@ -455,48 +381,48 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
     #     return level_set_convection_process
 
-    # def _CreateDistanceReinitializationProcess(self):
-    #     # Construct the variational distance calculation process
-    #     if (self._reinitialization_type == "variational"):
-    #         maximum_iterations = 2 #TODO: Make this user-definable
-    #         linear_solver = self._GetRedistancingLinearSolver()
-    #         computing_model_part = self.GetComputingModelPart()
-    #         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-    #             distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-    #                 computing_model_part,
-    #                 linear_solver,
-    #                 maximum_iterations,
-    #                 KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-    #         else:
-    #             distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-    #                 computing_model_part,
-    #                 linear_solver,
-    #                 maximum_iterations,
-    #                 KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+    def _CreateDistanceReinitializationProcess(self):
+        # Construct the variational distance calculation process
+        if (self._reinitialization_type == "variational"):
+            maximum_iterations = 2 #TODO: Make this user-definable
+            linear_solver = self._GetRedistancingLinearSolver()
+            computing_model_part = self.GetComputingModelPart()
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+                    computing_model_part,
+                    linear_solver,
+                    maximum_iterations,
+                    KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+            else:
+                distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+                    computing_model_part,
+                    linear_solver,
+                    maximum_iterations,
+                    KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-    #     elif (self._reinitialization_type == "parallel"):
-    #         #TODO: move all this to solver settings
-    #         layers = self.settings["parallel_redistance_max_layers"].GetInt()
-    #         parallel_distance_settings = KratosMultiphysics.Parameters("""{
-    #             "max_levels" : 25,
-    #             "max_distance" : 1.0,
-    #             "calculate_exact_distances_to_plane" : true
-    #         }""")
-    #         parallel_distance_settings["max_levels"].SetInt(layers)
-    #         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-    #             distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess2D(
-    #                 self.main_model_part,
-    #                 parallel_distance_settings)
-    #         else:
-    #             distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess3D(
-    #                 self.main_model_part,
-    #                 parallel_distance_settings)
-    #     elif (self._reinitialization_type == "none"):
-    #             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
-    #     else:
-    #         raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
+        elif (self._reinitialization_type == "parallel"):
+            #TODO: move all this to solver settings
+            layers = self.settings["parallel_redistance_max_layers"].GetInt()
+            parallel_distance_settings = KratosMultiphysics.Parameters("""{
+                "max_levels" : 100,
+                "max_distance" : 1.0,
+                "calculate_exact_distances_to_plane" : false
+            }""")
+            parallel_distance_settings["max_levels"].SetInt(layers)
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess2D(
+                    self.main_model_part,
+                    parallel_distance_settings)
+            else:
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess3D(
+                    self.main_model_part,
+                    parallel_distance_settings)
+        elif (self._reinitialization_type == "none"):
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
+        else:
+            raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
 
-    #     return distance_reinitialization_process
+        return distance_reinitialization_process
 
     # def _CreateDistanceSmoothingProcess(self):
     #     # construct the distance smoothing process
@@ -521,14 +447,16 @@ class DropletDynamicsSolver(NavierStokesTwoFluidsSolver):
 
     #     return distance_gradient_process
 
-    # def _CreateDistanceCurvatureProcess(self):
-    #     distance_curvature_process = KratosMultiphysics.ComputeNonHistoricalNodalNormalDivergenceProcess(
-    #             self.main_model_part,
-    #             self._levelset_gradient_variable,
-    #             KratosCFD.CURVATURE,
-    #             KratosMultiphysics.NODAL_AREA)
+    def _CreateDistanceCurvatureProcess(self):
+        distance_curvature_process = KratosMultiphysics.ComputeNonHistoricalNodalNormalDivergenceProcess(
+                self.main_model_part,
+                self._levelset_gradient_variable,
+                KratosCFD.CURVATURE,
+                KratosMultiphysics.NODAL_AREA, 
+                True,
+                False)
 
-    #     return distance_curvature_process
+        return distance_curvature_process
 
     # def _CreateConsistentNodalPressureGradientProcess(self):
     #     consistent_nodal_pressure_gradient_process = KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(
