@@ -62,11 +62,6 @@ namespace {
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6FacesNumber, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateReferenceTriangle3D6();
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
-    }
-
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6Area, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle3D6();
         KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
@@ -102,19 +97,6 @@ namespace {
         KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6IsInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateCurvedTriangle3D6();
-        Point PointInside(0.1, 0.1);
-        Point PointOutside(0.5, 0.5);
-        Point PointInVertex(0.0, 0.0);
-        Point PointInEdge(0.5, 0.1);
-        Point LocalCoords;
-        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
-    }
-
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle3D6();
         Vector JacobianDeterminants;
@@ -132,21 +114,6 @@ namespace {
         auto geom = GenerateReferenceTriangle3D6();
         for (unsigned g = 0; g < geom->IntegrationPointsNumber(); ++g)
         KRATOS_CHECK_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateReferenceTriangle3D6();
-        array_1d<double, 3> coord(3);
-        coord[0] = 1.0 / 2.0;
-        coord[1] = 1.0 / 8.0;
-        coord[2] = 0.0;
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), -0.09375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), -0.09375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.75, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.25, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.1875, TOLERANCE);
-        CrossCheckShapeFunctionsValues(*geom);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
