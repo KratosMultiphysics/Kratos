@@ -450,7 +450,7 @@ public:
      */
     double Length() const override
     {
-        return std::sqrt(std::abs( DeterminantOfJacobian( PointType() ) ) );
+        return std::sqrt(std::abs(this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /** This method calculates and returns area or surface area of
@@ -466,7 +466,7 @@ public:
      */
     double Area() const override
     {
-        return std::abs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs(this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
     /** This method calculates and returns length, area or volume of
