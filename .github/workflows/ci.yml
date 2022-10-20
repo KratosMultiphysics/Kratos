@@ -4,6 +4,12 @@ on:
   pull_request:
     branches:
       - master
+    paths-ignore:       # This must be the same as .github/workflows/ci_dummy.yml - "paths" !
+      - '**.md'
+      - 'documents/**'
+      - 'scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
+      - 'kratos/templates/**'
+      - 'kratos/python_scripts/application_generator/**'
 
   workflow_dispatch:
 
@@ -36,6 +42,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
+
     - name: Build
       shell: bash
       run: |
@@ -65,6 +76,11 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_tests.py -v 2 -l nightly -c python3
 
+    - name: Prepare Parallel Env
+      shell: bash
+      run: |
+        echo "localhost slots=2" >> ${GITHUB_WORKSPACE}/ci_hostfile
+
     - name: Running MPICore C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10
@@ -72,7 +88,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 2 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (3 Cores)
       shell: bash
@@ -81,7 +97,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 3 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
       shell: bash
@@ -90,31 +106,34 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 4 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
+        export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
+        export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
+        export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
   windows:
     runs-on: windows-2022
@@ -139,7 +158,9 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
         pip install h5py
+        pip install parameterized
 
     - name: Build
       shell: cmd
@@ -165,6 +186,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3.8 -m pip install parameterized
 
     - name: Build
       run: |
@@ -323,6 +349,7 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
 
     - name: Build
       shell: cmd
@@ -381,6 +408,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
 
     - name: Build
       shell: bash

@@ -15,7 +15,7 @@
 #include "custom_elements/geo_curved_beam_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {

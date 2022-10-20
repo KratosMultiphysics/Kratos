@@ -11,7 +11,7 @@
 //
 
 // System includes
-#include <math.h>
+#include <cmath>
 
 // External includes
 

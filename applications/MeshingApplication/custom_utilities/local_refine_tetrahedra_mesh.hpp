@@ -264,7 +264,7 @@ public:
 		  }
 
 		  // Transfer elemental variables
-		  p_element->Data() = it->Data();
+		  p_element->GetData() = it->GetData();
 		  p_element->GetValue(SPLIT_ELEMENT) = false;
 		  NewElements.push_back(p_element);
 
@@ -421,7 +421,7 @@ public:
                             pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
                             // Transfer condition variables
-                            pcond->Data() = it->Data();
+                            pcond->GetData() = it->GetData();
                             pcond->GetValue(SPLIT_ELEMENT) = false;
                             NewConditions.push_back(pcond);
 

@@ -12,8 +12,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_H_INCLUDED
+#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED)
+#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED
 
 // System includes
 
@@ -162,21 +162,6 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**

@@ -53,9 +53,10 @@ namespace Kratos
       {
         int                 updated_step;
         double              impact_time;
+        double              viscodamping_energy;
+        double              frictional_energy;
+        double              rollresist_energy;
         std::vector<double> impact_velocity;
-        std::vector<double> local_velocity;
-        std::vector<double> local_force;
       };
 
       // Constructor
@@ -79,15 +80,13 @@ namespace Kratos
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
-      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) override;
+      void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
-      void FinalizeSolutionStep                                             (const ProcessInfo& r_process_info) override;
-      void UpdateTemperatureDependentRadius                                 (const ProcessInfo& r_process_info);
-      void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);
-      void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons   (const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbor) override;
+      void FinalizeSolutionStep             (const ProcessInfo& r_process_info) override;
+      void UpdateTemperatureDependentRadius (const ProcessInfo& r_process_info);
 
       // Auxiliary computations
       void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
@@ -117,14 +116,14 @@ namespace Kratos
       double ComputeMeanConductivity             (void);
 
       // Get/Set methods
-      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
-      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
       HeatExchangeMechanism&       GetDirectConductionModel      (void);
       HeatExchangeMechanism&       GetIndirectConductionModel    (void);
       HeatExchangeMechanism&       GetConvectionModel            (void);
       HeatExchangeMechanism&       GetRadiationModel             (void);
-      HeatGenerationMechanism&     GetFrictionModel              (void);
+      HeatGenerationMechanism&     GetGenerationModel            (void);
       RealContactModel&            GetRealContactModel           (void);
+      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
+      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
 
       double GetYoung   (void) override;
       double GetPoisson (void) override;
@@ -132,6 +131,7 @@ namespace Kratos
 
       array_1d<double,3> GetParticleCoordinates               (void);
       array_1d<double,3> GetParticleVelocity                  (void);
+      array_1d<double,3> GetParticleAngularVelocity           (void);
       double             GetParticleTemperature               (void);
       double             GetParticleRadius                    (void);
       double             GetParticleSurfaceArea               (void);
@@ -172,16 +172,17 @@ namespace Kratos
       double             GetNeighborEmissivity                (void);
   
       double             GetContactDynamicFrictionCoefficient (void);
+      double             GetContactRollingFrictionCoefficient (void);
       ContactParams      GetContactParameters                 (void);
 
-      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
-      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetDirectConductionModel             (HeatExchangeMechanism::Pointer& model);
       void               SetIndirectConductionModel           (HeatExchangeMechanism::Pointer& model);
       void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
       void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
-      void               SetFrictionModel                     (HeatGenerationMechanism::Pointer& model);
+      void               SetGenerationModel                   (HeatGenerationMechanism::Pointer& model);
       void               SetRealContactModel                  (RealContactModel::Pointer& model);
+      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
+      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -192,44 +193,63 @@ namespace Kratos
       void               SetParticleRealYoungRatio            (const double ratio);
 
       // Pointers to auxiliary objects
-      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
-      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
       HeatExchangeMechanism*       mpDirectConductionModel;
       HeatExchangeMechanism*       mpIndirectConductionModel;
       HeatExchangeMechanism*       mpConvectionModel;
       HeatExchangeMechanism*       mpRadiationModel;
-      HeatGenerationMechanism*     mpFrictionModel;
+      HeatGenerationMechanism*     mpGenerationModel;
       RealContactModel*            mpRealContactModel;
+      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
+      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
 
       // General properties
-      unsigned int mNumStepsEval;         // number of steps passed since last thermal evaluation
-      double       mPreviousTemperature;  // temperature from the beginning of the step
-      bool         mIsTimeToSolve;        // flag to solve thermal problem in current step
-      bool         mHasMotion;            // flag to solve mechanical behavior (forces and displacements)
-      bool         mHasFixedTemperature;  // flag for constant temperature
-      bool         mHasVariableRadius;    // flag for temperature-dependent radius
-      bool         mStoreContactParam;    // flag to store contact parameters with neighbors when solving the mechanical problem
+      unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
+      double       mPreviousTemperature; // temperature from the beginning of the step
+      bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
+      bool         mHasMotion;           // flag to solve mechanical behavior (forces and displacements)
+      bool         mHasFixedTemperature; // flag for constant temperature
+      bool         mHasVariableRadius;   // flag for temperature-dependent radius
+      bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
       double mConductionDirectHeatFlux;
       double mConductionIndirectHeatFlux;
       double mRadiationHeatFlux;
-      double mFrictionHeatFlux;
+      double mGenerationHeatFlux;
+      double mGenerationHeatFlux_damp_particle;
+      double mGenerationHeatFlux_damp_wall;
+      double mGenerationHeatFlux_slid_particle;
+      double mGenerationHeatFlux_slid_wall;
+      double mGenerationHeatFlux_roll_particle;
+      double mGenerationHeatFlux_roll_wall;
       double mConvectionHeatFlux;
       double mPrescribedHeatFluxSurface;
       double mPrescribedHeatFluxVolume;
       double mPrescribedHeatFlux;
       double mTotalHeatFlux;
 
+      // Energy properties
+      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction: viscodamping 
+      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction: frictional
+      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction: rolling resistance
+
+      // Heat maps
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPW;  // Local heat map matrix for heat generaion by damping between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPP;  // Local heat map matrix for heat generaion by sliding between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPW;  // Local heat map matrix for heat generaion by sliding between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPP;  // Local heat map matrix for heat generaion by rolling between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPW;  // Local heat map matrix for heat generaion by rolling between particle-wall
+
       // Interaction properties
-      bool   mNeighborInContact;           // flag for contact interaction
-      double mRealYoungRatio;              // real value of Young modulus
-      double mContactRadius;               // simulation contact radius
-      double mNeighborDistance;            // simulation neighbor distance
-      double mNeighborSeparation;          // simulation neighbor separation (negative value indicates an indentation)
-      double mContactRadiusAdjusted;       // adjusted contact radius from real Young modulus
-      double mNeighborDistanceAdjusted;    // adjusted neighbor distance from adjusted contact radius
-      double mNeighborSeparationAdjusted;  // adjusted neighbor separation (negative value indicates an indentation)
+      bool   mNeighborInContact;          // flag for contact interaction
+      double mRealYoungRatio;             // real value of Young modulus
+      double mContactRadius;              // simulation contact radius
+      double mNeighborDistance;           // simulation neighbor distance
+      double mNeighborSeparation;         // simulation neighbor separation (negative value indicates an indentation)
+      double mContactRadiusAdjusted;      // adjusted contact radius from real Young modulus
+      double mNeighborDistanceAdjusted;   // adjusted neighbor distance from adjusted contact radius
+      double mNeighborSeparationAdjusted; // adjusted neighbor separation (negative value indicates an indentation)
 
       // Radiation environment-related
       unsigned int mRadiativeNeighbors;

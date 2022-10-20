@@ -29,7 +29,8 @@
             "SEVERITY_OF_WEAR": 0.001,
             "IMPACT_WEAR_SEVERITY": 0.001,
             "BRINELL_HARDNESS": 200.0,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     },{
         "material_names_list":["mat1", "mat2"],
@@ -44,7 +45,8 @@
             "SEVERITY_OF_WEAR": 0.001,
             "IMPACT_WEAR_SEVERITY": 0.001,
             "BRINELL_HARDNESS": 200.0,
-            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
         }
     }],
     "material_assignation_table":[

@@ -79,7 +79,7 @@ namespace Python
 std::string Hello()
 {
     std::stringstream header;
-    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << " ;-)";
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << "for" << GetOSName() << " ;-)\n";
     return header.str();
 }
 
