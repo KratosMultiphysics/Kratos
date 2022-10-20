@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_utilities/active_set_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "utilities/atomic_utilities.h"
 
@@ -70,7 +71,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
     const SizeType EchoLevel
     )
 {
-    // Auxiliar zero array
+    // Auxiliary zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // Defining the convergence
@@ -267,7 +268,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
     const SizeType EchoLevel
     )
 {
-    // Auxiliar zero array
+    // Auxiliary zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // Defining the convergence

@@ -892,9 +892,9 @@ private:
             nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
 
             //check the number of nodes of boundary
-            int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
-            nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
-            nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
+            // nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
             //first check that we are working with fluid elements, otherwise throw an error
             //if (nfluid!=3)
             //	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");

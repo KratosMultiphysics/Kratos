@@ -1,4 +1,5 @@
 {
+    "analysis_stage": "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis",
     "problem_data"     : {
         "problem_name"  : "couette_flow_test",
         "parallel_type" : "OpenMP",

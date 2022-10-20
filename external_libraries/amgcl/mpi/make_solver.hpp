@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -151,6 +151,10 @@ class make_solver : public amgcl::detail::non_copyable {
         }
 
         const Precond& precond() const {
+            return P;
+        }
+
+        Precond& precond() {
             return P;
         }
 

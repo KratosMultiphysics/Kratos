@@ -163,11 +163,22 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
                     KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         elif (self._reinitialization_type == "parallel"):
+            #TODO: move all this to solver settings
+            layers = self.settings["parallel_redistance_max_layers"].GetInt()
+            parallel_distance_settings = KratosMultiphysics.Parameters("""{
+                "max_levels" : 25,
+                "max_distance" : 1.0,
+                "calculate_exact_distances_to_plane" : true
+            }""")
+            parallel_distance_settings["max_levels"].SetInt(layers)
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess2D(
+                    self.main_model_part,
+                    parallel_distance_settings)
             else:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
-
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess3D(
+                    self.main_model_part,
+                    parallel_distance_settings)
         elif (self._reinitialization_type == "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
         else:

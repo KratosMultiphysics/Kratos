@@ -16,6 +16,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_processes/alm_variables_calculation_process.h"
 
@@ -27,7 +28,7 @@ void ALMVariablesCalculationProcess::Execute()
 
     /* We compute the penalty factor */
 
-    // Auxiliar values
+    // Auxiliary values
     const double epsilon = std::numeric_limits<double>::epsilon();
     const double tolerance = 1.0e-12;
 

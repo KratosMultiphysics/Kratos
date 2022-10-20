@@ -35,6 +35,14 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : publi
 
 public:
 
+    typedef std::size_t IndexType;
+	typedef Properties PropertiesType;
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef Vector VectorType;
+    typedef Matrix MatrixType;
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( GeneralUPwDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,7 +54,9 @@ public:
     GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
     // Constructor 2
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    GeneralUPwDiffOrderCondition( IndexType NewId,
+                                  GeometryType::Pointer pGeometry,
+                                  PropertiesType::Pointer pProperties );
 
     // Destructor
     virtual ~GeneralUPwDiffOrderCondition();
@@ -116,15 +126,20 @@ protected:
 
     void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
 
-    virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateConditionVector(ConditionVariables& rVariables,
+                                          unsigned int PointNumber);
 
-    virtual void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight);
+    virtual double CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                                   const GeometryType::JacobiansType& JContainer,
+                                                   const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
+
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables);
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
 
-    virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
+    virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+                                                ConditionVariables& rVariables);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

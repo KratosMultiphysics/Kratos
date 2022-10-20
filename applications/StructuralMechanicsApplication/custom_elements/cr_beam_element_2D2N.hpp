@@ -273,6 +273,8 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    const Parameters GetSpecifications() const override;
+
 private:
 
     friend class Serializer;

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -47,7 +46,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
         return this_defaults
 
     #### Private functions ####
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()

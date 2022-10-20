@@ -24,6 +24,7 @@
 #include "includes/element.h"
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
+#include "elements/edge_based_gradient_recovery_element.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
@@ -63,6 +64,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/quadrature_point_geometry.h"
 
 // Modelers
 #include "modeler/modeler.h"
@@ -98,7 +100,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@{
 
     /// Default constructor.
-    explicit KratosApplication(const std::string ApplicationName);
+    explicit KratosApplication(const std::string& ApplicationName);
 
     KratosApplication() = delete;
 
@@ -414,7 +416,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
-
+    // Generic condition
+    const MeshCondition mGenericCondition;
     // Point conditions
     const MeshCondition mPointCondition2D1N;
     const MeshCondition mPointCondition3D1N;
@@ -444,6 +447,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const PeriodicCondition mPeriodicConditionCorner;
 
     // General elements must be defined
+    const MeshElement mGenericElement;
+
     const MeshElement mElement2D1N;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
@@ -467,6 +472,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
+
+    const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
+    const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
 
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;

@@ -31,6 +31,10 @@ conditions)
 
 - 2D and 3D truss and cable elements
 
+- 2D curved beam elemens with 3 nodes
+
+- 1D, 2D and 3D steady-state and transient groundwater flow elements
+
 - Reading and using dll/so of User Defined Soil Models (UDSM) based on PLAXIS forrmat
 
 - Reading and using dll/so of UMAT based on ABAQUS forrmat

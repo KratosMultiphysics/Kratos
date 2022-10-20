@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "acceleration_limitation_utilities.h"

@@ -21,6 +21,7 @@
 #define  KRATOS_GEOMETRY_H_INCLUDED
 
 // System includes
+#include <typeinfo>
 
 // External includes
 
@@ -238,7 +239,7 @@ public:
     }
 
     /// Standard Constructor with a Name
-    Geometry(std::string GeometryName)
+    Geometry(const std::string& GeometryName)
         : mId(GenerateId(GeometryName))
         , mpGeometryData(&GeometryDataInstance())
     {
@@ -322,7 +323,7 @@ public:
     }
 
     Geometry(
-        std::string GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
         : mId(GenerateId(GeometryName))
@@ -732,6 +733,69 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if two GeometryType have the same type
+     * @return True if the objects are the same type, false otherwise
+     */
+    inline static bool HasSameType(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
+        return (typeid(rLHS) == typeid(rRHS));
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same type (pointer version)
+     * @return True if the objects are the same type, false otherwise
+     */
+    inline static bool HasSameType(
+        const GeometryType * rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameType(*rLHS, *rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same geometry type
+     * @return True if the geometries are the same type, false otherwise
+     */
+    inline static bool HasSameGeometryType(const GeometryType& rLHS, const GeometryType& rRHS) {
+        return (rLHS.GetGeometryType() == rRHS.GetGeometryType());
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same geometry type (pointer version)
+     * @return True if the geometries are the same type, false otherwise
+     */
+    inline static bool HasSameGeometryType(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameGeometryType(*rLHS, *rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType are the same
+     * @return True if the object is the same, false otherwise
+     */
+    inline static bool IsSame(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
+        return GeometryType::HasSameType(rLHS, rRHS) && GeometryType::HasSameGeometryType(rLHS, rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType are the same (pointer version)
+     * @return True if the object is the same, false otherwise
+     */
+    inline static bool IsSame(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameType(*rLHS, *rRHS) && GeometryType::HasSameGeometryType(*rLHS, *rRHS);
+    }
 
     bool empty() const
     {
@@ -2349,11 +2413,27 @@ public:
     void GlobalCoordinates(
         CoordinatesArrayType& rResult,
         IndexType IntegrationPointIndex
-    ) const
+        ) const
+    {
+        this->GlobalCoordinates(rResult, IntegrationPointIndex, GetDefaultIntegrationMethod());
+    }
+
+    /** 
+    * @brief This method provides the global coordinates to the corresponding integration point
+    * @param rResult The global coordinates
+    * @param IntegrationPointIndex The index of the integration point
+    * @param ThisMethod The integration method
+    * @return The global coordinates
+    */
+    void GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        IndexType IntegrationPointIndex,
+        const IntegrationMethod ThisMethod
+        ) const
     {
         noalias(rResult) = ZeroVector(3);
 
-        const Matrix& N = this->ShapeFunctionsValues();
+        const Matrix& N = this->ShapeFunctionsValues(ThisMethod);
 
         for (IndexType i = 0; i < this->size(); i++)
             noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];

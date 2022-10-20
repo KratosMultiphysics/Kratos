@@ -256,7 +256,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       //          no common error is found.
       int Check(const Properties& rMaterialProperties,
                 const GeometryType& rElementGeometry,
-                const ProcessInfo& rCurrentProcessInfo) override;
+                const ProcessInfo& rCurrentProcessInfo) const override;
 
       /**
        * This is to be called at the very beginning of the calculation

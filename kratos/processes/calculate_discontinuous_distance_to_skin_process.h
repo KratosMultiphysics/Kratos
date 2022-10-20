@@ -76,6 +76,12 @@ public:
         ModelPart& rSkinPart,
         const Flags rOptions);
 
+    /// Constructor with parameters
+    CalculateDiscontinuousDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        Parameters& rParameters);
+
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
 
@@ -157,6 +163,11 @@ public:
         const Variable<array_1d<double,3>> &rVariable,
         const Variable<array_1d<double,3>> &rEmbeddedVariable);
 
+    /**
+     * @brief Obtain the default parameters to construct the class.
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -177,6 +188,10 @@ public:
 
     ///@}
 protected:
+
+    const Variable<Vector>* mpElementalDistancesVariable = &ELEMENTAL_DISTANCES;
+
+
     ///@name Protected Operations
     ///@{
 
@@ -214,6 +229,14 @@ private:
     const double mZeroToleranceMultiplier = 1e3;
     bool mDetectedZeroDistanceValues = false;
     bool mAreNeighboursComputed = false;
+    bool mCalculateElementalEdgeDistances = false;
+    bool mCalculateElementalEdgeDistancesExtrapolated = false;
+    bool mUsePositiveEpsilonForZeroValues = true;
+
+
+    const Variable<Vector>* mpElementalEdgeDistancesVariable = &ELEMENTAL_EDGE_DISTANCES;
+    const Variable<Vector>* mpElementalEdgeDistancesExtrapolatedVariable = &ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+    const Variable<array_1d<double, 3>>* mpEmbeddedVelocityVariable = &EMBEDDED_VELOCITY;
 
     ///@}
     ///@name Private Operations

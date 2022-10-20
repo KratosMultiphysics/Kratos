@@ -22,14 +22,14 @@
 // Application includes
 
 // Yields
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 // Plastic Potentials
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 
 namespace Kratos
 {
@@ -132,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosConstitutiveLawsFastSu
 
     // Analytical solutions of the yield surfaces derivatives
     std::vector<double> MCres, VMres, DPres, Rres, Tres, SJres;
-    MCres = {0.109261, 2.07822, 10.6714, 2.6863, 11.8748, 2.62528};
+    MCres = {-0.102799,1.27795,7.82485,2.40467,8.84815,1.84099};
     VMres = {-0.316228, -0.316228, 0.632456, 0.948683, 0.948683, 0.0};
     DPres = {0.197647,0.197647,1.85929,1.66165,1.66165,0};
     Tres = {-0.369513, -0.364032, 0.733545, 1.08113, 1.10671, 0.0073077};

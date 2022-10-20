@@ -18,7 +18,6 @@ def GetFilePath(fileName):
 
 class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -28,23 +27,27 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1e-3
-        for node in self.spheres_model_part.Nodes:
+
+        if self.time > 0.099:
+            node = self.spheres_model_part.GetNode(1)
             normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
             face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
-            if node.Id == 1:
-                if self.time > 0.099:
-                    expected_value = 11.07179
-                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
-                    expected_value = 6.941702
-                    self.assertAlmostEqual(face_normal_impact_vel, expected_value, delta=tolerance)
-            if node.Id == 2:
-                if self.time > 0.099:
-                    expected_value = 16.29633
-                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
-            if node.Id == 3:
-                if self.time > 0.099:
-                    expected_value = 16.29633
-                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
+            expected_value = 11.07179
+            self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
+            expected_value = 6.941702
+            self.assertAlmostEqual(face_normal_impact_vel, expected_value, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(2)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
+            expected_value = 16.29633
+            self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(3)
+            normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
+            face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
+            expected_value = 16.29633
+            self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
 
     def Finalize(self):
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
@@ -52,7 +55,6 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -82,7 +84,6 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
 
 class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -118,7 +119,6 @@ class TestAnalytics(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_Analytics_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
@@ -126,7 +126,6 @@ class TestAnalytics(KratosUnittest.TestCase):
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(AnalyticsTestSolution, model, parameters_file_name, 1)
 
 
-    # @classmethod
     # @KratosUnittest.expectedFailure
     # def test_Analytics_2(self):
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
@@ -135,7 +134,6 @@ class TestAnalytics(KratosUnittest.TestCase):
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(GhostsTestSolution, model, parameters_file_name, 1)
 
 
-    # @classmethod
     # @KratosUnittest.expectedFailure
     # def test_Analytics_3(self):
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")

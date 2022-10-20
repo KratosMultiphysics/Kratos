@@ -30,6 +30,8 @@
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
 #include "mappers/mapper_flags.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -499,7 +501,7 @@ private:
             VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
 
             block_for_each(mrModelPartDestination.Nodes(), [&](Node<3>& rNode){
-                rNode.Data().Erase(PAIRING_STATUS);
+                rNode.GetData().Erase(PAIRING_STATUS);
             });
         }
 

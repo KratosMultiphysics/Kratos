@@ -21,6 +21,7 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
@@ -114,7 +115,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -149,7 +150,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -181,7 +182,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration) {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -938,6 +939,8 @@ template class FluidElement< TimeIntegratedFICData<3,4> >;
 template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
 template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
+template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

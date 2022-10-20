@@ -173,18 +173,11 @@ public:
     }
 
     /// Constructor.
-    explicit QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints) = delete;
 
     /// Constructor with Geometry Id
-    explicit QuadraturePointGeometry(
+    QuadraturePointGeometry(
         const IndexType GeometryId,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
@@ -196,7 +189,7 @@ public:
     }
 
     /// Constructor with Geometry Name
-    explicit QuadraturePointGeometry(
+    QuadraturePointGeometry(
         const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryName, ThisPoints, &mGeometryData )

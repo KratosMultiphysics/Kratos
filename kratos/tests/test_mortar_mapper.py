@@ -70,7 +70,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["consider_tessellation"].SetBool(consider_tessellation)
 
         if pure_implicit:
-            #linear_solver = ExternalSolversApplication.SuperLUSolver()
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         else:
             linear_solver = None

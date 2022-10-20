@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -39,7 +38,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_solver.Convection
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
     #### Private functions ####
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0

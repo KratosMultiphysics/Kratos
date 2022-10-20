@@ -37,7 +37,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "modulus"              : 1.0,
+            "modulus"              : 0.0,
             "constrained"          : true,
             "direction"            : [1.0, 0.0, 0.0],
             "local_axes"           : {}
@@ -48,10 +48,14 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         if settings.Has("modulus"):
             if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
+        else:
+            raise RuntimeError("Please specify the modulus of the vector")
 
         if settings.Has("direction"):
             if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
+        else:
+            raise RuntimeError("Please specify the direction of the vector")
 
         # Detect "End" as a tag and replace it by a large number
         if settings.Has("interval"):

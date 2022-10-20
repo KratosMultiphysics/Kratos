@@ -192,7 +192,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void SetLocalSearchWasSuccessful() { mLocalSearchWasSuccessful = true; }
+    void SetLocalSearchWasSuccessful()
+    {
+        mLocalSearchWasSuccessful = true;
+        mIsApproximation = false;
+    }
 
     void SetIsApproximation()
     {

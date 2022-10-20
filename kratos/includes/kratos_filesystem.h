@@ -16,12 +16,22 @@
 // System includes
 #include <string>
 #include <vector>
+#if __has_include(<filesystem>) // Check if the header "<filesystem>" exists
+    #include <filesystem> // We have a decent compiler and can use the normal version
+#elif __has_include(<experimental/filesystem>) // Check if the header "<experimental/filesystem>" exists
+    #include <experimental/filesystem>
+    // We need the alias from std::experimental::filesystem to std::filesystem
+    namespace std {
+      namespace filesystem = experimental::filesystem;
+    }
+#else // Fail if neither header is available with a nice error message
+    #error Could not find system header "<filesystem>" or "<experimental/filesystem>"
+#endif // #if __has_include(<filesystem>)
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-
 
 namespace Kratos {
 // wrapper functions for std::filesystem (part of C++17)
@@ -87,6 +97,16 @@ std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string
  * @param rPath                         Path
  */
 void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
+
+/** @brief Resolve symlinks recursively.
+ *
+ *  @param rPath: path to a symbolic link.
+ *  @return The result of the recursive dereferencing.
+ *  @throws If the input path does not exist or the symlink is cyclic.
+ *  @note The existence of the final result is not checked and is up to the user.
+ *  @note The input is returned if it is not a symlink.
+ */
+std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos

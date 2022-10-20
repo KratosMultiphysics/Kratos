@@ -28,7 +28,6 @@
         "coupling_level_type"    : 3,
         "coupling_weighing_type" : 2,
         "interaction_start_time" : 0.0,
-        "min_fluid_fraction_projected" : 0.0,
         "forward_coupling"       : {
             "time_averaging_type" : 0
         },
@@ -267,9 +266,11 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "CFD_DEM_two_way_tests/Two_way_testFluid"
             },
+
             "material_import_settings"    : {
                 "materials_filename" : "CFD_DEM_two_way_tests/FluidMaterials.json"
             },
+
             "echo_level"                  : 0,
             "compute_reactions"           : false,
             "maximum_iterations"          : 10,

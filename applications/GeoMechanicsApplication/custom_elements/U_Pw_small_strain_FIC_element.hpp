@@ -47,6 +47,8 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
+
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
     using UPwSmallStrainElement<TDim,TNumNodes>::VoigtSize;
 
@@ -84,6 +86,8 @@ public:
     Element::Pointer Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 

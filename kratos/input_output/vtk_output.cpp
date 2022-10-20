@@ -23,6 +23,7 @@
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -1021,7 +1022,7 @@ void VtkOutput::WritePropertiesIdsToFile(
 template<typename TContainerType>
 void VtkOutput::WriteIdsToFile(
     const TContainerType& rContainer,
-    const std::string DataName,
+    const std::string& DataName,
     std::ofstream& rFileStream) const
 {
     rFileStream << DataName << " 1 "

@@ -26,7 +26,7 @@
 #include "custom_retention/retention_law_factory.h"
 
 // Application includes
-#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -116,8 +116,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-                                     std::vector<int>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<int>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double> &rVariable,
                                       std::vector<double> &rOutput,
@@ -170,10 +170,14 @@ protected:
         Vector Nu; //Contains the displacement shape functions at every node
         Vector Np; //Contains the pressure shape functions at every node
         Matrix DNu_DX; //Contains the global derivatives of the displacement shape functions
+        Matrix DNu_DXInitialConfiguration; //Contains the global derivatives of the displacement shape functions
+
         Matrix DNp_DX; //Contains the global derivatives of the pressure shape functions
         Matrix B;
         double IntegrationCoefficient;
+        double IntegrationCoefficientInitialConfiguration;
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
 
         //Variables needed for consistency with the general constitutive law
@@ -181,14 +185,15 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ0;  // displacement
-        double detJp0; // pore pressure
+        double detJ;  // displacement
+        double detJInitialConfiguration;  // displacement
 
         //Nodal variables
         Vector BodyAcceleration;
         Vector DisplacementVector;
         Vector VelocityVector;
         Vector PressureVector;
+        Vector DeltaPressureVector;
         Vector PressureDtVector;
 
         ///Retention Law parameters
@@ -201,13 +206,17 @@ protected:
 
         //Properties and processinfo variables
         bool IgnoreUndrained;
+        bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
+
+        // stress/flow variables
+        double PermeabilityUpdateFactor;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;
         Matrix IntrinsicPermeability;
-        double NewmarkCoefficient1;
-        double NewmarkCoefficient2;
+        double VelocityCoefficient;
+        double DtPressureCoefficient;
     };
 
     // Member Variables
@@ -238,21 +247,22 @@ protected:
 
     void InitializeBiotCoefficients( ElementVariables& rVariables, const bool &hasBiotCoefficient=false );
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
+    void CalculatePermeabilityUpdateFactor( ElementVariables &rVariables);
 
-    virtual void CalculateKinematicsOnInitialConfiguration(ElementVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
-    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                                      Matrix& DN_DX,
-                                                      const IndexType& PointNumber,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
+    void CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                                    Matrix& J0,
+                                                    Matrix& InvJ0,
+                                                    Matrix& DN_DX,
+                                                    unsigned int PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
     virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                    const IndexType& PointNumber,
-                                                    const double& detJ);
+                                                    unsigned int PointNumber,
+                                                    double detJ);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -298,18 +308,28 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables& rVariables, unsigned int GPoint );
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
 
-    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+    virtual void CalculateDeformationGradient( ElementVariables& rVariables,
+                                               unsigned int GPoint );
+
+    double CalculateFluidPressure( const ElementVariables &rVariables);
 
     void SetRetentionParameters(const ElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters);
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateSoilDensity(ElementVariables &rVariables);
+
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& rJ,
+                                                 Matrix& rInvJ,
+                                                 unsigned int GPoint) const;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -327,7 +347,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
-
 
     // Private Operations
 

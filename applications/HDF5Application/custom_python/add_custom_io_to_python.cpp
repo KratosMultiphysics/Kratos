@@ -40,6 +40,7 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_element_gauss_point_output.h"
 #include "custom_io/hdf5_condition_gauss_point_output.h"
+#include "custom_io/hdf5_vertex_container_io.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -47,6 +48,27 @@
 
 namespace Kratos {
 namespace Python {
+
+
+
+class VertexContainerIOTrampoline : public HDF5::VertexContainerIO
+{
+public:
+    using HDF5::VertexContainerIO::VertexContainerIO;
+
+    void Write(const HDF5::Detail::VertexContainerType& rVertices) override
+    {
+        using ReturnType = void;
+        using BaseType = HDF5::VertexContainerIO;
+        PYBIND11_OVERRIDE_PURE(
+            ReturnType,
+            BaseType,
+            Write,
+            rVertices);
+    }
+}; // class VertexContainerIOTrampoline
+
+
 
 void AddCustomIOToPython(pybind11::module& m)
 {
@@ -65,6 +87,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("HasIntDataType",&HDF5::File::HasIntDataType)
         .def("HasFloatDataType",&HDF5::File::HasFloatDataType)
         .def("Flush",&HDF5::File::Flush)
+        .def("Close", &HDF5::File::Close)
         .def("GetFileSize",&HDF5::File::GetFileSize)
         .def("GetFileName",&HDF5::File::GetFileName)
         ;
@@ -144,6 +167,21 @@ void AddCustomIOToPython(pybind11::module& m)
         m,"HDF5ConditionGaussPointOutput")
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
+        ;
+
+    py::class_<HDF5::VertexContainerIO, HDF5::VertexContainerIO::Pointer, VertexContainerIOTrampoline>(m, "VertexContainerIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerIO::Write)
+        ;
+
+    py::class_<HDF5::VertexContainerCoordinateIO, HDF5::VertexContainerCoordinateIO::Pointer, HDF5::VertexContainerIO>(m, "VertexContainerCoordinateIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerCoordinateIO::Write)
+        ;
+
+    py::class_<HDF5::VertexContainerVariableIO, HDF5::VertexContainerVariableIO::Pointer, HDF5::VertexContainerIO>(m, "VertexContainerVariableIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerVariableIO::Write)
         ;
 
 #ifdef KRATOS_USING_MPI

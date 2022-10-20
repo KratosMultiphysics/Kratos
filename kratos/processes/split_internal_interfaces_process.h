@@ -23,7 +23,7 @@
 #include "processes/process.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
-#include "processes/find_elements_neighbours_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
 
 namespace Kratos
 {

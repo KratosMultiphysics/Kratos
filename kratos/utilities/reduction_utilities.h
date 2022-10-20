@@ -19,12 +19,14 @@
 #include <tuple>
 #include <limits>
 #include <algorithm>
+#include <mutex>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -145,7 +147,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue = std::max(mValue,rOther.mValue);
     }
 };
@@ -176,7 +178,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue = std::min(mValue,rOther.mValue);
     }
 };
@@ -208,7 +210,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
     }
 };

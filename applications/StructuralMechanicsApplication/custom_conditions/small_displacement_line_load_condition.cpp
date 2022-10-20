@@ -143,8 +143,8 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
     Vector pressure_on_nodes = ZeroVector( number_of_nodes );
 
     // Pressure applied to the element itself
-    double pressure_on_condition = 0.0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
+        double pressure_on_condition = 0.0;
         if( this->Has( PRESSURE ) ) {
             pressure_on_condition += this->GetValue( PRESSURE );
         }

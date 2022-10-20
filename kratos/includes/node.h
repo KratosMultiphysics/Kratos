@@ -420,12 +420,18 @@ public:
         return mNodalData.GetSolutionStepData();
     }
 
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
     {
         return mData;
     }
 
-    const DataValueContainer& Data() const
+    DataValueContainer& GetData()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& GetData() const
     {
         return mData;
     }
@@ -719,6 +725,11 @@ public:
 
     /** returns all of the Dofs  */
     DofsContainerType& GetDofs()
+    {
+        return mDofs;
+    }
+
+    const DofsContainerType& GetDofs() const
     {
         return mDofs;
     }

@@ -26,12 +26,12 @@
 #include "geometries/tetrahedra_3d_10.h"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
+//           (set)
+//           (modified)
+//           (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -119,15 +119,8 @@ namespace Kratos
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
             double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-            bool firstMesh = false;
-            if (currentTime < 2 * timeInterval)
-            {
-                firstMesh = true;
-            }
-
             bool box_side_element = false;
             bool wrong_added_node = false;
-
             int number_of_slivers = 0;
 
             bool refiningBox = mrRemesh.UseRefiningBox;
@@ -162,7 +155,7 @@ namespace Kratos
                 for (el = 0; el < OutNumberOfElements; el++)
                 {
                     Geometry<Node<3>> vertices;
-                    double MeanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
+                    double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
                     unsigned int numfreesurf = 0;
                     unsigned int numboundary = 0;
                     unsigned int numrigid = 0;
@@ -184,6 +177,9 @@ namespace Kratos
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
                     unsigned int isolatedNodesInTheElement = 0;
+                    double rigidNodeLocalMeshSize = 0;
+                    double rigidNodeMeshCounter = 0;
+
                     for (unsigned int pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
@@ -200,8 +196,6 @@ namespace Kratos
                         if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID))
                         {
                             isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
-                            // if (isolatedNode==true)
-                            // std::cout << el << "node " << vertices.back().Id() << " " << vertices.back().X() << " " << vertices.back().Y() << std::endl;
                         }
                         // check flags on nodes
                         if (vertices.back().Is(ISOLATED))
@@ -217,11 +211,17 @@ namespace Kratos
                             noremesh = true;
                         }
 
-                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       //it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
-                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); //it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
+                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       // it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
+                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); // it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
+                            if (vertices.back().Is(RIGID))
+                            {
+                                rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
+                                rigidNodeMeshCounter += 1.0;
+                            }
+
                             numrigid++;
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
@@ -263,11 +263,11 @@ namespace Kratos
                         {
                             if (dimension == 2)
                             {
-                                SetAlphaForRefinedZones2D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
+                                SetAlphaForRefinedZones2D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
                             }
                             else if (dimension == 3)
                             {
-                                SetAlphaForRefinedZones3D(MeanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
+                                SetAlphaForRefinedZones3D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
                             }
                         }
                         if (dimension == 3)
@@ -283,6 +283,22 @@ namespace Kratos
                     }
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
+
+                    if (rigidNodeMeshCounter > 0 && refiningBox == false)
+                    {
+                        const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
+                        const double ratio = rigidWallMeshSize / meanMeshSize;
+                        double tolerance = 1.8;
+                        if (currentTime < 10 * timeInterval)
+                        {
+                            tolerance = 1.5;
+                        }
+                        if (ratio > tolerance && numfreesurf == 0 && previouslyFreeSurfaceNodes == 0)
+                        {
+                            meanMeshSize *= 0.5;
+                            meanMeshSize += 0.5 * rigidWallMeshSize;
+                        }
+                    }
 
                     if (refiningBox == true)
                     {
@@ -335,10 +351,6 @@ namespace Kratos
                         {
                             Alpha *= 0.95;
                         }
-                        // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
-                        // {
-                        //     Alpha *= 1.05;
-                        // }
 
                         if (numrigid == nds)
                         {
@@ -356,10 +368,6 @@ namespace Kratos
                             }
                         }
                     }
-                    if (firstMesh == true)
-                    {
-                        Alpha *= 1.15;
-                    }
 
                     if (numinlet > 0)
                     {
@@ -368,14 +376,14 @@ namespace Kratos
 
                     bool accepted = false;
 
-                    accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, MeanMeshSize);
+                    accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, meanMeshSize);
 
                     if (numrigid == nds || noremesh == true)
                     {
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
+                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds))
                     {
                         if (dimension == 2)
                         {
@@ -394,13 +402,13 @@ namespace Kratos
                                     }
                                     else
                                     {
-                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
+                                        const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
                                                             (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
                                                              sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
-                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
+                                        const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
                                                             (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
                                                              sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
-                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
+                                        const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
                                                             (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
                                                              sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
 
@@ -440,24 +448,24 @@ namespace Kratos
                                     }
                                     else
                                     {
-                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)));
-                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
-                                        double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
-                                        double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-                                        double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                        const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
+                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
+                                                                   sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)));
+                                        const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
+                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
+                                                                   sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
+                                        const double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
+                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
+                                                                   sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                        const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
+                                                                  (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
+                                                                   sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
+                                        const double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
+                                                                  (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
+                                                                   sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                        const double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
+                                                                  (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
+                                                                   sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
 
                                         if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
                                         {
@@ -477,37 +485,37 @@ namespace Kratos
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
                         double Volume = tetrahedron->Volume();
 
-                        double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-                        b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-                        c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-                        b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-                        c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
-                        b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
-                        c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
-                        double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
-                        b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
-                        c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+                        // a1 slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        // b1 slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        // c1 slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        const double a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+                        const double b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+                        const double c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+                        // a2 slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        // b2 slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        // c2 slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        const double a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+                        const double b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+                        const double c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+                        // a3 slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        // b3 slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        // c3 slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        const double a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
+                        const double b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
+                        const double c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
+                        // a4 slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        // b4 slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        // c4 slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        const double a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
+                        const double b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
+                        const double c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
 
-                        double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-                        double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
-                        double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+                        const double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        const double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+                        const double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+                        const double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
 
                         if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
                         {
@@ -608,14 +616,14 @@ namespace Kratos
 
                 ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
-                //check engaged nodes
+                // check engaged nodes
                 for (int el = 0; el < OutNumberOfElements; el++)
                 {
                     if (mrRemesh.PreservedElements[el])
                     {
                         for (unsigned int pn = 0; pn < nds; pn++)
                         {
-                            //set vertices
+                            // set vertices
                             rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
                         }
                     }
@@ -903,7 +911,7 @@ namespace Kratos
         /// this function is a private function
 
         /// Copy constructor.
-        //Process(Process const& rOther);
+        // Process(Process const& rOther);
 
         ///@}
 

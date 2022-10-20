@@ -43,7 +43,7 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
-    for(unsigned int i = 0; i<NumGPoints; i++)
+    for(unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
@@ -56,8 +56,7 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     double IntegrationCoefficient;
 
     //Loop over integration points
-    for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute traction vector 
         ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(TractionVector,
                                                                                NContainer,
@@ -66,7 +65,7 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
 
         //Compute Nu Matrix
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu,NContainer,GPoint);
-        
+
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(IntegrationCoefficient,
                                               JContainer[GPoint],

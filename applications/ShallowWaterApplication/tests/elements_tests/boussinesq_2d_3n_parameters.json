@@ -1,0 +1,120 @@
+{
+    "problem_data"         : {
+        "echo_level"           : 0,
+        "start_time"           : 0.0,
+        "end_time"             : 0.15,
+        "parallel_type"        : "OpenMP"
+    },
+    "solver_settings"      : {
+        "solver_type"              : "boussinesq_solver",
+        "model_part_name"          : "main_model_part",
+        "domain_size"              : 2,
+        "gravity"                  : 9.81,
+        "model_import_settings"    : {
+            "input_type"               : "mdpa",
+            "input_filename"           : "square_domain"
+        },
+        "echo_level"                 : 0,
+        "stabilization_factor"       : 0.01,
+        "relative_tolerance"         : 1.0E-6,
+        "absolute_tolerance"         : 1.0E-9,
+        "maximum_iterations"         : 10,
+        "compute_reactions"          : false,
+        "reform_dofs_at_each_step"   : false,
+        "move_mesh_flag"             : false,
+        "linear_solver_settings"     : {
+            "solver_type"      : "amgcl"
+        },
+        "time_stepping"            : {
+            "automatic_time_step"      : false,
+            "time_step"                : 0.03
+        }
+    },
+    // "output_processes" : {
+    //     "output_process_list" : [{
+    //         "kratos_module"        : "KratosMultiphysics",
+    //         "python_module"        : "gid_output_process",
+    //         "process_name"         : "GidOutputProcess",
+    //         "Parameters"           : {
+    //             "model_part_name"        : "main_model_part",
+    //             "output_name"            : "boussinesq_2d_3n",
+    //             "postprocess_parameters" : {
+    //                 "result_file_configuration" : {
+    //                     "gidpost_flags"         : {
+    //                         "GiDPostMode"           : "GiD_PostBinary",
+    //                         "WriteDeformedMeshFlag" : "WriteDeformed",
+    //                         "WriteConditionsFlag"   : "WriteElementsOnly",
+    //                         "MultiFileFlag"         : "SingleFile"
+    //                     },
+    //                     "output_control_type"   : "step",
+    //                     "output_interval"       : 1,
+    //                     "body_output"           : true,
+    //                     "node_output"           : false,
+    //                     "skin_output"           : false,
+    //                     "plane_output"          : [],
+    //                     "nodal_results"         : ["MOMENTUM","VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
+    //                     "gauss_point_results"   : []
+    //                 },
+    //                 "point_data_configuration"  :  []
+    //             }
+    //         }
+    //     }]
+    // },
+    "processes" : {
+        "topography_process_list"     : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "set_topography_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Body_Part-auto-1",
+                "value"           : -1.0
+            }
+        }],
+        "initial_conditions_process_list"   : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "set_initial_water_level_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Initial_water_level-auto-1",
+                "variable_name"   : "FREE_SURFACE_ELEVATION",
+                "value"           : "0.1 * exp(-5.0*((x-0.5)^2 + (y-0.5)^2))"
+            }
+        }],
+        "boundary_conditions_process_list"  : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "assign_vector_variable_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Imposed_flux-auto-1",
+                "variable_name"   : "VELOCITY",
+                "value"           : [0.0, null, null],
+                "constrained"     : [true, false, false]
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "assign_vector_variable_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Imposed_flux-auto-2",
+                "variable_name"   : "VELOCITY",
+                "value"           : [null, 0.0, null],
+                "constrained"     : [false, true, false]
+            }
+        }],
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name"  : "main_model_part",
+                "check_variables"  : ["HEIGHT"],
+                "input_file_name"  : "boussinesq_2d_3n_reference.json",
+                "time_frequency"   : 0.05,
+                "tolerance"        : 1e-6
+            }
+            // "kratos_module"   : "KratosMultiphysics",
+            // "python_module"   : "json_output_process",
+            // "Parameters"      : {
+            //     "model_part_name"  : "main_model_part",
+            //     "output_variables" : ["HEIGHT"],
+            //     "output_file_name" : "boussinesq_2d_3n_reference.json",
+            //     "time_frequency"   : 0.05
+            // }
+        }]
+    }
+}

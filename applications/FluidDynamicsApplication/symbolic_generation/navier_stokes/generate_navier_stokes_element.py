@@ -1,4 +1,4 @@
-from sympy import *
+import sympy
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
@@ -108,7 +108,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         c = c[0]
     else:
         # With no weak-compressibility, the density (rho) is retrieved from the element properties and there is no speed of sound need
-        rho = Symbol('rho', positive = True)     # Density
+        rho = sympy.Symbol('rho', positive = True)     # Density
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
@@ -124,18 +124,18 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    dt  = Symbol('dt', positive = True)         # Time increment
-    nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
-    mu  = Symbol('mu', positive = True)         # Dynamic viscosity
-    h = Symbol('h', positive = True)
-    dyn_tau = Symbol('dyn_tau', positive = True)
-    stab_c1 = Symbol('stab_c1', positive = True)
-    stab_c2 = Symbol('stab_c2', positive = True)
+    dt  = sympy.Symbol('dt', positive = True)         # Time increment
+    nu  = sympy.Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
+    mu  = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
+    h = sympy.Symbol('h', positive = True)
+    dyn_tau = sympy.Symbol('dyn_tau', positive = True)
+    stab_c1 = sympy.Symbol('stab_c1', positive = True)
+    stab_c2 = sympy.Symbol('stab_c2', positive = True)
 
     ## Backward differences coefficients
-    bdf0 = Symbol('bdf0')
-    bdf1 = Symbol('bdf1')
-    bdf2 = Symbol('bdf2')
+    bdf0 = sympy.Symbol('bdf0')
+    bdf1 = sympy.Symbol('bdf1')
+    bdf2 = sympy.Symbol('bdf2')
 
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
@@ -157,7 +157,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         stab_norm_a = 0.0
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
-        stab_norm_a = sqrt(stab_norm_a)
+        stab_norm_a = sympy.sqrt(stab_norm_a)
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
         tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
     else:
@@ -256,8 +256,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv = rv_galerkin
 
     ## Define DOFs and test function vectors
-    dofs = Matrix( zeros(nnodes*(dim+1), 1) )
-    testfunc = Matrix( zeros(nnodes*(dim+1), 1) )
+    dofs = sympy.zeros(nnodes*(dim+1), 1)
+    testfunc = sympy.zeros(nnodes*(dim+1), 1)
 
     for i in range(0,nnodes):
 

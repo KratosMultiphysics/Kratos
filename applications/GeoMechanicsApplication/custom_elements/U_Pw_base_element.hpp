@@ -57,7 +57,11 @@ public:
     /// Constructor using Properties
     UPwBaseElement(IndexType NewId,
                    GeometryType::Pointer pGeometry,
-                   PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties ) {}
+                   PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties )
+    {
+        // this is needed for interface elements
+        mThisIntegrationMethod = this->GetIntegrationMethod();
+    }
 
     /// Destructor
     virtual ~UPwBaseElement() {}
@@ -114,6 +118,23 @@ public:
                                       std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
@@ -145,6 +166,7 @@ public:
 protected:
 
     /// Member Variables
+    GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;
@@ -165,22 +187,52 @@ protected:
                                const bool CalculateResidualVectorFlag);
 
     virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                    const IndexType& PointNumber,
-                                                    const double& detJ);
+                                                    unsigned int PointNumber,
+                                                    double detJ);
+
+    void CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                                    Matrix& J0,
+                                                    Matrix& InvJ0,
+                                                    Matrix& DN_DX,
+                                                    unsigned int PointNumber) const;
+
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& rJ,
+                                                 Matrix& rInvJ,
+                                                 unsigned int GPoint) const;
 
     /**
-     * @brief This methods gives us a matrix with the increment of displacement
-     * @param DeltaDisplacement The matrix containing the increment of displacements
-     * @return DeltaDisplacement: The matrix containing the increment of displacements
+     * @brief This functions calculate the derivatives in the reference frame
+     * @param J0 The jacobian in the reference configuration
+     * @param InvJ0 The inverse of the jacobian in the reference configuration
+     * @param DN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the reference configuration
      */
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& J0,
+                                                 Matrix& InvJ0,
+                                                 Matrix& DN_DX,
+                                                 unsigned int PointNumber) const;
 
-    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                                      Matrix& DNu_DX0,
-                                                      const IndexType& GPoint,
+    /**
+     * @brief This functions calculate the derivatives in the current frame
+     * @param rJ The jacobian in the current configuration
+     * @param rInvJ The inverse of the jacobian in the current configuration
+     * @param rDN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the current configuration
+     */
+    double CalculateDerivativesOnCurrentConfiguration(Matrix& rJ,
+                                                      Matrix& rInvJ,
+                                                      Matrix& rDN_DX,
+                                                      const IndexType &PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
     virtual unsigned int GetNumberOfDOF() const;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

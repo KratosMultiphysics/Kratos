@@ -404,6 +404,28 @@ public:
 
 
     ///@}
+    ///@name Intersections
+    ///@{
+
+    /**
+     * @brief Test if this geometry intersects with other geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
+     */
+    bool HasIntersection(const BaseType& rThisGeometry) const override
+    {
+        const BaseType& r_geom = *this;
+        if (rThisGeometry.LocalSpaceDimension() > r_geom.LocalSpaceDimension()) {
+            return rThisGeometry.HasIntersection(r_geom);
+        }
+        // Both objects are lines
+        Point intersection_point;
+        return IntersectionUtilities::ComputeLineLineIntersection(r_geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
+    }
+
+
+    ///@}
     ///@name Jacobian
     ///@{
 

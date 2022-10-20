@@ -25,7 +25,7 @@
 #include "constitutive_laws_application_variables.h"
 
 // Constitutive law
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/small_strains/damage/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "constitutive_laws_application_variables.h"

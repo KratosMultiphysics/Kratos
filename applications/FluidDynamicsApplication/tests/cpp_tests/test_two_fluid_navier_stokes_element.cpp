@@ -127,15 +127,15 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 
-            KRATOS_CHECK_NEAR(RHS(0), -42.7046891129577 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 29.7564894413919 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), -0.201073848010045 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), 90.0671583920051 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), 94.9469995432758 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), 0.06718133685987 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), 75.7625307209528 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), 146.546511015332 , 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), -0.0161074888498255 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(0), -32.05045961 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 30.58587996 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), -0.201073848 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), 103.3405559 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 100.0327221 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 0.06718133686 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), 86.98930477 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), 150.7991513 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), -0.01610748885 , 1e-7);
         }
 
         // /** Checks the TwoFluidNavierStokes3D4N element
@@ -222,25 +222,24 @@ namespace Kratos {
             const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), -118.03889688, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 14.78243843, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), -213.62425998, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), -0.05448084, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), 22.78371861, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), 27.42496766, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -403.33194690, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), 0.15778148, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), 60.36872332, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), 15.21517182, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -419.85282231, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), 0.00659561, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), 80.61562161, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), 37.68158875, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -453.71180415, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.20989625, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(0), -99.67824766, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 20.15785546, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), -231.8210039, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), -0.05448083831, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 61.76382984, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 31.04354526, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -445.5102133, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), 0.1577814843, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), 78.28977281, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), 20.92404867, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -435.4151357, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), 0.006595606811, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), 115.0227023, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), 41.93608137, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -488.7122322, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.2098962529, 1e-7);
 
         }
 
@@ -350,23 +349,23 @@ namespace Kratos {
             const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
-            reference_RHS[0] = -268.0132371599088;
-            reference_RHS[1] = -4.182094107233524;
-            reference_RHS[2]= -81.37622307441862;
-            reference_RHS[3]= -0.07197384163023302;
-            reference_RHS[4]= 56.05809670322434;
-            reference_RHS[5]= 29.90992150360854;
-            reference_RHS[6]= -428.7769671958163;
-            reference_RHS[7]= 0.3700935081503087;
-            reference_RHS[8]= 107.9781032300646;
-            reference_RHS[9]= 26.13414971317491;
-            reference_RHS[10]= -466.3175681317652;
-            reference_RHS[11]= 0.02197384163086232;
-            reference_RHS[12]= 149.4562038932866;
-            reference_RHS[13]= 43.24218955711688;
-            reference_RHS[14]= -514.3000749313327;
-            reference_RHS[15]= -0.420093508150938;
+            
+            reference_RHS[0] = -202.5894191;
+            reference_RHS[1] = 2.719387838;
+            reference_RHS[2]= -148.7936481;
+            reference_RHS[3]= -0.07197384163;
+            reference_RHS[4]= 116.6707765;
+            reference_RHS[5]= 36.92585031;
+            reference_RHS[6]= -489.8190839;
+            reference_RHS[7]= 0.3700935082;
+            reference_RHS[8]= 164.9620866;
+            reference_RHS[9]= 33.24122903;
+            reference_RHS[10]= -522.5500755;
+            reference_RHS[11]= 0.02197384163;
+            reference_RHS[12]= 203.4918275;
+            reference_RHS[13]= 50.40200447;
+            reference_RHS[14]= -566.6641308;
+            reference_RHS[15]= -0.4200935082;
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -461,21 +460,21 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 1.73174408, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), -4.27730790, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), 188.69694770, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), 0.67475711, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), 3.58627037, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), 29.92290545, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -481.38600870, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), -0.00332489, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), 18.13744587, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), 26.18388151, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -556.26762201, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), 0.02207141, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), 22.27370634, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), 43.27468761, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -641.56415033, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(0),4.375729989, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1),2.636918779, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2),58.47698649, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3),0.6747571137, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4),6.725748185, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5),36.96298944, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6),-599.6096953, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7),-0.003324893955, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8),21.62210894, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9),33.30213947, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10),-665.8383544, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11),0.0220714121, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12),26.01064318, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13),50.44496624, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14),-744.6519492, 1e-7);
             KRATOS_CHECK_NEAR(RHS(15), -0.79350363, 1e-7);
 
         }
@@ -567,22 +566,22 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 1.73174408, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), -4.27730790, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), 188.69694770, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), 0.67475711, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), 3.58627037, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), 29.92290545, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -481.38600870, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), -0.00332489, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), 18.13744587, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), 26.18388151, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -556.26762201, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), 0.02207141, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), 22.27370634, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), 43.27468761, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -641.56415033, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.79350363, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(0), 4.375729989, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 2.636918779, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), 58.47698649, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), 0.6747571137, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 6.725748185, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 36.96298944, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -599.6096953, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), -0.003324893955, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), 21.62210894, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), 33.30213947, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -665.8383544, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), 0.0220714121, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), 26.01064318, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), 50.44496624, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -744.6519492, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.7935036318, 1e-7);
 
         }
 
@@ -1426,22 +1425,22 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), -360.57321744, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 2619.39216544, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), -5247.41813009, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), -0.01350784, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), -14179.95249508, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), -9696.16776115, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -9395.42009461, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), -0.01633464, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), -7384.92278497, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), -11448.68747715, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -12293.47961658, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), -0.03635048, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), -7158.51524850, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), -9705.23040138, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -16430.46196053, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.03380704, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(0), -357.8243200052, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 2616.9094454176, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), -5245.9530366262, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), -0.013507842388113, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), -14178.358643109, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), -9695.4830606294, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -9397.4044901296, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), -0.016334635022297, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), -7384.0299128137, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), -11452.419170853, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -12294.517818084, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), -0.03635048354971, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), -7158.5516510797, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), -9706.5109782994, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -16434.188680389, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.03380703903988, 1e-7);
 
         }
 
@@ -1954,15 +1953,15 @@ namespace Kratos {
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(9);
 
-            reference_RHS[0] = 5726.11532439;
-            reference_RHS[1] = 3306.70144012;
-            reference_RHS[2] = -28.5925842818;
-            reference_RHS[3] = -5842.91825503;
-            reference_RHS[4] = 918.807742518;
-            reference_RHS[5] = -15.9819989975;
-            reference_RHS[6] = 239.927930637;
-            reference_RHS[7] = -3954.25918264;
-            reference_RHS[8] = -5.57541672072;
+            reference_RHS[0] = 5758.116396;
+            reference_RHS[1] = 4790.604956;
+            reference_RHS[2] = -28.59258428;
+            reference_RHS[3] = -5809.097043;
+            reference_RHS[4] = 2150.577447;
+            reference_RHS[5] = -15.981999;
+            reference_RHS[6] = 394.5059473;
+            reference_RHS[7] =-3327.557419;
+            reference_RHS[8] =-5.575416721;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
@@ -2066,22 +2065,23 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(16);
-            reference_RHS[0] = 3782.55;
-            reference_RHS[1] = 2744.98;
-            reference_RHS[2]=3686.97;
-            reference_RHS[3] = -5.52595;
-            reference_RHS[4] = -3777.86;
-            reference_RHS[5] = 237.471;
-            reference_RHS[6] = -453.676;
-            reference_RHS[7] = -4.00642;
-            reference_RHS[8] = 10.2705;
-            reference_RHS[9] = -3395.05;
-            reference_RHS[10] = -469.951;
-            reference_RHS[11] = -2.86019;
-            reference_RHS[12] = 30.7636;
-            reference_RHS[13]=507.703;
-            reference_RHS[14] = -4253.86;
-            reference_RHS[15] = -4.3741;
+
+            reference_RHS[0] = 3968.830183;
+            reference_RHS[1] = 2879.348152;
+            reference_RHS[2]=3836.687427;
+            reference_RHS[3] = -5.525948818;
+            reference_RHS[4] = -3901.342382;
+            reference_RHS[5] = 528.2576828;
+            reference_RHS[6] = -658.3189566;
+            reference_RHS[7] = -4.006423257;
+            reference_RHS[8] = 155.8696564;
+            reference_RHS[9] = -3271.153765;
+            reference_RHS[10] = -357.8352521;
+            reference_RHS[11] = -2.860193597;
+            reference_RHS[12] = -66.48224427;
+            reference_RHS[13]=757.5359384;
+            reference_RHS[14] = -4420.514648;
+            reference_RHS[15] = -4.374100994;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
@@ -2183,22 +2183,23 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(16);
-            reference_RHS[0] = -118.039;
-            reference_RHS[1] = 14.7824;
-            reference_RHS[2]= -213.624;
-            reference_RHS[3] = -0.0544808;
-            reference_RHS[4] = 22.7837;
-            reference_RHS[5] = 27.425;
-            reference_RHS[6] = -403.332;
-            reference_RHS[7] = 0.157781;
-            reference_RHS[8] = 60.3687;
-            reference_RHS[9] = 15.2152;
-            reference_RHS[10] = -419.853;
-            reference_RHS[11] = 0.00659561;
-            reference_RHS[12] = 80.6156;
-            reference_RHS[13]= 37.6816;
-            reference_RHS[14] = -453.712;
-            reference_RHS[15] = -0.209896;
+
+            reference_RHS[0] = -99.67824766;
+            reference_RHS[1] = 20.15785546;
+            reference_RHS[2]= -231.8210039;
+            reference_RHS[3] = -0.05448083831;
+            reference_RHS[4] = 61.76382984;
+            reference_RHS[5] = 31.04354526;
+            reference_RHS[6] = -445.5102133;
+            reference_RHS[7] = 0.1577814843;
+            reference_RHS[8] = 78.28977281;
+            reference_RHS[9] = 20.92404867;
+            reference_RHS[10] = -435.4151357;
+            reference_RHS[11] = 0.006595606811;
+            reference_RHS[12] = 115.0227023;
+            reference_RHS[13]= 41.93608137;
+            reference_RHS[14] = -488.7122322;
+            reference_RHS[15] = -0.2098962529;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }

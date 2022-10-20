@@ -20,6 +20,8 @@
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -224,7 +226,7 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVar
             mrMasterModelPart.AddMasterSlaveConstraint(constraint6);
 
 
-            if (TDim == 3)
+            if (TDim == 3) // TODO: This function can be optimized using template specialization. if constexpr will fail due to unused variables declared
             {
                 auto constraint7 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
                 auto constraint8 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);

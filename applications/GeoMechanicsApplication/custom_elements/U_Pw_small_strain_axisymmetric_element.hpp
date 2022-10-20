@@ -17,7 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -109,8 +109,8 @@ protected:
                            const Vector &Np ) override;
 
     double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                            const IndexType& PointNumber,
-                                            const double& detJ) override;
+                                            unsigned int PointNumber,
+                                            double detJ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

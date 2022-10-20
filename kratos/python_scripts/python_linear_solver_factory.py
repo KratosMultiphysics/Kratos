@@ -35,14 +35,10 @@ def CreateFastestAvailableDirectLinearSolver():
     # Using a default linear solver (selecting the fastest one available)
     if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
         from KratosMultiphysics import LinearSolversApplication
-    elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-        from KratosMultiphysics import ExternalSolversApplication
 
     linear_solvers_by_speed = [
         "pardiso_lu", # LinearSolversApplication (if compiled with Intel-support)
         "sparse_lu",  # LinearSolversApplication
-        "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-        "super_lu",   # ExternalSolversApplication
         "skyline_lu_factorization" # in Core, always available, but slow
     ]
 

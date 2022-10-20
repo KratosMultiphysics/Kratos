@@ -202,6 +202,8 @@ public:
     ///@name Input and output
     ///@{
 
+    const Parameters GetSpecifications() const override;
+
     /// Turn back information as a string.
     std::string Info() const override;
 

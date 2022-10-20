@@ -23,31 +23,31 @@
 // Application includes
 
 // Hyperelastic behaviours
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_3d.h"
 
 // Integrator
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
 
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
-#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     T TrescaCL = T();
 
     std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {9.99683e+06, 9.99683e+06, 1.00063e+07, 0, 0, 1.00636e-13};
+    MCres = {1.00033e+07,1.00033e+07,9.99343e+06,0,0,-1.0439e-13};
     VMres = {1.00033e+07, 1.00033e+07, 9.99343e+06, 0, 0, -1.0439e-13};
     DPres = {11102.3, 11102.3, 11101.8, 0, 0, -5.46183e-18};
     Tres = {1.00033e+07, 1.00033e+07, 9.99343e+06, 0, 0, -1.0439e-13};

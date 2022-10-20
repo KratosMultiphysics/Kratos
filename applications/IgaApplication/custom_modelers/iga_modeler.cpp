@@ -84,7 +84,7 @@ namespace Kratos
 
         if (!rParameters.Has("geometry_type")) {
             CreateQuadraturePointGeometries(
-                geometry_list, sub_model_part, rParameters["parameters"]);
+                geometry_list, sub_model_part, rParameters["parameters"], std::string{});
         }
         else {
             std::string geometry_type = rParameters["geometry_type"].GetString();
@@ -96,7 +96,7 @@ namespace Kratos
             }
             else {
                 CreateQuadraturePointGeometries(
-                    geometry_list, sub_model_part, rParameters["parameters"]);
+                    geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
             }
         }
         KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", mEchoLevel > 3)
@@ -106,7 +106,8 @@ namespace Kratos
     void IgaModeler::CreateQuadraturePointGeometries(
         GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const
+        const Parameters rParameters,
+        std::string GeometryType) const
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
             << "\"type\" need to be specified." << std::endl;
@@ -156,8 +157,17 @@ namespace Kratos
                 }
             }
 
-            rGeometryList[i].CreateQuadraturePointGeometries(
-                geometries, shape_function_derivatives_order, integration_info);
+            if (GeometryType == "SurfaceEdge"
+                && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+            {
+                rGeometryList[i].GetGeometryPart(0).CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
+            else
+            {
+                rGeometryList[i].CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;

@@ -22,6 +22,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_ramm_arc_length_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
 //builders and solvers
 
@@ -35,7 +36,6 @@
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos
 {
@@ -51,7 +51,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector>           LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType >                             BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType >                ConvergenceCriteriaType;
@@ -62,9 +62,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
     typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
     typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
+    
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
+    typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -96,6 +98,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     (m, "GeoMechanicsNewtonRaphsonStrategy")
     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+
+    class_< GeoMechanicsNewtonRaphsonErosionProcessStrategyType, typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType >
+        (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+            BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
     class_< GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsRammArcLengthStrategy")
