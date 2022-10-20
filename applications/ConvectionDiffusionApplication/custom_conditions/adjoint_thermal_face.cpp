@@ -303,7 +303,7 @@ void AdjointThermalFace::CalculateSensitivityMatrix(
         // Compute derivative of RHS w.r.t. design variable with finite differences
         double element_area = r_geom.Area();
         for(IndexType i = 0; i < RHS_perturbed.size(); ++i) {
-            rOutput(0, i) = -1 * (RHS_perturbed[i] - RHS[i]) / perturbation_size; //TODO MFusseder check for sign
+            rOutput(0, i) = (RHS_perturbed[i] - RHS[i]) / perturbation_size; //TODO MFusseder check for sign
             rOutput(0, i) /= element_area;
         }
 
@@ -368,7 +368,7 @@ void AdjointThermalFace::CalculateOnIntegrationPoints(
         // Gauss pts. loop
         for (unsigned int g = 0; g < n_gauss; g++) {
             Vector N = row(N_container, g);
-            rValues[g] = -1 * inner_prod(N, node_multipliers); //TODO MFusseder check for sign
+            rValues[g] = inner_prod(N, node_multipliers); //TODO MFusseder check for sign
         }
     }
     else if(rVariable == CONVECTION_COEFFICIENT_GP_SENSITIVITY || rVariable == EMISSIVITY_GP_SENSITIVITY || rVariable == AMBIENT_TEMPERATURE_GP_SENSITIVITY) {

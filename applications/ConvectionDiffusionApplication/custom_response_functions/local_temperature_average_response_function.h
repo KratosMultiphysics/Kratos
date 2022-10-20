@@ -240,7 +240,7 @@ private:
         {
             if (rNodes[i].Is(STRUCTURE))
             {
-                double factor = 1.0 / (rNodes[i].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS)*mNumNodes);
+                double factor = -1.0 / (rNodes[i].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS)*mNumNodes);
                 rLocalSensitivityContribution[i] = factor;
             }
         }

@@ -285,7 +285,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                     // plus partial derivative of source term: w * dJ/DX * N_i * N_j * VolumeSource_j
                     contribution_li -= weight * det_j_deriv * N[i] * volume_source_gauss;
 
-                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += contribution_li;
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += -1*contribution_li;
                 }
             }
         }
@@ -340,7 +340,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             PrimalElement::CalculateLocalSystem(dummy, RHS_perturbed, rCurrentProcessInfo);
             // Compute derivative of RHS w.r.t. design variable with finite differences
             for(IndexType j = 0; j < RHS_perturbed.size(); ++j) {
-                rOutput(i, j) = -(RHS_perturbed[j] - RHS[j]) / disturbance; //TODO MFusseder check for sign
+                rOutput(i, j) = (RHS_perturbed[j] - RHS[j]) / disturbance; //TODO MFusseder check for sign
             }
             // undisturb design variable
             r_node.FastGetSolutionStepValue(r_diffusivity_var) = nodal_conductivity;
@@ -461,7 +461,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateOnIntegrationPoints(const 
         for(IndexType i_gp = 0; i_gp < adjoint_heat_flow.size(); ++i_gp) {
             double sensitivity_gp = 0.0;
             for(unsigned int i = 0; i < dimension; ++i) {
-                sensitivity_gp += adjoint_heat_flow[i_gp][i] * pseudo_heat_flow[i_gp][i];
+                sensitivity_gp -= adjoint_heat_flow[i_gp][i] * pseudo_heat_flow[i_gp][i];
             }
             rOutput[i_gp] = sensitivity_gp;
         }

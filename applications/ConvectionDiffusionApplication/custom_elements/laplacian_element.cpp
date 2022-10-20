@@ -278,7 +278,7 @@ void LaplacianElement::CalculateOnIntegrationPoints(const Variable<array_1d<doub
 
             auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
             const double conductivity_gauss = inner_prod(N, nodal_conductivity);
-            noalias(heat_flow_gausspoint) = conductivity_gauss * prod(trans(temp), DN_DX);
+            noalias(heat_flow_gausspoint) = -1.0 * conductivity_gauss * prod(trans(temp), DN_DX);
 
             for(unsigned int i = 0; i < dim; i++) {
                 result_gausspoint[i] = heat_flow_gausspoint[i];
