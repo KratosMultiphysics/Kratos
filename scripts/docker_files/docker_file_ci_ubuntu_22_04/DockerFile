@@ -17,6 +17,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential \
         ccache \
         g++-12 \
+        gfortran-12 \
         clang-14 \
         libomp-dev \
         cmake \
