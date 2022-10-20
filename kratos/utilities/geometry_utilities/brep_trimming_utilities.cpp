@@ -25,12 +25,12 @@ namespace Kratos
     {
         for (IndexType i_outer_loops = 0; i_outer_loops < rOuterLoops.size(); ++i_outer_loops) {
 
-            ClipperLib::Paths all_loops(1 + rInnerLoops.size()), solution;
+            Clipper2Lib::Paths64 all_loops(1 + rInnerLoops.size()), solution;
             const double factor = 1e-10;
 
-            ClipperLib::IntPoint int_point;
-            int_point.X = static_cast<cInt>(std::numeric_limits<int>::min());
-            int_point.Y = static_cast<cInt>(std::numeric_limits<int>::min());
+            Clipper2Lib::Point64 int_point;
+            int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
+            int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
             for (IndexType j = 0; j < rOuterLoops[i_outer_loops].size(); ++j) {
                 CurveTessellation<PointerVector<Node<3>>> curve_tesselation;
                 auto geometry_outer = *(rOuterLoops[i_outer_loops][j].get());
@@ -39,18 +39,18 @@ namespace Kratos
                 auto tesselation = curve_tesselation.GetTessellation();
                 for (IndexType u = 0; u < tesselation.size(); ++u) {
                     auto new_int_point = BrepTrimmingUtilities::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);
-                    if (!(int_point.X == new_int_point.X && int_point.Y == new_int_point.Y)) {
-                        all_loops[i_outer_loops] << new_int_point;
-                        int_point.X = new_int_point.X;
-                        int_point.Y = new_int_point.Y;
+                    if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y)) {
+                        all_loops[i_outer_loops].push_back(new_int_point);
+                        int_point.x = new_int_point.x;
+                        int_point.y = new_int_point.y;
                     }
                 }
             }
 
             for (IndexType i_inner_loops = 0; i_inner_loops < rInnerLoops.size(); ++i_inner_loops) {
                 //ClipperLib::IntPoint int_point;
-                int_point.X = static_cast<cInt>(std::numeric_limits<int>::min());
-                int_point.Y = static_cast<cInt>(std::numeric_limits<int>::min());
+                int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
+                int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
                 for (IndexType j = 0; j < rInnerLoops[i_inner_loops].size(); ++j) {
                     CurveTessellation<PointerVector<Node<3>>> curve_tesselation;
                     auto geometry_inner = *(rInnerLoops[i_inner_loops][j].get());
@@ -59,10 +59,10 @@ namespace Kratos
                     auto tesselation = curve_tesselation.GetTessellation();
                     for (IndexType u = 0; u < tesselation.size(); ++u) {
                         auto new_int_point = BrepTrimmingUtilities::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);
-                        if (!(int_point.X == new_int_point.X && int_point.Y == new_int_point.Y)) {
-                            all_loops[i_inner_loops + 1] << new_int_point;
-                            int_point.X = new_int_point.X;
-                            int_point.Y = new_int_point.Y;
+                        if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y)) {
+                            all_loops[i_inner_loops + 1].push_back(new_int_point);
+                            int_point.x = new_int_point.x;
+                            int_point.y = new_int_point.x;
                         }
                     }
                 }
@@ -70,26 +70,25 @@ namespace Kratos
 
             for (IndexType i = 0; i < rSpansU.size() - 1; ++i) {
                 for (IndexType j = 0; j < rSpansV.size() - 1; ++j) {
-                    ClipperLib::Clipper c;
-                    c.AddPaths(all_loops, ClipperLib::ptSubject, true);
+                    Clipper2Lib::Clipper64 c;
+                    c.AddSubject(all_loops);
 
-                    ClipperLib::Paths span(1);
-                    span[0]
-                        << BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor)
-                        << BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor)
-                        << BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor)
-                        << BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor)
-                        << BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor);
+                    Clipper2Lib::Paths64 span(1);
+                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
+                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor));
+                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor));
+                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor));
+                    span[0].push_back(BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
 
-                    c.AddPaths(span, ClipperLib::ptClip, true);
-                    c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+                    c.AddClip(span);
+                    c.Execute(Clipper2Lib::ClipType::Intersection, Clipper2Lib::FillRule::EvenOdd, span, solution);
 
-                    const double span_area = std::abs(ClipperLib::Area(span[0])) / factor;
-                    double clip_area = std::abs(ClipperLib::Area(solution[0])) / factor;
+                    const double span_area = std::abs(Clipper2Lib::Area(span[0])) / factor;
+                    double clip_area = std::abs(Clipper2Lib::Area(solution[0])) / factor;
                     if (solution.size() > 1)
                     {
                         for (IndexType k = 1; k < solution.size(); ++k) {
-                            clip_area -= std::abs(ClipperLib::Area(solution[k])) / factor;
+                            clip_area -= std::abs(Clipper2Lib::Area(solution[k])) / factor;
                         }
                     }
 

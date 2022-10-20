@@ -14,7 +14,7 @@
 #include "includes/define.h"
 
 // External includes
-#include "clipper/clipper.h"
+#include "clipper/include/clipper2/clipper.h"
 
 // Project includes
 #include "geometries/geometry.h"
@@ -70,7 +70,7 @@ namespace Kratos
         };
 
         //Triangulation 
-        static void Triangulate_OPT(const ClipperLib::Path& polygon, std::vector<Matrix>& triangles, const double factor)
+        static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor)
         {
             array_1d<double, 2> p1, p2, p3, p4;
             int bestvertex;
@@ -82,7 +82,7 @@ namespace Kratos
             std::list<Diagonal> diagonals;
 
             IndexType n = polygon.size();
-            std::vector< ClipperLib::IntPoint > const& points = polygon;
+            std::vector< Clipper2Lib::Point64 > const& points = polygon;
             matrix<DPState> dpstates(n, n);
 
             //init states and visibility
@@ -278,27 +278,27 @@ namespace Kratos
             return true;
         }
 
-        static ClipperLib::IntPoint ToIntPoint(
+        static Clipper2Lib::Point64 ToIntPoint(
             const double x,
             const double y,
             const double factor)
         {
-            ClipperLib::IntPoint intPoint;
+            Clipper2Lib::Point64 int_point;
 
-            intPoint.X = static_cast<cInt>(x / factor);
-            intPoint.Y = static_cast<cInt>(y / factor);
+            int_point.x = static_cast<cInt>(x / factor);
+            int_point.y = static_cast<cInt>(y / factor);
 
-            return intPoint;
+            return int_point;
         }
 
         static array_1d<double, 2> IsConvex(
-            const ClipperLib::IntPoint& intPoint,
+            const Clipper2Lib::Point64& int_point,
             const double factor)
         {
             array_1d<double, 2> point;
 
-            point[0] = intPoint.X * factor;
-            point[1] = intPoint.Y * factor;
+            point[0] = int_point.x * factor;
+            point[1] = int_point.y * factor;
 
             return point;
         }

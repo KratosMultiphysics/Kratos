@@ -445,7 +445,7 @@ public:
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
+            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
                 rIntegrationPoints,
                 mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
