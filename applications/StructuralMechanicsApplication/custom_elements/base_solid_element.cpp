@@ -602,7 +602,7 @@ void BaseSolidElement::CalculateMassMatrix(
     // Clear matrix
     if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
         rMassMatrix.resize( mat_size, mat_size, false );
-    rMassMatrix = ZeroMatrix( mat_size, mat_size );
+    noalias(rMassMatrix) = ZeroMatrix( mat_size, mat_size );
 
     // Checking density
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
@@ -738,7 +738,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const auto& r_geometry = GetGeometry();
 
     if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points );
+        rOutput.resize( number_of_integration_points, false );
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
