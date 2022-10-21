@@ -91,15 +91,17 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         }
     }
     if (required) {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const auto &r_geom = GetGeometry();
+        const SizeType number_of_nodes = r_geom.size();
+        const SizeType dimension = r_geom.WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        const Properties& r_properties = GetProperties();
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(r_geom,r_properties,rCurrentProcessInfo);
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -112,8 +114,7 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
         // Reading integration points
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
+
         const auto& N_values = this->ShapeFunctionsValues(mThisIntegrationMethod);
 
         // Reading integration points
@@ -131,7 +132,7 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
                 mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
 
                 // TODO: Deprecated, remove this
-                mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geom, row( N_values, point_number ), rCurrentProcessInfo);
             }
         }
     }
