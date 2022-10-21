@@ -383,7 +383,7 @@ const std::function<double(const array_1d<double, 3>&)> GetNormMethod(
         KRATOS_ERROR_IF(p < 1.0)
             << "p-norm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
 
-        return [p, &rVariable](const array_1d<double, 3>& rValue) -> double {
+        return [p](const array_1d<double, 3>& rValue) -> double {
             KRATOS_TRY
 
             return std::pow(
@@ -440,7 +440,7 @@ const std::function<double(const Vector&)> GetNormMethod(
         KRATOS_ERROR_IF(p < 1.0)
             << "p-norm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
 
-        return [p, &rVariable](const Vector& rValue) -> double {
+        return [p](const Vector& rValue) -> double {
             KRATOS_TRY
 
             const int n = rValue.size();
@@ -532,7 +532,7 @@ const std::function<double(const Matrix&)> GetNormMethod(
         KRATOS_ERROR_IF(p < 1.0)
             << "p-norm only supports p >= 1 values. [ " << p << " !>= 1 ].\n";
 
-        return [p, &rVariable](const Matrix& rValue) -> double {
+        return [p](const Matrix& rValue) -> double {
             KRATOS_TRY
 
             const int n1 = rValue.size1();
@@ -592,7 +592,7 @@ const std::function<double(const Matrix&)> GetNormMethod(
         KRATOS_ERROR_IF(q < 1.0)
             << "lpqnorm only supports q >= 1 values. [ " << q << " !>= 1 ].\n";
 
-        return [p, q, &rVariable](const Matrix& rValue) -> double {
+        return [p, q](const Matrix& rValue) -> double {
             KRATOS_TRY
 
             const int n1 = rValue.size1();
