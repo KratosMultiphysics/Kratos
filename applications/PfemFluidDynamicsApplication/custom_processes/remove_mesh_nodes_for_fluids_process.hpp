@@ -113,8 +113,6 @@ namespace Kratos
 				std::cout << " [ REMOVE CLOSE NODES: " << std::endl;
 			}
 
-			// double NumberOfNodes = mrModelPart.NumberOfNodes();
-
 			bool some_node_is_removed = false;
 
 			int error_nodes_removed = 0;
@@ -126,16 +124,7 @@ namespace Kratos
 			{
 				if (mEchoLevel > 1)
 					std::cout << " REMOVE_NODES is TRUE " << std::endl;
-				// bool some_node_is_removed_due_to_error = false;
-				// ////////////////////////////////////////////////////////////
-				// if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR))
-				// {
-				// 	if (mEchoLevel > 1)
-				// 		std::cout << " REMOVE_NODES_ON_ERROR is TRUE " << std::endl;
 
-				// 	some_node_is_removed_due_to_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
-				// }
-				////////////////////////////////////////////////////////////
 				if (mEchoLevel > 1)
 					std::cout << "error_nodes_removed :" << error_nodes_removed << std::endl;
 
@@ -145,7 +134,7 @@ namespace Kratos
 				{
 					if (mEchoLevel > 1)
 						std::cout << " REMOVE_NODES_ON_DISTANCE is TRUE " << std::endl;
-					// double  MeanRadius=0;
+
 					some_node_is_removed_due_to_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
 				}
 				// REMOVE ON DISTANCE
@@ -159,7 +148,6 @@ namespace Kratos
 			}
 
 			// number of removed nodes:
-			// mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
 			mrRemesh.Info->RemovedNodes += error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
 			int distance_remove = inside_nodes_removed + boundary_nodes_removed;
 
@@ -167,8 +155,6 @@ namespace Kratos
 			{
 				std::cout << "   [ NODES      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
 				std::cout << "   [ Error(removed: " << error_nodes_removed << "); Distance(removed: " << distance_remove << "; inside: " << inside_nodes_removed << "; boundary: " << boundary_nodes_removed << ") ]" << std::endl;
-
-				// std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes().size()<<std::endl;
 				std::cout << "   REMOVE CLOSE NODES ]; " << std::endl;
 			}
 
