@@ -27,7 +27,7 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_ghost_splitting_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/registry_file.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/journal.cpp
 )
 
 ## HDF5Application python interface sources

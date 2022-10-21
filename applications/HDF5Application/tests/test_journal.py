@@ -7,14 +7,14 @@ import KratosMultiphysics.HDF5Application as HDF5
 import pathlib
 
 
-class TestRegistryFile(KratosUnittest.TestCase):
+class TestJournal(KratosUnittest.TestCase):
 
     @property
     def test_file_path(self) -> pathlib.Path:
         return pathlib.Path("test_registry_file.log")
 
-    def test_RegistryFile(self) -> None:
-        registry = HDF5.RegistryFile(self.test_file_path)
+    def test_Journal(self) -> None:
+        registry = HDF5.Journal(self.test_file_path)
         model = KratosMultiphysics.Model()
 
         extractor = lambda model: KratosMultiphysics.Parameters('["1st","2nd"]')
@@ -44,7 +44,7 @@ class TestRegistryFile(KratosUnittest.TestCase):
                 true
             ]""")
 
-        registry = HDF5.RegistryFile(self.test_file_path, extractor)
+        registry = HDF5.Journal(self.test_file_path, extractor)
         registry.Clear()
 
         model = KratosMultiphysics.Model()

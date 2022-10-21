@@ -19,7 +19,7 @@
 // HDF5 includes
 #include "custom_utilities/vertex.h"
 #include "custom_utilities/vertex_utilities.h"
-#include "custom_utilities/registry_file.h"
+#include "custom_utilities/journal.h"
 
 // Internal includes
 #include "add_custom_utilities_to_python.h"
@@ -97,15 +97,15 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
 
     #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
 
-    pybind11::class_<RegistryFile, RegistryFile::Pointer>(rModule, "RegistryFile")
+    pybind11::class_<Journal, Journal::Pointer>(rModule, "Journal")
         .def(pybind11::init<const std::filesystem::path&>())
-        .def(pybind11::init<const std::filesystem::path&,const RegistryFile::Extractor&>())
-        .def("GetFilePath", &RegistryFile::GetFilePath, "Get the path to the underlying file.")
-        .def("SetExtractor", pybind11::overload_cast<const RegistryFile::Extractor&>(&RegistryFile::SetExtractor))
-        .def("Push", &RegistryFile::Push, "Insert a new entry at the end, extracted from the input model.")
-        .def("Clear", &RegistryFile::Clear, "Delete the registry file")
-        .def("__len__", &RegistryFile::size)
-        .def("__iter__", [](const RegistryFile& rRegistryFile){return pybind11::make_iterator(rRegistryFile.begin(), rRegistryFile.end());})
+        .def(pybind11::init<const std::filesystem::path&,const Journal::Extractor&>())
+        .def("GetFilePath", &Journal::GetFilePath, "Get the path to the underlying file.")
+        .def("SetExtractor", pybind11::overload_cast<const Journal::Extractor&>(&Journal::SetExtractor))
+        .def("Push", &Journal::Push, "Insert a new entry at the end, extracted from the input model.")
+        .def("Clear", &Journal::Clear, "Delete the registry file")
+        .def("__len__", &Journal::size)
+        .def("__iter__", [](const Journal& rJournal){return pybind11::make_iterator(rJournal.begin(), rJournal.end());})
         ;
 }
 
