@@ -358,7 +358,7 @@ void BaseSolidElement::GetDofList(
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
-    rElementalDofList.resize(0, false);
+    rElementalDofList.resize(0);
     rElementalDofList.reserve(dimension * number_of_nodes);
 
     if(dimension == 2) {
