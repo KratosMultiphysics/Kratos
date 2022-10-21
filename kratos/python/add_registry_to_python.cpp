@@ -59,6 +59,7 @@ void AddRegistryToPython(pybind11::module& m)
         .def("HasValue", &RegistryItem::HasValue)
         .def("keys", &registry_item_keys)
         .def("size", &RegistryItem::size)
+        .def("__iter__", [](RegistryItem& rSelf){return py::make_iterator(rSelf.key_begin(), rSelf.key_end());}, py::keep_alive<0,1>())
         // .def("__str__", [](const RegistryItem& rSelf){rSelf.Name();})
         ;
 

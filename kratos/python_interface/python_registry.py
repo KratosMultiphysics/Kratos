@@ -5,6 +5,38 @@ class RegistryContext():
     CPP = 1
     PYTHON = 2
 
+class PythonRegistryIterator:
+    ''' PythonRegistry iterator class
+    '''
+    def __init__(self, ThisPythonRegistry):
+       # Member variables to keep track of iteration
+       self.__index = 0
+    #    self.__cpp_root_item = ThisPythonRegistry._PythonRegistry__cpp_registry
+    #    self.__py_root_item = ThisPythonRegistry._PythonRegistry__python_registry
+       self.__cpp_root_keys = ThisPythonRegistry._PythonRegistry__cpp_registry.keys()
+       self.__py_root_keys = ThisPythonRegistry._PythonRegistry__python_registry.keys()
+
+    def __next__(self):
+        '''Returns the next object from the PythonRegistry wrapper root level
+        '''
+        n_py_items = len(self.__py_root_keys)
+        n_total_items = len(self.__cpp_root_keys) + n_py_items
+        if self.__index < n_total_items:
+            # Check if we are at the Python or c++ registry
+            if self.__index < n_py_items:
+                # Return the item key from the Python registry
+                item_key = self.__py_root_keys[self.index]
+                # item = self.__py_root_item[self.__py_root_keys[self.index]]
+            else:
+                print("IT'S C++")
+                # Return the item key from the c++ registry
+                item_key = self.__cpp_root_keys[self.__index]
+                # item = self.__cpp_root_item.GetItem(self.__cpp_root_keys[self.__index]).Name()
+            self.__index += 1
+            return item_key
+        # End of iteration
+        raise StopIteration
+
 class PythonRegistry(object):
 
     CppGetFunctionNamesMap = {
@@ -29,6 +61,10 @@ class PythonRegistry(object):
         else:
             err_msg = f"Asking to retrieve '{Name}' non-registered item."
             raise Exception(err_msg)
+
+    def __iter__(self):
+       ''' Returns the Iterator object '''
+       return PythonRegistryIterator(self)
 
     def keys(self, Name):
         # Check if Name registry level is a value

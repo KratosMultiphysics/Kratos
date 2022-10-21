@@ -154,9 +154,13 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         # Remove the auxiliary testing entries from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
-    # def testIteration(self):
-    #     for item in KratosMultiphysics.Registry:
-    #         print(item.keys())
+    def testIteration(self):
+        print("@@@@@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@@@@@")
+        for item in KratosMultiphysics.Registry:
+            print(item)
+            for subitem in KratosMultiphysics.Registry[item]:
+                print(subitem)
 
 if __name__ == "__main__":
     KratosUnittest.main()

@@ -67,7 +67,131 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RegistryItem);
 
     /// Subregistry item type definition
-    using SubRegistryItemType = std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>>;
+    using SubRegistryItemType = std::unordered_map<std::string, Kratos::shared_ptr<RegistryItem>>;
+    // using SubRegistryItemType = std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>>;
+
+
+     /// Custom iterator with key as return type to be used in the Python export
+    class key_return_iterator
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        using BaseIterator      = SubRegistryItemType::iterator;
+        using iterator_category = BaseIterator::iterator_category;
+        using difference_type   = BaseIterator::difference_type;
+        using value_type        = BaseIterator::value_type;
+        using pointer           = BaseIterator::pointer;
+        using reference         = BaseIterator::reference;
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        key_return_iterator()
+        {}
+
+        key_return_iterator(BaseIterator Iterator)
+            : mIterator(Iterator)
+        {}
+
+        key_return_iterator(const key_return_iterator& rIterator)
+            : mIterator(rIterator.mIterator)
+        {}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        key_return_iterator& operator=(const key_return_iterator& rIterator)
+        {
+            this->mIterator = rIterator.mIterator;
+            return *this;
+        }
+
+        std::string operator*() const
+        {
+            return mIterator->first;
+        }
+
+        std::string operator->()
+        {
+            return mIterator->first;
+        }
+
+        key_return_iterator& operator++()
+        {
+            ++mIterator;
+            return *this;
+        }
+
+        key_return_iterator operator++(int)
+        {
+            key_return_iterator tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+
+        bool operator==(const key_return_iterator& rIterator) const
+        {
+            return this->mIterator == rIterator.mIterator;
+        }
+
+        bool operator!=(const key_return_iterator& rIterator) const
+        {
+            return this->mIterator != rIterator.mIterator;
+        }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+
+        ///@}
+        ///@name Access
+        ///@{
+
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        BaseIterator mIterator;
+
+        ///@}
+        ///@name Private Operators
+        ///@{
+
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
+
+        ///@}
+    };
 
     ///@}
     ///@name Life Cycle
@@ -110,29 +234,17 @@ public:
     ///@name Access
     ///@{
 
-    auto begin()
-    {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.begin();
-    }
+    SubRegistryItemType::iterator begin();
 
-    auto cbegin() const
-    {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.cbegin();
-    }
+    SubRegistryItemType::const_iterator cbegin() const;
 
-    auto end()
-    {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.end();
-    }
+    SubRegistryItemType::iterator end();
 
-    auto const cend() const
-    {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.cend();
-    }
+    SubRegistryItemType::const_iterator cend() const;
+
+    key_return_iterator key_begin();
+
+    key_return_iterator key_end();
 
     const std::string& Name() const
     {
