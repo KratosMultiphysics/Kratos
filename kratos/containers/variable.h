@@ -148,12 +148,6 @@ public:
     {
     }
 
-    /**
-     * Copy constructor, deleted to avoid misuse which can lead to memory problems
-     * @brief Copy constructor.
-     * @param rOtherVariable The old variable to be copied
-     */
-    Variable(const VariableType& rOtherVariable) = delete;
 
     /// Destructor.
     ~Variable() override {}
@@ -421,10 +415,24 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
+    ///@name Protected LifeCycle
+    ///@{
+
+    /**
+     * Copy constructor.
+     * @brief Copy constructor.
+     * @param rOtherVariable The old variable to be copied
+     */
+    explicit Variable(const VariableType& rOtherVariable) :
+        VariableData(rOtherVariable),
+        mZero(rOtherVariable.mZero),
+        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    {
+    }
+    
+    ///@}
     ///@name Static Member Variables
     ///@{
 
