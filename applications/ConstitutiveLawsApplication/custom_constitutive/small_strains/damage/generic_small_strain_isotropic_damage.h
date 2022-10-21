@@ -405,7 +405,6 @@ private:
     // Converged values
     double mDamage = 0.0;
     double mThreshold = 0.0;
-    double mUniaxialStress = 0.0;
 
     ///@}
     ///@name Private Operators
