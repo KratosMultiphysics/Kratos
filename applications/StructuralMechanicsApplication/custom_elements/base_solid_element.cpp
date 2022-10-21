@@ -736,6 +736,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
     const std::size_t number_of_integration_points = integration_points.size();
     const auto& r_geometry = GetGeometry();
+    const auto& r_properties = GetProperties();            const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType number_of_nodes = r_geometry.size();
 
     if ( rOutput.size() != number_of_integration_points )
         rOutput.resize( number_of_integration_points, false );
@@ -744,11 +748,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         GetValueOnConstitutiveLaw(rVariable, rOutput);
     } else {
         if (rVariable == INTEGRATION_WEIGHT) {
-            const SizeType number_of_nodes = r_geometry.size();
-            const SizeType dimension = r_geometry.WorkingSpaceDimension();
-            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            double integration_weight;
 
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 this_kinematic_variables.detJ0 = CalculateDerivativesOnReferenceConfiguration(this_kinematic_variables.J0,
@@ -757,25 +759,22 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                                                                                     point_number,
                                                                                     this->GetIntegrationMethod());
 
-                double integration_weight = GetIntegrationWeight(integration_points,
+                integration_weight = GetIntegrationWeight(integration_points,
                                                                     point_number,
                                                                     this_kinematic_variables.detJ0);
 
-                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
-                    integration_weight *= this->GetProperties()[THICKNESS];
+                if (dimension == 2 && r_properties.Has(THICKNESS))
+                    integration_weight *= r_properties[THICKNESS];
 
                 rOutput[point_number] = integration_weight;
             }
         } else if ( rVariable == STRAIN_ENERGY ) {
-            const SizeType number_of_nodes = r_geometry.size();
-            const SizeType dimension = r_geometry.WorkingSpaceDimension();
-            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geometry,r_properties,rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -800,15 +799,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number] = StrainEnergy;
             }
         } else if ( rVariable == ERROR_INTEGRATION_POINT ) {
-            const SizeType number_of_nodes = r_geometry.size();
-            const SizeType dimension = r_geometry.WorkingSpaceDimension();
-            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geometry,r_properties,rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -844,8 +840,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
 
-                    if (dimension == 2 && this->GetProperties().Has(THICKNESS))
-                        integration_weight *= this->GetProperties()[THICKNESS];
+                    if (dimension == 2 && r_properties.Has(THICKNESS))
+                        integration_weight *= r_properties[THICKNESS];
 
                     // Calculate recovered stresses at integration points
                     Vector sigma_recovered = ZeroVector(strain_size);
@@ -881,15 +877,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 }
             }
         } else if (rVariable == VON_MISES_STRESS) {
-            const SizeType number_of_nodes = r_geometry.size();
-            const SizeType dimension = r_geometry.WorkingSpaceDimension();
-            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geometry,r_properties,rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -940,7 +933,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
     const SizeType number_of_integration_points = integration_points.size();
     if ( rOutput.size() != number_of_integration_points )
-        rOutput.resize( number_of_integration_points );
+        rOutput.resize( number_of_integration_points, false );
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
