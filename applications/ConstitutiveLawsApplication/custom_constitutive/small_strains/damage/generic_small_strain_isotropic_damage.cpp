@@ -285,8 +285,6 @@ bool GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(const Varia
         return true;
     } else if (rThisVariable == THRESHOLD) {
         return true;
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -329,8 +327,6 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(
         mDamage = rValue;
     } else if (rThisVariable == THRESHOLD) {
         mThreshold = rValue;
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        mUniaxialStress = rValue;
     } else {
         return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -349,7 +345,6 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(
     if (rThisVariable == INTERNAL_VARIABLES) {
         mDamage = rValue[0];
         mThreshold = rValue[1];
-        mUniaxialStress = rValue[2];
     }
 }
 
