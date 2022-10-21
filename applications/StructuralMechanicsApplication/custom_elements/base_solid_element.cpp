@@ -494,11 +494,11 @@ void BaseSolidElement::AddExplicitContribution(
     const SizeType number_of_nodes = r_geom.size();
     const SizeType element_size = dimension * number_of_nodes;
 
-    Vector damping_residual_contribution(element_size);
+    Vector damping_residual_contribution = ZeroVector(element_size);
 
     // Calculate damping contribution to residual -->
     if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
-        Vector current_nodal_velocities(element_size);
+        Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
         Matrix damping_matrix(element_size, element_size);
