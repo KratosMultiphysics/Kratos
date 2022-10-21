@@ -875,7 +875,7 @@ namespace Kratos
       distorted = true;
     }
 
-    double CriticalVolume = 1e-12 * pow(MinimumSideLength, size - 1);
+    double CriticalVolume = 1e-12 * std::pow(MinimumSideLength, size - 1);
 
     // check sliver (volume)
     if (Volume < CriticalVolume)
@@ -980,7 +980,7 @@ namespace Kratos
           if (l < h)
             h = l;
 
-          h = sqrt(h);
+          h = std::sqrt(h);
           havg += h;
           h_nodes += 1;
         }
@@ -1153,7 +1153,7 @@ namespace Kratos
 
     Radius = ComputeRadius(Radius, Volume, Vertices, dimension);
 
-    // double CriticalVolume = 1e-12 * pow(h, size-1);
+    // double CriticalVolume = 1e-12 * std::pow(h, size-1);
     double AlphaRadius = AlphaParameter * MeanMeshSize;
 
     if (Radius < 0) // degenerated element
@@ -1211,7 +1211,7 @@ namespace Kratos
 
     h /= (double)size;
 
-    double CriticalVolume = 1e-12 * pow(h, size - 1);
+    double CriticalVolume = 1e-12 * std::pow(h, size - 1);
     double AlphaRadius = AlphaParameter * h;
 
     if (Volume < CriticalVolume) // sliver
@@ -1292,7 +1292,7 @@ namespace Kratos
 
     double ExtraAlpha = 1.4;
 
-    double CriticalVolume = 1e-6 * pow(h, size - 1);
+    double CriticalVolume = 1e-6 * std::pow(h, size - 1);
     double AlphaRadius = AlphaParameter * h * ExtraAlpha;
 
     if (Volume < CriticalVolume) // sliver
@@ -2203,8 +2203,8 @@ namespace Kratos
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-              distanceToBox = sqrt(radius);
+              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2215,8 +2215,8 @@ namespace Kratos
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-              distanceToBox = sqrt(radius);
+              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2242,8 +2242,8 @@ namespace Kratos
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-              distanceToBox = sqrt(radius);
+              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2254,8 +2254,8 @@ namespace Kratos
             {
               const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-              const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-              distanceToBox = sqrt(radius);
+              const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2369,8 +2369,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2382,8 +2382,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2394,8 +2394,8 @@ namespace Kratos
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2410,8 +2410,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2423,8 +2423,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2435,8 +2435,8 @@ namespace Kratos
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2469,8 +2469,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2482,8 +2482,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2494,8 +2494,8 @@ namespace Kratos
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2510,8 +2510,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2523,8 +2523,8 @@ namespace Kratos
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
                 const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2535,8 +2535,8 @@ namespace Kratos
               {
                 const double distanceToBoxX = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
                 const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-                const double radius = pow(distanceToBoxX, 2) + pow(distanceToBoxY, 2);
-                distanceToBox = sqrt(radius);
+                const double radius = std::pow(distanceToBoxX, 2) + std::pow(distanceToBoxY, 2);
+                distanceToBox = std::sqrt(radius);
                 if (distanceToBox > transitionDistance)
                 {
                   distanceToBox = transitionDistance;
@@ -2565,8 +2565,8 @@ namespace Kratos
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-              distanceToBox = sqrt(radius);
+              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2577,8 +2577,8 @@ namespace Kratos
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-              distanceToBox = sqrt(radius);
+              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2607,8 +2607,8 @@ namespace Kratos
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-              distanceToBox = sqrt(radius);
+              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;
@@ -2619,8 +2619,8 @@ namespace Kratos
             {
               const double distanceToBoxY = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
               const double distanceToBoxZ = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-              double radius = pow(distanceToBoxY, 2) + pow(distanceToBoxZ, 2);
-              distanceToBox = sqrt(radius);
+              double radius = std::pow(distanceToBoxY, 2) + std::pow(distanceToBoxZ, 2);
+              distanceToBox = std::sqrt(radius);
               if (distanceToBox > transitionDistance)
               {
                 distanceToBox = transitionDistance;

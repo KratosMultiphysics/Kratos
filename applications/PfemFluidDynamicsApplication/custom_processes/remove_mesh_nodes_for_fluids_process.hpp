@@ -694,7 +694,7 @@ namespace Kratos
 			double wallLength = 0;
 			array_1d<double, 3> CoorDifference = eElement[1].Coordinates() - eElement[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 			if (eElement[0].Is(RIGID) && eElement[1].Is(RIGID))
@@ -709,7 +709,7 @@ namespace Kratos
 					noalias(CoorDifference) = eElement[i].Coordinates() - eElement[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 					counter += 1;
-					Edges[counter] = sqrt(SquaredLength);
+					Edges[counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[counter] = j;
 					SecondEdgeNode[counter] = i;
 					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && Edges[counter] > wallLength)
@@ -865,18 +865,18 @@ namespace Kratos
 						baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
 						baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
 					{
-						criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize[index], 3) / (6.0 * sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
+						criticalVolume = 0.01 * (std::pow(mrRemesh.RefiningBoxMeshSize[index], 3) / (6.0 * std::sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
 					}
 					else if ((baricenterX < RefiningBoxMinimumPoint[0] && baricenterX > minExternalPoint[0]) || (baricenterX > RefiningBoxMaximumPoint[0] && baricenterX < maxExternalPoint[0]) ||
 							 (baricenterY < RefiningBoxMinimumPoint[1] && baricenterY > minExternalPoint[1]) || (baricenterY > RefiningBoxMaximumPoint[1] && baricenterY < maxExternalPoint[1]) ||
 							 (baricenterZ < RefiningBoxMinimumPoint[2] && baricenterZ > minExternalPoint[2]) || (baricenterZ > RefiningBoxMaximumPoint[2] && baricenterZ < maxExternalPoint[2])) // transition zone
 					{
-						criticalVolume = 0.005 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
+						criticalVolume = 0.005 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
 						safetyCoefficient3D *= 0.5;
 					}
 					else
 					{
-						criticalVolume = 0.01 * (pow(meanMeshSize, 3) / (6.0 * sqrt(2)));
+						criticalVolume = 0.01 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
 					}
 				}
 			}
@@ -954,20 +954,20 @@ namespace Kratos
 				c4 = (rigidNodesCoordinates[0][0] - rigidNodesCoordinates[2][0]) * (notRigidNodeCoordinates[1] - rigidNodesCoordinates[2][1]) - (notRigidNodeCoordinates[0] - rigidNodesCoordinates[2][0]) * (rigidNodesCoordinates[0][1] - rigidNodesCoordinates[2][1]);
 
 				// angle between the plane composed by rigid nodes only and the other plans. If the angle is small, the particle can pass through the wall
-				double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-				double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-				double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+				double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+				double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
+				double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)));
 
 				// angle between the normals of the rigid nodes. I want to avoid rigid elements at the corner
 				double cosAngleBetweenNormals01 = (rigidNodesNormals[0][0] * rigidNodesNormals[1][0] + rigidNodesNormals[0][1] * rigidNodesNormals[1][1]) /
-												  (sqrt(pow(rigidNodesNormals[0][0], 2) + pow(rigidNodesNormals[0][1], 2)) *
-												   sqrt(pow(rigidNodesNormals[1][0], 2) + pow(rigidNodesNormals[1][1], 2)));
+												  (std::sqrt(std::pow(rigidNodesNormals[0][0], 2) + std::pow(rigidNodesNormals[0][1], 2)) *
+												   std::sqrt(std::pow(rigidNodesNormals[1][0], 2) + std::pow(rigidNodesNormals[1][1], 2)));
 				double cosAngleBetweenNormals02 = (rigidNodesNormals[0][0] * rigidNodesNormals[2][0] + rigidNodesNormals[0][1] * rigidNodesNormals[2][1]) /
-												  (sqrt(pow(rigidNodesNormals[0][0], 2) + pow(rigidNodesNormals[0][1], 2)) *
-												   sqrt(pow(rigidNodesNormals[2][0], 2) + pow(rigidNodesNormals[2][1], 2)));
+												  (std::sqrt(std::pow(rigidNodesNormals[0][0], 2) + std::pow(rigidNodesNormals[0][1], 2)) *
+												   std::sqrt(std::pow(rigidNodesNormals[2][0], 2) + std::pow(rigidNodesNormals[2][1], 2)));
 				double cosAngleBetweenNormals12 = (rigidNodesNormals[1][0] * rigidNodesNormals[2][0] + rigidNodesNormals[1][1] * rigidNodesNormals[2][1]) /
-												  (sqrt(pow(rigidNodesNormals[1][0], 2) + pow(rigidNodesNormals[1][1], 2)) *
-												   sqrt(pow(rigidNodesNormals[2][0], 2) + pow(rigidNodesNormals[2][1], 2)));
+												  (std::sqrt(std::pow(rigidNodesNormals[1][0], 2) + std::pow(rigidNodesNormals[1][1], 2)) *
+												   std::sqrt(std::pow(rigidNodesNormals[2][0], 2) + std::pow(rigidNodesNormals[2][1], 2)));
 
 				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
 				{
@@ -986,9 +986,9 @@ namespace Kratos
 				double pwdDistance = 0.0f;
 				for (std::size_t i = 0; i < 3; i++)
 				{
-					pwdDistance += std::pow(eElement[notRigidNodeId].Coordinates()[i] - WallBaricenter[i], 2);
+					pwdDistance += std::std::pow(eElement[notRigidNodeId].Coordinates()[i] - WallBaricenter[i], 2);
 				}
-				wallNodeDistance = std::sqrt(pwdDistance);
+				wallNodeDistance = std::std::sqrt(pwdDistance);
 			}
 
 			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separated elements in the water front
@@ -1083,7 +1083,7 @@ namespace Kratos
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] +
 								   CoorDifference[1] * CoorDifference[1] +
 								   CoorDifference[2] * CoorDifference[2];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			double minimumLength = Edges[0] * 10.0;
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
@@ -1116,7 +1116,7 @@ namespace Kratos
 									CoorDifference[1] * CoorDifference[1] +
 									CoorDifference[2] * CoorDifference[2];
 					counter += 1;
-					Edges[counter] = sqrt(SquaredLength);
+					Edges[counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[counter] = j;
 					SecondEdgeNode[counter] = i;
 					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && (wallLength == 0 || Edges[counter] > wallLength))
@@ -1270,7 +1270,7 @@ namespace Kratos
 				}
 			}
 			// I have looked for the biggest edge for moving there the layer node
-			double maxNeighDistance = sqrt(maxSquaredDistance);
+			double maxNeighDistance = std::sqrt(maxSquaredDistance);
 			if (maxNeighDistance > wallLength && wallLength > 0)
 			{
 				for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
