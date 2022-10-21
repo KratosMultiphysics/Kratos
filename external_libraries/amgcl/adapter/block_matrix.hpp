@@ -73,7 +73,7 @@ struct block_matrix_adapter {
         typedef ptrdiff_t col_type;
         typedef BlockType val_type;
 
-        std::array<char, sizeof(Base) * BlockSize> buf;
+        std::array<char, sizeof(Base) * BlockSize> buf {};
         Base * base;
 
         bool done;
