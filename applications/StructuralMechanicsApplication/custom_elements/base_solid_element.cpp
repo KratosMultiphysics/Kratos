@@ -68,7 +68,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         //Constitutive Law initialisation
         if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize( integration_points.size() );
+            mConstitutiveLawVector.resize(integration_points.size(), false);
 
         InitializeMaterial();
 
