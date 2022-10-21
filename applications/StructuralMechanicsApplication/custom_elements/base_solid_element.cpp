@@ -1153,7 +1153,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( this->GetIntegrationMethod() );
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const auto &r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
@@ -1193,14 +1194,14 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             }
         } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
             // Create and initialize element variables:
-            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType number_of_nodes = r_geom.size();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geom,GetProperties(),rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -1226,14 +1227,14 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             }
         } else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
             // Create and initialize element variables:
-            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType number_of_nodes = r_geom.size();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geom,GetProperties(),rCurrentProcessInfo);
 
             // Reading integration points
             for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
@@ -1476,7 +1477,7 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     // Clear matrix
     if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
         rMassMatrix.resize( mat_size, mat_size, false );
-    rMassMatrix = ZeroMatrix(mat_size, mat_size);
+    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
     // Checking density
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
@@ -1489,15 +1490,14 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
     Matrix J0(dimension, dimension), DN_DX0_deriv;
     const auto& integration_points = this->IntegrationPoints(integration_method);
-    for (unsigned point_number = 0; point_number < integration_points.size(); ++point_number)
-    {
+    for (unsigned point_number = 0; point_number < integration_points.size(); ++point_number) {
         Matrix DN_De;
         GeometryUtils::JacobianOnInitialConfiguration(
             r_geom, integration_points[point_number], J0);
         if(UseGeometryIntegrationMethod()) {
             DN_De = r_geom.ShapeFunctionsLocalGradients(integration_method)[point_number];
         } else {
-            GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[point_number]);
+            r_geom.ShapeFunctionsLocalGradients(DN_De, integration_points[point_number]);
         }
         GeometricalSensitivityUtility geometrical_sensitivity(J0, DN_De);
         double detJ0_deriv;
@@ -1506,12 +1506,10 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
             GetIntegrationWeight(integration_points, point_number, detJ0_deriv) * thickness;
         const Vector& rN = row(Ncontainer, point_number);
 
-        for (unsigned i = 0; i < r_geom.size(); ++i)
-        {
+        for (unsigned i = 0; i < r_geom.size(); ++i) {
             const unsigned index_i = i * dimension;
 
-            for (unsigned j = 0; j < r_geom.size(); ++j)
-            {
+            for (unsigned j = 0; j < r_geom.size(); ++j) {
                 const unsigned index_j = j * dimension;
                 const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
 
