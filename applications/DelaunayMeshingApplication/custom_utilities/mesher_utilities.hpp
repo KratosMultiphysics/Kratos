@@ -913,15 +913,15 @@ namespace Kratos
 
                   void InitializeRefiningBoxParameters(unsigned int size)
                   {
-                        UseRefiningBox.resize(size);
-                        RefiningBoxMinimumPoint.resize(size);
-                        RefiningBoxMaximumPoint.resize(size);
-                        RefiningBoxShiftedMinimumPoint.resize(size);
-                        RefiningBoxShiftedMaximumPoint.resize(size);
-                        RefiningBoxInitialTime.resize(size);
-                        RefiningBoxFinalTime.resize(size);
-                        RefiningBoxMeshSize.resize(size);
-                        RefiningBoxElementsInTransitionZone.resize(size);
+                        UseRefiningBox.resize(size, false);
+                        RefiningBoxMinimumPoint.resize(size, false);
+                        RefiningBoxMaximumPoint.resize(size, false);
+                        RefiningBoxShiftedMinimumPoint.resize(size, false);
+                        RefiningBoxShiftedMaximumPoint.resize(size, false);
+                        RefiningBoxInitialTime.resize(size, false);
+                        RefiningBoxFinalTime.resize(size, false);
+                        RefiningBoxMeshSize.resize(size, false);
+                        RefiningBoxElementsInTransitionZone.resize(size, false);
                   }
 
                   void SetUseRefiningBox(unsigned int index, bool rUseRefiningBox)
@@ -972,7 +972,6 @@ namespace Kratos
                   {
                         RefiningBoxElementsInTransitionZone[index] = rRefiningBoxElementsInTransitionZone;
                   };
-                  
             };
 
             ///@}
