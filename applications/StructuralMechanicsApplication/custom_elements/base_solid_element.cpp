@@ -180,15 +180,17 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
         }
     }
     if (required) {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const auto &r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(r_geometry,r_properties,rCurrentProcessInfo);
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -201,8 +203,6 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
         // Reading integration points
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
         const auto& N_values = this->ShapeFunctionsValues(mThisIntegrationMethod);
 
         // Reading integration points
