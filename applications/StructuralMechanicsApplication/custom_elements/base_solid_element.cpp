@@ -91,7 +91,7 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         }
     }
     if (required) {
-        const auto &r_geom = GetGeometry();
+        const auto& r_geom = GetGeometry();
         const SizeType number_of_nodes = r_geom.size();
         const SizeType dimension = r_geom.WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -318,7 +318,7 @@ void BaseSolidElement::EquationIdVector(
 {
     KRATOS_TRY;
 
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
 
@@ -355,7 +355,7 @@ void BaseSolidElement::GetDofList(
 {
     KRATOS_TRY;
 
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     rElementalDofList.resize(0, false);
@@ -385,7 +385,7 @@ void BaseSolidElement::GetValuesVector(
     int Step
     ) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType mat_size = number_of_nodes * dimension;
@@ -408,7 +408,7 @@ void BaseSolidElement::GetFirstDerivativesVector(
     int Step
     ) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType mat_size = number_of_nodes * dimension;
@@ -430,7 +430,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
     int Step
     ) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType mat_size = number_of_nodes * dimension;
@@ -935,7 +935,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     if ( rOutput.size() != number_of_integration_points )
         rOutput.resize( number_of_integration_points );
 
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -1001,7 +1001,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( this->GetIntegrationMethod() );
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -1153,7 +1153,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( this->GetIntegrationMethod() );
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points.size() )
