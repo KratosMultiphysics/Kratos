@@ -318,26 +318,27 @@ void BaseSolidElement::EquationIdVector(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const auto &r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
 
     if (rResult.size() != dimension * number_of_nodes)
         rResult.resize(dimension * number_of_nodes,false);
 
-    const SizeType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+    const SizeType pos = r_geom[0].GetDofPosition(DISPLACEMENT_X);
 
     if(dimension == 2) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const SizeType index = i * 2;
-            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
+            rResult[index] = r_geom[i].GetDof(DISPLACEMENT_X,pos).EquationId();
+            rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
         }
     } else {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const SizeType index = i * 3;
-            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
-            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos+2).EquationId();
+            rResult[index] = r_geom[i].GetDof(DISPLACEMENT_X,pos).EquationId();
+            rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y,pos+1).EquationId();
+            rResult[index + 2] = r_geom[i].GetDof(DISPLACEMENT_Z,pos+2).EquationId();
         }
     }
 
@@ -354,21 +355,22 @@ void BaseSolidElement::GetDofList(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    rElementalDofList.resize(0);
-    rElementalDofList.reserve(dimension*number_of_nodes);
+    const auto &r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    rElementalDofList.resize(0, false);
+    rElementalDofList.reserve(dimension * number_of_nodes);
 
     if(dimension == 2) {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_Y));
         }
     } else {
         for (IndexType i = 0; i < number_of_nodes; ++i) {
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_Z));
         }
     }
 
