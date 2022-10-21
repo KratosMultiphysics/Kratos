@@ -278,6 +278,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("SetRefiningBoxShiftedMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxShiftedMaximumPoint)
       .def("SetRefiningBoxTimeInterval",&MesherUtilities::MeshingParameters::SetRefiningBoxTimeInterval)
       .def("SetRefiningBoxMeshSize",&MesherUtilities::MeshingParameters::SetRefiningBoxMeshSize)
+      .def("SetRefiningBoxElementsInTransitionZone",&MesherUtilities::MeshingParameters::SetRefiningBoxElementsInTransitionZone)
       ;
 
 }

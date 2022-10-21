@@ -702,6 +702,7 @@ namespace Kratos
                   std::vector<double> RefiningBoxInitialTime;
                   std::vector<double> RefiningBoxFinalTime;
                   std::vector<double> RefiningBoxMeshSize;
+                  std::vector<unsigned int> RefiningBoxElementsInTransitionZone;
                   std::vector<array_1d<double, 3>> RefiningBoxMinimumPoint;
                   std::vector<array_1d<double, 3>> RefiningBoxMaximumPoint;
 
@@ -920,6 +921,7 @@ namespace Kratos
                         RefiningBoxInitialTime.resize(size);
                         RefiningBoxFinalTime.resize(size);
                         RefiningBoxMeshSize.resize(size);
+                        RefiningBoxElementsInTransitionZone.resize(size);
                   }
 
                   void SetUseRefiningBox(unsigned int index, bool rUseRefiningBox)
@@ -965,6 +967,12 @@ namespace Kratos
                   {
                         RefiningBoxMeshSize[index] = rRefiningBoxMeshSize;
                   };
+
+                  void SetRefiningBoxElementsInTransitionZone(unsigned int index, unsigned int rRefiningBoxElementsInTransitionZone)
+                  {
+                        RefiningBoxElementsInTransitionZone[index] = rRefiningBoxElementsInTransitionZone;
+                  };
+                  
             };
 
             ///@}

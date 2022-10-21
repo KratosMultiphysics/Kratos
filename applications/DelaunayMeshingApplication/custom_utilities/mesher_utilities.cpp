@@ -2193,7 +2193,7 @@ namespace Kratos
           const array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
 
           const double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
-          const double transitionDistance = 4.0 * fabs(differenceOfSize);
+          const double transitionDistance = rMeshingVariables.RefiningBoxElementsInTransitionZone[index] * std::abs(differenceOfSize);
           double distanceToBox = 0;
           double coefficient = 0;
 
@@ -2228,7 +2228,7 @@ namespace Kratos
               distanceToBox = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
               counter++;
             }
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2267,7 +2267,7 @@ namespace Kratos
               distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
               counter++;
             }
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2279,7 +2279,7 @@ namespace Kratos
           {
             distanceToBox = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
             counter++;
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2291,7 +2291,7 @@ namespace Kratos
           {
             distanceToBox = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
             counter++;
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2354,7 +2354,7 @@ namespace Kratos
           const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
 
           const double differenceOfSize = rMeshingVariables.Refine->CriticalRadius - rMeshingVariables.RefiningBoxMeshSize[index];
-          const double transitionDistance = 4.0 * fabs(differenceOfSize);
+          const double transitionDistance = rMeshingVariables.RefiningBoxElementsInTransitionZone[index] * std::abs(differenceOfSize);
           double distanceToBox = 0;
           double coefficient = 0;
 
@@ -2450,7 +2450,7 @@ namespace Kratos
               counter++;
             }
 
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2549,7 +2549,7 @@ namespace Kratos
               distanceToBox = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
               counter++;
             }
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2591,7 +2591,7 @@ namespace Kratos
               counter++;
             }
 
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2633,7 +2633,7 @@ namespace Kratos
               counter++;
             }
 
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2647,7 +2647,7 @@ namespace Kratos
           {
             distanceToBox = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
             counter++;
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
@@ -2661,7 +2661,7 @@ namespace Kratos
           {
             distanceToBox = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
             counter++;
-            coefficient = fabs(distanceToBox) / transitionDistance;
+            coefficient = std::abs(distanceToBox) / transitionDistance;
             const double localMeshSize = (1 - coefficient) * rMeshingVariables.RefiningBoxMeshSize[index] + coefficient * rMeshingVariables.Refine->CriticalRadius;
             if (localMeshSize < meshSize)
             {
