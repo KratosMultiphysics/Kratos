@@ -2168,8 +2168,6 @@ namespace Kratos
       {
         const array_1d<double, 3> RefiningBoxMinimumPoint = rMeshingVariables.RefiningBoxMinimumPoint[index];
         const array_1d<double, 3> RefiningBoxMaximumPoint = rMeshingVariables.RefiningBoxMaximumPoint[index];
-        const array_1d<double, 3> minExternalPoint = rMeshingVariables.RefiningBoxShiftedMinimumPoint[index];
-        const array_1d<double, 3> maxExternalPoint = rMeshingVariables.RefiningBoxShiftedMaximumPoint[index];
 
         if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[1] > RefiningBoxMinimumPoint[1] &&
             NodeCoordinates[0] < RefiningBoxMaximumPoint[0] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1])

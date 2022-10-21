@@ -113,8 +113,6 @@ namespace Kratos
 				std::cout << " [ REMOVE CLOSE NODES: " << std::endl;
 			}
 
-			bool some_node_is_removed = false;
-
 			int error_nodes_removed = 0;
 			int inside_nodes_removed = 0;
 			int boundary_nodes_removed = 0;
@@ -122,6 +120,8 @@ namespace Kratos
 			// if the remove_node switch is activated, we check if the nodes got too close
 			if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES))
 			{
+				bool some_node_is_removed = false;
+				
 				if (mEchoLevel > 1)
 					std::cout << " REMOVE_NODES is TRUE " << std::endl;
 
@@ -276,64 +276,6 @@ namespace Kratos
 
 		//**************************************************************************
 		//**************************************************************************
-
-		// bool RemoveNodesOnError(int &error_removed_nodes)
-		// {
-		// 	KRATOS_TRY
-
-		// 	//***SIZES :::: parameters do define the tolerance in mesh size:
-		// 	double size_for_criterion_error = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
-
-		// 	bool some_node_is_removed = false;
-
-		// 	MeshErrorCalculationUtilities MeshErrorDistribution;
-		// 	MeshErrorDistribution.SetEchoLevel(mEchoLevel);
-
-		// 	std::vector<double> NodalError;
-		// 	std::vector<int> nodes_ids;
-
-		// 	MeshErrorDistribution.NodalErrorCalculation(mrModelPart, NodalError, nodes_ids, mrRemesh.Refine->GetErrorVariable());
-
-		// 	for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
-		// 	{
-
-		// 		NodeWeakPtrVectorType &rN = in->GetValue(NEIGHBOUR_NODES);
-		// 		int erased_nodes = 0;
-		// 		for (unsigned int i = 0; i < rN.size(); i++)
-		// 		{
-		// 			if (rN[i].Is(TO_ERASE))
-		// 				erased_nodes += 1;
-		// 		}
-
-		// 		if (in->IsNot(BOUNDARY) && in->IsNot(STRUCTURE) && erased_nodes < 1)
-		// 		{
-		// 			double &MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
-		// 			MeanError = NodalError[nodes_ids[in->Id()]];
-
-		// 			ElementWeakPtrVectorType &neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
-		// 			double mean_node_radius = 0;
-		// 			for (ElementWeakPtrVectorType::iterator ne = neighb_elems.begin(); ne != neighb_elems.end(); ne++)
-		// 			{
-		// 				mean_node_radius += mMesherUtilities.CalculateElementRadius((ne)->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-		// 																								  //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius((ne)->GetGeometry());
-		// 																								  //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius((ne)->GetGeometry());
-		// 			}
-
-		// 			mean_node_radius /= double(neighb_elems.size());
-
-		// 			if (NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
-		// 			{
-		// 				in->Set(TO_ERASE);
-		// 				some_node_is_removed = true;
-		// 				error_removed_nodes++;
-		// 			}
-		// 		}
-		// 	}
-
-		// 	return some_node_is_removed;
-
-		// 	KRATOS_CATCH(" ")
-		// }
 
 		bool RemoveNodesOnDistance(int &inside_nodes_removed, int &boundary_nodes_removed)
 		{
