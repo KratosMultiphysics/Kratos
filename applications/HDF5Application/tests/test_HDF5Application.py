@@ -20,7 +20,7 @@ from test_hdf5_xdmf import TestFindMatchingFiles
 from test_hdf5_xdmf import TestCreateXdmfTemporalGridFromMultifile
 from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5PointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
-from external.kratos.applications.HDF5Application.tests.test_journal import TestJournal
+from test_journal import TestJournal
 
 
 def AssembleTestSuites():
