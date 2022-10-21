@@ -374,10 +374,9 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
     )
 {
     if(rThisVariable == INTERNAL_VARIABLES){
-        rValue.resize(3);
+        rValue.resize(2);
         rValue[0] = mDamage;
         rValue[1] = mThreshold;
-        rValue[2] = mUniaxialStress;
     }
     return rValue;
 }
@@ -446,7 +445,10 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
     Vector& rValue
     )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (this->Has(rThisVariable))
+        return this->GetValue(rThisVariable, rValue);
+    else
+        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
