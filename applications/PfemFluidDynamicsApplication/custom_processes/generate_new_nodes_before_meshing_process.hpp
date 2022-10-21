@@ -662,7 +662,7 @@ namespace Kratos
 					double minimumDistanceToInstert = 1.3 * mrRemesh.Refine->CriticalRadius;
 					array_1d<double, 3> CoorDifference = Element[idsWallNodes[0]].Coordinates() - Element[idsWallNodes[1]].Coordinates();
 					double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-					double separation = sqrt(SquaredLength);
+					double separation = std::sqrt(SquaredLength);
 					unsigned int idC = Element[idFreeNode].GetId();
 					if (separation > minimumDistanceToInstert)
 					{
@@ -790,7 +790,7 @@ namespace Kratos
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 			if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
@@ -805,7 +805,7 @@ namespace Kratos
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 					Counter += 1;
-					Edges[Counter] = sqrt(SquaredLength);
+					Edges[Counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[Counter] = j;
 					SecondEdgeNode[Counter] = i;
 					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
@@ -1036,7 +1036,7 @@ namespace Kratos
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 			if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
@@ -1052,7 +1052,7 @@ namespace Kratos
 					// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 					Counter += 1;
-					Edges[Counter] = sqrt(SquaredLength);
+					Edges[Counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[Counter] = j;
 					SecondEdgeNode[Counter] = i;
 					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
@@ -1298,7 +1298,7 @@ namespace Kratos
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 			if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
@@ -1313,7 +1313,7 @@ namespace Kratos
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 					Counter += 1;
-					Edges[Counter] = sqrt(SquaredLength);
+					Edges[Counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[Counter] = j;
 					SecondEdgeNode[Counter] = i;
 					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
@@ -1472,7 +1472,7 @@ namespace Kratos
 			double WallCharacteristicDistance = 0;
 			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 			if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
@@ -1487,7 +1487,7 @@ namespace Kratos
 					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
 					Counter += 1;
-					Edges[Counter] = sqrt(SquaredLength);
+					Edges[Counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[Counter] = j;
 					SecondEdgeNode[Counter] = i;
 					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)

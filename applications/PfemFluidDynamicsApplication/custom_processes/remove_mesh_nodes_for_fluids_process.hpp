@@ -986,9 +986,9 @@ namespace Kratos
 				double pwdDistance = 0.0f;
 				for (std::size_t i = 0; i < 3; i++)
 				{
-					pwdDistance += std::std::pow(eElement[notRigidNodeId].Coordinates()[i] - WallBaricenter[i], 2);
+					pwdDistance += std::pow(eElement[notRigidNodeId].Coordinates()[i] - WallBaricenter[i], 2);
 				}
-				wallNodeDistance = std::std::sqrt(pwdDistance);
+				wallNodeDistance = std::sqrt(pwdDistance);
 			}
 
 			bool longDamBreak = false; // to attivate in case of long dam breaks to avoid separated elements in the water front
