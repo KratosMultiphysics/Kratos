@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_DEFINE_H_INCLUDED )
-#define  KRATOS_DEFINE_H_INCLUDED
+#pragma once
 
 /* System includes */
 #include <stdexcept>
@@ -22,7 +21,7 @@
 
 /* Project includes */
 #include "includes/kratos_export_api.h"
-#include "includes/shared_pointers.h"
+#include "includes/smart_pointers.h"
 #include "includes/exception.h"
 
 // Defining the OS
@@ -799,10 +798,7 @@ namespace Kratos
 }  /* namespace Kratos.*/
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
-	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
+    Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
 
 #define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType) \
-	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
-
-
-#endif /* KRATOS_DEFINE_H_INCLUDED  defined */
+    Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));

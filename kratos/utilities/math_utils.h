@@ -26,7 +26,6 @@
 /* External includes */
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {

@@ -471,6 +471,21 @@ void AddVariableUtilsToPython(pybind11::module &m)
                             const Variable<double>&,
                             const Vector&,
                             const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
+        .def("GetValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const unsigned int>(&VariableUtils::GetValuesVector))
+        .def("GetValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<double>&>(&VariableUtils::GetValuesVector))
+        .def("SetValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const Vector&>(&VariableUtils::SetValuesVector))
+        .def("SetValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<double>&,
+                            const Vector&>(&VariableUtils::SetValuesVector))
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
         .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable<Variable<double>>)

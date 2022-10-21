@@ -42,6 +42,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
+
     - name: Build
       shell: bash
       run: |
@@ -153,7 +158,9 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
         pip install h5py
+        pip install parameterized
 
     - name: Build
       shell: cmd
@@ -179,6 +186,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3.8 -m pip install parameterized
 
     - name: Build
       run: |
@@ -338,6 +350,7 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
 
     - name: Build
       shell: cmd
@@ -396,6 +409,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
 
     - name: Build
       shell: bash
