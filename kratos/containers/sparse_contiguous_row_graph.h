@@ -512,7 +512,7 @@ private:
         IndexType size;
         rSerializer.load("GraphSize",size);
 
-        mLocks = std::vector<LockObject>(size);
+        mLocks = decltype(mLocks)(size);
         mGraph.resize(size);
 
         for(IndexType I=0; I<size; ++I)

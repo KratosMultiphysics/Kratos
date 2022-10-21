@@ -56,7 +56,7 @@ public:
     LockObject(LockObject const& rOther) = delete;
 
     /// Destructor.
-    virtual ~LockObject() noexcept
+    ~LockObject() noexcept
     {
 #ifdef KRATOS_SMP_OPENMP
         omp_destroy_lock(&mLock);
