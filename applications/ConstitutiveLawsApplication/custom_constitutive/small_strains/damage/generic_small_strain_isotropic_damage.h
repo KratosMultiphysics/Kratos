@@ -70,6 +70,8 @@ public:
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
 
