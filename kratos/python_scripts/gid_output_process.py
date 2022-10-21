@@ -235,11 +235,7 @@ class GiDOutputProcess(KM.OutputProcess):
             mesh_name = 0.0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
-
-            if self.post_mode == KM.GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
-            else:
-                self.__write_step_to_list(0)
+            self.__write_step_to_list()
 
         if self.multifile_flag == KM.MultiFileFlag.MultipleFiles:
             label = 0.0

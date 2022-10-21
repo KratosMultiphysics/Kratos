@@ -1,5 +1,4 @@
 
-from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.FemToDemApplication import *
 

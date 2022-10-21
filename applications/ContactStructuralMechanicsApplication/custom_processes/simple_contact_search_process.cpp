@@ -48,7 +48,7 @@ void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode
 
     // In case of penetration
     if (normal_gap < 0.0) {
-        // Auxiliar values
+        // Auxiliary values
         const double epsilon = (rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : CommonEpsilon)/ScaleFactor;
         const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
 

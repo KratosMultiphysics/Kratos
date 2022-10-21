@@ -19,7 +19,7 @@
 #include "custom_elements/embedded_transonic_perturbation_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 
 namespace Kratos {
 namespace Testing {
@@ -181,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowSupersonicEl
     Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer p_upwind_element = model_part.pGetElement(2);
 
-    FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
     p_element -> Set(INLET, false);
@@ -332,7 +332,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSuperson
     Element::Pointer p_upwind_element = model_part.pGetElement(2);
     const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-    FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
@@ -418,7 +418,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSuperson
     Element::Pointer p_upwind_element = model_part.pGetElement(2);
     const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-    FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();

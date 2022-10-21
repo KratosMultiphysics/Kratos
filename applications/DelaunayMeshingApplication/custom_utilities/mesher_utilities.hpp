@@ -289,7 +289,7 @@ namespace Kratos
                   int BalancePrincipalSecondaryPartsNodes;
                   unsigned int InsertedBoundaryNodes;
                   unsigned int InsertedBoundaryConditions;
-                  
+
                   unsigned int CriticalElements;
 
                   bool GeometricalSmoothingRequired;

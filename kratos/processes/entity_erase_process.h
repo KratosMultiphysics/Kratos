@@ -86,7 +86,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = EntitiesEraseProcessFlags::REMOVE_FROM_ALL_LEVELS.AsFalse() | EntitiesEraseProcessFlags::ERASE_ALL_ENTITIES.AsFalse()
+        const Flags Options = EntitiesEraseProcessFlags::REMOVE_FROM_ALL_LEVELS.AsFalse() | EntitiesEraseProcessFlags::ERASE_ALL_ENTITIES.AsFalse()
         );
 
     /**

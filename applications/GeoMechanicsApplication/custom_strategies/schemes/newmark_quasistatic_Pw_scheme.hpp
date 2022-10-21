@@ -20,6 +20,7 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 
 namespace Kratos
 {
