@@ -385,17 +385,16 @@ void BaseSolidElement::GetValuesVector(
     int Step
     ) const
 {
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const auto &r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType mat_size = number_of_nodes * dimension;
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& displacement = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
         const SizeType index = i * dimension;
-        for(unsigned int k = 0; k < dimension; ++k)
-        {
+        for(unsigned int k = 0; k < dimension; ++k) {
             rValues[index + k] = displacement[k];
         }
     }
