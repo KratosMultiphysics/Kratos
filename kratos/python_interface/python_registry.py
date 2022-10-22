@@ -14,7 +14,7 @@ class PythonRegistryIterator:
     #    self.__cpp_root_item = ThisPythonRegistry._PythonRegistry__cpp_registry
     #    self.__py_root_item = ThisPythonRegistry._PythonRegistry__python_registry
        self.__cpp_root_keys = ThisPythonRegistry._PythonRegistry__cpp_registry.keys()
-       self.__py_root_keys = ThisPythonRegistry._PythonRegistry__python_registry.keys()
+       self.__py_root_keys = list(ThisPythonRegistry._PythonRegistry__python_registry.keys())
 
     def __next__(self):
         '''Returns the next object from the PythonRegistry wrapper root level
@@ -25,13 +25,10 @@ class PythonRegistryIterator:
             # Check if we are at the Python or c++ registry
             if self.__index < n_py_items:
                 # Return the item key from the Python registry
-                item_key = self.__py_root_keys[self.index]
-                # item = self.__py_root_item[self.__py_root_keys[self.index]]
+                item_key = self.__py_root_keys[self.__index]
             else:
-                print("IT'S C++")
                 # Return the item key from the c++ registry
-                item_key = self.__cpp_root_keys[self.__index]
-                # item = self.__cpp_root_item.GetItem(self.__cpp_root_keys[self.__index]).Name()
+                item_key = self.__cpp_root_keys[self.__index-n_py_items]
             self.__index += 1
             return item_key
         # End of iteration

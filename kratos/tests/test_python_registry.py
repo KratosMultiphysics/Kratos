@@ -1,4 +1,5 @@
 from concurrent.futures import process
+from multiprocessing.dummy import Process
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -155,12 +156,28 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
     def testIteration(self):
-        print("@@@@@@@@@@@@@@@@@@@")
-        print("@@@@@@@@@@@@@@@@@@@")
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.KratosApplication.PythonProcess", Process())
+        KratosMultiphysics.Registry.AddItem("PythonRootItem.PythonSubItem.PythonSubSubItem", object())
+
+        root_items_keys = ["Operations","Processes","PythonRootItem"]
+        sub_items_keys = ["All","KratosMultiphysics","PythonSubItem"]
+        sub_sub_items_keys = ["PythonSubSubItem","KratosApplication","PythonProcess","FooOperation","Operation","Process"]
+        sub_sub_sub_items_keys = ["PythonProcess"]
         for item in KratosMultiphysics.Registry:
-            print(item)
-            for subitem in KratosMultiphysics.Registry[item]:
-                print(subitem)
+            self.assertTrue(item in root_items_keys)
+            if not KratosMultiphysics.Registry.HasValue(item):
+                for subitem in KratosMultiphysics.Registry[item]:
+                    self.assertTrue(subitem in sub_items_keys)
+                    if not KratosMultiphysics.Registry.HasValue(f"{item}.{subitem}"):
+                        for subsubitem in KratosMultiphysics.Registry[f"{item}.{subitem}"]:
+                            self.assertTrue(subsubitem in sub_sub_items_keys)
+                        if not KratosMultiphysics.Registry.HasValue(f"{item}.{subitem}.{subsubitem}"):
+                            for subsubsubitem in KratosMultiphysics.Registry[f"{item}.{subitem}.{subsubitem}"]:
+                                self.assertTrue(subsubsubitem in sub_sub_sub_items_keys)
+
+        # Remove the auxiliary testing entries from the Python registry
+        KratosMultiphysics.Registry.RemoveItem("Processes")
+        KratosMultiphysics.Registry.RemoveItem("PythonRootItem")
 
 if __name__ == "__main__":
     KratosUnittest.main()
