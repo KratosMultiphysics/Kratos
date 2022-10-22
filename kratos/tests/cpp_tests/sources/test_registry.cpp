@@ -18,11 +18,42 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/checks.h"
 #include "includes/registry.h"
 
 namespace Kratos {
 
 namespace Testing {
+
+namespace
+{
+    void CheckItemIteration(
+        const RegistryItem& rRegistryItem,
+        const std::vector<std::string>& rRegistryItemKeys)
+    {
+        std::size_t n_found = 0;
+        for (auto it = rRegistryItem.cbegin(); it != rRegistryItem.cend(); ++it) {
+            const auto it_found = std::find(rRegistryItemKeys.begin(), rRegistryItemKeys.end(), it->first);
+            const bool is_found = it_found != rRegistryItemKeys.end() ? true : false;
+            if (is_found) {n_found++;}
+            KRATOS_CHECK(is_found);
+        }
+        KRATOS_CHECK_EQUAL(n_found, rRegistryItemKeys.size());
+    }
+
+    void CheckKeyIteration(
+        RegistryItem& rRegistryItem,
+        const std::vector<std::string>& rRegistryItemKeys)
+    {
+        std::size_t n_found = 0;
+        for (auto it = rRegistryItem.key_begin(); it != rRegistryItem.key_end(); ++it) {
+            const auto it_found = std::find(rRegistryItemKeys.begin(), rRegistryItemKeys.end(), *it);
+            const bool is_found = it_found != rRegistryItemKeys.end() ? true : false;
+            if (is_found) {n_found++;}
+        }
+        KRATOS_CHECK_EQUAL(n_found, rRegistryItemKeys.size());
+    }
+}
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
 {
@@ -104,19 +135,16 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_value_item"));
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
 {
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
-
 
     Registry::AddItem<RegistryItem>("item_in_root");
     KRATOS_CHECK(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
     auto& item_in_root = Registry::GetItem("item_in_root");
     KRATOS_CHECK_STRING_EQUAL(item_in_root.Name(),"item_in_root");
-
 
     Registry::AddItem<RegistryItem>("path.to.the.registry.new_item");
     KRATOS_CHECK(Registry::HasItem("item_in_root"));
@@ -131,6 +159,64 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
     Registry::RemoveItem("path.to.the.registry.new_item");
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RegistryIteration, KratosCoreFastSuite)
+{
+    Registry::AddItem<RegistryItem>("item_in_root_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_2");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_3");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_2");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_3");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_4");
+
+    // Check subitems iteration
+    std::vector<std::string> sub_keys = {"subitem_1","subitem_2"};
+    CheckItemIteration(Registry::GetItem("item_in_root_1"), sub_keys);
+
+    // Check subsubitems iteration
+    std::vector<std::string> sub_sub_keys = {"subsubitem_1","subsubitem_2","subsubitem_3"};
+    CheckItemIteration(Registry::GetItem("item_in_root_1.subitem_1"), sub_sub_keys);
+
+    // Check subsubsubitems iteration
+    std::vector<std::string> sub_sub_sub_keys = {"subsubsubitem_1","subsubsubitem_2","subsubsubitem_3","subsubsubitem_4"};
+    CheckItemIteration(Registry::GetItem("item_in_root_1.subitem_1.subsubitem_2"), sub_sub_sub_keys);
+
+    // Remove the auxiliary testing items
+    Registry::RemoveItem("item_in_root_1");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RegistryKeyIteration, KratosCoreFastSuite)
+{
+    Registry::AddItem<RegistryItem>("item_in_root_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_2");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_3");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_1");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_2");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_3");
+    Registry::AddItem<RegistryItem>("item_in_root_1.subitem_1.subsubitem_2.subsubsubitem_4");
+
+    // Check subitems iteration
+    std::vector<std::string> sub_keys = {"subitem_1","subitem_2"};
+    CheckKeyIteration(Registry::GetItem("item_in_root_1"), sub_keys);
+
+    // Check subsubitems iteration
+    std::vector<std::string> sub_sub_keys = {"subsubitem_1","subsubitem_2","subsubitem_3"};
+    CheckKeyIteration(Registry::GetItem("item_in_root_1.subitem_1"), sub_sub_keys);
+
+    // Check subsubsubitems iteration
+    std::vector<std::string> sub_sub_sub_keys = {"subsubsubitem_1","subsubsubitem_2","subsubsubitem_3","subsubsubitem_4"};
+    CheckKeyIteration(Registry::GetItem("item_in_root_1.subitem_1.subsubitem_2"), sub_sub_sub_keys);
+
+    // Remove the auxiliary testing items
+    Registry::RemoveItem("item_in_root_1");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)

@@ -21,10 +21,7 @@
 #include "operations/operation.h"
 #include "operations/foo_operation.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void AddOperationsToPython(pybind11::module& m)
@@ -46,6 +43,4 @@ void AddOperationsToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+} // Namespace Kratos::Python

@@ -122,6 +122,26 @@ public:
     ///@name Access
     ///@{
 
+    static auto begin()
+    {
+        return mspRootRegistryItem->begin();
+    }
+
+    static auto cbegin()
+    {
+        return mspRootRegistryItem->cbegin();
+    }
+
+    static auto end()
+    {
+        return mspRootRegistryItem->end();
+    }
+
+    static auto const cend()
+    {
+        return mspRootRegistryItem->cend();
+    }
+
     static RegistryItem& GetItem(std::string const& rItemFullName);
 
     template<typename TDataType>
@@ -136,7 +156,13 @@ public:
     ///@name Inquiry
     ///@{
 
+    static std::size_t size();
+
     static bool HasItem(std::string const& rItemFullName);
+
+    static bool HasValue(std::string const& rItemFullName);
+
+    static bool HasItems(std::string const& rItemFullName);
 
     ///@}
     ///@name Input and output

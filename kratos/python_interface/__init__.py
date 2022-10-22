@@ -22,8 +22,7 @@ def __getattr__(name):
     if name == "CppRegistry":
         err_msg = "c++ registry must be accessed through 'KratosMultiphysics.Registry'."
         raise Exception(err_msg)
-    else:
-        return locals()[name]
+    raise AttributeError(f"Module {__name__} has no attribute {name}.")
 
 def __ModuleInitDetail():
     """

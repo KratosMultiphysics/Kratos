@@ -20,6 +20,42 @@
 namespace Kratos
 {
 
+    RegistryItem::SubRegistryItemType::iterator RegistryItem::begin()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.begin();
+    }
+
+    RegistryItem::SubRegistryItemType::const_iterator RegistryItem::cbegin() const
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.cbegin();
+    }
+
+    RegistryItem::SubRegistryItemType::iterator RegistryItem::end()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.end();
+    }
+
+    RegistryItem::SubRegistryItemType::const_iterator RegistryItem::cend() const
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return mSubRegistryItem.cend();
+    }
+
+    RegistryItem::key_return_iterator RegistryItem::key_begin()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return key_return_iterator(mSubRegistryItem.begin());
+    }
+
+    RegistryItem::key_return_iterator RegistryItem::key_end()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return key_return_iterator(mSubRegistryItem.end());
+    }
+
     std::string RegistryItem::Info() const
     {
         return mName + " RegistryItem ";

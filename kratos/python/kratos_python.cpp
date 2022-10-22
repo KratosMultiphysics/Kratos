@@ -70,6 +70,7 @@
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
+#include "add_operations_to_python.h"
 
 namespace Kratos
 {
@@ -110,6 +111,7 @@ PYBIND11_MODULE(Kratos, m)
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
+    AddOperationsToPython(m);
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
