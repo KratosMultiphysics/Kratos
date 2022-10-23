@@ -221,7 +221,7 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # After all the compiler check we can print the final flags
 message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-  
+
 # Old non-compatible versions of VS
 if(${MSVC})
   if(${MSVC_TOOLSET_VERSION} LESS 141)
@@ -383,6 +383,14 @@ if(Boost_VERSION_STRING VERSION_LESS 1.70)
   message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
 else()
   add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
+# std::atomic_ref is part of C++20, hence using boost::atomic_ref
+# boost::atomic_ref has full support from version 1.74
+if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
+  if(Boost_VERSION_STRING VERSION_LESS 1.74)
+    message(FATAL_ERROR "Kratos requires at least boost version 1.74 when using C++11 for shared memory parallelization")
+  endif ()
 endif ()
 
 ##*****************************
