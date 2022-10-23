@@ -9,6 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #pragma once
@@ -145,7 +146,9 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        KRATOS_CRITICAL_SECTION(mValue = std::max(mValue,rOther.mValue);)
+        KRATOS_CRITICAL_SECTION(
+            mValue = std::max(mValue,rOther.mValue);
+        )
     }
 };
 
@@ -175,7 +178,9 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        KRATOS_CRITICAL_SECTION(mValue = std::min(mValue,rOther.mValue);)
+        KRATOS_CRITICAL_SECTION(
+            mValue = std::min(mValue,rOther.mValue);
+        )
     }
 };
 
@@ -206,7 +211,9 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        KRATOS_CRITICAL_SECTION(mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());)
+        KRATOS_CRITICAL_SECTION(
+            mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
+        )
     }
 };
 
