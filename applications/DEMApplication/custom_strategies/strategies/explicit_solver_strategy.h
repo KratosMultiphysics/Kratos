@@ -285,7 +285,7 @@ namespace Kratos {
 
         // Properties
         bool   mRVE_Solve;            // Flag for evaluating RVE in current step
-        int    mRVE_FreqEval  = 1000; // Frequency for evaluating RVE in steps
+        int    mRVE_FreqEval  = 50000; // Frequency for evaluating RVE in steps
         int    mRVE_FreqWrite = 1;    // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;        // RVE dimension: 2D or 3D
         int    mRVE_NumContacts;      // Total number of contacts in RVE
