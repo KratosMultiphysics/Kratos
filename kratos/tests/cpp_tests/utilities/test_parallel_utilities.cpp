@@ -23,8 +23,7 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/builtin_timer.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 namespace { // internals used for testing
 
@@ -535,11 +534,22 @@ KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
                 }
             );
     std::cout << "Pure c++11 time = " << timer_pure.ElapsedSeconds() << std::endl;
-
-
-
 }
 
 
-} // namespace Testing
-} // namespace Kratos
+KRATOS_TEST_CASE_IN_SUITE(KratosCriticalSection, KratosCoreFastSuite)
+{
+    constexpr std::size_t size = 12345;
+    std::size_t sum = 0;
+
+    IndexPartition(size).for_each(
+        [&sum](auto i){
+            KRATOS_CRITICAL_SECTION(
+                sum += 1;
+            )
+        );
+
+    KRATOS_CHECK_EQUAL(size, sum);
+}
+
+} // namespace Kratos::Testing
