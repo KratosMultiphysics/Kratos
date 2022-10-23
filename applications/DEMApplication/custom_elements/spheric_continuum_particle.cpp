@@ -384,21 +384,13 @@ namespace Kratos {
                                                                         i);
                 
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-
-                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
-
-                        } else {
-
-                            Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour_iterator->GetProperties().Id());
-                            const double min_radius = std::min(GetRadius(), neighbour_iterator->GetRadius());
-                            const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
-
-                            if (equiv_rolling_friction_coeff && ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
-                                mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2], equiv_rolling_friction_coeff, i);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation, mContactMoment);
+                        }
+                        else {
+                            if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+                              mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
                             }
                         }
                     }
@@ -411,20 +403,13 @@ namespace Kratos {
 
                     
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
-                        
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
-
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, LocalContactForce, mContactMoment, indentation);
-
-                        } else {
-
-                            Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour_iterator->GetProperties().Id());
-                            const double min_radius = std::min(GetRadius(), neighbour_iterator->GetRadius());
-                            const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
-
-                            if (equiv_rolling_friction_coeff && ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i])) {
-                                mRollingFrictionModel->ComputeRollingResistance(LocalContactForce[2],  equiv_rolling_friction_coeff, i);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation, mContactMoment);
+                        }
+                        else {
+                            if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+                                mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
                             }
                         }
                     }

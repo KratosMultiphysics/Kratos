@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import time as timer
 import os
@@ -249,7 +248,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
             return GiDOutputProcess(self.post_process_model_part,
-                                    self.problem_name,
+                                    "gid_output/" + self.problem_name,
                                     self.output_settings)
         else:
             return (KratosMultiphysics.Process())
