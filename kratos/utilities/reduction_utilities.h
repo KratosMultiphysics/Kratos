@@ -11,9 +11,7 @@
 //                   Denis Demidov
 //
 
-#if !defined(KRATOS_REDUCTION_UTILITIES_H_INCLUDED )
-#define  KRATOS_REDUCTION_UTILITIES_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <tuple>
@@ -147,7 +145,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL
         mValue = std::max(mValue,rOther.mValue);
     }
 };
@@ -178,7 +176,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL
         mValue = std::min(mValue,rOther.mValue);
     }
 };
@@ -210,7 +208,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL
         mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
     }
 };
@@ -284,5 +282,3 @@ struct CombinedReduction {
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REDUCTION_UTILITIES_H_INCLUDED  defined
