@@ -45,7 +45,9 @@ class TestNeighbours(KratosUnittest.TestCase):
             9 : [5,6,8]
         }
 
-        self.assertDictEqual(reference_ids, found_ids)
+        for key, values in found_ids.items():
+            ref_values = reference_ids[key]
+            self.assertListEqual(values, ref_values)
 
 
 if __name__ == '__main__':
