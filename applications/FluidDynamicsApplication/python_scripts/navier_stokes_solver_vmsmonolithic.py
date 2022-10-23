@@ -204,7 +204,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                "solver_type" : "amgcl"
+                "solver_type" : "skyline_lu_factorization"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -216,7 +216,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "maximum_delta_time"  : 0.01,
                 "time_step"           : 0.0
             },
-            "time_scheme":"bossak",
+            "time_scheme":"bdf2",
             "alpha":-0.3,
             "velocity_relaxation":0.9,
             "pressure_relaxation":0.9,

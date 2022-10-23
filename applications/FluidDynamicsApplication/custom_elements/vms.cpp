@@ -119,8 +119,6 @@ void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step) const
     if (Values.size() != LocalSize)
         Values.resize(LocalSize, false);
     
-    KRATOS_WATCH(Step);
-
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
         const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
