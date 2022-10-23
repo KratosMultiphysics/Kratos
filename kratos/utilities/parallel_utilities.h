@@ -12,8 +12,7 @@
 //                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
-#define KRATOS_PARALLEL_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -36,17 +35,19 @@
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
+#define KRATOS_CRITICAL const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
+
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
 #define KRATOS_CATCH_THREAD_EXCEPTION \
 } catch(Exception& e) { \
-    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    KRATOS_CRITICAL \
     err_stream << "Thread #" << i << " caught exception: " << e.what(); \
 } catch(std::exception& e) { \
-    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    KRATOS_CRITICAL \
     err_stream << "Thread #" << i << " caught exception: " << e.what(); \
 } catch(...) { \
-    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    KRATOS_CRITICAL \
     err_stream << "Thread #" << i << " caught unknown exception:"; \
 }
 
@@ -527,5 +528,3 @@ private:
 #undef KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 #undef KRATOS_CATCH_THREAD_EXCEPTION
 #undef KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
-
-#endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED defined
