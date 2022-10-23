@@ -544,9 +544,10 @@ KRATOS_TEST_CASE_IN_SUITE(KratosCriticalSection, KratosCoreFastSuite)
 
     IndexPartition(size).for_each(
         [&sum](auto i){
-            KRATOS_CRITICAL_SECTION(
-                sum += 1;
-            )
+                KRATOS_CRITICAL_SECTION(
+                    sum += 1;
+                )
+            }
         );
 
     KRATOS_CHECK_EQUAL(size, sum);
