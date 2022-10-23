@@ -317,8 +317,7 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     if (strain_size == 4) {
         BoundedMatrix<double, 2, 2> DF2x2 = DF;
         DF.resize(3, 3, false);
-        for (unsigned i = 0; i < 2; ++i)
-        {
+        for (unsigned i = 0; i < 2; ++i) {
             for (unsigned j = 0; j < 2; ++j)
                 DF(i, j) = DF2x2(i, j);
             DF(i, 2) = DF(2, i) = 0.0;
