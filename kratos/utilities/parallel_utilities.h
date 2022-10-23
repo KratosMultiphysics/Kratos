@@ -35,20 +35,17 @@
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
-#define KRATOS_CRITICAL const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
+#define KRATOS_CRITICAL_SECTION(critical_section) {const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock()); critical_section }
 
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
 #define KRATOS_CATCH_THREAD_EXCEPTION \
 } catch(Exception& e) { \
-    KRATOS_CRITICAL \
-    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+    KRATOS_CRITICAL_SECTION(err_stream << "Thread #" << i << " caught exception: " << e.what();) \
 } catch(std::exception& e) { \
-    KRATOS_CRITICAL \
-    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+    KRATOS_CRITICAL_SECTION(err_stream << "Thread #" << i << " caught exception: " << e.what();) \
 } catch(...) { \
-    KRATOS_CRITICAL \
-    err_stream << "Thread #" << i << " caught unknown exception:"; \
+    KRATOS_CRITICAL_SECTION(err_stream << "Thread #" << i << " caught unknown exception:";) \
 }
 
 #define KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION \
