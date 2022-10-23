@@ -123,10 +123,13 @@ namespace Kratos
             bool wrong_added_node = false;
             int number_of_slivers = 0;
 
-            bool refiningBox = mrRemesh.UseRefiningBox;
-            if (!(mrRemesh.UseRefiningBox == true && currentTime > mrRemesh.RefiningBoxInitialTime && currentTime < mrRemesh.RefiningBoxFinalTime))
+            bool refiningBox = false;
+            for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
-                refiningBox = false;
+                if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+                {
+                    refiningBox = true;
+                }
             }
 
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
@@ -263,13 +266,15 @@ namespace Kratos
                         {
                             if (dimension == 2)
                             {
-                                SetAlphaForRefinedZones2D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y());
+                                MesherUtils.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
                             }
                             else if (dimension == 3)
                             {
-                                SetAlphaForRefinedZones3D(meanMeshSize, increaseAlfa, vertices.back().X(), vertices.back().Y(), vertices.back().Z());
+                                MesherUtils.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, vertices.back().Coordinates(), meanMeshSize, increaseAlfa);
                             }
+                            CriticalVolume = 0.05 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
                         }
+
                         if (dimension == 3)
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
@@ -284,7 +289,7 @@ namespace Kratos
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
 
-                    if (rigidNodeMeshCounter > 0 && refiningBox == false)
+                    if (rigidNodeMeshCounter > 0)
                     {
                         const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
                         const double ratio = rigidWallMeshSize / meanMeshSize;
@@ -302,13 +307,7 @@ namespace Kratos
 
                     if (refiningBox == true)
                     {
-
                         IncreaseAlphaForRefininedZones(Alpha, increaseAlfa, nds, numfreesurf, numrigid, numisolated);
-
-                        if (dimension == 3)
-                        {
-                            Alpha *= 1.1;
-                        }
                     }
 
                     sumIsolatedFreeSurf = numisolated + numfreesurf;
@@ -403,14 +402,14 @@ namespace Kratos
                                     else
                                     {
                                         const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)));
                                         const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
                                         const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
 
                                         if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
                                         {
@@ -449,23 +448,23 @@ namespace Kratos
                                     else
                                     {
                                         const double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
-                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                                   sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)));
                                         const double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
-                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                                   sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)));
                                         const double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
-                                                                  (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                                   sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[0][0], 2) + std::pow(nodesVelocities[0][1], 2) + std::pow(nodesVelocities[0][2], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
                                         const double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
-                                                                  (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                                   sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)));
                                         const double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
-                                                                  (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                                   sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2) + std::pow(nodesVelocities[1][2], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
                                         const double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
-                                                                  (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
-                                                                   sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
+                                                                  (std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)) *
+                                                                   std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
 
                                         if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
                                         {
@@ -510,12 +509,12 @@ namespace Kratos
                         const double b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
                         const double c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
 
-                        const double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        const double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-                        const double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
-                        const double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+                        const double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+                        const double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
+                        const double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)));
+                        const double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+                        const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+                        const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
 
                         if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
                         {
@@ -541,46 +540,46 @@ namespace Kratos
                     //             std::cout<<" !!!!! Volume==0 ";
                     //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
                     //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = sqrt(SquaredLength) / 6.0;
+                    //             double meanLength = std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             Volume = pow(meanLength, 3) * sqrt(2) / 12.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
+                    //             Volume = std::pow(meanLength, 3) * std::sqrt(2) / 12.0;
                     //             std::cout<<" now volume is  "<<Volume<<std::endl;
                     //         }
                     //         if (CriticalVolume == 0)
                     //         {
                     //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
                     //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = sqrt(SquaredLength) / 6.0;
+                    //             double meanLength = std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
                     //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
                     //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             double regularTetrahedronVolume = pow(meanLength, 3) * sqrt(2) / 12.0;
+                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
+                    //             double regularTetrahedronVolume = std::pow(meanLength, 3) * std::sqrt(2) / 12.0;
                     //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
                     //         }
 
@@ -743,121 +742,6 @@ namespace Kratos
         ///@}
         ///@name Un accessible methods
         ///@{
-        void SetAlphaForRefinedZones2D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY)
-        {
-
-            KRATOS_TRY
-            array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-            array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-            array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
-            array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
-            array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
-            array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-            double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
-            double seperation = 0;
-            double coefficient = 0;
-            if (coorX > RefiningBoxMinimumPoint[0] && coorY > RefiningBoxMinimumPoint[1] &&
-                coorX < RefiningBoxMaximumPoint[0] && coorY < RefiningBoxMaximumPoint[1])
-            {
-                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
-            }
-            else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorX - RefiningBoxMinimumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
-            {
-                seperation = coorY - RefiningBoxMinimumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorX - RefiningBoxMaximumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0])
-            {
-                seperation = coorY - RefiningBoxMaximumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-
-            KRATOS_CATCH("")
-        }
-
-        void SetAlphaForRefinedZones3D(double &MeanMeshSize, bool &increaseAlfa, double coorX, double coorY, double coorZ)
-        {
-
-            KRATOS_TRY
-            array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-            array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-            array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
-            array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
-            array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
-            array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-            double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
-            double seperation = 0;
-            double coefficient = 0;
-
-            if (coorX > RefiningBoxMinimumPoint[0] && coorX < RefiningBoxMaximumPoint[0] &&
-                coorY > RefiningBoxMinimumPoint[1] && coorY < RefiningBoxMaximumPoint[1] &&
-                coorZ > RefiningBoxMinimumPoint[2] && coorZ < RefiningBoxMaximumPoint[2])
-            {
-                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
-            }
-            else if (coorX < RefiningBoxMinimumPoint[0] && coorX > (minExternalPoint[0] - distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorX - RefiningBoxMinimumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY < RefiningBoxMinimumPoint[1] && coorY > (minExternalPoint[1] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorY - RefiningBoxMinimumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorZ < RefiningBoxMinimumPoint[2] && coorZ > (minExternalPoint[2] - distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorZ - RefiningBoxMinimumPoint[2];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorX > RefiningBoxMaximumPoint[0] && coorX < (maxExternalPoint[0] + distance) && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorX - RefiningBoxMaximumPoint[0];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorY > RefiningBoxMaximumPoint[1] && coorY < (maxExternalPoint[1] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorZ > minExternalPoint[2] && coorZ < maxExternalPoint[2])
-            {
-                seperation = coorY - RefiningBoxMaximumPoint[1];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-            else if (coorZ > RefiningBoxMaximumPoint[2] && coorZ < (maxExternalPoint[2] + distance) && coorX > minExternalPoint[0] && coorX < maxExternalPoint[0] && coorY > minExternalPoint[1] && coorY < maxExternalPoint[1])
-            {
-                seperation = coorZ - RefiningBoxMaximumPoint[2];
-                coefficient = fabs(seperation) / (distance + MeanMeshSize);
-                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-                increaseAlfa = true;
-            }
-
-            KRATOS_CATCH("")
-        }
 
         void IncreaseAlphaForRefininedZones(double &Alpha,
                                             bool increaseAlfa,
@@ -872,7 +756,7 @@ namespace Kratos
             {
                 if (numfreesurf < nds && numisolated == 0)
                 {
-                    Alpha *= 1.275;
+                    Alpha *= 1.2;
                 }
                 else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
                 {
@@ -887,21 +771,7 @@ namespace Kratos
                     Alpha *= 1.8;
                 }
             }
-            if (numfreesurf < (0.5 * nds) && (numrigid < (0.5 * nds) && numfreesurf > 0))
-            {
-                if (numisolated > 0)
-                {
-                    Alpha *= 1.0;
-                }
-                else if (numfreesurf == 0)
-                {
-                    Alpha *= 1.1;
-                }
-                else
-                {
-                    Alpha *= 1.05;
-                }
-            }
+
             KRATOS_CATCH("")
         }
 
