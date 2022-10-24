@@ -156,6 +156,13 @@ Then in order to install *Trilinos*:
 spack install trilinos
 ```
 
+If you want that the libraries are added automatically to `LD_LIBRARY_PATH` to run the following commands before loading the modules:
+
+```bash
+spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
+spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
+```
+
 Now you just need to load *Trilinos*:
 
 ```bash
