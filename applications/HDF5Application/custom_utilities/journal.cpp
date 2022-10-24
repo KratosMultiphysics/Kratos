@@ -23,138 +23,37 @@ namespace Kratos
 {
 
 
-Journal::iterator::iterator(std::shared_ptr<Journal::FileAccess>&& rFileAccess,
-                                 std::size_t EntryIndex)
-    : mpFileAccess(std::move(rFileAccess)),
-      mFilePointer(0)
-{
-    for (std::size_t i=0; i<EntryIndex; ++i) {
-        KRATOS_ERROR_IF_NOT(this->SeekNext('\n'))
-        << "Index " << EntryIndex << " is out of range";
-    }
-    this->StoreState();
-}
-
-
-Journal::iterator& Journal::iterator::operator++()
-{
-    this->RestoreState();
-    this->SeekNext('\n');
-    this->StoreState();
-    return *this;
-}
-
-
-Journal::iterator Journal::iterator::operator++(int)
-{
-    this->RestoreState();
-    auto copy = *this;
-    ++(*this);
-    return copy;
-}
-
-
-Parameters Journal::iterator::operator*() const
-{
-    this->RestoreState();
-    auto& r_stream = mpFileAccess->value().first;
-    std::string string;
-    std::getline(r_stream, string, '\n');
-    return Parameters(string);
-}
-
-
-bool operator==(const Journal::iterator& rLeft, const Journal::iterator& rRight)
-{
-    return rLeft.mpFileAccess.get() == rRight.mpFileAccess.get()
-           && rLeft.mpFileAccess.get() != nullptr
-           && rLeft.mFilePointer == rRight.mFilePointer;
-}
-
-
-bool operator!=(const Journal::iterator& rLeft, const Journal::iterator& rRight)
-{
-    return !(rLeft == rRight);
-}
-
-
-bool operator<(const Journal::iterator& rLeft, const Journal::iterator& rRight)
-{
-    KRATOS_ERROR_IF((rLeft.mpFileAccess.get() != rRight.mpFileAccess.get()) || rLeft.mpFileAccess.get() == nullptr)
-    << "Invalid iterator comparison";
-    return rLeft.mFilePointer < rRight.mFilePointer;
-}
-
-
-void Journal::iterator::StoreState()
-{
-    KRATOS_TRY;
-    this->mFilePointer = this->mpFileAccess->value().first.tellg();
-    KRATOS_CATCH("");
-}
-
-
-void Journal::iterator::RestoreState() const
-{
-    KRATOS_TRY;
-    this->mpFileAccess->value().first.seekg(mFilePointer);
-    KRATOS_CATCH("");
-}
-
-
-bool Journal::iterator::SeekNext(char Target)
-{
-    this->RestoreState();
-    auto& r_stream = this->mpFileAccess->value().first;
-
-    if (r_stream.eof()) {
-        return false;
-    }
-
-    char c;
-    while (r_stream.get(c) && c != Target) {}
-    return c == Target;
-}
-
-
-void Journal::iterator::SeekEnd()
-{
-    this->mpFileAccess->value().first.seekg(0, std::ios::end);
-    this->StoreState();
-}
-
-
-Journal::Journal()
-    : Journal("")
+JournalBase::JournalBase()
+    : JournalBase("")
 {
 }
 
 
-Journal::Journal(const std::filesystem::path& rJournalPath)
-    : Journal(rJournalPath, [](const Model& rModel){return Parameters();})
+JournalBase::JournalBase(const std::filesystem::path& rJournalPath)
+    : JournalBase(rJournalPath, [](const Model& rModel){return "";})
 {
 }
 
 
-Journal::Journal(const std::filesystem::path& rJournalPath,
-                           const Extractor& rExtractor)
+JournalBase::JournalBase(const std::filesystem::path& rJournalPath,
+                         const Extractor& rExtractor)
     : mJournalPath(rJournalPath),
       mExtractor(rExtractor)
 {
 }
 
 
-Journal::Journal(const Journal& rOther)
-    : Journal()
+JournalBase::JournalBase(const JournalBase& rOther)
+    : JournalBase()
 {
     *this = rOther;
 }
 
 
-Journal& Journal::operator=(const Journal& rOther)
+JournalBase& JournalBase::operator=(const JournalBase& rOther)
 {
     KRATOS_ERROR_IF(this->IsOpen())
-    << "Attempt to overwrite Journal at '" << mJournalPath << "' while it's open";
+    << "Attempt to overwrite JournalBase at '" << mJournalPath << "' while it's open";
 
     // Delete the stored file if it is not the same as the incoming one.
     if (std::filesystem::is_regular_file(this->mJournalPath) && this->mJournalPath != rOther.mJournalPath) {
@@ -169,25 +68,25 @@ Journal& Journal::operator=(const Journal& rOther)
 }
 
 
-const std::filesystem::path& Journal::GetFilePath() const noexcept
+const std::filesystem::path& JournalBase::GetFilePath() const noexcept
 {
     return this->mJournalPath;
 }
 
 
-void Journal::SetExtractor(Extractor&& rExtractor)
+void JournalBase::SetExtractor(Extractor&& rExtractor)
 {
     this->mExtractor = std::move(rExtractor);
 }
 
 
-void Journal::SetExtractor(const Extractor& rExtractor)
+void JournalBase::SetExtractor(const Extractor& rExtractor)
 {
     this->mExtractor = rExtractor;
 }
 
 
-void Journal::Push(const Model& rModel)
+void JournalBase::Push(const Model& rModel)
 {
     KRATOS_TRY;
 
@@ -197,16 +96,16 @@ void Journal::Push(const Model& rModel)
     KRATOS_ERROR_IF_NOT(this->IsValidEntry(output))
     << "Extractor returned invalid output: " << output;
 
-    p_access->value().first << output.WriteJsonString() << std::endl;
+    p_access->value().first << output << std::endl;
 
     KRATOS_CATCH("");
 }
 
 
-void Journal::Clear()
+void JournalBase::Clear()
 {
     KRATOS_ERROR_IF(this->IsOpen())
-    << "Attempt to clear Journal while it's open";
+    << "Attempt to clear JournalBase while it's open";
 
     KRATOS_TRY;
     if (std::filesystem::is_regular_file(this->mJournalPath)) {
@@ -216,7 +115,7 @@ void Journal::Clear()
 }
 
 
-bool Journal::IsOpen() const noexcept
+bool JournalBase::IsOpen() const noexcept
 {
     if (auto p_registry_access = mpFileAccess.lock()) {
         if (*p_registry_access) {
@@ -227,37 +126,37 @@ bool Journal::IsOpen() const noexcept
 }
 
 
-Journal::const_iterator Journal::begin() const
+JournalBase::const_iterator JournalBase::begin() const
 {
-    std::shared_ptr<FileAccess> p_access;
+    std::shared_ptr<iterator::FileAccess> p_access;
     if (this->IsOpen()) {
         p_access = this->mpFileAccess.lock();
     } else {
         p_access = this->Open();
     }
 
-    return const_iterator(std::move(p_access));
+    return const_iterator(std::move(p_access), '\n');
 }
 
 
-Journal::const_iterator Journal::end() const
+JournalBase::const_iterator JournalBase::end() const
 {
-    std::shared_ptr<FileAccess> p_access;
+    std::shared_ptr<iterator::FileAccess> p_access;
     if (this->IsOpen()) {
         p_access = this->mpFileAccess.lock();
     } else {
         p_access = this->Open();
     }
 
-    auto it = const_iterator(std::move(p_access));
-    it.SeekEnd();
+    auto it = const_iterator(std::move(p_access), '\n');
+    it.SeekEOF();
     return it;
 }
 
 
-Journal::size_type Journal::size() const
+JournalBase::size_type JournalBase::size() const
 {
-    std::shared_ptr<FileAccess> p_access;
+    std::shared_ptr<iterator::FileAccess> p_access;
     if (this->IsOpen()) {
         p_access = this->mpFileAccess.lock();
     } else {
@@ -275,34 +174,20 @@ Journal::size_type Journal::size() const
 }
 
 
-bool Journal::IsValidEntry(const Parameters& rEntry)
+bool JournalBase::IsValidEntry(const value_type& rEntry)
 {
-    if (!rEntry.IsArray()) {
-        return false;
-    } else {
-        for (const auto& r_item : rEntry) {
-            if (r_item.IsString()) {
-                if (r_item.GetString().find('\n') != std::string::npos) return false;
-            } else {
-                if (!(r_item.IsNumber() || r_item.IsBool())) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
+    return rEntry.find('\n') == rEntry.npos;
 }
 
 
-std::shared_ptr<Journal::FileAccess> Journal::Open(std::ios::openmode OpenMode) const
+std::shared_ptr<JournalBase::iterator::FileAccess> JournalBase::Open(std::ios::openmode OpenMode) const
 {
     KRATOS_ERROR_IF(this->IsOpen())
-    << "Attempt to repoen Journal at '" << this->mJournalPath  << "'";
+    << "Attempt to repoen JournalBase at '" << this->mJournalPath  << "'";
 
     KRATOS_TRY;
 
-    auto p_access = std::make_shared<FileAccess>();
+    auto p_access = std::make_shared<iterator::FileAccess>();
     this->mpFileAccess = p_access;
 
     auto pair = std::make_pair(
@@ -314,6 +199,120 @@ std::shared_ptr<Journal::FileAccess> Journal::Open(std::ios::openmode OpenMode) 
     return p_access;
 
     KRATOS_CATCH("");
+}
+
+
+Journal::iterator::iterator(JournalBase::iterator&& rWrapped)
+    : mWrapped(std::move(rWrapped))
+{
+}
+
+
+Journal::iterator& Journal::iterator::operator++()
+{
+    ++mWrapped;
+    return *this;
+}
+
+
+Journal::iterator Journal::iterator::operator++(int)
+{
+    iterator copy = *this;
+    ++(*this);
+    return copy;
+}
+
+
+Journal::iterator::value_type Journal::iterator::operator*() const
+{
+    return value_type(*mWrapped);
+}
+
+
+bool operator==(const Journal::iterator& rLeft, const Journal::iterator& rRight)
+{
+    return rLeft.mWrapped == rRight.mWrapped;
+}
+
+
+bool operator!=(const Journal::iterator& rLeft, const Journal::iterator& rRight)
+{
+    return rLeft.mWrapped != rRight.mWrapped;
+}
+
+
+Journal::Journal()
+    : Journal("")
+{
+}
+
+
+Journal::Journal(const std::filesystem::path& rJournalPath)
+    : Journal(rJournalPath, [](const Model& rModel){return Parameters();})
+{
+}
+
+
+Journal::Journal(const std::filesystem::path& rJournalPath, const Extractor& rExtractor)
+    : mBase(rJournalPath)
+{
+    this->SetExtractor(rExtractor);
+}
+
+
+const std::filesystem::path& Journal::GetFilePath() const noexcept
+{
+    return mBase.GetFilePath();
+}
+
+
+void Journal::SetExtractor(Extractor&& rExtractor)
+{
+    mBase.SetExtractor([rExtractor = std::move(rExtractor)](const Model& rModel){
+        return rExtractor(rModel).WriteJsonString();
+    });
+}
+
+
+void Journal::SetExtractor(const Extractor& rExtractor)
+{
+    this->SetExtractor(Extractor(rExtractor));
+}
+
+
+void Journal::Push(const Model& rModel)
+{
+    this->mBase.Push(rModel);
+}
+
+
+void Journal::Clear()
+{
+    mBase.Clear();
+}
+
+
+bool Journal::IsOpen() const noexcept
+{
+    return mBase.IsOpen();
+}
+
+
+Journal::const_iterator Journal::begin() const
+{
+    return const_iterator(mBase.begin());
+}
+
+
+Journal::const_iterator Journal::end() const
+{
+    return const_iterator(mBase.end());
+}
+
+
+Journal::size_type Journal::size() const
+{
+    return mBase.size();
 }
 
 

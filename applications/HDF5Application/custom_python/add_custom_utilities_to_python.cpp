@@ -97,6 +97,17 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
 
     #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
 
+    pybind11::class_<JournalBase, JournalBase::Pointer>(rModule, "JournalBase")
+        .def(pybind11::init<const std::filesystem::path&>())
+        .def(pybind11::init<const std::filesystem::path&,const JournalBase::Extractor&>())
+        .def("GetFilePath", &JournalBase::GetFilePath, "Get the path to the underlying file.")
+        .def("SetExtractor", pybind11::overload_cast<const JournalBase::Extractor&>(&JournalBase::SetExtractor))
+        .def("Push", pybind11::overload_cast<const Model&>(&JournalBase::Push), "Insert a new entry at the end, extracted from the input model.")
+        .def("Clear", &JournalBase::Clear, "Delete the registry file")
+        .def("__len__", &JournalBase::size)
+        .def("__iter__", [](const JournalBase& rJournal){return pybind11::make_iterator(rJournal.begin(), rJournal.end());})
+        ;
+
     pybind11::class_<Journal, Journal::Pointer>(rModule, "Journal")
         .def(pybind11::init<const std::filesystem::path&>())
         .def(pybind11::init<const std::filesystem::path&,const Journal::Extractor&>())
