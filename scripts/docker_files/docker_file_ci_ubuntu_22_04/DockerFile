@@ -16,8 +16,9 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         build-essential \
         ccache \
-        gcc-12 \
-        clang \
+        g++-12 \
+        gfortran-12 \
+        clang-14 \
         libomp-dev \
         cmake \
         gfortran \
