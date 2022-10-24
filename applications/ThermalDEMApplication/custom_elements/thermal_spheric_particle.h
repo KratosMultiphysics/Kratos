@@ -116,14 +116,14 @@ namespace Kratos
       double ComputeMeanConductivity             (void);
 
       // Get/Set methods
-      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
-      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
       HeatExchangeMechanism&       GetDirectConductionModel      (void);
       HeatExchangeMechanism&       GetIndirectConductionModel    (void);
       HeatExchangeMechanism&       GetConvectionModel            (void);
       HeatExchangeMechanism&       GetRadiationModel             (void);
       HeatGenerationMechanism&     GetGenerationModel            (void);
       RealContactModel&            GetRealContactModel           (void);
+      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
+      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
 
       double GetYoung   (void) override;
       double GetPoisson (void) override;
@@ -175,14 +175,14 @@ namespace Kratos
       double             GetContactRollingFrictionCoefficient (void);
       ContactParams      GetContactParameters                 (void);
 
-      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
-      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetDirectConductionModel             (HeatExchangeMechanism::Pointer& model);
       void               SetIndirectConductionModel           (HeatExchangeMechanism::Pointer& model);
       void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
       void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
       void               SetGenerationModel                   (HeatGenerationMechanism::Pointer& model);
       void               SetRealContactModel                  (RealContactModel::Pointer& model);
+      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
+      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -193,14 +193,14 @@ namespace Kratos
       void               SetParticleRealYoungRatio            (const double ratio);
 
       // Pointers to auxiliary objects
-      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
-      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
       HeatExchangeMechanism*       mpDirectConductionModel;
       HeatExchangeMechanism*       mpIndirectConductionModel;
       HeatExchangeMechanism*       mpConvectionModel;
       HeatExchangeMechanism*       mpRadiationModel;
       HeatGenerationMechanism*     mpGenerationModel;
       RealContactModel*            mpRealContactModel;
+      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
+      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
 
       // General properties
       unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
@@ -229,9 +229,17 @@ namespace Kratos
       double mTotalHeatFlux;
 
       // Energy properties
-      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction:   viscodamping 
-      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction:   frictional
-      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction:   rolling resistance
+      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction: viscodamping 
+      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction: frictional
+      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction: rolling resistance
+
+      // Heat maps
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPW;  // Local heat map matrix for heat generaion by damping between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPP;  // Local heat map matrix for heat generaion by sliding between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPW;  // Local heat map matrix for heat generaion by sliding between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPP;  // Local heat map matrix for heat generaion by rolling between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPW;  // Local heat map matrix for heat generaion by rolling between particle-wall
 
       // Interaction properties
       bool   mNeighborInContact;          // flag for contact interaction
