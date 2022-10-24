@@ -156,6 +156,12 @@ Then in order to install *Trilinos*:
 spack install trilinos
 ```
 
+In case we want to use [*MUMPS*](https://graal.ens-lyon.fr/MUMPS/index.php) and [SuperLUDist](https://portal.nersc.gov/project/sparse/superlu/) with *Trilinos*, you can install them all together and properly liked with:
+
+```bash
+spack install trilinos+mumps+superlu-dist
+```
+
 If you want that the libraries are added automatically to `LD_LIBRARY_PATH` to run the following commands before loading the modules:
 
 ```bash
@@ -167,6 +173,12 @@ Now you just need to load *Trilinos*:
 
 ```bash
 spack load trilinos
+```
+
+or (if installed):
+
+```bash
+spack load trilinos+mumps+superlu-dist
 ```
 
 Once to compile `TrilinosApplication` just remember to add the application to the `cofigure` bash script: 
