@@ -1831,12 +1831,16 @@ namespace Kratos {
 
       // Initialize variables
       if (mRVE_Solve && time_step > 0) {
-        mRVE_NumContacts  = 0;
-        mRVE_AvgCoordNum  = 0.0;
-        mRVE_VolSolid     = 0.0;
-        mRVE_RoseDiagram  = ZeroMatrix(2, 40);
-        mRVE_FabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
-        mRVE_CauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+        const int dim  = mRVE_Dimension;
+        const int dim2 = mRVE_Dimension * mRVE_Dimension;
+
+        mRVE_NumContacts   = 0;
+        mRVE_AvgCoordNum   = 0.0;
+        mRVE_VolSolid      = 0.0;
+        mRVE_RoseDiagram   = ZeroMatrix(2, 40);
+        mRVE_FabricTensor  = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor  = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor = ZeroMatrix(dim2,dim2);
       }
     }
 
@@ -1846,24 +1850,29 @@ namespace Kratos {
       if (!mRVE_Solve)
         return;
 
-      p_particle->mCoordNum     = 0;
-      p_particle->mNumContacts  = 0;
-      p_particle->mVolOverlap   = 0.0;
-      p_particle->mRoseDiagram  = ZeroMatrix(2, 40);
-      p_particle->mFabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
-      p_particle->mCauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
+      const int dim  = mRVE_Dimension;
+      const int dim2 = mRVE_Dimension * mRVE_Dimension;
+
+      p_particle->mCoordNum      = 0;
+      p_particle->mNumContacts   = 0;
+      p_particle->mVolOverlap    = 0.0;
+      p_particle->mRoseDiagram   = ZeroMatrix(2, 40);
+      p_particle->mFabricTensor  = ZeroMatrix(dim,dim);
+      p_particle->mCauchyTensor  = ZeroMatrix(dim,dim);
+      p_particle->mTangentTensor = ZeroMatrix(dim2,dim2);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEExecuteParticlePos(SphericParticle* p_particle) {
       if (!mRVE_Solve) return;
 
-      mRVE_NumContacts  += p_particle->mNumContacts;
-      mRVE_AvgCoordNum  += p_particle->mCoordNum;
-      mRVE_VolSolid     += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
-      mRVE_RoseDiagram  += p_particle->mRoseDiagram;
-      mRVE_FabricTensor += p_particle->mFabricTensor;
-      mRVE_CauchyTensor += p_particle->mCauchyTensor;
+      mRVE_NumContacts   += p_particle->mNumContacts;
+      mRVE_AvgCoordNum   += p_particle->mCoordNum;
+      mRVE_VolSolid      += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
+      mRVE_RoseDiagram   += p_particle->mRoseDiagram;
+      mRVE_FabricTensor  += p_particle->mFabricTensor;
+      mRVE_CauchyTensor  += p_particle->mCauchyTensor;
+      mRVE_TangentTensor += p_particle->mTangentTensor;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1879,11 +1888,15 @@ namespace Kratos {
 
       // Compute fabric anisotropy and stresses
       if (mRVE_NumContacts == 0.0) {
-        mRVE_FabricTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
-        mRVE_CauchyTensor = ZeroMatrix(mRVE_Dimension, mRVE_Dimension);
-        mRVE_Anisotropy   = 0.0;
-        mRVE_EffectStress = 0.0;
-        mRVE_DevStress    = 0.0;
+        const int dim  = mRVE_Dimension;
+        const int dim2 = mRVE_Dimension * mRVE_Dimension;
+
+        mRVE_FabricTensor  = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor  = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor = ZeroMatrix(dim2,dim2);
+        mRVE_Anisotropy    = 0.0;
+        mRVE_EffectStress  = 0.0;
+        mRVE_DevStress     = 0.0;
       }
 
       else {
@@ -1894,6 +1907,13 @@ namespace Kratos {
 
         for (int i = 0; i < mRVE_Dimension; i++) {
           for (int j = 0; j < mRVE_Dimension; j++) {
+            for (int k = 0; k < mRVE_Dimension; k++) {
+              for (int l = 0; l < mRVE_Dimension; l++) {
+                const int idx_1 = 2 * i + j;
+                const int idx_2 = 2 * k + l;
+                mRVE_TangentTensor(idx_1,idx_2) /= mRVE_VolTotal;
+              }
+            }
             mRVE_FabricTensor(i,j) /= mRVE_NumContacts;
             mRVE_CauchyTensor(i,j) /= mRVE_VolTotal;
 
@@ -2160,6 +2180,28 @@ namespace Kratos {
                                 << "[[" << mRVE_CauchyTensor(2,0) << "],[" << mRVE_CauchyTensor(2,1) << "],[" << mRVE_CauchyTensor(2,2) << "]]"
                                 << std::endl;
       }
+
+      if (mRVE_FileTangentTensor.is_open()) {
+          if (mRVE_Dimension == 2)
+            mRVE_FileTangentTensor << time_step << " " << time << " "
+                                   << "[[" << mRVE_TangentTensor(0,0) << "],[" << mRVE_TangentTensor(0,1) << "],[" << mRVE_TangentTensor(0,2) << "],[" << mRVE_TangentTensor(0,3) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(1,0) << "],[" << mRVE_TangentTensor(1,1) << "],[" << mRVE_TangentTensor(1,2) << "],[" << mRVE_TangentTensor(1,3) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(2,0) << "],[" << mRVE_TangentTensor(2,1) << "],[" << mRVE_TangentTensor(2,2) << "],[" << mRVE_TangentTensor(2,3) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(3,0) << "],[" << mRVE_TangentTensor(3,1) << "],[" << mRVE_TangentTensor(3,2) << "],[" << mRVE_TangentTensor(3,3) << "]]"
+                                   << std::endl;
+          else if (mRVE_Dimension == 3)
+            mRVE_FileTangentTensor << time_step << " " << time << " "
+                                   << "[[" << mRVE_TangentTensor(0,0) << "],[" << mRVE_TangentTensor(0,1) << "],[" << mRVE_TangentTensor(0,2) << "],[" << mRVE_TangentTensor(0,3) << "],[" << mRVE_TangentTensor(0,4) << "],[" << mRVE_TangentTensor(0,5) << "],[" << mRVE_TangentTensor(0,6) << "],[" << mRVE_TangentTensor(0,7) << "],[" << mRVE_TangentTensor(0,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(1,0) << "],[" << mRVE_TangentTensor(1,1) << "],[" << mRVE_TangentTensor(1,2) << "],[" << mRVE_TangentTensor(1,3) << "],[" << mRVE_TangentTensor(1,4) << "],[" << mRVE_TangentTensor(1,5) << "],[" << mRVE_TangentTensor(1,6) << "],[" << mRVE_TangentTensor(1,7) << "],[" << mRVE_TangentTensor(1,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(2,0) << "],[" << mRVE_TangentTensor(2,1) << "],[" << mRVE_TangentTensor(2,2) << "],[" << mRVE_TangentTensor(2,3) << "],[" << mRVE_TangentTensor(2,4) << "],[" << mRVE_TangentTensor(2,5) << "],[" << mRVE_TangentTensor(2,6) << "],[" << mRVE_TangentTensor(2,7) << "],[" << mRVE_TangentTensor(2,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(3,0) << "],[" << mRVE_TangentTensor(3,1) << "],[" << mRVE_TangentTensor(3,2) << "],[" << mRVE_TangentTensor(3,3) << "],[" << mRVE_TangentTensor(3,4) << "],[" << mRVE_TangentTensor(3,5) << "],[" << mRVE_TangentTensor(3,6) << "],[" << mRVE_TangentTensor(3,7) << "],[" << mRVE_TangentTensor(3,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(4,0) << "],[" << mRVE_TangentTensor(4,1) << "],[" << mRVE_TangentTensor(4,2) << "],[" << mRVE_TangentTensor(4,3) << "],[" << mRVE_TangentTensor(4,4) << "],[" << mRVE_TangentTensor(4,5) << "],[" << mRVE_TangentTensor(4,6) << "],[" << mRVE_TangentTensor(4,7) << "],[" << mRVE_TangentTensor(4,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(5,0) << "],[" << mRVE_TangentTensor(5,1) << "],[" << mRVE_TangentTensor(5,2) << "],[" << mRVE_TangentTensor(5,3) << "],[" << mRVE_TangentTensor(5,4) << "],[" << mRVE_TangentTensor(5,5) << "],[" << mRVE_TangentTensor(5,6) << "],[" << mRVE_TangentTensor(5,7) << "],[" << mRVE_TangentTensor(5,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(6,0) << "],[" << mRVE_TangentTensor(6,1) << "],[" << mRVE_TangentTensor(6,2) << "],[" << mRVE_TangentTensor(6,3) << "],[" << mRVE_TangentTensor(6,4) << "],[" << mRVE_TangentTensor(6,5) << "],[" << mRVE_TangentTensor(6,6) << "],[" << mRVE_TangentTensor(6,7) << "],[" << mRVE_TangentTensor(6,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(7,0) << "],[" << mRVE_TangentTensor(7,1) << "],[" << mRVE_TangentTensor(7,2) << "],[" << mRVE_TangentTensor(7,3) << "],[" << mRVE_TangentTensor(7,4) << "],[" << mRVE_TangentTensor(7,5) << "],[" << mRVE_TangentTensor(7,6) << "],[" << mRVE_TangentTensor(7,7) << "],[" << mRVE_TangentTensor(7,8) << "]]" << " "
+                                   << "[[" << mRVE_TangentTensor(8,0) << "],[" << mRVE_TangentTensor(8,1) << "],[" << mRVE_TangentTensor(8,2) << "],[" << mRVE_TangentTensor(8,3) << "],[" << mRVE_TangentTensor(8,4) << "],[" << mRVE_TangentTensor(8,5) << "],[" << mRVE_TangentTensor(8,6) << "],[" << mRVE_TangentTensor(8,7) << "],[" << mRVE_TangentTensor(8,8) << "]]"
+                                   << std::endl;
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2224,17 +2266,33 @@ namespace Kratos {
       mRVE_FileCauchyTensor << "4 - [[2,1][2,2][2,3]] | ";
       mRVE_FileCauchyTensor << "5 - [[3,1][3,2][3,3]]";
       mRVE_FileCauchyTensor << std::endl;
+
+      mRVE_FileTangentTensor.open("rve_tangent_tensor.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileTangentTensor) << "Could not open file rve_tangent_tensor.txt!" << std::endl;
+      mRVE_FileTangentTensor << "1 - STEP | ";
+      mRVE_FileTangentTensor << "2 - TIME | ";
+      mRVE_FileTangentTensor << "ROW1: [[D1111][D1112][D1113][D1121][D1122][D1123][D1131][D1132][D1133]] | ";
+      mRVE_FileTangentTensor << "ROW2: [[D1211][D1212][D1213][D1221][D1222][D1223][D1231][D1232][D1233]] | ";
+      mRVE_FileTangentTensor << "ROW3: [[D1311][D1312][D1313][D1321][D1322][D1323][D1331][D1332][D1333]] | ";
+      mRVE_FileTangentTensor << "ROW4: [[D2111][D2112][D2113][D2121][D2122][D2123][D2131][D2132][D2133]] | ";
+      mRVE_FileTangentTensor << "ROW5: [[D2211][D2212][D2213][D2221][D2222][D2223][D2231][D2232][D2233]] | ";
+      mRVE_FileTangentTensor << "ROW6: [[D2311][D2312][D2313][D2321][D2322][D2323][D2331][D2332][D2333]] | ";
+      mRVE_FileTangentTensor << "ROW7: [[D3111][D3112][D3113][D3121][D3122][D3123][D3131][D3132][D3133]] | ";
+      mRVE_FileTangentTensor << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
+      mRVE_FileTangentTensor << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
+      mRVE_FileTangentTensor << std::endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
-      if (mRVE_FilePorosity.is_open())     mRVE_FilePorosity.close();
-      if (mRVE_FileCoordNumber.is_open())  mRVE_FileCoordNumber.close();
-      if (mRVE_FileRoseDiagram.is_open())  mRVE_FileRoseDiagram.close();
-      if (mRVE_FileAnisotropy.is_open())   mRVE_FileAnisotropy.close();
-      if (mRVE_FileFabricTensor.is_open()) mRVE_FileFabricTensor.close();
-      if (mRVE_FileStress.is_open())       mRVE_FileStress.close();
-      if (mRVE_FileCauchyTensor.is_open()) mRVE_FileCauchyTensor.close();
+      if (mRVE_FilePorosity.is_open())      mRVE_FilePorosity.close();
+      if (mRVE_FileCoordNumber.is_open())   mRVE_FileCoordNumber.close();
+      if (mRVE_FileRoseDiagram.is_open())   mRVE_FileRoseDiagram.close();
+      if (mRVE_FileAnisotropy.is_open())    mRVE_FileAnisotropy.close();
+      if (mRVE_FileFabricTensor.is_open())  mRVE_FileFabricTensor.close();
+      if (mRVE_FileStress.is_open())        mRVE_FileStress.close();
+      if (mRVE_FileCauchyTensor.is_open())  mRVE_FileCauchyTensor.close();
+      if (mRVE_FileTangentTensor.is_open()) mRVE_FileTangentTensor.close();
     }
 
     //==========================================================================================================================================

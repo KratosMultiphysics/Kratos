@@ -919,24 +919,49 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 mNumContacts++;
 
                 // Overlap volume
+                const int dim = r_process_info[DOMAIN_SIZE];
                 const double r12 = r1 * r1;
                 const double r22 = r2 * r2;
                 const double d2  = d * d;
 
-                if (r_process_info[DOMAIN_SIZE] == 2)
+                if (dim == 2)
                   mVolOverlap += r12 * std::acos((d2+r12-r22) / (2.0*d*r1)) + r22 * std::acos((d2+r22-r12) / (2.0*d*r2)) - 0.5 * sqrt((d+r1+r2) * (-d+r1+r2) * (d+r1-r2) * (d-r1+r2));
-                else if (r_process_info[DOMAIN_SIZE] == 3)
+                else if (dim == 3)
                   mVolOverlap += (Globals::Pi * (r1+r2-d) * (r1+r2-d) * (d2+2.0*d*r1+2.0*d*r2+6.0*r1*r2-3.0*r12-3.0*r22)) / (12.0*d);
 
-                // Fabric tensor
-                for (int i = 0; i < mFabricTensor.size1(); i++)
-                  for (int j = 0; j < mFabricTensor.size2(); j++)
-                    mFabricTensor(i,j) += normal[i] * normal[j];
+                // Tangent direction
+                double tangent[3];
+                if (dim == 2) {
+                  tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
+                  tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
+                  tangent[2] = 0.0;
+                }
+                else if (dim == 3) {
+                  tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
+                  tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
+                  tangent[2] = -(data_buffer.mLocalCoordSystem[0][2] + data_buffer.mLocalCoordSystem[1][2]);
+                }
+                GeometryFunctions::normalize(tangent);
 
-                // Cauchy stress tensor
-                for (int i = 0; i < mCauchyTensor.size1(); i++)
-                  for (int j = 0; j < mCauchyTensor.size2(); j++)
+                // Stiffness
+                const double kn = mDiscontinuumConstitutiveLaw->mKn;
+                const double kt = mDiscontinuumConstitutiveLaw->mKt;
+
+                // Tensors: tangent operator, fabric, cauchy stress
+                for (int i = 0; i < dim; i++) {
+                  for (int j = 0; j < dim; j++) {
+                    for (int k = 0; k < dim; k++) {
+                      for (int l = 0; l < dim; l++) {
+                        const int idx_1 = 2 * i + j;
+                        const int idx_2 = 2 * k + l;
+                        mTangentTensor(idx_1,idx_2) += kn * normal[i]  * branch[j] * normal[k]  * branch[l] +
+                                                       kt * tangent[i] * branch[j] * tangent[k] * branch[l];
+                      }
+                    }
+                    mFabricTensor(i,j) += normal[i] * normal[j];
                     mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
+                  }
+                }
               }
             }
             //==========================================================================================================================================
@@ -1163,6 +1188,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             if (mRVESolve && indentation > 0.0) {
               mCoordNum++;
               mNumContacts++;
+              const int dim = r_process_info[DOMAIN_SIZE];
 
               // Branch vector
               // ATTENTION: Assuming twice the radius for the branch vector!
@@ -1190,20 +1216,44 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               mRoseDiagram(1,idx_az)++;
 
               // Overlap volume
-              if (r_process_info[DOMAIN_SIZE] == 2)
+              if (dim == 2)
                 mVolOverlap += r*r * acos((r-indentation)/r) - (r-indentation) * sqrt(2.0*r*indentation-indentation*indentation);
-              else if (r_process_info[DOMAIN_SIZE] == 3)
+              else if (dim == 3)
                 mVolOverlap += Globals::Pi * indentation*indentation * (3.0*r-indentation) / 3.0;
 
-              // Fabric tensor
-              for (int i = 0; i < mFabricTensor.size1(); i++)
-                for (int j = 0; j < mFabricTensor.size2(); j++)
-                  mFabricTensor(i,j) += normal[i] * normal[j];
+              // Tangent direction
+              double tangent[3];
+              if (dim == 2) {
+                tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
+                tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
+                tangent[2] = 0.0;
+              }
+              else if (dim == 3) {
+                tangent[0] = -(data_buffer.mLocalCoordSystem[0][0] + data_buffer.mLocalCoordSystem[1][0]);
+                tangent[1] = -(data_buffer.mLocalCoordSystem[0][1] + data_buffer.mLocalCoordSystem[1][1]);
+                tangent[2] = -(data_buffer.mLocalCoordSystem[0][2] + data_buffer.mLocalCoordSystem[1][2]);
+              }
+              GeometryFunctions::normalize(tangent);
 
-              // Cauchy stress tensor
-              for (int i = 0; i < mCauchyTensor.size1(); i++)
-                for (int j = 0; j < mCauchyTensor.size2(); j++)
+              // Stiffness
+              const double kn = mDiscontinuumConstitutiveLaw->mKn;
+              const double kt = mDiscontinuumConstitutiveLaw->mKt;
+
+              // Tensors: tangent operator, fabric, cauchy stress
+              for (int i = 0; i < dim; i++) {
+                for (int j = 0; j < dim; j++) {
+                  for (int k = 0; k < dim; k++) {
+                    for (int l = 0; l < dim; l++) {
+                      const int idx_1 = 2 * i + j;
+                      const int idx_2 = 2 * k + l;
+                      mTangentTensor(idx_1,idx_2) += kn * normal[i] * branch[j] * normal[k] * branch[l] +
+                                                     kt * tangent[i] * branch[j] * tangent[k] * branch[l];
+                    }
+                  }
+                  mFabricTensor(i,j) += normal[i] * normal[j];
                   mCauchyTensor(i,j) += branch[i] * GlobalContactForce[j];
+                }
+              }
             }
             //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE

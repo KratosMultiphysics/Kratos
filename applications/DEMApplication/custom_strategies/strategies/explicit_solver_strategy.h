@@ -305,9 +305,10 @@ namespace Kratos {
         std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE walls in negative Z direction
         std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE walls in positive Z direction
 
-        Matrix mRVE_RoseDiagram;  // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
-        Matrix mRVE_FabricTensor; // Fabric tensor
-        Matrix mRVE_CauchyTensor; // Cauchy stress tensor
+        Matrix mRVE_RoseDiagram;   // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
+        Matrix mRVE_FabricTensor;  // Fabric tensor
+        Matrix mRVE_CauchyTensor;  // Cauchy stress tensor
+        Matrix mRVE_TangentTensor; // Tangent operator tensor
 
         std::ofstream mRVE_FilePorosity;
         std::ofstream mRVE_FileCoordNumber;
@@ -316,6 +317,7 @@ namespace Kratos {
         std::ofstream mRVE_FileFabricTensor;
         std::ofstream mRVE_FileStress;
         std::ofstream mRVE_FileCauchyTensor;
+        std::ofstream mRVE_FileTangentTensor;
 
         // Methods
         void RVEInitialize             (void);
