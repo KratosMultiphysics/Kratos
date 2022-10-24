@@ -1,3 +1,5 @@
+from inspect import getmodule
+from pathlib import Path
 import KratosMultiphysics
 
 class RegistryContext():
@@ -263,3 +265,24 @@ class PythonRegistry(object):
             err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
             raise Exception(err_msg)
         self.__InternalAddItem(all_full_name, Class)
+
+# A decorator to register items in the registry
+def RegisterInKratos(item_type_name: str):
+    def register_wrapper(Class):
+        final_module_path = Path(getmodule(Class).__file__)
+
+        current_module_path = Path(final_module_path)
+        list_of_modules = []
+        while (current_module_path.name != "KratosMultiphysics"):
+            if current_module_path.samefile(final_module_path.root):
+                raise RuntimeError(f"The module \"{Class.__name__}\" being registered under \"{item_type_name}\" is not found in the KratosMultiphysics modules.")
+            current_module_path = current_module_path.parent
+            list_of_modules.append(current_module_path.name)
+
+        full_name = item_type_name + "."
+        full_name += ".".join(reversed(list_of_modules))
+        full_name += "." + Class.__name__
+
+        KratosMultiphysics.Registry.AddItem(full_name, Class)
+        return Class
+    return register_wrapper
