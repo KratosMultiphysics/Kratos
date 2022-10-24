@@ -18,16 +18,14 @@
 // System includes
 #include <string>
 #include <fstream>
-#include <set>
-#include <typeinfo>
 #include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_filesystem.h"
 #include "includes/io.h"
-#include "utilities/timer.h"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -84,9 +82,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filenames.
+    /// Constructor with filename.
     ModelPartIO(
-        std::string const& Filename,
+        std::filesystem::path const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Constructor with stream.
@@ -447,8 +445,7 @@ private:
 
     SizeType mNumberOfLines;
 
-    std::string mBaseFilename;
-    std::string mFilename;
+    std::filesystem::path mBaseFilename;
     Flags mOptions;
 
     Kratos::shared_ptr<std::iostream> mpStream;
@@ -766,13 +763,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    ModelPartIO& operator=(ModelPartIO const& rOther);
-
-    /// Copy constructor.
-    ModelPartIO(ModelPartIO const& rOther);
-
 
     ///@}
 

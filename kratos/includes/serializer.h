@@ -565,8 +565,18 @@ public:
 
         save("size", size);
 
+        // Workaround for the special case of std::vector<bool>.
+        // Long story short, the return type of std::vector<bool>::operator[]
+        // is not necessarily bool&, but up to the STL vendor's decision.
+        // Detailed explanation: https://github.com/KratosMultiphysics/Kratos/issues/10357#issuecomment-1274725614.
+        using SaveType = std::conditional_t<
+            std::is_same_v<typename std::decay<TDataType>::type, bool>,
+            bool,
+            const TDataType&
+        >;
+
         for(SizeType i = 0 ; i < size ; i++)
-            save("E", rObject[i]);
+            save("E", SaveType(rObject[i]));
 //    write(rObject);
     }
 
@@ -936,7 +946,7 @@ public:
         return msRegisteredObjectsName;
     }
 
-    void Set(Flags ThisFlag)
+    void Set(const Flags ThisFlag)
     {
         mFlags.Set(ThisFlag);
     }

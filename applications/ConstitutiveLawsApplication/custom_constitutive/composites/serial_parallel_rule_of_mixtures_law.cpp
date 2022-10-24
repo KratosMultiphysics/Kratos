@@ -575,7 +575,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
 
 void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -593,7 +593,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
 
 void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -612,7 +612,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -676,7 +676,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLa
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -740,7 +740,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLa
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -804,7 +804,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
@@ -1266,21 +1266,22 @@ Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
         return rValue;
     } else {
         Vector aux_value;
-        Properties material_properties  = rParameterValues.GetMaterialProperties();
-        Properties& r_prop = material_properties.GetSubProperties(0);
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        Properties& r_prop = *(it_prop_begin);
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
-        r_prop = material_properties.GetSubProperties(1);
+        r_prop = *(it_prop_begin + 1);
         rParameterValues.SetMaterialProperties(r_prop);
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
-        rParameterValues.SetMaterialProperties(material_properties);
+        rParameterValues.SetMaterialProperties(r_material_properties);
     }
     return rValue;
 }
@@ -1352,7 +1353,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         if (rValue.size1() != dimension)
             rValue.resize(dimension, dimension, false);
         noalias(rValue) = rParameterValues.GetDeformationGradientF();
-    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) {
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
 
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -1486,21 +1487,22 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         return rValue;
     } else {
         Matrix aux_value;
-        Properties material_properties  = rParameterValues.GetMaterialProperties();
-        Properties& r_prop = material_properties.GetSubProperties(0);
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        Properties& r_prop = *(it_prop_begin);
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
-        r_prop = material_properties.GetSubProperties(1);
+        r_prop = *(it_prop_begin + 1);
         rParameterValues.SetMaterialProperties(r_prop);
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
-        rParameterValues.SetMaterialProperties(material_properties);
+        rParameterValues.SetMaterialProperties(r_material_properties);
     }
     return rValue;
 }

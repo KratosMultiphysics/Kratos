@@ -56,6 +56,7 @@ enum class DataLocation {
  * @class AuxiliarModelPartUtilities
  * @ingroup KratosCore
  * @brief This utility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
+ * @todo Typo, Auxiliar is not English, it is Auxiliary, please replace it.
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
@@ -140,7 +141,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongings(Element& rThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(Element& rThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given element from mesh with ThisIndex in this modelpart and all its subs.
@@ -151,7 +152,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongings(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(Element::Pointer pThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove the element with given Id from mesh with ThisIndex in parents, itself and children.
@@ -162,7 +163,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given element from mesh with ThisIndex in parents, itself and children.
@@ -173,7 +174,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongingsFromAllLevels(Element& rThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(Element& rThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given element from mesh with ThisIndex in parents, itself and children.
@@ -184,7 +185,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief  It erases all elements identified by "IdentifierFlag" by removing the pointer.
@@ -204,7 +205,7 @@ public:
      * Pointers are erased from this level downwards nodes will be automatically destructured when no pointer is left to them
      * @param IdentifierFlag The flag that identifies the entities to remove
      */
-    void RemoveElementsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveElementsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
     /**
      * @brief Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
@@ -226,7 +227,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongings(Condition& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(Condition& ThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
@@ -235,7 +236,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongings(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(Condition::Pointer pThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove the condition with given Id from mesh with ThisIndex in parents, itself and children.
@@ -246,7 +247,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given condition from mesh with ThisIndex in parents, itself and children.
@@ -257,7 +258,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongingsFromAllLevels(Condition& rThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(Condition& rThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief Remove given condition from mesh with ThisIndex in parents, itself and children.
@@ -268,7 +269,7 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      * @param ThisIndex The index of the mesh where remove the entity
      */
-    void RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, const Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
     /**
      * @brief It erases all conditions identified by "IdentifierFlag" by removing the pointer.
@@ -288,7 +289,7 @@ public:
      * Pointers are erased from this level downwards nodes will be automatically destructured when no pointer is left to them
      * @param IdentifierFlag The flag that identifies the entities to remove
      */
-    void RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
 
     /// To Export a Scalar data (Double/int/...)
@@ -579,6 +580,55 @@ public:
 
     }
 
+    /**
+     * @brief This method deep copies a whole model part
+     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour. 
+     * This is deep copy, meaning that every entity is deep copied, so created from scratch. The only thing that would be equal will be the Model if not custom Model is provided
+     * @param rNewModelPartName The name of the new model part
+     * @param pModel The pointer to the Model that will host the new ModelPart, if nullptr, the current Model will be used.
+     * @return The deep copied model part
+     */
+    ModelPart& DeepCopyModelPart(
+        const std::string& rNewModelPartName, 
+        Model* pModel = nullptr
+        );
+
+    /**
+     * @brief This method deep copies a entities
+     * @details Only works with Element and Condition due to the lack of consistency of the entities Clone methods
+     * @param rModelPart The model part to copy the entities
+     * @param rEntities The entities to be copied
+     * @param rReferenceEntities The entities to be copied
+     * @param rGeometryPointerDatabase The database of geometries
+     * @tparam TClassContainer rEntities type
+     * @tparam TReferenceClassContainer rReferenceEntities type
+     */
+    template<class TClassContainer, class TReferenceClassContainer>
+    void DeepCopyEntities(
+        ModelPart& rModelPart,
+        TClassContainer& rEntities,
+        TReferenceClassContainer& rReferenceEntities,
+        std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
+        )
+    {   
+        auto& r_properties= rModelPart.rProperties();
+        rEntities.SetMaxBufferSize(rReferenceEntities.GetMaxBufferSize());
+        rEntities.SetSortedPartSize(rReferenceEntities.GetSortedPartSize());
+        const auto& r_reference_entities_container = rReferenceEntities.GetContainer();
+        auto& r_entities_container = rEntities.GetContainer();
+        const IndexType number_entities = r_reference_entities_container.size();
+        r_entities_container.resize(number_entities);
+        const auto it_ent_begin = r_reference_entities_container.begin();
+        IndexPartition<std::size_t>(number_entities).for_each([&it_ent_begin,&r_entities_container,&rGeometryPointerDatabase,&r_properties](std::size_t i) {
+            auto it_ent = it_ent_begin + i;
+            auto& p_old_ent = (*it_ent);
+            auto p_new_ent = p_old_ent->Create(p_old_ent->Id(), rGeometryPointerDatabase[p_old_ent->pGetGeometry()], r_properties(p_old_ent->pGetProperties()->Id()));
+            p_new_ent->SetData(p_old_ent->GetData());
+            p_new_ent->Set(Flags(*p_old_ent));
+            r_entities_container[i] = p_new_ent;
+        });
+    }
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {
@@ -698,6 +748,16 @@ private:
         KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
     }
 
+    /**
+     * @brief This method copies the submodelpart structure from the original model part to the new one.
+     * @details This method is called recursively
+     * @param rOriginalModelPart The original model part
+     * @param rNewModelPart The new model part
+     */
+    void DeepCopySubModelPart(
+        const ModelPart& rOldModelPart, 
+        ModelPart& rNewModelPart
+        );
 
     ///@}
     ///@name Private  Access

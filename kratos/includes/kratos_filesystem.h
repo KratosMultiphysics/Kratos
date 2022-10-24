@@ -10,8 +10,7 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_FILESYSTEM)
-#define KRATOS_FILESYSTEM
+#pragma once
 
 // System includes
 #include <string>
@@ -34,13 +33,18 @@
 #include "includes/define.h"
 
 namespace Kratos {
-// wrapper functions for std::filesystem (part of C++17)
-// the function signatures are identical, hence after moving to C++17 Kratos::filesystem can be replaced with std::filesystem
-// please check the documentation of std::filesystem for the function documentation
 
-// Note: the filesystem functinos have a filesystem::path as input, but currently std::string is used as filesystem::path is not available
-// this should not be a problem for upgrading to std::filesystem, since filesystem::path has a constructor accepting a string
-namespace filesystem {
+// deprecated namespaces wrongly issue a warning with GCC 9, hence disabling until removed
+#if defined(__GNUG__) && __GNUC__ == 9 && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
+namespace KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly") filesystem {
+
+#if defined(__GNUG__) && __GNUC__ == 9 && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#pragma GCC diagnostic pop
+#endif
 
 bool KRATOS_API(KRATOS_CORE) exists(const std::string& rPath);
 
@@ -73,6 +77,7 @@ namespace FilesystemExtensions {
  *
  * @return std::string
  */
+KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly")
 std::string KRATOS_API(KRATOS_CORE) CurrentWorkingDirectory();
 
 /**
@@ -81,6 +86,7 @@ std::string KRATOS_API(KRATOS_CORE) CurrentWorkingDirectory();
  * @param rPaths                        List of strings to be joined to get final path
  * @return std::string                  Final joined path
  */
+KRATOS_DEPRECATED_MESSAGE("Please use the /-operator directly")
 std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rPaths);
 
 /**
@@ -98,7 +104,15 @@ std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string
  */
 void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
 
+/** @brief Resolve symlinks recursively.
+ *
+ *  @param rPath: path to a symbolic link.
+ *  @return The result of the recursive dereferencing.
+ *  @throws If the input path does not exist or the symlink is cyclic.
+ *  @note The existence of the final result is not checked and is up to the user.
+ *  @note The input is returned if it is not a symlink.
+ */
+std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
+
 } // namespace FilesystemExtensions
 } // namespace Kratos
-
-#endif // KRATOS_FILESYSTEM defined
