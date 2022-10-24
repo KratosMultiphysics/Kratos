@@ -32,7 +32,20 @@ IF (Trilinos_FOUND)
     ENDIF (${package_index} EQUAL -1)
 
     SET(TRILINOS_INCLUDE_DIR ${Trilinos_INCLUDE_DIRS})
-    SET(TRILINOS_LIBRARIES ${Trilinos_LIBRARIES})
+	SET(TRILINOS_LIBRARIES "")
+	FOREACH(trilinos_lib ${Trilinos_LIBRARIES})
+		FIND_LIBRARY(TRILINOS_LIBRARY_${trilinos_lib}
+			NAMES ${trilinos_lib}
+			HINTS ${Trilinos_LIBRARY_DIRS}
+			NO_DEFAULT_PATH
+			NO_CMAKE_ENVIRONMENT_PATH
+			NO_CMAKE_PATH
+			NO_SYSTEM_ENVIRONMENT_PATH
+			NO_CMAKE_SYSTEM_PATH
+			NO_CMAKE_FIND_ROOT_PATH
+			)
+		LIST(APPEND TRILINOS_LIBRARIES ${TRILINOS_LIBRARY_${trilinos_lib}})
+	ENDFOREACH(trilinos_lib ${Trilinos_LIBRARIES})
     SET(TRILINOS_FOUND TRUE)
 ELSE (Trilinos_FOUND)
     # You can specify your own version of the library
