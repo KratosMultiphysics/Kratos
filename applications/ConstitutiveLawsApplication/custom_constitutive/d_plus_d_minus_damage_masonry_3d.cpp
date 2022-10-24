@@ -25,6 +25,8 @@
 #include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
+#define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
+
 namespace Kratos
 {
 
@@ -92,9 +94,61 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
 
         // Perform the separation of the Stress in tension and compression
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(
+            predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
+
         noalias(damage_parameters.TensionStressVector)     = predictive_stress_vector_tension;
         noalias(damage_parameters.CompressionStressVector) = predictive_stress_vector_compression;
+
+        array_1d<double, 3> principal_stress_vector;
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(
+            principal_stress_vector, predictive_stress_vector);
+
+        Matrix effective_stress_tensor = MathUtils<double>::StressVectorToTensor(predictive_stress_vector);
+        BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+        BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+
+        MathUtils<double>::GaussSeidelEigenSystem(effective_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+
+        array_1d<double, 3> eigen_vector_1;
+        array_1d<double, 3> eigen_vector_2;
+        array_1d<double, 3> eigen_vector_3;
+
+        for (IndexType i = 0; i < Dimension; ++i) {
+            eigen_vector_1[i] = eigen_vectors_matrix(0, i);
+        }
+        for (IndexType i = 0; i < Dimension; ++i) {
+            eigen_vector_2[i] = eigen_vectors_matrix(1, i);
+        }
+        for (IndexType i = 0; i < Dimension; ++i) {
+            eigen_vector_3[i] = eigen_vectors_matrix(2, i);
+        }
+
+        array_1d<double, 6> projection_vector_11;
+        Matrix projection_tensor_11;
+        projection_tensor_11 = outer_prod(eigen_vector_1, eigen_vector_1);
+        projection_vector_11 = MathUtils<double>::StressTensorToVector(projection_tensor_11);
+
+        array_1d<double, 6> projection_vector_22;
+        Matrix projection_tensor_22;
+        projection_tensor_22 = outer_prod(eigen_vector_2, eigen_vector_2);
+        projection_vector_22 = MathUtils<double>::StressTensorToVector(projection_tensor_22);
+
+        array_1d<double, 6> projection_vector_33;
+        Matrix projection_tensor_33;
+        projection_tensor_33 = outer_prod(eigen_vector_3, eigen_vector_3);
+        projection_vector_33 = MathUtils<double>::StressTensorToVector(projection_tensor_33);
+
+        Matrix ProjectionTensorTension = ZeroMatrix(6, 6);
+        noalias(ProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(0, 0)) *
+            outer_prod(projection_vector_11, projection_vector_11);
+        noalias(ProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(1, 1)) *
+            outer_prod(projection_vector_22, projection_vector_22);
+        noalias(ProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(2, 2)) *
+            outer_prod(projection_vector_33, projection_vector_33);
+
+        Matrix ProjectionTensorCompression = ZeroMatrix(6, 6);
+        noalias(ProjectionTensorCompression) = IdentityMatrix(6, 6) - ProjectionTensorTension;
 
         // Compute the equivalent uniaxial Stress in tension and compression
         this->CalculateEquivalentStressTension(predictive_stress_vector, damage_parameters.UniaxialTensionStress, rValues);
@@ -108,7 +162,7 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
 
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) { // Perturbations
-                this->CalculateTangentTensor(rValues);
+                this->CalculateTangentTensor(rValues, damage_parameters, ProjectionTensorCompression, ProjectionTensorTension);
             } else { // Secant matrix
                 this->CalculateSecantTensor(rValues, r_tangent_tensor);
             }
@@ -135,7 +189,11 @@ bool DamageDPlusDMinusMasonry3DLaw::IntegrateStressTensionIfNecessary(
         }
         rIntegratedStressVectorTension *= (1.0 - rParameters.DamageTension);
     } else { // Increasing damage...
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        //const double characteristic_length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        array_1d<double, 3> characteristic_lengthness;
+        rValues.GetElementGeometry().Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_lengthness);
+        SizeType polynomial_degree = rValues.GetElementGeometry().PolynomialDegree(0);
+        const double characteristic_length = characteristic_lengthness[0] / polynomial_degree;//std::sqrt(polynomial_degree);
         // This routine updates the IntegratedStressVectorTension to verify the yield surf
         this->IntegrateStressVectorTension(
             rIntegratedStressVectorTension,
@@ -175,8 +233,11 @@ bool DamageDPlusDMinusMasonry3DLaw::IntegrateStressCompressionIfNecessary(
         }
         rIntegratedStressVectorCompression *= (1.0 - rParameters.DamageCompression);
     } else { // Increasing damage...
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-
+        //const double characteristic_length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            array_1d<double, 3> characteristic_lengthness;
+        rValues.GetElementGeometry().Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_lengthness);
+        SizeType polynomial_degree = rValues.GetElementGeometry().PolynomialDegree(0);
+        const double characteristic_length = characteristic_lengthness[0] / polynomial_degree;//std::sqrt(polynomial_degree);
         // This routine updates the IntegratedStressVectorCompression to verify the yield surf
         this->IntegrateStressVectorCompression(
             rIntegratedStressVectorCompression,
@@ -208,22 +269,35 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateIntegratedStressVector(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void DamageDPlusDMinusMasonry3DLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void DamageDPlusDMinusMasonry3DLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues,
+    const DamageParameters& rParameters, const Matrix& ProjectionTensorCompression, const Matrix& ProjectionTensorTension)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    auto& tangent_matrix = rValues.GetConstitutiveMatrix();
+    Matrix W(IdentityMatrix(6, 6));
 
-    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+    if (rParameters.DamageTension > 0.0)
+        noalias(W) -= rParameters.DamageTension * ProjectionTensorTension;
+    if (rParameters.DamageCompression > 0.0)
+        noalias(W) -= rParameters.DamageCompression * ProjectionTensorCompression;
 
-    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        KRATOS_ERROR << "Analytic solution not available" << std::endl;
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
-    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
-        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
-    }
+    Matrix C0;
+    this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, C0);
+
+    noalias(tangent_matrix) = prod(W, C0);
+
+    //const Properties& r_material_properties = rValues.GetMaterialProperties();
+    //const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    //const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    //if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+    //    std::cout << "Analytic solution not available";
+    //} else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+    //    // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+    //    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+    //} else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+    //    // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+    //    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    //}
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -529,10 +603,10 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateEquivalentStressCompression(
     const double shear_compression_reductor = r_material_properties[SHEAR_COMPRESSION_REDUCTOR];
     const double rho = r_material_properties[TRIAXIAL_COMPRESSION_COEFFICIENT];
 
-    KRATOS_ERROR_IF(shear_compression_reductor < 0.0)<< "The SHEAR_COMPRESSION_REDUCTOR is supposed to be a value between 0.0 and 1.0" << std::endl;
-    KRATOS_ERROR_IF(shear_compression_reductor > 1.0)<< "The SHEAR_COMPRESSION_REDUCTOR is supposed to be a value between 0.0 and 1.0" << std::endl;
-    KRATOS_ERROR_IF(rho <= 0.5)<< "The TRIAXIAL_COMPRESSION_COEFFICIENT is supposed to be a value between 0.5 and 1.0" << std::endl;
-    KRATOS_ERROR_IF(rho > 1.0)<< "The TRIAXIAL_COMPRESSION_COEFFICIENT is supposed to be a value between 0.5 and 1.0" << std::endl;
+    KRATOS_WARNING_IF("", shear_compression_reductor < 0.0) << "The SHEAR_COMPRESSION_REDUCTOR is supposed to be a value between 0.0 and 1.0" << std::endl;
+    KRATOS_WARNING_IF("", shear_compression_reductor > 1.0)<< "The SHEAR_COMPRESSION_REDUCTOR is supposed to be a value between 0.0 and 1.0" << std::endl;
+    KRATOS_WARNING_IF("", rho <= 0.5)<< "The TRIAXIAL_COMPRESSION_COEFFICIENT is supposed to be a value between 0.5 and 1.0" << std::endl;
+    KRATOS_WARNING_IF("", rho > 1.0)<< "The TRIAXIAL_COMPRESSION_COEFFICIENT is supposed to be a value between 0.5 and 1.0" << std::endl;
 
     const double alpha = (biaxial_compression_multiplier - 1.0)/(2.0* biaxial_compression_multiplier - 1.0);
     const double alpha_factor = 1.0 / (1.0 - alpha);
@@ -587,7 +661,7 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateDamageParameterTension(
     const double yield_tension = r_material_properties[YIELD_STRESS_TENSION];
     const double l_mat = 2.0 * E * Gf / (std::pow(yield_tension, 2));
 
-    KRATOS_ERROR_IF(CharacteristicLength >= l_mat) << "FRACTURE_ENERGY_TENSION is too low:  2*E*Gt/(ft*ft) = " << l_mat
+    KRATOS_WARNING_IF("", CharacteristicLength >= l_mat) << "FRACTURE_ENERGY_TENSION is too low:  2*E*Gt/(ft*ft) = " << l_mat
         << ",   Characteristic Length = " << CharacteristicLength << std::endl;
 
     rAParameter = 2.0 * (CharacteristicLength / (l_mat - CharacteristicLength));
@@ -701,7 +775,7 @@ void DamageDPlusDMinusMasonry3DLaw::RegulateBezierDeterminators(
     const double bezier_stretcher = ((specific_dissipated_fracture_energy - bezier_energy_1) /
                                    (BezierEnergy - bezier_energy_1)) - 1.0;
 
-    KRATOS_ERROR_IF(bezier_stretcher <= -1.0) << "Error in Compression Damage: FRACTURE_ENERGY_COMPRESSION is too low, increase it to avoid constitutive snap-back!" << std::endl;
+    KRATOS_WARNING_IF("", bezier_stretcher <= -1.0) << "Error in Compression Damage: FRACTURE_ENERGY_COMPRESSION is too low, increase it to avoid constitutive snap-back!" << std::endl;
 
     // Update Strain values
     ej += bezier_stretcher * (ej - ep);

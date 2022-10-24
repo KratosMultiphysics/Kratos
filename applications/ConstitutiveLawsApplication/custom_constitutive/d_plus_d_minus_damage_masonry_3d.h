@@ -498,7 +498,8 @@ private:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues,
+        const DamageParameters& rParameters, const Matrix& ProjectionTensorCompression, const Matrix& ProjectionTensorTension);
 
     /**
      * @brief This method computes the secant tensor

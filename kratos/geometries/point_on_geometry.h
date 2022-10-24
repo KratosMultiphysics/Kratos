@@ -74,10 +74,10 @@ public:
             << "Working space dimension of background geometry (" << pBackgroundGeometry->WorkingSpaceDimension()
             << ") does not coincide with WorkingSpaceDimension of this geometry (" << this->WorkingSpaceDimension() << ")."
             << std::endl;
-        KRATOS_ERROR_IF(pBackgroundGeometry->LocalSpaceDimension() != this->LocalSpaceDimension())
-            << "Local space dimension of background geometry (" << pBackgroundGeometry->LocalSpaceDimension()
-            << ") does not coincide with LocalSpaceDimension of this geometry (" << this->LocalSpaceDimension() << ")."
-            << std::endl;
+        //KRATOS_ERROR_IF(pBackgroundGeometry->LocalSpaceDimension() != this->LocalSpaceDimension())
+        //    << "Local space dimension of background geometry (" << pBackgroundGeometry->LocalSpaceDimension()
+        //    << ") does not coincide with LocalSpaceDimension of this geometry (" << this->LocalSpaceDimension() << ")."
+        //    << std::endl;
     }
 
     /// Copy constructor.
@@ -253,12 +253,31 @@ public:
             rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point, rIntegrationInfo);
 
         if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
-        // assignment operator for quadrature point geometry with Dimension being 0.
-        rResultGeometries(0) = Kratos::make_shared<
-            QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
-                std::move(rQuadraturePointGeometries(0)->Points()),
-                rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
-                this);
+
+        if (mpBackgroundGeometry->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface ||
+            mpBackgroundGeometry->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface)
+        {
+            KRATOS_WATCH(*mpBackgroundGeometry.get())
+
+            array_1d<double, 3> local_tangents;
+            rQuadraturePointGeometries(0)->Calculate(LOCAL_TANGENT, local_tangents);
+            // assignment operator for quadrature point geometry with Dimension being 0.
+            rResultGeometries(0) = Kratos::make_shared<
+                QuadraturePointCurveOnSurfaceGeometry<PointType, TWorkingSpaceDimension, 0>>(
+                    std::move(rQuadraturePointGeometries(0)->Points()),
+                    rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
+                    local_tangents[0],
+                    local_tangents[1],
+                    this);
+        }
+        else {
+            // assignment operator for quadrature point geometry with Dimension being 0.
+            rResultGeometries(0) = Kratos::make_shared<
+                QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
+                    std::move(rQuadraturePointGeometries(0)->Points()),
+                    rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
+                    this);
+        }
     }
 
     ///@}

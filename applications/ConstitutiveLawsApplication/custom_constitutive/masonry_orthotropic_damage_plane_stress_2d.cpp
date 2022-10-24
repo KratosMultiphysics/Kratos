@@ -912,7 +912,7 @@ namespace Kratos
             constitutive_matrix.resize(VoigtSize, VoigtSize);
 
         Matrix DamageMatrix(IdentityMatrix(3, 3));
-        noalias(DamageMatrix) -= mCurrentDamageTension * data.ProjectionTensorTension;
+        noalias(DamageMatrix) -= mDamageTension * data.ProjectionTensorTension;
         noalias(DamageMatrix) -= mDamageCompression * data.ProjectionTensorCompression;
 
         noalias(constitutive_matrix) = prod(DamageMatrix, rElasticityMatrix);

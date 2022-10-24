@@ -358,13 +358,16 @@ namespace Kratos
         ModelPart::ConditionsContainerType new_condition_list;
 
         KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
-            << "Creating conditions of type " << rConditionName
+            << "Creating " << rGeometriesEnd - rGeometriesBegin << " conditions of type " << rConditionName
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_condition_list.push_back(
                 rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+            KRATOS_INFO_IF("CreateConditions", mEchoLevel > 6)
+                << "Geometry " << (**it).Id() << " contains " << (*it)->size()
+                << " nodes." << std::endl;
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 rModelPart.AddNode((*it)->pGetPoint(i));
             }
@@ -372,6 +375,10 @@ namespace Kratos
         }
 
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+        KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+            << "Creating conditions of type " << rConditionName
+            << " in " << rModelPart.Name() << "-SubModelPart is finished." << std::endl;
     }
 
     /// Reads in a json formatted file and returns its KratosParameters instance.

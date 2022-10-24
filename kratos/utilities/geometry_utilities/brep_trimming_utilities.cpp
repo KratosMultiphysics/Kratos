@@ -96,7 +96,7 @@ namespace Kratos
                     if (solution.size() == 0) {
                         continue;
                     }
-                    else if (std::abs(clip_area- span_area) < 1e-5) {
+                    else if (std::abs(clip_area- span_area) < 1e-4) {
                         const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
                         IndexType initial_integration_size = rIntegrationPoints.size();

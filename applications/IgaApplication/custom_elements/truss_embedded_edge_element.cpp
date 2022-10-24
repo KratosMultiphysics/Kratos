@@ -452,10 +452,6 @@ namespace Kratos
         }
         else
         {
-            // Verify that the constitutive law has the correct dimension
-            KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-                << "THICKNESS not provided for element " << this->Id() << std::endl;
-
             // Check strain size
             KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
                 << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "

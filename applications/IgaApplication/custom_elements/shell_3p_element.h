@@ -310,6 +310,10 @@ public:
         Vector& rValues,
         int Step) const override;
 
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief Calculate a double Variable on the Element Constitutive Law
     * @param rVariable The variable we want to get
@@ -461,11 +465,21 @@ private:
         const Matrix& D,
         const double IntegrationWeight) const;
 
+    inline void CalculateAndAddSelfWeight(
+        VectorType& rRightHandSideVector,
+        const IndexType IntegrationPointIndex,
+        const double IntegrationWeight) const;
+
     inline void CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
         const double IntegrationWeight) const;
+
+    void CalculateGreenLagrangeStrain(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rStrainCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const;
 
     // Calculation of the PK2 stress
     void CalculatePK2Stress(

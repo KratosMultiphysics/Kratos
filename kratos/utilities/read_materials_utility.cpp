@@ -493,7 +493,7 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
     const std::size_t num_props = model_part_names.size();
 
     // Check not repeated names
-    CheckModelPartIsNotRepeated(model_part_names);
+    //CheckModelPartIsNotRepeated(model_part_names);
 
     // checking if a parent also has a materials definition, i.e. if the assignment is unique
     std::string parent_model_part_name;

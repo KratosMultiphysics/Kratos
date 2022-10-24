@@ -103,6 +103,26 @@ namespace Kratos
     ///@{
 
     void Shell3pElement::CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const SizeType integration_points_number = GetGeometry().IntegrationPointsNumber();
+
+        if (rOutput.size() != integration_points_number)
+        {
+            rOutput.resize(integration_points_number);
+        }
+
+        if (rVariable == MATERIAL_ID) {
+            for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+                rOutput[point_number] = GetProperties().Id();
+            }
+        }
+    }
+
+    void Shell3pElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
@@ -271,6 +291,15 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
+        if (rVariable == DISPLACEMENT) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = ZeroVector(3);
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    rOutput[point_number] += r_geometry[i].FastGetSolutionStepValue(rVariable) * r_N(point_number, i);
+                }
+            }
+        }
         if (rVariable == COORDINATES) {
             const auto& r_N = r_geometry.ShapeFunctionsValues();
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -287,6 +316,16 @@ namespace Kratos
                 for (IndexType i = 0; i < r_geometry.size(); ++i) {
                     rOutput[point_number] += r_geometry[i].GetInitialPosition() * r_N(point_number, i);
                 }
+            }
+        }
+        else if (rVariable == GREEN_LAGRANGE_STRAIN)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+                array_1d<double, 3> membrane_green_lagrange_strain_car;
+
+                CalculateGreenLagrangeStrain(point_number, membrane_green_lagrange_strain_car, rCurrentProcessInfo);
+                rOutput[point_number] = membrane_green_lagrange_strain_car;
             }
         }
         else if (rVariable==PK2_STRESS)
@@ -449,6 +488,13 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
+                if (GetProperties().Has(ADD_SELF_WEIGHT))
+                {
+                    if (GetProperties()[ADD_SELF_WEIGHT] == true)
+                    {
+                        CalculateAndAddSelfWeight(rRightHandSideVector, point_number, integration_weight);
+                    }
+                }
             }
         }
         KRATOS_CATCH("");
@@ -555,6 +601,29 @@ namespace Kratos
             }
         }
         KRATOS_CATCH("")
+    }
+
+
+    void Shell3pElement::CalculateAndAddSelfWeight(
+        VectorType& rRightHandSideVector,
+        const IndexType IntegrationPointIndex,
+        const double IntegrationWeight) const
+    {
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        // Shape function values for all integration points
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        const array_1d<double, 3> dead_load = GetProperties()[GRAVITY] * GetProperties()[DENSITY];
+        for (IndexType i = 0; i < number_of_nodes; i++)
+        {
+            IndexType index = 3 * i;
+            rRightHandSideVector[index]     += dead_load[0] * r_N(IntegrationPointIndex, i) * IntegrationWeight;
+            rRightHandSideVector[index + 1] += dead_load[1] * r_N(IntegrationPointIndex, i) * IntegrationWeight;
+            rRightHandSideVector[index + 2] += dead_load[2] * r_N(IntegrationPointIndex, i) * IntegrationWeight;
+        }
     }
 
     ///@}
@@ -995,6 +1064,35 @@ namespace Kratos
     ///@name Stress recovery
     ///@{
     
+    void Shell3pElement::CalculateGreenLagrangeStrain(
+        const IndexType IntegrationPointIndex,
+        array_1d<double, 3>& rStrainCartesian,
+        const ProcessInfo& rCurrentProcessInfo) const
+    {
+        // Compute Kinematics and Metric
+        KinematicVariables kinematic_variables(
+            GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(
+            IntegrationPointIndex,
+            kinematic_variables);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        ConstitutiveVariables constitutive_variables_curvature(3);
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            kinematic_variables,
+            constitutive_variables_membrane,
+            constitutive_variables_curvature,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
+
+        rStrainCartesian = constitutive_variables_membrane.StrainVector;
+    }
+
     void Shell3pElement::CalculatePK2Stress(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rPK2MembraneStressCartesian,

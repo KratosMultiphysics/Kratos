@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
+//  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger
 //                   Riccardo Rossi
 //
@@ -17,11 +17,17 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/coupling_penalty_contact_condition.h"
-
+#include "custom_conditions/connector_penalty_condition.h"
+#include "utilities/math_utils.h"
 namespace Kratos
 {
-    void CouplingPenaltyContactCondition::CalculateAll(
+    void ConnectorPenaltyCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        mInitialLocation1 = GetGeometry().GetGeometryPart(0).Center();
+        mInitialLocation2 = GetGeometry().GetGeometryPart(1).Center();
+    }
+
+    void ConnectorPenaltyCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -29,7 +35,11 @@ namespace Kratos
         const bool CalculateResidualVectorFlag)
     {
         KRATOS_TRY
-        const double penalty = GetProperties()[PENALTY_FACTOR];
+        const double penalty_normal = GetProperties()[PENALTY_FACTOR_NORMAL];
+        const double penalty_tangent_1 = GetProperties()[PENALTY_FACTOR_TANGENT_1];
+        const double penalty_tangent_2 = GetProperties()[PENALTY_FACTOR_TANGENT_2];
+        const double penalty_moment_1 = GetProperties()[PENALTY_FACTOR_MOMENT_1];
+        const double penalty_moment_2 = GetProperties()[PENALTY_FACTOR_MOMENT_2];
 
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
@@ -74,92 +84,212 @@ namespace Kratos
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
             Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
 
+            //array_1d<double, 3> normal_tilde = r_geometry_master.Normal(point_number);
+            //array_1d<double, 3> normal = normal_tilde/norm_2(normal_tilde);
+
+            //KRATOS_WATCH(GetGeometry().GetGeometryPart(0).Center())
+            //KRATOS_WATCH(GetGeometry().GetGeometryPart(1).Center())
+
+            //array_1d<double, 3> local_tangents;
+            //GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangents);
+            //Matrix J;
+            //GetGeometry().GetGeometryPart(0).Jacobian(J, 0);
+            //array_1d<double, 3> a_1 = column(J, 0);
+            //array_1d<double, 3> a_2 = column(J, 1);
+
+            //KRATOS_WATCH(J)
+
+            //array_1d<double, 3> tangent_1_tilde = a_2 * local_tangents[0] + -a_1 * local_tangents[1];
+            //array_1d<double, 3> tangent_2_tilde = a_1 * local_tangents[0] + a_2 * local_tangents[1];
+            //array_1d<double, 3> tangent_1 = tangent_1_tilde /norm_2(tangent_1_tilde);
+            //array_1d<double, 3> tangent_2 = tangent_2_tilde /norm_2(tangent_2_tilde);
+
+            //array_1d<double, 3> normal = MathUtils<double>::CrossProduct(tangent_1, tangent_2);
+
+            //KRATOS_WATCH(local_tangents)
+            //    KRATOS_WATCH(tangent_1)
+            //    KRATOS_WATCH(tangent_2)
+            //    KRATOS_WATCH(normal_tilde)
+
+            //Matrix Q = ZeroMatrix(3, 3);
+            //row(Q, 0) = tangent_1;
+            //row(Q, 1) = tangent_2;
+            //row(Q, 2) = normal;
+
+            //array_1d<double, 3> penalty_vector {penalty_tangent_1, penalty_tangent_2, penalty_normal};
+            ////penalty_vector += tangent_1 * penalty_tangent_1 + tangent_2 * penalty_tangent_2 + normal * penalty_normal;
+            //Matrix QT = trans(Q);
+            //KRATOS_WATCH(penalty_vector)
+            //KRATOS_WATCH(Q)
+            //KRATOS_WATCH(prod(Q, QT))
+            //    array_1d<double, 3> p_QT = prod(penalty_vector, QT);
+            //    array_1d<double, 3> p_Q = prod(Q, penalty_vector);
+            //    KRATOS_WATCH(prod(penalty_vector, QT))
+            //        KRATOS_WATCH(prod(Q, penalty_vector))
+            //        KRATOS_WATCH(prod(Q, p_QT))
+            //        KRATOS_WATCH(prod(p_Q, QT))
+            //        array_1d<double, 3> transformed_stiffness =  p_Q;// prod(Q, p_QT);
+
+            //KRATOS_WATCH(transformed_stiffness)
+
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
+            //for (IndexType i = 0; i < number_of_nodes_master; ++i)
+            //{
+            //    IndexType index = 3 * i;
+            //    H(0, index) = N_master(point_number, i) * normal[0] * penalty_normal;
+            //    H(1, index + 1) = N_master(point_number, i) * normal[1] * penalty_normal;
+            //    H(2, index + 2) = N_master(point_number, i) * normal[2] * penalty_normal;
+            //}
+
+            //for (IndexType i = 0; i < number_of_nodes_slave; ++i)
+            //{
+            //    IndexType index = 3 * (i + number_of_nodes_master);
+            //    H(0, index) = -N_slave(point_number, i) * normal[0] * penalty_normal;
+            //    H(1, index + 1) = -N_slave(point_number, i) * normal[1] * penalty_normal;
+            //    H(2, index + 2) = -N_slave(point_number, i) * normal[2] * penalty_normal;
+            //}
+
+            //for (IndexType i = 0; i < number_of_nodes_master; ++i)
+            //{
+            //    IndexType index = 3 * i;
+            //    H(0, index)     += N_master(point_number, i)  * penalty_tangent_1;
+            //    H(1, index + 1) += N_master(point_number, i) * penalty_tangent_1;
+            //    H(2, index + 2) += N_master(point_number, i)* penalty_tangent_1;
+            //}
             for (IndexType i = 0; i < number_of_nodes_master; ++i)
             {
                 IndexType index = 3 * i;
-                if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = N_master(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = N_master(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = N_master(point_number, i);
+                H(0, index) += N_master(point_number, i);
+                H(1, index + 1) += N_master(point_number, i);
+                H(2, index + 2) += N_master(point_number, i);
             }
-
             for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
                 IndexType index = 3 * (i + number_of_nodes_master);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = -N_slave(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = -N_slave(point_number, i);
-                if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = -N_slave(point_number, i);
+                H(0, index) +=  -N_slave(point_number, i);
+                H(1, index + 1) += -N_slave(point_number, i);
+                H(2, index + 2) += -N_slave(point_number, i);
             }
+
+            //for (IndexType i = 0; i < number_of_nodes_master; ++i)
+            //{
+            //    IndexType index = 3 * i;
+            //    H(0, index)     += N_master(point_number, i) * tangent_2[0] * penalty_tangent_2;
+            //    H(1, index + 1) += N_master(point_number, i) * tangent_2[1] * penalty_tangent_2;
+            //    H(2, index + 2) += N_master(point_number, i) * tangent_2[2] * penalty_tangent_2;
+            //}
+
+            //for (IndexType i = 0; i < number_of_nodes_slave; ++i)
+            //{
+            //    IndexType index = 3 * (i + number_of_nodes_master);
+            //    H(0, index)     += -N_slave(point_number, i) * tangent_2[0] * penalty_tangent_2;
+            //    H(1, index + 1) += -N_slave(point_number, i) * tangent_2[1] * penalty_tangent_2;
+            //    H(2, index + 2) += -N_slave(point_number, i) * tangent_2[2] * penalty_tangent_2;
+            //}
 
             // Differential area
-            const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
+            const double integration = integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
-            // Rotation coupling
-            if (Is(IgaFlags::FIX_ROTATION_X))
-            {
-                Vector phi_r = ZeroVector(mat_size);
-                Matrix phi_rs = ZeroMatrix(mat_size, mat_size);
-                array_1d<double, 2> diff_phi;
+            //// Rotation coupling
+            //if (Is(IgaFlags::FIX_ROTATION_X))
+            //{
+            //    Vector phi_r = ZeroVector(mat_size);
+            //    Matrix phi_rs = ZeroMatrix(mat_size, mat_size);
+            //    array_1d<double, 2> diff_phi;
 
-                CalculateRotationalShapeFunctions(point_number, phi_r, phi_rs, diff_phi);
+            //    CalculateRotationalShapeFunctions(point_number, phi_r, phi_rs, diff_phi);
 
-                if (CalculateStiffnessMatrixFlag) {
-                    for (IndexType i = 0; i < mat_size; ++i)
-                    {
-                        for (IndexType j = 0; j < mat_size; ++j)
-                        {
-                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_integration;
-                        }
-                    }
-                }
+            //    if (CalculateStiffnessMatrixFlag) {
+            //        for (IndexType i = 0; i < mat_size; ++i)
+            //        {
+            //            for (IndexType j = 0; j < mat_size; ++j)
+            //            {
+            //                rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_moment_1 * integration;
+            //            }
+            //        }
+            //    }
 
-                if (CalculateResidualVectorFlag) {
-                    for (IndexType i = 0; i < mat_size; ++i)
-                    {
-                        rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_integration;
-                    }
-                }
-            }
+            //    if (CalculateResidualVectorFlag) {
+            //        for (IndexType i = 0; i < mat_size; ++i)
+            //        {
+            //            rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_moment_1 * integration;
+            //        }
+            //    }
+            //}
 
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H) * penalty_integration;
+                noalias(rLeftHandSideMatrix) += prod(trans(H), H) * integration * penalty_tangent_1;
             }
             if (CalculateResidualVectorFlag) {
 
                 Vector u(mat_size);
+                //for (IndexType i = 0; i < number_of_nodes_master; ++i)
+                //{
+                //    const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
+                //    IndexType index = 3 * i;
+                //    u[index] = disp[0];
+                //    u[index + 1] = disp[1];
+                //    u[index + 2] = disp[2];
+                //}
+                //for (IndexType i = 0; i < number_of_nodes_slave; ++i)
+                //{
+                //    const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
+                //    IndexType index = 3 * (i + number_of_nodes_master);
+                //    u[index] = disp[0];
+                //    u[index + 1] = disp[1];
+                //    u[index + 2] = disp[2];
+                //}
+
+
+
                 for (IndexType i = 0; i < number_of_nodes_master; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
+                    //array_1d<double, 3> transformed_disp = prod(Q, disp);
+                    //KRATOS_WATCH(transformed_disp)
                     IndexType index = 3 * i;
-                    u[index]     = disp[0];
+                    u[index] = disp[0];// disp[0] * tangent_1[0] + disp[1] * tangent_1[1] + disp[2] * tangent_1[2];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
                 for (IndexType i = 0; i < number_of_nodes_slave; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
+                    //array_1d<double, 3> transformed_disp = prod(Q, disp);
                     IndexType index = 3 * (i + number_of_nodes_master);
-                    u[index]     = disp[0];
+                    u[index] = disp[0];// disp[0] * tangent_1[0] + disp[1] * tangent_1[1] + disp[2] * tangent_1[2];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
 
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * penalty_integration;
+
+                //for (IndexType i = 0; i < number_of_nodes_master; ++i)
+                //{
+                //    const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
+                //    IndexType index = 3 * i;
+                //    u[index] = disp[0];//* tangent_2[0];
+                //    u[index + 1] = disp[1];// * tangent_2[1];
+                //    u[index + 2] = disp[2];// * tangent_2[2];
+                //}
+                //for (IndexType i = 0; i < number_of_nodes_slave; ++i)
+                //{
+                //    const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
+                //    IndexType index = 3 * (i + number_of_nodes_master);
+                //    u[index] = disp[0];// * tangent_2[0];
+                //    u[index + 1] = disp[1];// * tangent_2[1];
+                //    u[index + 2] = disp[2];// * tangent_2[2];
+                //}
+
+                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * integration * penalty_tangent_1;
             }
         }
 
         KRATOS_CATCH("")
     }
 
-    void CouplingPenaltyContactCondition::DeterminantOfJacobianInitial(
+    void ConnectorPenaltyCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian)
     {
@@ -198,7 +328,7 @@ namespace Kratos
         }
     }
 
-    void CouplingPenaltyContactCondition::CalculateRotationalShapeFunctions(
+    void ConnectorPenaltyCondition::CalculateRotationalShapeFunctions(
         IndexType IntegrationPointIndex,
         Vector &phi_r, 
         Matrix &phi_rs, 
@@ -294,7 +424,7 @@ namespace Kratos
         }
     } 
 
-    void CouplingPenaltyContactCondition::CalculateRotation(
+    void ConnectorPenaltyCondition::CalculateRotation(
         IndexType IntegrationPointIndex,
         const Matrix &rShapeFunctionGradientValues,
         Vector &phi_r,
@@ -478,14 +608,76 @@ namespace Kratos
         KRATOS_CATCH("")
     }     
 
-    int CouplingPenaltyContactCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    void ConnectorPenaltyCondition::CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
     {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
-            << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
+
+        array_1d<double, 3> CurrentLocation1 = GetGeometry().GetGeometryPart(0).Center();
+        array_1d<double, 3> CurrentLocation2 = GetGeometry().GetGeometryPart(1).Center();
+
+        array_1d<double, 3> InitialDifference1_2 = mInitialLocation1 - mInitialLocation2;
+        array_1d<double, 3> CurrentDifference1_2 = CurrentLocation1 - CurrentLocation2;
+
+        array_1d<double, 3> local_tangents;
+        GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangents);
+        Matrix J;
+        GetGeometry().GetGeometryPart(0).Jacobian(J, 0);
+
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
+
+        array_1d<double, 3> tangent_2 = a_1 * local_tangents[0] + a_2 * local_tangents[1];
+        array_1d<double, 3> tangent_1 = a_2 * local_tangents[0] + a_1 * local_tangents[1];
+        array_1d<double, 3> surface_normal = ZeroVector(3);
+        MathUtils<double>::UnitCrossProduct(surface_normal, tangent_1, tangent_2);
+
+        if (rVariable == PENALTY_FACTOR_NORMAL)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                const double& penalty_normal = GetProperties()[PENALTY_FACTOR_NORMAL];
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_normal = inner_prod(pertubation, surface_normal) / norm_2_square(surface_normal);
+                rOutput[point_number] = pertubation_normal * penalty_normal;
+            }
+        }
+        if (rVariable == PENALTY_FACTOR_TANGENT_1)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                const double& penalty_tangent_1 = GetProperties()[PENALTY_FACTOR_TANGENT_1];
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_tangent_1 = inner_prod(pertubation, tangent_1) / norm_2_square(tangent_1);
+                rOutput[point_number] = pertubation_tangent_1 * penalty_tangent_1;
+            }
+        }
+        else if (rVariable == PENALTY_FACTOR_TANGENT_2)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                const double& penalty_tangent_2 = GetProperties()[PENALTY_FACTOR_TANGENT_2];
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_tangent_2 = inner_prod(pertubation, tangent_2) / norm_2_square(tangent_2);
+                rOutput[point_number] = pertubation_tangent_2 * penalty_tangent_2;
+            }
+        }
+    }
+
+    int ConnectorPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        //KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
+        //    << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
         return 0;
     }
 
-    void CouplingPenaltyContactCondition::EquationIdVector(
+    void ConnectorPenaltyCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -519,7 +711,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void CouplingPenaltyContactCondition::GetDofList(
+    void ConnectorPenaltyCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const
     {

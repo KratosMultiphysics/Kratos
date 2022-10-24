@@ -12,8 +12,8 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_COUPLING_PENALTY_CONTACT_CONDITION_H_INCLUDED )
-#define  KRATOS_COUPLING_PENALTY_CONTACT_CONDITION_H_INCLUDED
+#if !defined(KRATOS_CONNECTOR_PENALTY_CONDITION_H_INCLUDED )
+#define  KRATOS_CONNECTOR_PENALTY_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -43,15 +43,15 @@ namespace Kratos
 *   The continuities can be enabled or disabled with the
 *   FIX_DISPLACEMENT_{dir} flags.
 */
-class CouplingPenaltyContactCondition
+class ConnectorPenaltyCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of CouplingPenaltyContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION(CouplingPenaltyContactCondition);
+    /// Counted pointer of ConnectorPenaltyCondition
+    KRATOS_CLASS_POINTER_DEFINITION(ConnectorPenaltyCondition);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -62,14 +62,14 @@ public:
     ///@{
 
     /// Constructor with Id and geometry
-    CouplingPenaltyContactCondition(
+    ConnectorPenaltyCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    CouplingPenaltyContactCondition(
+    ConnectorPenaltyCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -77,12 +77,12 @@ public:
     {};
 
     /// Default constructor
-    CouplingPenaltyContactCondition()
+    ConnectorPenaltyCondition()
         : Condition()
     {};
 
     /// Destructor.
-    virtual ~CouplingPenaltyContactCondition() = default;
+    virtual ~ConnectorPenaltyCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -95,7 +95,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<CouplingPenaltyContactCondition>(
+        return Kratos::make_intrusive<ConnectorPenaltyCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -106,13 +106,15 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< CouplingPenaltyContactCondition >(
+        return Kratos::make_intrusive< ConnectorPenaltyCondition >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     ///@}
     ///@name Operations
     ///@{
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This is called during the assembling process in order
@@ -196,6 +198,11 @@ public:
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian);
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Check
     ///@{
@@ -211,14 +218,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"CouplingPenaltyContactCondition\" #" << Id();
+        buffer << "\"ConnectorPenaltyCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"CouplingPenaltyContactCondition\" #" << Id();
+        rOStream << "\"ConnectorPenaltyCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -229,6 +236,10 @@ public:
     ///@}
 
 private:
+
+    array_1d<double, 3> mInitialLocation1;
+    array_1d<double, 3> mInitialLocation2;
+
     // Compute rotational shape functions
     void CalculateRotationalShapeFunctions(
         IndexType IntegrationPointIndex,
@@ -264,7 +275,7 @@ private:
 
     ///@}
 
-}; // Class CouplingPenaltyContactCondition
+}; // Class ConnectorPenaltyCondition
 
 }  // namespace Kratos.
 

@@ -352,6 +352,7 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E  = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
+    const double G = r_material_properties[SHEAR_MODULUS];
 
     this->CheckClearElasticMatrix(rConstitutiveMatrix);
 
@@ -369,9 +370,9 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
     rConstitutiveMatrix( 2, 0 ) = c3;
     rConstitutiveMatrix( 2, 1 ) = c3;
     rConstitutiveMatrix( 2, 2 ) = c2;
-    rConstitutiveMatrix( 3, 3 ) = c4;
-    rConstitutiveMatrix( 4, 4 ) = c4;
-    rConstitutiveMatrix( 5, 5 ) = c4;
+    rConstitutiveMatrix( 3, 3 ) = G;
+    rConstitutiveMatrix( 4, 4 ) = G;
+    rConstitutiveMatrix( 5, 5 ) = G;
 }
 
 /***********************************************************************************/

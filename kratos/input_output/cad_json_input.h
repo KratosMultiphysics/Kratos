@@ -600,9 +600,9 @@ private:
         local_coordinates[1] = coordinates_vector[1];
         local_coordinates[2] = coordinates_vector[2];
 
-        if (pBackgroundGeometry->LocalSpaceDimension() == 2)
+        if (pBackgroundGeometry->Dimension() == 2)
             return Kratos::make_shared<PointOnGeometryOnSurfaceType>(local_coordinates, pBackgroundGeometry);
-        else if (pBackgroundGeometry->LocalSpaceDimension() == 1)
+        else if (pBackgroundGeometry->Dimension() == 1)
             return Kratos::make_shared<PointOnGeometryOnCurveType>(local_coordinates, pBackgroundGeometry);
         else {
             KRATOS_ERROR << "Local space dimension of: " << pBackgroundGeometry->LocalSpaceDimension()

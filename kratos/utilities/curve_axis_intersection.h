@@ -43,7 +43,7 @@ namespace Kratos
             double Parameter1,
             double Parameter2,
             IndexType AxisDirectionIndex,
-            double Tolerance = 1e-6)
+            double Tolerance)
         {
             double parameter_smaller, parameter_bigger;
             CoordinatesArrayType point_1, point_2;
@@ -180,35 +180,45 @@ namespace Kratos
             GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[0])[0], ascending_1);
             GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[0])[1], ascending_2);
 
+            double projection_tolerance = Tolerance / 1000;
+
             // iterate through polygon and check for knot intersections
             for (IndexType i = 1; i < polygon.size(); ++i) {
-                if (std::get<1>(polygon[i])[0] < min_1 - Tolerance) {
+                if (std::get<1>(polygon[i])[0] < min_1 - projection_tolerance) {
                     double intersection_parameter = BisectionToAxis(
-                        rGeometry, min_1,
-                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
-                    rIntersectionParameters.push_back(intersection_parameter);
+                        rGeometry, min_1, std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, projection_tolerance);
+                    if (intersection_parameter > std::min(Start, End) && intersection_parameter < std::max(Start, End))
+                    {
+                        rIntersectionParameters.push_back(intersection_parameter);
+                    }
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0], ascending_1);
                 }
-                else if (std::get<1>(polygon[i])[0] > max_1 + Tolerance) {
+                else if (std::get<1>(polygon[i])[0] > max_1 + projection_tolerance) {
                     double intersection_parameter = BisectionToAxis(
-                        rGeometry, max_1,
-                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, Tolerance);
-                    rIntersectionParameters.push_back(intersection_parameter);
+                        rGeometry, max_1, std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 0, projection_tolerance);
+                    if (intersection_parameter > std::min(Start, End) && intersection_parameter < std::max(Start, End))
+                    {
+                        rIntersectionParameters.push_back(intersection_parameter);
+                    }
                     GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[i])[0], ascending_1);
                 }
 
-                if (std::get<1>(polygon[i])[1] < min_2 - Tolerance) {
+                if (std::get<1>(polygon[i])[1] < min_2 - projection_tolerance) {
                     double intersection_parameter = BisectionToAxis(
-                        rGeometry, min_2,
-                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
-                    rIntersectionParameters.push_back(intersection_parameter);
+                        rGeometry, min_2, std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, projection_tolerance);
+                    if (intersection_parameter > std::min(Start, End) && intersection_parameter < std::max(Start, End))
+                    {
+                        rIntersectionParameters.push_back(intersection_parameter);
+                    }
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1], ascending_2);
                 }
-                else if (std::get<1>(polygon[i])[1] > max_2 + Tolerance) {
+                else if (std::get<1>(polygon[i])[1] > max_2 + projection_tolerance) {
                     double intersection_parameter = BisectionToAxis(
-                        rGeometry, max_2,
-                        std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, Tolerance);
-                    rIntersectionParameters.push_back(intersection_parameter);
+                        rGeometry, max_2, std::get<0>(polygon[i - 1]), std::get<0>(polygon[i]), 1, projection_tolerance);
+                    if (intersection_parameter > std::min(Start, End) && intersection_parameter < std::max(Start, End))
+                    {
+                        rIntersectionParameters.push_back(intersection_parameter);
+                    }
                     GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[i])[1], ascending_2);
                 }
             }
