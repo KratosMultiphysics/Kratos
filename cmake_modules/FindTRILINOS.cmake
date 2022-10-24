@@ -21,16 +21,6 @@ IF (Trilinos_FOUND)
         MESSAGE(FATAL_ERROR "Teuchos package is required by TrilinosApplication")
     ENDIF (${package_index} EQUAL -1)
 
-    LIST(FIND Trilinos_PACKAGE_LIST Kokkos package_index)
-    IF (${package_index} EQUAL -1)
-        MESSAGE(FATAL_ERROR "Kokkos package is required by TrilinosApplication")
-    ENDIF (${package_index} EQUAL -1)
-
-    LIST(FIND Trilinos_PACKAGE_LIST MueLu package_index)
-    IF (${package_index} EQUAL -1)
-        MESSAGE(FATAL_ERROR "MueLu package is required by TrilinosApplication")
-    ENDIF (${package_index} EQUAL -1)
-
     SET(TRILINOS_INCLUDE_DIR ${Trilinos_INCLUDE_DIRS})
 	SET(TRILINOS_LIBRARIES "")
 	FOREACH(trilinos_lib ${Trilinos_LIBRARIES})
