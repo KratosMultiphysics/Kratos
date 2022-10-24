@@ -121,23 +121,23 @@ namespace Kratos
     SphericParticle::Initialize(r_process_info);
 
     // Set pointers to to auxiliary objects
-    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = r_properties[THERMAL_INTEGRATION_SCHEME_POINTER];
-    NumericalIntegrationMethod::Pointer&  numerical_integration_method = r_properties[NUMERICAL_INTEGRATION_METHOD_POINTER];
     HeatExchangeMechanism::Pointer&       direct_conduction_model      = r_properties[DIRECT_CONDUCTION_MODEL_POINTER];
     HeatExchangeMechanism::Pointer&       indirect_conduction_model    = r_properties[INDIRECT_CONDUCTION_MODEL_POINTER];
     HeatExchangeMechanism::Pointer&       convection_model             = r_properties[CONVECTION_MODEL_POINTER];
     HeatExchangeMechanism::Pointer&       radiation_model              = r_properties[RADIATION_MODEL_POINTER];
     HeatGenerationMechanism::Pointer&     generation_model             = r_properties[GENERATION_MODEL_POINTER];
     RealContactModel::Pointer&            real_contact_model           = r_properties[REAL_CONTACT_MODEL_POINTER];
+    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = r_properties[THERMAL_INTEGRATION_SCHEME_POINTER];
+    NumericalIntegrationMethod::Pointer&  numerical_integration_method = r_properties[NUMERICAL_INTEGRATION_METHOD_POINTER];
 
-    SetThermalIntegrationScheme(thermal_integration_scheme);
-    SetNumericalIntegrationMethod(numerical_integration_method);
     SetDirectConductionModel(direct_conduction_model);
     SetIndirectConductionModel(indirect_conduction_model);
     SetConvectionModel(convection_model);
     SetRadiationModel(radiation_model);
     SetGenerationModel(generation_model);
     SetRealContactModel(real_contact_model);
+    SetThermalIntegrationScheme(thermal_integration_scheme);
+    SetNumericalIntegrationMethod(numerical_integration_method);
 
     // Set flags
     mHasMotion = r_process_info[MOTION_OPTION];
@@ -982,16 +982,6 @@ namespace Kratos
   // Get/Set methods
 
   //------------------------------------------------------------------------------------------------------------
-  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme(void) {
-    return *mpThermalIntegrationScheme;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  NumericalIntegrationMethod& ThermalSphericParticle::GetNumericalIntegrationMethod(void) {
-    return *mpNumericalIntegrationMethod;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
   HeatExchangeMechanism& ThermalSphericParticle::GetDirectConductionModel(void) {
     return *mpDirectConductionModel;
   }
@@ -1019,6 +1009,16 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   RealContactModel& ThermalSphericParticle::GetRealContactModel(void) {
     return *mpRealContactModel;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme(void) {
+    return *mpThermalIntegrationScheme;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  NumericalIntegrationMethod& ThermalSphericParticle::GetNumericalIntegrationMethod(void) {
+    return *mpNumericalIntegrationMethod;
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -1421,16 +1421,6 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetThermalIntegrationScheme(ThermalDEMIntegrationScheme::Pointer& scheme) {
-    mpThermalIntegrationScheme = scheme->CloneRaw();
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetNumericalIntegrationMethod(NumericalIntegrationMethod::Pointer& method) {
-    mpNumericalIntegrationMethod = method->CloneRaw();
-  }
-
-  //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetDirectConductionModel(HeatExchangeMechanism::Pointer& model) {
     mpDirectConductionModel = model->CloneRaw();
   }
@@ -1458,6 +1448,16 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetRealContactModel(RealContactModel::Pointer& model) {
     mpRealContactModel = model->CloneRaw();
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetThermalIntegrationScheme(ThermalDEMIntegrationScheme::Pointer& scheme) {
+    mpThermalIntegrationScheme = scheme->CloneRaw();
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetNumericalIntegrationMethod(NumericalIntegrationMethod::Pointer& method) {
+    mpNumericalIntegrationMethod = method->CloneRaw();
   }
 
   //------------------------------------------------------------------------------------------------------------
