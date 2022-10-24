@@ -167,6 +167,8 @@ private:
 
     bool mConformingBasis;
 
+    const Variable<double>* mpLevelSetVariable;
+
     ExtensionOperator mExtensionOperator;
 
     std::size_t mMLSExtensionOperatorOrder;

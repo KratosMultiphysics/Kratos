@@ -37,17 +37,20 @@ namespace
 
     /**
      * @brief Check if current geometry is split
-     * This method checks if current geometry is split from the nodal historical DISTANCE values
+     * This method checks if current geometry is split from the nodal historical level set values
      * @param rGeometry Geometry to be checked
+     * @param rLevelSetVariable Variable storing the level set function
      * @return true If split
      * @return false If not split
      */
-    bool IsSplit(const GeometryType& rGeometry)
+    bool IsSplit(
+        const GeometryType& rGeometry,
+        const Variable<double>& rLevelSetVariable)
     {
         std::size_t n_neg = 0;
         std::size_t n_pos = 0;
         for (const auto& r_node : rGeometry) {
-            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
+            if (r_node.FastGetSolutionStepValue(rLevelSetVariable) < 0.0) {
                 n_neg++;
             } else {
                 n_pos++;
@@ -58,16 +61,19 @@ namespace
 
     /**
      * @brief Check if current geometry is in negative side
-     * This method checks if current geometry has negative DISTANCE value in all the nodes
+     * This method checks if current geometry has negative level set value in all the nodes
      * @param rGeometry Geometry to be checked
+     * @param rLevelSetVariable Variable storing the level set function
      * @return true If all nodes are negative
      * @return false If there is one or more positive nodes
      */
-    bool IsNegative(const GeometryType& rGeometry)
+    bool IsNegative(
+        const GeometryType& rGeometry,
+        const Variable<double>& rLevelSetVariable)
     {
         std::size_t n_neg = 0;
         for (const auto& r_node : rGeometry) {
-            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
+            if (r_node.FastGetSolutionStepValue(rLevelSetVariable) < 0.0) {
                 n_neg++;
             }
         }
@@ -76,12 +82,14 @@ namespace
 
     /**
      * @brief Set the nodal distances vector
-     * This method saves the nodal historical values of DISTANCE in the provided vector
+     * This method saves the nodal historical values of level set in the provided vector
      * @param rGeometry Geometry from which the nodal values are retrieved
+     * @param rLevelSetVariable Variable storing the level set function
      * @param rNodalDistances Vector container to store the distance values
      */
     void SetNodalDistancesVector(
         const GeometryType& rGeometry,
+        const Variable<double>& rLevelSetVariable,
         Vector& rNodalDistances)
     {
         const std::size_t n_nodes = rGeometry.PointsNumber();
@@ -90,7 +98,7 @@ namespace
         }
         std::size_t i = 0;
         for (const auto& r_node : rGeometry) {
-            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(DISTANCE);
+            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(rLevelSetVariable);
         }
     }
 
@@ -133,6 +141,14 @@ namespace
             KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInferfaceProcess", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
         } else {
             mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
+        }
+
+        // Save a pointer to variable storing the level set
+        const std::string levelset_variable_name = ThisParameters["levelset_variable_name"].GetString();
+        if (KratosComponents<Variable<double>>::Has(levelset_variable_name)) {
+            mpLevelSetVariable = &KratosComponents<Variable<double>>::Get(levelset_variable_name);
+        } else {
+            KRATOS_ERROR << "Provided 'levelset_variable_name' " << levelset_variable_name << " is not registered." << std::endl;
         }
 
         // Set the order of the MLS extension operator used in the MLS shape functions utility
@@ -186,7 +202,8 @@ namespace
             "sbm_interface_condition_name" : "",
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
-            "mls_extension_operator_order" : 1
+            "mls_extension_operator_order" : 1,
+            "levelset_variable_name" : "DISTANCE"
         })" );
 
         return default_parameters;
@@ -226,7 +243,7 @@ namespace
 
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Find the intersected element negative nodes
                 for (auto& r_node : *p_geom) {
 
@@ -328,12 +345,12 @@ namespace
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Set up the distances vector
                 const auto& r_geom = *p_geom;
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 Vector nodal_distances(n_nodes);
-                SetNodalDistancesVector(r_geom, nodal_distances);
+                SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -492,7 +509,7 @@ namespace
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Find the intersected element negative nodes
                 for (auto& r_node : *p_geom) {
                     const std::size_t found = ext_op_map.count(&r_node);
@@ -529,12 +546,12 @@ namespace
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Set up the distances vector
                 const auto& r_geom = *p_geom;
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 Vector nodal_distances(n_nodes);
-                SetNodalDistancesVector(r_geom, nodal_distances);
+                SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -688,7 +705,7 @@ namespace
 
             // If the element is split, get the interface Gauss pt. data
             // If the element is negative, it is deactivated to not be assembled
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Set the meshless cloud of point support for the MLS
                 Matrix cloud_nodes_coordinates;
                 PointerVector<NodeType> cloud_nodes;
@@ -698,7 +715,7 @@ namespace
                 const auto& r_geom = *p_geom;
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 Vector nodal_distances(n_nodes);
-                SetNodalDistancesVector(r_geom, nodal_distances);
+                SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -767,7 +784,7 @@ namespace
         // Find active regions
         for (auto& rElement : mpModelPart->Elements()) {
             auto& r_geom = rElement.GetGeometry();
-            if (IsSplit(r_geom)) {
+            if (IsSplit(r_geom, *mpLevelSetVariable)) {
                 // Mark the intersected elements as BOUNDARY
                 // The intersected elements are also flagged as non ACTIVE to avoid assembling them
                 // Note that the split elements BC is applied by means of the extension operators
@@ -775,11 +792,11 @@ namespace
                 rElement.Set(BOUNDARY, true);
                 // Mark the positive intersected nodes as BOUNDARY
                 for (auto& rNode : r_geom) {
-                    if (!(rNode.FastGetSolutionStepValue(DISTANCE) < 0.0)) {
+                    if (!(rNode.FastGetSolutionStepValue(*mpLevelSetVariable) < 0.0)) {
                         rNode.Set(BOUNDARY, true);
                     }
                 }
-            } else if (IsNegative(r_geom)) {
+            } else if (IsNegative(r_geom, *mpLevelSetVariable)) {
                 // Mark the negative element as non ACTIVE to avoid assembling it
                 rElement.Set(ACTIVE, false);
             } else {
