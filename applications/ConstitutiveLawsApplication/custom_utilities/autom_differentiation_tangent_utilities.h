@@ -47,11 +47,11 @@ typedef std::size_t SizeType;
 /**
  * @class AdvancedConstitutiveLawUtilities
  * @ingroup StructuralMechanicsApplication
- * @brief This class includes several utilities necessaries for the computation of the constitutive law
+ * @brief This class includes several utilities necessaries for the computation of the tangent tensor of the constitutive law
  * @details The methods are static, so it can be called without constructing the class
  * @tparam TVoigtSize The number of components on the Voigt notation
+ * @tparam TSofteningType exponential or linear softening type of damage
  * @author Alejandro Cornejo
- * @author Vicente Mataix Ferrandiz
  */
 template <class TYieldSurfaceType, SizeType TSofteningType>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AutomaticDifferentiationTangentUtilities
