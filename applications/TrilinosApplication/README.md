@@ -134,3 +134,38 @@ Other packages can be disabled with the following flags:
 -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=ON  # exclude solvers using features of the Trilinos Amesos2 package
 ```
 
+### Spack
+
+*Spack* is a multi-platform package manager that builds and installs multiple versions and configurations of software. It works on *GNU/Linux*, *macOS*, and many supercomputers. *Spack* is non-destructive: installing a new version of a package does not break existing installations, so many configurations of the same package can coexist.
+
+To install *Spack* you just need to run the following command:
+
+```bash
+git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+```
+
+To use it you will need to add the corresponding environment variables (or call `spack_location/spack/bin/spack`):
+
+```bash
+. spack_location/spack/share/spack/setup-env.sh
+```
+
+Then in order to install *Trilinos*:
+
+```bash
+spack install trilinos
+```
+
+Now you just need to load *Trilinos*:
+
+```bash
+spack load trilinos
+```
+
+Once to compile `TrilinosApplication` just remember to add the application to the `cofigure` bash script: 
+
+```bash
+export KRATOS_APPLICATIONS=
+...
+add_app ${KRATOS_APP_DIR}/TrilinosApplication
+```
