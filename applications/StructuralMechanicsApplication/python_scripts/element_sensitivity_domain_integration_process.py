@@ -56,7 +56,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
 
         # Get defined sub model parts of sensitivity model part as integration domains
         self.sensitivity_sub_model_parts = []
-        if len(sensitivity_sub_model_part_names) is 0:
+        if not sensitivity_sub_model_part_names:
             self.sensitivity_sub_model_parts.append(self.sensitivity_model_part)
         else:
             for mp_name in sensitivity_sub_model_part_names:
