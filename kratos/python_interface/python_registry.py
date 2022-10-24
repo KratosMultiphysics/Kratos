@@ -273,7 +273,7 @@ def RegisterInKratos(item_type_name: str):
 
         current_module_path = Path(final_module_path)
         list_of_modules = []
-        while (current_module_path.name != "KratosMultiphysics"):
+        while (current_module_path.name not in ["KratosMultiphysics", "kratos"]):
             if current_module_path.samefile(final_module_path.root):
                 raise RuntimeError(f"The module \"{Class.__name__}\" being registered under \"{item_type_name}\" is not found in the KratosMultiphysics modules.")
             current_module_path = current_module_path.parent

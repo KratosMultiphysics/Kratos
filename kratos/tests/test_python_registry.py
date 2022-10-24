@@ -179,5 +179,18 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         KratosMultiphysics.Registry.RemoveItem("Processes")
         KratosMultiphysics.Registry.RemoveItem("PythonRootItem")
 
+    def testDecorator(self):
+        @KratosMultiphysics.RegisterInKratos("Processes")
+        class FooProcess(KratosMultiphysics.Process):
+            def __init__(self, a):
+                super().__init__()
+                self.a = a
+
+            def getA(self):
+                return self.a
+
+        self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.kratos.tests.FooProcess"))
+        self.assertEqual(KratosMultiphysics.Registry["Processes.kratos.tests.FooProcess"](10).getA(), 10)
+
 if __name__ == "__main__":
     KratosUnittest.main()
