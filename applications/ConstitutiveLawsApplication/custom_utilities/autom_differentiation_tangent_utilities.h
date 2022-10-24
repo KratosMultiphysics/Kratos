@@ -49,6 +49,7 @@ typedef std::size_t SizeType;
  * @ingroup StructuralMechanicsApplication
  * @brief This class includes several utilities necessaries for the computation of the tangent tensor of the constitutive law
  * @details The methods are static, so it can be called without constructing the class
+ * @details The python sympy files that generate the c++ code can be found in applications/ConstitutiveLawsApplication/python_scripts/symbolic_generation/iso_damage_tangent_tensor
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @tparam TSofteningType exponential or linear softening type of damage
  * @author Alejandro Cornejo
