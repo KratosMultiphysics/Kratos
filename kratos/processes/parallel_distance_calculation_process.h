@@ -165,6 +165,7 @@ protected:
         const Variable<double>* mpAreaVar;
         unsigned int mMaxLevels;
         double mMaxDistance;
+        bool mPreserveInterface;
         bool mCalculateExactDistancesToPlane;
 
 
@@ -223,6 +224,8 @@ private:
     void ResetVariables();
 
     void CalculateExactDistancesOnDividedElements();
+
+    void AbsDistancesOnDividedElements();
 
 	void ExtendDistancesByLayer();
 

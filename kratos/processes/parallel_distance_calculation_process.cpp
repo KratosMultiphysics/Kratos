@@ -47,6 +47,7 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
 
     mMaxLevels = Settings["max_levels"].GetInt();
     mMaxDistance = Settings["max_distance"].GetDouble();
+    mPreserveInterface = Settings["preserve_interface_strictly"].GetBool();
     mCalculateExactDistancesToPlane = Settings["calculate_exact_distances_to_plane"].GetBool();
 
     const std::string distance_database = Settings["distance_database"].GetString();
@@ -75,6 +76,7 @@ const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters(
         "distance_database" : "nodal_historical",
         "max_levels" : 25,
         "max_distance" : 1.0,
+        "preserve_interface_strictly" : false,
         "calculate_exact_distances_to_plane" : false
     })");
 }
@@ -279,7 +281,12 @@ void ParallelDistanceCalculationProcess<TDim>::Execute()
 
     ResetVariables();
 
-    CalculateExactDistancesOnDividedElements();
+    if (mPreserveInterface){
+        AbsDistancesOnDividedElements();
+    } else{
+        CalculateExactDistancesOnDividedElements();
+    }
+
 
     ExtendDistancesByLayer();
 
@@ -355,6 +362,60 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
                 if (std::abs(r_distance) > std::abs(new_distance)) {
                     r_distance = new_distance;
                 }
+                element_geometry[i_node].Set(VISITED, true);
+                element_geometry[i_node].UnSetLock();
+            }
+        }
+    });
+
+    //mpi sync variables
+    if (mDistanceDatabase == NodalDatabase::NodeHistorical) {
+        mrModelPart.GetCommunicator().AssembleCurrentData(*mpAreaVar);
+        mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(*mpDistanceVar);
+    } else {
+        mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAreaVar);
+        mrModelPart.GetCommunicator().SynchronizeNonHistoricalDataToMin(*mpDistanceVar);
+    }
+    mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        if(rNode.IsNot(VISITED)) {
+            mNodalAreaGetter(rNode) = 0.0;
+            mDistanceGetter(rNode) = 0.0;
+        } else {
+            mNodalAreaGetter(rNode) = 1.0; // This is not correct
+        }
+    });
+
+    KRATOS_CATCH("")
+}
+
+template<unsigned int TDim>
+void ParallelDistanceCalculationProcess<TDim>::AbsDistancesOnDividedElements()
+{
+    KRATOS_TRY
+
+    //identify the list of elements divided by the original distance distribution
+    //preserving the original position of the free surface
+    array_1d<double,TDim+1> dist;
+    block_for_each(mrModelPart.Elements(), dist, [&](Element& rElement, array_1d<double,TDim+1>& rDist){
+        auto& element_geometry = rElement.GetGeometry();
+        // Set distances vector from non-historical database
+        for (unsigned int j = 0; j < TDim + 1; j++) {
+            rDist[j] = mAuxDistanceGetter(element_geometry[j]);
+        }
+
+        bool is_divided = IsDivided(rDist);
+        if (is_divided) {
+            // loop over nodes and apply the new distances.
+            for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
+                double& r_distance = mDistanceGetter(element_geometry[i_node]);
+                const double new_distance = rDist[i_node];
+
+                element_geometry[i_node].SetLock();
+
+                r_distance = std::abs(new_distance);
+
                 element_geometry[i_node].Set(VISITED, true);
                 element_geometry[i_node].UnSetLock();
             }

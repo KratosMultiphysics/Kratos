@@ -86,6 +86,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "distance_reinitialization": "variational",
             "parallel_redistance_max_layers" : 25,
+            "parallel_redistance_preserve_interface" : false,
             "distance_smoothing": false,
             "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
@@ -527,12 +528,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         elif (self._reinitialization_type == "parallel"):
             #TODO: move all this to solver settings
             layers = self.settings["parallel_redistance_max_layers"].GetInt()
+            interface_preserving = self.settings["parallel_redistance_preserve_interface"].GetBool()
             parallel_distance_settings = KratosMultiphysics.Parameters("""{
-                "max_levels" : 25,
-                "max_distance" : 1.0,
+                "max_levels" : 100,
+                "max_distance" : 1.0e2,
+                "preserve_interface_strictly" : false,
                 "calculate_exact_distances_to_plane" : true
             }""")
             parallel_distance_settings["max_levels"].SetInt(layers)
+            parallel_distance_settings["preserve_interface_strictly"].SetBool(interface_preserving)
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
                 distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess2D(
                     self.main_model_part,
