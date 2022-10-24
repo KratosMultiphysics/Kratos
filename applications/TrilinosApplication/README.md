@@ -181,7 +181,7 @@ or (if installed):
 spack load trilinos+mumps+superlu-dist
 ```
 
-Once to compile `TrilinosApplication` just remember to add the application to the `cofigure` bash script: 
+Once to compile `TrilinosApplication` just remember to add the application to the `configure` bash script: 
 
 ```bash
 export KRATOS_APPLICATIONS=
