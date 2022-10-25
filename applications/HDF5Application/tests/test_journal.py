@@ -2,6 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.HDF5Application as HDF5
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- STD Imports ---
 import pathlib
@@ -11,27 +12,33 @@ class TestJournal(KratosUnittest.TestCase):
 
     @property
     def test_file_path(self) -> pathlib.Path:
-        return pathlib.Path("test_registry_file.log")
+        return pathlib.Path("test_journal.log")
+
+    def setUp(self) -> None:
+        DeleteFileIfExisting(str(self.test_file_path))
+
+    def tearDown(self) -> None:
+        DeleteFileIfExisting(str(self.test_file_path))
 
     def test_Journal(self) -> None:
-        registry = HDF5.Journal(self.test_file_path)
+        journal = HDF5.Journal(self.test_file_path)
         model = KratosMultiphysics.Model()
 
         extractor = lambda model: KratosMultiphysics.Parameters('["1st","2nd"]')
-        registry.SetExtractor(extractor)
+        journal.SetExtractor(extractor)
 
-        registry.Clear()
-        self.assertEqual(len(registry), 0)
+        journal.Clear()
+        self.assertEqual(len(journal), 0)
 
         for i in range(1, 3):
-            registry.Push(model)
-            self.assertEqual(len(registry), i)
-            for item in registry:
+            journal.Push(model)
+            self.assertEqual(len(journal), i)
+            for item in journal:
                 self.assertTrue(isinstance(item, KratosMultiphysics.Parameters))
                 self.assertEqual(item.WriteJsonString(), '["1st","2nd"]')
 
-        registry.Clear()
-        self.assertEqual(len(registry), 0)
+        journal.Clear()
+        self.assertEqual(len(journal), 0)
 
     def test_Extractor(self) -> None:
         def extractor(model: KratosMultiphysics.Model) -> KratosMultiphysics.Parameters:
@@ -44,8 +51,8 @@ class TestJournal(KratosUnittest.TestCase):
                 true
             ]""")
 
-        registry = HDF5.Journal(self.test_file_path, extractor)
-        registry.Clear()
+        journal = HDF5.Journal(self.test_file_path, extractor)
+        journal.Clear()
 
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("test")
@@ -54,10 +61,10 @@ class TestJournal(KratosUnittest.TestCase):
             model_part.CloneTimeStep()
             model_part.ProcessInfo[KratosMultiphysics.STEP] = i_step
             model_part.ProcessInfo[KratosMultiphysics.TIME] = i_step / 10.0
-            registry.Push(model)
+            journal.Push(model)
 
-        self.assertEqual(len(registry), 10)
-        for index, item in enumerate(registry):
+        self.assertEqual(len(journal), 10)
+        for index, item in enumerate(journal):
             self.assertTrue(isinstance(item, KratosMultiphysics.Parameters))
             self.assertTrue(item.IsArray())
             self.assertEqual(item.size(), 4)
@@ -73,6 +80,12 @@ class TestJournal(KratosUnittest.TestCase):
 
             self.assertTrue(item[3].IsBool())
             self.assertEqual(item[3].GetBool(), True)
+
+        # Check whether python objects are protected in a multithreaded environment
+        journal.Clear()
+        self.assertFalse(len(journal))
+        KratosMultiphysics.HDF5Application.TestingUtilities.TestJournal(model, journal)
+        self.assertTrue(len(journal))
 
 
 if __name__ == "__main__":

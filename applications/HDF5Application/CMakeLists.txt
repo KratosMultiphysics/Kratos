@@ -29,6 +29,7 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/file_content_iterator.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/journal.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/testing_utilities.cpp
 )
 
 ## HDF5Application python interface sources
@@ -105,6 +106,11 @@ set_target_properties(KratosHDF5Core PROPERTIES COMPILE_DEFINITIONS "HDF5_APPLIC
 pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosHDF5Application PRIVATE KratosHDF5Core)
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
+
+if (${KRATOS_BUILD_TESTING})
+    target_compile_definitions(KratosHDF5Core PRIVATE KRATOS_BUILD_TESTING)
+    target_compile_definitions(KratosHDF5Application PRIVATE KRATOS_BUILD_TESTING)
+endif()
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

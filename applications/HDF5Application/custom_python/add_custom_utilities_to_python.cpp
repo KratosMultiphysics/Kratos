@@ -20,6 +20,7 @@
 #include "custom_utilities/vertex.h"
 #include "custom_utilities/vertex_utilities.h"
 #include "custom_utilities/journal.h"
+#include "custom_utilities/testing_utilities.h"
 
 // Internal includes
 #include "add_custom_utilities_to_python.h"
@@ -118,6 +119,12 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         .def("__len__", &Journal::size)
         .def("__iter__", [](const Journal& rJournal){return pybind11::make_iterator(rJournal.begin(), rJournal.end());})
         ;
+
+    #ifdef KRATOS_BUILD_TESTING // <== defined through CMake if cpp test sources are built
+    pybind11::class_<Testing::TestingUtilities, std::shared_ptr<Testing::TestingUtilities>>(rModule, "TestingUtilities")
+        .def_static("TestJournal", &Testing::TestingUtilities::TestJournal)
+        ;
+    #endif
 }
 
 
