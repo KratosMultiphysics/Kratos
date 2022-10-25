@@ -35,7 +35,7 @@
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
-#define KRATOS_CRITICAL_SECTION(critical_section) {const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock()); critical_section }
+#define KRATOS_CRITICAL_SECTION(...) {const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock()); __VA_ARGS__}
 
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
