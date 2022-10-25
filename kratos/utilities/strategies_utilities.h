@@ -65,7 +65,7 @@ public:
      * @return The scale norm
      */
     template<class TSparseSpace>
-    static double CheckAndCorrectZeroDiagonalValues(
+    static double KRATOS_API(KRATOS_CORE) CheckAndCorrectZeroDiagonalValues(
         ModelPart& rModelPart,
         typename TSparseSpace::MatrixType& rA,
         typename TSparseSpace::VectorType& rb,
@@ -110,7 +110,7 @@ public:
      * @return The diagonal norm
      */
     template<class TSparseSpace>
-    static double GetDiagonalNorm(typename TSparseSpace::MatrixType& rA);
+    static double KRATOS_API(KRATOS_CORE) GetDiagonalNorm(typename TSparseSpace::MatrixType& rA);
 
     /**
      * @brief This method returns the diagonal max value
@@ -129,7 +129,7 @@ public:
      * @return The diagonal  max value
      */
     template<class TSparseSpace>
-    static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA);
+    static double KRATOS_API(KRATOS_CORE) GetMaxDiagonal(typename TSparseSpace::MatrixType& rA);
 
     /**
      * @brief This method returns the diagonal min value
@@ -137,7 +137,7 @@ public:
      * @return The diagonal min value
      */
     template<class TSparseSpace>
-    static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA);
+    static double KRATOS_API(KRATOS_CORE) GetMinDiagonal(typename TSparseSpace::MatrixType& rA);
 
     ///@}
 
