@@ -180,7 +180,9 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         KratosMultiphysics.Registry.RemoveItem("PythonRootItem")
 
     def testDecorator(self):
-        @KratosMultiphysics.RegisterInKratos("Processes")
+        # Auxiliary process class to be used in the testing
+        # @KratosMultiphysics.RegisterInKratos("Processes") #TODO: Suneth's version
+        @KratosMultiphysics.RegisterInKratos("Processes.KratosMultiphysics") #TODO: Ruben's version
         class FooProcess(KratosMultiphysics.Process):
             def __init__(self, a):
                 super().__init__()
@@ -189,8 +191,18 @@ class TestPythonRegistry(KratosUnittest.TestCase):
             def getA(self):
                 return self.a
 
-        self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.kratos.tests.FooProcess"))
-        self.assertEqual(KratosMultiphysics.Registry["Processes.kratos.tests.FooProcess"](10).getA(), 10)
+        # Assert that the decorator-based registry works
+        # TODO: Suneth's version
+        # self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.kratos.tests.FooProcess"))
+        # self.assertEqual(KratosMultiphysics.Registry["Processes.kratos.tests.FooProcess"](10).getA(), 10)
+
+        # TODO: Ruben's version
+        self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.All.FooProcess"))
+        self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.FooProcess"))
+        self.assertEqual(KratosMultiphysics.Registry["Processes.KratosMultiphysics.FooProcess"](10).getA(), 10)
+
+        # Remove the testing entry from the Python registry
+        KratosMultiphysics.Registry.RemoveItem("Processes")
 
 if __name__ == "__main__":
     KratosUnittest.main()

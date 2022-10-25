@@ -1,6 +1,7 @@
 from inspect import getmodule
 from pathlib import Path
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 
 class RegistryContext():
     ALL = 0
@@ -266,23 +267,57 @@ class PythonRegistry(object):
             raise Exception(err_msg)
         self.__InternalAddItem(all_full_name, Class)
 
-# A decorator to register items in the registry
-def RegisterInKratos(item_type_name: str):
+# # A decorator to register items in the registry
+# #FIXME: Add a version accepting the module. Not sure if as an optional of mandatory argument
+# #TODO: Retrieve the list of applications and check that the provided module is in there
+# def RegisterInKratos(item_type_name: str):
+#     def register_wrapper(Class):
+#         final_module_path = Path(getmodule(Class).__file__)
+
+#         current_module_path = Path(final_module_path)
+#         list_of_modules = []
+#         while (current_module_path.name not in ["KratosMultiphysics", "kratos"]):
+#             if current_module_path.samefile(final_module_path.root):
+#                 raise RuntimeError(f"The module \"{Class.__name__}\" being registered under \"{item_type_name}\" is not found in the KratosMultiphysics modules.")
+#             current_module_path = current_module_path.parent
+#             list_of_modules.append(current_module_path.name)
+
+#         full_name = item_type_name + "."
+#         full_name += ".".join(reversed(list_of_modules))
+#         full_name += "." + Class.__name__
+
+#         KratosMultiphysics.Registry.AddItem(full_name, Class)
+#         return Class
+#     return register_wrapper
+
+def RegisterInKratos(RegistryPointName: str):
     def register_wrapper(Class):
-        final_module_path = Path(getmodule(Class).__file__)
+        # Get the list of compiled applications
+        # This will be used for checking the available submodules
+        available_apps = GetListOfAvailableApplications()
 
-        current_module_path = Path(final_module_path)
-        list_of_modules = []
-        while (current_module_path.name not in ["KratosMultiphysics", "kratos"]):
-            if current_module_path.samefile(final_module_path.root):
-                raise RuntimeError(f"The module \"{Class.__name__}\" being registered under \"{item_type_name}\" is not found in the KratosMultiphysics modules.")
-            current_module_path = current_module_path.parent
-            list_of_modules.append(current_module_path.name)
+        # Check input registry point name
+        split_name = RegistryPointName.split('.')
+        if len(split_name) < 2:
+            err_msg = f"Wrong provided item name '{RegistryPointName}' structure. A structure of the type 'ItemKeyWord.Module.Submodule' is expected."
+            raise Exception(err_msg)
 
-        full_name = item_type_name + "."
-        full_name += ".".join(reversed(list_of_modules))
-        full_name += "." + Class.__name__
+        # Check input registry module
+        module_keys = split_name[1:]
+        if module_keys[0] != "KratosMultiphysics":
+            err_msg = f"Wrong root module '{module_keys[0]}'. This is expected to be 'KratosMultiphysics'."
+            raise Exception(err_msg)
+        if len(module_keys) is not 1:
+            sub_module_key = module_keys[1]
+            if sub_module_key not in available_apps:
+                err_msg = f"Wrong submodule '{sub_module_key}'. Compile the corresponding application."
+                raise Exception(err_msg)
 
+        # Call the Kratos registry to register the current item
+        # Note that the item class name is used as
+        full_name = RegistryPointName + "." + Class.__name__
+        print(full_name)
         KratosMultiphysics.Registry.AddItem(full_name, Class)
+
         return Class
     return register_wrapper
