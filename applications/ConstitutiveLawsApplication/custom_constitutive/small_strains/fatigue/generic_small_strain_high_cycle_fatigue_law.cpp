@@ -349,7 +349,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // Initialize Plastic Parameters
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
         uniaxial_stress *= sign_factor;
@@ -397,10 +396,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         Vector previous_stresses = ZeroVector(2);
         const Vector& r_aux_stresses = mPreviousStresses;
-        previous_stresses[1] = this->GetValue(UNIAXIAL_STRESS, previous_stresses[1])*sign_factor;
+        previous_stresses[1] = this->CalculateValue(rValues, UNIAXIAL_STRESS, previous_stresses[1])*sign_factor;
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
-        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
     }
 }
 /***********************************************************************************/
