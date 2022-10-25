@@ -171,8 +171,6 @@ private:
     std::pair<Extractor,ThreadID> mExtractor;
 
     mutable std::weak_ptr<iterator::FileAccess> mpFileAccess;
-
-    mutable LockObject mMutex;
 }; // class JournalBase
 
 
