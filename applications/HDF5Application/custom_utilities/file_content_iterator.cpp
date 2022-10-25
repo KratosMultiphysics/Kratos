@@ -80,12 +80,16 @@ std::string FileContentIterator::value() const
     std::string output;
 
     this->RestoreState();
-    auto& r_stream = this->mpFileAccess->value().first;
-    while (r_stream.tellg() != range.second.GetPosition()) {
-        // Use the convoluted syntax to get unformatted output
-        char c;
-        r_stream.get(c);
-        output.push_back(c);
+
+    {
+        std::scoped_lock<LockObject> lock(this->mpFileAccess->value().second);
+        auto& r_stream = this->mpFileAccess->value().first;
+        while (r_stream.tellg() != range.second.GetPosition()) {
+            // Use the convoluted syntax to get unformatted output
+            char c;
+            r_stream.get(c);
+            output.push_back(c);
+        }
     }
 
     return output;
@@ -95,21 +99,26 @@ std::string FileContentIterator::value() const
 bool FileContentIterator::SeekNext(char Target)
 {
     this->RestoreState();
-    auto& r_stream = this->mpFileAccess->value().first;
+    char c = Target != 0 ? 0 : 1;
+    {
+        std::scoped_lock<LockObject> lock(this->mpFileAccess->value().second);
+        auto& r_stream = this->mpFileAccess->value().first;
+        if (r_stream.eof()) {
+            return false;
+        }
 
-    if (r_stream.eof()) {
-        return false;
+        while (r_stream.get(c) && c != mDelimiter) {}
     }
-
-    char c;
-    while (r_stream.get(c) && c != mDelimiter) {}
     return c == mDelimiter;
 }
 
 
 void FileContentIterator::SeekEOF()
 {
-    this->mpFileAccess->value().first.seekg(0, std::ios::end);
+    {
+        std::scoped_lock<LockObject> lock(this->mpFileAccess->value().second);
+        this->mpFileAccess->value().first.seekg(0, std::ios::end);
+    }
     this->StoreState();
 }
 
@@ -123,6 +132,7 @@ FileContentIterator::Position FileContentIterator::GetPosition() const noexcept
 void FileContentIterator::StoreState()
 {
     KRATOS_TRY;
+    std::scoped_lock<LockObject> lock(this->mpFileAccess->value().second);
     this->mPosition = this->mpFileAccess->value().first.tellg();
     KRATOS_CATCH("");
 }
@@ -131,6 +141,7 @@ void FileContentIterator::StoreState()
 void FileContentIterator::RestoreState() const
 {
     KRATOS_TRY;
+    std::scoped_lock<LockObject> lock(this->mpFileAccess->value().second);
     this->mpFileAccess->value().first.seekg(mPosition);
     KRATOS_CATCH("");
 }

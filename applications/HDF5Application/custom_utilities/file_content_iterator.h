@@ -52,7 +52,7 @@ class FileContentIterator
 public:
     using FileAccess = std::optional<std::pair<
         std::fstream,
-        std::unique_lock<LockObject>
+        LockObject
     >>;
 
     using iterator_category = std::forward_iterator_tag;

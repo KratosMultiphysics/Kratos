@@ -141,7 +141,7 @@ protected:
         #ifdef KRATOS_SMP_OPENMP
             using ID = int;
             ID mID;
-        #elifdef KRATOS_CMP_CXX11
+        #elif defined(KRATOS_CMP_CXX11)
             using ID = std::thread::thread_id;
             ID mID;
         #endif

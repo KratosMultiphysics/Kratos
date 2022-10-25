@@ -195,7 +195,7 @@ JournalBase::JournalBase::ThreadID::ThreadID()
     :
     #ifdef KRATOS_SMP_OPENMP
         mID(omp_get_thread_num())
-    #elifdef KRATOS_CMP_CXX11
+    #elif defined(KRATOS_CMP_CXX11)
         mID(std::this_thread::get_id())
     #endif
 {
@@ -218,11 +218,8 @@ std::shared_ptr<JournalBase::iterator::FileAccess> JournalBase::Open(std::ios::o
     auto p_access = std::make_shared<iterator::FileAccess>();
     this->mpFileAccess = p_access;
 
-    auto pair = std::make_pair(
-        std::fstream(this->mJournalPath, OpenMode),
-        std::unique_lock<LockObject>(this->mMutex)
-    );
-    p_access->emplace(std::move(pair));
+    p_access->emplace();
+    p_access->value().first = std::fstream(this->mJournalPath, OpenMode);
 
     return p_access;
 
