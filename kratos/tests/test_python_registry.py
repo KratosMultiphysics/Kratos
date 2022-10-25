@@ -1,5 +1,3 @@
-from concurrent.futures import process
-from multiprocessing.dummy import Process
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -156,9 +154,10 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
     def testIteration(self):
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.KratosApplication.PythonProcess", Process())
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.KratosApplication.PythonProcess", KratosMultiphysics.Process)
         KratosMultiphysics.Registry.AddItem("PythonRootItem.PythonSubItem.PythonSubSubItem", object())
 
+        #TODO: This way of checking the iteration will most probably crash once we add more stuff to the registry
         root_items_keys = ["Operations","Processes","PythonRootItem"]
         sub_items_keys = ["All","KratosMultiphysics","PythonSubItem"]
         sub_sub_items_keys = ["PythonSubSubItem","KratosApplication","PythonProcess","FooOperation","Operation","Process"]
@@ -181,8 +180,7 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
     def testDecorator(self):
         # Auxiliary process class to be used in the testing
-        # @KratosMultiphysics.RegisterInKratos("Processes") #TODO: Suneth's version
-        @KratosMultiphysics.RegisterInKratos("Processes.KratosMultiphysics") #TODO: Ruben's version
+        @KratosMultiphysics.RegisterInKratos("Processes.KratosMultiphysics")
         class FooProcess(KratosMultiphysics.Process):
             def __init__(self, a):
                 super().__init__()
@@ -192,11 +190,6 @@ class TestPythonRegistry(KratosUnittest.TestCase):
                 return self.a
 
         # Assert that the decorator-based registry works
-        # TODO: Suneth's version
-        # self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.kratos.tests.FooProcess"))
-        # self.assertEqual(KratosMultiphysics.Registry["Processes.kratos.tests.FooProcess"](10).getA(), 10)
-
-        # TODO: Ruben's version
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.All.FooProcess"))
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.FooProcess"))
         self.assertEqual(KratosMultiphysics.Registry["Processes.KratosMultiphysics.FooProcess"](10).getA(), 10)

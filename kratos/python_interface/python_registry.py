@@ -1,5 +1,3 @@
-from inspect import getmodule
-from pathlib import Path
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 
@@ -14,8 +12,6 @@ class PythonRegistryIterator:
     def __init__(self, ThisPythonRegistry):
        # Member variables to keep track of iteration
        self.__index = 0
-    #    self.__cpp_root_item = ThisPythonRegistry._PythonRegistry__cpp_registry
-    #    self.__py_root_item = ThisPythonRegistry._PythonRegistry__python_registry
        self.__cpp_root_keys = ThisPythonRegistry._PythonRegistry__cpp_registry.keys()
        self.__py_root_keys = list(ThisPythonRegistry._PythonRegistry__python_registry.keys())
 
@@ -145,7 +141,6 @@ class PythonRegistry(object):
 
         return has_value
 
-    #TODO: I THINK WE SHOULD FILTER THE REGISTRY CONTEXT IN HERE
     def HasItems(self, Name, Context=RegistryContext.ALL):
         '''Checks if Name registry item saves a value
         '''
@@ -267,29 +262,6 @@ class PythonRegistry(object):
             raise Exception(err_msg)
         self.__InternalAddItem(all_full_name, Class)
 
-# # A decorator to register items in the registry
-# #FIXME: Add a version accepting the module. Not sure if as an optional of mandatory argument
-# #TODO: Retrieve the list of applications and check that the provided module is in there
-# def RegisterInKratos(item_type_name: str):
-#     def register_wrapper(Class):
-#         final_module_path = Path(getmodule(Class).__file__)
-
-#         current_module_path = Path(final_module_path)
-#         list_of_modules = []
-#         while (current_module_path.name not in ["KratosMultiphysics", "kratos"]):
-#             if current_module_path.samefile(final_module_path.root):
-#                 raise RuntimeError(f"The module \"{Class.__name__}\" being registered under \"{item_type_name}\" is not found in the KratosMultiphysics modules.")
-#             current_module_path = current_module_path.parent
-#             list_of_modules.append(current_module_path.name)
-
-#         full_name = item_type_name + "."
-#         full_name += ".".join(reversed(list_of_modules))
-#         full_name += "." + Class.__name__
-
-#         KratosMultiphysics.Registry.AddItem(full_name, Class)
-#         return Class
-#     return register_wrapper
-
 def RegisterInKratos(RegistryPointName: str):
     def register_wrapper(Class):
         # Get the list of compiled applications
@@ -304,7 +276,7 @@ def RegisterInKratos(RegistryPointName: str):
 
         # Check input registry module
         module_keys = split_name[1:]
-        if module_keys[0] != "KratosMultiphysics":
+        if module_keys[0] != "KratosMultiphysics": #TODO: Add Custom as possible keywords
             err_msg = f"Wrong root module '{module_keys[0]}'. This is expected to be 'KratosMultiphysics'."
             raise Exception(err_msg)
         if len(module_keys) is not 1:
@@ -316,7 +288,6 @@ def RegisterInKratos(RegistryPointName: str):
         # Call the Kratos registry to register the current item
         # Note that the item class name is used as
         full_name = RegistryPointName + "." + Class.__name__
-        print(full_name)
         KratosMultiphysics.Registry.AddItem(full_name, Class)
 
         return Class
