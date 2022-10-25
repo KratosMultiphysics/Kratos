@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRATEGIES_UTILITIES)
-#define KRATOS_STRATEGIES_UTILITIES
+#pragma once
 
 // System includes
 
@@ -227,4 +226,3 @@ public:
 
 }; // namespace StrategiesUtilities
 }  // namespace Kratos
-#endif /* KRATOS_STRATEGIES_UTILITIES defined */
