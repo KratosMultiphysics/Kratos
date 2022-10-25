@@ -10,13 +10,21 @@
 //  Main author:     Máté Kelemen
 //
 
+// External includes
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
+
 // HDF includes
 #include "custom_utilities/journal.h"
 #include "includes/define.h"
 
+// Core includes
+#include "input_output/logger.h"
+
 // STL includes
 #include <filesystem>
-#include <cstdio>
+#include <sstream>
 
 
 namespace Kratos
@@ -38,7 +46,7 @@ JournalBase::JournalBase(const std::filesystem::path& rJournalPath)
 JournalBase::JournalBase(const std::filesystem::path& rJournalPath,
                          const Extractor& rExtractor)
     : mJournalPath(rJournalPath),
-      mExtractor(rExtractor)
+      mExtractor(rExtractor, ThreadID())
 {
 }
 
@@ -76,13 +84,13 @@ const std::filesystem::path& JournalBase::GetFilePath() const noexcept
 
 void JournalBase::SetExtractor(Extractor&& rExtractor)
 {
-    this->mExtractor = std::move(rExtractor);
+    this->mExtractor = std::make_pair(std::move(rExtractor), ThreadID());
 }
 
 
 void JournalBase::SetExtractor(const Extractor& rExtractor)
 {
-    this->mExtractor = rExtractor;
+    this->mExtractor = std::make_pair(rExtractor, ThreadID());
 }
 
 
@@ -90,9 +98,18 @@ void JournalBase::Push(const Model& rModel)
 {
     KRATOS_TRY;
 
+    // The extractor can only be invoked by the thread that set it.
+    if (mExtractor.second != ThreadID()) {
+        std::stringstream message;
+        message << "Journal::Push can only be invoked by the thread that set the extractor. "
+        << "The extractor was set by thread " << mExtractor.second << " but invoked by " << ThreadID() << '\n';
+        KRATOS_WARNING(message.str());
+        return;
+    }
+
     auto p_access = this->Open(std::ios::app | std::ios::out);
 
-    const auto output = this->mExtractor(rModel);
+    const auto output = this->mExtractor.first(rModel);
     KRATOS_ERROR_IF_NOT(this->IsValidEntry(output))
     << "Extractor returned invalid output: " << output;
 
@@ -171,6 +188,17 @@ JournalBase::size_type JournalBase::size() const
     }
 
     return counter;
+}
+
+
+JournalBase::JournalBase::ThreadID::ThreadID()
+    :
+    #ifdef KRATOS_SMP_OPENMP
+        mID(omp_get_thread_num())
+    #elifdef KRATOS_CMP_CXX11
+        mID(std::this_thread::get_id())
+    #endif
+{
 }
 
 

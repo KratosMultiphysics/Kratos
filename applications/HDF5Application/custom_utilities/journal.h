@@ -24,6 +24,10 @@
 #include <filesystem>
 #include <functional>
 
+#ifdef KRATOS_SMP_CXX11
+#include <thread>
+#endif
+
 
 namespace Kratos
 {
@@ -89,21 +93,26 @@ public:
     /**
      *  @brief Set the extractor handling the conversion from @ref Model to a string.
      *  @details The extractor must generate a string without any line breaks.
+     *  @warning Once @a SetExtractor is called, the ID of the caller thread is
+     *           stored and only that thread is allowed to invoke @ref JournalBase::Push.
+     *           This is necessary to support python function objects (avoid hanging
+     *           at the global interpreter lock).
      */
     void SetExtractor(Extractor&& rExtractor);
 
-    /**
-     *  @brief Set the extractor handling the conversion from @ref Model to a string.
-     *  @details The extractor must generate a string without any line breaks.
-     */
+    /// @copydoc JournalBase::SetExtractor(const Extractor&)
     void SetExtractor(const Extractor& rExtractor);
 
-    /// @brief Call the extractor and append the results to the associated file.
-    /// @warning The associated file must not be open.
+    /**
+     *  @brief Call the extractor and append the results to the associated file.
+     *  @warning The associated file must not be open.
+     *  @warning Only the thread that assigned the extractor can successfully
+     *           invoke this function. Otherwise a warning is issued but no
+     *           further operation is taken (associated file is not written to).
+     */
     void Push(const Model& rModel);
 
-    /// @brief Append a line to the associated file.
-    /// @warning The associated file must not be open.
+    /// @copydoc JournalBase::Push(const Model&)
     void Push(const value_type& rEntry);
 
     /// @brief Delete the associated file.
@@ -124,6 +133,32 @@ public:
     /// @brief Count the number of lines in the file (including the last empty one).
     size_type size() const;
 
+protected:
+    /// @brief A wrapper class for identifying threads.
+    class ThreadID
+    {
+    private:
+        #ifdef KRATOS_SMP_OPENMP
+            using ID = int;
+            ID mID;
+        #elifdef KRATOS_CMP_CXX11
+            using ID = std::thread::thread_id;
+            ID mID;
+        #endif
+
+    public:
+        ThreadID();
+
+        friend bool operator==(ThreadID Left, ThreadID Right)
+        {return Left.mID == Right.mID;}
+
+        friend bool operator!=(ThreadID Left, ThreadID Right)
+        {return Left.mID != Right.mID;}
+
+        friend std::ostream& operator<<(std::ostream& rStream, ThreadID threadID)
+        {return rStream << threadID.mID;}
+    }; // class ThreadID
+
 private:
     /// @brief Check whether the result of an extractor invocation is valid (has no line breaks).
     static bool IsValidEntry(const value_type& rEntry);
@@ -133,7 +168,7 @@ private:
 
     std::filesystem::path mJournalPath;
 
-    Extractor mExtractor;
+    std::pair<Extractor,ThreadID> mExtractor;
 
     mutable std::weak_ptr<iterator::FileAccess> mpFileAccess;
 
