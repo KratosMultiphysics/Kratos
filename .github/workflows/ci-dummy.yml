@@ -11,6 +11,11 @@ on:
       - '**.md'
       - 'documents/**'
       - 'scripts/**'
+      - 'kratos/templates/**'
+      - 'kratos/python_scripts/application_generator/**'
+
+permissions:
+  contents: read
 
 jobs:
   ubuntu:

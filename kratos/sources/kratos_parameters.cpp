@@ -12,6 +12,8 @@
 //
 
 // System includes
+#include <stack>
+#include <algorithm>
 
 // External includes
 #include "json/json.hpp" // Import nlohmann json library
@@ -19,6 +21,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 
 namespace Kratos
@@ -209,12 +212,90 @@ Parameters::Parameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
+nlohmann::json Parameters::ReadFile(const std::filesystem::path& rFileName)
+{
+    std::ifstream new_file;
+    new_file.open(rFileName, std::ios::in);
+
+    std::stringstream strStream;
+    strStream << new_file.rdbuf();
+    std::string input_json = strStream.str();
+    return nlohmann::json::parse(input_json);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::Parameters(const std::string& rJsonString)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
+
+    // A stack containing the current sequence of included JSONs
+    std::vector<std::filesystem::path> include_sequence;
+
+    // Recursively resolve json links
+    SolveIncludes(*mpValue, "root", include_sequence);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence)
+{
+    std::stack<std::pair<nlohmann::json*,nlohmann::json::iterator>> s;
+
+    if (rJson.is_object()) {
+        s.push({&rJson,rJson.begin()});
+    }
+
+    while(!s.empty()) {
+        std::pair<nlohmann::json*,nlohmann::json::iterator> pJson_it = s.top();
+        s.pop();
+
+        nlohmann::json* act_pJson= pJson_it.first;
+        nlohmann::json::iterator act_it = pJson_it.second;
+
+        while(act_it != act_pJson->end()) {
+
+            if(act_it.value().is_object()) {
+                s.emplace(&act_it.value(), act_it.value().begin());
+            } else if (act_it.key() == "@include_json") {
+                // Check whether the included file exists
+                const std::string included_file_path_string = *act_it;
+                const std::filesystem::path included_file_path = FilesystemExtensions::ResolveSymlinks(std::filesystem::path(included_file_path_string));
+                KRATOS_ERROR_IF_NOT(std::filesystem::is_regular_file(included_file_path)) << "File not found: '" << *act_it << "'";
+
+                nlohmann::json included_json= ReadFile(included_file_path);
+
+                // Check for cycles and push to the include sequence
+                auto it_cycle = std::find(rIncludeSequence.begin(), rIncludeSequence.end(), included_file_path);
+                if (it_cycle != rIncludeSequence.end()) {
+                    std::stringstream message_stream;
+                    message_stream << "Include cycle in json files: ";
+                    for (; it_cycle != rIncludeSequence.end(); ++it_cycle) {
+                        message_stream << *it_cycle << " => ";
+                    }
+                    message_stream << included_file_path << " => ...";
+                    KRATOS_ERROR << message_stream.str();
+                }
+                rIncludeSequence.push_back(included_file_path);
+
+                // Resolve links in the included json
+                SolveIncludes(included_json, included_file_path, rIncludeSequence);
+                rIncludeSequence.pop_back();
+
+                // Remove the @include entry
+                act_it = act_pJson->erase(act_it);
+
+                // Add the new entries due to the new included file
+                act_pJson->insert(included_json.begin(), included_json.end());
+                continue;
+            }
+            ++act_it;
+        }
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -223,6 +304,12 @@ Parameters::Parameters(std::ifstream& rStringStream)
 {
     mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
+
+    // A stack containing the current sequence of included JSONs
+    std::vector<std::filesystem::path> include_sequence;
+
+    // Recursively resolve json links
+    SolveIncludes(*mpValue, "root", include_sequence);
 }
 
 /***********************************************************************************/

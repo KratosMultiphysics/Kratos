@@ -1255,7 +1255,7 @@ protected:
                           const array_1d<double, TNumNodes>& rShapeFunc,
                           const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight,
-			  const Matrix gauss_enriched_gradients)
+			  const Matrix& gauss_enriched_gradients)
     {
         const unsigned int BlockSize = TDim + 1;
 

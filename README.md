@@ -10,7 +10,7 @@
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
 [![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
 
-[release-image]: https://img.shields.io/badge/release-9.1-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-9.2-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -43,7 +43,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 **Kratos** provides a core which defines the common framework and several application which work like plug-ins that can be extended in diverse fields.
 
 Its main applications are:
-- [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simultion
+- [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simulation
 - [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
 - [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
 - [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
@@ -95,11 +95,20 @@ Organizations contributing to Kratos:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
 </br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
 
+</br></br>
+
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
 </br><p>Altair Engineering</p>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
 </br><p>Deltares</p>
+
+</br></br>
+
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUBraunschweig_logo.svg" width="128">
+<p>Institute of Structural Analysis</br>Technische Universität Braunschweig</p>
+
+</br></br>
 
 # Our Users
 Some users of the technologies developed in Kratos are:

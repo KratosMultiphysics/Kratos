@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
+#include <set>
 
 // External includes
 
@@ -130,6 +131,25 @@ void MPISafeCreateDirectories(const std::string& rPath)
     if (!std::filesystem::exists(rPath)) { // wait for the path to appear in the filesystem
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+}
+
+
+std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath)
+{
+    auto status = std::filesystem::symlink_status(rPath);
+    KRATOS_ERROR_IF(status.type() == std::filesystem::file_type::not_found) << "File not found: " << rPath;
+
+    std::filesystem::path path = rPath;
+    std::set<std::filesystem::path> symlinks;
+
+    while (status.type() == std::filesystem::file_type::symlink) {
+        const auto insert_result = symlinks.insert(path);
+        KRATOS_ERROR_IF_NOT(insert_result.second) << rPath << " leads to cyclic symlinks";
+        path = std::filesystem::read_symlink(path);
+        status = std::filesystem::symlink_status(path);
+    }
+
+    return path;
 }
 
 } // namespace FilesystemExtensions

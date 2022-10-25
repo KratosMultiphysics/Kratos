@@ -8,6 +8,8 @@ on:
       - '**.md'
       - 'documents/**'
       - 'scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
+      - 'kratos/templates/**'
+      - 'kratos/python_scripts/application_generator/**'
 
   workflow_dispatch:
 
@@ -39,6 +41,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
 
     - name: Build
       shell: bash
@@ -108,7 +115,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" 
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -117,7 +124,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" 
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -126,7 +133,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" 
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
   windows:
     runs-on: windows-2022
@@ -151,7 +158,9 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
         pip install h5py
+        pip install parameterized
 
     - name: Build
       shell: cmd
@@ -177,6 +186,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3.8 -m pip install parameterized
 
     - name: Build
       run: |
@@ -336,6 +350,7 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
+        pip install scipy
 
     - name: Build
       shell: cmd
@@ -394,6 +409,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
 
     - name: Build
       shell: bash
