@@ -82,14 +82,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
-    // We initialize the material reponse if required
-    bool required = false;
-    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
-            required = true;
-            break;
-        }
-    }
+    const bool required = mConstitutiveLawVector[0]->RequiresInitializeMaterialResponse();
     if (required) {
         const auto& r_geom = GetGeometry();
         const SizeType number_of_nodes = r_geom.size();
@@ -172,14 +165,7 @@ void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentPr
 
 void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
-    // We finalize the material reponse if required
-    bool required = false;
-    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
-            required = true;
-            break;
-        }
-    }
+    const bool required = mConstitutiveLawVector[0]->RequiresFinalizeMaterialResponse();
     if (required) {
         const auto &r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
