@@ -128,7 +128,7 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
             SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             // rotate to local axes strain/F
-            RotateToLocalAxes(rValues, this_kinematic_variables);
+            RotateToLocalAxes(Values, this_kinematic_variables);
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
@@ -217,7 +217,7 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
             SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             // rotate to local axes strain/F
-            RotateToLocalAxes(rValues, this_kinematic_variables);
+            RotateToLocalAxes(Values, this_kinematic_variables);
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
