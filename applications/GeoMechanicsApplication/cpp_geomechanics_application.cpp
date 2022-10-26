@@ -820,8 +820,6 @@ namespace Kratos
                         break;
                     }
 
-                    outputGiD(current_model, model_part, projectfile, workingDirectory);
-
                     // Update boundary conditions for next search head.
                     if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
                     {
@@ -846,6 +844,8 @@ namespace Kratos
                         return 0;
                     }
                 }
+
+                outputGiD(current_model, model_part, projectfile, workingDirectory);
 
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << workingDirectory << "\\criticalHead.json" << std::endl;
 
