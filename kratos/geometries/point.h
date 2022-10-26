@@ -18,10 +18,6 @@
 #define KRATOS_POINT_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
