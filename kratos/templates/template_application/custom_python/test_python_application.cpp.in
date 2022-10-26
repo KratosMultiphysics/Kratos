@@ -14,8 +14,6 @@
 // System includes
 
 // External includes
-#include "includes/define_python.h"
-
 
 // Project includes
 #include "includes/define_python.h"
