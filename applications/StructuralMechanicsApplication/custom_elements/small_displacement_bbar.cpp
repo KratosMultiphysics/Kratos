@@ -715,7 +715,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size() != strain_size )
                 rOutput[point_number].resize( strain_size, false );
 
-            rOutput[point_number] = this_constitutive_variables.StressVector;
+            noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
         }
     }
     else if(rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR) {
@@ -758,7 +758,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size() != strain_size)
                 rOutput[point_number].resize( strain_size, false );
 
-            rOutput[point_number] = this_constitutive_variables.StrainVector;
+            noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
         }
     }
     else {
@@ -793,7 +793,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size2() != dimension )
                 rOutput[point_number].resize( dimension, dimension, false );
 
-            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+            noalias(rOutput[point_number]) = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
@@ -808,13 +808,14 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size2() != dimension )
                 rOutput[point_number].resize( dimension, dimension, false );
 
-            rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
+            noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
         }
     }
     else if (rVariable == CONSTITUTIVE_MATRIX) {
         // Create and initialize element variables:
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        const bool is_rotated = IsElementRotated();
 
         KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -842,18 +843,20 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
 
+            if (is_rotated)
+                RotateToLocalAxes(Values, this_kinematic_variables);
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
                                            Values, point_number, integration_points,
                                            GetStressMeasure());
 
-            // Call the constitutive law to update material variables
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
+            if (is_rotated)
+                RotateToGlobalAxes(Values, this_kinematic_variables);
 
             if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                 rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
 
-            rOutput[point_number] = this_constitutive_variables.D;
+            noalias(rOutput[point_number]) = this_constitutive_variables.D;
         }
     }
     else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
@@ -886,7 +889,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 rOutput[point_number].resize( this_kinematic_variables.F.size1() , this_kinematic_variables.F.size2() , false );
 
-            rOutput[point_number] = this_kinematic_variables.F;
+            noalias(rOutput[point_number]) = this_kinematic_variables.F;
         }
     }
     else {
