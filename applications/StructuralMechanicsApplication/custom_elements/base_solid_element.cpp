@@ -212,19 +212,20 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            // Compute constitutive law variables
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-                // Call the constitutive law to update material variables
-                mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+            // rotate to local axes strain/F
+            RotateToLocalAxes(rValues, rThisKinematicVariables);
 
-                // TODO: Deprecated, remove this
-                mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
-            }
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+
+            // TODO: Deprecated, remove this
+            mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
         }
     }
 }
