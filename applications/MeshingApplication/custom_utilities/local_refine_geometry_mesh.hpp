@@ -33,7 +33,7 @@
 #include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 
 namespace Kratos
 {
