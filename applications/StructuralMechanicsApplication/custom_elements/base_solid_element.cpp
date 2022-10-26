@@ -120,7 +120,7 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
             // Compute constitutive law variables
             SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-            // rotate to local axes strain/F
+            // Rotate to local axes strain/F
             RotateToLocalAxes(Values, this_kinematic_variables);
 
             // Call the constitutive law to update material variables
@@ -202,7 +202,7 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
             // Compute constitutive law variables
             SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-            // rotate to local axes strain/F
+            // Rotate to local axes strain/F
             RotateToLocalAxes(Values, this_kinematic_variables);
 
             // Call the constitutive law to update material variables
@@ -1537,7 +1537,7 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
-    // rotate to local axes strain/F
+    // Rotate to local axes strain/F
     RotateToLocalAxes(rValues, rThisKinematicVariables);
 
     // Actually do the computations in the ConstitutiveLaw in local axes
@@ -1598,7 +1598,7 @@ void BaseSolidElement::RotateToLocalAxes(
                 ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
                 rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
             }
-        } else { // rotate F
+        } else { // Rotate F
             BoundedMatrix<double, 3, 3> inv_rotation_matrix;
             double aux_det;
             MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
