@@ -86,7 +86,8 @@ KratosGlobals = __ModuleInitDetail()
 # Create the Python global registry
 # Note that this interfaces the c++ registry.
 Registry = python_registry.PythonRegistry()
-RegisterInKratos = python_registry.RegisterInKratos
+# RegisterInKratos = python_registry.RegisterInKratos
+# AddPythonPrototypeToRegistry = python_registry.AddPythonPrototypeToRegistry
 
 # Remove CppRegistry from locals() in order to give preference to the exception thrown in __getattr__
 # This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)

@@ -13,33 +13,53 @@ class KratosProcessFactory(object):
         constructed_processes = []
         for i in range(0,process_list.size()):
             item = process_list[i]
-            if not item.Has("python_module"):
-                KM.Logger.PrintWarning("Your list of processes: ", process_list)
-                raise NameError('"python_module" must be defined in your parameters. Check all your processes')
 
-            # python-script that contains the process
-            python_module_name = item["python_module"].GetString()
+            # Registry-based instantiation
+            if item.Has("name"):
+                registry_entry = item["name"].GetString()
+                print(registry_entry)
+                if KM.Registry.HasItem(registry_entry):
+                    process_prototype = KM.Registry[registry_entry]
+                    print(process_prototype)
+                    if process_prototype is not None:
+                        process = process_prototype(self.Model, item["Parameters"])
+                        print(process)
+                        constructed_processes.append(process)
+                    else:
+                        err_msg = f"Trying to construct the registry process '{registry_entry}' which has no prototype."
+                        raise Exception(err_msg)
+                else:
+                    KM.Logger.PrintWarning(f"Asking to construct the non-registered 'name' '{registry_entry}'.")
+            else:
 
-            if item.Has("kratos_module"): # for Kratos-processes
-                """Location of the process in Kratos; e.g.:
-                - KratosMultiphysics
-                - KratosMultiphysics.FluidDynamicsApplication
-                """
+                # Alternative (old) instantiation
+                if not item.Has("python_module"):
+                    KM.Logger.PrintWarning("Your list of processes: ", process_list)
+                    raise NameError('"python_module" must be defined in your parameters. Check all your processes')
 
-                kratos_module_name = item["kratos_module"].GetString()
-                if not kratos_module_name.startswith("KratosMultiphysics"):
-                    kratos_module_name = "KratosMultiphysics." + kratos_module_name
+                # python-script that contains the process
+                python_module_name = item["python_module"].GetString()
 
-                full_module_name = kratos_module_name + "." + python_module_name
-                python_module = import_module(full_module_name)
+                if item.Has("kratos_module"): # for Kratos-processes
+                    """Location of the process in Kratos; e.g.:
+                    - KratosMultiphysics
+                    - KratosMultiphysics.FluidDynamicsApplication
+                    """
 
-                p = python_module.Factory(item, self.Model)
-                constructed_processes.append( p )
+                    kratos_module_name = item["kratos_module"].GetString()
+                    if not kratos_module_name.startswith("KratosMultiphysics"):
+                        kratos_module_name = "KratosMultiphysics." + kratos_module_name
 
-            else: # for user-defined processes
-                python_module = import_module(python_module_name)
-                p = python_module.Factory(item, self.Model)
-                constructed_processes.append( p )
+                    full_module_name = kratos_module_name + "." + python_module_name
+                    python_module = import_module(full_module_name)
+
+                    p = python_module.Factory(item, self.Model)
+                    constructed_processes.append( p )
+
+                else: # for user-defined processes
+                    python_module = import_module(python_module_name)
+                    p = python_module.Factory(item, self.Model)
+                    constructed_processes.append( p )
 
         return constructed_processes
 

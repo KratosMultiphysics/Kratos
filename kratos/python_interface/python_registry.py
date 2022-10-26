@@ -1,5 +1,5 @@
 import KratosMultiphysics
-from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
+from importlib import import_module
 
 class RegistryContext():
     ALL = 0
@@ -172,7 +172,7 @@ class PythonRegistry(object):
             err_msg = f"Wrong registry context '{Context}'"
             raise Exception(err_msg)
 
-    def AddItem(self, Name, Class):
+    def AddItem(self, Name, ModuleName):
         # Add current item
         # First check if it is already registered in the c++ and Python registries
         # If not registered, add it to the Python registry (note that we do an "All" registry as well as the module one)
@@ -181,9 +181,61 @@ class PythonRegistry(object):
             raise Exception(err_msg)
         else:
             # Add to the corresponding item All block
-            self.__InternalAddItemToAll(Name, Class)
+            self.__InternalAddItemToAll(Name, ModuleName)
             # Add item to the corresponding module
-            self.__InternalAddItem(Name, Class)
+            self.__InternalAddItem(Name, ModuleName)
+
+    # def AddItem(self, Name, Class):
+    #     # Add current item
+    #     # First check if it is already registered in the c++ and Python registries
+    #     # If not registered, add it to the Python registry (note that we do an "All" registry as well as the module one)
+    #     if self.HasItem(Name, RegistryContext.ALL):
+    #         err_msg = f"Trying to register '{Name}' but it is already registered."
+    #         raise Exception(err_msg)
+    #     else:
+    #         # Add to the corresponding item All block
+    #         self.__InternalAddItemToAll(Name, Class)
+    #         # Add item to the corresponding module
+    #         self.__InternalAddItem(Name, Class)
+
+    # def AddPythonModulePath(self, Name, ModulePath):
+    #     # First check if it is already registered in the c++ registry
+    #     # If not registered in c++, add current information to the Python registry
+    #     # Note that we do it both in the "All" registry as well as the module one
+    #     if self.HasItem(Name, RegistryContext.CPP):
+    #         err_msg = f"Trying to register '{Name}' but it is already registered."
+    #         raise Exception(err_msg)
+    #     else:
+    #         # Add to the corresponding item All block
+    #         self.__InternalAddItemToAll(Name, ModulePath, "ModulePath")
+    #         # Add item to the corresponding module
+    #         self.__InternalAddItem(Name, ModulePath, "ModulePath")
+
+    # def AddPythonPrototype(self, Name, Prototype):
+    #     # First check if it is already registered in the c++ registry
+    #     # If not registered in c++, add current information to the Python registry
+    #     # Note that we do it both in the "All" registry as well as the module one
+    #     if self.HasItem(Name, RegistryContext.CPP):
+    #         err_msg = f"Trying to register '{Name}' but it is already registered."
+    #         raise Exception(err_msg)
+    #     else:
+    #         # Add to the corresponding item All block
+    #         self.__InternalAddItemToAll(Name, Prototype, "Prototype")
+    #         # Add item to the corresponding module
+    #         self.__InternalAddItem(Name, Prototype, "Prototype")
+
+    # def AddPythonCreateFunction(self, Name, CreateFunction):
+    #     # First check if it is already registered in the c++ registry
+    #     # If not registered in c++, add current information to the Python registry
+    #     # Note that we do it both in the "All" registry as well as the module one
+    #     if self.HasItem(Name, RegistryContext.CPP):
+    #         err_msg = f"Trying to register '{Name}' but it is already registered."
+    #         raise Exception(err_msg)
+    #     else:
+    #         # Add to the corresponding item All block
+    #         self.__InternalAddItemToAll(Name, CreateFunction, "CreateFunction")
+    #         # Add item to the corresponding module
+    #         self.__InternalAddItem(Name, CreateFunction, "CreateFunction")
 
     def RemoveItem(self, Name):
         if self.HasItem(Name, RegistryContext.PYTHON):
@@ -219,7 +271,34 @@ class PythonRegistry(object):
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
             aux_dict = aux_dict[i_name]
-        return aux_dict[split_name[-1]]
+        value = aux_dict[split_name[-1]]
+        if value is not None:
+            if isinstance(value, dict):
+                return value
+            elif isinstance(value, str):
+                try:
+                    module = import_module(value)
+                    class_name = split_name[-1]
+                    if hasattr(module, class_name):
+                        return getattr(module, class_name)
+                    else:
+                        err_msg = f"The '{class_name}' class name cannot be found within the '{value}' module."
+                        raise Exception(err_msg)
+                except ImportError:
+                    return None
+            else:
+                err_msg = f"Value in '{Name}' registry type is not of the expected type."
+                raise Exception(err_msg)
+        else:
+            err_msg = f"Asking for empty registry item '{Name}'."
+            raise Exception(err_msg)
+
+    # def __InternalGetPythonItem(self, Name):
+    #     split_name = Name.split('.')
+    #     aux_dict = self.__python_registry
+    #     for i_name in split_name[:-1]:
+    #         aux_dict = aux_dict[i_name]
+    #     return aux_dict[split_name[-1]]
 
     def __InternalGetCppItem(self, Name):
         # Check if current item has value
@@ -252,6 +331,31 @@ class PythonRegistry(object):
             aux_dict = aux_dict[i_name]
         aux_dict[split_name[-1]] = Class
 
+    # def __InternalAddItem(self, Name, Entry, EntryKeyWord):
+    #     # Navigate the Python registry to get to the objetive subitem
+    #     # Note that if not present, the subitem levels are created while navigating
+    #     split_name = Name.split('.')
+    #     aux_dict = self.__python_registry
+    #     for i_name in split_name[:-1]:
+    #         if not i_name in aux_dict:
+    #             aux_dict[i_name] = {}
+    #         aux_dict = aux_dict[i_name]
+
+    #     # If not registered yet, create an empty item
+    #     if not split_name[-1] in aux_dict:
+    #         aux_dict[split_name[-1]] = {
+    #             "ModulePath" : None,
+    #             "Prototype" : None,
+    #             "CreateFunction" : None
+    #         }
+
+    #     # Add the requested value
+    #     if aux_dict[split_name[-1]][EntryKeyWord] == None:
+    #         aux_dict[split_name[-1]][EntryKeyWord] = Entry
+    #     else:
+    #         err_msg = f"Trying to register '{EntryKeyWord}' in '{Name}' but it is already registered."
+    #         raise Exception(err_msg)
+
     def __InternalAddItemToAll(self, Name, Class):
         split_name = Name.split('.')
         item_keyword = split_name[0]
@@ -262,33 +366,100 @@ class PythonRegistry(object):
             raise Exception(err_msg)
         self.__InternalAddItem(all_full_name, Class)
 
-def RegisterInKratos(RegistryPointName: str):
-    def register_wrapper(Class):
-        # Get the list of compiled applications
-        # This will be used for checking the available submodules
-        available_apps = GetListOfAvailableApplications()
+    # def __InternalAddItemToAll(self, RegistryName, Entry, EntryKeyword):
+    #     split_name = RegistryName.split('.')
+    #     item_keyword = split_name[0]
+    #     class_name = split_name[-1]
+    #     all_full_name = f"{item_keyword}.All.{class_name}"
+    #     # Check if the corresponding All entry has been already registered in c++
+    #     if self.HasItem(all_full_name, RegistryContext.CPP):
+    #         err_msg = f"Trying to register '{RegistryName}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
+    #         raise Exception(err_msg)
+    #     self.__InternalAddItem(all_full_name, Entry, EntryKeyword)
 
-        # Check input registry point name
-        split_name = RegistryPointName.split('.')
-        if len(split_name) < 2:
-            err_msg = f"Wrong provided item name '{RegistryPointName}' structure. A structure of the type 'ItemKeyWord.Module.Submodule' is expected."
-            raise Exception(err_msg)
 
-        # Check input registry module
-        module_keys = split_name[1:]
-        if module_keys[0] != "KratosMultiphysics": #TODO: Add Custom as possible keywords
-            err_msg = f"Wrong root module '{module_keys[0]}'. This is expected to be 'KratosMultiphysics'."
-            raise Exception(err_msg)
-        if len(module_keys) is not 1:
-            sub_module_key = module_keys[1]
-            if sub_module_key not in available_apps:
-                err_msg = f"Wrong submodule '{sub_module_key}'. Compile the corresponding application."
-                raise Exception(err_msg)
+# def AddPythonPrototypeToRegistry(RegistryEntryName: str):
+#     def register_wrapper(Class):
+#         # Get the list of compiled applications
+#         # This will be used for checking the available submodules
+#         available_apps = GetListOfAvailableApplications()
 
-        # Call the Kratos registry to register the current item
-        # Note that the item class name is used as
-        full_name = RegistryPointName + "." + Class.__name__
-        KratosMultiphysics.Registry.AddItem(full_name, Class)
+#         # Check input registry point name
+#         split_name = RegistryEntryName.split('.')
+#         if len(split_name) < 2:
+#             err_msg = f"Wrong provided item name '{RegistryEntryName}' structure. A structure of the type 'ItemKeyWord.Module.Submodule' is expected."
+#             raise Exception(err_msg)
 
-        return Class
-    return register_wrapper
+#         # Check input registry module
+#         module_keys = split_name[1:]
+#         if module_keys[0] != "KratosMultiphysics":
+#             err_msg = f"Wrong root module '{module_keys[0]}'. This is expected to be 'KratosMultiphysics'."
+#             raise Exception(err_msg)
+#         if len(module_keys) != 1:
+#             sub_module_key = module_keys[1]
+#             if sub_module_key not in available_apps:
+#                 err_msg = f"Wrong submodule '{sub_module_key}'. Compile the corresponding application."
+#                 raise Exception(err_msg)
+
+#         # Call the Kratos registry to get the current item from the class name
+#         full_name = RegistryEntryName + "." + Class.__name__
+#         if KratosMultiphysics.Registry.HasItem(full_name):
+#             # First check if prototype has been already assigned
+#             assigned = False
+#             module_name = KratosMultiphysics.Registry[full_name]
+#             if isinstance(module_name, str):
+#                 # Get module members from the temporary Python registry entry
+#                 module_members = inspect.getmembers(sys.modules(module_name))
+
+#                 # Assign as registry value the corresponding class from the module
+#                 for name, value in module_members:
+#                     if name == Class.__name__:
+#                         KratosMultiphysics.Registry[full_name] = value
+#                         assigned = True
+#                         break
+#             else:
+#                 # Check that the prototype is of the expected type
+#                 assigned = True
+
+#             # Check that the prototype has been properly assigned
+#             if not assigned:
+#                 err_msg = f"Prototype value not found for registry entry '{full_name}' in module '{module_name}'."
+#         else:
+#             err_msg = f"Trying to add a prototype to non-existing '{full_name}' registry entry."
+#             raise Exception(err_msg)
+
+#         KratosMultiphysics.Registry[full_name]
+
+#         return Class
+#     return register_wrapper
+
+# def RegisterInKratos(RegistryPointName: str):
+#     def register_wrapper(Class):
+#         # Get the list of compiled applications
+#         # This will be used for checking the available submodules
+#         available_apps = GetListOfAvailableApplications()
+
+#         # Check input registry point name
+#         split_name = RegistryPointName.split('.')
+#         if len(split_name) < 2:
+#             err_msg = f"Wrong provided item name '{RegistryPointName}' structure. A structure of the type 'ItemKeyWord.Module.Submodule' is expected."
+#             raise Exception(err_msg)
+
+#         # Check input registry module
+#         module_keys = split_name[1:]
+#         if module_keys[0] != "KratosMultiphysics": #TODO: Add Custom as possible keywords
+#             err_msg = f"Wrong root module '{module_keys[0]}'. This is expected to be 'KratosMultiphysics'."
+#             raise Exception(err_msg)
+#         if len(module_keys) != 1:
+#             sub_module_key = module_keys[1]
+#             if sub_module_key not in available_apps:
+#                 err_msg = f"Wrong submodule '{sub_module_key}'. Compile the corresponding application."
+#                 raise Exception(err_msg)
+
+#         # Call the Kratos registry to register the current item
+#         # Note that the item class name is used as
+#         full_name = RegistryPointName + "." + Class.__name__
+#         KratosMultiphysics.Registry.AddItem(full_name, Class)
+
+#         return Class
+#     return register_wrapper
