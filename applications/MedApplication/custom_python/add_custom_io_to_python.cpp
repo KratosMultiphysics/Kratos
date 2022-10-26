@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_io_to_python.h"
+#include "custom_io/med_model_part_io.h"
 
 
 namespace Kratos::Python {
@@ -25,6 +25,9 @@ void AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+    py::class_<MedModelPartIO, MedModelPartIO::Pointer, IO>(m,"MedModelPartIO")
+        .def(py::init<const std::filesystem::path&>())
+        ;
 }
 
 } // namespace Kratos::Python

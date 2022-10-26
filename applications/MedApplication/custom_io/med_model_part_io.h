@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
 
 
@@ -49,36 +48,41 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(MED_APPLICATION) MedIO : public IO
+class KRATOS_API(MED_APPLICATION) MedModelPartIO : public IO
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MedIO
-    KRATOS_CLASS_POINTER_DEFINITION(MedIO);
+    /// Pointer definition of MedModelPartIO
+    KRATOS_CLASS_POINTER_DEFINITION(MedModelPartIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    MedIO();
+    /// Constructor with filename.
+    MedModelPartIO(const std::filesystem::path& rFileName);
 
     /// Copy constructor.
-    MedIO(MedIO const& rOther) = delete;
+    MedModelPartIO(MedModelPartIO const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    MedIO& operator=(MedIO const& rOther) = delete;
+    MedModelPartIO& operator=(MedModelPartIO const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method reads the model part
+     * @param rThisModelPart The model part to be read
+     */
+    void ReadModelPart(ModelPart& rThisModelPart) override;
 
     ///@}
     ///@name Access
@@ -95,14 +99,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const override
+    {
+        return "MedModelPartIO";
+    }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "MedModelPartIO";
+    }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
-
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
 
     ///@}
     ///@name Friends
@@ -157,6 +168,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    std::filesystem::path mFileName;
 
     ///@}
     ///@name Private Operators
@@ -180,7 +192,7 @@ private:
 
     ///@}
 
-}; // Class MedIO
+}; // Class MedModelPartIO
 
 ///@}
 
@@ -195,11 +207,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                MedIO& rThis);
+                MedModelPartIO& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const MedIO& rThis)
+                const MedModelPartIO& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -211,4 +223,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@} addtogroup block
 
-}  // namespace Kratos.
+} // namespace Kratos.

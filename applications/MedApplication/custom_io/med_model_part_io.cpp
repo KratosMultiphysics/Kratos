@@ -16,12 +16,20 @@
 // #include "med.h"
 
 // Project includes
-#include "med_io.h"
+#include "med_model_part_io.h"
 
 
 namespace Kratos {
 
+MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName)
+    : mFileName(rFileName)
+{
 
+}
 
+void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
+{
+    KRATOS_ERROR << "Calling base class method (ReadModelPart). Please check the definition of derived class" << std::endl;
+}
 
-}  // namespace Kratos.
+} // namespace Kratos.
