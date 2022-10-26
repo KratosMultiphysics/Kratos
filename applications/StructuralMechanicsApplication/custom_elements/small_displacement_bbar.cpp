@@ -974,9 +974,6 @@ void SmallDisplacementBbar::FinalizeSolutionStep( const ProcessInfo& rCurrentPro
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
-        if (is_rotated)
-            RotateToGlobalAxes(Values, this_kinematic_variables);
-
         // TODO: To be deprecated
         mConstitutiveLawVector[point_number]->FinalizeSolutionStep(
                 GetProperties(),
