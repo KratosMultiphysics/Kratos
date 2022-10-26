@@ -1026,6 +1026,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
+        const bool is_rotated = IsElementRotated();
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
         const SizeType number_of_nodes = GetGeometry().size();
@@ -1054,7 +1055,8 @@ private:
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             // rotate to local axes strain/F
-            RotateToLocalAxes(Values, this_kinematic_variables);
+            if (is_rotated)
+                RotateToLocalAxes(Values, this_kinematic_variables);
 
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }

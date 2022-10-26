@@ -83,8 +83,8 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     const bool required = mConstitutiveLawVector[0]->RequiresInitializeMaterialResponse();
-    const bool is_rotated = IsElementRotated();
     if (required) {
+        const bool is_rotated = IsElementRotated();
         const auto& r_geom = GetGeometry();
         const SizeType number_of_nodes = r_geom.size();
         const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -168,8 +168,8 @@ void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentPr
 void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     const bool required = mConstitutiveLawVector[0]->RequiresFinalizeMaterialResponse();
-    const bool is_rotated = IsElementRotated();
     if (required) {
+        const bool is_rotated = IsElementRotated();
         const auto &r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
         const SizeType number_of_nodes = r_geometry.size();
@@ -889,7 +889,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
+                // Compute material reponse, not encessary to rotate since it's an invariant
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
                 // Compute VM stress
