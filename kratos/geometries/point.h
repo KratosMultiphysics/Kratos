@@ -58,7 +58,7 @@ namespace Kratos
 */
 class Point : public array_1d<double, 3>
 {
-    static constexpr int mDimension = 3;
+    static constexpr std::size_t mDimension = 3;
 
 public:
     ///@name Constants
@@ -152,7 +152,7 @@ public:
 
     static constexpr IndexType Dimension()
     {
-        return 3;
+        return mDimension;
     }
 
     /** Returns X coordinate */
