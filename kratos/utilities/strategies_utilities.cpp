@@ -71,6 +71,12 @@ double StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<UblasSparseSpaceTy
 /***********************************************************************************/
 /***********************************************************************************/
 
+// Explicit instantiation.
+template double StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<UblasSparseSpaceType>(ModelPart& rModelPart, UblasSparseSpaceType::MatrixType& rA, UblasSparseSpaceType::VectorType& rb, const SCALING_DIAGONAL ScalingDiagonal);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 double StrategiesUtilities::GetDiagonalNorm<UblasSparseSpaceType>(UblasSparseSpaceType::MatrixType& rA)
 {
@@ -91,6 +97,12 @@ double StrategiesUtilities::GetDiagonalNorm<UblasSparseSpaceType>(UblasSparseSpa
 
     return std::sqrt(diagonal_norm);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// Explicit instantiation.
+template double StrategiesUtilities::GetDiagonalNorm<UblasSparseSpaceType>(UblasSparseSpaceType::MatrixType& rA);
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -117,6 +129,12 @@ double StrategiesUtilities::GetMaxDiagonal<UblasSparseSpaceType>(UblasSparseSpac
 /***********************************************************************************/
 /***********************************************************************************/
 
+// Explicit instantiation.
+template double StrategiesUtilities::GetMaxDiagonal<UblasSparseSpaceType>(UblasSparseSpaceType::MatrixType& rA);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 double StrategiesUtilities::GetMinDiagonal<UblasSparseSpaceType>(UblasSparseSpaceType::MatrixType& rA)
 {
@@ -135,5 +153,11 @@ double StrategiesUtilities::GetMinDiagonal<UblasSparseSpaceType>(UblasSparseSpac
         return std::numeric_limits<double>::max();
     });
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// Explicit instantiation.
+template double StrategiesUtilities::GetMinDiagonal<UblasSparseSpaceType>(UblasSparseSpaceType::MatrixType& rA);
 
 }  // namespace Kratos
