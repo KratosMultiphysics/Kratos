@@ -36,6 +36,7 @@
 #include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
+#include "processes/calculate_distance_to_path_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
@@ -254,6 +255,10 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<EliminateIsolatedNodesProcess, EliminateIsolatedNodesProcess::Pointer, Process>(m,"EliminateIsolatedNodesProcess")
     .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<CalculateDistanceToPathProcess, CalculateDistanceToPathProcess::Pointer, Process>(m, "CalculateDistanceToPathProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
