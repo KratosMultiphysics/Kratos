@@ -95,5 +95,15 @@ namespace Kratos {
         KRATOS_CHECK_STRING_EQUAL(point.Info(), "Point");
     }
 
+    /**
+     *  Here the Distance is test
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Distance, KratosCoreGeometriesFastSuite)
+    {
+        Point point;
+        Point point_3d(3.0, 4.0, 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(point.Distance(point_3d), 5.0);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
