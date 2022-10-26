@@ -1106,14 +1106,14 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
 
             // Damage calculation
 
-            const double T0n = 51700000; // Interfacial Normal Strength
-            const double T0s = 115700000; // Interfacial Shear Strength
-            const double T0t = 115700000; // Interfacial Shear Strength
-            const double GIc = 270; // Mode I Energy Release Rate
-            const double GIIc = 687; // Mode II Energy Release Rate
-            const double Eta = 2.3; // Benzeggagh-Kenane (B-K) Law Coefficient
-            const double Ei = 7700000000; // Tensile modulus of the interface
-            const double Gi = 5900000000; // Shear modulus of the interface
+            const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
+            const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+            const double T0t = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+            const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
+            const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
+            const double Eta = r_material_properties[BK_COEFFICIENT]; // Benzeggagh-Kenane (B-K) Law Coefficient
+            const double Ei = r_material_properties[TENSILE_INTERAFCE_MODULUS]; // Tensile modulus of the interface
+            const double Gi = r_material_properties[SHEAR_INTERAFCE_MODULUS]; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
             const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
             const double tolerance = std::numeric_limits<double>::epsilon();
@@ -1856,14 +1856,14 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
             // Damage calculation
 
-            const double T0n = 51700000; // Interfacial Normal Strength
-            const double T0s = 115700000; // Interfacial Shear Strength
-            const double T0t = 115700000; // Interfacial Shear Strength
-            const double GIc = 270; // Mode I Energy Release Rate
-            const double GIIc = 687; // Mode II Energy Release Rate
-            const double Eta = 2.3; // Benzeggagh-Kenane (B-K) Law Coefficient
-            const double Ei = 7700000000; // Tensile modulus of the interface
-            const double Gi = 5900000000; // Shear modulus of the interface
+            const double T0n = r_material_properties[INTERFACIAL_NORMAL_STRENGTH]; // Interfacial Normal Strength
+            const double T0s = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+            const double T0t = r_material_properties[INTERFACIAL_SHEAR_STRENGTH]; // Interfacial Shear Strength
+            const double GIc = r_material_properties[MODE_ONE_FRACTURE_ENERGY]; // Mode I Energy Release Rate
+            const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
+            const double Eta = r_material_properties[BK_COEFFICIENT]; // Benzeggagh-Kenane (B-K) Law Coefficient
+            const double Ei = r_material_properties[TENSILE_INTERAFCE_MODULUS]; // Tensile modulus of the interface
+            const double Gi = r_material_properties[SHEAR_INTERAFCE_MODULUS]; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
             const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
             const double tolerance = std::numeric_limits<double>::epsilon();
