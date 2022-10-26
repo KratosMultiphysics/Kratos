@@ -936,6 +936,7 @@ void SmallDisplacementBbar::FinalizeSolutionStep( const ProcessInfo& rCurrentPro
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -967,8 +968,14 @@ void SmallDisplacementBbar::FinalizeSolutionStep( const ProcessInfo& rCurrentPro
         // Compute constitutive law variables
         SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
+        if (is_rotated)
+            RotateToLocalAxes(Values, this_kinematic_variables);
+
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+
+        if (is_rotated)
+            RotateToGlobalAxes(Values, this_kinematic_variables);
 
         // TODO: To be deprecated
         mConstitutiveLawVector[point_number]->FinalizeSolutionStep(
