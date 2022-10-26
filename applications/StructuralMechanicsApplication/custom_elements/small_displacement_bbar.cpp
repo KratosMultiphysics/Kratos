@@ -657,6 +657,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
 
     if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR ) {
         // Create and initialize element variables:
+        const bool is_rotated = IsElementRotated();
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -687,6 +688,8 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
 
+            if (is_rotated)
+	            RotateToLocalAxes(Values, this_kinematic_variables);
             //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
                 // Compute material reponse
@@ -706,6 +709,8 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
                                                integration_points,
                                                ConstitutiveLaw::StressMeasure_PK2);
             }
+            if (is_rotated)
+                RotateToGlobalAxes(Values, this_kinematic_variables);
 
             if ( rOutput[point_number].size() != strain_size )
                 rOutput[point_number].resize( strain_size, false );
