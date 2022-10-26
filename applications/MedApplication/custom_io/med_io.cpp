@@ -12,24 +12,16 @@
 
 // System includes
 
-
 // External includes
-
+// #include "med.h"
 
 // Project includes
-#include "med_application.h"
+#include "med_io.h"
 
 
 namespace Kratos {
 
-KratosMedApplication::KratosMedApplication():
-    KratosApplication("MedApplication")
-    {}
 
-void KratosMedApplication::Register()
-{
-     KRATOS_INFO("") << "Initializing KratosMedApplication..." << std::endl;
 
-}
 
 }  // namespace Kratos.

@@ -13,16 +13,19 @@
 #pragma once
 
 // System includes
-
+#include <filesystem>
 
 // External includes
 
-
 // Project includes
-#include "includes/kratos_application.h"
+#include "includes/define.h"
+#include "includes/io.h"
 
 
 namespace Kratos {
+
+///@addtogroup MedApplication
+///@{
 
 ///@name Kratos Globals
 ///@{
@@ -46,36 +49,36 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(MED_APPLICATION) KratosMedApplication : public KratosApplication {
+class KRATOS_API(MED_APPLICATION) MedIO : public IO
+{
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of KratosMedApplication
-    KRATOS_CLASS_POINTER_DEFINITION(KratosMedApplication);
+    /// Pointer definition of MedIO
+    KRATOS_CLASS_POINTER_DEFINITION(MedIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KratosMedApplication();
+    MedIO();
 
     /// Copy constructor.
-    KratosMedApplication(KratosMedApplication const& rOther) = delete;
+    MedIO(MedIO const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    KratosMedApplication& operator=(KratosMedApplication const& rOther) = delete;
+    MedIO& operator=(MedIO const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    void Register() override;
 
     ///@}
     ///@name Access
@@ -92,33 +95,14 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "KratosMedApplication";
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-        PrintData(rOStream);
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
-    ///// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-          KRATOS_WATCH("in my application");
-          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override;
 
-        rOStream << "Variables:" << std::endl;
-        KratosComponents<VariableData>().PrintData(rOStream);
-        rOStream << std::endl;
-        rOStream << "Elements:" << std::endl;
-        KratosComponents<Element>().PrintData(rOStream);
-        rOStream << std::endl;
-        rOStream << "Conditions:" << std::endl;
-        KratosComponents<Condition>().PrintData(rOStream);
-    }
 
     ///@}
     ///@name Friends
@@ -168,11 +152,11 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    // static const ApplicationCondition  msApplicationCondition;
 
     ///@}
     ///@name Member Variables
     ///@{
+
 
     ///@}
     ///@name Private Operators
@@ -196,17 +180,35 @@ private:
 
     ///@}
 
-}; // Class KratosMedApplication
+}; // Class MedIO
 
 ///@}
 
 ///@name Type Definitions
 ///@{
 
+
 ///@}
 ///@name Input and output
 ///@{
 
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                MedIO& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                const MedIO& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 ///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
