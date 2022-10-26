@@ -20,6 +20,7 @@
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 using namespace std;
 
@@ -89,7 +90,10 @@ void NodeVOLUME_ACCELERATION::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &
 
 void NodeHYDRAULIC_DISCHARGE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, model_part.Nodes(), 0, 0); }
 
-void GaussOperation::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part){};
+void NodeHYDRAULIC_HEAD::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_HEAD, model_part.Nodes(), 0, 0); }
+
+
+void GaussOperation::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) {};
 
 void GaussFLUID_FLUX_VECTOR::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.PrintOnGaussPoints(Kratos::FLUID_FLUX_VECTOR, model_part, 0, 0); }
 
@@ -523,8 +527,36 @@ namespace Kratos
         NodeOutput["NORMAL_FLUID_FLUX"] = Kratos::make_unique<NodeNORMAL_FLUID_FLUX>();
         NodeOutput["VOLUME_ACCELERATION"] = Kratos::make_unique<NodeVOLUME_ACCELERATION>();
         NodeOutput["HYDRAULIC_DISCHARGE"] = Kratos::make_unique<NodeHYDRAULIC_DISCHARGE>();
+        NodeOutput["HYDRAULIC_HEAD"] = Kratos::make_unique<NodeHYDRAULIC_HEAD>();
 
+        // Hydraulic Gauss Point Results to Nodal Results 
+        auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         auto nodal_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
+
+        if (std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
+        {
+
+            Parameters gauss_intergration_param_non_hist = Parameters(R"(
+        {
+            "echo_level"                 : 0,
+            "area_average"               : true,
+            "average_variable"           : "NODAL_AREA",
+            "list_of_variables"          : ["HYDRAULIC_HEAD"],
+            "extrapolate_non_historical" : true
+        })");
+
+            // if (std::find(nodal_outputs.begin(), nodal_outputs.end(), "HYDRAULIC_HEAD") == nodal_outputs.end())
+            // {
+            //     nodal_outputs.push_back("HYDRAULIC_HEAD");
+            // }
+
+        	auto mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(model_part, 
+                gauss_intergration_param_non_hist);
+            mpGaussToNodesProcess->Execute();
+            const auto& this_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
+            gid_io.WriteNodalResultsNonHistorical(this_var, model_part.Nodes(), 0);
+        }
+
         for (string var : nodal_outputs)
         {
             NodeOutput[var]->write(gid_io, model_part);
@@ -542,7 +574,7 @@ namespace Kratos
         GaussOutput["PIPE_ACTIVE"] = Kratos::make_unique<GaussPIPE_ACTIVE>();
         GaussOutput["PIPE_HEIGHT"] = Kratos::make_unique<GaussPIPE_HEIGHT>();
 
-        auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
+        // Now Output Gauss Point Results on Gauss Points
         for (string var : gauss_outputs)
         {
             GaussOutput[var]->write(gid_io, model_part);

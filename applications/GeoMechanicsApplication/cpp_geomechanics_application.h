@@ -80,6 +80,11 @@ class NodeHYDRAULIC_DISCHARGE : public NodeOperation
 public:
     void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
 };
+class NodeHYDRAULIC_HEAD : public NodeOperation
+{
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
+};
 
 class GaussOperation
 {
