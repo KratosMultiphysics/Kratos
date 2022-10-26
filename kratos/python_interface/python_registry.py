@@ -277,8 +277,9 @@ class PythonRegistry(object):
                 return value
             elif isinstance(value, str):
                 try:
-                    module = import_module(value)
                     class_name = split_name[-1]
+                    module_name = ".".join(value.split('.')[:-1])
+                    module = import_module(module_name)
                     if hasattr(module, class_name):
                         return getattr(module, class_name)
                     else:

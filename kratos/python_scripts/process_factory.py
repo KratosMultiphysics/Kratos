@@ -17,13 +17,10 @@ class KratosProcessFactory(object):
             # Registry-based instantiation
             if item.Has("name"):
                 registry_entry = item["name"].GetString()
-                print(registry_entry)
                 if KM.Registry.HasItem(registry_entry):
                     process_prototype = KM.Registry[registry_entry]
-                    print(process_prototype)
                     if process_prototype is not None:
                         process = process_prototype(self.Model, item["Parameters"])
-                        print(process)
                         constructed_processes.append(process)
                     else:
                         err_msg = f"Trying to construct the registry process '{registry_entry}' which has no prototype."
