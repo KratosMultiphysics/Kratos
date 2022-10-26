@@ -93,6 +93,7 @@ void SmallDisplacementBbar::CalculateAll(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = (dimension == 3) ? 6 : 4; // necessary include component zz in the computation of kinematic variables
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -112,7 +113,7 @@ void SmallDisplacementBbar::CalculateAll(
         if ( rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize( mat_size, false );
 
-        rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector( mat_size ); //resetting RHS
     }
 
     // Reading integration points and local gradients
@@ -149,10 +150,15 @@ void SmallDisplacementBbar::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
 
+        if (is_rotated)
+            RotateToLocalAxes(Values, this_kinematic_variables);
+
         // Compute material reponse
         CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
                                        Values, point_number, integration_points,
                                        GetStressMeasure());
+        if (is_rotated)
+            RotateToGlobalAxes(Values, this_kinematic_variables);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number,
