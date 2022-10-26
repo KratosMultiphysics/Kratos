@@ -32,6 +32,7 @@
 #include "custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.h"
 #include "custom_processes/hyperbolic_tangential_porosity_solution_transient_body_force_process.h"
 #include "custom_processes/plateau_bump_porosity_solution_and_body_force_process.h"
+#include "custom_processes/plateau_bump_porosity_solution_transient_body_force_process.h"
 #include "custom_processes/porosity_solution_transient_body_force_process.h"
 
 namespace Kratos
@@ -74,6 +75,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<PlateauBumpPorositySolutionAndBodyForceProcess, PlateauBumpPorositySolutionAndBodyForceProcess::Pointer, Process>
     (m, "PlateauBumpPorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<PlateauBumpPorositySolutionTransientBodyForceProcess, PlateauBumpPorositySolutionTransientBodyForceProcess::Pointer, Process>
+    (m, "PlateauBumpPorositySolutionTransientBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;

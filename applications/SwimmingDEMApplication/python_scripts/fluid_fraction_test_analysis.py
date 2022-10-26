@@ -15,7 +15,7 @@ from swimming_DEM_analysis import SwimmingDEMAnalysis
 import swimming_DEM_procedures as SDP
 
 class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
-    def __init__(self, model, iteration, varying_parameters = Parameters("{}")):
+    def __init__(self, model, iteration, damkohler, varying_parameters = Parameters("{}")):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -30,10 +30,8 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         self.project_parameters = varying_parameters
         self.GetModelAttributes()
         self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
-        self.u_char = self.project_parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
         self.lowest_alpha = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
-        sigma = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["sigma"].GetDouble()
-        self.damkohler_number = sigma/(self.lowest_alpha*self.u_char)
+        self.damkohler_number = damkohler
         # This model analysis is created to validate formulations so we have to make sure the fluid is computed in every time step
 
     def InitializeVariablesWithNonZeroValues(self):
