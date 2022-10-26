@@ -165,7 +165,8 @@ void SmallDisplacement::CalculateAll(
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
+        // Compute constitutive law variables
+        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
         if (is_rotated)
             RotateToLocalAxes(Values, this_kinematic_variables);
 
