@@ -146,6 +146,16 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method computes the distance betwee this point and another one
+     * @param rOtherPoint The other point to compute the distance
+     * @return The distance between this and another point     
+     */
+    double Distance(const Point& rOtherPoint)
+    {
+        return norm_2(this->Coordinates() - rOtherPoint.Coordinates());
+    }
+
     ///@}
     ///@name Access
     ///@{
