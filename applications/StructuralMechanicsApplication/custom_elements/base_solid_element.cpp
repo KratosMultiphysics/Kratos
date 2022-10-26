@@ -62,7 +62,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             } else {
                 mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
             }
-        } 
+        }
 
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
 
@@ -1775,7 +1775,6 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
         MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
         GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     }
-    
     return detJ;
 }
 
