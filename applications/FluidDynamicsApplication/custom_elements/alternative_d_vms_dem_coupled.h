@@ -329,6 +329,23 @@ protected:
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     ///@}
     ///@name Protected  Access
     ///@{
