@@ -121,22 +121,20 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
 
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            // Compute constitutive law variables
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-                // rotate to local axes strain/F
-                RotateToLocalAxes(rValues, this_kinematic_variables);
+            // rotate to local axes strain/F
+            RotateToLocalAxes(rValues, this_kinematic_variables);
 
-                // Call the constitutive law to update material variables
-                mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
 
-                // TODO: Deprecated, remove this
-                mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geom, row( N_values, point_number ), rCurrentProcessInfo);
-            }
+            // TODO: Deprecated, remove this
+            mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geom, row( N_values, point_number ), rCurrentProcessInfo);
         }
     }
 }
@@ -219,7 +217,7 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
             SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             // rotate to local axes strain/F
-            RotateToLocalAxes(rValues, rThisKinematicVariables);
+            RotateToLocalAxes(rValues, this_kinematic_variables);
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
