@@ -18,6 +18,8 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -70,7 +72,38 @@ public:
         typename TSparseSpace::MatrixType& rA,
         typename TSparseSpace::VectorType& rb,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
-        );
+        )
+    {
+        const std::size_t system_size = rA.size1();
+
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+
+        // The diagonal considered
+        const double scale_factor = GetScaleNorm<TSparseSpace>(rModelPart, rA, ScalingDiagonal);
+
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            bool empty = true;
+
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index + 1];
+
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(Avalues[j] != 0.0) {
+                    empty = false;
+                    break;
+                }
+            }
+
+            if(empty) {
+                rA(Index, Index) = scale_factor;
+                rb[Index] = 0.0;
+            }
+        });
+
+        return scale_factor;
+    }
 
     /**
      * @brief This method returns the scale norm considering for scaling the diagonal
@@ -110,7 +143,25 @@ public:
      * @return The diagonal norm
      */
     template<class TSparseSpace>
-    static double GetDiagonalNorm(typename TSparseSpace::MatrixType& rA);
+    static double GetDiagonalNorm(typename TSparseSpace::MatrixType& rA)
+    {
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
+
+        const double diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::pow(Avalues[j], 2);
+                }
+            }
+            return 0.0;
+        });
+
+        return std::sqrt(diagonal_norm);
+    }
 
     /**
      * @brief This method returns the diagonal max value
@@ -129,7 +180,23 @@ public:
      * @return The diagonal  max value
      */
     template<class TSparseSpace>
-    static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA);
+    static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA)
+    {
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
+
+        return IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<MaxReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::abs(Avalues[j]);
+                }
+            }
+            return 0.0;
+        });
+    }
 
     /**
      * @brief This method returns the diagonal min value
@@ -137,9 +204,25 @@ public:
      * @return The diagonal min value
      */
     template<class TSparseSpace>
-    static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA);
+    static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA)
+    {
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
+
+        return IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<MinReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::abs(Avalues[j]);
+                }
+            }
+            return std::numeric_limits<double>::max();
+        });
+    }
 
     ///@}
 
-}; // Class StrategiesUtilities
+}; // namespace StrategiesUtilities
 }  // namespace Kratos
