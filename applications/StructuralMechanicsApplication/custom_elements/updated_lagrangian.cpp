@@ -211,6 +211,7 @@ void UpdatedLagrangian::CalculateAll(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);

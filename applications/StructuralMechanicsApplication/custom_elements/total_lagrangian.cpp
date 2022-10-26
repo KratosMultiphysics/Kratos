@@ -166,6 +166,7 @@ void TotalLagrangian::CalculateAll(
     const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size = GetStrainSize();
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
