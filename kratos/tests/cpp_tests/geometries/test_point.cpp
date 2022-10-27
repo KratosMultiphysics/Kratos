@@ -103,6 +103,7 @@ namespace Kratos {
         Point point;
         Point point_3d(3.0, 4.0, 0.0);
         KRATOS_CHECK_DOUBLE_EQUAL(point.Distance(point_3d), 5.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(point.SquaredDistance(point_3d), 25.0);
     }
 
 }  // namespace Testing.
