@@ -35,6 +35,8 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 
+#include "nodal_residualbased_elimination_builder_and_solver.h"
+
 #include "pfem_fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -75,15 +77,14 @@ namespace Kratos
             class TDenseSpace,  //= DenseSpace<double>,
             class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
             >
-  class NodalResidualBasedEliminationBuilderAndSolverForFSI
-      : public BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+  class NodalResidualBasedEliminationBuilderAndSolverForFSI : public NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
   {
   public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(NodalResidualBasedEliminationBuilderAndSolverForFSI);
 
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -121,7 +122,7 @@ namespace Kratos
      */
     NodalResidualBasedEliminationBuilderAndSolverForFSI(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        : NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
       //         KRATOS_INFO("NodalResidualBasedEliminationBuilderAndSolverForFSI") << "Using the standard builder and solver " << std::endl;
     }
@@ -139,88 +140,6 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-    void SetMaterialPropertiesToFluid(
-        ModelPart::NodeIterator itNode,
-        double &density,
-        double &deviatoricCoeff,
-        double &volumetricCoeff,
-        double timeInterval,
-        double nodalVolume)
-    {
-
-      density = itNode->FastGetSolutionStepValue(DENSITY);
-
-      this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
-
-      volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
-
-      if (volumetricCoeff > 0)
-      {
-        volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
-        double bulkReduction = density * nodalVolume / (timeInterval * volumetricCoeff);
-        volumetricCoeff *= bulkReduction;
-      }
-    }
-
-    void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, double &deviatoricCoefficient)
-    {
-      const double tolerance = 1.0e-07;
-      const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-      const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
-      if (static_friction > tolerance) // mu(I)-rheology
-      {
-        const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
-        const double delta_friction = dynamic_friction - static_friction;
-        const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
-        const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
-        const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-        const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
-
-        const double theta = 0.5;
-        double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
-
-        double pressure_tolerance = -tolerance;
-        if (mean_pressure > pressure_tolerance)
-        {
-          mean_pressure = pressure_tolerance;
-        }
-
-        const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-        const double exponent = -equivalent_strain_rate / regularization_coeff;
-        const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
-
-        if (equivalent_strain_rate != 0)
-        {
-          const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
-          deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
-        }
-        else
-        {
-          deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
-        }
-      }
-      else if (yieldShear > tolerance) // bingham model
-      {
-        const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-        const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-        const double exponent = -adaptiveExponent * equivalentStrainRate;
-        if (equivalentStrainRate != 0)
-        {
-          deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) + (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-        }
-        if (equivalentStrainRate < tolerance && adaptiveExponent != 0)
-        {
-          // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-          deviatoricCoefficient = adaptiveExponent * yieldShear;
-        }
-      }
-      else
-      {
-        deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-      }
-      // itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
-    }
 
     void SetMaterialPropertiesToSolid(
         ModelPart::NodeIterator itNode,
@@ -918,81 +837,7 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-    /**
-     * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
-     */
-    void SystemSolve(
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b) override
-    {
-      KRATOS_TRY
-
-      double norm_b;
-      if (TSparseSpace::Size(b) != 0)
-        norm_b = TSparseSpace::TwoNorm(b);
-      else
-        norm_b = 0.00;
-
-      if (norm_b != 0.00)
-      {
-        // do solve
-        BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-      }
-      else
-        TSparseSpace::SetToZero(Dx);
-
-      // Prints informations about the current time
-      KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-      KRATOS_CATCH("")
-    }
-
-    /**
-     *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
-     * @param rModelPart The model part of the problem to solve
-     */
-    void SystemSolveWithPhysics(
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b,
-        ModelPart &rModelPart)
-    {
-      KRATOS_TRY
-
-      double norm_b;
-      if (TSparseSpace::Size(b) != 0)
-        norm_b = TSparseSpace::TwoNorm(b);
-      else
-        norm_b = 0.00;
-
-      if (norm_b != 0.00)
-      {
-        // provide physical data as needed
-        if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-          BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
-
-        // do solve
-        BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-      }
-      else
-      {
-        TSparseSpace::SetToZero(Dx);
-        KRATOS_WARNING_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
-      }
-
-      // Prints informations about the current time
-      KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-      KRATOS_CATCH("")
-    }
-
+  
     /**
      * @brief Function to perform the building and solving phase at the same time.
      * @details It is ideally the fastest and safer function to use when it is possible to solve
@@ -1034,7 +879,7 @@ namespace Kratos
       //         ApplyPointLoads(pScheme,rModelPart,b);
 
       // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
-      ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+      this->ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -1043,7 +888,7 @@ namespace Kratos
       // Timer::Start("Solve");
 
       /* boost::timer m_solve_time; */
-      SystemSolveWithPhysics(A, Dx, b, rModelPart);
+      this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
       /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
 
       // Timer::Stop("Solve");
@@ -1341,32 +1186,6 @@ namespace Kratos
       KRATOS_CATCH("");
     }
 
-    /**
-     * @brief Organises the dofset in order to speed up the building phase
-     * @param rModelPart The model part of the problem to solve
-     */
-    void SetUpSystem(
-        ModelPart &rModelPart) override
-    {
-      // Set equation id for degrees of freedom
-      // the free degrees of freedom are positioned at the beginning of the system,
-      // while the fixed one are at the end (in opposite order).
-      //
-      // that means that if the EquationId is greater than "mEquationSystemSize"
-      // the pointed degree of freedom is restrained
-      //
-      int free_id = 0;
-      int fix_id = BaseType::mDofSet.size();
-
-      for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        if (dof_iterator->IsFixed())
-          dof_iterator->SetEquationId(--fix_id);
-        else
-          dof_iterator->SetEquationId(free_id++);
-
-      BaseType::mEquationSystemSize = fix_id;
-    }
-
     //**************************************************************************
     //**************************************************************************
 
@@ -1531,59 +1350,7 @@ namespace Kratos
     }
 
     //**************************************************************************
-    //**************************************************************************
-
-    /**
-     * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
-     * @details For explanation of how it works for a particular implementation the user
-     * should refer to the particular Builder And Solver choosen
-     * @param pScheme The integration scheme considered
-     * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
-     */
-    void ApplyDirichletConditions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b) override
-    {
-    }
-
-    /**
-     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
-     */
-    void Clear() override
-    {
-      this->mDofSet = DofsArrayType();
-
-      if (this->mpReactionsVector != NULL)
-        TSparseSpace::Clear((this->mpReactionsVector));
-      //             this->mReactionsVector = TSystemVectorType();
-
-      this->mpLinearSystemSolver->Clear();
-
-      KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
-    }
-
-    /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart The model part of the problem to solve
-     * @return 0 all ok
-     */
-    int Check(ModelPart &rModelPart) override
-    {
-      KRATOS_TRY
-
-      return 0;
-      KRATOS_CATCH("");
-    }
-
+ 
     ///@}
     ///@name Access
     ///@{

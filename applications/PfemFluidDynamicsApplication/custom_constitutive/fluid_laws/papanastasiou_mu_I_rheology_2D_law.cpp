@@ -98,7 +98,7 @@ namespace Kratos
         }
         else
         {            
-            effective_dynamic_viscosity = static_friction; //this is for the first iteration and first time step
+            effective_dynamic_viscosity = 1.0; //this is for the first iteration and first time step
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];

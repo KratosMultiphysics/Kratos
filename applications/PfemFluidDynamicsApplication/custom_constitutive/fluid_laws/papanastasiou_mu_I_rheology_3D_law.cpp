@@ -72,41 +72,34 @@ namespace Kratos
         const double grain_diameter = r_properties[GRAIN_DIAMETER];
         const double grain_density = r_properties[GRAIN_DENSITY];
         const double regularization_coeff = r_properties[REGULARIZATION_COEFFICIENT];
-        double inertial_number = 0;
         double effective_dynamic_viscosity = 0;
-
-        const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
-        const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
-
-        const double theta_momentum = GetThetaMomentumForPressureIntegration();
-        double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
-        if (mean_pressure > 0.0)
-        {
-            mean_pressure = 0.0000001;
-        }
 
         const double equivalent_strain_rate =
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
                       2.0 * r_strain_vector[2] * r_strain_vector[2] + 4.0 * r_strain_vector[3] * r_strain_vector[3] +
                       4.0 * r_strain_vector[4] * r_strain_vector[4] + 4.0 * r_strain_vector[5] * r_strain_vector[5]);
 
-        if (mean_pressure != 0)
+        const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
+        const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
+        const double theta_momentum = GetThetaMomentumForPressureIntegration();
+        double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
+        const double pressure_tolerance = -1.0e-07;
+        if (mean_pressure > pressure_tolerance)
         {
-            inertial_number = equivalent_strain_rate * grain_diameter / std::sqrt(std::fabs(mean_pressure) / grain_density);
+            mean_pressure = pressure_tolerance;
         }
 
         const double exponent = -equivalent_strain_rate / regularization_coeff;
 
-        if (equivalent_strain_rate != 0 && std::fabs(mean_pressure) != 0)
+        const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
+        if (equivalent_strain_rate != 0)
         {
-            const double first_viscous_term = static_friction * (1.0 - std::exp(exponent)) / equivalent_strain_rate;
-            const double second_viscous_term =
-                delta_friction * inertial_number / ((inertial_number_zero + inertial_number) * equivalent_strain_rate);
+            const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
             effective_dynamic_viscosity = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
         }
         else
-        {
-            effective_dynamic_viscosity = 1.0;
+        {            
+            effective_dynamic_viscosity = 1.0; //this is for the first iteration and first time step
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
