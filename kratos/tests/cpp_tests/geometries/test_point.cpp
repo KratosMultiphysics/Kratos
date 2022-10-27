@@ -30,7 +30,7 @@ namespace Kratos {
         KRATOS_CHECK_DOUBLE_EQUAL(point.Y(), 0.0);
         KRATOS_CHECK_DOUBLE_EQUAL(point.Z(), 0.0);
 
-        Point point_3d(1.0, 2.0, 3.0);
+        const Point point_3d(1.0, 2.0, 3.0);
 
         KRATOS_CHECK_DOUBLE_EQUAL(point_3d.X(), 1.0);
         KRATOS_CHECK_DOUBLE_EQUAL(point_3d.Y(), 2.0);
