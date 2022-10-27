@@ -147,7 +147,20 @@ public:
     ///@{
 
     /**
-     * @brief This method computes the distance betwee this point and another one
+     * @brief This method computes the distance between this point and another one (squared)
+     * @details In order to avoid square root operation if faster computation is needed
+     * @param rOtherPoint The other point to compute the distance
+     * @return The squared distance between this and another point     
+     */
+    double SquaredDistance(const Point& rOtherPoint) const
+    {
+        const array_1d<double, 3> diff_vector = this->Coordinates() - rOtherPoint.Coordinates();
+        return (std::pow(diff_vector[0], 2) + std::pow(diff_vector[1], 2) + std::pow(diff_vector[2], 2));
+    }
+
+    /**
+     * @brief This method computes the distance between this point and another one
+     * @details Using norm_2 to take benefic of the SIMD optimization of the library
      * @param rOtherPoint The other point to compute the distance
      * @return The distance between this and another point     
      */
