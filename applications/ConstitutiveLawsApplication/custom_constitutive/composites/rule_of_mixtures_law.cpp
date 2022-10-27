@@ -686,6 +686,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
 
         // We combine the value of each layer
         rValue.clear();
+        rValue.resize(VoigtSize, 6);
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
