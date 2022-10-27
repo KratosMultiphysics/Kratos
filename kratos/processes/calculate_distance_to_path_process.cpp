@@ -63,6 +63,13 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
     } else {
         this->CalculateDistance(r_distance_model_part);
     }
+
+    // Synchronize variables
+    if constexpr ( THistorical) {
+        r_distance_model_part.GetCommunicator().SynchronizeCurrentDataToMin(*mpDistanceVariable);
+    } else {
+        r_distance_model_part.GetCommunicator().SynchronizeNonHistoricalDataToMin(*mpDistanceVariable);
+    }
 }
 
 /***********************************************************************************/
