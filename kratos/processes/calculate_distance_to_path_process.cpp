@@ -49,23 +49,19 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
     // Getting communicator
     auto& r_comm = r_distance_model_part.GetCommunicator();
     auto& r_data_comm = r_comm.GetDataCommunicator();
-
-    // Local meshes
-    auto& r_distance_local_mesh = r_comm.LocalMesh();
-    auto& r_path_local_mesh = r_path_model_part.GetCommunicator().LocalMesh();
     
     // Initialize distance variable
     if constexpr ( THistorical) {
-        VariableUtils().SetHistoricalVariableToZero(*mpDistanceVariable, r_distance_local_mesh.Nodes());
+        VariableUtils().SetHistoricalVariableToZero(*mpDistanceVariable, r_distance_model_part.Nodes());
         r_comm.SynchronizeVariable(*mpDistanceVariable);
     } else {
-        VariableUtils().SetNonHistoricalVariableToZero(*mpDistanceVariable, r_distance_local_mesh.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(*mpDistanceVariable, r_distance_model_part.Nodes());
         r_comm.SynchronizeNonHistoricalVariable(*mpDistanceVariable);
     }
 
     /* Getting a global vector of Line3D2N geometries */
     // First we check that every element in the modelpart is a line
-    const auto& r_elements_array = r_distance_local_mesh.Elements();
+    const auto& r_elements_array = r_distance_model_part.Elements();
     // By default we consider that the model part is composed of elements
     if (r_elements_array.size() > 0) {
         for (auto& r_elem : r_elements_array) {
@@ -83,11 +79,27 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
         r_data_comm.SumAll(size_vector);
     }
     std::vector<Geometry<NodeType>> geometries_vector(size_vector);
-    // const auto it_elem_begin = r_elements_array.begin();
-    // IndexPartition<std::size_t>(r_elements_array.size()).for_each([&](std::size_t i){
-    //     const auto& r_geom = (it_elem_begin + i)->GetGeometry();
-    //     geometries_vector[i] = Line3D2<NodeType>(r_geom);
-    // });
+    if (r_distance_model_part.IsDistributed()) {
+        std::size_t counter = 0;
+        for (int i=0; i<r_data_comm.Size(); ++i) {
+            auto& r_path_local_mesh = r_comm.LocalMesh(i);
+            auto& r_local_elements_array = r_path_local_mesh.Elements();
+            const auto it_elem_begin = r_local_elements_array.begin();
+            const std::size_t number_elements = r_local_elements_array.size();
+            IndexPartition<std::size_t>(number_elements).for_each([&](std::size_t i){
+                auto& r_geom = (it_elem_begin + i)->GetGeometry();
+                geometries_vector[counter + i] = Line3D2<NodeType>(r_geom.Points());
+            });
+            counter += number_elements;
+        }
+    } else {
+            const auto it_elem_begin = r_elements_array.begin();
+            const std::size_t number_elements = r_elements_array.size();
+            IndexPartition<std::size_t>(number_elements).for_each([&](std::size_t i){
+                auto& r_geom = (it_elem_begin + i)->GetGeometry();
+                geometries_vector[i] = Line3D2<NodeType>(r_geom.Points());
+            });
+    }
 
     // Gettings if compute by brute force or not
     const bool brute_force_calculation = mThisParameters["brute_force_calculation"].GetBool();
