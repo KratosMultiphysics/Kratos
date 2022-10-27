@@ -17,8 +17,12 @@
 #include <unordered_map>
 
 // External includes
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 // Project includes
+#include "includes/variables.h"
+#include "includes/global_pointer_variables.h"
 #include "local_refine_geometry_mesh.hpp"
 
 namespace Kratos
