@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_POINT_H_INCLUDED)
-#define KRATOS_POINT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -284,5 +283,3 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_POINT_H_INCLUDED  defined
