@@ -8,7 +8,6 @@ def Factory(settings, Model):
 
 # All the processes python processes should be derived from "Process"
 
-@KratosMultiphysics.RegisterInKratos("Processes")
 class AssignFlagProcess(KratosMultiphysics.Process):
     """This process sets a given value for a certain flag in all the nodes of a submodelpart
 

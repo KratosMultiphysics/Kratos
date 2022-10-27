@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
 //                   Ruben Zorrilla
@@ -169,13 +169,15 @@ private:
     {                                                                                                           \
         std::string all_path = std::string("Operations.All.") + operation_name;                                 \
         if (!Registry::HasItem(all_path)) {                                                                     \
-            Registry::AddItem<RegistryValueItem<Operation>>(all_path, operation_prototype);                     \
+            auto& r_operation_item = Registry::AddItem<RegistryItem>(all_path);                                 \
+            r_operation_item.AddItem<RegistryValueItem<Operation>>("Prototype", operation_prototype);           \
         } else {                                                                                                \
             KRATOS_ERROR << "Operation '" << operation_name << "' is already registered." << std::endl;         \
         }                                                                                                       \
         std::string module_path = std::string("Operations.") + module_name + std::string(".") + operation_name; \
         if (!Registry::HasItem(module_path)) {                                                                  \
-            Registry::AddItem<RegistryValueItem<Operation>>(module_path, operation_prototype);                  \
+            auto& r_operation_item = Registry::AddItem<RegistryItem>(module_path);                              \
+            r_operation_item.AddItem<RegistryValueItem<Operation>>("Prototype", operation_prototype);           \
         }                                                                                                       \
     }
 #endif

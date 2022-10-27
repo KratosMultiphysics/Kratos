@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.RANSApplication as KratosRANS
 
+
 def Factory(settings, Model):
     if (not isinstance(Model, KratosMultiphysics.Model)):
         raise Exception(
@@ -13,7 +14,6 @@ def Factory(settings, Model):
     return ApplyWallFunctionProcess(Model, settings["Parameters"])
 
 
-@KratosMultiphysics.RegisterInKratos("Processes")
 class ApplyWallFunctionProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         """This process sets wall function parameters
@@ -41,9 +41,9 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
-
+        
         self.model_part = Model[settings["model_part_name"].GetString()]
-        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):
+        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):            
             process_info = self.model_part.ProcessInfo
             if (process_info.Has(KratosRANS.WALL_MODEL_PART_NAME)):
                 raise Exception(
