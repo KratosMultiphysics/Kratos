@@ -725,7 +725,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     )
 {
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
-    const bool is_rotated = IsElementRotated();
 
     const std::size_t number_of_integration_points = integration_points.size();
     const auto& r_geometry = GetGeometry();
