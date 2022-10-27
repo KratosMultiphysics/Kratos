@@ -171,36 +171,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method gets the current value of the NODAL_H
-     * @param rNode The node iterator to be get
-     * @return The current value of NODAL_H
-     */
-    double& GetHValue(NodeType& rNode);
-
-    /**
-     * @brief This method sets the current value of the NODAL_H to the given one
-     * @param rNode The node iterator to be get
-     * @param Value The current value of NODAL_H
-     */
-    void SetHValue(
-        NodeType& rNode,
-        const double Value
-        );
-
-    /**
-     * @brief This method sets the current value of the NODAL_H to the maximum
-     * @param itNode The node iterator to be set
-     */
-    void SetInitialValue(NodeIterator itNode);
-
-    /**
-     * @brief NODAL_H synchornization
-     * In parallel runs, this method does the synchronization to the minimum
-     * NODAL_H value between processes.
-     */
-    void SynchronizeValues();
-
     ///@}
     ///@name Private  Access
     ///@{
