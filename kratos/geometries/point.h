@@ -151,7 +151,7 @@ public:
      * @param rOtherPoint The other point to compute the distance
      * @return The distance between this and another point     
      */
-    double Distance(const Point& rOtherPoint)
+    double Distance(const Point& rOtherPoint) const
     {
         return norm_2(this->Coordinates() - rOtherPoint.Coordinates());
     }
