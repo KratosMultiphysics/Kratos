@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/registry.h"
 
 namespace Kratos
 {
