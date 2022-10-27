@@ -216,7 +216,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "maximum_delta_time"  : 0.01,
                 "time_step"           : 0.0
             },
-            "time_scheme":"bossaak",
+            "time_scheme":"bossak",
             "alpha":-0.3,
             "velocity_relaxation":0.9,
             "pressure_relaxation":0.9,
