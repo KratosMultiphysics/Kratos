@@ -158,6 +158,7 @@ namespace Kratos
 
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double pressure = 0;
 			double deltaPressure = 0;
 			double meanMeshSize = 0;
@@ -196,68 +197,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-
-						const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
-						const double tolerance = 0.0000001;
-						if (static_friction > tolerance)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
-							const double delta_friction = dynamic_friction - static_friction;
-							const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
-							const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
-							const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-							const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
-							double inertial_number = 0;
-
-							const double theta = 0.5;
-							double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
-							const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-
-							if (mean_pressure != 0)
-							{
-								inertial_number = equivalent_strain_rate * grain_diameter / std::sqrt(std::fabs(mean_pressure) / grain_density);
-							}
-
-							const double exponent = -equivalent_strain_rate / regularization_coeff;
-
-							if (equivalent_strain_rate != 0 && std::fabs(mean_pressure) != 0)
-							{
-								const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
-								const double second_viscous_term = delta_friction * inertial_number / ((inertial_number_zero + inertial_number) * equivalent_strain_rate);
-								deviatoricCoeff = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
-							}
-							else
-							{
-								deviatoricCoeff = 1.0;
-							}
-
-							if (deviatoricCoeff > 0.1)
-							{
-								deviatoricCoeff = 0.1;
-							}
-						}
-						else if (yieldShear > tolerance) // bingham model
-						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -495,6 +440,65 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, double &deviatoricCoefficient)
+		{
+			const double tolerance = 1.0e-07;
+			const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+			const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
+			if (static_friction > tolerance) // mu(I)-rheology
+			{
+				const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+				const double delta_friction = dynamic_friction - static_friction;
+				const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+				const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+				const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+				const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
+
+				const double theta = 0.5;
+				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+
+				double pressure_tolerance = -tolerance;
+				if (mean_pressure > pressure_tolerance)
+				{
+					mean_pressure = pressure_tolerance;
+				}
+
+				const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double exponent = -equivalent_strain_rate / regularization_coeff;
+				const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
+
+				if (equivalent_strain_rate != 0)
+				{
+					const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
+					deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
+				}
+				else
+				{
+					deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
+				}
+			}
+			else if (yieldShear > tolerance) // bingham model
+			{
+				const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+				const double exponent = -adaptiveExponent * equivalentStrainRate;
+				if (equivalentStrainRate != 0)
+				{
+					deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) + (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
+				}
+				if (equivalentStrainRate < tolerance && adaptiveExponent != 0)
+				{
+					// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+					deviatoricCoefficient = adaptiveExponent * yieldShear;
+				}
+			}
+			else
+			{
+				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+			}
+			// itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
+		}
+
 		void BuildNodallyUnlessLaplacian(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart &rModelPart,
@@ -514,6 +518,7 @@ namespace Kratos
 
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 			double meanMeshSize = 0;
 			double characteristicLength = 0;
@@ -548,28 +553,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -763,6 +752,7 @@ namespace Kratos
 
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 			double meanMeshSize = 0;
 			double characteristicLength = 0;
@@ -793,28 +783,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -931,6 +905,7 @@ namespace Kratos
 			const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 
 			/* #pragma omp parallel */
@@ -956,28 +931,12 @@ namespace Kratos
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -1030,6 +989,7 @@ namespace Kratos
 			const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 			const double timeInterval = CurrentProcessInfo[DELTA_TIME];
+			const double deviatoric_threshold = 0.1;
 			double deltaPressure = 0;
 
 			/* #pragma omp parallel */
@@ -1076,28 +1036,12 @@ namespace Kratos
 					if (nodalVolume > 0)
 					{ // in interface nodes not in contact with fluid elements the nodal volume is zero
 
-						double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+						double deviatoricCoeff = 0;
+						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
 
-						double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-						if (yieldShear > 0)
+						if (deviatoricCoeff > deviatoric_threshold)
 						{
-							double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent = -adaptiveExponent * equivalentStrainRate;
-							if (equivalentStrainRate != 0)
-							{
-								deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-							}
-							if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-							{
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff = adaptiveExponent * yieldShear;
-							}
-						}
-
-						if (deviatoricCoeff > 0.1)
-						{
-							deviatoricCoeff = 0.1;
+							deviatoricCoeff = deviatoric_threshold;
 						}
 
 						double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
