@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
 #include "operations/operation.h"
 
 namespace Kratos::Python
