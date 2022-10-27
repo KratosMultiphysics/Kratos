@@ -513,20 +513,48 @@ class PFEM2Solver(PythonSolver):
          totalerrorpressurewithnodalarea +=(errorpressure*errorpressure)*nodalarea
          totalerrorvelocity +=(errorvel_x*errorvel_x+errorvel_y*errorvel_y)
          totalerrorpressure +=(errorpressure*errorpressure)
-         node.SetSolutionStepValue(PfemM.SCALARVELOCITY_X,0,math.sqrt(errorvel_x*errorvel_x))
-         node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Y,0,math.sqrt(errorvel_y*errorvel_y))
-         node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,0,math.sqrt(errorpressure*errorpressure))
         totalerrorvelocitywithnodalarea=totalerrorvelocitywithnodalarea/nodalareasum
         totalerrorpressurewithnodalarea=totalerrorpressurewithnodalarea/nodalareasum
         totalerrorvelocitywithnodalarea  = math.sqrt(totalerrorvelocitywithnodalarea)  
         totalerrorpressurewithnodalarea  = math.sqrt(totalerrorpressurewithnodalarea)
         totalerrorvelocity  = math.sqrt(totalerrorvelocity)  
-        totalerrorpressure  = math.sqrt(totalerrorpressure)  
+        totalerrorpressure  = math.sqrt(totalerrorpressure)
+        elementvelocityerror=0.0
+        elementpressureerror=0.0
+        totalarea=0.0
+        for element in self.fluid_solver.main_model_part.Elements:
+         x10 = element.GetNode(1).X - element.GetNode(0).X
+         y10 = element.GetNode(1).Y - element.GetNode(0).Y
+         x20 = element.GetNode(2).X - element.GetNode(0).X
+         y20 = element.GetNode(2).Y - element.GetNode(0).Y
+         detJ = x10 * y20-y10 * x20
+         Area = 0.5*detJ
+         xg=0.333333333333333*(element.GetNode(0).X+element.GetNode(1).X+element.GetNode(2).X)
+         yg=0.333333333333333*(element.GetNode(0).Y+element.GetNode(1).Y+element.GetNode(2).Y)
+         velcenter_x=-1.0*math.sin(xg)*math.cos(yg)*math.exp(-2.0*(mu/rho)*time)  
+         velcenter_y=math.cos(xg)*math.sin(yg)*math.exp(-2.0*(mu/rho)*time)
+         vel_z=0.0
+         pressurecenter=(rho/4.0)*(math.cos(2.0*xg)+math.cos(2.0*yg))*math.exp(-4.0*(mu/rho)*time) 
+         numerical_central_vel_x=0.333333333333333*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)+element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)+element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+         numerical_central_vel_y=0.333333333333333*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)+element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)+element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+         numerical_central_pressure=0.333333333333333*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE)+element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE)+element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+         errorvel_x = velcenter_x-numerical_central_vel_x
+         errorvel_y = velcenter_y-numerical_central_vel_y
+         errorpressure = pressurecenter-numerical_central_pressure
+         totalarea=totalarea+Area
+         elementvelocityerror+=((errorvel_x*errorvel_x+errorvel_y*errorvel_y))*Area
+         elementpressureerror+=(errorpressure*errorpressure)*Area
+        elementvelocityerror=elementvelocityerror/totalarea
+        elementvelocityerror=math.sqrt(elementvelocityerror) 
+        elementpressureerror=elementpressureerror/totalarea
+        elementpressureerror=math.sqrt(elementpressureerror) 
         print("dt=", self.timestep)
         print("totalerrorvelocitywithnodalarea=", totalerrorvelocitywithnodalarea) 
         print("totalerrorpressurewithnodalarea=", totalerrorpressurewithnodalarea)
         print("totalerrorvelocity=", totalerrorvelocity) 
         print("totalerrorpressure=", totalerrorpressure)   
+        print("elementvelocityerrorfromtheelements=", elementvelocityerror)
+        print("elementpressureerrorfromtheelements=", elementpressureerror)
 
     def Solve(self):
 
