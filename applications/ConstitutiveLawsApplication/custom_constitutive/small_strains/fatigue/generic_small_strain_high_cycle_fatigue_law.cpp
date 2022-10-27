@@ -597,11 +597,10 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    } else {
+    if (this->Has(rThisVariable))
         return this->GetValue(rThisVariable, rValue);
-    }
+    else
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
