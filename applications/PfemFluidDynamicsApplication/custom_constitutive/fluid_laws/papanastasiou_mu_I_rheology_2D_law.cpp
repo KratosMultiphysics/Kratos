@@ -80,9 +80,10 @@ namespace Kratos
 
         const double theta_momentum = this->GetThetaMomentumForPressureIntegration();
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
-        if (mean_pressure > 0.0)
+        double pressure_tolerance = -0.0000001;
+        if (mean_pressure > pressure_tolerance)
         {
-            mean_pressure = 0.0000001;
+            mean_pressure = pressure_tolerance;
         }
 
         const double equivalent_strain_rate =

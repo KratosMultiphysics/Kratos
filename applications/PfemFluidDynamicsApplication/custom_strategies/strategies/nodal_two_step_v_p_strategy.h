@@ -75,7 +75,7 @@ namespace Kratos
 		KRATOS_CLASS_POINTER_DEFINITION(NodalTwoStepVPStrategy);
 
 		/// Counted pointer of NodalTwoStepVPStrategy
-		//typedef boost::shared_ptr< NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+		// typedef boost::shared_ptr< NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
 		typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -89,7 +89,7 @@ namespace Kratos
 
 		typedef std::size_t SizeType;
 
-		//typedef typename BaseType::DofSetType DofSetType;
+		// typedef typename BaseType::DofSetType DofSetType;
 
 		typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -152,7 +152,7 @@ namespace Kratos
 			typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 			typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-			//initializing fractional velocity solution step
+			// initializing fractional velocity solution step
 			typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
 			typename SchemeType::Pointer pScheme;
 
@@ -160,7 +160,7 @@ namespace Kratos
 			/* typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new IncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ()); */
 			pScheme.swap(Temp);
 
-			//CONSTRUCTION OF VELOCITY
+			// CONSTRUCTION OF VELOCITY
 			BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
 			/* BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver)); */
 
@@ -238,7 +238,7 @@ namespace Kratos
 
 			if (mTimeOrder == 2)
 			{
-				//calculate the BDF coefficients
+				// calculate the BDF coefficients
 				double Dt = rCurrentProcessInfo[DELTA_TIME];
 				double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
@@ -248,9 +248,9 @@ namespace Kratos
 				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 				BDFcoeffs.resize(3, false);
 
-				BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);		   //coefficient for step n+1 (3/2Dt if Dt is constant)
-				BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-				BDFcoeffs[2] = TimeCoeff;								   //coefficient for step n-1 (1/2Dt if Dt is constant)
+				BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);		   // coefficient for step n+1 (3/2Dt if Dt is constant)
+				BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
+				BDFcoeffs[2] = TimeCoeff;								   // coefficient for step n-1 (1/2Dt if Dt is constant)
 			}
 			else if (mTimeOrder == 1)
 			{
@@ -260,8 +260,8 @@ namespace Kratos
 				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 				BDFcoeffs.resize(2, false);
 
-				BDFcoeffs[0] = TimeCoeff;  //coefficient for step n+1 (1/Dt)
-				BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
+				BDFcoeffs[0] = TimeCoeff;  // coefficient for step n+1 (1/Dt)
+				BDFcoeffs[1] = -TimeCoeff; // coefficient for step n (-1/Dt)
 			}
 
 			KRATOS_CATCH("");
@@ -352,8 +352,8 @@ namespace Kratos
 
 				if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 1))
 				{
-					//this->ComputeErrorL2NormCaseImposedG();
-					//this->ComputeErrorL2NormCasePoiseuille();
+					// this->ComputeErrorL2NormCaseImposedG();
+					// this->ComputeErrorL2NormCasePoiseuille();
 					this->CalculateAccelerations();
 					// std::ofstream myfile;
 					// myfile.open ("maxConvergedIteration.txt",std::ios::app);
@@ -559,7 +559,7 @@ namespace Kratos
 			typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
 			typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) //MSI: To be parallelized
+			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) // MSI: To be parallelized
 			{
 				Element::GeometryType &geometry = itElem->GetGeometry();
 				double elementalVolume = 0;
@@ -735,7 +735,7 @@ namespace Kratos
 			typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
 			typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) //MSI: To be parallelized
+			for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++) // MSI: To be parallelized
 			{
 				itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
 			}
@@ -797,7 +797,7 @@ namespace Kratos
 				MathUtils<double>::InvertMatrix3(Fgrad, InvFgrad, detFgrad);
 			}
 
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -808,7 +808,45 @@ namespace Kratos
 				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
 
 				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-				if (yieldShear > 0)
+				const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
+				const double tolerance = 0.0000001;
+				if (static_friction > tolerance) // mu(I)-rheology
+				{
+					const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+					const double delta_friction = dynamic_friction - static_friction;
+					const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+					const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+					const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+					const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
+					double inertial_number = 0;
+
+					const double theta = 0.5;
+					double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
+					const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+
+					if (mean_pressure != 0)
+					{
+						inertial_number = equivalent_strain_rate * grain_diameter / std::sqrt(std::fabs(mean_pressure) / grain_density);
+					}
+
+					const double exponent = -equivalent_strain_rate / regularization_coeff;
+
+					if (equivalent_strain_rate != 0 && std::fabs(mean_pressure) != 0)
+					{
+						const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
+						const double second_viscous_term =
+							delta_friction * inertial_number / ((inertial_number_zero + inertial_number) * equivalent_strain_rate);
+						deviatoricCoeff = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
+					}
+					else
+					{
+						deviatoricCoeff = 1.0;
+					}
+				}
+				else if (yieldShear > tolerance) //bingham model
 				{
 					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
 																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
@@ -941,7 +979,7 @@ namespace Kratos
 			nodalFgrad = itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 			FgradVel = itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
 
-			//Inverse
+			// Inverse
 
 			if (dimension == 2)
 			{
@@ -952,7 +990,7 @@ namespace Kratos
 				MathUtils<double>::InvertMatrix3(nodalFgrad, InvFgrad, detFgrad);
 			}
 
-			//it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 			SpatialVelocityGrad = prod(FgradVel, InvFgrad);
 
 			if (dimension == 2)
@@ -1072,7 +1110,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) //neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
 					{
 						dNdXi = rNodalSFDneigh[firstRow];
 						dNdYi = rNodalSFDneigh[firstRow + 1];
@@ -1190,7 +1228,7 @@ namespace Kratos
 			this->CalculateDisplacementsAndResetNodalVariables();
 			BaseType::MoveMesh();
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
-            BoundaryComputation.CalculateUnitBoundaryNormals(rModelPart, echoLevel);
+			BoundaryComputation.CalculateUnitBoundaryNormals(rModelPart, echoLevel);
 
 			KRATOS_CATCH("");
 		}
@@ -1463,8 +1501,8 @@ namespace Kratos
 
 		/// Calculate the coefficients for time iteration.
 		/**
-     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
-     */
+		 * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
+		 */
 
 		bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
 		{
@@ -2102,11 +2140,11 @@ namespace Kratos
 
 		// Fractional step index.
 		/*  1 : Momentum step (calculate fractional step velocity)
-      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
-      * 4 : Pressure step
-      * 5 : Computation of projections
-      * 6 : End of step velocity
-      */
+		 * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
+		 * 4 : Pressure step
+		 * 5 : Computation of projections
+		 * 6 : End of step velocity
+		 */
 		//    unsigned int mStepId;
 
 		/// Scheme for the solution of the momentum equation
@@ -2130,7 +2168,7 @@ namespace Kratos
 			// Check that input parameters are reasonable and sufficient.
 			this->Check();
 
-			//ModelPart& rModelPart = this->GetModelPart();
+			// ModelPart& rModelPart = this->GetModelPart();
 
 			mDomainSize = rSolverConfig.GetDomainSize();
 
