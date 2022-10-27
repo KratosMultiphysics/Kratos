@@ -52,8 +52,7 @@ namespace Kratos {
         KRATOS_CHECK_DOUBLE_EQUAL(array_point_3d.Y(), coords[1]);
         KRATOS_CHECK_DOUBLE_EQUAL(array_point_3d.Z(), coords[2]);
 
-        std::vector<double> vector_coords = {1.0, 2.0, 3.0};
-        Point vector_point_3d(coords);
+        const Point vector_point_3d(coords);
 
         KRATOS_CHECK_DOUBLE_EQUAL(vector_point_3d.X(), vector_coords[0]);
         KRATOS_CHECK_DOUBLE_EQUAL(vector_point_3d.Y(), vector_coords[1]);
