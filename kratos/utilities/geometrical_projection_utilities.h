@@ -201,7 +201,7 @@ public:
 
     /**
      * @brief Computes the minimal distance to a line
-     * @details Projects over a line and if the point porjected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
      * @tparam TGeometryType The type of the line
      * @param rGeometry The line where compute the distance
      * @param rPoint The point to compute the distance
