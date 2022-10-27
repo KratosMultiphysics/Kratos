@@ -73,31 +73,26 @@ namespace Kratos
                     Clipper2Lib::Clipper64 c;
                     c.AddSubject(all_loops);
 
-                    Clipper2Lib::Paths64 span(1);
-                    span[0].resize(5);
-                    span[0][0] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
-                    span[0][1] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor));
-                    span[0][2] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor));
-                    span[0][3] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor));
-                    span[0][4] = (BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor));
+                    Clipper2Lib::Rect64 rectangle = Clipper2Lib::Rect64(
+                        static_cast<cInt>(rSpansU[i] / factor), static_cast<cInt>(rSpansV[i] / factor),
+                        static_cast<cInt>(rSpansU[i + 1] / factor), static_cast<cInt>(rSpansV[i + 1] / factor));
 
-                    c.AddClip(span);
-                    c.Execute(Clipper2Lib::ClipType::Intersection, Clipper2Lib::FillRule::EvenOdd, span, solution);
+                    solution = Clipper2Lib::RectClip(rectangle, all_loops);
 
-                    const double span_area = std::abs(Clipper2Lib::Area(span[0])) / factor;
-                    double clip_area = std::abs(Clipper2Lib::Area(solution[0])) / factor;
+                    const double span_area = std::abs(Clipper2Lib::Area(rectangle.AsPath()));
+                    double clip_area = std::abs(Clipper2Lib::Area(solution[0]));
                     if (solution.size() > 0)
                     {
-                        clip_area = std::abs(Clipper2Lib::Area(solution[0])) / factor;
+                        clip_area = std::abs(Clipper2Lib::Area(solution[0]));
                         for (IndexType k = 1; k < solution.size(); ++k) {
-                            clip_area -= std::abs(Clipper2Lib::Area(solution[k])) / factor;
+                            clip_area -= std::abs(Clipper2Lib::Area(solution[k]));
                         }
                     }
 
                     if (solution.size() == 0) {
                         continue;
                     }
-                    else if (std::abs(clip_area- span_area) < 1e-4) {
+                    else if (std::abs(clip_area- span_area) < 1000) {
                         const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
                         IndexType initial_integration_size = rIntegrationPoints.size();

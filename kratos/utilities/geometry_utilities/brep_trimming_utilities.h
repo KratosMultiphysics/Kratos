@@ -75,6 +75,19 @@ namespace Kratos
         //Triangulation 
         static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor)
         {
+            if (polygon.size() == 4)
+            {
+                Matrix triangle(3, 2);
+                triangle(0, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[0];
+                triangle(0, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[1];
+                triangle(1, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[1], factor)[0];
+                triangle(1, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[1], factor)[1];
+                triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[0];
+                triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[1];
+                triangles.push_back(triangle);
+                return;
+            }
+
             array_1d<double, 2> p1, p2, p3, p4;
             int bestvertex;
             double weight = 0;
@@ -90,37 +103,37 @@ namespace Kratos
 
             //init states and visibility
             for (IndexType i = 0; i < (n - 1); i++) {
-                p1 = BrepTrimmingUtilities::IsConvex(points[i], factor);
+                p1 = BrepTrimmingUtilities::IntPointToDoublePoint(points[i], factor);
                 for (IndexType j = i + 1; j < n; j++) {
                     dpstates(j, i).visible = true;
                     dpstates(j, i).weight = 0;
                     dpstates(j, i).bestvertex = -1;
                     if (j != (i + 1)) {
-                        p2 = BrepTrimmingUtilities::IsConvex(points[j], factor);
+                        p2 = BrepTrimmingUtilities::IntPointToDoublePoint(points[j], factor);
 
                         //visibility check
-                        if (i == 0) p3 = BrepTrimmingUtilities::IsConvex(points[n - 1], factor);
-                        else p3 = BrepTrimmingUtilities::IsConvex(points[i - 1], factor);
-                        if (i == (n - 1)) p4 = BrepTrimmingUtilities::IsConvex(points[0], factor);
-                        else p4 = BrepTrimmingUtilities::IsConvex(points[i + 1], factor);
+                        if (i == 0) p3 = BrepTrimmingUtilities::IntPointToDoublePoint(points[n - 1], factor);
+                        else p3 = BrepTrimmingUtilities::IntPointToDoublePoint(points[i - 1], factor);
+                        if (i == (n - 1)) p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor);
+                        else p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[i + 1], factor);
                         if (!BrepTrimmingUtilities::InCone(p3, p1, p4, p2)) {
                             dpstates(j, i).visible = false;
                             continue;
                         }
 
-                        if (j == 0) p3 = BrepTrimmingUtilities::IsConvex(points[n - 1], factor);
-                        else p3 = BrepTrimmingUtilities::IsConvex(points[j - 1], factor);
-                        if (j == (n - 1)) p4 = BrepTrimmingUtilities::IsConvex(points[0], factor);
-                        else p4 = BrepTrimmingUtilities::IsConvex(points[j + 1], factor);
+                        if (j == 0) p3 = BrepTrimmingUtilities::IntPointToDoublePoint(points[n - 1], factor);
+                        else p3 = BrepTrimmingUtilities::IntPointToDoublePoint(points[j - 1], factor);
+                        if (j == (n - 1)) p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor);
+                        else p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[j + 1], factor);
                         if (!BrepTrimmingUtilities::InCone(p3, p2, p4, p1)) {
                             dpstates(j, i).visible = false;
                             continue;
                         }
 
                         for (IndexType k = 0; k < n; k++) {
-                            p3 = BrepTrimmingUtilities::IsConvex(points[k], factor);
-                            if (k == (n - 1)) p4 = BrepTrimmingUtilities::IsConvex(points[0], factor);
-                            else p4 = BrepTrimmingUtilities::IsConvex(points[k + 1], factor);
+                            p3 = BrepTrimmingUtilities::IntPointToDoublePoint(points[k], factor);
+                            if (k == (n - 1)) p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor);
+                            else p4 = BrepTrimmingUtilities::IntPointToDoublePoint(points[k + 1], factor);
                             if (BrepTrimmingUtilities::Intersects(p1, p2, p3, p4)) {
                                 dpstates(j, i).visible = false;
                                 break;
@@ -144,9 +157,9 @@ namespace Kratos
                         if (!dpstates(j, k).visible) continue;
 
                         if (k <= (i + 1)) d1 = 0;
-                        else d1 = BrepTrimmingUtilities::Distance(BrepTrimmingUtilities::IsConvex(points[i], factor), BrepTrimmingUtilities::IsConvex(points[k], factor));
+                        else d1 = BrepTrimmingUtilities::Distance(BrepTrimmingUtilities::IntPointToDoublePoint(points[i], factor), BrepTrimmingUtilities::IntPointToDoublePoint(points[k], factor));
                         if (j <= (k + 1)) d2 = 0;
-                        else d2 = BrepTrimmingUtilities::Distance(BrepTrimmingUtilities::IsConvex(points[k], factor), BrepTrimmingUtilities::IsConvex(points[j], factor));
+                        else d2 = BrepTrimmingUtilities::Distance(BrepTrimmingUtilities::IntPointToDoublePoint(points[k], factor), BrepTrimmingUtilities::IntPointToDoublePoint(points[j], factor));
 
                         weight = dpstates(k, i).weight + dpstates(j, k).weight + d1 + d2;
 
@@ -156,7 +169,7 @@ namespace Kratos
                         }
                     }
                     if (bestvertex == -1) {
-                        KRATOS_THROW_ERROR(std::runtime_error, "Triangulate: No points in polygon.", std::endl);
+                        return;
                     }
 
                     dpstates(j, i).bestvertex = bestvertex;
@@ -177,12 +190,12 @@ namespace Kratos
                     break;
                 }
                 Matrix triangle(3, 2);
-                triangle(0, 0) = BrepTrimmingUtilities::IsConvex(points[diagonal.index1], factor)[0];
-                triangle(0, 1) = BrepTrimmingUtilities::IsConvex(points[diagonal.index1], factor)[1];
-                triangle(1, 0) = BrepTrimmingUtilities::IsConvex(points[bestvertex], factor)[0];
-                triangle(1, 1) = BrepTrimmingUtilities::IsConvex(points[bestvertex], factor)[1];
-                triangle(2, 0) = BrepTrimmingUtilities::IsConvex(points[diagonal.index2], factor)[0];
-                triangle(2, 1) = BrepTrimmingUtilities::IsConvex(points[diagonal.index2], factor)[1];
+                triangle(0, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index1], factor)[0];
+                triangle(0, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index1], factor)[1];
+                triangle(1, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[bestvertex], factor)[0];
+                triangle(1, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[bestvertex], factor)[1];
+                triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[0];
+                triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[1];
 
                 if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-5)
                     triangles.push_back(triangle);
@@ -294,7 +307,7 @@ namespace Kratos
             return int_point;
         }
 
-        static array_1d<double, 2> IsConvex(
+        static array_1d<double, 2> IntPointToDoublePoint(
             const Clipper2Lib::Point64& int_point,
             const double factor)
         {
