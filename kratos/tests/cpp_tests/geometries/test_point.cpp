@@ -23,7 +23,7 @@ namespace Kratos {
      */
     KRATOS_TEST_CASE_IN_SUITE(Constructors, KratosCoreGeometriesFastSuite)
     {
-        Point point;
+        const Point point;
 
         KRATOS_CHECK_EQUAL(point.Dimension(), 3);
         KRATOS_CHECK_DOUBLE_EQUAL(point.X(), 0.0);
