@@ -153,15 +153,15 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         # Remove the auxiliary testing entries from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
-    #TODO: This way of checking the iteration will most probably crash once we add more stuff to the registry
-    #TODO: Most probably we should check that we're iterating more than one item or something of this sort
+    #FIXME: This way of checking the iteration will most probably crash once we add more stuff to the registry
+    #FIXME: Most probably we should check that we're iterating more than one item or something of this sort
     def testIteration(self):
         KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.KratosApplication.PythonProcess", KratosMultiphysics.Process())
         KratosMultiphysics.Registry.AddItem("PythonRootItem.PythonSubItem.PythonSubSubItem", object())
 
         root_items_keys = ["Operations","Processes","PythonRootItem"]
         sub_items_keys = ["All","KratosMultiphysics","PythonSubItem"]
-        sub_sub_items_keys = ["PythonSubSubItem","KratosApplication","PythonProcess","FooOperation","Operation","Process"]
+        sub_sub_items_keys = ["PythonSubSubItem","KratosApplication","PythonProcess","Operation","Process"]
         sub_sub_sub_items_keys = ["PythonProcess","ModulePath","Prototype","CreateFunction"]
         for item in KratosMultiphysics.Registry:
             self.assertTrue(item in root_items_keys)

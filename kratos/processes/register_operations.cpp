@@ -31,7 +31,6 @@ namespace Kratos
 void KratosApplication::RegisterOperations()
 {
     KRATOS_REGISTER_OPERATION("KratosMultiphysics", "Operation", Operation())
-    KRATOS_REGISTER_OPERATION("KratosMultiphysics", "FooOperation", FooOperation())
 }
 
 }
