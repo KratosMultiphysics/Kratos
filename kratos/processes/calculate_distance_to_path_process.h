@@ -201,8 +201,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    Model& mrModel;             /// The model containing the ModelParts of the path and the distance to be computed
-    Parameters mThisParameters; /// The configuration parameters
+    Model& mrModel;                             /// The model containing the ModelParts of the path and the distance to be computed
+    Parameters mThisParameters;                 /// The configuration parameters
+    const Variable<double>* mpDistanceVariable; /// The distance variable to be computed
 
     ///@}
     ///@name Private Operators
