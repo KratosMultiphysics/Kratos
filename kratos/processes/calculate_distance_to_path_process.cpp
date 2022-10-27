@@ -49,51 +49,45 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
     // Getting communicator
     auto& r_comm = r_distance_model_part.GetCommunicator();
     auto& r_data_comm = r_comm.GetDataCommunicator();
+
+    // Local meshes
+    auto& r_distance_local_mesh = r_comm.LocalMesh();
+    auto& r_path_local_mesh = r_path_model_part.GetCommunicator().LocalMesh();
     
     // Initialize distance variable
     if constexpr ( THistorical) {
-        VariableUtils().SetHistoricalVariableToZero(*mpDistanceVariable, r_distance_model_part.Nodes());
+        VariableUtils().SetHistoricalVariableToZero(*mpDistanceVariable, r_distance_local_mesh.Nodes());
         r_comm.SynchronizeVariable(*mpDistanceVariable);
     } else {
-        VariableUtils().SetNonHistoricalVariableToZero(*mpDistanceVariable, r_distance_model_part.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(*mpDistanceVariable, r_distance_local_mesh.Nodes());
         r_comm.SynchronizeNonHistoricalVariable(*mpDistanceVariable);
     }
 
     /* Getting a global vector of Line3D2N geometries */
-    // First we check that every element/geometry in the modelpart is a line
-    const auto& r_geometries_array = r_path_model_part.Geometries();
-    const auto& r_elements_array = r_path_model_part.Elements();
+    // First we check that every element in the modelpart is a line
+    const auto& r_elements_array = r_distance_local_mesh.Elements();
     // By default we consider that the model part is composed of elements
-    int type = 0;
     if (r_elements_array.size() > 0) {
         for (auto& r_elem : r_elements_array) {
             const auto& r_geom = r_elem.GetGeometry();
             const auto geom_type = r_geom.GetGeometryType();
             KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) || geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a line" << std::endl;
         }
-        type = 1;
-    } else if (r_geometries_array.size() > 0) {
-        for (auto& r_geom : r_geometries_array) {
-            const auto geom_type = r_geom.GetGeometryType();
-            KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) || geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a line" << std::endl;
-        }
-        type = 2;
     } else {
         KRATOS_ERROR << "The model part is empty. Please check the model part provided" << std::endl;
     }
 
     // Now we create the vector of geometries
-    if (r_distance_model_part.IsDistributed()) {
-        unsigned int global_type = type;
-        r_data_comm.SumAll(global_type);
-        KRATOS_ERROR_IF_NOT(global_type%r_data_comm.Size()==0) << "Inconsistent partition of types" << std::endl;
-    }
-    const unsigned int size_vector = (type == 1) ? r_elements_array.size() : r_geometries_array.size();
+    const unsigned int size_vector = r_elements_array.size();
     if (r_distance_model_part.IsDistributed()) {
         r_data_comm.SumAll(size_vector);
     }
     std::vector<Geometry<NodeType>> geometries_vector(size_vector);
-    // TODO
+    // const auto it_elem_begin = r_elements_array.begin();
+    // IndexPartition<std::size_t>(r_elements_array.size()).for_each([&](std::size_t i){
+    //     const auto& r_geom = (it_elem_begin + i)->GetGeometry();
+    //     geometries_vector[i] = Line3D2<NodeType>(r_geom);
+    // });
 
     // Gettings if compute by brute force or not
     const bool brute_force_calculation = mThisParameters["brute_force_calculation"].GetBool();
