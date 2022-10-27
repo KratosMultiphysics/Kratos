@@ -276,24 +276,7 @@ class PythonRegistry(object):
         for i_name in split_name[:-1]:
             aux_dict = aux_dict[i_name]
         value = aux_dict[split_name[-1]]
-        if value is not None:
-            if isinstance(value, str):
-                try:
-                    class_name = split_name[-1]
-                    module_name = ".".join(value.split('.')[:-1])
-                    module = import_module(module_name)
-                    if hasattr(module, class_name):
-                        return getattr(module, class_name)
-                    else:
-                        err_msg = f"The '{class_name}' class name cannot be found within the '{value}' module."
-                        raise Exception(err_msg)
-                except ImportError:
-                    return None
-            else:
-                return value
-        else:
-            err_msg = f"Asking for empty registry item '{Name}'."
-            raise Exception(err_msg)
+        return value
 
     def __InternalGetCppItem(self, Name):
         # Check if current item has value
@@ -378,7 +361,7 @@ def AddClassToRegistry(RegistryPointName: str):
 
         # Call the Kratos registry to register the current item
         # Note that the item class name is used as
-        full_name = RegistryPointName + "." + Class.__name__
+        full_name = f"{RegistryPointName}.{Class.__name__ }.Prototype"
         KratosMultiphysics.Registry.AddItem(full_name, Class)
 
         return Class

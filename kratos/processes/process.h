@@ -262,13 +262,15 @@ private:
     {                                                                                                        \
         std::string all_path = std::string("Processes.All.") + process_name;                                 \
         if (!Registry::HasItem(all_path)) {                                                                  \
-            Registry::AddItem<RegistryValueItem<Process>>(all_path, process_prototype);                      \
+            auto& r_process_item = Registry::AddItem<RegistryItem>(all_path);                                \
+            r_process_item.AddItem<RegistryValueItem<Process>>("Prototype", process_prototype);              \
         } else {                                                                                             \
             KRATOS_ERROR << "Process '" << process_name << "' is already registered." << std::endl;          \
         }                                                                                                    \
         std::string module_path = std::string("Processes.") + module_name + std::string(".") + process_name; \
         if (!Registry::HasItem(module_path)) {                                                               \
-            Registry::AddItem<RegistryValueItem<Process>>(module_path, process_prototype);                   \
+            auto& r_process_item = Registry::AddItem<RegistryItem>(module_path);                             \
+            r_process_item.AddItem<RegistryValueItem<Process>>("Prototype", process_prototype);              \
         }                                                                                                    \
     }
 #endif

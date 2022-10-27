@@ -18,13 +18,27 @@ class KratosProcessFactory(object):
             if item.Has("name"):
                 registry_entry = item["name"].GetString()
                 if KM.Registry.HasItem(registry_entry):
-                    process_prototype = KM.Registry[registry_entry]
-                    if process_prototype is not None:
-                        process = process_prototype(self.Model, item["Parameters"])
-                        constructed_processes.append(process)
+                    # Get already stored prototype
+                    if KM.Registry.HasItem(f"{registry_entry}.Prototype"):
+                        prototype = KM.Registry[f"{registry_entry}.Prototype"]
+                    # Get prototype from stored Python module
+                    elif KM.Registry.HasItem(f"{registry_entry}.ModuleName"):
+                        class_name = registry_entry.split(".")[-1]
+                        module_name = KM.Registry[f"{registry_entry}.ModuleName"]
+                        module = import_module(module_name)
+                        if hasattr(module, class_name):
+                            prototype = getattr(module, class_name)
+                        else:
+                            #TODO: In here we're assuming that the registry last key is the class name
+                            #TODO: We should enforce this. Now an error happens but as we populate we should throw a warning and search for a ClassName item
+                            err_msg = f"The '{class_name}' class name cannot be found within the '{module_name}' module."
+                            raise Exception(err_msg)
                     else:
-                        err_msg = f"Trying to construct the registry process '{registry_entry}' which has no prototype."
+                        err_msg = f"Registry process '{registry_entry}' cannot be constructed."
                         raise Exception(err_msg)
+                    # Construct the process from the obtained prototype and append it to the list
+                    instance = prototype(self.Model, item["Parameters"])
+                    constructed_processes.append(instance)
                 else:
                     KM.Logger.PrintWarning(f"Asking to construct the non-registered 'name' '{registry_entry}'.")
             else:
