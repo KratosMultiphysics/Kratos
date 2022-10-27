@@ -23,8 +23,6 @@
 
 // Project includes
 #include "includes/variables.h"
-#include "includes/global_pointer_variables.h"
-#include "includes/global_pointer_variables.h"
 #include "utilities/math_utils.h"
 #include "local_refine_geometry_mesh.hpp"
 

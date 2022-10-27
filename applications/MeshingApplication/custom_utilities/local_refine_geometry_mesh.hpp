@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
