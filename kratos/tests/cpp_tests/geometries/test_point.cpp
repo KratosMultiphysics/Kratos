@@ -46,7 +46,7 @@ namespace Kratos {
         coords[0] = 1.0;
         coords[1] = 2.0;
         coords[2] = 3.0;
-        Point array_point_3d(coords);
+        const Point array_point_3d(coords);
 
         KRATOS_CHECK_DOUBLE_EQUAL(array_point_3d.X(), coords[0]);
         KRATOS_CHECK_DOUBLE_EQUAL(array_point_3d.Y(), coords[1]);
