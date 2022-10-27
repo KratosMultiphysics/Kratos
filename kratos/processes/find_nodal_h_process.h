@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined(KRATOS_FIND_NODAL_H_PROCESS_INCLUDED )
-#define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -119,11 +118,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -150,12 +147,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -171,15 +166,20 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method gets the current value of the NODAL_H
+     * @param rNode The node iterator to be get
+     * @return The current value of NODAL_H
+     */
+    double& GetHValue(NodeType& rNode);
+
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -222,7 +222,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined

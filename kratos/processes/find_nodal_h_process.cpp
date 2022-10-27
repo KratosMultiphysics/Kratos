@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
@@ -43,32 +43,23 @@ void FindNodalHProcess<THistorical>::Execute()
     }
 
     // Calculate the NODAL_H values
-    double h1, h2;
     for(auto& r_element : mrModelPart.Elements()) {
         auto& r_geom = r_element.GetGeometry();
         const SizeType number_of_nodes = r_geom.size();
 
         for(IndexType k = 0; k < number_of_nodes-1; ++k) {
-            if constexpr(THistorical) {
-                h1 = r_geom[k].FastGetSolutionStepValue(NODAL_H);
-            } else {
-                h1 = r_geom[k].GetValue(NODAL_H);
-            }
+            double& r_h1 = GetHValue(r_geom[k]);
             for(IndexType l=k+1; l < number_of_nodes; ++l) {
                 const double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
-                if constexpr(THistorical) {
-                    h2 = r_geom[l].FastGetSolutionStepValue(NODAL_H);
-                } else {
-                    h2 = r_geom[l].GetValue(NODAL_H);
-                }
+                double& r_h2 = GetHValue(r_geom[l]);
 
                 // Get minimum between the existent value and the considered edge length
                 if constexpr(THistorical) {
-                    r_geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(h1, hedge);
-                    r_geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(h2, hedge);
+                    r_geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(r_h1, hedge);
+                    r_geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(r_h2, hedge);
                 } else {
-                    r_geom[k].SetValue(NODAL_H, std::min(h1, hedge));
-                    r_geom[l].SetValue(NODAL_H, std::min(h2, hedge));
+                    r_geom[k].SetValue(NODAL_H, std::min(r_h1, hedge));
+                    r_geom[l].SetValue(NODAL_H, std::min(r_h2, hedge));
                 }
             }
         }
@@ -82,6 +73,24 @@ void FindNodalHProcess<THistorical>::Execute()
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& FindNodalHProcess<true>::GetHValue(NodeType& rNode)
+{
+    return rNode.FastGetSolutionStepValue(NODAL_H);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& FindNodalHProcess<false>::GetHValue(NodeType& rNode)
+{
+    return rNode.GetValue(NODAL_H);
 }
 
 /***********************************************************************************/
