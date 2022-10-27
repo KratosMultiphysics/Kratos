@@ -257,7 +257,11 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     ;
 
-    py::class_<CalculateDistanceToPathProcess, CalculateDistanceToPathProcess::Pointer, Process>(m, "CalculateDistanceToPathProcess")
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>, CalculateDistanceToPathProcess<CalculateDistanceToPathSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m, "CalculateDistanceToPathNonHistoricalProcess")
     .def(py::init<Model&, Parameters>())
     ;
 

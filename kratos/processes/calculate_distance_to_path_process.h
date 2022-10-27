@@ -41,12 +41,24 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct CalculateDistanceToPathSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
+
 /** 
  * @class CalculateDistanceToPathProcess
  * @ingroup KratosCore 
  * @brief Computes DISTANCE from a path model part to a given model part
  * @author Vicente Mataix Ferrandiz
+ * @tparam THistorical If the distance is computed as historical or non historical variable
  */
+template<bool THistorical = true>
 class KRATOS_API(KRATOS_CORE) CalculateDistanceToPathProcess
     : public Process
 {
@@ -115,16 +127,7 @@ public:
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    const Parameters GetDefaultParameters() const override
-    {
-        const Parameters default_parameters = Parameters(R"({
-            "distance_model_part" :  "",
-            "path_model_part"     :  "",
-            "radius_path"         : 0.0
-        })" );
-
-        return default_parameters;
-    }
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -209,6 +212,18 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method computes the distance to the path
+     * @param rModelPart The model part to compute the distance
+     */
+    void CalculateDistance(ModelPart& rModelPart);
+
+    /**
+     * @brief This method computes the distance to the path (by brute force)
+     * @param rModelPart The model part to compute the distance
+     */
+    void CalculateDistanceByBruteForce(ModelPart& rModelPart);
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -240,12 +255,14 @@ private:
 ///@{
 
 /// input stream function
+template<bool THistorical>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  CalculateDistanceToPathProcess& rThis);
+                                  CalculateDistanceToPathProcess<THistorical>& rThis);
 
 /// output stream function
+template<bool THistorical>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const CalculateDistanceToPathProcess& rThis)
+                                  const CalculateDistanceToPathProcess<THistorical>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
