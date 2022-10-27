@@ -58,8 +58,8 @@ void FindNodalHProcess<THistorical>::Execute()
                     r_geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(r_h1, hedge);
                     r_geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(r_h2, hedge);
                 } else {
-                    r_geom[k].SetValue(NODAL_H, std::min(r_h1, hedge));
-                    r_geom[l].SetValue(NODAL_H, std::min(r_h2, hedge));
+                    r_geom[k].GetValue(NODAL_H) = std::min(r_h1, hedge);
+                    r_geom[l].GetValue(NODAL_H) = std::min(r_h2, hedge);
                 }
             }
         }
