@@ -216,14 +216,22 @@ private:
     /**
      * @brief This method computes the distance to the path
      * @param rModelPart The model part to compute the distance
+     * @param rVectorSegments The vector of segments
      */
-    void CalculateDistance(ModelPart& rModelPart);
+    void CalculateDistance(
+        ModelPart& rModelPart,
+        std::vector<Geometry<NodeType>>& rVectorSegments
+        );
 
     /**
      * @brief This method computes the distance to the path (by brute force)
      * @param rModelPart The model part to compute the distance
+     * @param rVectorSegments The vector of segments
      */
-    void CalculateDistanceByBruteForce(ModelPart& rModelPart);
+    void CalculateDistanceByBruteForce(
+        ModelPart& rModelPart,
+        std::vector<Geometry<NodeType>>& rVectorSegments
+        );
 
     ///@}
     ///@name Private  Access
