@@ -776,11 +776,9 @@ namespace Kratos
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
-
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
 			double currFirstLame = itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
-			double deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+			double deviatoricCoeff = 0;
 
 			Matrix Fgrad = itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 			Matrix FgradVel = itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
@@ -807,63 +805,7 @@ namespace Kratos
 				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
 				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-				const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
-				const double tolerance = 0.0000001;
-				if (static_friction > tolerance) // mu(I)-rheology
-				{
-					const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
-					const double delta_friction = dynamic_friction - static_friction;
-					const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
-					const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
-					const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-					const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
-					double inertial_number = 0;
-
-					const double theta = 0.5;
-					double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
-					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
-																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
-																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
-					const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-
-					if (mean_pressure != 0)
-					{
-						inertial_number = equivalent_strain_rate * grain_diameter / std::sqrt(std::fabs(mean_pressure) / grain_density);
-					}
-
-					const double exponent = -equivalent_strain_rate / regularization_coeff;
-
-					if (equivalent_strain_rate != 0 && std::fabs(mean_pressure) != 0)
-					{
-						const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
-						const double second_viscous_term =
-							delta_friction * inertial_number / ((inertial_number_zero + inertial_number) * equivalent_strain_rate);
-						deviatoricCoeff = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
-					}
-					else
-					{
-						deviatoricCoeff = 1.0;
-					}
-				}
-				else if (yieldShear > tolerance) //bingham model
-				{
-					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
-																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
-																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
-					if (equivalentStrainRate != 0)
-					{
-						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-					}
-					if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-					{
-						// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-						deviatoricCoeff = adaptiveExponent * yieldShear;
-					}
-				}
+				this->ComputeDeviatoricCoefficientForFluid(itNode, dimension, deviatoricCoeff);
 
 				double DefVol = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
 
@@ -897,31 +839,9 @@ namespace Kratos
 				r_stain_tensor3D[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
 				r_stain_tensor3D[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-				if (yieldShear > 0)
-				{
-					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
-																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
-																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
-																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
-																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
-																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]);
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
-					if (equivalentStrainRate != 0)
-					{
-						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-					}
-					if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-					{
-						// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-						deviatoricCoeff = adaptiveExponent * yieldShear;
-					}
-				}
+				this->ComputeDeviatoricCoefficientForFluid(itNode, dimension, deviatoricCoeff);
 
 				double DefVol = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
-
 				itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
 				double nodalSigmaTot_xx = currFirstLame * DefVol + 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
@@ -954,6 +874,96 @@ namespace Kratos
 				r_dev_stress_tensor3D[4] = nodalSigmaDev_xz;
 				r_dev_stress_tensor3D[5] = nodalSigmaDev_yz;
 			}
+		}
+
+		void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, const unsigned int dimension, double &deviatoricCoefficient)
+		{
+			const double tolerance = 1.0e-07;
+			const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+			const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
+			if (static_friction > tolerance) // mu(I)-rheology
+			{
+				const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+				const double delta_friction = dynamic_friction - static_friction;
+				const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+				const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+				const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+				const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
+
+				const double theta = 0.5;
+				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+
+				double pressure_tolerance = -tolerance;
+				if (mean_pressure > pressure_tolerance)
+				{
+					mean_pressure = pressure_tolerance;
+				}
+
+				if (dimension == 2)
+				{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
+				}
+				else if (dimension == 3)
+				{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]);
+				}
+				const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double exponent = -equivalent_strain_rate / regularization_coeff;
+				const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
+
+				if (equivalent_strain_rate != 0)
+				{
+					const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
+					deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
+				}
+				else
+				{
+					deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
+				}
+			}
+			else if (yieldShear > tolerance) // bingham model
+			{
+				if (dimension == 2)
+				{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
+				}
+				else if (dimension == 3)
+				{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]);
+				}
+
+				const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+				const double exponent = -adaptiveExponent * equivalentStrainRate;
+				if (equivalentStrainRate != 0)
+				{
+					deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) + (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
+				}
+				if (equivalentStrainRate < tolerance && adaptiveExponent != 0)
+				{
+					// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+					deviatoricCoefficient = adaptiveExponent * yieldShear;
+				}
+			}
+			else
+			{
+				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+			}
+			// itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
 		}
 
 		void CalcNodalStrainsForNode(ModelPart::NodeIterator itNode)
