@@ -20,10 +20,9 @@
 // Project includes
 #include "includes/kernel.h"
 #include "includes/registry.h"
-#include "operations/operation.h"
 
 // Registering operations
-#include "operations/foo_operation.h"
+#include "operations/operation.h"
 
 namespace Kratos
 {
@@ -31,7 +30,6 @@ namespace Kratos
 void KratosApplication::RegisterOperations()
 {
     KRATOS_REGISTER_OPERATION("KratosMultiphysics", "Operation", Operation())
-    KRATOS_REGISTER_OPERATION("KratosMultiphysics", "FooOperation", FooOperation())
 }
 
 }
