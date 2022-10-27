@@ -319,7 +319,7 @@ class PythonRegistry(object):
             raise Exception(err_msg)
         self.__InternalAddItem(all_full_name, Value)
 
-def AddClassToRegistry(RegistryPointName: str):
+def RegisterPrototype(RegistryPointName: str):
     '''Auxiliary function to be used as a class decorator
     This function is intended to be used as a class decorator in order
     to manually create a registry entry for the class of interest.
@@ -361,8 +361,11 @@ def AddClassToRegistry(RegistryPointName: str):
 
         # Call the Kratos registry to register the current item
         # Note that the item class name is used as
-        full_name = f"{RegistryPointName}.{Class.__name__ }.Prototype"
-        KratosMultiphysics.Registry.AddItem(full_name, Class)
+        full_name = f"{RegistryPointName}.{Class.__name__ }"
+        prototype_data = {
+            "Prototype" : Class
+        }
+        KratosMultiphysics.Registry.AddItem(full_name, prototype_data)
 
         return Class
     return register_wrapper
