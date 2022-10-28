@@ -82,25 +82,14 @@ public:
 	MassResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
-		std::string gradient_mode = responseSettings["gradient_settings"]["gradient_mode"].GetString();
+		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
 		if (gradient_mode.compare("finite_differencing") == 0)
 		{
-			double delta = responseSettings["gradient_settings"]["step_size"].GetDouble();
+			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
-
-		for (auto& control_type : responseSettings["control_types"]){
-			if (control_type.GetString()=="thickness")
-				thickness_grad = true;
-			if (control_type.GetString()=="shape")
-				shape_grad = true;
-			if (control_type.GetString()=="topology")
-				density_grad = true;
-		}
-
-
 	}
 
 	/// Destructor.
@@ -129,53 +118,27 @@ public:
 		double total_mass = 0.0;
 		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-		if(!density_grad)
-		{
-			// Incremental computation of total mass
-			for (auto& elem_i : mrModelPart.Elements()){
-				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-				if(element_is_active)
-					total_mass += TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
-			}
-		}
-		else
-		{
-			for (auto& elem_i : mrModelPart.Elements())
-			{
-				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-				if(element_is_active)
-				{
-					const auto& r_geom = elem_i.GetGeometry();	
-					const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-					const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-					{
-						Matrix J0,InvJ0;
-						GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
-						double detJ0;
-						MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
-						const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
-						const auto& rN = row(Ncontainer,i_point);
-						int node_index = 0;
-						for (auto& node_i : r_geom){
-							total_mass += node_i.FastGetSolutionStepValue(DENSITY) * rN[node_index] * IntToReferenceWeight;
-							node_index++;
-						}						
-					}
-				}				
-			}
+		// Incremental computation of total mass
+		for (auto& elem_i : mrModelPart.Elements()){
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
+				total_mass += TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
 		}
 
 		return total_mass;
 
 		KRATOS_CATCH("");
 	}
+
 	// --------------------------------------------------------------------------
-	void CalculateShapeGradient()
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
+		// Formula computed in general notation:
+		// \frac{dm_{total}}{dx}
+
+		// First gradients are initialized
 		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -200,7 +163,7 @@ public:
 				if(element_is_active)
 					mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
-			
+
 			// Compute sensitivities using finite differencing in the three spatial direction
 			array_3d gradient(3, 0.0);
 
@@ -259,102 +222,6 @@ public:
 			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
 
 		}
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	void CalculateThicknessGradient()
-	{
-		KRATOS_TRY;
-		VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
-		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-		for(auto& elem_i : mrModelPart.Elements())
-		{				
-			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-			if(element_is_active)
-			{
-				Properties& elem_i_prop = elem_i.GetProperties();
-				auto original_thickness = elem_i_prop.GetValue(THICKNESS);
-				elem_i_prop.SetValue(THICKNESS,1.0);
-				double elem_gradient = TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
-				elem_i_prop.SetValue(THICKNESS,original_thickness);								
-				const auto& r_geom = elem_i.GetGeometry();	
-				const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-				const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-				const unsigned int NumGauss = integration_points.size();
-				Vector GaussPtsJDet = ZeroVector(NumGauss);
-				r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
-				const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-				double elem_area = r_geom.Area(); 			
-				for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-				{
-					const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-					const auto& rN = row(Ncontainer,i_point);
-					int node_index = 0;
-					for (auto& node_i : r_geom){
-						node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += elem_gradient * IntToReferenceWeight * rN[node_index]/elem_area;
-						node_index++;
-					}						
-				}
-			}
-		}
-
-		KRATOS_CATCH("");
-
-	}
-
-	// --------------------------------------------------------------------------
-	void CalculateDensityGradient()
-	{
-		KRATOS_TRY;
-		VariableUtils().SetHistoricalVariableToZero(YOUNG_MODULUS_SENSITIVITY, mrModelPart.Nodes());
-
-		for (auto& elem_i : mrModelPart.Elements())
-		{
-			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-			if(element_is_active)
-			{
-				const auto& r_geom = elem_i.GetGeometry();	
-				const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-				const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-				const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-				for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-				{
-
-					Matrix J0,InvJ0;
-					GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
-					double detJ0;
-					MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
-
-					const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
-					const auto& rN = row(Ncontainer,i_point);
-					int node_index = 0;
-					for (auto& node_i : r_geom){
-						node_i.FastGetSolutionStepValue(YOUNG_MODULUS_SENSITIVITY) += rN[node_index] * IntToReferenceWeight;
-						node_index++;
-					}						
-				}
-			}				
-		}
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	void CalculateGradient()
-	{
-		KRATOS_TRY;
-
-		if(shape_grad)
-			CalculateShapeGradient();
-			
-		if(thickness_grad)
-			CalculateThicknessGradient();
-			
-		if(density_grad)
-			CalculateDensityGradient();
-
 
 		KRATOS_CATCH("");
 	}
@@ -438,9 +305,6 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
-	bool shape_grad = false;
-	bool thickness_grad = false;
-	bool density_grad = false;	
 
 	///@}
 ///@name Private Operators
