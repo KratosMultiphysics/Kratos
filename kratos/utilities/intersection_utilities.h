@@ -243,10 +243,10 @@ public:
      * @return Return nullptr if no solution exists. Otherwise returns the line intersection
      */
     template<class TPointType>
-    typename Geometry<TPointType>::Pointer ClosestLineLineIntersection(
-    const Geometry<TPointType>& rSegment1,
-    const Geometry<TPointType>& rSegment2
-    )
+    static typename Geometry<TPointType>::Pointer ClosestLineLineIntersection(
+        const Geometry<TPointType>& rSegment1,
+        const Geometry<TPointType>& rSegment2
+        )
     {
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
