@@ -22,7 +22,9 @@ class MaterialControl():
 
         self.control_variable_name = "CD"
         self.control_update_name = "D_CD"
-        self.output_names = ["CD","FD","PD","PE","D_CD","D_PD_D_FD","D_PE_D_FD"]
+        self.scalar_fields = ["CD","FD","PD","PE","D_CD","D_PD_D_FD","D_PE_D_FD"]
+        self.vector_fields = []
+        self.output_names = self.scalar_fields + self.vector_fields
 
         # add vars
         for model_part_name in self.controlling_objects:
@@ -36,8 +38,10 @@ class MaterialControl():
         for model_part_name in self.controlling_objects:
             model_part = self.model.GetModelPart(model_part_name)         
             for node in model_part.Nodes:
-                for field_name in self.output_names:
-                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(field_name), 0)  
+                for vec_field in self.vector_fields:
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(vec_field), [0.0, 0.0, 0.0])
+                for scala_field in self.scalar_fields:
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(scala_field), 0)
  
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         raise RuntimeError("MaterialControl:MapFirstDerivative: calling base class function") 

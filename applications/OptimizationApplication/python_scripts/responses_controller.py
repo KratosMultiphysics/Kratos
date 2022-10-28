@@ -59,11 +59,11 @@ class ResponsesController:
                     raise RuntimeError("ResponsesController: Required entry '{}' missing in settings of 'response Nr.{}'!".format(key,itr+1)) 
 
 
-        analysis_based_responses = []
+        analysis_based_responses = ["partition_interface_stress"]
         structural_responses = ["strain_energy", "stress"]        
         analysis_based_responses.extend(structural_responses)
 
-        analysis_free_responses = ["mass","linear","plane_symmetry"]
+        analysis_free_responses = ["mass","linear","plane_symmetry","interface","partition_mass"]
         shape_opt_responses = ["plane_based_packaging","mesh_based_packaging","surface_normal_shape_change","face_angle","airfoil_chord_length",
                                "airfoil_perimeter","total_volume"]                                
         analysis_free_responses.extend(shape_opt_responses)

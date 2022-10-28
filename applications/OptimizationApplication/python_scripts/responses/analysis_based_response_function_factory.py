@@ -1,5 +1,6 @@
 # importing the Kratos Library
 from . import structural_response
+from . import partitioning_responses
 
 def CreateResponseFunction(response_name,response_type,response_settings, response_analysis,model):
 
@@ -8,6 +9,9 @@ def CreateResponseFunction(response_name,response_type,response_settings, respon
 
     elif response_type == "stress":
         return structural_response.StressResponseFunction(response_name,response_settings,response_analysis,model)
+
+    elif response_type == "partition_interface_stress":
+        return partitioning_responses.PartitionInterfaceStressResponseFunction(response_name,response_settings,model)        
 
     # elif response_type == "mass":
     #     return structural_response.MassResponseFunction(response_id, response_settings, model)

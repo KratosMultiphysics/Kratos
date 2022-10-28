@@ -27,7 +27,7 @@
 #include "custom_controls/shape_controls/vertex_morphing/implicit_vertex_morphing.h"
 #include "custom_controls/thickness_controls/helmholtz_thickness.h"
 #include "custom_controls/material_controls/helmholtz_material.h"
-
+#include "custom_controls/material_controls/helmholtz_partition.h"
 
 // ==============================================================================
 
@@ -74,6 +74,15 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("Finalize", &HelmholtzMaterial::Finalize)
         ;                  
  
+    py::class_<HelmholtzPartition >(m, "HelmholtzPartition")
+        .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
+        .def("Initialize", &HelmholtzPartition::Initialize)
+        .def("Update", &HelmholtzPartition::Update)
+        .def("MapControlUpdate", &HelmholtzPartition::MapControlUpdate)
+        .def("MapFirstDerivative", &HelmholtzPartition::MapFirstDerivative)
+        .def("Finalize", &HelmholtzPartition::Finalize)
+        ; 
+
 }
 
 }  // namespace Python.

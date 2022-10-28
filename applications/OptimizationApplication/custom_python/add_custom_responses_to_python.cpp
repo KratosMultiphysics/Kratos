@@ -29,6 +29,9 @@
 #include "custom_responses/mass_opt_response.h"
 #include "custom_responses/linear_strain_energy_opt_response.h"
 #include "custom_responses/stress_opt_response.h"
+#include "custom_responses/interface_opt_response.h"
+#include "custom_responses/partition_mass_opt_response.h"
+#include "custom_responses/partition_interface_stress_opt_response.h"
 
 // ==============================================================================
 
@@ -70,6 +73,20 @@ void  AddCustomResponsesToPython(pybind11::module& m)
         .def("CalculateGradient", &MassOptResponse::CalculateGradient)        
         ;  
 
+    py::class_<InterfaceOptResponse >(m, "InterfaceOptResponse")
+        .def(py::init<std::string, Model&, Parameters&>())
+        .def("Initialize", &InterfaceOptResponse::Initialize)
+        .def("CalculateValue", &InterfaceOptResponse::CalculateValue)
+        .def("CalculateGradient", &InterfaceOptResponse::CalculateGradient)        
+        ;     
+
+    py::class_<PartitionMassOptResponse >(m, "PartitionMassOptResponse")
+        .def(py::init<std::string, Model&, Parameters&>())
+        .def("Initialize", &PartitionMassOptResponse::Initialize)
+        .def("CalculateValue", &PartitionMassOptResponse::CalculateValue)
+        .def("CalculateGradient", &PartitionMassOptResponse::CalculateGradient)        
+        ;          
+
     py::class_<LinearStrainEnergyOptResponse >(m, "LinearStrainEnergyOptResponse")
         .def(py::init<std::string, Model&, Parameters&>())
         .def("Initialize", &LinearStrainEnergyOptResponse::Initialize)
@@ -82,7 +99,14 @@ void  AddCustomResponsesToPython(pybind11::module& m)
         .def("Initialize", &StressOptResponse::Initialize)
         .def("CalculateValue", &StressOptResponse::CalculateValue)
         .def("CalculateGradient", &StressOptResponse::CalculateGradient)        
-        ;                                         
+        ;              
+
+    py::class_<PartitionInterfaceStressOptResponse >(m, "PartitionInterfaceStressOptResponse")
+        .def(py::init<std::string, Model&, Parameters&>())
+        .def("Initialize", &PartitionInterfaceStressOptResponse::Initialize)
+        .def("CalculateValue", &PartitionInterfaceStressOptResponse::CalculateValue)
+        .def("CalculateGradient", &PartitionInterfaceStressOptResponse::CalculateGradient)        
+        ;                                      
  
 }
 
