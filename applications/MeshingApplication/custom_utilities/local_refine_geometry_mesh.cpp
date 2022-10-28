@@ -23,6 +23,7 @@
 
 // Project includes
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "utilities/math_utils.h"
 #include "local_refine_geometry_mesh.hpp"
 
