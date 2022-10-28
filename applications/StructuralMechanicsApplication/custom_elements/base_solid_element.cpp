@@ -82,7 +82,13 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
-    const bool required = mConstitutiveLawVector[0]->RequiresInitializeMaterialResponse();
+    bool required = false;
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
+            required = true;
+            break;
+        }
+    }
     if (required) {
         const bool is_rotated = IsElementRotated();
         const auto& r_geom = GetGeometry();
@@ -167,7 +173,13 @@ void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentPr
 
 void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
-    const bool required = mConstitutiveLawVector[0]->RequiresFinalizeMaterialResponse();
+    bool required = false;
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
+            required = true;
+            break;
+        }
+    }
     if (required) {
         const bool is_rotated = IsElementRotated();
         const auto &r_geometry = GetGeometry();
