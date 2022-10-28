@@ -1562,7 +1562,7 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 
     // We undo the rotation of strain/F, C, stress
     if (IsElementRotated)
-        RotateToGlobalAxes(rValues, rThisKinematicVariables)
+        RotateToGlobalAxes(rValues, rThisKinematicVariables);
 }
 
 /***********************************************************************************/
