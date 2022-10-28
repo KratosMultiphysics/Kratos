@@ -14,14 +14,9 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_POINT_H_INCLUDED)
-#define KRATOS_POINT_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
@@ -62,7 +57,7 @@ namespace Kratos
 */
 class Point : public array_1d<double, 3>
 {
-    static constexpr int mDimension = 3;
+    static constexpr std::size_t mDimension = 3;
 
 public:
     ///@name Constants
@@ -156,7 +151,7 @@ public:
 
     static constexpr IndexType Dimension()
     {
-        return 3;
+        return mDimension;
     }
 
     /** Returns X coordinate */
@@ -288,5 +283,3 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_POINT_H_INCLUDED  defined
