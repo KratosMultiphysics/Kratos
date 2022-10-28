@@ -165,16 +165,9 @@ void SmallDisplacement::CalculateAll(
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-        // Compute constitutive law variables
-        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-        if (is_rotated)
-            RotateToLocalAxes(Values, this_kinematic_variables);
 
         // Compute material reponse
-        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
-
-        if (is_rotated)
-            RotateToGlobalAxes(Values, this_kinematic_variables);
+        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), is_rotated);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
