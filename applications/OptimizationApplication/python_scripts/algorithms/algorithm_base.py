@@ -11,10 +11,10 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
-import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
+# Additional imports
 import csv
 # ==============================================================================
 class OptimizationAlgorithm:
@@ -335,6 +335,7 @@ class OptimizationAlgorithm:
             row = []
             row.append("{:>4d}".format(self.optimization_iteration))
 
+            Logger.Print("")
 
             for objective in self.opt_parameters["objectives"]:
                 objectivs_current_value = objective["value"].GetDouble()
@@ -348,7 +349,7 @@ class OptimizationAlgorithm:
 
                 rel_change = 100 * (objectivs_current_value-objective_previous_value)/objective_previous_value
                 abs_change = 100 * (objectivs_current_value-objective_initial_value)/objective_initial_value
-                Logger.Print("\n")
+
                 Logger.Print("  ===== objective: ",objective["name"].GetString())
                 Logger.Print("                   current value: ",objectivs_current_value)
                 Logger.Print("                   rel_change: ",rel_change)

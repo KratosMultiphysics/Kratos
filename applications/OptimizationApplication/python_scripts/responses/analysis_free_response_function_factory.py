@@ -1,7 +1,6 @@
 # importing the Kratos Library
 from . import structural_response
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication.response_functions.response_function_factory as sho_response_factory
 import KratosMultiphysics.OptimizationApplication.responses.shape.linear_response as slr
 import KratosMultiphysics.OptimizationApplication.responses.shape.plane_symmetry_response as spy
 import KratosMultiphysics.OptimizationApplication.responses.partitioning_responses as prr

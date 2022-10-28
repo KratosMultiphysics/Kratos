@@ -5,10 +5,7 @@ message("**** configuring KratosOptimizationApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ShapeOptimizationApplication)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
-include_directories( ${KRATOS_SOURCE_DIR}/applications/ShapeOptimizationApplication/)
-include_directories( ${KRATOS_SOURCE_DIR}/applications/ShapeOptimizationApplication/custom_utilities/mapping )
 
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE

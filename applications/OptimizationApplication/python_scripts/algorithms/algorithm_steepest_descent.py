@@ -19,7 +19,7 @@ from KratosMultiphysics import Parameters, Logger
 
 # Additional imports
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
+from KratosMultiphysics.OptimizationApplication.utilities.timer import Timer
 
 
 

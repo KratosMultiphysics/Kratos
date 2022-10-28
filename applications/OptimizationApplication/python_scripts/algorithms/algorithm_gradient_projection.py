@@ -15,13 +15,11 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 import KratosMultiphysics.OptimizationApplication as KOA
-from KratosMultiphysics import Parameters, Logger
+from KratosMultiphysics import Logger
 
 # Additional imports
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-
-import csv, os
+from KratosMultiphysics.OptimizationApplication.utilities.timer import Timer
 
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):

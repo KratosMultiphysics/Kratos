@@ -18,7 +18,6 @@
 
 // Project includes
 #include "custom_elements/helmholtz_surf_shape_element.h"
-// #include "../StructuralMechanicsApplication/custom_utilities/shellt3_local_coordinate_system.hpp"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "utilities/math_utils.h"
