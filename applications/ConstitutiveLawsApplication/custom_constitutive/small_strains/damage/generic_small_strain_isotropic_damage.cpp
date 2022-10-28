@@ -430,7 +430,7 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
             return rValue;
         } else {
-            BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+            return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
         }
     }
 }
@@ -448,7 +448,7 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
     if (this->Has(rThisVariable))
         return this->GetValue(rThisVariable, rValue);
     else
-        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
