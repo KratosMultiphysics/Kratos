@@ -599,16 +599,16 @@ namespace Testing {
         Line3D2<Point> line3(p_point_5, p_point_6);
 
         // Not intersecting lines
-        const auto line1_2 = IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line2);
-        KRATOS_CHECK_NEAR(line1_2->Length(), 0.408248, 1.0e-6);
+        const auto line1_2 = Line3D2<Point>(IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line2));
+        KRATOS_CHECK_NEAR(line1_2.Length(), 0.408248, 1.0e-6);
 
         // Intersecting lines
-        const auto line1_3 = IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line3);
-        KRATOS_CHECK_DOUBLE_EQUAL(line1_3->Length(), 0.0);
+        const auto line1_3 = Line3D2<Point>(IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line3));
+        KRATOS_CHECK_DOUBLE_EQUAL(line1_3.Length(), 0.0);
         array_1d<double, 3> expected_center = ZeroVector(3);
         expected_center[0] = 0.5;
         expected_center[1] = 0.5;
-        KRATOS_CHECK_VECTOR_NEAR(line1_3->Center().Coordinates(), expected_center, 1e-10);
+        KRATOS_CHECK_VECTOR_NEAR(line1_3.Center().Coordinates(), expected_center, 1e-10);
     }
 
 }  // namespace Testing.
