@@ -20,7 +20,6 @@
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
-#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 using namespace std;
 
@@ -90,10 +89,9 @@ void NodeVOLUME_ACCELERATION::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &
 
 void NodeHYDRAULIC_DISCHARGE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, model_part.Nodes(), 0, 0); }
 
-void NodeHYDRAULIC_HEAD::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_HEAD, model_part.Nodes(), 0, 0); }
+void NodeHYDRAULIC_HEAD::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::HYDRAULIC_HEAD, model_part.Nodes(), 0, 0); }
 
-
-void GaussOperation::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) {};
+void GaussOperation::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part){};
 
 void GaussFLUID_FLUX_VECTOR::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.PrintOnGaussPoints(Kratos::FLUID_FLUX_VECTOR, model_part, 0, 0); }
 
@@ -154,7 +152,7 @@ namespace Kratos
     {
         const double rel_tol = 1.0e-4;
         const double abs_tol = 1.0e-9;
-        VariableData* p_water_pres = &WATER_PRESSURE;
+        VariableData *p_water_pres = &WATER_PRESSURE;
         KratosExecute::ConvergenceVariableListType convergence_settings;
         convergence_settings.push_back(std::make_tuple(p_water_pres, rel_tol, abs_tol));
         return KratosExecute::ConvergenceCriteriaType::Pointer(new KratosExecute::MixedGenericCriteriaType(convergence_settings));
@@ -170,7 +168,7 @@ namespace Kratos
         return p_solver;
     }
 
-    KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer KratosExecute::setup_strategy_dgeoflow(ModelPart& model_part)
+    KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer KratosExecute::setup_strategy_dgeoflow(ModelPart &model_part)
     {
         // Create the linear strategy
         auto p_solver = setup_solver_dgeoflow();
@@ -221,7 +219,7 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    void KratosExecute::parseMesh(ModelPart& model_part, string filepath)
+    void KratosExecute::parseMesh(ModelPart &model_part, string filepath)
     {
         // Parses MDPA file into model_part
         std::ifstream input(filepath);
@@ -307,12 +305,12 @@ namespace Kratos
                 {
                     unsigned long node4;
                     iss >> elementId >> propertyId >> node1 >> node2 >> node3 >> node4;
-                    element_nodes = { node1, node2, node3, node4 };
+                    element_nodes = {node1, node2, node3, node4};
                 }
                 else if (nodeStr == "3N")
                 {
                     iss >> elementId >> propertyId >> node1 >> node2 >> node3;
-                    element_nodes = { node1, node2, node3 };
+                    element_nodes = {node1, node2, node3};
                 }
                 else
                 {
@@ -413,10 +411,10 @@ namespace Kratos
         input.close();
     }
 
-    void KratosExecute::parseMaterial(Model& model, string filepath)
+    void KratosExecute::parseMaterial(Model &model, string filepath)
     {
         string parameters = "{ \"Parameters\" : { \"materials_filename\" :\"" + filepath + "\"}}";
-        Parameters material_file{ parameters };
+        Parameters material_file{parameters};
         ReadMaterialsUtility(material_file, model);
     }
 
@@ -425,11 +423,11 @@ namespace Kratos
         std::ifstream t(filepath);
         std::stringstream buffer;
         buffer << t.rdbuf();
-        Parameters projFile{ buffer.str() };
+        Parameters projFile{buffer.str()};
         return projFile;
     }
 
-    std::vector<std::shared_ptr<Process>> KratosExecute::parseProcess(ModelPart& model_part, Parameters projFile)
+    std::vector<std::shared_ptr<Process>> KratosExecute::parseProcess(ModelPart &model_part, Parameters projFile)
     {
         // Currently: In DGeoflow only fixed hydrostatic head has been , also need load of gravity.
 
@@ -445,13 +443,13 @@ namespace Kratos
             std::size_t found = name.find_last_of(".");
             string subname = name.substr(found + 1);
 
-            ModelPart& part = model_part.GetSubModelPart(subname);
+            ModelPart &part = model_part.GetSubModelPart(subname);
 
             if (pressure_type == "Uniform")
             {
                 auto value = process["Parameters"]["value"].GetDouble();
                 processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(GeoFlowApplyConstantScalarValueProcess(part, WATER_PRESSURE,
-                    value, 0, GeoFlowApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                                                                                                                               value, 0, GeoFlowApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
             }
             else if (pressure_type == "Hydrostatic")
             {
@@ -470,20 +468,20 @@ namespace Kratos
         auto name = loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
         std::size_t found = name.find_last_of(".");
         string subname = name.substr(found + 1);
-        ModelPart& part = model_part.GetSubModelPart(subname);
+        ModelPart &part = model_part.GetSubModelPart(subname);
         processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_X,
-            0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                                                                                                         0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
         processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Y, -9.81,
-            0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                                                                                                         0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
         processes.push_back(make_shared<Process>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Z, 0.0,
-            0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                                                                                 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
         return processes;
     }
 
-    void KratosExecute::outputGiD(Model& model, ModelPart& model_part, Parameters parameters, string workingDirectory)
+    void KratosExecute::outputGiD(Model &model, ModelPart &model_part, Parameters parameters, string workingDirectory)
     {
         std::map<std::string, GiD_PostMode> PostMode;
         PostMode["GiD_PostAscii"] = GiD_PostAscii;
@@ -529,47 +527,14 @@ namespace Kratos
         NodeOutput["HYDRAULIC_DISCHARGE"] = Kratos::make_unique<NodeHYDRAULIC_DISCHARGE>();
         NodeOutput["HYDRAULIC_HEAD"] = Kratos::make_unique<NodeHYDRAULIC_HEAD>();
 
-        // Hydraulic Gauss Point Results to Nodal Results 
+        // Calculate hydraulic head on the nodes
         auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         auto nodal_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
 
         if (std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
         {
-
-            // The list of nodes
-            auto& r_nodes_array = model_part.Nodes();
-            auto element_var = &(KratosComponents< Variable<double>>::Get("HYDRAULIC_HEAD"));
-
-            for (Element element : model_part.Elements())
-            {
-                auto rGeom = element.GetGeometry();
-                auto rProp = element.GetProperties();
-                for (unsigned int node = 0; node < 3; ++node) {
-                    array_1d<double, 3> NodeVolumeAcceleration;
-                    noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-                    const double g = norm_2(NodeVolumeAcceleration);
-                    if (g > std::numeric_limits<double>::epsilon()) {
-                        const double FluidWeight = g * rProp[DENSITY_WATER];
-
-                        array_1d<double, 3> NodeCoordinates;
-                        noalias(NodeCoordinates) = rGeom[node].Coordinates();
-                        array_1d<double, 3> NodeVolumeAccelerationUnitVector;
-                        noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
-
-                        const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                        rGeom[node].SetValue(*element_var, -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight);
-                    }
-                    else {
-                        rGeom[node].SetValue(*element_var, 0.0);
-                    }
-                }
-            }
-
-            gid_io.WriteNodalResultsNonHistorical(*element_var, model_part.Nodes(), 0);
-
+            calculateNodalHydraulicHead(gid_io, model_part);
         }
-
-
 
         for (string var : nodal_outputs)
         {
@@ -597,10 +562,46 @@ namespace Kratos
         gid_io.FinalizeResults();
     }
 
-    int KratosExecute::mainExecution(ModelPart& model_part,
-        std::vector<std::shared_ptr<Process>> processes,
-        GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-        double time, double delta_time, double number_iterations)
+    void KratosExecute::calculateNodalHydraulicHead(GidIO<> &gid_io, ModelPart &model_part) {
+        auto &r_nodes_array = model_part.Nodes();
+            auto element_var = &(KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD"));
+
+            for (Element element : model_part.Elements())
+            {
+                auto rGeom = element.GetGeometry();
+                auto rProp = element.GetProperties();
+                
+                for (unsigned int node = 0; node < 3; ++node)
+                {
+                    array_1d<double, 3> NodeVolumeAcceleration;
+                    noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
+                    const double g = norm_2(NodeVolumeAcceleration);
+                    if (g > std::numeric_limits<double>::epsilon())
+                    {
+                        const double FluidWeight = g * rProp[DENSITY_WATER];
+
+                        array_1d<double, 3> NodeCoordinates;
+                        noalias(NodeCoordinates) = rGeom[node].Coordinates();
+                        array_1d<double, 3> NodeVolumeAccelerationUnitVector;
+                        noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
+
+                        const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+                        rGeom[node].SetValue(*element_var, -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight);
+                    }
+                    else
+                    {
+                        rGeom[node].SetValue(*element_var, 0.0);
+                    }
+                }
+            }
+
+            gid_io.WriteNodalResultsNonHistorical(*element_var, model_part.Nodes(), 0);
+    }
+
+    int KratosExecute::mainExecution(ModelPart &model_part,
+                                     std::vector<std::shared_ptr<Process>> processes,
+                                     GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+                                     double time, double delta_time, double number_iterations)
     {
         // Initialize
         for (auto process : processes)
@@ -645,12 +646,12 @@ namespace Kratos
     }
 
     int KratosExecute::execute_flow_analysis(string workingDirectory, string projectName,
-        double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-        string criticalHeadBoundaryModelPartName,
-        std::function<void(char*)> logCallback,
-        std::function<void(double)> reportProgress,
-        std::function<void(char*)> reportTextualProgress,
-        std::function<bool()> shouldCancel)
+                                             double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
+                                             string criticalHeadBoundaryModelPartName,
+                                             std::function<void(char *)> logCallback,
+                                             std::function<void(double)> reportProgress,
+                                             std::function<void(char *)> reportTextualProgress,
+                                             std::function<bool()> shouldCancel)
     {
         this->SetEchoLevel(1);
 
@@ -667,14 +668,14 @@ namespace Kratos
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
-                projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
+                            projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
 
             string meshpath = workingDirectory + "/" + meshname;
             string materialpath = workingDirectory + "/" + materialname;
 
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
-            ModelPart& model_part = current_model.CreateModelPart(modelName);
+            ModelPart &model_part = current_model.CreateModelPart(modelName);
             model_part.SetBufferSize(2);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Working Directory: " << workingDirectory << std::endl;
@@ -784,7 +785,7 @@ namespace Kratos
                 currentHead = minCriticalHead;
                 criticalHead = currentHead;
 
-                std::vector<Element*> pipeElements;
+                std::vector<Element *> pipeElements;
                 pipeElements = p_solving_strategy->GetPipingElements();
                 int noPipeElements = pipeElements.size();
 
@@ -812,7 +813,7 @@ namespace Kratos
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
                     int count = 0;
-                    for (Element* element : pipeElements)
+                    for (Element *element : pipeElements)
                     {
                         if (element->GetValue(PIPE_ACTIVE))
                             count += 1;
@@ -892,7 +893,7 @@ namespace Kratos
             ResetModelParts();
             return 0;
         }
-        catch (const std::exception& exc)
+        catch (const std::exception &exc)
         {
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
 
@@ -905,7 +906,7 @@ namespace Kratos
     };
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
-        std::vector<std::shared_ptr<Process>> processes)
+                                                               std::vector<std::shared_ptr<Process>> processes)
     {
         shared_ptr<Process> RiverBoundary;
 
@@ -934,11 +935,11 @@ namespace Kratos
     }
 
     shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-        std::vector<std::shared_ptr<Process>> processes)
+                                                                      std::vector<std::shared_ptr<Process>> processes)
     {
         shared_ptr<Process> RiverBoundary;
 
-        std::vector<Element*> pipeElements;
+        std::vector<Element *> pipeElements;
         pipeElements = p_solving_strategy->GetPipingElements();
 
         double firstNode_A = pipeElements.front()->GetGeometry().GetPoint(0).X0();
@@ -959,7 +960,7 @@ namespace Kratos
         // Get Find boundary in Processes
         for (shared_ptr<Process> process : processes)
         {
-            ModelPart* currentModelPart;
+            ModelPart *currentModelPart;
 
             if (process->Info() == "ApplyConstantScalarValueProcess")
             {

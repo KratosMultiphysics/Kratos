@@ -230,5 +230,7 @@ namespace Kratos
                           std::vector<std::shared_ptr<Process>> processes,
                           KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                           double time, double delta_time, double number_iterations);
+        
+        void calculateNodalHydraulicHead(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
     };
 }
