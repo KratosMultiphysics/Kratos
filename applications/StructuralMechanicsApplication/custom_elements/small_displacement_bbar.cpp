@@ -149,18 +149,11 @@ void SmallDisplacementBbar::CalculateAll(
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
-        // Compute constitutive law variables
-        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-
-        if (is_rotated)
-            RotateToLocalAxes(Values, this_kinematic_variables);
 
         // Compute material reponse
         CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
                                        Values, point_number, integration_points,
-                                       GetStressMeasure());
-        if (is_rotated)
-            RotateToGlobalAxes(Values, this_kinematic_variables);
+                                       GetStressMeasure(), is_rotated);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number,
@@ -294,22 +287,6 @@ void SmallDisplacementBbar::SetConstitutiveVariables(
     // Here we set the space on which the results shall be written
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallDisplacementBbar::CalculateConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
-    ConstitutiveLaw::Parameters& rValues,
-    const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    )
-{
-    // Actually do the computations in the ConstitutiveLaw
-    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 }
 
 //************************************************************************************
@@ -606,12 +583,10 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         for(IndexType point_number = 0; point_number < integration_points.size(); point_number++) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
-            // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
                                            Values, point_number, integration_points,
-                                           GetStressMeasure());
+                                           GetStressMeasure(), false);
 
             const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
 
@@ -687,11 +662,6 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
-            // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-
-            if (is_rotated)
-	            RotateToLocalAxes(Values, this_kinematic_variables);
             //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
                 // Compute material reponse
@@ -700,7 +670,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
                                                Values,
                                                point_number,
                                                integration_points,
-                                               ConstitutiveLaw::StressMeasure_Cauchy);
+                                               ConstitutiveLaw::StressMeasure_Cauchy, is_rotated);
             }
             else {
                 // Compute material reponse
@@ -709,10 +679,8 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
                                                Values,
                                                point_number,
                                                integration_points,
-                                               ConstitutiveLaw::StressMeasure_PK2);
+                                               ConstitutiveLaw::StressMeasure_PK2, is_rotated);
             }
-            if (is_rotated)
-                RotateToGlobalAxes(Values, this_kinematic_variables);
 
             if ( rOutput[point_number].size() != strain_size )
                 rOutput[point_number].resize( strain_size, false );
@@ -752,11 +720,9 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
-            // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
-                                           Values, point_number, integration_points, this_stress_measure);
+                                           Values, point_number, integration_points, this_stress_measure, false);
 
             if ( rOutput[point_number].size() != strain_size)
                 rOutput[point_number].resize( strain_size, false );
@@ -845,17 +811,10 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         for(IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
-            // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-            if (is_rotated)
-                RotateToLocalAxes(Values, this_kinematic_variables);
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
                                            Values, point_number, integration_points,
-                                           GetStressMeasure());
-
-            if (is_rotated)
-                RotateToGlobalAxes(Values, this_kinematic_variables);
+                                           GetStressMeasure(), is_rotated);
 
             if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                 rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
@@ -884,12 +843,10 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         for(IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ ) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
-            // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables,
                                            Values, point_number, integration_points,
-                                           GetStressMeasure());
+                                           GetStressMeasure(), false);
 
             if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 rOutput[point_number].resize( this_kinematic_variables.F.size1() , this_kinematic_variables.F.size2() , false );
