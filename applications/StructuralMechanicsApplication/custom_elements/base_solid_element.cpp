@@ -838,11 +838,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
                     // Compute element kinematics B, F, DN_DX ...
                     CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                    // Compute constitutive law variables
-                    SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
 
@@ -901,10 +899,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
                 // Compute material reponse, not encessary to rotate since it's an invariant
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                 // Compute VM stress
                 if (dimension == 2) {
@@ -1051,22 +1047,14 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-
-                if (is_rotated)
-                    RotateToLocalAxes(Values, this_kinematic_variables);
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy, is_rotated);
                 } else {
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2, is_rotated);
                 }
-
-                if (is_rotated)
-                    RotateToGlobalAxes(Values, this_kinematic_variables);
 
                 if (strain_size == 4) { // Axysimmetric
                     if (rOutput[point_number].size() != 6)
@@ -1105,10 +1093,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure, false);
 
                 if (strain_size == 4) { // Axysimmetric
                     if (rOutput[point_number].size() != 6)
@@ -1233,16 +1219,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-                if (is_rotated)
-                    RotateToLocalAxes(Values, this_kinematic_variables);
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
-
-                if (is_rotated)
-                    RotateToGlobalAxes(Values, this_kinematic_variables);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), is_rotated);
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                     rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
@@ -1567,11 +1546,23 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+    const bool IsElementRotated
     )
 {
+    // Setting the variables for the CL
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+
+    // rotate to local axes strain/F
+    if (IsElementRotated)
+        RotateToLocalAxes(rValues, rThisKinematicVariables);
+
     // Actually do the computations in the ConstitutiveLaw in local axes
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
+
+    // We undo the rotation of strain/F, C, stress
+    if (IsElementRotated)
+        RotateToGlobalAxes(rValues, rThisKinematicVariables)
 }
 
 /***********************************************************************************/
