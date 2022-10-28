@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "geometries/line_3d_2.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "processes/calculate_distance_to_path_process.h"
 #include "utilities/variable_utils.h"
@@ -141,6 +140,41 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
 {
     /// TODO
     const double radius_path = mThisParameters["radius_path"].GetDouble();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
+double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWithRadius(
+    const Geometry<NodeType>& rSegment,
+    const Point& rPoint,
+    const double Radius,
+    const double Tolerance
+    )
+{
+    // // If radius is zero, we compute the distance to the line
+    // if (Radius < std::numeric_limits<double>::epsilon()) {
+    //     return GeometricalProjectionUtilities::FastMinimalDistanceOnLine(rSegment, rPoint, Tolerance);
+    // } else {
+    //     Point projected_point;
+    //     const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(rSegment, rPoint, projected_point);
+    //     array_1d<double, 3> vector_line = rSegment[1].Coordinates() - rSegment[0].Coordinates();
+    //     vector_line /= norm_2(vector_line);
+    //     typename Geometry<NodeType>::CoordinatesArrayType projected_local;
+    //     if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
+    //         return projected_distance - Radius;
+    //     } else {
+    //         const double distance_a = norm_2(rPoint.Coordinates() - rSegment[0].Coordinates());
+    //         const double distance_b = norm_2(rPoint.Coordinates() - rSegment[1].Coordinates());
+    //         if (distance_a < distance_b) {
+    //             return distance_a - Radius;
+    //         } else {
+    //             return distance_b - Radius;
+    //         }
+    //     }
+    // }
+    return 0.0;
 }
 
 /***********************************************************************************/
