@@ -14,14 +14,11 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
 #include "containers/model.h"
-#include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "includes/registry.h"
@@ -55,7 +52,7 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Operation() {}
+    explicit Operation() = default;
 
     /// Destructor.
     virtual ~Operation() {}
@@ -67,6 +64,9 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    /// Assignment operator.
+    Operation& operator=(Operation const& rOther) = delete;
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
@@ -142,19 +142,6 @@ public:
     void PrintData(std::ostream& rOStream) const
     {
     }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    Operation& operator=(Operation const& rOther) = delete;
 
     ///@}
 }; // Class Operation
