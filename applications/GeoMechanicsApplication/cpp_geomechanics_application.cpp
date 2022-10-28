@@ -563,7 +563,6 @@ namespace Kratos
     }
 
     void KratosExecute::calculateNodalHydraulicHead(GidIO<> &gid_io, ModelPart &model_part) {
-        auto &r_nodes_array = model_part.Nodes();
             auto element_var = &(KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD"));
 
             for (Element element : model_part.Elements())
