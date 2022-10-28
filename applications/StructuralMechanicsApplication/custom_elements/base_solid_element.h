@@ -775,7 +775,7 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2,
-        const bool IsElementRotated
+        const bool IsElementRotated = true
         );
 
     /**
