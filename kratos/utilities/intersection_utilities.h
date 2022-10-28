@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/math_utils.h"
+#include "geometry/line_3d_2.h"
 
 namespace Kratos
 {
