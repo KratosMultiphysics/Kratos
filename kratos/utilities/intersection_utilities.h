@@ -243,7 +243,7 @@ public:
      * @return Return nullptr if no solution exists. Otherwise returns the line intersection
      */
     template<class TPointType>
-    static typename Geometry<TPointType>::Pointer ClosestLineLineIntersection(
+    static typename Geometry<TPointType>::Pointer ComputeClosestLineLineIntersection(
         const Geometry<TPointType>& rSegment1,
         const Geometry<TPointType>& rSegment2
         )
@@ -252,9 +252,9 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // Resulting line segment
-        TPointType::Pointer pa = Kratos:::make_shared<TPointType>(0.0, 0.0, 0.0);
-        TPointType::Pointer pb = Kratos:::make_shared<TPointType>(0.0, 0.0, 0.0);
-        Line3D2<TPointType>::Pointer resulting_line = Kratos:::make_shared<Line3D2<TPointType>>(pa, pb);
+        typename TPointType::Pointer pa = Kratos::make_shared<TPointType>(0.0, 0.0, 0.0);
+        typename TPointType::Pointer pb = Kratos::make_shared<TPointType>(0.0, 0.0, 0.0);
+        Line3D2<TPointType>::Pointer resulting_line = Kratos::make_shared<Line3D2<TPointType>>(pa, pb);
 
         // Variable definitions
         array_1d<double, 3> p13,p43,p21;
@@ -590,4 +590,3 @@ private:
 ///@{
 
 }  /* namespace Kratos.*/
-
