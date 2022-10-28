@@ -14,22 +14,12 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
-#include <iostream>
-#include <string>
+
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "containers/model.h"
-#include "includes/model_part.h"
 #include "custom_responses/response.h"
-#include "utilities/integration_utilities.h"
-#include "utilities/geometry_utilities.h"
-#include "utilities/variable_utils.h"
-#include "includes/define.h"
-#include "utilities/math_utils.h"
-#include "spatial_containers/spatial_containers.h"
-#include "processes/find_conditions_neighbours_process.h"
 
 // ==============================================================================
 
@@ -64,18 +54,6 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) MassOptResponse : public Response
 public:
     ///@name Type Definitions
     ///@{
-
-    // Type definitions for better reading later
-    typedef array_1d<double,3> array_3d;
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;    
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;    
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Pointer definition of MassOptResponse
     KRATOS_CLASS_POINTER_DEFINITION(MassOptResponse);

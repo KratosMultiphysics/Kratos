@@ -20,8 +20,20 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "containers/model.h"
+#include "includes/model_part.h"
 #include "optimization_application.h"
-
+#include "utilities/integration_utilities.h"
+#include "utilities/geometry_utilities.h"
+#include "utilities/variable_utils.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "includes/define.h"
+#include "utilities/math_utils.h"
+#include "spatial_containers/spatial_containers.h"
+#include "processes/find_conditions_neighbours_process.h"
+#include "custom_strategies/strategies/helmholtz_strategy.h"
 // ==============================================================================
 
 namespace Kratos
@@ -58,7 +70,21 @@ public:
   ///@{
 
     // Type definitions for better reading later
+    typedef Variable<double> array_1d_component_type;  
     typedef array_1d<double,3> array_3d;
+    typedef Element BaseType;
+    typedef BaseType::GeometryType GeometryType;
+    typedef BaseType::NodesArrayType NodesArrayType;
+    typedef BaseType::PropertiesType PropertiesType;
+    typedef BaseType::IndexType IndexType;
+    typedef BaseType::SizeType SizeType;    
+    typedef BaseType::MatrixType MatrixType;
+    typedef BaseType::VectorType VectorType;    
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
+    typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
   /// Pointer definition of Response
   KRATOS_CLASS_POINTER_DEFINITION(Response);
