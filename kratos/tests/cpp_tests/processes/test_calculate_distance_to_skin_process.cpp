@@ -537,5 +537,50 @@ namespace Kratos {
 		KRATOS_CHECK_NEAR((model_part.pGetNode(5))->FastGetSolutionStepValue(TEMPERATURE), -1.6, 1e-6);
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNonHistorical2D, KratosCoreFastSuite)
+	{
+		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+
+		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   2,
+			"element_name":     "Element2D3N"
+		})");
+
+    	Model current_model;
+		ModelPart &model_part = current_model.CreateModelPart("Volume");
+		StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+
+		// Generate the skin
+    	ModelPart &skin_part = current_model.CreateModelPart("Skin");
+		skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
+		skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
+		skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
+		skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
+		Properties::Pointer p_properties(new Properties(0));
+		skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
+		skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
+		skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
+		skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
+
+		// Compute distance
+        Parameters parameters = Parameters(R"(
+        {
+			"distance_database" : "nodal_non_historical"
+        })" );
+		CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
+
+		// Check values in non-historical database
+		KRATOS_CHECK_NEAR((model_part.pGetNode(2))->GetValue(DISTANCE), 2.4, 1e-6);
+		KRATOS_CHECK_NEAR((model_part.pGetNode(4))->GetValue(DISTANCE), 3.4, 1e-6);
+		KRATOS_CHECK_NEAR((model_part.pGetNode(5))->GetValue(DISTANCE), -1.6, 1e-6);
+	}
+
 }
 }  // namespace Kratos.

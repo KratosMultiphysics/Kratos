@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2019 Peter Gamnitzer, UIBK (University of Innsbruck)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -120,11 +120,13 @@ class chebyshev {
         {
             scalar_type hi, lo;
 
+            using backend::spectral_radius;
+
             if (prm.scale) {
                 M  = Backend::copy_vector( diagonal(A, /*invert*/true), backend_prm );
-                hi = backend::spectral_radius<true>(A, prm.power_iters);
+                hi = spectral_radius<true>(A, prm.power_iters);
             } else {
-                hi = backend::spectral_radius<false>(A, prm.power_iters);
+                hi = spectral_radius<false>(A, prm.power_iters);
             }
 
             lo = hi * prm.lower;

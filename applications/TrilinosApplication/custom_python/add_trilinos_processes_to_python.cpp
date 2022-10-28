@@ -50,6 +50,24 @@ template< class TBinder, unsigned int TDim > void DistanceCalculatorConstruction
                 rComm, RowSizeGuess, pLinearSolver);
             return Kratos::make_shared<TrilinosVariationalDistanceCalculation<TDim>>(rModelPart, pLinearSolver, p_builder_solver, MaxIter, TheFlags, rAuxName);
         }));
+    rBinder.def(py::init([](
+        Epetra_MpiComm& rComm,ModelPart& rModelPart,TrilinosLinearSolverType::Pointer pLinearSolver,
+        unsigned int MaxIter,Flags TheFlags,std::string& rAuxName, double Coefficient1)
+        {
+            constexpr int RowSizeGuess = (TDim == 2 ? 15 : 40);
+            auto p_builder_solver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > >(
+                rComm, RowSizeGuess, pLinearSolver);
+            return Kratos::make_shared<TrilinosVariationalDistanceCalculation<TDim>>(rModelPart, pLinearSolver, p_builder_solver, MaxIter, TheFlags, rAuxName, Coefficient1);
+        }));
+    rBinder.def(py::init([](
+        Epetra_MpiComm& rComm,ModelPart& rModelPart,TrilinosLinearSolverType::Pointer pLinearSolver,
+        unsigned int MaxIter,Flags TheFlags,std::string& rAuxName, double Coefficient1, double Coefficient2)
+        {
+            constexpr int RowSizeGuess = (TDim == 2 ? 15 : 40);
+            auto p_builder_solver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > >(
+                rComm, RowSizeGuess, pLinearSolver);
+            return Kratos::make_shared<TrilinosVariationalDistanceCalculation<TDim>>(rModelPart, pLinearSolver, p_builder_solver, MaxIter, TheFlags, rAuxName, Coefficient1, Coefficient2);
+        }));
 }
 
 void AddProcesses(pybind11::module& m)

@@ -92,11 +92,13 @@ public:
 
     typedef std::size_t SizeType;
 
+    typedef Dof<double> DofType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -222,6 +224,8 @@ public:
 
        const double dgauss = inner_prod(N,distances);
 
+        const double coeff1 = rCurrentProcessInfo.Has(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST) ? rCurrentProcessInfo[VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST] : 0.01;
+        const double coeff2 = rCurrentProcessInfo.Has(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND) ? rCurrentProcessInfo[VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND] : 0.1;
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
 
         if(step == 1) //solve a poisson problem with a positive/negative heat source depending on the sign of the existing distance function
@@ -259,7 +263,7 @@ public:
                 for(unsigned int i=0; i<TDim+1; i++)
                     if(GetGeometry()[i].Is(BOUNDARY))
                     {
-                        rRightHandSideVector[i] += 0.01*source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
+                        rRightHandSideVector[i] += coeff1*source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
                         // using the area as weighting factor is excessive. Reduced it to get a closer to constant gradient between the regions close and far away from the interface
                     }
 
@@ -294,7 +298,7 @@ public:
             //unfortunately the numerical experiments tell that this in too unstable to be used unless a very
             //good initial approximation is used
 //            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*rod(DN_DX,trans(DN_DX) ); //RISKY!!
-            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,0.1)*prod( DN_DX,trans(DN_DX) );
+            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,coeff2)*prod( DN_DX,trans(DN_DX) );
         }
     }
 

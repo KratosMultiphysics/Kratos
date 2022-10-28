@@ -548,7 +548,6 @@ namespace Kratos {
 
         int smp_number = 0;
         int inter_smp_number = 0;
-        int valid_elements_length = 0;
 
         for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
             ModelPart& mp = *mListOfSubModelParts[i];
@@ -617,6 +616,7 @@ namespace Kratos {
             if (number_of_particles_to_insert) {
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
+                int valid_elements_length = 0;
 
                 for (int i = 0; i < mesh_size_elements; i++) {
                     if (all_elements[i]->IsNot(ACTIVE) && !OneNeighbourInjectorIsInjecting(all_elements[i])) {

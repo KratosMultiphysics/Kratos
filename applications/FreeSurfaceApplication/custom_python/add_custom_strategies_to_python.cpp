@@ -10,13 +10,10 @@
 //  Main authors:    Antonia Larese
 //
 
-
 // System includes
-
 
 // External includes
 // #include <boost/timer.hpp>
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -24,13 +21,11 @@
 
 #include "spaces/ublas_space.h"
 
-//strategies
+// strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 
-//linear solvers
+// linear solvers
 #include "linear_solvers/linear_solver.h"
-
-
 
 namespace Kratos
 {
@@ -39,26 +34,16 @@ namespace Kratos
 	{
 		namespace py = pybind11;
 
-		void  AddCustomStrategiesToPython(pybind11::module& pymodule)
+		void AddCustomStrategiesToPython(pybind11::module &pymodule)
 		{
 			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-
-			//********************************************************************
-			//********************************************************************
-// 			py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-// 				("TestStrategy",
-// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-// 				;
-
+			typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+			typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+			typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 		}
 
-	}  // namespace Python.
+	} // namespace Python.
 
 } // Namespace Kratos

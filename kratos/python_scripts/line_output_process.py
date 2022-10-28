@@ -5,11 +5,12 @@ import KratosMultiphysics
 from KratosMultiphysics.multiple_points_output_process import MultiplePointsOutputProcess
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return LineOutputProcess(Model, settings["Parameters"])
 
-class LineOutputProcess(KratosMultiphysics.Process):
+
+class LineOutputProcess(MultiplePointsOutputProcess):
     """This process writes output for several points along a line to a file
     Internally it holds an object of type "MultiplePointsOutputProcess"
     Usage:
@@ -17,22 +18,20 @@ class LineOutputProcess(KratosMultiphysics.Process):
         - specifying the number of sampling points along the line (start and end points will be included)
     """
     def __init__(self, model, params):
-        KratosMultiphysics.Process.__init__(self)
-
         default_settings = KratosMultiphysics.Parameters('''{
             "help"              : "This process writes output for several points along a line to a file. Internally it holds an object of type MultiplePointsOutputProcess",
-            "model_part_name"   : "",
-            "entity_type"       : "element",
-            "interval"          : [0.0, 1e30],
-            "start_point"       : [],
-            "end_point"         : [],
-            "sampling_points"   : 3,
-            "output_variables"  : [],
-            "historical_value"  : true,
-            "search_configuration" : "initial",
-            "search_tolerance"  : 1e-6,
-            "print_format"      : "",
-            "output_file_settings": {}
+                "model_part_name"   : "",
+                "entity_type"       : "element",
+                "interval"          : [0.0, 1e30],
+                "start_point"       : [],
+                "end_point"         : [],
+                "sampling_points"   : 3,
+                "output_variables"  : [],
+                "historical_value"  : true,
+                "search_configuration" : "initial",
+                "search_tolerance"  : 1e-6,
+                "print_format"      : "",
+                "output_file_settings": {}
         }''')
 
         params.ValidateAndAssignDefaults(default_settings)
@@ -84,25 +83,5 @@ class LineOutputProcess(KratosMultiphysics.Process):
         params.AddEmptyValue("positions")
         params["positions"].SetMatrix(positions)
 
-        self.multiple_points_output_process = MultiplePointsOutputProcess(model, params)
-
-    def ExecuteInitialize(self):
-        self.multiple_points_output_process.ExecuteInitialize()
-
-    def ExecuteBeforeSolutionLoop(self):
-        self.multiple_points_output_process.ExecuteBeforeSolutionLoop()
-
-    def ExecuteInitializeSolutionStep(self):
-        self.multiple_points_output_process.ExecuteInitializeSolutionStep()
-
-    def ExecuteFinalizeSolutionStep(self):
-        self.multiple_points_output_process.ExecuteFinalizeSolutionStep()
-
-    def ExecuteBeforeOutputStep(self):
-        self.multiple_points_output_process.ExecuteBeforeOutputStep()
-
-    def ExecuteAfterOutputStep(self):
-        self.multiple_points_output_process.ExecuteAfterOutputStep()
-
-    def ExecuteFinalize(self):
-        self.multiple_points_output_process.ExecuteFinalize()
+        # initialize parent class MultiplePointsOutputProcess with all sampling positions from given line
+        super().__init__(model, params)

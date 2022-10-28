@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -93,6 +93,8 @@ template <
 struct viennacl {
     typedef typename backend::value_type<Matrix>::type value_type;
     typedef ptrdiff_t                                  index_type;
+    typedef ptrdiff_t                                  col_type;
+    typedef ptrdiff_t                                  ptr_type;
     typedef Matrix                                     matrix;
     typedef ::viennacl::vector<value_type>             vector;
     typedef ::viennacl::vector<value_type>             matrix_diagonal;

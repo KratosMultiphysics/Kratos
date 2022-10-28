@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <filesystem>
 #include <iomanip>
 
 // External includes
@@ -163,6 +164,11 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     );
 
     mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const std::string folder_name = mOutputParameters["folder_name"].GetString();
+    if (!std::filesystem::exists(folder_name)) {
+        std::filesystem::create_directories(folder_name);
+    }
 }
 
 void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()

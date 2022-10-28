@@ -28,8 +28,6 @@
 #include "custom_elements/rigid_body_element.h"
 #include "custom_elements/ship_element.h"
 #include "custom_elements/contact_info_spheric_particle.h"
-#include "custom_elements/thermal_spheric_particle.h"
-#include "custom_elements/sintering_spheric_continuum_particle.h"
 #include "custom_elements/bonding_spheric_continuum_particle.h"
 #include "custom_elements/custom_clusters/singlespherecluster3D.h"
 #include "custom_conditions/mapping_condition.h"
@@ -95,9 +93,6 @@ private:
     const PolyhedronSkinSphericParticle mPolyhedronSkinSphericParticle3D;
     const IceContinuumParticle mIceContinuumParticle3D;
     const BeamParticle mBeamParticle3D;
-    const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;
-    const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;
-    const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
     const BondingSphericContinuumParticle mBondingSphericContinuumParticle3D;
     const ParticleContactElement mParticleContactElement;
     const SolidFace3D  mSolidFace3D3N;

@@ -34,7 +34,7 @@
 #include "pfem_fluid_dynamics_application_variables.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 
@@ -1190,7 +1190,7 @@ namespace Kratos
 			this->CalculateDisplacementsAndResetNodalVariables();
 			BaseType::MoveMesh();
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
-			BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+            BoundaryComputation.CalculateUnitBoundaryNormals(rModelPart, echoLevel);
 
 			KRATOS_CATCH("");
 		}

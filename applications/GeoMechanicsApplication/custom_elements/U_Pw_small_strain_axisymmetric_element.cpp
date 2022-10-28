@@ -50,9 +50,9 @@ void UPwSmallStrainAxisymmetricElement<TDim,TNumNodes>::
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
 
-    for ( unsigned int i = 0; i < TNumNodes; ++i )
+    for ( IndexType i = 0; i < TNumNodes; ++i )
     {
-        const unsigned int index = TDim * i;
+        const IndexType index = TDim * i;
 
         rB( INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X ) = GradNpT( i, INDEX_X );
         rB( INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y ) = GradNpT( i, INDEX_Y );
@@ -69,8 +69,8 @@ void UPwSmallStrainAxisymmetricElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwSmallStrainAxisymmetricElement<TDim,TNumNodes>::
      CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                      const IndexType& PointNumber,
-                                      const double& detJ)
+                                      unsigned int PointNumber,
+                                      double detJ)
 
 {
     Vector N;

@@ -169,6 +169,11 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, 'Parsing error in function: 1.5 if t<2.0 3.0 if defined, but not else'):
             KM.GenericFunctionUtility("1.5 if t<2.0 3.0", parameters)
 
+    def test_GenericFunctionUtilityError(self):
+        with self.assertRaisesRegex(Exception, 'Parsing error in function: \(0\)\*\(50\*\(expp\(t\)-1\)\)\nError occurred near here :             \^ \(char \[12\]\)\nCheck your locale \(e.g. if "." or "," is used as decimal point'):
+            KM.GenericFunctionUtility("(0)*(50*(expp(t)-1))")
+
+
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()

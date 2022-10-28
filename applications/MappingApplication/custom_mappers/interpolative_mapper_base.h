@@ -501,7 +501,7 @@ private:
             VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
 
             block_for_each(mrModelPartDestination.Nodes(), [&](Node<3>& rNode){
-                rNode.Data().Erase(PAIRING_STATUS);
+                rNode.GetData().Erase(PAIRING_STATUS);
             });
         }
 

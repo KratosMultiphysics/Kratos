@@ -3,7 +3,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "rigid_body_element.h"

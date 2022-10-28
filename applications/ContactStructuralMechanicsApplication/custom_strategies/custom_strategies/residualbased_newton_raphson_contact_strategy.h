@@ -139,7 +139,7 @@ public:
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        // Auxiliar assign
+        // Auxiliary assign
         mConvergenceCriteriaEchoLevel = BaseType::mpConvergenceCriteria->GetEchoLevel();
     }
 
@@ -295,7 +295,7 @@ public:
     {
         KRATOS_TRY
 
-        // Auxiliar zero array
+        // Auxiliary zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // Set to zero the weighted gap

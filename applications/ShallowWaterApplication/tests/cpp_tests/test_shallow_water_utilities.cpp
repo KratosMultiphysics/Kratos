@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesHydrostaticForce, ShallowWaterApp
         r_model_part.Elements(), r_process_info);
     const auto horizontal_force = ShallowWaterUtilities().ComputeHydrostaticForces(
         r_model_part.Conditions(), r_process_info);
-    
+
     const std::vector<double> ref_vertical_force = {0.0, 0.0, -11281.5};
     const std::vector<double> ref_horizontal_force = {1128.15, 2256.3, 0.0};
 

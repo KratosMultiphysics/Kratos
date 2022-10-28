@@ -66,9 +66,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     /// Definition of the size type
     typedef std::size_t SizeType;
 
-    /// Definition of the mesh id (always zero)
-    static constexpr IndexType mesh_id = 0;
-
     ///@}
     ///@name Pointer Definitions
 

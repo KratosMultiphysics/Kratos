@@ -155,7 +155,7 @@ void TestModelPartFactory::AssignNonHistoricalNodalTestData(ModelPart& rTestMode
         return;
 
     for (auto& r_node : rTestModelPart.Nodes())
-        AssignDataValueContainer(r_node.Data(), r_node, rNodalVariables);
+        AssignDataValueContainer(r_node.GetData(), r_node, rNodalVariables);
 }
 
 namespace {
@@ -382,7 +382,7 @@ void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
     for (auto& r_node1 : rNodes1)
     {
         auto& r_node2 = rNodes2[r_node1.Id()];
-        CompareDataValueContainers(r_node1.Data(), r_node1, r_node2.Data(), r_node2);
+        CompareDataValueContainers(r_node1.GetData(), r_node1, r_node2.GetData(), r_node2);
     }
 }
 

@@ -669,10 +669,7 @@ BoundedVector<double, CrBeamElement2D2N::msLocalSize>
 CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
 {
     KRATOS_TRY;
-    // calculate t
-
-    BoundedVector<double, msLocalSize> deformation_stresses =
-        ZeroVector(msLocalSize);
+    // calculate the deformation parameters
 
     BoundedVector<double, msLocalSize> deformation_modes =
         CalculateDeformationParameters();
@@ -683,7 +680,7 @@ CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
         CreateElementStiffnessMatrix_Kd_geo();
     BoundedMatrix<double, msLocalSize, msLocalSize> K_d = K_d_mat + K_d_geo;
 
-    deformation_stresses = prod(K_d, deformation_modes);
+    BoundedVector<double, msLocalSize> deformation_stresses = prod(K_d, deformation_modes);
 
     return deformation_stresses;
     KRATOS_CATCH("")

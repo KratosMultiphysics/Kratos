@@ -42,7 +42,7 @@ void Model::Reset()
     mRootModelPartMap.clear();
 }
 
-void Model::CreateRootModelPart(const std::string ModelPartName, ModelPart::IndexType NewBufferSize)
+void Model::CreateRootModelPart(const std::string& ModelPartName, ModelPart::IndexType NewBufferSize)
 {
     auto p_var_list = Kratos::make_intrusive<VariablesList>();
 
@@ -50,13 +50,13 @@ void Model::CreateRootModelPart(const std::string ModelPartName, ModelPart::Inde
     mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(p_model_part); // note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 }
 
-ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize )
+ModelPart& Model::CreateModelPart( const std::string& ModelPartName, ModelPart::IndexType NewBufferSize )
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF( ModelPartName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    const auto delim_pos = ModelPartName.find(".");
+    const auto delim_pos = ModelPartName.find('.');
     const std::string& root_model_part_name = ModelPartName.substr(0, delim_pos);
 
     if (delim_pos == std::string::npos) {
@@ -64,7 +64,8 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
             CreateRootModelPart(root_model_part_name, NewBufferSize);
             return *(mRootModelPartMap[root_model_part_name].get());
         } else {
-            KRATOS_ERROR << "Trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
+            KRATOS_WARNING("Model") << "Trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists. \nReturning the already existent ModelPart.\n";
+            return *(mRootModelPartMap[root_model_part_name].get());
         }
     } else {
         if (mRootModelPartMap.find(root_model_part_name) == mRootModelPartMap.end()) {
@@ -76,7 +77,7 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
     KRATOS_CATCH("")
 }
 
-void Model::DeleteModelPart( const std::string ModelPartName  )
+void Model::DeleteModelPart( const std::string& ModelPartName  )
 {
     KRATOS_TRY
 
@@ -89,7 +90,7 @@ void Model::DeleteModelPart( const std::string ModelPartName  )
     KRATOS_CATCH("")
 }
 
-void Model::RenameModelPart( const std::string OldName, const std::string NewName )
+void Model::RenameModelPart( const std::string& OldName, const std::string& NewName )
 {
     KRATOS_TRY
 
@@ -116,7 +117,7 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
         << "ModelPart with empty name (\"\")!" << std::endl;
 
-    const auto delim_pos = rFullModelPartName.find(".");
+    const auto delim_pos = rFullModelPartName.find('.');
     const std::string& root_model_part_name = rFullModelPartName.substr(0, delim_pos);
 
     if (delim_pos == std::string::npos) { //it is a root model part
@@ -224,7 +225,7 @@ bool Model::HasModelPart(const std::string& rFullModelPartName) const
     KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
         << "ModelPart with empty name (\"\")!" << std::endl;
 
-    const auto delim_pos = rFullModelPartName.find(".");
+    const auto delim_pos = rFullModelPartName.find('.');
     const std::string& root_model_part_name = rFullModelPartName.substr(0, delim_pos);
 
     // token 0 is the root

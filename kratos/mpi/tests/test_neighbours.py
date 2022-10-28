@@ -23,7 +23,7 @@ class TestNeighbours(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ## Serial partition of the original .mdpa file
-        input_filename = GetFilePath("test_mpi_communicator")
+        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_communicator")
         ReadModelPart(input_filename, main_model_part)
 
         #compute nodal neighbours
@@ -45,11 +45,10 @@ class TestNeighbours(KratosUnittest.TestCase):
             9 : [5,6,8]
         }
 
-        #do the check
-        for key,values in found_ids.items():
+        for key, values in found_ids.items():
             ref_values = reference_ids[key]
-            for i in range(len(values)):
-                self.assertEqual(values[i],ref_values[i])
+            self.assertListEqual(values, ref_values)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

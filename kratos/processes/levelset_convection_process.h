@@ -290,6 +290,7 @@ public:
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
+            "BFECC_limiter_acuteness" : 2.0,
             "element_type" : "levelset_convection_supg",
             "element_settings" : {}
         })");
@@ -360,6 +361,10 @@ protected:
 
     bool mEvaluateLimiter;
 
+    double mPowerBfeccLimiter = 2.0;
+
+    double mPowerElementalLimiter = 4.0;
+
     Vector mError;
 
     Vector mOldDistance;
@@ -387,6 +392,7 @@ protected:
     Parameters mLevelSetConvectionSettings;
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
+
 
     ///@}
     ///@name Protected Operators
@@ -439,7 +445,9 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            if (mpLevelSetGradientVar) {
+                p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            }
         }
 
         // This call returns a function pointer with the ProcessInfo filling directives
@@ -591,9 +599,7 @@ protected:
      */
     void EvaluateLimiter()
     {
-        const double epsilon = 1.0e-15;
-        const double power_bfecc = 2.0;
-        const double power_elemental_limiter = 4.0;
+        const double epsilon = 1.0e-12;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
@@ -690,11 +696,11 @@ protected:
             const double fraction = std::abs(numerator) / (denominator + epsilon);
 
             if (mIsBfecc){
-                mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+                mLimiter[i_node] = 1.0 - std::pow(fraction, mPowerBfeccLimiter);
             }
 
             if (mElementRequiresLimiter){
-                it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, power_elemental_limiter));
+                it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, mPowerElementalLimiter));
             }
         }
         );
@@ -793,23 +799,29 @@ private:
     {
         mLevelSetConvectionSettings = ThisParameters;
 
-        // Convection element formulation settings
-        std::string element_type = ThisParameters["element_type"].GetString();
-        const auto element_list = GetConvectionElementsList();
-        KRATOS_ERROR_IF(std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) << "Specified \'" << element_type << "\' is not in the available elements list." << std::endl;
-        mConvectionElementType = GetConvectionElementName(element_type);
-        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        std::string element_register_name = GetConvectionElementRegisteredName(ThisParameters);
+
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
         mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
+
+        if (ThisParameters["element_settings"].Has("elemental_limiter_acuteness") && mElementRequiresLimiter) {
+            mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_acuteness"].GetDouble();
+        }
+
         if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization"){
             ThisParameters["element_settings"]["requires_distance_gradient"].SetBool(mElementRequiresLimiter);
         }
-        mElementRequiresLevelSetGradient = ThisParameters["element_settings"]["requires_distance_gradient"].GetBool();;
+
+        mElementRequiresLevelSetGradient =  ThisParameters["element_settings"].Has("requires_distance_gradient") ? ThisParameters["element_settings"]["requires_distance_gradient"].GetBool() : false;
 
         // Convection related settings
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
+        if (mIsBfecc) {
+            mPowerBfeccLimiter = ThisParameters["BFECC_limiter_acuteness"].GetDouble();
+        }
+
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
@@ -822,6 +834,26 @@ private:
         // Limiter related settings
         mpLevelSetGradientVar = (mIsBfecc || mElementRequiresLevelSetGradient) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mEvaluateLimiter = (mIsBfecc || mElementRequiresLimiter) ? true : false;
+    }
+
+    std::string GetConvectionElementRegisteredName(Parameters ThisParameters)
+    {
+        // Convection element formulation settings
+        std::string element_type = ThisParameters["element_type"].GetString();
+        const auto element_list = GetConvectionElementsList();
+        if (std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) {
+            KRATOS_INFO("") << "Specified \'" << element_type << "\' is not in the available elements list. " <<
+            "Attempting to use custom specified element." << std::endl;
+            mConvectionElementType = element_type;
+        } else {
+            mConvectionElementType = GetConvectionElementName(element_type);
+        }
+        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        if (!KratosComponents<Element>::Has(element_register_name)) {
+            KRATOS_ERROR << "Specified \'" << element_type << "\' is not in the available elements list: " << element_list 
+            << " and it is nor registered as a kratos element either. Please check your settings\n";
+        }
+        return element_register_name;
     }
 
     /**
@@ -872,11 +904,10 @@ private:
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
                 "include_anti_diffusivity_terms" : false,
+                "elemental_limiter_acuteness" : 4.0,
                 "requires_distance_gradient" : false,
                 "time_integration_theta" : 0.5
             })");
-        } else {
-            KRATOS_ERROR << "Default parameters are not implemented for the specified \'" << ElementType << "\' element. Available options are \n\t- \'levelset_convection_supg\'\n\t- \'levelset_convection_algebraic_stabilization\'" << std::endl;
         }
 
         return default_parameters;
@@ -922,10 +953,10 @@ private:
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
 
         // Check the base model part element family (only simplex elements are supported)
-        if(TDim == 2){
+        if constexpr (TDim == 2){
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle" << std::endl;
-        } else if(TDim == 3) {
+        } else if constexpr (TDim == 3) {
             KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }

@@ -55,7 +55,7 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the triangle splitting utility
-			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
+			DivideTriangle2D3<Node<3>> triangle_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
 			triangle_splitter.GenerateDivision();
@@ -65,7 +65,7 @@ namespace Kratos
 
 			// Call the positive exterior faces generation method
 			std::vector < unsigned int > pos_ext_faces_parent_ids;
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces;
+			std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > pos_ext_faces;
 			triangle_splitter.GenerateExteriorFaces(
 				pos_ext_faces,
 				pos_ext_faces_parent_ids,
@@ -73,7 +73,7 @@ namespace Kratos
 
 			// Call the negative exterior faces generation method
 			std::vector < unsigned int > neg_ext_faces_parent_ids;
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces;
+			std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > neg_ext_faces;
 			triangle_splitter.GenerateExteriorFaces(
 				neg_ext_faces,
 				neg_ext_faces_parent_ids,
@@ -205,7 +205,7 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the triangle splitting utility
-			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
+			DivideTriangle2D3<Node<3>> triangle_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
 			triangle_splitter.GenerateDivision();
@@ -215,7 +215,7 @@ namespace Kratos
 
 			// Call the positive exterior faces generation method
 			std::vector < unsigned int > pos_ext_faces_parent_ids;
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > pos_ext_faces;
+			std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > pos_ext_faces;
 			triangle_splitter.GenerateExteriorFaces(
 				pos_ext_faces,
 				pos_ext_faces_parent_ids,
@@ -223,7 +223,7 @@ namespace Kratos
 
 			// Call the negative exterior faces generation method
 			std::vector < unsigned int > neg_ext_faces_parent_ids;
-			std::vector < DivideTriangle2D3::IndexedPointGeometryPointerType > neg_ext_faces;
+			std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > neg_ext_faces;
 			triangle_splitter.GenerateExteriorFaces(
 				neg_ext_faces,
 				neg_ext_faces_parent_ids,
@@ -354,7 +354,7 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the triangle splitting utility
-			DivideTriangle2D3 triangle_splitter(r_geometry, r_elemental_distances);
+			DivideTriangle2D3<Node<3>> triangle_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
 			triangle_splitter.GenerateDivision();

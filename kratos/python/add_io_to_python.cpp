@@ -82,15 +82,16 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<ModelPartIO, ModelPartIO::Pointer, IO>(
        m, "ModelPartIO")
-        .def(py::init<std::string const&>())
-        .def(py::init<std::string const&, const Flags>())
+        .def(py::init<const std::filesystem::path&>())
+        .def(py::init<const std::filesystem::path&, const Flags>())
     ;
 
 
     py::class_<ReorderConsecutiveModelPartIO, ReorderConsecutiveModelPartIO::Pointer, ModelPartIO>(m,"ReorderConsecutiveModelPartIO")
-        .def(py::init<std::string const&>())
-        .def(py::init<std::string const&, const Flags>())
+        .def(py::init<const std::filesystem::path&>())
+        .def(py::init<const std::filesystem::path&, const Flags>())
     ;
+
 #ifdef JSON_INCLUDED
     py::class_<KratosJsonIO, KratosJsonIO::Pointer, IO>(m,
          "JsonIO",init<std::string const&>())
@@ -100,6 +101,7 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<GidIO<>, GidIO<>::Pointer, IO>(m, "GidIO")
     .def(py::init<std::string const&, const GiD_PostMode, const MultiFileFlag, const WriteDeformedMeshFlag, const WriteConditionsFlag>())
+    .def(py::init<std::string const&, const GiD_PostMode, const MultiFileFlag, const WriteDeformedMeshFlag, const WriteConditionsFlag, const bool>())
     //.def(py::init<std::string const&>())
     .def("WriteMesh",[](GidIO<>& dummy, GidIO<>::MeshType& rThisMesh){dummy.WriteMesh( rThisMesh );})
     .def("WriteNodeMesh",[](GidIO<>& dummy, GidIO<>::MeshType& rThisMesh){dummy.WriteNodeMesh( rThisMesh );})
