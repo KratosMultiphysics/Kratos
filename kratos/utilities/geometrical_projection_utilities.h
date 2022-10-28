@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "geometries/line_3d_2.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "includes/node.h"
@@ -198,7 +199,6 @@ public:
         return norm_2(rPointProjected.Coordinates()-p_c);
     }
 
-
     /**
      * @brief Computes the minimal distance to a line
      * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
@@ -358,6 +358,82 @@ public:
 
         return false;
     }
+
+/**
+ * @brief Calculates the line to line intersection (shortest line). If line is length 0, it is considered a point and therefore there is intersection
+ * @details  Calculate the line segment PaPb that is the shortest route between two lines P1P2 and P3P4. Calculate also the values of mua and mub where
+ *    Pa = P1 + mua (P2 - P1)
+ *    Pb = P3 + mub (P4 - P3)
+ *    http://paulbourke.net/geometry/pointlineplane/
+ * @param rSegment1 The first segment
+ * @param rSegment2 The second segment
+ * @return Return nullptr if no solution exists. Otherwise returns the line intersection
+ */
+template<class TPointType>
+typename Geometry<TPointType>::Pointer LineLineIntersect(
+   const Geometry<TPointType>& rSegment1,
+   const Geometry<TPointType>& rSegment2
+   )
+{
+    // Zero tolerance
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+    // Resulting line segment
+    TPointType::Pointer pa = Kratos:::make_shared<TPointType>(0.0, 0.0, 0.0);
+    TPointType::Pointer pb = Kratos:::make_shared<TPointType>(0.0, 0.0, 0.0);
+    Line3D2<TPointType>::Pointer resulting_line = Kratos:::make_shared<Line3D2<TPointType>>(pa, pb);
+
+    // Variable definitions
+    array_1d<double, 3> p13,p43,p21;
+    double d1343,d4321,d1321,d4343,d2121;
+    double mua, mub;
+    double numer,denom;
+
+    // Points segments
+    const Point& p1 = rSegment1[0];
+    const Point& p2 = rSegment1[1];
+    const Point& p3 = rSegment2[0];
+    const Point& p4 = rSegment2[1];
+
+    p13[0] = p1.X() - p3.X();
+    p13[1] = p1.Y() - p3.Y();
+    p13[2] = p1.Z() - p3.Z();
+
+    p43[0] = p4.X() - p3.X();
+    p43[1] = p4.Y() - p3.Y();
+    p43[2] = p4.Z() - p3.Z();
+    if (std::abs(p43[0]) < zero_tolerance && std::abs(p43[1]) < zero_tolerance && std::abs(p43[2]) < zero_tolerance)
+        return nullptr;
+
+    p21[0] = p2.X() - p1.X();
+    p21[1] = p2.Y() - p1.Y();
+    p21[2] = p2.Z() - p1.Z();
+    if (std::abs(p21[0]) < zero_tolerance && std::abs(p21[1]) < zero_tolerance && std::abs(p21[2]) < zero_tolerance)
+        return nullptr;
+
+    d1343 = p13[0] * p43[0] + p13[1] * p43[1] + p13[2] * p43[2];
+    d4321 = p43[0] * p21[0] + p43[1] * p21[1] + p43[2] * p21[2];
+    d1321 = p13[0] * p21[0] + p13[1] * p21[1] + p13[2] * p21[2];
+    d4343 = p43[0] * p43[0] + p43[1] * p43[1] + p43[2] * p43[2];
+    d2121 = p21[0] * p21[0] + p21[1] * p21[1] + p21[2] * p21[2];
+
+    denom = d2121 * d4343 - d4321 * d4321;
+    if (std::abs(denom) < zero_tolerance)
+        return nullptr;
+    numer = d1343 * d4321 - d1321 * d4343;
+
+    mua = numer / denom;
+    mub = (d1343 + d4321 * mua) / d4343;
+
+    pa->X() = p1.X() + mua * p21[0];
+    pa->Y() = p1.Y() + mua * p21[1];
+    pa->Z() = p1.Z() + mua * p21[2];
+    pb->X() = p3.X() + mub * p43[0];
+    pb->Y() = p3.Y() + mub * p43[1];
+    pb->Z() = p3.Z() + mub * p43[2];
+
+    return resulting_line;
+}
 
 private:
 };// class GeometricalProjectionUtilities
