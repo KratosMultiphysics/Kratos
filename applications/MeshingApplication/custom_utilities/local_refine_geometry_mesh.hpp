@@ -24,6 +24,8 @@
 // Extrenal includes
 
 // Project includes
+#include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
 #include "geometries/geometry.h"
