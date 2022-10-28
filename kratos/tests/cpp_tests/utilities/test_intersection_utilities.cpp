@@ -14,6 +14,7 @@
 // Project includes
 #include "geometries/point.h"
 #include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
@@ -581,6 +582,33 @@ namespace Testing {
             line_endpoint.Coordinates());
 
         KRATOS_CHECK_EQUAL(int_id, 1);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ComputeClosestLineLineIntersection, KratosCoreFastSuite)
+    {
+        Point::Pointer p_point_1 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
+        Point::Pointer p_point_2 = Kratos::make_shared<Point>(0.0, 1.0, 0.0);
+        Line3D2<Point> line1(p_point_1, p_point_2);
+
+        Point::Pointer p_point_3 = Kratos::make_shared<Point>(1.0, 0.0, 0.5);
+        Point::Pointer p_point_4 = Kratos::make_shared<Point>(0.0, 2.0, 1.0);
+        Line3D2<Point> line2(p_point_3, p_point_4);
+
+        Point::Pointer p_point_5 = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        Point::Pointer p_point_6 = Kratos::make_shared<Point>(2.0, 2.0, 0.0);
+        Line3D2<Point> line3(p_point_5, p_point_6);
+
+        // Not intersecting lines
+        const auto line1_2 = IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line2);
+        KRATOS_CHECK_NEAR(line1_2->Length(), 0.408248, 1.0e-6);
+
+        // Intersecting lines
+        const auto line1_3 = IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line3);
+        KRATOS_CHECK_DOUBLE_EQUAL(line1_3->Length(), 0.0);
+        array_1d<double, 3> expected_center = ZeroVector(3);
+        expected_center[0] = 0.5;
+        expected_center[1] = 0.5;
+        KRATOS_CHECK_VECTOR_NEAR(line1_3->Center().Coordinates(), expected_center, 1e-10);
     }
 
 }  // namespace Testing.
