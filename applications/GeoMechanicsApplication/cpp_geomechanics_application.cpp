@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <sstream>
+#include <iomanip>
 #include "cpp_geomechanics_application.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "utilities/read_materials_utility.h"
@@ -507,7 +509,6 @@ namespace Kratos
         WriteConditionsFlag condition_output = ConditionFlag[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].GetString()];
 
         filename = workingDirectory + "/" + filename;
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Output Filename: " << filename << std::endl;
         GidIO<> gid_io(filename, gid_output_type, multifiles_output, deformed_output, condition_output);
 
         gid_io.InitializeMesh(0.0);
@@ -600,9 +601,10 @@ namespace Kratos
     int KratosExecute::execute_flow_analysis(string workingDirectory, string projectName,
                                              double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                              string criticalHeadBoundaryModelPartName,
-                                             void logCallback(char *),
-                                             void reportProgress(char *),
-                                             bool shouldCancel())
+                                             std::function<void(char *)> logCallback,
+                                             std::function<void(double)> reportProgress,
+                                             std::function<void(char *)> reportTextualProgress,
+                                             std::function<bool()> shouldCancel)
     {
         this->SetEchoLevel(1);
 
@@ -612,6 +614,7 @@ namespace Kratos
 
         try
         {
+            reportProgress(0.0);
 
             string projectpath = workingDirectory + "/" + projectName;
             auto projectfile = openProjectParamsFile(projectpath);
@@ -752,8 +755,13 @@ namespace Kratos
 
                     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Searching at head: " << currentHead << std::endl;
 
-                    std::string progress = "Calculating head level " + std::to_string(currentHead) + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
-                    reportProgress(progress.data());
+                    std::ostringstream currentHeadStream;
+                    currentHeadStream << std::setprecision(8) << std::noshowpoint << currentHead;
+                    std::string currentHeadString = currentHeadStream.str();
+
+                    std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
+                    reportTextualProgress(progress.data());
+                    reportProgress(((double)step) / ((double)maxSteps));
 
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
 
@@ -763,6 +771,8 @@ namespace Kratos
                         if (element->GetValue(PIPE_ACTIVE))
                             count += 1;
                     }
+
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Open pipe elements: " << count << std::endl;
 
                     if (count == noPipeElements)
                     {
@@ -805,6 +815,8 @@ namespace Kratos
                     }
                 }
 
+                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << workingDirectory << "\\criticalHead.json" << std::endl;
+
                 // output critical head_json
                 ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");
 
@@ -824,6 +836,8 @@ namespace Kratos
 
                 // Close the file
                 CriticalHeadFile.close();
+
+                KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Finished writing result" << std::endl;
             }
 
             logCallback(strdup(kratosLogBuffer.str().c_str()));
@@ -832,8 +846,10 @@ namespace Kratos
             ResetModelParts();
             return 0;
         }
-        catch (...)
+        catch (const std::exception &exc)
         {
+            KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
+
             logCallback(strdup(kratosLogBuffer.str().c_str()));
             Logger::RemoveOutput(p_output);
 

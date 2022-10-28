@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED )
-#define  KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -590,7 +588,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_SPARSE_CONTIGUOUS_ROW_GRAPH_H_INCLUDED  defined
-
-
