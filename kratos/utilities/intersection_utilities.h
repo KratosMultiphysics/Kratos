@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -18,6 +18,8 @@
 
 // Project includes
 #include "includes/define.h"
+#include "geometries/point.h"
+#include "containers/pointer_vector.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
