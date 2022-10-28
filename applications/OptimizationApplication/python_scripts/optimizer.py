@@ -8,12 +8,8 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Kratos Core and Apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.OptimizationApplication as KO
 from KratosMultiphysics.OptimizationApplication import model_parts_controller
 from KratosMultiphysics.OptimizationApplication import analyses_controller
 from KratosMultiphysics.OptimizationApplication import responses_controller

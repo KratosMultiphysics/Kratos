@@ -8,12 +8,8 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Kratos Core and Apps
 import KratosMultiphysics as KM
-from KratosMultiphysics import Parameters, Logger
 
 # Additional imports
 import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent as steepest_descent

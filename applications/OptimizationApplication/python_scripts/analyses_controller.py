@@ -8,12 +8,9 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # additional imports
 import KratosMultiphysics as KM
-from KratosMultiphysics import Parameters, Logger
+from KratosMultiphysics import Logger
 try:
     from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 except ImportError:
@@ -27,9 +24,6 @@ try:
 except ImportError:
     PotentialFlowAnalysis = None
 
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-import csv, math
-import copy
 import time as timer
 
 # ==============================================================================

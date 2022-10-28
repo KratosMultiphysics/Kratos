@@ -8,15 +8,10 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # additional imports
 # Kratos Core and Apps
 import KratosMultiphysics as KM
-from KratosMultiphysics import Parameters, Logger
-# Importing the analysis base class
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics import Logger
 
 # Additional imports
 import KratosMultiphysics.OptimizationApplication.responses.analysis_based_response_function_factory as analysis_based_response_function_factory

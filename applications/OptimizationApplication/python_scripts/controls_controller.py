@@ -8,9 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # additional imports
 import KratosMultiphysics as KM 
 import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
@@ -18,10 +15,6 @@ import KratosMultiphysics.OptimizationApplication.controls.shape.implicit_vertex
 import KratosMultiphysics.OptimizationApplication.controls.thickness.helmholtz_thickness as hlt
 import KratosMultiphysics.OptimizationApplication.controls.material.helmholtz_material as hlm
 import KratosMultiphysics.OptimizationApplication.controls.material.helmholtz_partition as hlp
-import KratosMultiphysics.OptimizationApplication as KOA
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-import csv, math
-import copy
 
 # ==============================================================================
 def CreateController(controls_settings,model,model_parts_controller):
