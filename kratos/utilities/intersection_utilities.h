@@ -10,14 +10,13 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_INTERSECTION_UTILITIES )
-#define  KRATOS_INTERSECTION_UTILITIES
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "utilities/math_utils.h"
 
@@ -591,6 +590,4 @@ private:
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_INTERSECTION_UTILITIES  defined */
 
