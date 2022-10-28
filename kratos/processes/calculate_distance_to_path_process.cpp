@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/intersection_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "processes/calculate_distance_to_path_process.h"
 #include "utilities/variable_utils.h"
