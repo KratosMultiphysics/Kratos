@@ -118,7 +118,7 @@ jobs:
         pip install h5py
         pip install sympy
         pip install scipy
-        pip install parametrized
+        pip install parameterized
 
     - name: Build
       shell: cmd
