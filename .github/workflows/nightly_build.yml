@@ -1,6 +1,13 @@
 name: Nightly Build
 
 on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+    - '.github/workflows/configure.sh'
+    - '.github/workflows/configure.cmd'
+    - '.github/workflows/centos_configure.sh'
+
   schedule:
     - cron:  '0 1 * * *'
 
