@@ -119,6 +119,7 @@ public:
             const ProcessInfo &CurrentProcessInfo = r_eval_object.GetProcessInfo();
             const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
             // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+            #pragma omp parallel for reduction(+:total_strain_energy)
             for (auto& elem_i : r_eval_object.Elements())
             {
                 const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
@@ -157,38 +158,23 @@ public:
             if(control_type=="shape"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["shape_gradient_field_name"].GetString();
                 VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name), controlled_model_part.Nodes());
+                for (auto& elem_i : controlled_model_part.Elements())
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
+                        CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
+
+                for (auto& cond_i : controlled_model_part.Conditions())
+                    if(cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true)
+                         CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);
             }                
             else if(control_type=="material"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["material_gradient_field_name"].GetString();
-                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                
-            }
-            else if(control_type=="thickness"){
-                grad_field_name = mrResponseSettings["gradient_settings"]["thickness_gradient_field_name"].GetString();
-                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                 
-            }
-
-            //elems
-			for (auto& elem_i : controlled_model_part.Elements()){
-				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-				if(element_is_active){
-                    if(control_type=="shape")
-                        CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
-                    if(control_type=="material")
-                        CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
-                    if(control_type=="thickness")
-                        CalculateElementThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);                                                
-                }
+                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());  
+                #pragma omp parallel for
+                for (auto& elem_i : controlled_model_part.Elements())
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
+                         CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
             }
 
-            //conds
-			for (auto& cond_i : controlled_model_part.Conditions()){
-				const bool cond_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
-				if(cond_is_active){
-                    if(control_type=="shape")
-                        CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);                                                               
-                }
-            }
-            
         }
 
 		KRATOS_CATCH("");
@@ -342,123 +328,17 @@ public:
         elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
 
 
-        Vector d_RHS_d_D;
-        double curr_density = elem_i.GetProperties().GetValue(DENSITY);
-        elem_i.GetProperties().SetValue(DENSITY,1.0);
-        elem_i.CalculateRightHandSide(d_RHS_d_D,rCurrentProcessInfo);
-        elem_i.GetProperties().SetValue(DENSITY,curr_density);
-
-
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
+            #pragma omp atomic
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * (e_min + 3 * std::pow((e_pr-e_min)/(e_max-e_min),2.0) * (e_max-e_min)) * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
-
-            // const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
-            // r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(d_RHS_d_D,lambda);
         }
 
     };        
 
 
     void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
-        // We get the element geometry
-        auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
-        const std::size_t number_of_nodes = r_this_geometry.size();
-
-        // We copy the current coordinates and move the coordinates to the initial configuration
-        std::vector<array_1d<double, 3>> current_coordinates(number_of_nodes);
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(current_coordinates[i_node]) = r_this_geometry[i_node].Coordinates();
-            noalias(r_this_geometry[i_node].Coordinates()) = r_this_geometry[i_node].GetInitialPosition().Coordinates();
-        }
-
-        VectorType element_nodal_density;
-        GetElementsNodalDensity(elem_i,element_nodal_density);
-
-        const auto& integrationPoints = r_this_geometry.IntegrationPoints(r_this_geometry.GetDefaultIntegrationMethod());
-        const unsigned int numberOfIntegrationPoints = integrationPoints.size();
-        const Matrix& N_container = r_this_geometry.ShapeFunctionsValues(r_this_geometry.GetDefaultIntegrationMethod());                    
-
-        for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
-        {
-            // Get FEM-shape-function-value for current integration point
-            Vector N_FEM_GPi = row( N_container, pointNumber);
-            double integration_weight = integrationPoints[pointNumber].Weight() * r_this_geometry.DeterminantOfJacobian(pointNumber,r_this_geometry.GetDefaultIntegrationMethod());
-            for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-                auto& node_val = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_PT);
-                node_val += integration_weight * N_FEM_GPi[i_node] * element_nodal_density[i_node];
-            }
-        }
-
-        // We restore the current configuration
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(r_this_geometry[i_node].Coordinates()) = current_coordinates[i_node];
-        }        
-    };
-
-    void GetElementsNodalThicknessDensity(const Element& rElement, VectorType &rValues){
-        const GeometryType &rgeom = rElement.GetGeometry();
-        const SizeType num_nodes = rgeom.PointsNumber();
-        const Properties& this_properties = rElement.GetProperties();
-        const unsigned int local_size = num_nodes;    
-        if (rValues.size() != local_size)
-            rValues.resize(local_size, false);   
-
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PD))
-                rValues[i_node] = rgeom[i_node].FastGetSolutionStepValue(PD);  
-            else if(this_properties.Has(DENSITY))
-                rValues[i_node] = this_properties[DENSITY];
-            else
-                rValues[i_node] = 1;
-        }
-
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PT))
-                rValues[i_node] *= rgeom[i_node].FastGetSolutionStepValue(PT);  
-            else if(this_properties.Has(THICKNESS))
-                rValues[i_node] *= this_properties[THICKNESS];
-            else
-                rValues[i_node] *= 1;
-        }
-
-    }; 
-
-    void GetElementsNodalThickness(const Element& rElement, VectorType &rValues){
-        const GeometryType &rgeom = rElement.GetGeometry();
-        const SizeType num_nodes = rgeom.PointsNumber();
-        const Properties& this_properties = rElement.GetProperties();
-        const unsigned int local_size = num_nodes;    
-        if (rValues.size() != local_size)
-            rValues.resize(local_size, false);   
-
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PT))
-                rValues[i_node] = rgeom[i_node].FastGetSolutionStepValue(PT);  
-            else if(this_properties.Has(THICKNESS))
-                rValues[i_node] = this_properties[THICKNESS];
-            else
-                rValues[i_node] = 1;
-        }
-    }; 
-
-    void GetElementsNodalDensity(const Element& rElement, VectorType &rValues){
-        const GeometryType &rgeom = rElement.GetGeometry();
-        const SizeType num_nodes = rgeom.PointsNumber();
-        const Properties& this_properties = rElement.GetProperties();
-        const unsigned int local_size = num_nodes;    
-        if (rValues.size() != local_size)
-            rValues.resize(local_size, false);   
-
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node){
-            if(rgeom[i_node].Has(PD))
-                rValues[i_node] = rgeom[i_node].FastGetSolutionStepValue(PD);  
-            else if(this_properties.Has(DENSITY))
-                rValues[i_node] = this_properties[DENSITY];
-            else
-                rValues[i_node] = 1;
-        }
+    
     };
 
     // --------------------------------------------------------------------------

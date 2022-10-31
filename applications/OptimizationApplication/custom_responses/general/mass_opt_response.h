@@ -117,6 +117,7 @@ public:
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
+            #pragma omp parallel for reduction(+:total_mass)
 			for (auto& elem_i : r_eval_object.Elements()){
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active)
@@ -130,14 +131,6 @@ public:
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
-        const std::size_t number_of_nodes = r_this_geometry.size();
-
-        // We copy the current coordinates and move the coordinates to the initial configuration
-        std::vector<array_1d<double, 3>> current_coordinates(number_of_nodes);
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(current_coordinates[i_node]) = r_this_geometry[i_node].Coordinates();
-            noalias(r_this_geometry[i_node].Coordinates()) = r_this_geometry[i_node].GetInitialPosition().Coordinates();
-        }
 
         double element_mass = 0;
         if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
@@ -146,11 +139,6 @@ public:
             element_mass = elem_i.GetGeometry().Volume() * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 3 && DomainSize == 3)
             element_mass = elem_i.GetGeometry().Volume() * elem_i.GetProperties().GetValue(DENSITY);
-
-        // We restore the current configuration
-        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(r_this_geometry[i_node].Coordinates()) = current_coordinates[i_node];
-        }
 
         return element_mass;
     }
@@ -165,25 +153,22 @@ public:
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const std::size_t domain_size = controlled_model_part.GetProcessInfo()[DOMAIN_SIZE];
             auto control_type = mrResponseSettings["control_types"][i].GetString();
-            if(control_type=="shape")
+            if(control_type=="shape"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_X, controlled_model_part.Nodes());
-            else if(control_type=="material")
-                VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());
-            else if(control_type=="thickness")
-                VariableUtils().SetHistoricalVariableToZero(D_MASS_D_PT, controlled_model_part.Nodes());
-
-			for (auto& elem_i : controlled_model_part.Elements()){
-				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-				if(element_is_active){
-                    if(control_type=="shape")
+                for (auto& elem_i : controlled_model_part.Elements())
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
                         CalculateElementShapeGradients(elem_i,domain_size);
-                    if(control_type=="material")
-                        CalculateElementMaterialGradients(elem_i,domain_size);
-                    if(control_type=="thickness")
-                        CalculateElementThicknessGradients(elem_i,domain_size);                                                
-                }
             }
-
+            else if(control_type=="material"){
+                VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());
+                #pragma omp parallel for
+                for (auto& elem_i : controlled_model_part.Elements())
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
+                        CalculateElementMaterialGradients(elem_i,domain_size);              
+            }
+                
+            // else if(control_type=="thickness")
+            //     VariableUtils().SetHistoricalVariableToZero(D_MASS_D_PT, controlled_model_part.Nodes());
             
         }
 
@@ -195,7 +180,6 @@ public:
 
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         // We copy the current coordinates and move the coordinates to the initial configuration
@@ -242,7 +226,6 @@ public:
 
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         double curr_density = elem_i.GetProperties().GetValue(DENSITY);
@@ -252,6 +235,7 @@ public:
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
+            #pragma omp atomic
             r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FD) += d_pd_d_fd * elem_dens_grad / number_of_nodes;
         }
     };        
