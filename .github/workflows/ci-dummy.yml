@@ -12,7 +12,7 @@ on:
       - 'documents/**'
       - 'scripts/**'
       - '.github/workflows/build_docker_image*.yml'
-      - '.github/workflows/nightly_build.yml
+      - '.github/workflows/nightly_build.yml'
       - 'kratos/templates/**'
       - 'kratos/python_scripts/application_generator/**'
 
