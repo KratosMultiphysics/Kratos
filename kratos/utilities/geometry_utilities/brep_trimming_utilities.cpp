@@ -74,8 +74,8 @@ namespace Kratos
                     c.AddSubject(all_loops);
 
                     Clipper2Lib::Rect64 rectangle = Clipper2Lib::Rect64(
-                        static_cast<cInt>(rSpansU[i] / factor), static_cast<cInt>(rSpansV[i] / factor),
-                        static_cast<cInt>(rSpansU[i + 1] / factor), static_cast<cInt>(rSpansV[i + 1] / factor));
+                        static_cast<cInt>(rSpansU[i] / factor), static_cast<cInt>(rSpansV[j] / factor),
+                        static_cast<cInt>(rSpansU[i + 1] / factor), static_cast<cInt>(rSpansV[j + 1] / factor));
 
                     solution = Clipper2Lib::RectClip(rectangle, all_loops);
 
