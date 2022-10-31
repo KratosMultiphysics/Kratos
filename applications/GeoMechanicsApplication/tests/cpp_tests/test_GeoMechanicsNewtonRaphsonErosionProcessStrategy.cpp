@@ -10,6 +10,8 @@
 //  Main authors:    Jonathan Nuttall
 //
 
+#pragma once
+
 // System includes
 #include <limits>
 #include <map>
@@ -21,16 +23,13 @@
 /* Project includes */
 #include "testing/testing.h"
 #include "cpp_geomechanics_application.h"
+#include "empty_progress.h"
 
+using namespace empty_progress;
 namespace Kratos
 {
     namespace Testing
     {
-        void emptyProgress(double progress) {}
-        void emptyLog(char *log) {}
-        bool emptyCancel() {
-            return false;
-        }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
