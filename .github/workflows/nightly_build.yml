@@ -28,7 +28,7 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
 
     steps:

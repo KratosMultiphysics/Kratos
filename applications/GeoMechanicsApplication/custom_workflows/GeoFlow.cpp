@@ -13,6 +13,8 @@
 #include "GeoFlow.h"
 #include <iostream>
 
+void emptyProgress(double progress) {}
+
 void emptyLog(char *log) {}
 
 bool emptyCancel()
@@ -53,6 +55,7 @@ int main(int argc, char **argv)
                                           stepCriticalHead,
                                           criticalHeadBoundaryModelPartName,
                                           &emptyLog,
+                                          &emptyProgress,
                                           &emptyLog,
                                           &emptyCancel);
         }
