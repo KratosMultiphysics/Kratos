@@ -10,13 +10,9 @@
 //  Main authors:    Carlos Lubbers
 //
 
-#include "empty_progress.h"
-
-namespace empty_progress
+namespace flow_stubs
 {
-    void emptyProgress(double progress) {}
-    void emptyLog(char* log) {}
-    bool emptyCancel() {
-        return false;
-    }
+    void emptyProgress(double progress);
+    void emptyLog(char* log);
+    bool emptyCancel();
 }
