@@ -31,9 +31,7 @@ jobs:
     - run: 'echo "Dummy build, no checks executed ..."'
 
   windows:
-    runs-on: windows-2022
-    env:
-      KRATOS_BUILD_TYPE: Custom
+    runs-on: ubuntu-latest # ubuntu is faster than Win, hence no point using Win here
 
     steps:
     - run: 'echo "Dummy build, no checks executed ..."'
