@@ -23,9 +23,8 @@
 /* Project includes */
 #include "testing/testing.h"
 #include "cpp_geomechanics_application.h"
-#include "empty_progress.h"
+#include "flow_stubs.h"
 
-using namespace empty_progress;
 namespace Kratos
 {
     namespace Testing
@@ -37,7 +36,8 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, &emptyLog, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
+            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
         }
@@ -67,7 +67,8 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, reportTextualProgress, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
+            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(firstMessageFound, true);
@@ -100,7 +101,8 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, reportProgress, &emptyLog, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(startProgressFound, true);
