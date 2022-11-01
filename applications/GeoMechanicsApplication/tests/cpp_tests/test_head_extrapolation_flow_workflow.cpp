@@ -21,7 +21,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "cpp_geomechanics_application.h"
+#include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
 
 bool compareFiles(const std::string &p1, const std::string &p2)

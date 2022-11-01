@@ -22,7 +22,7 @@
 
 /* Project includes */
 #include "testing/testing.h"
-#include "cpp_geomechanics_application.h"
+#include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
 
 namespace Kratos

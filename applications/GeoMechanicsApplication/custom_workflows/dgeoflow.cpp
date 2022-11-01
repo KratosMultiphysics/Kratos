@@ -14,7 +14,7 @@
 
 #include <sstream>
 #include <iomanip>
-#include "cpp_geomechanics_application.h"
+#include "dgeoflow.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "utilities/read_materials_utility.h"
 #include "input_output/logger.h"
