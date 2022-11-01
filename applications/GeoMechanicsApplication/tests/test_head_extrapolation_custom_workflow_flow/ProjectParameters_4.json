@@ -89,7 +89,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "test_head_extrapolate",
+                    "output_name": "test_head_extrapolate_4",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
@@ -105,7 +105,7 @@
                             "node_output": false,
                             "skin_output": false,
                             "plane_output": [],
-                            "nodal_results": ["WATER_PRESSURE"],
+                            "nodal_results": [],
                             "gauss_point_results": [
                                 "HYDRAULIC_HEAD"
                             ]
@@ -128,9 +128,9 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 1.0,
+                    "reference_coordinate": 0.0,
                     "table": 0,
-                    "pressure_tension_cut_off": 0.0,
+                    "pressure_tension_cut_off": 10000.0,
                     "specific_weight": 9810
                 }
             },
