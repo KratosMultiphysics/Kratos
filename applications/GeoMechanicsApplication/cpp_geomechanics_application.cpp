@@ -21,6 +21,8 @@
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 
+using namespace std;
+
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
 {
 public:
@@ -217,7 +219,7 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    void KratosExecute::parseMesh(ModelPart &model_part, std::string filepath)
+    void KratosExecute::parseMesh(ModelPart &model_part, string filepath)
     {
         // Parses MDPA file into model_part
         std::ifstream input(filepath);
@@ -231,9 +233,9 @@ namespace Kratos
         bool read_subparts_elements = false;
         bool read_subparts_conditions = false;
 
-        std::string element_type;
-        std::string part_name;
-        std::string nodeStr;
+        string element_type;
+        string part_name;
+        string nodeStr;
 
         for (std::string line; getline(input, line);)
         {
@@ -409,14 +411,14 @@ namespace Kratos
         input.close();
     }
 
-    void KratosExecute::parseMaterial(Model &model, std::string filepath)
+    void KratosExecute::parseMaterial(Model &model, string filepath)
     {
-        std::string parameters = "{ \"Parameters\" : { \"materials_filename\" :\"" + filepath + "\"}}";
+        string parameters = "{ \"Parameters\" : { \"materials_filename\" :\"" + filepath + "\"}}";
         Parameters material_file{parameters};
         ReadMaterialsUtility(material_file, model);
     }
 
-    Parameters KratosExecute::openProjectParamsFile(std::string filepath)
+    Parameters KratosExecute::openProjectParamsFile(string filepath)
     {
         std::ifstream t(filepath);
         std::stringstream buffer;
@@ -439,7 +441,7 @@ namespace Kratos
             auto pressure_type = process["Parameters"]["fluid_pressure_type"].GetString();
 
             std::size_t found = name.find_last_of(".");
-            std::string subname = name.substr(found + 1);
+            string subname = name.substr(found + 1);
 
             ModelPart &part = model_part.GetSubModelPart(subname);
 
@@ -465,7 +467,7 @@ namespace Kratos
         // Should only have one.
         auto name = loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
         std::size_t found = name.find_last_of(".");
-        std::string subname = name.substr(found + 1);
+        string subname = name.substr(found + 1);
         ModelPart &part = model_part.GetSubModelPart(subname);
         processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_X,
                                                                                                          0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
@@ -479,7 +481,7 @@ namespace Kratos
         return processes;
     }
 
-    void KratosExecute::outputGiD(Model &model, ModelPart &model_part, Parameters parameters, std::string workingDirectory)
+    void KratosExecute::outputGiD(Model &model, ModelPart &model_part, Parameters parameters, string workingDirectory)
     {
         std::map<std::string, GiD_PostMode> PostMode;
         PostMode["GiD_PostAscii"] = GiD_PostAscii;
@@ -502,7 +504,7 @@ namespace Kratos
 
         Parameters gid_out = parameters["output_processes"]["gid_output"].GetArrayItem(0);
         Parameters outputParameters = gid_out["Parameters"];
-        std::string filename = outputParameters["output_name"].GetString();
+        string filename = outputParameters["output_name"].GetString();
         GiD_PostMode gid_output_type = PostMode[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["GiDPostMode"].GetString()];
         MultiFileFlag multifiles_output = MultiFiles[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["MultiFileFlag"].GetString()];
         WriteDeformedMeshFlag deformed_output = DeformedFlag[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["WriteDeformedMeshFlag"].GetString()];
@@ -516,7 +518,7 @@ namespace Kratos
         gid_io.FinalizeMesh();
         gid_io.InitializeResults(0, model_part.GetMesh());
 
-        std::unordered_map<std::string, unique_ptr<NodeOperation>> NodeOutput;
+        std::unordered_map<string, unique_ptr<NodeOperation>> NodeOutput;
         NodeOutput["DISPLACEMENT"] = Kratos::make_unique<NodeDISPLACEMENT>();
         NodeOutput["TOTAL_DISPLACEMENT"] = Kratos::make_unique<NodeTOTAL_DISPLACEMENT>();
         NodeOutput["WATER_PRESSURE"] = Kratos::make_unique<NodeWATER_PRESSURE>();
@@ -534,12 +536,12 @@ namespace Kratos
             calculateNodalHydraulicHead(gid_io, model_part);
         }
 
-        for (std::string var : nodal_outputs)
+        for (string var : nodal_outputs)
         {
             NodeOutput[var]->write(gid_io, model_part);
         }
 
-        std::unordered_map<std::string, std::unique_ptr<GaussOperation>> GaussOutput;
+        std::unordered_map<string, unique_ptr<GaussOperation>> GaussOutput;
         GaussOutput["FLUID_FLUX_VECTOR"] = Kratos::make_unique<GaussFLUID_FLUX_VECTOR>();
         GaussOutput["HYDRAULIC_HEAD"] = Kratos::make_unique<GaussHYDRAULIC_HEAD>();
         GaussOutput["LOCAL_FLUID_FLUX_VECTOR"] = Kratos::make_unique<GaussLOCAL_FLUID_FLUX_VECTOR>();
@@ -552,7 +554,7 @@ namespace Kratos
         GaussOutput["PIPE_HEIGHT"] = Kratos::make_unique<GaussPIPE_HEIGHT>();
 
         // Now Output Gauss Point Results on Gauss Points
-        for (std::string var : gauss_outputs)
+        for (string var : gauss_outputs)
         {
             GaussOutput[var]->write(gid_io, model_part);
         }
@@ -642,9 +644,9 @@ namespace Kratos
         return 0;
     }
 
-    int KratosExecute::execute_flow_analysis(std::string workingDirectory, std::string projectName,
+    int KratosExecute::execute_flow_analysis(string workingDirectory, string projectName,
                                              double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                                             std::string criticalHeadBoundaryModelPartName,
+                                             string criticalHeadBoundaryModelPartName,
                                              std::function<void(char *)> logCallback,
                                              std::function<void(double)> reportProgress,
                                              std::function<void(char *)> reportTextualProgress,
@@ -660,15 +662,15 @@ namespace Kratos
         {
             reportProgress(0.0);
 
-            std::string projectpath = workingDirectory + "/" + projectName;
+            string projectpath = workingDirectory + "/" + projectName;
             auto projectfile = openProjectParamsFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
                             projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
 
-            std::string meshpath = workingDirectory + "/" + meshname;
-            std::string materialpath = workingDirectory + "/" + materialname;
+            string meshpath = workingDirectory + "/" + meshname;
+            string materialpath = workingDirectory + "/" + materialname;
 
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
@@ -862,7 +864,7 @@ namespace Kratos
                 KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Writing result to: " << workingDirectory << "\\criticalHead.json" << std::endl;
 
                 // output critical head_json
-                std::ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");
+                ofstream CriticalHeadFile(workingDirectory + "\\criticalHead.json");
 
                 CriticalHeadFile << "{\n";
                 CriticalHeadFile << "\t \"PipeData\":\t{\n";
