@@ -34,11 +34,12 @@ using namespace pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
+    // Module local to avoid conflicts with other apps
     class_< BilinearCohesive3DLaw, BilinearCohesive3DLaw::Pointer, ConstitutiveLaw >
-    (m, "BilinearCohesive3DLaw")
+    (m, "BilinearCohesive3DLaw", py::module_local())
     .def( init<>() );
     class_< BilinearCohesive2DLaw, BilinearCohesive2DLaw::Pointer, ConstitutiveLaw >
-    (m, "BilinearCohesive2DLaw")
+    (m, "BilinearCohesive2DLaw", py::module_local())
     .def( init<>() ) ;
 
 }
