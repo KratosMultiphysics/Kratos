@@ -227,7 +227,6 @@ void KratosApplication::RegisterKratosCore() {
     // KRATOS_REGISTER_OPERATION("Operation","KratosMultiphysics", mOperation);
     // KRATOS_REGISTER_OPERATION("FooOperation","KratosMultiphysics", mFooOperation);
     AuxiliaryRegisterOperation("Operation","KratosMultiphysics", mOperation);
-    AuxiliaryRegisterOperation("FooOperation","KratosMultiphysics", mFooOperation);
 
     // Register general geometries:
     // Point register:
