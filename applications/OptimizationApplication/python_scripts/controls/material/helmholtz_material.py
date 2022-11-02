@@ -21,7 +21,13 @@ class HelmholtzMaterial(MaterialControl):
         self.default_technique_settings = KM.Parameters("""{
                     "automatic_filter_size" : true,
                     "filter_radius" : 0.000000000001,
-                    "beta":25,
+                    "beta_settings": {
+                        "initial_value" : 25,
+                        "max_value" : 25,
+                        "adaptive" : false,
+                        "increase_fac" : 1.5,
+                        "update_period" : 20
+                    },
                     "initial_density":0.000001,
                     "youngs_modules": [], 
                     "physical_densities": [],

@@ -20,16 +20,6 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "processes/tetrahedral_mesh_orientation_check.h"
-#include "utilities/builtin_timer.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "input_output/vtk_output.h"
-#include "containers/model.h"
-#include "utilities/variable_utils.h"
 #include "custom_controls/material_controls/material_control.h"
 #include "custom_elements/helmholtz_bulk_topology_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
@@ -70,19 +60,6 @@ public:
     ///@{
 
     // Type definitions for better reading later
-    typedef array_1d<double,3> array_3d;
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;    
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;    
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
     /// Pointer definition of HelmholtzMaterial
@@ -120,7 +97,7 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("HelmholtzMaterial:Initialize ") << "Starting initialization of material control "<<mControlName<<" ..." << std::endl;
 
-        CreateModelParts();
+        CreateHelmholtzMaterialModelParts();
 
         CalculateNodeNeighbourCount();
         
@@ -133,9 +110,13 @@ public:
         physical_densities =  mTechniqueSettings["physical_densities"].GetVector();
         initial_density = mTechniqueSettings["initial_density"].GetDouble();
         youngs_modules =  mTechniqueSettings["youngs_modules"].GetVector();
-        beta = mTechniqueSettings["beta"].GetDouble();        
-        filtered_densities.resize(physical_densities.size());
-        
+        beta = mTechniqueSettings["beta_settings"]["initial_value"].GetDouble();
+        adaptive_beta = mTechniqueSettings["beta_settings"]["adaptive"].GetBool();
+        beta_fac = mTechniqueSettings["beta_settings"]["increase_fac"].GetDouble();
+        max_beta = mTechniqueSettings["beta_settings"]["max_value"].GetDouble();
+        beta_update_period = mTechniqueSettings["beta_settings"]["update_period"].GetInt();
+
+        filtered_densities.resize(physical_densities.size());        
         for(int i=0;i<physical_densities.size();i++)
             filtered_densities[i] = i;
         
@@ -156,6 +137,7 @@ public:
             const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
             auto model_part_phyisical_dens = fixed_model_parts_densities[i];
             double model_part_filtered_dens = ProjectBackward(model_part_phyisical_dens,filtered_densities,physical_densities,beta);
+            #pragma omp parallel for
             for(auto& node_i : model_part.Nodes()){
                 auto& control_density = node_i.FastGetSolutionStepValue(CD);
                 auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
@@ -169,10 +151,8 @@ public:
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            
             ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
             rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
-
         }        
 
         KRATOS_INFO("HelmholtzMaterial:Initialize") << "Finished initialization of material control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -183,12 +163,14 @@ public:
 
         opt_itr++;
 
-        // if (opt_itr % 20 == 0 && beta <20.0)
-        //     beta *=1.5;
-        // if(beta>25.0)
-        //     beta = 25.0;
-        
-        std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
+        if(adaptive_beta){
+            if (opt_itr % beta_update_period == 0 && beta <max_beta){
+                beta *= beta_fac;
+                if(beta>max_beta)
+                    beta = max_beta;                  
+                KRATOS_INFO("HelmholtzMaterial:Update") << "beta is updated to " <<beta<< std::endl;
+            }                          
+        }
 
         ComputeFilteredDensity();
         ComputePhyiscalDensity();
@@ -273,6 +255,10 @@ protected:
     std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
     double beta;
+    bool adaptive_beta;
+    double beta_fac;
+    double max_beta;
+    int beta_update_period;
     int opt_itr = 0;
     Vector physical_densities;
     Vector filtered_densities;
@@ -376,7 +362,7 @@ private:
         }
     } 
 
-    void CreateModelParts()
+    void CreateHelmholtzMaterialModelParts()
     {
         // creating vm model nodes and variables
         for(auto& control_obj : mControlSettings["controlling_objects"]){
@@ -409,7 +395,7 @@ private:
 
             //check if the controlling model part has elements which have desnity value
             if(!r_controlling_object.Elements().size()>0)
-                KRATOS_ERROR << "HelmholtzMaterial:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
+                KRATOS_ERROR << "HelmholtzMaterial:CreateHelmholtzMaterialModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
@@ -426,10 +412,8 @@ private:
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            for(auto& node_i : mpVMModePart->Nodes())
-            {
+            for(auto& node_i : mpVMModePart->Nodes())            
                 node_i.AddDof(HELMHOLTZ_VAR_DENSITY);
-            }
         }
 
         // now apply dirichlet BC
@@ -444,71 +428,6 @@ private:
 
     }
 
-    void ComputeInitialControlDensities(){
-
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
-        {
-            ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            
-            ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
-            
-            SetVariable(mpVMModePart,HELMHOLTZ_SOURCE_DENSITY,0.0);
-            SetVariable(mpVMModePart,CD,0.0);
-
-            // // calculate (K+M) * X element wise, here we treat CX as an auxilary 
-            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
-            for(auto& node_i : mpVMModePart->Nodes())
-            {
-                auto& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_DENSITY);
-                const auto& r_nodal_variable_fd = node_i.FastGetSolutionStepValue(FD);
-                r_nodal_variable_hl_vars = r_nodal_variable_fd;
-            }
-            
-            for(auto& elem_i : mpVMModePart->Elements())
-            {
-                VectorType rhs;
-                MatrixType lhs;
-                elem_i.Initialize(mpVMModePart->GetProcessInfo());
-                elem_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
-                AddElementVariableValuesVector(elem_i,CD,rhs,-1.0);
-            }        
-
-            for(auto& cond_i : mpVMModePart->Conditions())
-            {
-                VectorType rhs;
-                MatrixType lhs;
-                cond_i.Initialize(mpVMModePart->GetProcessInfo());
-                cond_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
-                AddConditionVariableValuesVector(cond_i,CD,rhs,-1.0);
-            }
-
-            
-            // here we fill the RHS of M * S = (K+M) * X
-            SetVariable1ToVarible2(mpVMModePart,CD,HELMHOLTZ_SOURCE_DENSITY);
-            SetVariable(mpVMModePart,HELMHOLTZ_VAR_DENSITY,0.0);
-
-            // apply BC on the RHS and unassign BC
-            for(auto& node_i : mpVMModePart->Nodes())
-            {
-                auto& r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_DENSITY);
-                if(node_i.IsFixed(HELMHOLTZ_VAR_DENSITY))
-                    r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(FD);           
-            }
-
-            
-            // here we compute S = M-1 * (K+M) * X
-            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = true;   
-            mpStrategies[model_i]->Solve();
-            // here we clear/reset the problem for the clearaty's sake
-            mpStrategies[model_i]->GetStrategy()->Clear();
-            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_DENSITY,CD);
-            rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
-        }
-
-        // std::cout<<"Hi Reza you finished here "<<std::endl;
-
-    } 
-
     void ComputeFilteredDensity(){   
 
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
@@ -520,7 +439,8 @@ private:
             //first we need to multiply with mass matrix 
             SetVariable(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,0.0);
             SetVariable(mpVMModelParts[model_i],HELMHOLTZ_SOURCE_DENSITY,0.0);
-            //now we need to multiply with the mass matrix 
+            //now we need to multiply with the mass matrix
+            #pragma omp parallel for 
             for(auto& elem_i : mpVMModelParts[model_i]->Elements())
             {
                 VectorType origin_values;
@@ -531,7 +451,8 @@ private:
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_DENSITY,int_vals);
             }
 
-            //now we need to apply BCs 
+            //now we need to apply BCs
+            #pragma omp parallel for 
             for(auto& node_i : mpVMModelParts[model_i]->Nodes())
             {
                 auto& r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_DENSITY);
@@ -547,6 +468,7 @@ private:
 
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
+            #pragma omp parallel for
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& physical_density = node_i.FastGetSolutionStepValue(PD);
@@ -559,6 +481,7 @@ private:
         // update elements' density
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            #pragma omp parallel for
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 double elem_i_density = 0.0;
@@ -573,6 +496,7 @@ private:
     void ComputeYoungModulus(){      
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
+            #pragma omp parallel for
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& youngs_modulus = node_i.FastGetSolutionStepValue(PE);
@@ -585,6 +509,7 @@ private:
         // update elements' ym
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            #pragma omp parallel for
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 double elem_i_young_modulus = 0.0;
@@ -770,8 +695,8 @@ private:
         const SizeType num_nodes = rgeom.PointsNumber();
 
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-            auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
-            r_nodal_variable += rWeight * rValues[i_node];
+            #pragma omp atomic
+            rgeom[i_node].FastGetSolutionStepValue(rVariable) += (rWeight * rValues[i_node]);
         }
     }
 
@@ -793,31 +718,23 @@ private:
     
     void SetVariable(ModelPart* mpVMModePart, const Variable<double> &rVariable, const double value) 
     {
+        #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
-        {
-            auto& r_nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
-            r_nodal_variable = value;                   
-        }
+            node_i.FastGetSolutionStepValue(rVariable) = value;
     }
 
     void SetVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2) 
     {
+        #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
-        {
-            auto& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rVariable1);
-            auto& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
-            r_nodal_variable2 = r_nodal_variable1;                  
-        }
+            node_i.FastGetSolutionStepValue(rVariable2) = node_i.FastGetSolutionStepValue(rVariable1);
     }    
 
     void AddVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2) 
     {
+        #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
-        {
-            auto& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rVariable1);
-            auto& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
-            r_nodal_variable2 += r_nodal_variable1;                  
-        }
+            node_i.FastGetSolutionStepValue(rVariable2) += node_i.FastGetSolutionStepValue(rVariable1);
     }    
 
     ///@}

@@ -21,15 +21,6 @@
 // Project includes
 // ------------------------------------------------------------------------------
 
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "processes/tetrahedral_mesh_orientation_check.h"
-#include "utilities/builtin_timer.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "input_output/vtk_output.h"
-#include "containers/model.h"
-#include "utilities/variable_utils.h"
 #include "custom_controls/material_controls/material_control.h"
 #include "custom_elements/helmholtz_bulk_topology_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
@@ -70,19 +61,6 @@ public:
     ///@{
 
     // Type definitions for better reading later
-    typedef array_1d<double,3> array_3d;
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;    
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;    
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
     /// Pointer definition of HelmholtzPartition
