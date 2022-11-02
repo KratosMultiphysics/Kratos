@@ -297,6 +297,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
+        self.initial_time = timer.time()
+
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
@@ -588,6 +590,11 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
 
         self.CleanUpOperations()
+
+        elapsed_time = timer.time() - self.initial_time
+        f = open("total_time.txt","w")
+        f.write(str(elapsed_time))
+        f.close()
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
