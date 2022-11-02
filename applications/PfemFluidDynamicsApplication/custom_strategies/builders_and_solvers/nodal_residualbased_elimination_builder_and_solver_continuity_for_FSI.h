@@ -156,15 +156,10 @@ namespace Kratos
 
       Element::EquationIdVectorType EquationId;
 
-      // LocalSystemMatrixType solidLHS_Contribution = LocalSystemMatrixType(0, 0);
-      // LocalSystemVectorType solidRHS_Contribution = LocalSystemVectorType(0);
-
-      // Element::EquationIdVectorType solidEquationId;
-
       ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
       const double timeInterval = CurrentProcessInfo[DELTA_TIME];
-			const double deviatoric_threshold = 0.1;
+      const double deviatoric_threshold = 0.1;
       double deltaPressure = 0;
 
       /* #pragma omp parallel */
@@ -176,110 +171,11 @@ namespace Kratos
       for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
       {
 
-        // if(itNode->Is(SOLID)){
-        // 	NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-        // 	const unsigned int neighSize = neighb_nodes.size() +1 ;
-
-        // 	if(neighSize>1)
-        // 	{
-
-        // 		const double nodalVolume=itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
-
-        // 		if (solidLHS_Contribution.size1() != 1)
-        // 			solidLHS_Contribution.resize(1, 1, false); //false says not to preserve existing storage!!
-
-        // 		if (solidRHS_Contribution.size() != 1)
-        // 			solidRHS_Contribution.resize(1, false); //false says not to preserve existing storage!!
-
-        // 		solidLHS_Contribution= ZeroMatrix(1,1);
-        // 		solidRHS_Contribution= ZeroVector(1);
-
-        // 		if (solidEquationId.size() != 1)
-        // 			solidEquationId.resize(1, false);
-
-        // 		// if (solidLHS_Contribution.size1() != neighSize)
-        // 		// 	solidLHS_Contribution.resize(neighSize, neighSize, false); //false says not to preserve existing storage!!
-
-        // 		// if (solidRHS_Contribution.size() != neighSize)
-        // 		// 	solidRHS_Contribution.resize(neighSize, false); //false says not to preserve existing storage!!
-
-        // 		// solidLHS_Contribution= ZeroMatrix(neighSize,neighSize);
-        // 		// solidRHS_Contribution= ZeroVector(neighSize);
-
-        // 		// if (solidEquationId.size() != neighSize)
-        // 		// 	solidEquationId.resize(neighSize, false);
-
-        // 		double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
-
-        // 		double volumetricCoeff=itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
-
-        // 		deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
-
-        // 		solidLHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
-
-        // 		solidRHS_Contribution[0]  += -deltaPressure*nodalVolume/volumetricCoeff;
-
-        // 		solidRHS_Contribution[0]  += itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE)*nodalVolume;
-
-        // 		const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
-
-        // 		solidEquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
-
-        // 		// Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
-        // 		// // const unsigned int neighSize = neighb_nodes.size()+1;
-        // 		// const unsigned int neighSize = nodalSFDneighboursId.size();
-
-        // 		// if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-        // 	    // 	for (unsigned int i = 0; i< neighSize; i++)
-        // 		// 	{
-        // 		// 		unsigned int indexNode=i+1;
-        // 		// 		if(indexNode<neighSize){
-        // 		// 			unsigned int other_neigh_nodes_id=nodalSFDneighboursId[indexNode];
-        // 		// 			for (unsigned int k = 0; k< neighb_nodes.size(); k++)
-        // 		// 				{
-        // 		// 					unsigned int neigh_nodes_id=neighb_nodes[k].Id();
-        // 		// 					if(neigh_nodes_id==other_neigh_nodes_id){
-        // 		// 						solidEquationId[k+1]=neighb_nodes[k].GetDof(PRESSURE,xDofPos).EquationId();
-        // 		// 						break;
-        // 		// 					}
-        // 		// 				}
-        // 		// 			}
-        // 		// 	}
-        // 		// }else{
-        // 		// 	for (unsigned int k = 0; k< neighb_nodes.size(); k++)
-        // 		// 		{
-        // 		// 			solidEquationId[k+1]=neighb_nodes[k].GetDof(PRESSURE,xDofPos).EquationId();
-        // 		// 		}
-        // 		// }
-
-        // #ifdef _OPENMP
-        // 		Assemble(A, b, solidLHS_Contribution, solidRHS_Contribution, solidEquationId, mlock_array);
-        // #else
-        // 		Assemble(A, b, solidLHS_Contribution, solidRHS_Contribution, solidEquationId);
-        // #endif
-
-        // 	}
-
-        // }
-
-        // if((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
         NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
         const unsigned int neighSize = neighb_nodes.size() + 1;
 
         if (neighSize > 1)
         {
-
-          // if (LHS_Contribution.size1() != neighSize)
-          // 	LHS_Contribution.resize(neighSize, neighSize, false); //false says not to preserve existing storage!!
-
-          // if (RHS_Contribution.size() != neighSize)
-          // 	RHS_Contribution.resize(neighSize, false); //false says not to preserve existing storage!!
-
-          // LHS_Contribution= ZeroMatrix(neighSize,neighSize);
-          // RHS_Contribution= ZeroVector(neighSize);
-
-          // if (EquationId.size() != neighSize)
-          // 	EquationId.resize(neighSize, false);
 
           if (LHS_Contribution.size1() != 1)
             LHS_Contribution.resize(1, 1, false); // false says not to preserve existing storage!!
@@ -302,7 +198,10 @@ namespace Kratos
             { // in interface nodes not in contact with fluid elements the nodal volume is zero
 
               double deviatoricCoeff = 0;
-              this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
+              const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
+              const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
+              const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
+              this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
 
               if (deviatoricCoeff > deviatoric_threshold && itNode->IsNot(SOLID))
               {
@@ -346,33 +245,6 @@ namespace Kratos
           const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
 
           EquationId[0] = itNode->GetDof(PRESSURE, xDofPos).EquationId();
-
-          // Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-          // // const unsigned int neighSize = neighb_nodes.size()+1;
-          // const unsigned int neighSize = nodalSFDneighboursId.size();
-
-          // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-          // 	for (unsigned int i = 0; i< neighSize; i++)
-          // 	{
-          // 		unsigned int indexNode=i+1;
-          // 		if(indexNode<neighSize){
-          // 			unsigned int other_neigh_nodes_id=nodalSFDneighboursId[indexNode];
-          // 			for (unsigned int k = 0; k< neighb_nodes.size(); k++)
-          // 				{
-          // 					unsigned int neigh_nodes_id=neighb_nodes[k].Id();
-          // 					if(neigh_nodes_id==other_neigh_nodes_id){
-          // 						EquationId[k+1]=neighb_nodes[k].GetDof(PRESSURE,xDofPos).EquationId();
-          // 						break;
-          // 					}
-          // 				}
-          // 			}
-          // 	}
-          // }else{
-          // 	for (unsigned int k = 0; k< neighb_nodes.size(); k++)
-          // 		{
-          // 			EquationId[k+1]=neighb_nodes[k].GetDof(PRESSURE,xDofPos).EquationId();
-          // 		}
-          // }
 
 #ifdef _OPENMP
           Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
@@ -455,7 +327,6 @@ namespace Kratos
 
       KRATOS_CATCH("")
     }
-
 
     /**
      * @brief Function to perform the building and solving phase at the same time.
@@ -665,9 +536,8 @@ namespace Kratos
       KRATOS_CATCH("");
     }
 
-
     //**************************************************************************
- 
+
     ///@}
     ///@name Access
     ///@{

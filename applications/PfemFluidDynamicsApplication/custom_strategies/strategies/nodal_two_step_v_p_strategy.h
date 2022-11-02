@@ -25,7 +25,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/builders_and_solvers/nodal_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builders_and_solvers/nodal_residualbased_elimination_builder_and_solver_continuity.h"
-#include "custom_strategies/builders_and_solvers/nodal_residualbased_block_builder_and_solver.h"
 
 #include "custom_utilities/solver_settings.h"
 
@@ -157,12 +156,10 @@ namespace Kratos
 			typename SchemeType::Pointer pScheme;
 
 			typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
-			/* typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new IncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ()); */
 			pScheme.swap(Temp);
 
 			// CONSTRUCTION OF VELOCITY
 			BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
-			/* BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver)); */
 
 			this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
@@ -170,8 +167,6 @@ namespace Kratos
 
 			vel_build->SetCalculateReactionsFlag(false);
 
-			/* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE)); */
-			/* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(pPressureLinearSolver)); */
 			BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new NodalResidualBasedEliminationBuilderAndSolverContinuity<TSparseSpace, TDenseSpace, TLinearSolver>(pPressureLinearSolver));
 			/* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new NodalResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(pPressureLinearSolver)); */
 
@@ -201,15 +196,6 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 
-			// const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
-			// for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
-			// {
-			// 	ierr = itEl->Check(rCurrentProcessInfo);
-			// 	if (ierr != 0)
-			// 		break;
-			// }
-
 			const auto &r_current_process_info = rModelPart.GetProcessInfo();
 			for (const auto &r_element : rModelPart.Elements())
 			{
@@ -219,13 +205,6 @@ namespace Kratos
 					break;
 				}
 			}
-
-			// for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-			// {
-			// 	ierr = itCond->Check(rCurrentProcessInfo);
-			// 	if (ierr != 0)
-			// 		break;
-			// }
 
 			return ierr;
 
@@ -516,22 +495,25 @@ namespace Kratos
 					std::cout << "THIS node does not have NODAL_DEFORMATION_GRAD_VEL... " << itNode->X() << " " << itNode->Y() << std::endl;
 				}
 
-				this->AssignFluidMaterialToEachNode(itNode);
+				this->InitialAssignFluidMaterialToEachNode(itNode);
 			}
 
 			// }
 		}
 
-		void AssignFluidMaterialToEachNode(ModelPart::NodeIterator itNode)
+		void InitialAssignFluidMaterialToEachNode(ModelPart::NodeIterator itNode)
 		{
-
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-			double deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-			double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
+			double deviatoricCoeff = 0;
+			if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
+			{
+				deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+			}
 
+			double volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
 			double currFirstLame = volumetricCoeff - 2.0 * deviatoricCoeff / 3.0;
 
 			itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) = currFirstLame;
@@ -879,10 +861,11 @@ namespace Kratos
 		void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, const unsigned int dimension, double &deviatoricCoefficient)
 		{
 			const double tolerance = 1.0e-07;
-			const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-			const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
-			if (static_friction > tolerance) // mu(I)-rheology
+			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			if (rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION)) // mu(I)-rheology
 			{
+				const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
 				const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
 				const double delta_friction = dynamic_friction - static_friction;
 				const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
@@ -928,7 +911,7 @@ namespace Kratos
 					deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
 				}
 			}
-			else if (yieldShear > tolerance) // bingham model
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR)) // bingham model
 			{
 				if (dimension == 2)
 				{
@@ -946,39 +929,28 @@ namespace Kratos
 																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]);
 				}
 
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
 				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
 				const double exponent = -adaptiveExponent * equivalentStrainRate;
+				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 				if (equivalentStrainRate != 0)
 				{
-					deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) + (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-				}
-				if (equivalentStrainRate < tolerance && adaptiveExponent != 0)
-				{
-					// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-					deviatoricCoefficient = adaptiveExponent * yieldShear;
+					deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
 				}
 			}
 			else
 			{
 				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 			}
-			// itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
+			itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
 		}
 
 		void CalcNodalStrainsForNode(ModelPart::NodeIterator itNode)
 		{
 
-			/* std::cout << "Calc Nodal Strains  " << std::endl; */
 			ModelPart &rModelPart = BaseType::GetModelPart();
-
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-			//   Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
-			//   Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
-			//   double detFgrad=1.0;
-			//   Matrix InvFgrad=ZeroMatrix(dimension,dimension);
-			//   Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
 
 			double detFgrad = 1.0;
 			Matrix nodalFgrad = ZeroMatrix(dimension, dimension);
@@ -1051,7 +1023,6 @@ namespace Kratos
 		void CalcNodalStrains()
 		{
 
-			/* std::cout << "Calc Nodal Strains  " << std::endl; */
 			ModelPart &rModelPart = BaseType::GetModelPart();
 
 			// #pragma omp parallel
@@ -1073,13 +1044,11 @@ namespace Kratos
 					this->CalcNodalStrainsForNode(itNode);
 				}
 				else
-				{ // if nodalVolume==0
+				{
 					InitializeNodalVariablesForRemeshedDomain(itNode);
 				}
 			}
 			// }
-
-			/* std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl; */
 		}
 
 		void ComputeAndStoreNodalDeformationGradient(ModelPart::NodeIterator itNode, double theta)

@@ -25,7 +25,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/builders_and_solvers/nodal_residualbased_elimination_builder_and_solver_for_FSI.h"
 #include "custom_strategies/builders_and_solvers/nodal_residualbased_elimination_builder_and_solver_continuity_for_FSI.h"
-#include "custom_strategies/builders_and_solvers/nodal_residualbased_block_builder_and_solver.h"
 
 #include "custom_utilities/solver_settings.h"
 
@@ -589,13 +588,13 @@ namespace Kratos
 					std::cout << "THIS node does not have SOLID_NODAL_DEFORMATION_GRAD_VEL... " << itNode->X() << " " << itNode->Y() << std::endl;
 				}
 
-				AssignMaterialToEachNode(itNode);
+				InitialAssignMaterialToEachNode(itNode);
 			}
 
 			// }
 		}
 
-		void AssignMaterialToEachNode(ModelPart::NodeIterator itNode)
+		void InitialAssignMaterialToEachNode(ModelPart::NodeIterator itNode)
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
@@ -617,7 +616,10 @@ namespace Kratos
 			}
 			else if (itNode->Is(FLUID) || itNode->Is(RIGID))
 			{
-				deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+				if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
+				{
+					deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+				}
 				volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
 			}
 
@@ -1479,7 +1481,6 @@ namespace Kratos
 				r_stain_tensor2D[0] = SpatialVelocityGrad(0, 0);
 				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
 				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
-
 
 				const double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
 

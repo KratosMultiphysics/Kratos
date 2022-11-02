@@ -146,12 +146,15 @@ namespace Kratos
         double &deviatoricCoeff,
         double &volumetricCoeff,
         double timeInterval,
-        double nodalVolume)
+        double nodalVolume,
+        const bool newtonian,
+        const bool muIrheology,
+        const bool bingham)
     {
 
-      density = itNode->FastGetSolutionStepValue(DENSITY);
+      this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
 
-      this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff);
+      density = itNode->FastGetSolutionStepValue(DENSITY);
 
       volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
 
@@ -163,13 +166,12 @@ namespace Kratos
       }
     }
 
-    void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, double &deviatoricCoefficient)
+    void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, double &deviatoricCoefficient, const bool newtonian, const bool muIrheology, const bool bingham)
     {
       const double tolerance = 1.0e-07;
-      const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-      const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
-      if (static_friction > tolerance) // mu(I)-rheology
+      if (muIrheology) // mu(I)-rheology
       {
+        const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
         const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
         const double delta_friction = dynamic_friction - static_friction;
         const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
@@ -200,26 +202,23 @@ namespace Kratos
           deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
         }
       }
-      else if (yieldShear > tolerance) // bingham model
+      else if (bingham) // bingham model
       {
+        const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
         const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
         const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
         const double exponent = -adaptiveExponent * equivalentStrainRate;
+        deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
         if (equivalentStrainRate != 0)
         {
-          deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) + (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-        }
-        if (equivalentStrainRate < tolerance && adaptiveExponent != 0)
-        {
-          // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-          deviatoricCoefficient = adaptiveExponent * yieldShear;
+          deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
         }
       }
-      else
+      else if (newtonian)
       {
         deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
       }
-      // itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
+      itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
     }
 
     void BuildFluidNodally(
@@ -296,7 +295,10 @@ namespace Kratos
           noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
           noalias(RHS_Contribution) = ZeroVector(localSize);
 
-          this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
+          const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
+          const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
+          const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
+          this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume, newtonian, muIrheology, bingham);
 
           firstRow = 0;
           firstCol = 0;

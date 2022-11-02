@@ -600,14 +600,11 @@ namespace Kratos
             noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
             noalias(RHS_Contribution) = ZeroVector(localSize);
 
-            this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
-            // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-            //   // std::cout<<"density,deviatoricCoeff,volumetricCoeff "<<density<<" "<<deviatoricCoeff<<" "<<volumetricCoeff<<std::endl;
-            //   std::cout<<"INTERFACE nodalVolume "<<nodalVolume<<std::endl;
-            // }else{
-            //   std::cout<<"nodalVolume "<<nodalVolume<<std::endl;
+            const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
+            const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
+            const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
+            this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume, newtonian, muIrheology, bingham);
 
-            // }
             firstRow = 0;
             firstCol = 0;
 
@@ -837,7 +834,6 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-  
     /**
      * @brief Function to perform the building and solving phase at the same time.
      * @details It is ideally the fastest and safer function to use when it is possible to solve
@@ -1350,7 +1346,7 @@ namespace Kratos
     }
 
     //**************************************************************************
- 
+
     ///@}
     ///@name Access
     ///@{

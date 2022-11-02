@@ -79,10 +79,6 @@
 #include "custom_constitutive/fluid_laws/newtonian_temperature_dependent_3D_law.h"
 #include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.h"
 #include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_3D_law.h"
-#include "custom_constitutive/fluid_laws/jop_mu_I_rheology_3D_law.h"
-#include "custom_constitutive/fluid_laws/barker_mu_I_rheology_3D_law.h"
-#include "custom_constitutive/fluid_laws/bercovier_mu_I_rheology_3D_law.h"
-#include "custom_constitutive/fluid_laws/barker_bercovier_mu_I_rheology_3D_law.h"
 
 // Solid constitutive laws
 #include "custom_constitutive/solid_laws/hypoelastic_2D_law.h"
@@ -368,10 +364,6 @@ private:
   const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
   const PapanastasiouMuIRheology2DLaw mPapanastasiouMuIRheology2DLaw;
   const PapanastasiouMuIRheology3DLaw mPapanastasiouMuIRheology3DLaw;
-  const JopMuIRheology3DLaw mJopMuIRheology3DLaw;
-  const BarkerMuIRheology3DLaw mBarkerMuIRheology3DLaw;
-  const BarkerBercovierMuIRheology3DLaw mBarkerBercovierMuIRheology3DLaw;
-  const BercovierMuIRheology3DLaw mBercovierMuIRheology3DLaw;
 
   // Solid constitutive laws
   const Hypoelastic3DLaw mHypoelastic3DLaw;
