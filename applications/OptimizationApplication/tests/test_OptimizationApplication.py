@@ -2,12 +2,18 @@
 # Imports
 # ==============================================================================
 
+
 # Import Kratos "wrapper" for unittests
+import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # ==============================================================================
 # Import the tests or test_classes to create the suits
 # ==============================================================================
+
+# Small tests
+from optimization_test_factory import top_opt_test
+
 
 # Nightly tests
 
@@ -41,11 +47,11 @@ def AssembleTestSuites():
 
     # Adding validation tests
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTest(top_opt_test('test_execution'))
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']
-    # allSuite.addTests(smallSuite) #Already added to small tests
-    allSuite.addTests(nightSuite)
     allSuite.addTests(validationSuite)
 
     return suites
