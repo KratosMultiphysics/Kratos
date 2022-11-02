@@ -36,6 +36,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
         if param is None:
             param = self.defaults
         else:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
@@ -61,14 +62,13 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
         context_string = type(self).__name__
+        #if settings.Has(self.param):
+            #sub_settings_where_var_is = settings['result_file_configuration']
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
 
-        if settings.Has('result_file_configuration'):
-            sub_settings_where_var_is = settings['result_file_configuration']
-            old_name = 'output_frequency'
-            new_name = 'output_interval'
-
-            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
-               DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+        if DeprecationManager.HasDeprecatedVariable(context_string,settings,old_name,new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings,old_name,new_name)
 
 
         # Public Functions
