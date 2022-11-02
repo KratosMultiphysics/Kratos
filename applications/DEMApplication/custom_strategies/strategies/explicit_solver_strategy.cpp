@@ -1977,7 +1977,7 @@ namespace Kratos {
       double ymax = -DBL_MAX;
       
       ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-      for (int i = 0; i < r_conditions.size(); i++) {
+      for (unsigned int i = 0; i < r_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
         DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
 
@@ -1997,12 +1997,12 @@ namespace Kratos {
         }
       }
 
-      for (int i = 0; i < wall_elems_x.size(); i++) {
+      for (unsigned int i = 0; i < wall_elems_x.size(); i++) {
         const double x = wall_elems_x[i]->GetGeometry()[0][0];
         if      (std::abs(x-xmin) < eps) mRVE_WallXMin.push_back(wall_elems_x[i]);
         else if (std::abs(x-xmax) < eps) mRVE_WallXMax.push_back(wall_elems_x[i]);
       }
-      for (int i = 0; i < wall_elems_y.size(); i++) {
+      for (unsigned int i = 0; i < wall_elems_y.size(); i++) {
         const double y = wall_elems_y[i]->GetGeometry()[0][1];
         if      (std::abs(y-ymin) < eps) mRVE_WallYMin.push_back(wall_elems_y[i]);
         else if (std::abs(y-ymax) < eps) mRVE_WallYMax.push_back(wall_elems_y[i]);
@@ -2025,7 +2025,7 @@ namespace Kratos {
       double zmax = -DBL_MAX;
 
       ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-      for (int i = 0; i < r_conditions.size(); i++) {
+      for (unsigned int i = 0; i < r_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
         DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
 
@@ -2051,17 +2051,17 @@ namespace Kratos {
         }
       }
 
-      for (int i = 0; i < wall_elems_x.size(); i++) {
+      for (unsigned int i = 0; i < wall_elems_x.size(); i++) {
         const double x = wall_elems_x[i]->GetGeometry()[0][0];
         if      (std::abs(x-xmin) < eps) mRVE_WallXMin.push_back(wall_elems_x[i]);
         else if (std::abs(x-xmax) < eps) mRVE_WallXMax.push_back(wall_elems_x[i]);
       }
-      for (int i = 0; i < wall_elems_y.size(); i++) {
+      for (unsigned int i = 0; i < wall_elems_y.size(); i++) {
         const double y = wall_elems_y[i]->GetGeometry()[0][1];
         if      (std::abs(y-ymin) < eps) mRVE_WallYMin.push_back(wall_elems_y[i]);
         else if (std::abs(y-ymax) < eps) mRVE_WallYMax.push_back(wall_elems_y[i]);
       }
-      for (int i = 0; i < wall_elems_z.size(); i++) {
+      for (unsigned int i = 0; i < wall_elems_z.size(); i++) {
         const double z = wall_elems_z[i]->GetGeometry()[0][2];
         if      (std::abs(z-zmin) < eps) mRVE_WallZMin.push_back(wall_elems_z[i]);
         else if (std::abs(z-zmax) < eps) mRVE_WallZMax.push_back(wall_elems_z[i]);
@@ -2130,11 +2130,11 @@ namespace Kratos {
         mRVE_FileRoseDiagram << time_step << " " << time << " ";
         
         mRVE_FileRoseDiagram << "[ ";
-        for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(0,i) << " ";
+        for (unsigned int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(0,i) << " ";
         mRVE_FileRoseDiagram << "] ";
 
         mRVE_FileRoseDiagram << "[ ";
-        for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(1,i) << " ";
+        for (unsigned int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(1,i) << " ";
         mRVE_FileRoseDiagram << "]";
 
         mRVE_FileRoseDiagram << std::endl;
