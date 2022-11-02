@@ -26,7 +26,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/registry.h"
 
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
@@ -141,7 +140,6 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
     Serializer::Register("Modeler", Modeler());
-    Serializer::Register("Operation", Operation());
     Serializer::Register("Properties", Properties());
     Serializer::Register("GeometricalObject", GeometricalObject());
 
@@ -222,11 +220,6 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_MODELER("CadTessellationModeler", mCadTessellationModeler);
 #endif
     KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
-
-    // Register operations
-    // KRATOS_REGISTER_OPERATION("Operation","KratosMultiphysics", mOperation);
-    // KRATOS_REGISTER_OPERATION("FooOperation","KratosMultiphysics", mFooOperation);
-    AuxiliaryRegisterOperation("Operation","KratosMultiphysics", mOperation);
 
     // Register general geometries:
     // Point register:

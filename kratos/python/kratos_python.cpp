@@ -100,7 +100,6 @@ PYBIND11_MODULE(Kratos, m)
     AddPropertiesToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
-    AddRegistryToPython(m);
 
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
