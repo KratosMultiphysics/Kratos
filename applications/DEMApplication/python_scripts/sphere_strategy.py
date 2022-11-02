@@ -189,6 +189,8 @@ class ExplicitStrategy():
 
         self.SetContinuumType()
 
+        self.rve_eval_freq = DEM_parameters["RVEEvalFreq"].GetInt()
+
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")
@@ -306,6 +308,8 @@ class ExplicitStrategy():
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
+
+        self.spheres_model_part.ProcessInfo.SetValue(RVE_EVAL_FREQ, self.rve_eval_freq)
 
     def CheckMomentumConservation(self):
 

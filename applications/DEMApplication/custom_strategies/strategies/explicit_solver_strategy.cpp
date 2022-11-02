@@ -1810,7 +1810,7 @@ namespace Kratos {
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
 
       // Initialize properties
-      mRVE_FreqWrite *= mRVE_FreqEval;
+      mRVE_FreqWrite *= r_process_info[RVE_EVAL_FREQ];
       mRVE_Dimension  = r_process_info[DOMAIN_SIZE];
 
       // Assemble vectors of wall elements
@@ -1827,7 +1827,8 @@ namespace Kratos {
 
       // Set flag for evaluating RVE in current step
       const int time_step = r_process_info[TIME_STEPS];
-      mRVE_Solve = (time_step > 0 && time_step % mRVE_FreqEval == 0.0);
+      const int eval_freq = r_process_info[RVE_EVAL_FREQ];
+      mRVE_Solve = (time_step > 0 && time_step % eval_freq == 0.0);
 
       // Initialize variables
       if (mRVE_Solve && time_step > 0) {
@@ -2090,6 +2091,7 @@ namespace Kratos {
     double ExplicitSolverStrategy::RVEComputeParticleVolume(SphericParticle* p_particle) {
       if      (mRVE_Dimension == 2) return Globals::Pi * p_particle->GetRadius() * p_particle->GetRadius();
       else if (mRVE_Dimension == 3) return p_particle->CalculateVolume();
+      else return 0.0;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
