@@ -102,16 +102,16 @@ namespace Python{
         ;
 
         py::class_< LinearElasticPlaneStrain2DLaw, typename LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-        (m, "LinearElasticIsotropicPlaneStrain2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicPlaneStrain2DLaw", py::module_local()).def(py::init<>() )
         ;
 
         py::class_< LinearElasticAxisym2DLaw, typename LinearElasticAxisym2DLaw::Pointer, ConstitutiveLaw >
-        (m, "LinearElasticIsotropicAxisym2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicAxisym2DLaw", py::module_local()).def(py::init<>() )
         ;
 
         // Hyperelastic laws
         py::class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "HyperElasticNeoHookean3DLaw").def(py::init<>() )
+        (m, "HyperElasticNeoHookean3DLaw", py::module_local()).def(py::init<>() )
         ;
 
         py::class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >

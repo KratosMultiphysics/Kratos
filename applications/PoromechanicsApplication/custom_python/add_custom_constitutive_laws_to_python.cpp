@@ -68,13 +68,13 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "LinearElasticSolid3DLaw", py::module_local())
     .def( py::init<>() );
     py::class_< LinearElasticPlaneStrain2DLaw, LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticPlaneStrainSolid2DLaw")
+    (m, "LinearElasticPlaneStrainSolid2DLaw", py::module_local())
     .def(py::init<>() );
     py::class_< LinearElasticPlaneStress2DLaw, LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticPlaneStressSolid2DLaw")
+    (m, "LinearElasticPlaneStressSolid2DLaw", py::module_local())
     .def(py::init<>() );
     py::class_< HyperElastic3DLaw, HyperElastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "HyperElasticSolid3DLaw")
+    (m, "HyperElasticSolid3DLaw", py::module_local())
     .def( py::init<>() );
 
     py::class_< SimoJuLocalDamage3DLaw, SimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
