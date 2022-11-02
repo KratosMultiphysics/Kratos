@@ -1,5 +1,3 @@
-from concurrent.futures import process
-from multiprocessing.dummy import Process
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -26,8 +24,8 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
     def testAddItem(self):
         # Add some fake entities to the Python registry
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess1", KratosMultiphysics.Process)
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.FakeApplication.NewProcess2", KratosMultiphysics.Process)
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess1", KratosMultiphysics.Process())
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.FakeApplication.NewProcess2", KratosMultiphysics.Process())
 
         # Check that the fake entities are registered
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.All.NewProcess1"))
@@ -40,27 +38,27 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
     def testAddItemRepeatedInAllBlock(self):
         # Try to add two entities with same name to different registry modules
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process)
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process())
 
         # Check that adding an entity with same family type and name to a different module throws a exception
         with self.assertRaisesRegex(Exception, "Trying to register 'Processes.KratosMultiphysics.FakeApplication.NewProcess' but there is already an item with the same 'NewProcess' name in the 'Processes.All' block."):
-            KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.FakeApplication.NewProcess", KratosMultiphysics.Process)
+            KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.FakeApplication.NewProcess", KratosMultiphysics.Process())
 
         # Remove the auxiliary testing entity from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
     def testAddItemAlreadyRegisteredInCpp(self):
-        # Try to add an item already present in c++ registry
+        # Try to add an item already present in the c++ registry
         with self.assertRaisesRegex(Exception, "Trying to register 'Processes.KratosMultiphysics.Process' but it is already registered."):
-            KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.Process", KratosMultiphysics.Process)
+            KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.Process", KratosMultiphysics.Process())
 
     def testAddItemAlreadyRegisteredInPython(self):
         # Add a fake entity to Python registry
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process)
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process())
 
-        # Try to add an item already present in c++ registry
+        # Try to add an item already present in the Python registry
         with self.assertRaisesRegex(Exception, "Trying to register 'Processes.KratosMultiphysics.NewProcess' but it is already registered."):
-            KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process)
+            KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process())
 
         # Remove the auxiliary testing entities from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
@@ -108,7 +106,7 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
     def testGetItemCppProcess(self):
         # Check the retrieving of a c++ registered process
-        base_process = KratosMultiphysics.Registry["Processes.All.Process"]
+        base_process = KratosMultiphysics.Registry["Processes.All.Process.Prototype"]
         self.assertTrue(isinstance(base_process, KratosMultiphysics.Process))
 
     def testGetItemPython(self):
@@ -149,20 +147,22 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         for proc_key in proc_keys_cpp : self.assertTrue(proc_key in expected_proc_keys_cpp)
 
         # Check that trying to retrieve the keys of a value items throws a exception
-        with self.assertRaisesRegex(Exception, "Asking for the keys of 'Processes.KratosMultiphysics.Process'. 'Processes.KratosMultiphysics.Process' item has no subitems."):
-            KratosMultiphysics.Registry.keys("Processes.KratosMultiphysics.Process")
+        with self.assertRaisesRegex(Exception, "Asking for the keys of 'Processes.KratosMultiphysics.Process.Prototype'. 'Processes.KratosMultiphysics.Process.Prototype' item has no subitems."):
+            KratosMultiphysics.Registry.keys("Processes.KratosMultiphysics.Process.Prototype")
 
         # Remove the auxiliary testing entries from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
+    #FIXME: This way of checking the iteration will most probably crash once we add more stuff to the registry
+    #FIXME: Most probably we should check that we're iterating more than one item or something of this sort
     def testIteration(self):
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.KratosApplication.PythonProcess", Process())
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.KratosApplication.PythonProcess", KratosMultiphysics.Process())
         KratosMultiphysics.Registry.AddItem("PythonRootItem.PythonSubItem.PythonSubSubItem", object())
 
         root_items_keys = ["Operations","Processes","PythonRootItem"]
         sub_items_keys = ["All","KratosMultiphysics","PythonSubItem"]
-        sub_sub_items_keys = ["PythonSubSubItem","KratosApplication","PythonProcess","FooOperation","Operation","Process"]
-        sub_sub_sub_items_keys = ["PythonProcess"]
+        sub_sub_items_keys = ["PythonSubSubItem","KratosApplication","PythonProcess","Operation","Process"]
+        sub_sub_sub_items_keys = ["PythonProcess","ModulePath","Prototype","CreateFunction"]
         for item in KratosMultiphysics.Registry:
             self.assertTrue(item in root_items_keys)
             if not KratosMultiphysics.Registry.HasValue(item):
@@ -178,6 +178,25 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         # Remove the auxiliary testing entries from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
         KratosMultiphysics.Registry.RemoveItem("PythonRootItem")
+
+    def testDecorator(self):
+        # Auxiliary process class to be used in the testing
+        @KratosMultiphysics.RegisterPrototype("Processes.KratosMultiphysics")
+        class FooProcess(KratosMultiphysics.Process):
+            def __init__(self, a):
+                super().__init__()
+                self.a = a
+
+            def getA(self):
+                return self.a
+
+        # Assert that the decorator-based registry works
+        self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.All.FooProcess"))
+        self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.FooProcess"))
+        self.assertEqual(KratosMultiphysics.Registry["Processes.KratosMultiphysics.FooProcess.Prototype"](10).getA(), 10)
+
+        # Remove the testing entry from the Python registry
+        KratosMultiphysics.Registry.RemoveItem("Processes")
 
 if __name__ == "__main__":
     KratosUnittest.main()

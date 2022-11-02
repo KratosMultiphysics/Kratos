@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -86,7 +86,7 @@ public:
 
     /**
      * @brief This method creates an pointer of the process
-     * @details We consider as input a Mmodel and a set of Parameters for the sake of generality
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
      * @warning Must be overrided in each process implementation
      * @param rModel The model to be consider
      * @param ThisParameters The configuration parameters
@@ -262,13 +262,15 @@ private:
     {                                                                                                        \
         std::string all_path = std::string("Processes.All.") + process_name;                                 \
         if (!Registry::HasItem(all_path)) {                                                                  \
-            Registry::AddItem<RegistryValueItem<Process>>(all_path, process_prototype);                      \
+            auto& r_process_item = Registry::AddItem<RegistryItem>(all_path);                                \
+            r_process_item.AddItem<RegistryValueItem<Process>>("Prototype", process_prototype);              \
         } else {                                                                                             \
             KRATOS_ERROR << "Process '" << process_name << "' is already registered." << std::endl;          \
         }                                                                                                    \
         std::string module_path = std::string("Processes.") + module_name + std::string(".") + process_name; \
         if (!Registry::HasItem(module_path)) {                                                               \
-            Registry::AddItem<RegistryValueItem<Process>>(module_path, process_prototype);                   \
+            auto& r_process_item = Registry::AddItem<RegistryItem>(module_path);                             \
+            r_process_item.AddItem<RegistryValueItem<Process>>("Prototype", process_prototype);              \
         }                                                                                                    \
     }
 #endif

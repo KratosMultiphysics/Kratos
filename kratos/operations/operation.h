@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
 //                   Ruben Zorrilla
@@ -14,16 +14,14 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
 #include "containers/model.h"
-#include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/registry.h"
 
 namespace Kratos
 {
@@ -54,7 +52,7 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Operation() {}
+    explicit Operation() = default;
 
     /// Destructor.
     virtual ~Operation() {}
@@ -66,6 +64,9 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    /// Assignment operator.
+    Operation& operator=(Operation const& rOther) = delete;
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
@@ -143,19 +144,6 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    Operation& operator=(Operation const& rOther) = delete;
-
-    ///@}
 }; // Class Operation
 
 ///@name Type Definitions
@@ -169,13 +157,15 @@ private:
     {                                                                                                           \
         std::string all_path = std::string("Operations.All.") + operation_name;                                 \
         if (!Registry::HasItem(all_path)) {                                                                     \
-            Registry::AddItem<RegistryValueItem<Operation>>(all_path, operation_prototype);                     \
+            auto& r_operation_item = Registry::AddItem<RegistryItem>(all_path);                                 \
+            r_operation_item.AddItem<RegistryValueItem<Operation>>("Prototype", operation_prototype);           \
         } else {                                                                                                \
             KRATOS_ERROR << "Operation '" << operation_name << "' is already registered." << std::endl;         \
         }                                                                                                       \
         std::string module_path = std::string("Operations.") + module_name + std::string(".") + operation_name; \
         if (!Registry::HasItem(module_path)) {                                                                  \
-            Registry::AddItem<RegistryValueItem<Operation>>(module_path, operation_prototype);                  \
+            auto& r_operation_item = Registry::AddItem<RegistryItem>(module_path);                              \
+            r_operation_item.AddItem<RegistryValueItem<Operation>>("Prototype", operation_prototype);           \
         }                                                                                                       \
     }
 #endif

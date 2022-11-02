@@ -7,8 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
-//                   Pooyan Dadvand
+//  Main authors:    Suneth Warnakulasuriya
+//                   Carlos Roig
+//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -20,14 +21,9 @@
 
 // Project includes
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void AddRegistryToPython(pybind11::module& m);
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.
