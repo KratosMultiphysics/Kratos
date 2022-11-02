@@ -10,8 +10,8 @@
 //  Main authors:    Reza Najian Asl
 //
 
-#if !defined(KRATOS_HELMHOLTZ_BULK_TOPOLOGY_ELEMENT_H_INCLUDED )
-#define  KRATOS_HELMHOLTZ_BULK_TOPOLOGY_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_HELMHOLTZ_BULK_ELEMENT_H_INCLUDED )
+#define  KRATOS_HELMHOLTZ_BULK_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -50,28 +50,33 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
-/** Detail class definition.
-*/
-class HelmholtzBulkTopologyElement
+/**
+ * @class HelmholtzBulkElement
+ * @ingroup OptimizationApplication
+ * @brief Helmholtz filtering element for 3D geometries.
+ * @details Implements Sobolev/Helmholtz filter for optimization and regularization. This works for arbitrary geometries in 3D
+ * @author Reza Najian Asl
+ */
+class HelmholtzBulkElement
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of HelmholtzBulkTopologyElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzBulkTopologyElement);
+    /// Counted pointer of HelmholtzBulkElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzBulkElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HelmholtzBulkTopologyElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    HelmholtzBulkTopologyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HelmholtzBulkElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    HelmholtzBulkElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~HelmholtzBulkTopologyElement();
+    virtual ~HelmholtzBulkElement();
 
 
     ///@}
@@ -158,7 +163,7 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    HelmholtzBulkTopologyElement() : Element()
+    HelmholtzBulkElement() : Element()
     {
     }
 
@@ -215,15 +220,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //HelmholtzBulkTopologyElement& operator=(const HelmholtzBulkTopologyElement& rOther);
+    //HelmholtzBulkElement& operator=(const HelmholtzBulkElement& rOther);
 
     /// Copy constructor.
-    //HelmholtzBulkTopologyElement(const HelmholtzBulkTopologyElement& rOther);
+    //HelmholtzBulkElement(const HelmholtzBulkElement& rOther);
 
 
     ///@}
 
-}; // Class HelmholtzBulkTopologyElement
+}; // Class HelmholtzBulkElement
 
 ///@}
 
@@ -238,11 +243,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    HelmholtzBulkTopologyElement& rThis);
+				    HelmholtzBulkElement& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const HelmholtzBulkTopologyElement& rThis)
+				    const HelmholtzBulkElement& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -254,6 +259,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HELMHOLTZ_BULK_TOPOLOGY_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_HELMHOLTZ_BULK_ELEMENT_H_INCLUDED  defined
 
 

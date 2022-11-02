@@ -21,7 +21,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "custom_controls/material_controls/material_control.h"
-#include "custom_elements/helmholtz_bulk_topology_element.h"
+#include "custom_elements/helmholtz_bulk_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
 
 
@@ -403,7 +403,7 @@ private:
                 Properties::Pointer elem_i_new_prop = r_controlling_object.CreateNewProperties(r_controlling_object.NumberOfProperties()+1);
                 *elem_i_new_prop = elem_i_prop;
                 it->SetProperties(elem_i_new_prop);
-                Element::Pointer p_element = new HelmholtzBulkTopologyElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
+                Element::Pointer p_element = new HelmholtzBulkElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 rmesh_elements.push_back(p_element);
             }   
         }

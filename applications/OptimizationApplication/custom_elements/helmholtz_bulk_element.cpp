@@ -17,7 +17,7 @@
 
 
 // Project includes
-#include "custom_elements/helmholtz_bulk_topology_element.h"
+#include "custom_elements/helmholtz_bulk_element.h"
 #include "optimization_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -28,37 +28,37 @@ namespace Kratos
 
 //************************************************************************************
 //************************************************************************************
-HelmholtzBulkTopologyElement::HelmholtzBulkTopologyElement(IndexType NewId, GeometryType::Pointer pGeometry)
+HelmholtzBulkElement::HelmholtzBulkElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
-
 }
 
 //************************************************************************************
 //************************************************************************************
-HelmholtzBulkTopologyElement::HelmholtzBulkTopologyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+HelmholtzBulkElement::HelmholtzBulkElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
+    //DO NOT ADD DOFS HERE!!!
 }
 
-Element::Pointer HelmholtzBulkTopologyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+Element::Pointer HelmholtzBulkElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<HelmholtzBulkTopologyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<HelmholtzBulkElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer HelmholtzBulkTopologyElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+Element::Pointer HelmholtzBulkElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<HelmholtzBulkTopologyElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<HelmholtzBulkElement>(NewId, pGeom, pProperties);
 }
 
-HelmholtzBulkTopologyElement::~HelmholtzBulkTopologyElement()
+HelmholtzBulkElement::~HelmholtzBulkElement()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzBulkTopologyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void HelmholtzBulkElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -118,7 +118,7 @@ void HelmholtzBulkTopologyElement::CalculateLocalSystem(MatrixType& rLeftHandSid
 
 //******************************************************************************
 //******************************************************************************
-void HelmholtzBulkTopologyElement::GetValuesVector(VectorType &rValues,
+void HelmholtzBulkElement::GetValuesVector(VectorType &rValues,
                                             int Step) const {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
@@ -135,7 +135,7 @@ void HelmholtzBulkTopologyElement::GetValuesVector(VectorType &rValues,
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzBulkTopologyElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzBulkElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == HELMHOLTZ_MASS_MATRIX)
         CalculateBulkMassMatrix(rOutput,rCurrentProcessInfo);
@@ -144,7 +144,7 @@ void HelmholtzBulkTopologyElement::Calculate(const Variable<Matrix>& rVariable, 
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzBulkTopologyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzBulkElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
@@ -152,7 +152,7 @@ void HelmholtzBulkTopologyElement::CalculateLeftHandSide(MatrixType& rLeftHandSi
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzBulkTopologyElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzBulkElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -160,7 +160,7 @@ void HelmholtzBulkTopologyElement::CalculateRightHandSide(VectorType& rRightHand
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzBulkTopologyElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+void HelmholtzBulkElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -177,7 +177,7 @@ void HelmholtzBulkTopologyElement::EquationIdVector(EquationIdVectorType& rResul
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzBulkTopologyElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
+void HelmholtzBulkElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_TRY;
@@ -196,7 +196,7 @@ void HelmholtzBulkTopologyElement::GetDofList(DofsVectorType& rElementalDofList,
 
 //************************************************************************************
 //************************************************************************************
-int HelmholtzBulkTopologyElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int HelmholtzBulkElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -219,7 +219,7 @@ int HelmholtzBulkTopologyElement::Check(const ProcessInfo& rCurrentProcessInfo) 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzBulkTopologyElement::CalculateBulkMassMatrix(
+void HelmholtzBulkElement::CalculateBulkMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -259,7 +259,7 @@ void HelmholtzBulkTopologyElement::CalculateBulkMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzBulkTopologyElement::CalculateBulkStiffnessMatrix(
+void HelmholtzBulkElement::CalculateBulkStiffnessMatrix(
     MatrixType& rStiffnessMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -269,7 +269,7 @@ void HelmholtzBulkTopologyElement::CalculateBulkStiffnessMatrix(
     const auto& r_prop = GetProperties();
 
     // Checking radius
-    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS_DENSITY)) << "HELMHOLTZ_RADIUS_DENSITY has to be provided for the calculations of the HelmholtzBulkTopologyElement!" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS_DENSITY)) << "HELMHOLTZ_RADIUS_DENSITY has to be provided for the calculations of the HelmholtzBulkElement!" << std::endl;
 
     const auto& r_geom = GetGeometry();
     SizeType dimension = r_geom.WorkingSpaceDimension();
