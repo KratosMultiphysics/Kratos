@@ -69,13 +69,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     py::class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticUPwScheme")
+    (m, "NewmarkQuasistaticUPwScheme", py::module_local())
     .def( py::init<  double, double, double >());
     py::class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticDampedUPwScheme")
+    (m, "NewmarkQuasistaticDampedUPwScheme", py::module_local())
     .def( py::init<  double, double, double >());
     py::class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkDynamicUPwScheme")
+    (m, "NewmarkDynamicUPwScheme", py::module_local())
     .def( py::init<  double, double, double >());
     py::class_< PoroExplicitCDSchemeType,typename PoroExplicitCDSchemeType::Pointer, BaseSchemeType >
     (m,"PoroExplicitCDScheme")
@@ -110,5 +110,5 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
+} // namespace Python.
 } // Namespace Kratos

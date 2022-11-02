@@ -71,15 +71,15 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticUPwScheme")
+    (m, "NewmarkQuasistaticUPwScheme", py::module_local())
     .def(init<  double, double, double >());
 
     class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticDampedUPwScheme")
+    (m, "NewmarkQuasistaticDampedUPwScheme", py::module_local())
     .def(init<  double, double, double >());
 
     class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkDynamicUPwScheme")
+    (m, "NewmarkDynamicUPwScheme", py::module_local())
     .def(init<  double, double, double >());
 
     class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
@@ -100,9 +100,9 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
     class_< GeoMechanicsNewtonRaphsonErosionProcessStrategyType, typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType >
-        (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-            BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+    (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
+    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
     class_< GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsRammArcLengthStrategy")
