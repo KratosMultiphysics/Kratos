@@ -10,6 +10,8 @@
 //  Main authors:    Jonathan Nuttall
 //
 
+#pragma once
+
 // System includes
 #include <limits>
 #include <map>
@@ -20,17 +22,13 @@
 
 /* Project includes */
 #include "testing/testing.h"
-#include "cpp_geomechanics_application.h"
+#include "custom_workflows/dgeoflow.h"
+#include "flow_stubs.h"
 
 namespace Kratos
 {
     namespace Testing
     {
-        void emptyProgress(double progress) {}
-        void emptyLog(char *log) {}
-        bool emptyCancel() {
-            return false;
-        }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
@@ -38,7 +36,8 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, &emptyLog, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
+            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
         }
@@ -68,7 +67,8 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyProgress, reportTextualProgress, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
+            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, reportTextualProgress, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(firstMessageFound, true);
@@ -101,7 +101,8 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, reportProgress, &emptyLog, &emptyCancel);
+            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+            &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(startProgressFound, true);
