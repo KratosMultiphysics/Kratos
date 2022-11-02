@@ -5,6 +5,7 @@ import numpy as np
 import shutil
 import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
 from time import time
@@ -67,7 +68,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
             new_name = 'output_interval'
 
             if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
-                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)    
+               DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
 
         # Public Functions
