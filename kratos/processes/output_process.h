@@ -51,25 +51,10 @@ public:
     ///@{
 
     /// Default constructor.
-    OutputProcess() : Process() {
-        std::cout << "Created output process.\n";
-    }
-
-    OutputProcess(Parameters Settings) : Process() {
-        std::cout << "Created output process with settings.\n";
-        KRATOS_WATCH(Settings);
-    }
-
-    virtual Process::Pointer Create(
-        Model& rModel,
-        Parameters ThisParameters
-        ) override
-    {
-        return Kratos::make_shared<OutputProcess>(ThisParameters);
-    }
+    OutputProcess() : Process() {}
 
     /// Copy constructor.
-    // OutputProcess(OutputProcess const& rOther) = delete;
+    OutputProcess(OutputProcess const& rOther) = delete;
 
     ///@}
     ///@name Operators
