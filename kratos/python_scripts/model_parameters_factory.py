@@ -60,13 +60,13 @@ class KratosModelParametersFactory(object):
                         # Check if the standard class name is available
                         # Note that in here we assume that the registry last key matches the class name
                         if hasattr(module, class_name):
-                            instance = getattr(module, class_name).Create(self.model, parameters)
+                            instance = getattr(module, class_name)(self.model, parameters)
                         else:
                             # If the registry key does not contain the class name we check for the 'ClassName' entry
                             if KM.Registry.HasItem(f"{registry_entry}.ClassName"):
                                 class_name = KM.Registry[f"{registry_entry}.ClassName"]
                                 KM.Logger.PrintWarning(f"Trying to construct item from non-standard 'ClassName' value {class_name}.")
-                                instance = getattr(module, class_name).Create(self.model, parameters)
+                                instance = getattr(module, class_name)(self.model, parameters)
                             else:
                                 err_msg = f"The '{class_name}' class name cannot be found within the '{module_name}' module."
                                 raise Exception(err_msg)
@@ -74,7 +74,7 @@ class KratosModelParametersFactory(object):
                     item_module_name, item_class_name = registry_entry.rsplit(".", 1)
                     try:
                         item_module = import_module(item_module_name)
-                        instance = getattr(item_module, item_class_name).Create(self.model, parameters)
+                        instance = getattr(item_module, item_class_name)(self.model, parameters)
                     except ModuleNotFoundError as e:
                         raise ModuleNotFoundError(e)
 
