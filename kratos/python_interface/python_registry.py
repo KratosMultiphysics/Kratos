@@ -1,5 +1,4 @@
 import KratosMultiphysics
-from importlib import import_module
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 
 class RegistryContext():
