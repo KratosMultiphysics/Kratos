@@ -12,6 +12,10 @@ class DeleteModelPartsModeler(KratosMultiphysics.Modeler):
         self.model = model
         self.settings = settings
 
+    @staticmethod
+    def Create(model, settings):
+        return DeleteModelPartsModeler(model, settings)
+
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
 

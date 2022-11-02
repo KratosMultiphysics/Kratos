@@ -21,6 +21,10 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
         else:
             self.model_part = model.CreateModelPart(model_part_name)
 
+    @staticmethod
+    def Create(model, settings):
+        return ImportMDPAModeler(model, settings)
+
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
 
