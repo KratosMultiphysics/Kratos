@@ -94,7 +94,7 @@ namespace Python{
     {
         // Linear Elastic laws
         py::class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "LinearElasticIsotropic3DLaw").def(py::init<>(), py::module_local())
+        (m, "LinearElasticIsotropic3DLaw", py::module_local()).def(py::init<>())
         ;
 
         py::class_< LinearElasticPlaneStress2DLaw, typename LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
