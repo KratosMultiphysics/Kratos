@@ -62,8 +62,6 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
         context_string = type(self).__name__
-        #if settings.Has(self.param):
-            #sub_settings_where_var_is = settings['result_file_configuration']
         old_name = 'output_frequency'
         new_name = 'output_interval'
 
