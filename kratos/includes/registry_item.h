@@ -69,10 +69,8 @@ public:
 
     /// Subregistry item type definition
     using SubRegistryItemType = std::unordered_map<std::string, Kratos::shared_ptr<RegistryItem>>;
-    // using SubRegistryItemType = std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>>;
 
-
-     /// Custom iterator with key as return type to be used in the Python export
+    /// Custom iterator with key as return type to be used in the Python export
     class key_return_iterator
     {
     public:
@@ -270,7 +268,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    const std::size_t size()
+    std::size_t size()
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and size() cannot be retrieved." << std::endl;
         return mSubRegistryItem.size();
