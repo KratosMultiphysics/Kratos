@@ -1,7 +1,11 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 import KratosMultiphysics
 from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
+
+    KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'python_solvers_wrapper_rom\'", "module is deprecated. Use the generic\'new_python_solvers_wrapper_rom\' one instead.")
 
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
@@ -39,6 +43,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "monolithic" or solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic_rom"
 
+        elif (solver_type == "ale_fluid" or solver_type == "Ale_fluid"):
+            solver_module_name = "navier_stokes_ale_fluid_solver_rom"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"transient\", \"stationary\""
@@ -55,7 +62,11 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception(err_msg)
 
     module_full = 'KratosMultiphysics.RomApplication.' + solver_module_name
-    solver = import_module(module_full).CreateSolver(model, solver_settings)
+
+    if (solver_type == "ale_fluid" or solver_type == "Ale_fluid"):
+        solver = import_module(module_full).CreateSolver(model, solver_settings,parallelism)
+    else:
+        solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
 
