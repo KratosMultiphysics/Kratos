@@ -55,7 +55,7 @@ namespace Kratos
  * This class is intended to act as global registry
  * Each time the AddItem method is called a pair of name and prototype is called
  */
-class Registry
+class KRATOS_API(KRATOS_CORE) Registry
 {
 public:
     ///@name Type Definitions
