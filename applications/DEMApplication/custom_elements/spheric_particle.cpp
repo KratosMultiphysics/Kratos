@@ -2302,23 +2302,23 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         const array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
         if (central_node.IsNot(DEMFlags::FIXED_VEL_X)) {
-            total_forces[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(velocity[0]));
+            total_forces[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[0] * velocity[0]));
         }
         if (central_node.IsNot(DEMFlags::FIXED_VEL_Y)) {
-            total_forces[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(velocity[1]));
+            total_forces[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[1] * velocity[1]));
         }
         if (central_node.IsNot(DEMFlags::FIXED_VEL_Z)) {
-            total_forces[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(velocity[2]));
+            total_forces[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[2] * velocity[2]));
         }
 
         if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_X)) {
-            total_moment[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(angular_velocity[0]));
+            total_moment[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[0] * angular_velocity[0]));
         }
         if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Y)) {
-            total_moment[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(angular_velocity[1]));
+            total_moment[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[1] * angular_velocity[1]));
         }
         if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
-            total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(angular_velocity[2]));
+            total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[2] * angular_velocity[2]));
         }
 
         KRATOS_CATCH("")
