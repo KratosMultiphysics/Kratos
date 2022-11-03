@@ -1,7 +1,9 @@
+from enum import Enum
+
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 
-class RegistryContext():
+class RegistryContext(Enum):
     ALL = 0
     CPP = 1
     PYTHON = 2

@@ -101,7 +101,7 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
     def testGetItemCppOperation(self):
         # Check the retrieving of a c++ registered operation
-        base_operation = KratosMultiphysics.Registry["Operations.All.Operation"]
+        base_operation = KratosMultiphysics.Registry["Operations.All.Operation.Prototype"]
         self.assertTrue(isinstance(base_operation, KratosMultiphysics.Operation))
 
     def testGetItemCppProcess(self):

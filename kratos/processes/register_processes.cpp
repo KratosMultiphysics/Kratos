@@ -17,11 +17,11 @@
 // External includes
 
 // Project includes
-#include "includes/kernel.h"
+#include "includes/kratos_application.h"
 #include "includes/registry.h"
-#include "processes/process.h"
 
 // Registering processes
+#include "processes/process.h"
 #include "processes/output_process.h"
 
 namespace Kratos

@@ -71,31 +71,31 @@ public:
     using SubRegistryItemType = std::unordered_map<std::string, Kratos::shared_ptr<RegistryItem>>;
 
     /// Custom iterator with key as return type to be used in the Python export
-    class key_return_iterator
+    class KeyReturnConstIterator
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        using BaseIterator      = SubRegistryItemType::iterator;
-        using iterator_category = BaseIterator::iterator_category;
+        using BaseIterator      = SubRegistryItemType::const_iterator;
+        using iterator_category = std::forward_iterator_tag;
         using difference_type   = BaseIterator::difference_type;
-        using value_type        = BaseIterator::value_type;
-        using pointer           = BaseIterator::pointer;
-        using reference         = BaseIterator::reference;
+        using value_type        = SubRegistryItemType::key_type;
+        using const_pointer     = const value_type*;
+        using const_reference   = const value_type&;
 
         ///@}
         ///@name Life Cycle
         ///@{
 
-        key_return_iterator()
+        KeyReturnConstIterator()
         {}
 
-        key_return_iterator(BaseIterator Iterator)
+        KeyReturnConstIterator(const BaseIterator Iterator)
             : mIterator(Iterator)
         {}
 
-        key_return_iterator(const key_return_iterator& rIterator)
+        KeyReturnConstIterator(const KeyReturnConstIterator& rIterator)
             : mIterator(rIterator.mIterator)
         {}
 
@@ -103,41 +103,41 @@ public:
         ///@name Operators
         ///@{
 
-        key_return_iterator& operator=(const key_return_iterator& rIterator)
+        KeyReturnConstIterator& operator=(const KeyReturnConstIterator& rIterator)
         {
             this->mIterator = rIterator.mIterator;
             return *this;
         }
 
-        std::string operator*() const
+        const_reference operator*() const
         {
             return mIterator->first;
         }
 
-        std::string operator->()
+        const_pointer operator->() const
         {
-            return mIterator->first;
+            return &(mIterator->first);
         }
 
-        key_return_iterator& operator++()
+        KeyReturnConstIterator& operator++()
         {
             ++mIterator;
             return *this;
         }
 
-        key_return_iterator operator++(int)
+        KeyReturnConstIterator operator++(int)
         {
-            key_return_iterator tmp(*this);
+            KeyReturnConstIterator tmp(*this);
             ++(*this);
             return tmp;
         }
 
-        bool operator==(const key_return_iterator& rIterator) const
+        bool operator==(const KeyReturnConstIterator& rIterator) const
         {
             return this->mIterator == rIterator.mIterator;
         }
 
-        bool operator!=(const key_return_iterator& rIterator) const
+        bool operator!=(const KeyReturnConstIterator& rIterator) const
         {
             return this->mIterator != rIterator.mIterator;
         }
@@ -243,9 +243,9 @@ public:
 
     SubRegistryItemType::const_iterator cend() const;
 
-    key_return_iterator key_begin();
+    KeyReturnConstIterator KeyConstBegin() const;
 
-    key_return_iterator key_end();
+    KeyReturnConstIterator KeyConstEnd() const;
 
     const std::string& Name() const
     {

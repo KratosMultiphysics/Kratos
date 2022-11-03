@@ -29,7 +29,7 @@ namespace Kratos::Python
 
 namespace
 {
-    pybind11::list registry_item_keys(const RegistryItem& rSelf)
+    pybind11::list GetRegistryItemKeys(const RegistryItem& rSelf)
     {
         pybind11::list t;
         KRATOS_ERROR_IF(!rSelf.HasItems()) << "Asking for the keys of " << rSelf.Name() << "which has no subitems." << std::endl;
@@ -39,7 +39,7 @@ namespace
         return t;
     }
 
-    pybind11::list registry_keys()
+    pybind11::list GetRegistryKeys()
     {
         pybind11::list t;
         for (auto it = Kratos::Registry::cbegin(); it != Kratos::Registry::cend(); ++it) {
@@ -57,10 +57,10 @@ void AddRegistryToPython(pybind11::module& m)
         .def("Name", &RegistryItem::Name)
         .def("HasItems", &RegistryItem::HasItems)
         .def("HasValue", &RegistryItem::HasValue)
-        .def("keys", &registry_item_keys)
+        .def("keys", &GetRegistryItemKeys)
         .def("size", &RegistryItem::size)
-        .def("__iter__", [](RegistryItem& rSelf){return py::make_iterator(rSelf.key_begin(), rSelf.key_end());}, py::keep_alive<0,1>())
-        // .def("__str__", [](const RegistryItem& rSelf){rSelf.Name();})
+        .def("__iter__", [](RegistryItem& rSelf){return py::make_iterator(rSelf.KeyConstBegin(), rSelf.KeyConstEnd());}, py::keep_alive<0,1>())
+        .def("__str__", PrintObject<RegistryItem>)
         ;
 
     py::class_<Registry, Registry::Pointer>(m, "CppRegistry")
@@ -71,7 +71,7 @@ void AddRegistryToPython(pybind11::module& m)
         .def_static("GetOperation", &Registry::GetValue<Operation>, py::return_value_policy::reference)
         .def_static("GetProcess", &Registry::GetValue<Process>, py::return_value_policy::reference)
         .def_static("RemoveItem", &Registry::RemoveItem)
-        .def_static("keys", &registry_keys)
+        .def_static("keys", &GetRegistryKeys)
         .def_static("size", &Registry::size)
         ;
 }

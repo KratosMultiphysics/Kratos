@@ -149,8 +149,8 @@ public:
 ///@name Type Definitions
 ///@{
 
-#ifndef KRATOS_REGISTER_OPERATION
-#define KRATOS_REGISTER_OPERATION(                                                                              \
+#ifndef KRATOS_REGISTER_OPERATION_WITH_PROTOTYPE
+#define KRATOS_REGISTER_OPERATION_WITH_PROTOTYPE(                                                                              \
     module_name,                                                                                                \
     operation_name,                                                                                             \
     operation_prototype)                                                                                        \

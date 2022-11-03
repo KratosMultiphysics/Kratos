@@ -45,16 +45,16 @@ namespace Kratos
         return mSubRegistryItem.cend();
     }
 
-    RegistryItem::key_return_iterator RegistryItem::key_begin()
+    RegistryItem::KeyReturnConstIterator RegistryItem::KeyConstBegin() const
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return key_return_iterator(mSubRegistryItem.begin());
+        return KeyReturnConstIterator(mSubRegistryItem.cbegin());
     }
 
-    RegistryItem::key_return_iterator RegistryItem::key_end()
+    RegistryItem::KeyReturnConstIterator RegistryItem::KeyConstEnd() const
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return key_return_iterator(mSubRegistryItem.end());
+        return KeyReturnConstIterator(mSubRegistryItem.cend());
     }
 
     std::string RegistryItem::Info() const
