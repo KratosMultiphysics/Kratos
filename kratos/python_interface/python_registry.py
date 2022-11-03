@@ -91,10 +91,10 @@ class PythonRegistry(object):
         # Check if Name registry level is registered and if it is a value
         if self.HasItem(Name):
             if not self.HasItems(Name):
-                err_mgs = f"Asking for the keys of '{Name}'. '{Name}' item has no subitems."
+                err_mgs = f"Asking for the values of '{Name}'. '{Name}' item has no subitems."
                 raise Exception(err_mgs)
         else:
-            err_msg = f"Asking for the keys of '{Name}' non-registered item."
+            err_msg = f"Asking for the values of '{Name}' non-registered item."
             raise Exception(err_msg)
 
         # Get the c++ registry item values
@@ -115,10 +115,10 @@ class PythonRegistry(object):
         # Check if Name registry level is registered and if it is a value
         if self.HasItem(Name):
             if not self.HasItems(Name):
-                err_mgs = f"Asking for the keys of '{Name}'. '{Name}' item has no subitems."
+                err_mgs = f"Asking for the items of '{Name}'. '{Name}' item has no subitems."
                 raise Exception(err_mgs)
         else:
-            err_msg = f"Asking for the keys of '{Name}' non-registered item."
+            err_msg = f"Asking for the items of '{Name}' non-registered item."
             raise Exception(err_msg)
 
         # Get the keys and values
@@ -148,6 +148,7 @@ class PythonRegistry(object):
         total_items = 0
         if py_keys is not None:
             total_items += len(py_keys)
+        #TODO: Implement this in c++
         if cpp_keys is not None:
             total_items += len(cpp_keys)
         return total_items
@@ -164,6 +165,7 @@ class PythonRegistry(object):
     def NumberOfCppItems(self, Name):
         '''Returns the number of c++ registered items
         '''
+        #TODO: Implement this in c++
         _, cpp_keys = self.keys(Name)
         total_items = 0
         if cpp_keys is not None:

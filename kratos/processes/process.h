@@ -254,24 +254,29 @@ private:
 ///@name Type Definitions
 ///@{
 
-#ifndef KRATOS_REGISTER_PROCESS
-#define KRATOS_REGISTER_PROCESS(                                                                             \
+template<typename TPrototypeType>
+void RegisterProcessWithPrototype(
+    const std::string RegistryEntryName,
+    TPrototypeType rProcessPrototype)
+{
+    if (!Registry::HasItem(RegistryEntryName)) {
+        auto& r_process_item = Registry::AddItem<RegistryItem>(RegistryEntryName);
+        r_process_item.AddItem<RegistryValueItem<TPrototypeType>>("Prototype", rProcessPrototype);
+    } else {
+        KRATOS_ERROR << "Process '" << RegistryEntryName << "' is already registered." << std::endl;
+    }
+}
+
+#ifndef KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE
+#define KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE(                                                              \
     module_name,                                                                                             \
     process_name,                                                                                            \
     process_prototype)                                                                                       \
     {                                                                                                        \
         std::string all_path = std::string("Processes.All.") + process_name;                                 \
-        if (!Registry::HasItem(all_path)) {                                                                  \
-            auto& r_process_item = Registry::AddItem<RegistryItem>(all_path);                                \
-            r_process_item.AddItem<RegistryValueItem<Process>>("Prototype", process_prototype);              \
-        } else {                                                                                             \
-            KRATOS_ERROR << "Process '" << process_name << "' is already registered." << std::endl;          \
-        }                                                                                                    \
+        RegisterProcessWithPrototype(all_path, process_prototype);                                           \
         std::string module_path = std::string("Processes.") + module_name + std::string(".") + process_name; \
-        if (!Registry::HasItem(module_path)) {                                                               \
-            auto& r_process_item = Registry::AddItem<RegistryItem>(module_path);                             \
-            r_process_item.AddItem<RegistryValueItem<Process>>("Prototype", process_prototype);              \
-        }                                                                                                    \
+        RegisterProcessWithPrototype(module_path, process_prototype);                                        \
     }
 #endif
 

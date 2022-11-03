@@ -29,8 +29,8 @@ namespace Kratos
 
 void KratosApplication::RegisterProcesses()
 {
-    KRATOS_REGISTER_PROCESS("KratosMultiphysics", "Process", Process())
-    KRATOS_REGISTER_PROCESS("KratosMultiphysics", "OutputProcess", OutputProcess())
+    KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE("KratosMultiphysics", "Process", Process())
+    KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE("KratosMultiphysics", "OutputProcess", OutputProcess())
 }
 
 }
