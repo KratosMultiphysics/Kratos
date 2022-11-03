@@ -1,6 +1,6 @@
 {
     "side_bar_name": "shape_optimization_application",
-    "landing_page": "General/Multi_objective_optimization.md",
+    "landing_page": "General/Overview.md",
     "additional_menu_options": {
         "title": "sidebar",
         "product": "Shape Optimization Application"
@@ -9,7 +9,7 @@
         "General",
         "Technologies",
         "Interfaces",
-        "List of Response Functions",
+        "List_of_response_functions",
         "Examples"
     ]
 }

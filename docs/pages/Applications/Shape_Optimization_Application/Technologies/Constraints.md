@@ -39,15 +39,22 @@ Following table illustrates descriptions of each settings available in each cons
 
 ## Constraint formulation
 
- Constraints are applied to the optimization problem using lagrange multipliers in the optimization process as depicted in following equation.
+These constraints can be active or inactive depending of the type of the constraint (see [Types of constraints](#types-of-constraints) which illustrates how they can be specified).
 
-Assume following is the objective which is used in the optimization problem.
+Firstly the constraint value is standardized as given below (i.e. objective value is $$g$$, state variables are $$ \underline{w} $$, design variable is $$ s $$ and reference value for constraint is $$ g_{ref} $$) ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/python_scripts/communicator_factory.py#L227)):
+<p align="center">$$ g_{std}\left(\underline{u}, s\right) = \begin{cases} g_{ref} - g\left(\underline{u}, s\right)  \quad &\textit{if "type" = ">" or ">="}\\ g\left(\underline{u}, s\right) - g_{ref} \quad &\textit{otherwise} \end{cases}$$</p>
 
-<p align="center">$$ \min_{\underline{s} \in\ \mathbb{R}^N} f\left(\underline{u}, \underline{s}\right) $$</p>
+Then an in-equality constraint is deemed active if $$ g_{std} > 0.0 $$ otherwise they deemed as inactive. Equality constraints are always deemed as active. If they are deemed active, then following equation is used to compute the standardized sensitivities of the constraint ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/python_scripts/communicator_factory.py#L239)).
+<p align="center">$$ \left(\frac{dg}{d\underline{s}}\right)_{std}\left(\underline{u}, s\right) = \begin{cases} - \frac{dg}{d\underline{s}}\left(\underline{u}, s\right)  \quad &\textit{if "type" = ">" or ">="}\\ \frac{dg}{d\underline{s}}\left(\underline{u}, s\right) \quad &\textit{otherwise} \end{cases}$$</p>
 
-And the constraints are applied by formulating a Lagrange function including objectives and constraints as depicted below where $$\lambda$$ represents Lagrange multiplier, $$H$$ represents constraint, $$H_0$$ represents the target value of the respective constraint and $$w$$ is the scaling factor.
+if the $$g$$ is dependent on state variables (i.e. $$\underline{u}$$) then, the residuals of the primal governing equations are applied as additional constraints to the $$g$$ using the Lagrange multipliers (i.e. $$\lambda$$). Then the sensitivities of the constraints are computed by formulating a Lagrange function including constraint and its primal governing equation residuals (i.e. $$R$$) as depicted below.
 
-<p align="center">$$ L = f\left(\underline{u}, \underline{s}\right) + w\lambda\left(H - H_0\right) $$</p>
+<p align="center">$$ L = g\left(\underline{u}, \underline{s}\right) + \left(\underline{\lambda}^T\underline{R}\right) $$</p>
+
+Then the total derivative of the constraint is taken from the following equation:
+<p align="center">$$ \frac{dg}{d\underline{s}} = \frac{dL}{d\underline{s}} = \frac{\partial L}{\partial \underline{s}} $$</p>
+
+These Lagrange multipliers (i.e. $$ \lambda $$) are computed using the [adjoint approach](../General/Sensitivity_Analysis/Adjoint_approach.html) either fully analytic methodology or semi-analytic methodology.
 
 ## Types of constraints
 
@@ -55,7 +62,7 @@ There are mainly five types of constraints.
 
 ### Equality constraints
 
-Equality constratints are always active. Therefore, the Lagrange multipliers are always computed for all the equality constraints for all the design iterations in the optimization process. This is specified by specifying "=" as "type" in the constraint settings. Then the value of the constraint which it is equal to is specified by either giving "reference" as "initial_value" or "reference" as "specified_value". In the case of "reference" = "specified_value" then user has to specify "reference_value" field to desired constraint vlaue. Example equality constraint settings block is shown below.
+Equality constratints are always active. Therefore, the Lagrange multipliers are always computed for all the equality constraints for all the design iterations in the optimization process. This is specified by specifying "=" as "type" in the constraint settings. Then the value of the constraint which it is equal (i.e. $$g_{ref}$$) to is specified by either giving "reference" as "initial_value" or "reference" as "specified_value". In the case of "reference" = "specified_value" then user has to specify "reference_value" field to desired constraint vlaue. Example equality constraint settings block is shown below.
 
 ```json
 "constraints": [
@@ -82,7 +89,7 @@ In-equality constraints are only active when they are violated. Therefore the La
 |"<="| Less than or equal to the "initial_value" or "specified_value"|
 |">="| Greater than or equal to the "initial_value" or "specified_value"|
 
-Then the value of the constraint which it is compared against to is specified by either giving “reference” as “initial_value” or “reference” as “specified_value”. In the case of “reference” = “specified_value” then user has to specify “reference_value” field to desired constraint vlaue. Example equality constraint settings block is shown below.
+Then the value of the constraint which it is compared against (i.e. $$g_{ref}$$) to is specified by either giving “reference” as “initial_value” or “reference” as “specified_value”. In the case of “reference” = “specified_value” then user has to specify “reference_value” field to desired constraint vlaue. Example equality constraint settings block is shown below.
 
 ```json
 "constraints": [

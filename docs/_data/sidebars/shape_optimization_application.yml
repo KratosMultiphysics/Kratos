@@ -6,11 +6,11 @@ entries:
   - title: General
     output: web
     folderitems:
+    - title: Overview
+      url: /pages/Applications/Shape_Optimization_Application/General/Overview.html
+      output: web
     - title: Multi objective optimization
       url: /pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
-      output: web
-    - title: Shape Optimization Application
-      url: /pages/Applications/Shape_Optimization_Application/General/shape_optimization_application.html
       output: web
       subfolders:
       - title: Sensitivity Analysis
@@ -44,9 +44,6 @@ entries:
         - title: Penalized Projection
           url: /pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/penalized_projection.html
           output: web
-        - title: Gradient Projection
-          url: /pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/gradient_projection.html
-          output: web
   - title: Interfaces
     output: web
     folderitems:
@@ -56,38 +53,35 @@ entries:
     - title: Response function interface
       url: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/response_functions/response_function_interface.py
       output: web
-  - title: List of Response Functions
+  - title: List of response functions
     output: web
     folderitems:
     - title: Angle of attack
-      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Angle_of_attack.html
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Angle_of_attack.html
       output: web
     - title: Face angle
-      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Face_angle.html
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Face_angle.html
       output: web
     - title: Mesh based packaging
-      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Mesh_based_packaging.html
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Mesh_based_packaging.html
       output: web
     - title: Plane based packaging
-      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Plane_based_packaging.html
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Plane_based_packaging.html
       output: web
     - title: Surface normal shape change
-      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Surface_normal_shape_change.html
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Surface_normal_shape_change.html
+      output: web
+    - title: Test
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/test.html
       output: web
     - title: Total volume
-      url: /pages/Applications/Shape_Optimization_Application/List of Response Functions/Total_volume.html
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Total_volume.html
       output: web
   - title: Examples
     output: web
     folderitems:
     - title: Strain Energy Minimization 3D Shell
       url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Strain_Energy_Minimization_3D_Shell.html
-      output: web
-    - title: Bead Optimization Plate
-      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Bead_Optimization_Plate.html
-      output: web
-    - title: Multi Constraint Optimization 3D Hook
-      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Multi_Constraint_Optimization_3D_Hook.html
       output: web
     - title: Shape Update Optimization Stanford Bunny
       url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Shape_Update_Optimization_Stanford_Bunny.html
@@ -96,42 +90,48 @@ entries:
     output: web
     folderitems:
     - title: Overview
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Overview.html
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Overview.html
       output: web
     - title: Objectives and Constraints
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Objectives_and_constraints.html
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Objectives_and_constraints.html
       output: web
     - title: Design variables
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Design_variables.html
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Design_variables.html
       output: web
-    - title: Optimization settings
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Optimization_settings.html
+    - title: Optimization Settings
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Optimization_settings.html
       output: web
     - title: Run optimization
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Run_optimization.html
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Run_optimization.html
       output: web
     - title: Import results
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Import_results.html
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Import_results.html
       output: web
     - title: Convergence plot
-      url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Convergence_plot.html
+      url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Convergence_plot.html
       output: web
       subfolders:
+      - title: Examples
+        output: web
+        subfolderitems:
+        - title: guided example
+          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Examples/guided_example.html
+          output: web
       - title: Responses
         output: web
         subfolderitems:
         - title: Average Temperature
-          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/average_temperature.html
+          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/average_temperature.html
           output: web
         - title: Kreisselmeier Aggregated Stress
-          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/kreisselmeier_aggregated_stress.html
+          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/kreisselmeier_aggregated_stress.html
           output: web
         - title: Mass
-          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/mass.html
+          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/mass.html
           output: web
         - title: Strain Energy
-          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/strain_energy.html
+          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/strain_energy.html
           output: web
         - title: eigen frequency
-          url: /pages/Applications/Shape_Optimization_Application/Siemens NX/Responses/eigen_frequency.html
+          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/eigen_frequency.html
           output: web

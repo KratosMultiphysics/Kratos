@@ -8,18 +8,6 @@
         },
         {
             "type": "kratos_example",
-            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/shape_optimization/use_cases/06_bead_optimization_plate/README.md",
-            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/shape_optimization/use_cases/06_bead_optimization_plate",
-            "file_name": "Bead_Optimization_Plate.md"
-        },
-        {
-            "type": "kratos_example",
-            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/shape_optimization/use_cases/10_Multi_Constraint_Optimization_3D_Hook/README.md",
-            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/shape_optimization/use_cases/10_Multi_Constraint_Optimization_3D_Hook",
-            "file_name": "Multi_Constraint_Optimization_3D_Hook.md"
-        },
-        {
-            "type": "kratos_example",
             "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/shape_optimization/use_cases/11_Shape_Update_Optimization_Stanford_Bunny/README.md",
             "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/shape_optimization/use_cases/11_Shape_Update_Optimization_Stanford_Bunny",
             "file_name": "Shape_Update_Optimization_Stanford_Bunny.md"

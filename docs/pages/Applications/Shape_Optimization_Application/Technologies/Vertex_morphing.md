@@ -39,7 +39,7 @@ It is important to note that the variability of the resulting shape is character
 
 ### Effect of filter radii
 
-Higher filter radii (i.e. $$r$$) results in smoothened design field over a circular area in 2D and a spherical area in 3D with radius $$r$$. It may loose the local effect which are significant in obtaining design field which is capable of optimizing the given objective(s). This is illustrated in figure 3. In there, green plot illustrates the noisy design field, blue plot illustrates filtered design field with $$r=4$$ and red plot illustrates filtered design field with $$r=6$$.
+Higher filter radii (i.e. $$r$$) results in smoothened design field over a circular area in 2D and a spherical area in 3D with radius $$r$$. It may loose the local effect which are significant in obtaining design field which is capable of optimizing the given objective(s). This is illustrated in figure 3. In there, green plot illustrates the noisy design field, blue plot illustrates filtered design field with $$r=4$$ and red plots illustrate filtered design fields with $$r=6$$ (left) and $$r=16$$ (right).
 
 <p align="center">
     <img src="images/filter_radii_4.png" width="50"/><img src="images/filter_radii_6.png" width="5"/>
@@ -93,25 +93,37 @@ Following table illustrates allowed values for each option.
 | integration_method  | ["area_weighted_sum"](#area-weighted-sum-integration-method), [Only works with "improved_integration": true, otherwise ignored.] |
 
 
-#### Gaussian filter function
+#### Gaussian filter function ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/custom_utilities/filter_function.cpp#L34))
 
 <p align="center">$$ A\left(\mathbf{x},\mathbf{x_0},r\right)  = \max\left\lbrace 0.0, e^{\frac{-9\left|\mathbf{x}-\mathbf{x_0}\right|^2}{2r^2}}\right\rbrace$$</p>
 
-#### Linear filter function
+#### Linear filter function ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/custom_utilities/filter_function.cpp#L38))
 <p align="center">$$ A\left(x,x_0,r\right)  = \max\left\lbrace 0.0, \frac{r-\left|\mathbf{x}-\mathbf{x_0}\right|}{r}\right\rbrace$$</p>
 
-#### Constant filter function
+#### Constant filter function ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/custom_utilities/filter_function.cpp#L42))
 <p align="center">$$ A\left(x,x_0,r\right)   = 1.0$$</p>
 
-#### Cosine filter function
+#### Cosine filter function ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/custom_utilities/filter_function.cpp#L46))
 <p align="center">$$ A\left(x,x_0,r\right)   = \max\left\lbrace 0.0, 1-0.5\left(1-\cos\left(\pi\frac{\left|\mathbf{x}-\mathbf{x_0}\right|}{r}\right)\right)\right\rbrace$$</p>
 <!-- [](double radius, double distance) {return std::max(0.0, );}; -->
 
-#### Quartic filter function
+#### Quartic filter function ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/custom_utilities/filter_function.cpp#L50))
 <p align="center">$$ A\left(x,x_0,r\right)   = \max\left\lbrace 0.0, \left(\frac{\left|\mathbf{x}-\mathbf{x_0}\right|-r}{r}\right)^4\right\rbrace$$</p>
 
 #### Area weighted sum integration method
 
-This method modifies chosen ``filter_function_type`` based on the nodal area averaging methodology. $$S\left(x, x_0, r\right)$$ is the nodal area of the neighbour node at $$x$$ position, $$N$$ is the number of neighbour nodes.
+This method modifies chosen ``filter_function_type`` based on the nodal area averaging methodology. $$B\left(x, x_0, r\right)$$ is the nodal area of the neighbour node at $$x$$ position, $$N$$ is the number of neighbour nodes.
 
-<p align="center">$$ A\left(x,x_0,r\right)   = A\left(x,x_0,r\right)\times \frac{S\left(x, x_0, r\right)}{\sum_{n=1}^{N}\left[S\left(x, x_0, r\right)\right]}$$</p>
+<p align="center">$$ A\left(x,x_0,r\right)   = A\left(x,x_0,r\right)\times \frac{B\left(x, x_0, r\right)}{\sum_{n=1}^{N}\left[B\left(x, x_0, r\right)\right]}$$</p>
+
+## Algorithm
+
+This vertex morphing algorithm is used to compute vertex morphed sensitivities of objectives and constraints. First, neighbour nodes for all the design surface nodes are found using a KDTree.
+
+Then for each node's (i.e. $$i^{th}$$) neigbhour nodes (i.e. $$j^{th}$$) the weights are computed using filter functions mentioned above (i.e. $$A_{ij}$$). Thereafter, the vertex morphed sensitivities for each sensitivity is computed as given in the following equation.
+
+<p align="center">$$ \left(\frac{df}{d\underline{s}}\right)_{i, morphed} = \frac{1}{\sum_{j=1}^N A_{ij}}\sum_{j=1}^{N} A_{ij}\left(\frac{df}{d\underline{s}}\right)_j$$</p>
+
+## Source
+
+Location: ["applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"](https://github.com/KratosMultiphysics/Kratos/blob/shapeopt/kreisselmeier_aggregation/applications/ShapeOptimizationApplication/custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h)

@@ -1,7 +1,6 @@
 {
     "custom_entries": [
         "steepest_descent.md",
-        "penalized_projection.md",
-        "gradient_projection.md"
+        "penalized_projection.md"
     ]
 }

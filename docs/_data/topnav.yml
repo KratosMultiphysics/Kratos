@@ -56,7 +56,7 @@ topnav_dropdowns:
       url: /pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
       output: web
     - title: Shape Optimization Application
-      url: /pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
+      url: /pages/Applications/Shape_Optimization_Application/General/Overview.html
       output: web
     - title: Statistics Application
       url: /pages/Applications/Statistics_Application/General/Overview.html
