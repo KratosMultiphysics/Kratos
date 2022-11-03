@@ -34,6 +34,9 @@ In the case of "Adaptive correction scaling", the "Correction Scaling" (i.e. $$\
 
 <p align="center">$$ \alpha_{corscal}^n = \begin{cases} \frac{\alpha_{corscal}^{n-1}}{2} \quad &\textit{if}\quad g^n\times g^{n-1} < 0.0 \\2 \alpha_{corscal}^{n-1} \quad &\textit{if}\quad g^n\times g^{n-1} > 0.0 \quad \textit{and}\quad |g^n| > |g^{n-1}| \\ \alpha_{corscal}^{n-1} \quad &\textit{otherwise}  \end{cases}$$</p>
 
+**Caution**:
+The obtaiend optimum design surface may be sensitive towards the initial $$\alpha_{corscal}^0$$ value if contradicting objectives and constraints are used in an optimization problem. This value determines how much importance is given to the constraint sensitivity when computing the search direction. Therefore, higher values may result with better satisfying constraints but may result in worsened objective values. This may be rectified by either increasing the maximum number of iterations in the optimiation problem or, having a balanced $$\alpha_{corscal}^0$$ such that both objective and constraints are given the same priority.
+
 #### Computing projection correction ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/custom_utilities/optimization_utilities.cpp#L190))
 
 The correction factor (i.e. $$\alpha_{cor}$$) is calculated using the following equation:

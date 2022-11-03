@@ -37,14 +37,14 @@ In the case where improvement is expected to be increasing then the problem is t
 <p align="center">$$ \max_{\underline{s} \in\ \mathbb{R}^N} f\left(\underline{u}, \underline{s}\right) =  \min_{\underline{s} \in\ \mathbb{R}^N} -f\left(\underline{u}, \underline{s}\right)$$</p>
 
 Therefore, the standardized value of objective is computed as follows ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/python_scripts/communicator_factory.py#L222)):
-<p align="center">$$ f_{std}\left(\underline{u}, \underline{s}\right) = \begin{cases} -f_{std}\left(\underline{u}, \underline{s}\right) \quad &\textit{if maximization} \\f_{std}\left(\underline{u}, \underline{s}\right) \quad &\textit{if minimization} \end{cases}$$</p>
+<p align="center">$$ f_{std}\left(\underline{u}, \underline{s}\right) = \begin{cases} -f\left(\underline{u}, \underline{s}\right) \quad &\textit{if maximization} \\f\left(\underline{u}, \underline{s}\right) \quad &\textit{if minimization} \end{cases}$$</p>
 
 If the objective is dependent on the state variables (i.e. $$ \underline{u} $$), then the governing equations of the primal problem is imposed as constraints on the optimization problem by forming the Lagrange function as given below where $$\underline{R} = 0$$ are the residuals of the primal giverning equation and $$\lambda$$ are the adjoint variables.
 
 <p align="center">$$ L = f_{std}\left(\underline{u}, \underline{s}\right) + \left(\underline{\lambda}^T\underline{R}\right) $$</p>
 
 Then the total derivative of the objective is taken from the following equation ([source](https://github.com/KratosMultiphysics/Kratos/blob/0048ec0790af5b356039ee4829d78ff0deb2d640/applications/ShapeOptimizationApplication/python_scripts/communicator_factory.py#L239)):
-<p align="center">$$ \left(\frac{df}{d\underline{s}}\right)_{std} = \frac{dL}{d\underline{s}} = \frac{\partial L}{\partial \underline{s}} $$</p>
+<p align="center">$$ \left(\frac{df}{d\underline{s}}\right)_{std} = \begin{cases} -\frac{df}{d\underline{s}} \quad &\textit{if maximization} \\ \frac{df}{d\underline{s}}\quad &\textit{if minimization}\end{cases} = \frac{dL}{d\underline{s}} = \frac{\partial L}{\partial \underline{s}} $$</p>
 
 These Lagrange multipliers (i.e. $$ \lambda $$) are computed using the [adjoint approach](../General/Sensitivity_Analysis/Adjoint_approach.html) either fully analytic methodology or semi-analytic methodology.
 

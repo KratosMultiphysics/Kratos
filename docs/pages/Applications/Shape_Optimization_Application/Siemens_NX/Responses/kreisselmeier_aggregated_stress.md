@@ -1,9 +1,9 @@
 ---
 title: Kreisselmeier Aggregated Stress
-keywords: 
+keywords:
 tags: [kreisselmeier_aggregated_stress.md]
 sidebar: shape_optimization_application
-summary: 
+summary:
 ---
 
 ## Settings
@@ -30,4 +30,6 @@ The coefficients are listed in the following table:
 ### Caution:
 
 User needs to be cautious about using this response as an objective along with `Mass` as another constraint or vice versa. Because these two objectives are contradicting each other, therfore if the constraint is violated, then there will be weighting of sensitivities computed from `Mass` and `Kreisselmeier Aggregated Stress`. This weighting can be influenced by `Scaling Factor`. If a higher value is used than the actual Von Mises stresses, then it will be having a less wieght, and the optimizer will be removing mass in the case where `Mass` minimization is the objective. The usual range for this would be 20% - 50% of the max stress. Depending on the `Scaling factor`, optimizer will compute different shape updates.
+
+Refer to [kreisselmeier aggregation](../../List_of_response_functions/Kreisselmeier_aggregation.html) for more details.
 

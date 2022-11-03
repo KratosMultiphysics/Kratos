@@ -34,6 +34,9 @@ entries:
     - title: Vertex morphing
       url: /pages/Applications/Shape_Optimization_Application/Technologies/Vertex_morphing.html
       output: web
+    - title: Damping
+      url: /pages/Applications/Shape_Optimization_Application/Technologies/Damping.html
+      output: web
       subfolders:
       - title: Algorithms
         output: web
@@ -56,26 +59,14 @@ entries:
   - title: List of response functions
     output: web
     folderitems:
-    - title: Angle of attack
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Angle_of_attack.html
+    - title: Kreisselmeier aggregation
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Kreisselmeier_aggregation.html
       output: web
-    - title: Face angle
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Face_angle.html
+    - title: Mass
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Mass.html
       output: web
-    - title: Mesh based packaging
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Mesh_based_packaging.html
-      output: web
-    - title: Plane based packaging
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Plane_based_packaging.html
-      output: web
-    - title: Surface normal shape change
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Surface_normal_shape_change.html
-      output: web
-    - title: Test
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/test.html
-      output: web
-    - title: Total volume
-      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Total_volume.html
+    - title: Strain energy
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Strain_energy.html
       output: web
   - title: Examples
     output: web

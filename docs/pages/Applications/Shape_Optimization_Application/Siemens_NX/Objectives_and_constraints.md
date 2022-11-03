@@ -33,9 +33,9 @@ The `Gradient Mode` is also varying depending on the type of the objective. The 
 </p>
 <p align="center">Figure 1: Objectives dialog box</p>
 
-The objectives interface is illustrated in Figure 1. The `Response` drop down box selects the main objective of the optimization. Thereafter, the type of the objective needs to be selected from the `Type` drop down box. There are mainly two types namely `minimization` and `maximization` representing optimization problems where minimizing of the objective and maximizing of the objective is of use respectively. The `maximization` optimization problems are converted to `minimization` problems by multiplying the given objective value by `-1`.
+The objectives interface is illustrated in Figure 1. The `Response` drop down box selects the main objective of the optimization. Thereafter, the type of the objective needs to be selected from the `Type` drop down box. There are mainly two types namely `minimization` and `maximization` representing optimization problems where minimizing of the objective and maximizing of the objective is of use respectively. The `maximization` optimization problems are converted to `minimization` problems by multiplying the given objective value by `-1`. (More details can be found about the exact implementations in the [objectives](../Technologies/Objectives.html) section.)
 
-The `Advanced Settings` section includes specific settings required to properly construct the objectives.
+The `Advanced Settings` section includes specific settings required to properly construct the objectives (see [finite difference approach](../General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html) and [adjoint approach](../General/Sensitivity_Analysis/Adjoint_approach.html) for more details)
 
 ## Constraints interface
 
@@ -58,5 +58,7 @@ Use of constraints is alsways optional. In order to activate constraints, `Use c
 |<=    | Less than or equal the value given by `Reference Type` |
 |>=    | More than or equal the value given by `Reference Type` |
 
-`Reference Type` has two options. `initial_value` referes to the initial value of the response to be used in the constraint as the value to be compared to. `specified_value` referes to a user specified value to be used in the construction of the constraints.
+`Reference Type` has two options. `initial_value` referes to the initial value of the response to be used in the constraint as the value to be compared to. `specified_value` referes to a user specified value to be used in the construction of the constraints (refer to [constraints](../Technologies/Constraints.html) for more details of implementations).
 
+
+The `Advanced Settings` section includes specific settings required to properly construct the constraints (see [finite difference approach](../General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html) and [adjoint approach](../General/Sensitivity_Analysis/Adjoint_approach.html) for more details)
