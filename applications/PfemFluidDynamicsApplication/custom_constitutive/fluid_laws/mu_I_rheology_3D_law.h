@@ -12,8 +12,8 @@
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_PAPANASTASIOU_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED)
-#define KRATOS_PAPANASTASIOU_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED
+#if !defined(KRATOS_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED)
+#define KRATOS_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED
 
 // System includes
 
@@ -169,4 +169,4 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheology3DLaw : public Pfem
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_PAPANASTASIOU_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED  defined
+#endif  // KRATOS_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED  defined
