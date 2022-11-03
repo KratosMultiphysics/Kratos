@@ -1,9 +1,9 @@
 ---
 title: Strain Energy
-keywords:
+keywords: 
 tags: [strain_energy.md]
 sidebar: shape_optimization_application
-summary:
+summary: 
 ---
 
 ## Settings

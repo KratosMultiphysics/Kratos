@@ -1,9 +1,9 @@
 ---
 title: Kreisselmeier aggregation
-keywords:
+keywords: 
 tags: [Kreisselmeier_aggregation.md]
 sidebar: shape_optimization_application
-summary:
+summary: 
 ---
 
 ## Introduction

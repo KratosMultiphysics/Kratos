@@ -30,4 +30,4 @@ The capabilities of $KratosMultiphysics$ $ShapeOptimization$ application is expo
 There are two types of example.
 
 1. [Showcase examples](../Examples)
-2. [Guided examples](../Siemens%20NX/Examples/guided_example.html)
+2. [Guided examples](../Siemens_NX/Guided_beam_example/Primal_problem_construction.html)

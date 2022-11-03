@@ -1,9 +1,9 @@
 ---
 title: Mass
-keywords:
+keywords: 
 tags: [Mass.md]
 sidebar: shape_optimization_application
-summary:
+summary: 
 ---
 
 ## Introduction

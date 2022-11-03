@@ -1,9 +1,9 @@
 ---
 title: Kreisselmeier Aggregated Stress
-keywords:
+keywords: 
 tags: [kreisselmeier_aggregated_stress.md]
 sidebar: shape_optimization_application
-summary:
+summary: 
 ---
 
 ## Settings
