@@ -892,3 +892,106 @@ This is necessary to ensure a consistent numbering.
 [2022-06-12 13:19:05] [DEBUG   ] kratos_salome_plugin.geometries_io : 0 new entities were created and 28748 existed already
 [2022-06-12 13:19:06] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/media/reza/ext_2tb/projects/AMC/clean-study/mesh/Structure.mdpa"
 [2022-06-12 13:19:09] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 3.03 [s]
+[2022-11-03 10:04:34] [INFO    ] KRATOS SALOME PLUGIN : Plugin version: 1.0.0
+[2022-11-03 10:04:34] [INFO    ] KRATOS SALOME PLUGIN : Running in Salome; version: 9.5.0; mode: GUI
+[2022-11-03 10:04:34] [DEBUG   ] KRATOS SALOME PLUGIN : Python version: 3.6.5
+[2022-11-03 10:04:34] [DEBUG   ] KRATOS SALOME PLUGIN : Operating system: linux
+[2022-11-03 10:04:34] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-11-03 10:04:34] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "structure"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.structure"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 294 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.000674 [s]
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 120 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.001 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new Properties with Id 0 for "SmallDisplacementElement3D8N"
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SmallDisplacementElement3D8N" exist already
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : 120 new entities were created and 0 existed already
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "left_support"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.left_support"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "left_supp" of type "MeshGroup" took 0.000149 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "right_support"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.right_support"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "right_supp" of type "MeshGroup" took 0.000137 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "side_loads"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.side_loads"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 4 Nodes from Mesh "side_loads" of type "MeshGroup" took 0.000139 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.mesh_interface : Creating 0D elements for all nodes.
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 4 Geometrical Entities from Mesh "side_loads" of type "MeshGroup" took 0.000 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "PointLoadCondition3D1N"
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "PointLoadCondition3D1N" exist already
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : 4 new entities were created and 0 existed already
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "center_load"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.center_load"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "center_load" of type "MeshGroup" took 0.000135 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.mesh_interface : Creating 0D elements for all nodes.
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Geometrical Entities from Mesh "center_load" of type "MeshGroup" took 0.000 [s]
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "PointLoadCondition3D1N"
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : Entities with name "PointLoadCondition3D1N" exist already
+[2022-11-03 10:04:34] [DEBUG   ] kratos_salome_plugin.geometries_io : 2 new entities were created and 0 existed already
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/media/reza/ext_2tb/projects/AMC/top-opt-benchmarks/models/bridge-structure/Structure_Hex.mdpa"
+[2022-11-03 10:04:34] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 0.00 [s]
+[2022-11-03 10:06:17] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-11-03 10:06:17] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "structure"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.structure"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 1066 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.00518 [s]
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 480 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.004 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new Properties with Id 0 for "SmallDisplacementElement3D8N"
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SmallDisplacementElement3D8N" exist already
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : 480 new entities were created and 0 existed already
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "left_support"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.left_support"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "left_supp" of type "MeshGroup" took 0.000224 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "right_support"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.right_support"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "right_supp" of type "MeshGroup" took 0.000205 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "side_loads"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.side_loads"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 4 Nodes from Mesh "side_loads" of type "MeshGroup" took 0.000211 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.mesh_interface : Creating 0D elements for all nodes.
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 4 Geometrical Entities from Mesh "side_loads" of type "MeshGroup" took 0.000 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "PointLoadCondition3D1N"
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "PointLoadCondition3D1N" exist already
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : 4 new entities were created and 0 existed already
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "center_load"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.center_load"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "center_load" of type "MeshGroup" took 0.000213 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.mesh_interface : Creating 0D elements for all nodes.
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Geometrical Entities from Mesh "center_load" of type "MeshGroup" took 0.000 [s]
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "PointLoadCondition3D1N"
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : Entities with name "PointLoadCondition3D1N" exist already
+[2022-11-03 10:06:17] [DEBUG   ] kratos_salome_plugin.geometries_io : 2 new entities were created and 0 existed already
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/media/reza/ext_2tb/projects/AMC/top-opt-benchmarks/models/bridge-structure/Structure_Hex.mdpa"
+[2022-11-03 10:06:17] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 0.01 [s]
+[2022-11-03 13:17:33] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-11-03 13:17:33] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "structure"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.structure"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 294 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.00212 [s]
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 120 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.004 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new Properties with Id 0 for "SmallDisplacementElement3D8N"
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SmallDisplacementElement3D8N" exist already
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : 120 new entities were created and 0 existed already
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "left_support"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.left_support"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "left_supp" of type "MeshGroup" took 0.000338 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "right_support"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.right_support"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "right_supp" of type "MeshGroup" took 0.000296 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "side_loads"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.side_loads"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 4 Nodes from Mesh "side_loads" of type "MeshGroup" took 0.000293 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.mesh_interface : Creating 0D elements for all nodes.
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 4 Geometrical Entities from Mesh "side_loads" of type "MeshGroup" took 0.001 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "PointLoadCondition3D1N"
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "PointLoadCondition3D1N" exist already
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : 4 new entities were created and 0 existed already
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "center_load"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.center_load"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Nodes from Mesh "center_load" of type "MeshGroup" took 0.000318 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.mesh_interface : Creating 0D elements for all nodes.
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 2 Geometrical Entities from Mesh "center_load" of type "MeshGroup" took 0.000 [s]
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "PointLoadCondition3D1N"
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : Entities with name "PointLoadCondition3D1N" exist already
+[2022-11-03 13:17:33] [DEBUG   ] kratos_salome_plugin.geometries_io : 2 new entities were created and 0 existed already
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/media/reza/ext_2tb/projects/AMC/top-opt-benchmarks/models/bridge-structure/Structure_Hex.mdpa"
+[2022-11-03 13:17:33] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 0.00 [s]

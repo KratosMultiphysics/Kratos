@@ -30,4 +30,9 @@ class top_opt_test(OptimizationTestFactory):
     execution_directory = "top_opt_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "LinearSolversApplication")
+class mat_opt_test(OptimizationTestFactory):
+    execution_directory = "mat_opt_test"
+    execution_file = "run_test"    
+
 # ==============================================================================
