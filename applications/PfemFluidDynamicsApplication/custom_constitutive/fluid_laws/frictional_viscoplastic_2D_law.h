@@ -132,13 +132,13 @@ namespace Kratos
         double GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const override;
 
         /// Get the effective friction angle for the fluid.
-        double GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters &rParameters) const;
+        virtual double GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters &rParameters) const;
 
         /// Get the effective cohesion for the fluid.
-        double GetEffectiveCohesion(ConstitutiveLaw::Parameters &rParameters) const;
+        virtual double GetEffectiveCohesion(ConstitutiveLaw::Parameters &rParameters) const;
 
         /// Get the effective dynamic viscosity for the fluid.
-        double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const;
+        virtual double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const;
 
         ///@}
 

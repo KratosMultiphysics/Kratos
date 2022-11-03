@@ -62,8 +62,8 @@ namespace Kratos
         Vector &r_stress_vector = rValues.GetStressVector();
 
         const double dynamic_viscosity = this->GetEffectiveDynamicViscosity(rValues);
-        const double friction_angle = r_properties[INTERNAL_FRICTION_ANGLE];
-        const double cohesion = r_properties[COHESION];
+        const double friction_angle = this->GetEffectiveFrictionAngle(rValues);
+        const double cohesion = this->GetEffectiveCohesion(rValues);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity = 0;
 
@@ -171,6 +171,8 @@ namespace Kratos
 
     double FrictionalViscoplastic3DLaw::GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters &rParameters) const
     {
+        double frictionAngle=rParameters.GetMaterialProperties()[INTERNAL_FRICTION_ANGLE];
+        std::cout<<"frictionAngle is "<<frictionAngle<<std::endl;
         return rParameters.GetMaterialProperties()[INTERNAL_FRICTION_ANGLE];
     }
 

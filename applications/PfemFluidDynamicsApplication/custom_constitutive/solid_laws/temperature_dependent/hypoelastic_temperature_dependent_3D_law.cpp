@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/solid_laws/hypoelastic_temperature_dependent_2D_law.h"
+#include "custom_constitutive/solid_laws/temperature_dependent/hypoelastic_temperature_dependent_3D_law.h"
 #include "includes/checks.h"
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -27,44 +27,44 @@ namespace Kratos {
 //********************************CONSTRUCTOR*********************************
 //****************************************************************************
 
-HypoelasticTemperatureDependent2DLaw::HypoelasticTemperatureDependent2DLaw() : Hypoelastic2DLaw() {}
+HypoelasticTemperatureDependent3DLaw::HypoelasticTemperatureDependent3DLaw() : Hypoelastic3DLaw() {}
 
 //******************************COPY CONSTRUCTOR******************************
 //****************************************************************************
 
-HypoelasticTemperatureDependent2DLaw::HypoelasticTemperatureDependent2DLaw(const HypoelasticTemperatureDependent2DLaw& rOther) : Hypoelastic2DLaw(rOther) {}
+HypoelasticTemperatureDependent3DLaw::HypoelasticTemperatureDependent3DLaw(const HypoelasticTemperatureDependent3DLaw& rOther) : Hypoelastic3DLaw(rOther) {}
 
 //***********************************CLONE************************************
 //****************************************************************************
 
-ConstitutiveLaw::Pointer HypoelasticTemperatureDependent2DLaw::Clone() const { return Kratos::make_shared<HypoelasticTemperatureDependent2DLaw>(*this); }
+ConstitutiveLaw::Pointer HypoelasticTemperatureDependent3DLaw::Clone() const { return Kratos::make_shared<HypoelasticTemperatureDependent3DLaw>(*this); }
 
 //*********************************DESTRUCTOR*********************************
 //****************************************************************************
 
-HypoelasticTemperatureDependent2DLaw::~HypoelasticTemperatureDependent2DLaw() {}
+HypoelasticTemperatureDependent3DLaw::~HypoelasticTemperatureDependent3DLaw() {}
 
-int HypoelasticTemperatureDependent2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
+int HypoelasticTemperatureDependent3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
                             const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-        << "Incorrect or missing YOUNG_MODULUS provided in process info for HypoelasticTemperatureDependent2DLaw: "
+        << "Incorrect or missing YOUNG_MODULUS provided in process info for HypoelasticTemperatureDependent3DLaw: "
         << rMaterialProperties[YOUNG_MODULUS] << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < 0.0)
-        << "Incorrect or missing POISSON_RATIO provided in process info for HypoelasticTemperatureDependent2DLaw: "
+        << "Incorrect or missing POISSON_RATIO provided in process info for HypoelasticTemperatureDependent3DLaw: "
         << rMaterialProperties[POISSON_RATIO] << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0)
-        << "Incorrect or missing DENSITY provided in process info for HypoelasticTemperatureDependent2DLaw: "
+        << "Incorrect or missing DENSITY provided in process info for HypoelasticTemperatureDependent3DLaw: "
         << rMaterialProperties[DENSITY] << std::endl;
 
     return 0;
 }
 
-std::string HypoelasticTemperatureDependent2DLaw::Info() const { return "HypoelasticTemperatureDependent2DLaw"; }
+std::string HypoelasticTemperatureDependent3DLaw::Info() const { return "HypoelasticTemperatureDependent3DLaw"; }
 
-double HypoelasticTemperatureDependent2DLaw::GetEffectiveYoungModulus(ConstitutiveLaw::Parameters& rParameters) const {
+double HypoelasticTemperatureDependent3DLaw::GetEffectiveYoungModulus(ConstitutiveLaw::Parameters& rParameters) const {
     const Properties& r_properties = rParameters.GetMaterialProperties();
     double effective_young_modulus;
     if (r_properties.HasTable(TEMPERATURE, YOUNG_MODULUS)) {
@@ -75,7 +75,7 @@ double HypoelasticTemperatureDependent2DLaw::GetEffectiveYoungModulus(Constituti
     return effective_young_modulus;
 }
 
-double HypoelasticTemperatureDependent2DLaw::GetEffectivePoissonRatio(ConstitutiveLaw::Parameters& rParameters) const {
+double HypoelasticTemperatureDependent3DLaw::GetEffectivePoissonRatio(ConstitutiveLaw::Parameters& rParameters) const {
     const Properties& r_properties = rParameters.GetMaterialProperties();
     double effective_poisson_ratio;
     if (r_properties.HasTable(TEMPERATURE, POISSON_RATIO)) {
@@ -86,7 +86,7 @@ double HypoelasticTemperatureDependent2DLaw::GetEffectivePoissonRatio(Constituti
     return effective_poisson_ratio;
 }
 
-double HypoelasticTemperatureDependent2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
+double HypoelasticTemperatureDependent3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
     const Properties& r_properties = rParameters.GetMaterialProperties();
     double effective_density;
     if (r_properties.HasTable(TEMPERATURE, DENSITY)) {
@@ -97,12 +97,12 @@ double HypoelasticTemperatureDependent2DLaw::GetEffectiveDensity(ConstitutiveLaw
     return effective_density;
 }
 
-void HypoelasticTemperatureDependent2DLaw::save(Serializer& rSerializer) const {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Hypoelastic2DLaw)
+void HypoelasticTemperatureDependent3DLaw::save(Serializer& rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Hypoelastic3DLaw)
 }
 
-void HypoelasticTemperatureDependent2DLaw::load(Serializer& rSerializer) {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Hypoelastic2DLaw)
+void HypoelasticTemperatureDependent3DLaw::load(Serializer& rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Hypoelastic3DLaw)
 }
 
 }  // Namespace Kratos

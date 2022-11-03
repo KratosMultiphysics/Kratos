@@ -6,29 +6,32 @@
 //
 //  BSD License:    PfemFluidDynamicsApplication/license.txt
 //
-//  Main authors:   Ruben Zorilla
-//  Collaborators:  Massimiliano Zecchetto
+//  Main authors:   Massimiliano Zecchetto
+//  Collaborators:
 //
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED)
-#define KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_FRICTIONAL_VISCOPLASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED)
+#define KRATOS_FRICTIONAL_VISCOPLASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "newtonian_3D_law.h"
+#include "custom_constitutive/fluid_laws/frictional_viscoplastic_2D_law.h"
 
 namespace Kratos {
 /**
- * Defines a temperature dependent Newtonian constitutive law for 3D
+ * Defines a 2D frictional visco-plastic non-Newtonian constitutive law
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
+ * 2) INTERNAL_FRICTION_ANGLE
+ * 3) COHESION
+ * 4) ADAPTIVE_EXPONENT
  */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3DLaw : public Newtonian3DLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) FrictionalViscoplasticTemperatureDependent2DLaw : public FrictionalViscoplastic2DLaw {
    public:
     /**
      * Type Definitions
@@ -38,9 +41,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of Newtonian3DLaw
+     * Counted pointer of FrictionalViscoplasticTemperatureDependent2DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(NewtonianTemperatureDependent3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(FrictionalViscoplasticTemperatureDependent2DLaw);
 
     /**
      * Life Cycle
@@ -49,7 +52,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3
     /**
      * Default constructor.
      */
-    NewtonianTemperatureDependent3DLaw();
+    FrictionalViscoplasticTemperatureDependent2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -60,12 +63,16 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3
     /**
      * Copy constructor.
      */
-    NewtonianTemperatureDependent3DLaw(const NewtonianTemperatureDependent3DLaw& rOther);
+    FrictionalViscoplasticTemperatureDependent2DLaw(const FrictionalViscoplasticTemperatureDependent2DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~NewtonianTemperatureDependent3DLaw() override;
+    ~FrictionalViscoplasticTemperatureDependent2DLaw() override;
+
+    /**
+     * Operators
+     */
 
     /**
      * Operations needed by the base class:
@@ -96,16 +103,13 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -117,32 +121,38 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3
     /// Get the effective density for the fluid.
     double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
 
+    /// Get the effective internal friction angle for the fluid.
+    double GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters& rParameters) const override;
+
+    /// Get the effective cohesion for the fluid.
+    double GetEffectiveCohesion(ConstitutiveLaw::Parameters& rParameters) const override;
+
+    /// Get the effective dynamic viscosity for the fluid.
+    double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+
     ///@}
 
    private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
+    ///@}
 
     ///@}
     ///@name Private  Access
     ///@{
-
+    ///@}
 
     ///@}
     ///@name Serialization
@@ -154,8 +164,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3
     void load(Serializer& rSerializer) override;
     ///@}
 
-};  // Class NewtonianTemperatureDependent3DLaw
+};  // Class FrictionalViscoplasticTemperatureDependent2DLaw
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED  defined
+#endif  // KRATOS_FRICTIONAL_VISCOPLASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED  defined

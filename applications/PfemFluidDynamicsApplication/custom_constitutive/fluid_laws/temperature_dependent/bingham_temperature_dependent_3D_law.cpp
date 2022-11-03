@@ -19,7 +19,7 @@
 #include <cmath>
 
 // Project includes
-#include "custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/bingham_temperature_dependent_3D_law.h"
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "pfem_fluid_dynamics_application_variables.h"
@@ -78,7 +78,7 @@ int BinghamTemperatureDependent3DLaw::Check(const Properties& rMaterialPropertie
 }
 
 double BinghamTemperatureDependent3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    return rParameters.GetConstitutiveMatrix()(2, 2);
+    return rParameters.GetConstitutiveMatrix()(5, 5);
 }
 
 double BinghamTemperatureDependent3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {

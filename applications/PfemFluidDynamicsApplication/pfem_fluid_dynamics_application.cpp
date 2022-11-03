@@ -272,6 +272,8 @@ namespace Kratos
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic3DLaw", mFrictionalViscoplastic3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplasticTemperatureDependent2DLaw", mFrictionalViscoplasticTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplasticTemperatureDependent3DLaw", mFrictionalViscoplasticTemperatureDependent3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);

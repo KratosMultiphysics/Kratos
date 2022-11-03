@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/fluid_laws/newtonian_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/newtonian_temperature_dependent_3D_law.h"
 #include "includes/checks.h"
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -27,28 +27,28 @@ namespace Kratos {
 //********************************CONSTRUCTOR*********************************
 //****************************************************************************
 
-NewtonianTemperatureDependent2DLaw::NewtonianTemperatureDependent2DLaw() : Newtonian2DLaw() {}
+NewtonianTemperatureDependent3DLaw::NewtonianTemperatureDependent3DLaw() : Newtonian3DLaw() {}
 
 //******************************COPY CONSTRUCTOR******************************
 //****************************************************************************
 
-NewtonianTemperatureDependent2DLaw::NewtonianTemperatureDependent2DLaw(const NewtonianTemperatureDependent2DLaw& rOther) : Newtonian2DLaw(rOther) {}
+NewtonianTemperatureDependent3DLaw::NewtonianTemperatureDependent3DLaw(const NewtonianTemperatureDependent3DLaw& rOther) : Newtonian3DLaw(rOther) {}
 
 //***********************************CLONE************************************
 //****************************************************************************
 
-ConstitutiveLaw::Pointer NewtonianTemperatureDependent2DLaw::Clone() const { return Kratos::make_shared<NewtonianTemperatureDependent2DLaw>(*this); }
+ConstitutiveLaw::Pointer NewtonianTemperatureDependent3DLaw::Clone() const { return Kratos::make_shared<NewtonianTemperatureDependent3DLaw>(*this); }
 
 //*********************************DESTRUCTOR*********************************
 //****************************************************************************
 
-NewtonianTemperatureDependent2DLaw::~NewtonianTemperatureDependent2DLaw() {}
+NewtonianTemperatureDependent3DLaw::~NewtonianTemperatureDependent3DLaw() {}
 
-int NewtonianTemperatureDependent2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
+int NewtonianTemperatureDependent3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
                           const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
-        << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for NewtonianTemperatureDependent2DLaw: "
+        << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for NewtonianTemperatureDependent3DLaw: "
         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] <= 0.0)
@@ -58,9 +58,9 @@ int NewtonianTemperatureDependent2DLaw::Check(const Properties& rMaterialPropert
     return 0;
 }
 
-std::string NewtonianTemperatureDependent2DLaw::Info() const { return "NewtonianTemperatureDependent2DLaw"; }
+std::string NewtonianTemperatureDependent3DLaw::Info() const { return "NewtonianTemperatureDependent3DLaw"; }
 
-double NewtonianTemperatureDependent2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+double NewtonianTemperatureDependent3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
     const Properties& r_properties = rParameters.GetMaterialProperties();
     double effective_viscosity;
     if (r_properties.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
@@ -71,7 +71,7 @@ double NewtonianTemperatureDependent2DLaw::GetEffectiveViscosity(ConstitutiveLaw
     return effective_viscosity;
 }
 
-double NewtonianTemperatureDependent2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
+double NewtonianTemperatureDependent3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const {
     const Properties& r_properties = rParameters.GetMaterialProperties();
     double effective_density;
     if (r_properties.HasTable(TEMPERATURE, DENSITY)) {
@@ -82,12 +82,12 @@ double NewtonianTemperatureDependent2DLaw::GetEffectiveDensity(ConstitutiveLaw::
     return effective_density;
 }
 
-void NewtonianTemperatureDependent2DLaw::save(Serializer& rSerializer) const {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Newtonian2DLaw)
+void NewtonianTemperatureDependent3DLaw::save(Serializer& rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Newtonian3DLaw)
 }
 
-void NewtonianTemperatureDependent2DLaw::load(Serializer& rSerializer) {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Newtonian2DLaw)
+void NewtonianTemperatureDependent3DLaw::load(Serializer& rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Newtonian3DLaw)
 }
 
 }  // Namespace Kratos

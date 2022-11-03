@@ -19,7 +19,7 @@
 #include <cmath>
 
 // Project includes
-#include "custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/bingham_temperature_dependent_2D_law.h"
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "pfem_fluid_dynamics_application_variables.h"
