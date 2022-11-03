@@ -146,14 +146,10 @@ namespace Kratos
         double &deviatoricCoeff,
         double &volumetricCoeff,
         double timeInterval,
-        double nodalVolume,
-        const bool newtonian,
-        const bool muIrheology,
-        const bool bingham)
+        double nodalVolume)
     {
 
-      this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
-
+      deviatoricCoeff = itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
       density = itNode->FastGetSolutionStepValue(DENSITY);
 
       volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
@@ -166,61 +162,6 @@ namespace Kratos
       }
     }
 
-    void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, double &deviatoricCoefficient, const bool newtonian, const bool muIrheology, const bool bingham)
-    {
-      const double tolerance = 1.0e-07;
-      if (muIrheology) // mu(I)-rheology
-      {
-        const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
-        const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
-        const double delta_friction = dynamic_friction - static_friction;
-        const double inertial_number_zero = itNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
-        const double grain_diameter = itNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
-        const double grain_density = itNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-        const double regularization_coeff = itNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
-
-        const double theta = 0.5;
-        double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
-
-        double pressure_tolerance = -tolerance;
-        if (mean_pressure > pressure_tolerance)
-        {
-          mean_pressure = pressure_tolerance;
-        }
-
-        const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-        const double exponent = -equivalent_strain_rate / regularization_coeff;
-        const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
-
-        if (equivalent_strain_rate != 0)
-        {
-          const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
-          deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
-        }
-        else
-        {
-          deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
-        }
-      }
-      else if (bingham) // bingham model
-      {
-        const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-        const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-        const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-        const double exponent = -adaptiveExponent * equivalentStrainRate;
-        deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-        if (equivalentStrainRate != 0)
-        {
-          deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-        }
-      }
-      else if (newtonian)
-      {
-        deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-      }
-      itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT) = deviatoricCoefficient;
-    }
-
     void BuildFluidNodally(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -230,8 +171,6 @@ namespace Kratos
       KRATOS_TRY
 
       KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-      /* std::cout<<"Building LHS and RHS of Momentum Equation Nodally"<<std::endl; */
 
       // contributions to the system
       LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -295,10 +234,7 @@ namespace Kratos
           noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
           noalias(RHS_Contribution) = ZeroVector(localSize);
 
-          const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-          const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-          const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-          this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume, newtonian, muIrheology, bingham);
+          this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
 
           firstRow = 0;
           firstCol = 0;
@@ -381,7 +317,6 @@ namespace Kratos
                 EquationId[firstCol + 1] = neighb_nodes[i].GetDof(VELOCITY_Y, xDofPos + 1).EquationId();
               }
             }
-            /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
           }
           else if (dimension == 3)
           {
@@ -574,13 +509,7 @@ namespace Kratos
       KRATOS_TRY
 
       Timer::Start("Build");
-
-      // boost::timer m_build_time;
-
       BuildFluidNodally(pScheme, rModelPart, A, b);
-
-      // std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl;
-
       Timer::Stop("Build");
 
       //         ApplyPointLoads(pScheme,rModelPart,b);
@@ -591,16 +520,7 @@ namespace Kratos
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      // const double start_solve = OpenMPUtils::GetCurrentTime();
-      // Timer::Start("Solve");
-
-      /* boost::timer m_solve_time; */
       SystemSolveWithPhysics(A, Dx, b, rModelPart);
-      /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
-
-      // Timer::Stop("Solve");
-      // const double stop_solve = OpenMPUtils::GetCurrentTime();
-      // KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -634,12 +554,6 @@ namespace Kratos
 
       unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
-      //         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
-      //         typedef std::unordered_set < NodeType::DofType::Pointer,
-      //             DofPointerHasher,
-      //             DofPointerComparor,
-      //             allocator_type    >  set_type;
-
 #ifdef USE_GOOGLE_HASH
       typedef google::dense_hash_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
 #else
@@ -655,7 +569,6 @@ namespace Kratos
 #ifdef USE_GOOGLE_HASH
         dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
 #else
-        //             dofs_aux_list[i] = set_type( allocators[i]);
         dofs_aux_list[i].reserve(nelements);
 #endif
       }
@@ -689,16 +602,6 @@ namespace Kratos
       unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
       while (new_max >= 1 && new_max != old_max)
       {
-        //          //just for debugging
-        //          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-        //          for (int i = 0; i < new_max; i++)
-        //          {
-        //             if (i + new_max < old_max)
-        //             {
-        //                std::cout << i << " - " << i + new_max << std::endl;
-        //             }
-        //          }
-        //          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(new_max); i++)

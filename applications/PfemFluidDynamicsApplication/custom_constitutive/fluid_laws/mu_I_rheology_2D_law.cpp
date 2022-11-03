@@ -19,7 +19,7 @@
 #include <cmath>
 
 // Project includes
-#include "custom_constitutive/fluid_laws/papanastasiou_mu_I_rheology_2D_law.h"
+#include "custom_constitutive/fluid_laws/mu_I_rheology_2D_law.h"
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "pfem_fluid_dynamics_application_variables.h"
@@ -30,32 +30,32 @@ namespace Kratos
     //********************************CONSTRUCTOR*********************************
     //****************************************************************************
 
-    PapanastasiouMuIRheology2DLaw::PapanastasiouMuIRheology2DLaw() : PfemFluidConstitutiveLaw() {}
+    MuIRheology2DLaw::MuIRheology2DLaw() : PfemFluidConstitutiveLaw() {}
 
     //******************************COPY CONSTRUCTOR******************************
     //****************************************************************************
 
-    PapanastasiouMuIRheology2DLaw::PapanastasiouMuIRheology2DLaw(const PapanastasiouMuIRheology2DLaw &rOther)
+    MuIRheology2DLaw::MuIRheology2DLaw(const MuIRheology2DLaw &rOther)
         : PfemFluidConstitutiveLaw(rOther) {}
 
     //***********************************CLONE************************************
     //****************************************************************************
 
-    ConstitutiveLaw::Pointer PapanastasiouMuIRheology2DLaw::Clone() const
+    ConstitutiveLaw::Pointer MuIRheology2DLaw::Clone() const
     {
-        return Kratos::make_shared<PapanastasiouMuIRheology2DLaw>(*this);
+        return Kratos::make_shared<MuIRheology2DLaw>(*this);
     }
 
     //*********************************DESTRUCTOR*********************************
     //****************************************************************************
 
-    PapanastasiouMuIRheology2DLaw::~PapanastasiouMuIRheology2DLaw() {}
+    MuIRheology2DLaw::~MuIRheology2DLaw() {}
 
-    ConstitutiveLaw::SizeType PapanastasiouMuIRheology2DLaw::WorkingSpaceDimension() { return 2; }
+    ConstitutiveLaw::SizeType MuIRheology2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType PapanastasiouMuIRheology2DLaw::GetStrainSize() const { return 3; }
+    ConstitutiveLaw::SizeType MuIRheology2DLaw::GetStrainSize() const { return 3; }
 
-    void PapanastasiouMuIRheology2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
+    void MuIRheology2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
 
         Flags &r_options = rValues.GetOptions();
@@ -113,83 +113,83 @@ namespace Kratos
         }
     }
 
-    std::string PapanastasiouMuIRheology2DLaw::Info() const { return "PapanastasiouMuIRheology2DLaw"; }
+    std::string MuIRheology2DLaw::Info() const { return "MuIRheology2DLaw"; }
 
     //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW******************
     //*****************************************************************************
 
-    int PapanastasiouMuIRheology2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+    int MuIRheology2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
                                              const ProcessInfo &rCurrentProcessInfo) const
     {
 
         if (rMaterialProperties[STATIC_FRICTION] < 0.0)
         {
             KRATOS_ERROR
-                << "Incorrect or missing STATIC_FRICTION provided in process info for PapanastasiouMuIRheology2DLaw: "
+                << "Incorrect or missing STATIC_FRICTION provided in process info for MuIRheology2DLaw: "
                 << rMaterialProperties[STATIC_FRICTION] << std::endl;
         }
 
         if (rMaterialProperties[DYNAMIC_FRICTION] < 0.0)
         {
             KRATOS_ERROR
-                << "Incorrect or missing DYNAMIC_FRICTION provided in process info for PapanastasiouMuIRheology2DLaw: "
+                << "Incorrect or missing DYNAMIC_FRICTION provided in process info for MuIRheology2DLaw: "
                 << rMaterialProperties[DYNAMIC_FRICTION] << std::endl;
         }
 
         if (rMaterialProperties[INERTIAL_NUMBER_ZERO] < 0.0)
         {
             KRATOS_ERROR
-                << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for PapanastasiouMuIRheology2DLaw: "
+                << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for MuIRheology2DLaw: "
                 << rMaterialProperties[INERTIAL_NUMBER_ZERO] << std::endl;
         }
 
         if (rMaterialProperties[GRAIN_DIAMETER] <= 0.0)
         {
             KRATOS_ERROR
-                << "Incorrect or missing GRAIN_DIAMETER provided in process info for PapanastasiouMuIRheology2DLaw: "
+                << "Incorrect or missing GRAIN_DIAMETER provided in process info for MuIRheology2DLaw: "
                 << rMaterialProperties[GRAIN_DIAMETER] << std::endl;
         }
 
         if (rMaterialProperties[GRAIN_DENSITY] <= 0.0)
         {
             KRATOS_ERROR
-                << "Incorrect or missing GRAIN_DENSITY provided in process info for PapanastasiouMuIRheology2DLaw: "
+                << "Incorrect or missing GRAIN_DENSITY provided in process info for MuIRheology2DLaw: "
                 << rMaterialProperties[GRAIN_DENSITY] << std::endl;
         }
 
         if (rMaterialProperties[REGULARIZATION_COEFFICIENT] < 0.0)
         {
             KRATOS_ERROR << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for "
-                            "PapanastasiouMuIRheology2DLaw: "
+                            "MuIRheology2DLaw: "
                          << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
         }
 
         if (rMaterialProperties[BULK_MODULUS] <= 0.0)
         {
             KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for "
-                            "PapanastasiouMuIRheology2DLaw: "
+                            "MuIRheology2DLaw: "
                          << rMaterialProperties[BULK_MODULUS] << std::endl;
         }
 
         return 0;
     }
 
-    double PapanastasiouMuIRheology2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
+    double MuIRheology2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetConstitutiveMatrix()(2, 2);
     }
 
-    double PapanastasiouMuIRheology2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
+    double MuIRheology2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
     {
         return rParameters.GetMaterialProperties()[DENSITY];
     }
 
-    void PapanastasiouMuIRheology2DLaw::save(Serializer &rSerializer) const
+    void MuIRheology2DLaw::save(Serializer &rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PfemFluidConstitutiveLaw)
     }
 
-    void PapanastasiouMuIRheology2DLaw::load(Serializer &rSerializer)
+    void MuIRheology2DLaw::load(Serializer &rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PfemFluidConstitutiveLaw)
     }

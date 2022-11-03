@@ -230,12 +230,6 @@ namespace Kratos
 			double pressureNorm = 0;
 			double velocityNorm = 0;
 
-			// bool momentumAlreadyConverged=false;
-			// bool continuityAlreadyConverged=false;
-
-			/* boost::timer solve_step_time; */
-			// std::cout<<" InitializeSolutionStep().... "<<std::endl;
-
 			InitializeSolutionStep(); // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
 			for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
 			{
@@ -244,25 +238,17 @@ namespace Kratos
 
 				if (it == 0)
 				{
-
 					ComputeNodalVolumeAndAssignFlagToElementType(); // it assings NODAL_VOLUME to fluid and SOLID_NODAL_VOLUME to solid. Interface nodes have both
-
-					this->InitializeNonLinearIterations(); // it fills SOLID_NODAL_SFD_NEIGHBOURS for solids and NODAL_SFD_NEIGHBOURS for fluids
+					this->InitializeNonLinearIterations();			// it fills SOLID_NODAL_SFD_NEIGHBOURS for solids and NODAL_SFD_NEIGHBOURS for fluids
 				}
-				// std::cout<<" CalcNodalStrainsAndStresses .... "<<std::endl;
 				CalcNodalStrainsAndStresses(); // it computes stresses and strains for fluid and solid nodes
-											   // std::cout<<" CalcNodalStrainsAndStresses DONE "<<std::endl;
 
 				momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
 
 				UpdateTopology(rModelPart, BaseType::GetEchoLevel());
-				// std::cout<<" ComputeNodalVolume .... "<<std::endl;
 				ComputeNodalVolume();
-				// std::cout<<" ComputeNodalVolume DONE "<<std::endl;
 				this->InitializeNonLinearIterations();
-				// std::cout<<"    InitializeNonLinearIterations DONE "<<std::endl;
 				CalcNodalStrains();
-				// std::cout<<"         CalcNodalStrains DONE "<<std::endl;
 
 				if (fixedTimeStep == false)
 				{
@@ -323,8 +309,6 @@ namespace Kratos
 			if (mReformDofSet)
 				this->Clear();
 
-			/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
-
 			return converged;
 		}
 
@@ -340,7 +324,6 @@ namespace Kratos
 				OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
 				for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
 				{
-					/* itElem-> InitializeElementStrainStressState(); */
 					itElem->InitializeSolutionStep(rCurrentProcessInfo);
 				}
 			}
@@ -609,9 +592,7 @@ namespace Kratos
 				const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
 				const double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
-				// deviatoricCoeff=deltaT*secondLame
 				deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
-				// volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
 				volumetricCoeff = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio)) + 2.0 * deviatoricCoeff / 3.0;
 			}
 			else if (itNode->Is(FLUID) || itNode->Is(RIGID))
@@ -686,10 +667,6 @@ namespace Kratos
 						double &solidVolume = geometry(i)->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
 						solidVolume += elementalVolume;
 						nodalVolume += -elementalVolume;
-						// if(geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-						// 	//I have the subtract the solid volume to the nodal volume of the interface fluid nodes because I added it before
-						// 	nodalVolume += -elementalVolume;
-						// }
 					}
 				}
 			}
@@ -756,22 +733,18 @@ namespace Kratos
 				if (solidNodes == numNodes)
 				{
 					itElem->Set(SOLID);
-					// std::cout<<"THIS SOLID ELEMENT WAS  "<<geometry(0)->Id()<<"  "<<geometry(1)->Id()<<"  "<<geometry(2)->Id()<<"  "<<std::endl;
 				}
 				if (interfaceNodes == numNodes)
 				{
 					itElem->Set(SOLID);
-					// std::cout<<"THIS INTERFACE ELEMENT WAS "<<geometry(0)->Id()<<"  "<<geometry(1)->Id()<<"  "<<geometry(2)->Id()<<"  "<<std::endl;
 				}
 				if (fluidNodes == numNodes)
 				{
 					itElem->Set(FLUID);
-					// std::cout<<"THIS FLUID ELEMENT WAS "<<geometry(0)->Id()<<"  "<<geometry(1)->Id()<<"  "<<geometry(2)->Id()<<"  "<<std::endl;
 				}
 				if (solidNodes == numNodes && fluidNodes == numNodes)
 				{
 					itElem->Reset(FLUID);
-					// std::cout<<"THIS ELEMENT WAS BOTH FLUID AND SOLID "<<geometry(0)->Id()<<"  "<<geometry(1)->Id()<<"  "<<geometry(2)->Id()<<"  "<<std::endl;
 				}
 
 				for (unsigned int i = 0; i < numNodes; i++)
@@ -782,21 +755,9 @@ namespace Kratos
 
 					if (itElem->Is(SOLID))
 					{
-
 						double &solidVolume = geometry(i)->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
 						solidVolume += elementalVolume;
 						nodalVolume += -elementalVolume;
-
-						// if(geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-						// 	//I have the subtract the solid volume to the nodal volume of the interface fluid nodes because I added it before
-						// 	nodalVolume += -elementalVolume;
-						// }
-
-						// if(interfaceNodes==numNodes && solidDensity==0){
-						// 	std::cout<<"This interface element has not a correct density....I am assigning it the fluid density----- TODO: IMPROVE IT, TAKE FROM NEIGHBOURS"<<std::endl;
-						// 	double density=geometry(i)->FastGetSolutionStepValue(DENSITY);
-						// 	geometry(i)->FastGetSolutionStepValue(SOLID_DENSITY)=density;
-						// }
 					}
 				}
 			}
@@ -811,18 +772,7 @@ namespace Kratos
 		void FillNodalSFDVector()
 		{
 
-			// std::cout << "FillNodalSFDVector(); ... "  << std::endl;
-
 			ModelPart &rModelPart = BaseType::GetModelPart();
-
-			//  #pragma omp parallel
-			//  	{
-			// 		ModelPart::NodeIterator NodesBegin;
-			// 		ModelPart::NodeIterator NodesEnd;
-			// 		OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-			// for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-			// 	{
 
 			for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
 			{
@@ -843,8 +793,6 @@ namespace Kratos
 					SetNeighboursOrderToInterfaceNode(itNode); // it assigns neighbours to interface nodes, filling SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids
 				}
 			}
-			//	 }
-			// std::cout << "FillNodalSFDVector(); DONE "  << std::endl;
 		}
 
 		void SetNeighboursOrderToSolidNode(ModelPart::NodeIterator itNode)
@@ -926,35 +874,6 @@ namespace Kratos
 					}
 				}
 			}
-
-			// fluidCounter+=1;
-			// solidCounter+=1;
-
-			// ModelPart& rModelPart = BaseType::GetModelPart();
-			// const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-			// const unsigned int sizeFluidSDFNeigh=fluidCounter*dimension;
-			// const unsigned int sizeSolidSDFNeigh=solidCounter*dimension;
-
-			// Vector& rFluidNodalSFDneighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
-			// Vector& rSolidNodalSFDneighbours=itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS);
-
-			// if(rFluidNodalSFDneighbours.size() != sizeFluidSDFNeigh)
-			// 	rFluidNodalSFDneighbours.resize(sizeFluidSDFNeigh,false);
-
-			// if(rSolidNodalSFDneighbours.size() != sizeSolidSDFNeigh)
-			// 	rSolidNodalSFDneighbours.resize(sizeSolidSDFNeigh,false);
-
-			// noalias(rFluidNodalSFDneighbours)=ZeroVector(sizeFluidSDFNeigh);
-			// noalias(rSolidNodalSFDneighbours)=ZeroVector(sizeSolidSDFNeigh);
-
-			// rFluidNodalSFDneighbours.resize(sizeFluidSDFNeigh,true);
-			// rSolidNodalSFDneighbours.resize(sizeSolidSDFNeigh,true);
-
-			// std::cout<<"rFluidNodeOrderedNeighbours "<<rFluidNodeOrderedNeighbours<<std::endl;
-			// std::cout<<"rSolidNodeOrderedNeighbours "<<rSolidNodeOrderedNeighbours<<std::endl;
-			// std::cout<<"rFluidNodalSFDneighbours    "<<rFluidNodalSFDneighbours<<std::endl;
-			// std::cout<<"rSolidNodalSFDneighbours    "<<rSolidNodalSFDneighbours<<std::endl;
 		}
 
 		void InitializeNodalVariablesForSolidRemeshedDomain(ModelPart::NodeIterator itNode)
@@ -1137,14 +1056,9 @@ namespace Kratos
 					InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 				}
 
-				// }
-				// if(itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(INTERFACE_NODE)==false){
-				// 	CopyValuesToSolidNonInterfaceNodes(itNode);
-				// }
 			}
 			//   }
 
-			/* std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl; */
 		}
 
 		void CopyValuesToSolidNonInterfaceNodes(ModelPart::NodeIterator itNode)
@@ -1226,17 +1140,6 @@ namespace Kratos
 				double nodalSigmaDev_yy = 2.0 * deviatoricCoeff * (itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] - DefVol / 3.0);
 				double nodalSigmaDev_xy = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
 
-				//       if(itNode->Is(SOLID))
-				//   {
-				//         nodalSigmaTot_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[0];
-				//         nodalSigmaTot_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[1];
-				//         nodalSigmaTot_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[2];
-
-				//         nodalSigmaDev_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
-				//         nodalSigmaDev_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
-				//         nodalSigmaDev_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
-				//   	}
-
 				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
 				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
 				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_xy;
@@ -1273,23 +1176,6 @@ namespace Kratos
 				double nodalSigmaDev_xy = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3];
 				double nodalSigmaDev_xz = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4];
 				double nodalSigmaDev_yz = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5];
-
-				// if(itNode->Is(SOLID))
-				// {
-				//     nodalSigmaTot_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[0];
-				//     nodalSigmaTot_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[1];
-				//     nodalSigmaTot_zz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[2];
-				//     nodalSigmaTot_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[3];
-				//     nodalSigmaTot_xz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[4];
-				//     nodalSigmaTot_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[5];
-
-				//     nodalSigmaDev_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
-				//     nodalSigmaDev_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
-				//     nodalSigmaDev_zz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
-				//     nodalSigmaDev_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[3];
-				//     nodalSigmaDev_xz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[4];
-				//     nodalSigmaDev_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[5];
-				// }
 
 				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
 				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
@@ -1751,14 +1637,9 @@ namespace Kratos
 					this->InitializeNodalVariablesForRemeshedDomain(itNode);
 					InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 				}
-
-				// if(itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(INTERFACE_NODE)==false){
-				// 			CopyValuesToSolidNonInterfaceNodes(itNode);
-				// }
 			}
 			// }
 
-			/* std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl; */
 		}
 
 		void ComputeAndStoreNodalDeformationGradientForSolidNode(ModelPart::NodeIterator itNode, double theta)
@@ -1770,7 +1651,6 @@ namespace Kratos
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
 			Vector rNodalSFDneigh = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS);
-			/* unsigned int idThisNode=nodalSFDneighboursId[0]; */
 			const unsigned int neighSize = nodalSFDneighboursId.size();
 			Matrix Fgrad = ZeroMatrix(dimension, dimension);
 			Matrix FgradVel = ZeroMatrix(dimension, dimension);
@@ -1916,7 +1796,6 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			/* unsigned int idThisNode=nodalSFDneighboursId[0]; */
 			const unsigned int neighSize = nodalSFDneighboursId.size();
 			noalias(Fgrad) = ZeroMatrix(dimension, dimension);
 			noalias(FgradVel) = ZeroMatrix(dimension, dimension);
@@ -2064,22 +1943,17 @@ namespace Kratos
 				}
 			}
 
-			// itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)=Fgrad;
-			// itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)=FgradVel;
 			KRATOS_CATCH("");
 		}
 
 		void UpdateTopology(ModelPart &rModelPart, unsigned int echoLevel)
 		{
 			KRATOS_TRY;
-			// std::cout<<"                  UpdateTopology ..."<<std::endl;
-			/* this->CalculateDisplacements(); */
+
 			CalculateDisplacementsAndResetNodalVariables();
 			BaseType::MoveMesh();
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
 			BoundaryComputation.CalculateUnitBoundaryNormals(rModelPart, echoLevel);
-
-			// std::cout<<"                 UpdateTopology DONE"<<std::endl;
 
 			KRATOS_CATCH("");
 		}
@@ -2116,8 +1990,6 @@ namespace Kratos
 				///// reset Nodal variables //////
 				Vector &rNodalSFDneighbours = i->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 				unsigned int sizeSDFNeigh = rNodalSFDneighbours.size();
-				// unsigned int neighbourNodes=i->GetValue(NEIGHBOUR_NODES).size()+1;
-				// unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 
 				i->FastGetSolutionStepValue(NODAL_VOLUME) = 0;
 				i->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE) = 0;
@@ -2136,11 +2008,8 @@ namespace Kratos
 				Matrix &rFgradVel = i->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
 				noalias(rFgradVel) = ZeroMatrix(dimension, dimension);
 
-				//            if(i->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-
 				Vector &rSolidNodalSFDneighbours = i->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS);
 				unsigned int solidSizeSDFNeigh = rSolidNodalSFDneighbours.size();
-				// unsigned int solidSizeSDFNeigh=solidNeighbourNodes*dimension;
 
 				i->FastGetSolutionStepValue(SOLID_NODAL_VOLUME) = 0;
 				i->FastGetSolutionStepValue(SOLID_NODAL_MEAN_MESH_SIZE) = 0;
@@ -2158,7 +2027,6 @@ namespace Kratos
 
 				Matrix &rSolidFgradVel = i->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
 				noalias(rSolidFgradVel) = ZeroMatrix(dimension, dimension);
-				//						}
 			}
 			//  }
 		}

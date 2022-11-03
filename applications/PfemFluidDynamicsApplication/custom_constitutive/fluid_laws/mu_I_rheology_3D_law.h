@@ -34,7 +34,7 @@ namespace Kratos {
  * 6) REGULARIZATION_COEFFICIENT
  */
 
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PapanastasiouMuIRheology3DLaw : public PfemFluidConstitutiveLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheology3DLaw : public PfemFluidConstitutiveLaw {
    public:
     /**
      * Type Definitions
@@ -44,9 +44,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PapanastasiouMuIRheology3DLaw 
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of PapanastasiouMuIRheology3DLaw
+     * Counted pointer of MuIRheology3DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(PapanastasiouMuIRheology3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(MuIRheology3DLaw);
 
     /**
      * Life Cycle
@@ -55,7 +55,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PapanastasiouMuIRheology3DLaw 
     /**
      * Default constructor.
      */
-    PapanastasiouMuIRheology3DLaw();
+    MuIRheology3DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -66,12 +66,12 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PapanastasiouMuIRheology3DLaw 
     /**
      * Copy constructor.
      */
-    PapanastasiouMuIRheology3DLaw(const PapanastasiouMuIRheology3DLaw& rOther);
+    MuIRheology3DLaw(const MuIRheology3DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~PapanastasiouMuIRheology3DLaw() override;
+    ~MuIRheology3DLaw() override;
 
     /**
      * Operators
@@ -165,7 +165,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PapanastasiouMuIRheology3DLaw 
 
     void load(Serializer& rSerializer) override;
 
-};  // Class PapanastasiouMuIRheology3DLaw
+};  // Class MuIRheology3DLaw
 
 }  // namespace Kratos.
 

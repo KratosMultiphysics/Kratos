@@ -198,10 +198,7 @@ namespace Kratos
             { // in interface nodes not in contact with fluid elements the nodal volume is zero
 
               double deviatoricCoeff = 0;
-              const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-              const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-              const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-              this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
+              this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
               if (deviatoricCoeff > deviatoric_threshold && itNode->IsNot(SOLID))
               {
@@ -297,7 +294,6 @@ namespace Kratos
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
         {
-          // if((*it)->Is(FLUID)){
           if ((*it)->IsNot(SOLID))
           {
             // calculate elemental contribution
@@ -363,15 +359,7 @@ namespace Kratos
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      /* const double start_solve = OpenMPUtils::GetCurrentTime(); */
-      // Timer::Start("Solve");
-
-      /* boost::timer c_solve_time; */
       this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
-      /* std::cout << "CONTINUITY EQ: solve_time : " << c_solve_time.elapsed() << std::endl; */
-
-      // Timer::Stop("Solve");
-      /* const double stop_solve = OpenMPUtils::GetCurrentTime(); */
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -405,11 +393,6 @@ namespace Kratos
 
       unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
-      //         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
-      //         typedef std::unordered_set < NodeType::DofType::Pointer,
-      //             DofPointerHasher,
-      //             DofPointerComparor,
-      //             allocator_type    >  set_type;
 
 #ifdef USE_GOOGLE_HASH
       typedef google::dense_hash_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
@@ -419,7 +402,6 @@ namespace Kratos
       //
 
       std::vector<set_type> dofs_aux_list(nthreads);
-      //         std::vector<allocator_type> allocators(nthreads);
 
       for (int i = 0; i < static_cast<int>(nthreads); i++)
       {
@@ -443,34 +425,11 @@ namespace Kratos
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
 
-      //         ConditionsArrayType& pConditions = rModelPart.Conditions();
-      //         const int nconditions = static_cast<int>(pConditions.size());
-      // #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-      //         for (int i = 0; i < nconditions; i++)
-      // 	  {
-      //             typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-      //             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
-
-      //             // gets list of Dof involved on every element
-      //             pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-      //             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-      // 	  }
-
       // here we do a reduction in a tree so to have everything on thread 0
       unsigned int old_max = nthreads;
       unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
       while (new_max >= 1 && new_max != old_max)
       {
-        //          //just for debugging
-        //          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-        //          for (int i = 0; i < new_max; i++)
-        //          {
-        //             if (i + new_max < old_max)
-        //             {
-        //                std::cout << i << " - " << i + new_max << std::endl;
-        //             }
-        //          }
-        //          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(new_max); i++)

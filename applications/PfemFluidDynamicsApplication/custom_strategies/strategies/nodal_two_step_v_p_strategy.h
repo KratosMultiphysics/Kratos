@@ -74,8 +74,6 @@ namespace Kratos
 		KRATOS_CLASS_POINTER_DEFINITION(NodalTwoStepVPStrategy);
 
 		/// Counted pointer of NodalTwoStepVPStrategy
-		// typedef boost::shared_ptr< NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
-
 		typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
 		typedef typename BaseType::TDataType TDataType;
@@ -87,8 +85,6 @@ namespace Kratos
 		typedef Geometry<NodeType> GeometryType;
 
 		typedef std::size_t SizeType;
-
-		// typedef typename BaseType::DofSetType DofSetType;
 
 		typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -120,7 +116,6 @@ namespace Kratos
 		}
 
 		NodalTwoStepVPStrategy(ModelPart &rModelPart,
-							   /*SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& rSolverConfig,*/
 							   typename TLinearSolver::Pointer pVelocityLinearSolver,
 							   typename TLinearSolver::Pointer pPressureLinearSolver,
 							   bool ReformDofSet = true,
@@ -168,7 +163,6 @@ namespace Kratos
 			vel_build->SetCalculateReactionsFlag(false);
 
 			BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new NodalResidualBasedEliminationBuilderAndSolverContinuity<TSparseSpace, TDenseSpace, TLinearSolver>(pPressureLinearSolver));
-			/* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new NodalResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(pPressureLinearSolver)); */
 
 			this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
@@ -256,9 +250,6 @@ namespace Kratos
 			bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
 			bool converged = false;
 
-			// bool momentumAlreadyConverged=false;
-			// bool continuityAlreadyConverged=false;
-
 			unsigned int maxNonLinearIterations = mMaxPressureIter;
 
 			KRATOS_INFO("\n                  Solve with nodally_integrated_two_step_vp strategy at t=") << currentTime << "s" << std::endl;
@@ -285,7 +276,6 @@ namespace Kratos
 			bool fixedTimeStep = false;
 			double pressureNorm = 0;
 			double velocityNorm = 0;
-			/* boost::timer solve_step_time; */
 
 			this->InitializeSolutionStep();
 			for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
@@ -355,7 +345,6 @@ namespace Kratos
 			if (mReformDofSet)
 				this->Clear();
 
-			/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
 			return converged;
 		}
@@ -860,8 +849,8 @@ namespace Kratos
 
 		void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, const unsigned int dimension, double &deviatoricCoefficient)
 		{
-			const double tolerance = 1.0e-07;
 			ModelPart &rModelPart = BaseType::GetModelPart();
+			const double tolerance = 1e-12;
 
 			if (rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION)) // mu(I)-rheology
 			{
@@ -876,7 +865,7 @@ namespace Kratos
 				const double theta = 0.5;
 				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
 
-				double pressure_tolerance = -tolerance;
+				double pressure_tolerance = -1.0e-07;
 				if (mean_pressure > pressure_tolerance)
 				{
 					mean_pressure = pressure_tolerance;
@@ -901,7 +890,7 @@ namespace Kratos
 				const double exponent = -equivalent_strain_rate / regularization_coeff;
 				const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
 
-				if (equivalent_strain_rate != 0)
+				if (std::fabs(equivalent_strain_rate) > tolerance)
 				{
 					const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
 					deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
@@ -909,6 +898,53 @@ namespace Kratos
 				else
 				{
 					deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
+				}
+			}
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(INTERNAL_FRICTION_ANGLE)) // frictiional viscoplastic model
+			{
+				const double dynamic_viscosity = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+				const double friction_angle = itNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+				const double cohesion = itNode->FastGetSolutionStepValue(COHESION);
+				const double adaptive_exponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+
+				const double theta = 0.5;
+				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+
+				double pressure_tolerance = -1.0e-07;
+				if (mean_pressure > pressure_tolerance)
+				{
+					mean_pressure = pressure_tolerance;
+				}
+
+				if (dimension == 2)
+				{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
+				}
+				else if (dimension == 3)
+				{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+																						  2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
+																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]);
+				}
+
+				const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+
+				// Ensuring that the case of equivalent_strain_rate = 0 is not problematic
+				if (std::fabs(equivalent_strain_rate) > tolerance)
+				{
+					const double friction_angle_rad = friction_angle * Globals::Pi / 180.0;
+					const double tanFi = std::tan(friction_angle_rad);
+					double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
+					deviatoricCoefficient = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate);
+				}
+				else
+				{
+					deviatoricCoefficient = dynamic_viscosity;
 				}
 			}
 			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR)) // bingham model
@@ -934,12 +970,12 @@ namespace Kratos
 				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
 				const double exponent = -adaptiveExponent * equivalentStrainRate;
 				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-				if (equivalentStrainRate != 0)
+				if (equivalentStrainRate > tolerance)
 				{
 					deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
 				}
 			}
-			else
+			else  if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
 			{
 				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 			}
@@ -1060,7 +1096,6 @@ namespace Kratos
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 			Vector rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
-			/* unsigned int idThisNode=nodalSFDneighboursId[0]; */
 			const unsigned int neighSize = nodalSFDneighboursId.size();
 			Matrix Fgrad = ZeroMatrix(dimension, dimension);
 			Matrix FgradVel = ZeroMatrix(dimension, dimension);
@@ -1334,13 +1369,8 @@ namespace Kratos
 				array_1d<double, 3> &CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 				array_1d<double, 3> &PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-				/* if( i->IsFixed(DISPLACEMENT_X) == false ) */
 				CurrentDisplacement[0] = 0.5 * TimeStep * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
-
-				/* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
 				CurrentDisplacement[1] = 0.5 * TimeStep * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
-
-				/* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
 				CurrentDisplacement[2] = 0.5 * TimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
 			}
 		}
@@ -1377,8 +1407,6 @@ namespace Kratos
 				///// reset Nodal variables //////
 				Vector &rNodalSFDneighbours = i->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 				unsigned int sizeSDFNeigh = rNodalSFDneighbours.size();
-				// unsigned int neighbourNodes=i->GetValue(NEIGHBOUR_NODES).size()+1;
-				// unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 
 				i->FastGetSolutionStepValue(NODAL_VOLUME) = 0;
 				i->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE) = 0;
@@ -1496,7 +1524,6 @@ namespace Kratos
 			if (it == 0)
 			{
 				mpMomentumStrategy->InitializeSolutionStep();
-				/* this->SetNeighboursVelocityId(); */
 			}
 
 			NormDv = mpMomentumStrategy->Solve();
@@ -1509,9 +1536,6 @@ namespace Kratos
 				velocityNorm = this->ComputeVelocityNorm();
 			}
 			double DvErrorNorm = NormDv / velocityNorm;
-
-			// double DvErrorNorm = 0;
-			// ConvergedMomentum = this->CheckVelocityConvergence(NormDv, DvErrorNorm);
 
 			unsigned int iterationForCheck = 3;
 			KRATOS_INFO("TwoStepVPStrategy") << "iteration(" << it << ") Velocity error: " << DvErrorNorm << std::endl;
@@ -1673,9 +1697,6 @@ namespace Kratos
 				std::cout << "The norm of velocity is: " << NormV << std::endl;
 				std::cout << "Velocity error: " << errorNormDv << "mVelocityTolerance: " << mVelocityTolerance << std::endl;
 			}
-			/* else{ */
-			/*   std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl; */
-			/* } */
 
 			if (errorNormDv < mVelocityTolerance)
 			{
@@ -1900,19 +1921,6 @@ namespace Kratos
 					double computedTauTheta = +(tauXX - tauYY) * sin2alfa / 2.0 - tauXY * cos2alfa;
 					double nodalErrorTauTheta = computedTauTheta - expectedTauTheta;
 					itNode->FastGetSolutionStepValue(NODAL_ERROR_XX) = computedVelocityTheta;
-					// if(posY>-0.01 && posY<0.01){
-					//  std::cout<<"expectedTauTheta "<<expectedTauTheta<<"   computedTauTheta "<<computedTauTheta <<std::endl;
-					//  std::cout<<"tauXX "<<tauXX<<"   tauYY "<<tauYY<<"   tauXY "<<tauXY <<std::endl;
-					//  std::cout<<"posX  "<<posX <<"   posY  "<<posY <<std::endl;
-					//  std::cout<<"\n  ";
-					// }
-
-					// if(posX>-0.01 && posX<0.01){
-					//  std::cout<<"expectedTauTheta "<<expectedTauTheta<<"   computedTauTheta "<<computedTauTheta <<std::endl;
-					//  std::cout<<"tauXX "<<tauXX<<"   tauYY "<<tauYY<<"   tauXY "<<tauXY <<std::endl;
-					//  std::cout<<"posX  "<<posX <<"   posY  "<<posY <<std::endl;
-					//  std::cout<<"\n  ";
-					// }
 
 					sumErrorL2VelocityTheta += pow(nodalErrorVelocityTheta, 2) * nodalArea;
 					sumErrorL2TauTheta += pow(nodalErrorTauTheta, 2) * nodalArea;
@@ -1962,9 +1970,6 @@ namespace Kratos
 				std::cout << "         The norm of pressure is: " << NormP << std::endl;
 				std::cout << "         Pressure error: " << errorNormDp << std::endl;
 			}
-			/* else{ */
-			/*     std::cout<<"         Pressure error: "<<errorNormDp <<" presTol: "<<mPressureTolerance << std::endl; */
-			/* } */
 
 			if (errorNormDp < mPressureTolerance)
 			{
@@ -2161,7 +2166,6 @@ namespace Kratos
 			if (HaveVelStrategy)
 			{
 				rSolverConfig.FindTolerance(SolverSettingsType::Velocity, mVelocityTolerance);
-				/* rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter); */
 			}
 			else
 			{

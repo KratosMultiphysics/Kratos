@@ -198,10 +198,7 @@ namespace Kratos
 							EquationId.resize(neighSize, false);
 
 						double deviatoricCoeff = 0;
-						const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-						const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-						const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
 						if (deviatoricCoeff > deviatoric_threshold)
 						{
@@ -443,10 +440,11 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void ComputeDeviatoricCoefficientForFluid(ModelPart::NodeIterator itNode, double &deviatoricCoefficient, const bool newtonian, const bool muIrheology, const bool bingham)
+		void GetDeviatoricCoefficientForFluid(ModelPart &rModelPart, ModelPart::NodeIterator itNode, double &deviatoricCoefficient)
 		{
-			const double tolerance = 1.0e-07;
-			if (muIrheology) // mu(I)-rheology
+			const double tolerance = 1e-12;
+
+			if (rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION)) // mu(I)-rheology
 			{
 				const double static_friction = itNode->FastGetSolutionStepValue(STATIC_FRICTION);
 				const double dynamic_friction = itNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
@@ -459,7 +457,7 @@ namespace Kratos
 				const double theta = 0.5;
 				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
 
-				double pressure_tolerance = -tolerance;
+				double pressure_tolerance = -1.0e-07;
 				if (mean_pressure > pressure_tolerance)
 				{
 					mean_pressure = pressure_tolerance;
@@ -469,7 +467,7 @@ namespace Kratos
 				const double exponent = -equivalent_strain_rate / regularization_coeff;
 				const double second_viscous_term = delta_friction * grain_diameter / (inertial_number_zero * std::sqrt(std::fabs(mean_pressure) / grain_density) + equivalent_strain_rate * grain_diameter);
 
-				if (equivalent_strain_rate != 0)
+				if (std::fabs(equivalent_strain_rate) > tolerance)
 				{
 					const double first_viscous_term = static_friction * (1 - std::exp(exponent)) / equivalent_strain_rate;
 					deviatoricCoefficient = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
@@ -479,19 +477,50 @@ namespace Kratos
 					deviatoricCoefficient = 1.0; // this is for the first iteration and first time step
 				}
 			}
-			else if (bingham) // bingham model
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(INTERNAL_FRICTION_ANGLE)) // frictiional viscoplastic model
+			{
+				const double dynamic_viscosity = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+				const double friction_angle = itNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+				const double cohesion = itNode->FastGetSolutionStepValue(COHESION);
+				const double adaptive_exponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+
+				const double theta = 0.5;
+				double mean_pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
+
+				double pressure_tolerance = -1.0e-07;
+				if (mean_pressure > pressure_tolerance)
+				{
+					mean_pressure = pressure_tolerance;
+				}
+
+				const double equivalent_strain_rate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+
+				// Ensuring that the case of equivalent_strain_rate = 0 is not problematic
+				if (std::fabs(equivalent_strain_rate) > tolerance)
+				{
+					const double friction_angle_rad = friction_angle * Globals::Pi / 180.0;
+					const double tanFi = std::tan(friction_angle_rad);
+					double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
+					deviatoricCoefficient = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate);
+				}
+				else
+				{
+					deviatoricCoefficient = dynamic_viscosity;
+				}
+			}
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR)) // bingham model
 			{
 				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
 				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
 				const double exponent = -adaptiveExponent * equivalentStrainRate;
 				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-				if (equivalentStrainRate != 0)
+				if (std::abs(equivalentStrainRate) > tolerance)
 				{
 					deviatoricCoefficient += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
 				}
 			}
-			else if (newtonian)
+			else if (rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
 			{
 				deviatoricCoefficient = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 			}
@@ -553,10 +582,7 @@ namespace Kratos
 							EquationId.resize(neighSize, false);
 
 						double deviatoricCoeff = 0;
-						const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-						const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-						const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
 						if (deviatoricCoeff > deviatoric_threshold)
 						{
@@ -786,10 +812,7 @@ namespace Kratos
 							EquationId.resize(neighSize, false);
 
 						double deviatoricCoeff = 0;
-						const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-						const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-						const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
 						if (deviatoricCoeff > deviatoric_threshold)
 						{
@@ -937,10 +960,7 @@ namespace Kratos
 							EquationId.resize(neighSize, false);
 
 						double deviatoricCoeff = 0;
-						const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-						const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-						const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
 						if (deviatoricCoeff > deviatoric_threshold)
 						{
@@ -1015,18 +1035,6 @@ namespace Kratos
 				if (neighSize > 1)
 				{
 
-					// if (LHS_Contribution.size1() != neighSize)
-					// 	LHS_Contribution.resize(neighSize, neighSize, false); //false says not to preserve existing storage!!
-
-					// if (RHS_Contribution.size() != neighSize)
-					// 	RHS_Contribution.resize(neighSize, false); //false says not to preserve existing storage!!
-
-					// LHS_Contribution= ZeroMatrix(neighSize,neighSize);
-					// RHS_Contribution= ZeroVector(neighSize);
-
-					// if (EquationId.size() != neighSize)
-					// 	EquationId.resize(neighSize, false);
-
 					if (LHS_Contribution.size1() != 1)
 						LHS_Contribution.resize(1, 1, false); // false says not to preserve existing storage!!
 
@@ -1045,10 +1053,7 @@ namespace Kratos
 					{ // in interface nodes not in contact with fluid elements the nodal volume is zero
 
 						double deviatoricCoeff = 0;
-						const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-						const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-						const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-						this->ComputeDeviatoricCoefficientForFluid(itNode, deviatoricCoeff, newtonian, muIrheology, bingham);
+						this->GetDeviatoricCoefficientForFluid(rModelPart, itNode, deviatoricCoeff);
 
 						if (deviatoricCoeff > deviatoric_threshold)
 						{
@@ -1455,34 +1460,11 @@ namespace Kratos
 				dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
 			}
 
-			//         ConditionsArrayType& pConditions = rModelPart.Conditions();
-			//         const int nconditions = static_cast<int>(pConditions.size());
-			// #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-			//         for (int i = 0; i < nconditions; i++)
-			// 	  {
-			//             typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-			//             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
-
-			//             // gets list of Dof involved on every element
-			//             pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-			//             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-			// 	  }
-
 			// here we do a reduction in a tree so to have everything on thread 0
 			unsigned int old_max = nthreads;
 			unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
 			while (new_max >= 1 && new_max != old_max)
 			{
-				//          //just for debugging
-				//          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-				//          for (int i = 0; i < new_max; i++)
-				//          {
-				//             if (i + new_max < old_max)
-				//             {
-				//                std::cout << i << " - " << i + new_max << std::endl;
-				//             }
-				//          }
-				//          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
 				for (int i = 0; i < static_cast<int>(new_max); i++)

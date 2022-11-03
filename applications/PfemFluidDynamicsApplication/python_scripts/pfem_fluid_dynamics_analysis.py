@@ -360,7 +360,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
-            elif (self.constitutive_laws_names[i].GetString()=="PapanastasiouMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="PapanastasiouMuIRheology3DLaw"):
+            elif (self.constitutive_laws_names[i].GetString()=="MuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="MuIRheology3DLaw"):
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)

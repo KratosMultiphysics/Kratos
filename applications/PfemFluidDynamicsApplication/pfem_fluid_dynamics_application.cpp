@@ -273,8 +273,8 @@ namespace Kratos
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent3DLaw", mNewtonianTemperatureDependent3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology2DLaw", mPapanastasiouMuIRheology2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology3DLaw", mPapanastasiouMuIRheology3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheology2DLaw", mMuIRheology2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheology3DLaw", mMuIRheology3DLaw);
 
     //Register Solid Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Hypoelastic2DLaw", mHypoelastic2DLaw);

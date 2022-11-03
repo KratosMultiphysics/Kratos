@@ -154,9 +154,7 @@ namespace Kratos
       double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
       double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
-      // deviatoricCoeff=deltaT*secondLame
       deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
-      // volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
       volumetricCoeff = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio)) + 2.0 * deviatoricCoeff / 3.0;
     }
 
@@ -184,7 +182,6 @@ namespace Kratos
       const double FourThirds = 4.0 / 3.0;
       const double nTwoThirds = -2.0 / 3.0;
 
-      // double theta = 0.5;
       double theta = 1.0;
       array_1d<double, 3> Acc(3, 0.0);
 
@@ -202,7 +199,6 @@ namespace Kratos
       double volumetricCoeff = 0;
 
       double dynamics = 1.0;
-      // dynamics=0.0; // static problem without intertial effects
       /* #pragma omp parallel */
       //    {
       ModelPart::NodeIterator NodesBegin;
@@ -253,7 +249,6 @@ namespace Kratos
         {
           NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
           Vector solidNodalSFDneighboursId = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
-          // const unsigned int neighSize = neighb_nodes.size()+1;
           const unsigned int neighSize = solidNodalSFDneighboursId.size();
 
           const double nodalVolume = itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
@@ -377,11 +372,9 @@ namespace Kratos
                 if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = solidNodalSFDneighboursId[indexNode];
-                  // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
                   {
                     unsigned int neigh_nodes_id = neighb_nodes[k].Id();
-                    // std::cout<<" neigh_nodes_id= "<< neigh_nodes_id<<std::endl;
 
                     if (neigh_nodes_id == other_neigh_nodes_id)
                     {
@@ -397,7 +390,6 @@ namespace Kratos
                   solidEquationId[firstCol + 1] = neighb_nodes[i].GetDof(VELOCITY_Y, xDofPos + 1).EquationId();
                 }
               }
-              /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
             }
             else if (dimension == 3)
             {
@@ -437,9 +429,6 @@ namespace Kratos
 
               array_1d<double, 6> Sigma(6, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-              //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // }
 
               const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X);
               solidEquationId[0] = itNode->GetDof(VELOCITY_X, xDofPos).EquationId();
@@ -485,11 +474,9 @@ namespace Kratos
                 if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = solidNodalSFDneighboursId[indexNode];
-                  // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
                   {
                     unsigned int neigh_nodes_id = neighb_nodes[k].Id();
-                    // std::cout<<" neigh_nodes_id= "<< neigh_nodes_id<<std::endl;
 
                     if (neigh_nodes_id == other_neigh_nodes_id)
                     {
@@ -550,7 +537,6 @@ namespace Kratos
 
       double theta = 0.5;
       array_1d<double, 3> Acc(3, 0.0);
-      // array_1d<double,6> Sigma(6,0.0);
       double pressure = 0;
       double dNdXi = 0;
       double dNdYi = 0;
@@ -579,7 +565,6 @@ namespace Kratos
 
           NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
           Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-          // const unsigned int neighSize = neighb_nodes.size()+1;
           const unsigned int neighSize = nodalSFDneighboursId.size();
           const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
@@ -600,10 +585,7 @@ namespace Kratos
             noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
             noalias(RHS_Contribution) = ZeroVector(localSize);
 
-            const bool newtonian = rModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY);
-            const bool muIrheology = rModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION);
-            const bool bingham = rModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR);
-            this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume, newtonian, muIrheology, bingham);
+            this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
 
             firstRow = 0;
             firstCol = 0;
@@ -646,9 +628,6 @@ namespace Kratos
               //-------- INTERNAL FORCES TERM -------//
               array_1d<double, 3> Sigma(3, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
-              // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-              //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // }
 
               if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
               {
@@ -690,11 +669,9 @@ namespace Kratos
                 if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = nodalSFDneighboursId[indexNode];
-                  // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
                   {
                     unsigned int neigh_nodes_id = neighb_nodes[k].Id();
-                    // std::cout<<" neigh_nodes_id= "<< neigh_nodes_id<<std::endl;
 
                     if (neigh_nodes_id == other_neigh_nodes_id)
                     {
@@ -710,7 +687,6 @@ namespace Kratos
                   EquationId[firstCol + 1] = neighb_nodes[i].GetDof(VELOCITY_Y, xDofPos + 1).EquationId();
                 }
               }
-              /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
             }
             else if (dimension == 3)
             {
@@ -740,9 +716,6 @@ namespace Kratos
 
               array_1d<double, 6> Sigma(6, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
-              // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-              //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // }
 
               if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
               {
@@ -868,7 +841,6 @@ namespace Kratos
 
       BuildFluidNodally(pScheme, rModelPart, A, b);
 
-      // std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl;
 
       Timer::Stop("Build");
 
@@ -880,16 +852,7 @@ namespace Kratos
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      // const double start_solve = OpenMPUtils::GetCurrentTime();
-      // Timer::Start("Solve");
-
-      /* boost::timer m_solve_time; */
       this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
-      /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
-
-      // Timer::Stop("Solve");
-      // const double stop_solve = OpenMPUtils::GetCurrentTime();
-      // KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -978,9 +941,6 @@ namespace Kratos
           }
         }
       }
-      // const double stop_build = OpenMPUtils::GetCurrentTime();
-      // KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
-
       KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
       KRATOS_CATCH("")
@@ -1065,14 +1025,12 @@ namespace Kratos
       //
 
       std::vector<set_type> dofs_aux_list(nthreads);
-      //         std::vector<allocator_type> allocators(nthreads);
 
       for (int i = 0; i < static_cast<int>(nthreads); i++)
       {
 #ifdef USE_GOOGLE_HASH
         dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
 #else
-        //             dofs_aux_list[i] = set_type( allocators[i]);
         dofs_aux_list[i].reserve(nelements);
 #endif
       }
@@ -1107,16 +1065,6 @@ namespace Kratos
       unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
       while (new_max >= 1 && new_max != old_max)
       {
-        //          //just for debugging
-        //          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-        //          for (int i = 0; i < new_max; i++)
-        //          {
-        //             if (i + new_max < old_max)
-        //             {
-        //                std::cout << i << " - " << i + new_max << std::endl;
-        //             }
-        //          }
-        //          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(new_max); i++)
@@ -1249,7 +1197,6 @@ namespace Kratos
         if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
           BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
       }
-      // std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl;
 
       KRATOS_CATCH("")
     }
