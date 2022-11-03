@@ -137,9 +137,6 @@ namespace Kratos
             effective_internal_friction_angle = r_properties[INTERNAL_FRICTION_ANGLE];
         }
         double frictionAngle = rParameters.GetMaterialProperties()[INTERNAL_FRICTION_ANGLE];
-        std::cout << "thermal frictionAngle is " << frictionAngle << std::endl;
-        std::cout << "thermal effective_internal_friction_angle is " << effective_internal_friction_angle << std::endl;
-
         return effective_internal_friction_angle;
     }
 
