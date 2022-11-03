@@ -58,7 +58,7 @@ namespace Kratos
  *  which crates a copy in construction and delete it in its destructor
  *  to make the memory management easier.
 */
-class RegistryItem
+class KRATOS_API(KRATOS_CORE) RegistryItem
 {
 public:
     ///@name Type Definitions
