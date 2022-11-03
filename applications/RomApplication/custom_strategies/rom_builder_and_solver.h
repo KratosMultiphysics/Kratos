@@ -618,9 +618,6 @@ public:
 
         }
 
-        KRATOS_WATCH(nelements)
-        KRATOS_WATCH(nconditions)
-
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
