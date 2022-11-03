@@ -136,7 +136,6 @@ namespace Kratos
         {
             effective_internal_friction_angle = r_properties[INTERNAL_FRICTION_ANGLE];
         }
-        double frictionAngle = rParameters.GetMaterialProperties()[INTERNAL_FRICTION_ANGLE];
         return effective_internal_friction_angle;
     }
 
