@@ -93,7 +93,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
       - Python
 
-          You will need at least *Python* 3.7 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+          You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
           * [Download Python](http://www.python.org/downloads/)
 
@@ -144,7 +144,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         ```
 
     - Python 
-        You will need at least *Python* 3.7 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
 
