@@ -143,35 +143,18 @@ class PythonRegistry(object):
         # Return the c++ and Python registry items in a tuple
         return py_items, cpp_items
 
-    def NumberOfItems(self, Name):
+    def NumberOfItems(self, Name, Context=RegistryContext.ALL):
         '''Returns the total number of items in the registry
         '''
         py_keys, cpp_keys = self.keys(Name)
         total_items = 0
-        if py_keys is not None:
-            total_items += len(py_keys)
+        if (Context == RegistryContext.ALL or Context == RegistryContext.PYTHON):
+            if py_keys is not None:
+                total_items += len(py_keys)
         #TODO: Implement this in c++
-        if cpp_keys is not None:
-            total_items += len(cpp_keys)
-        return total_items
-
-    def NumberOfPythonItems(self, Name):
-        '''Returns the number of Python registered items
-        '''
-        py_keys, _ = self.keys(Name)
-        total_items = 0
-        if py_keys is not None:
-            total_items += len(py_keys)
-        return total_items
-
-    def NumberOfCppItems(self, Name):
-        '''Returns the number of c++ registered items
-        '''
-        #TODO: Implement this in c++
-        _, cpp_keys = self.keys(Name)
-        total_items = 0
-        if cpp_keys is not None:
-            total_items += len(cpp_keys)
+        if (Context == RegistryContext.ALL or Context == RegistryContext.CPP):
+            if cpp_keys is not None:
+                total_items += len(cpp_keys)
         return total_items
 
     def HasItem(self, Name, Context=RegistryContext.ALL):
