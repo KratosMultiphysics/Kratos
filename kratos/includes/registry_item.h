@@ -58,7 +58,7 @@ namespace Kratos
  *  which crates a copy in construction and delete it in its destructor
  *  to make the memory management easier.
 */
-class RegistryItem
+class KRATOS_API(KRATOS_CORE) RegistryItem
 {
 public:
     ///@name Type Definitions
@@ -69,35 +69,33 @@ public:
 
     /// Subregistry item type definition
     using SubRegistryItemType = std::unordered_map<std::string, Kratos::shared_ptr<RegistryItem>>;
-    // using SubRegistryItemType = std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>>;
 
-
-     /// Custom iterator with key as return type to be used in the Python export
-    class key_return_iterator
+    /// Custom iterator with key as return type to be used in the Python export
+    class KeyReturnConstIterator
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        using BaseIterator      = SubRegistryItemType::iterator;
-        using iterator_category = BaseIterator::iterator_category;
+        using BaseIterator      = SubRegistryItemType::const_iterator;
+        using iterator_category = std::forward_iterator_tag;
         using difference_type   = BaseIterator::difference_type;
-        using value_type        = BaseIterator::value_type;
-        using pointer           = BaseIterator::pointer;
-        using reference         = BaseIterator::reference;
+        using value_type        = SubRegistryItemType::key_type;
+        using const_pointer     = const value_type*;
+        using const_reference   = const value_type&;
 
         ///@}
         ///@name Life Cycle
         ///@{
 
-        key_return_iterator()
+        KeyReturnConstIterator()
         {}
 
-        key_return_iterator(BaseIterator Iterator)
+        KeyReturnConstIterator(const BaseIterator Iterator)
             : mIterator(Iterator)
         {}
 
-        key_return_iterator(const key_return_iterator& rIterator)
+        KeyReturnConstIterator(const KeyReturnConstIterator& rIterator)
             : mIterator(rIterator.mIterator)
         {}
 
@@ -105,41 +103,41 @@ public:
         ///@name Operators
         ///@{
 
-        key_return_iterator& operator=(const key_return_iterator& rIterator)
+        KeyReturnConstIterator& operator=(const KeyReturnConstIterator& rIterator)
         {
             this->mIterator = rIterator.mIterator;
             return *this;
         }
 
-        std::string operator*() const
+        const_reference operator*() const
         {
             return mIterator->first;
         }
 
-        std::string operator->()
+        const_pointer operator->() const
         {
-            return mIterator->first;
+            return &(mIterator->first);
         }
 
-        key_return_iterator& operator++()
+        KeyReturnConstIterator& operator++()
         {
             ++mIterator;
             return *this;
         }
 
-        key_return_iterator operator++(int)
+        KeyReturnConstIterator operator++(int)
         {
-            key_return_iterator tmp(*this);
+            KeyReturnConstIterator tmp(*this);
             ++(*this);
             return tmp;
         }
 
-        bool operator==(const key_return_iterator& rIterator) const
+        bool operator==(const KeyReturnConstIterator& rIterator) const
         {
             return this->mIterator == rIterator.mIterator;
         }
 
-        bool operator!=(const key_return_iterator& rIterator) const
+        bool operator!=(const KeyReturnConstIterator& rIterator) const
         {
             return this->mIterator != rIterator.mIterator;
         }
@@ -229,7 +227,6 @@ public:
         KRATOS_ERROR_IF(this->HasValue()) <<
             "Trying to add '"<< ItemName << "' item to the RegistryItem '" << this->Name() << "' but this already has value. Items cannot have both value and subitem." << std::endl;
         auto insert_result = mSubRegistryItem.emplace(std::make_pair(ItemName, Kratos::make_unique<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...)));
-        KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting '" << ItemName << "' in registry item with name '" << this->Name() << "'." << std::endl;
         return *insert_result.first->second;
     }
 
@@ -245,9 +242,9 @@ public:
 
     SubRegistryItemType::const_iterator cend() const;
 
-    key_return_iterator key_begin();
+    KeyReturnConstIterator KeyConstBegin() const;
 
-    key_return_iterator key_end();
+    KeyReturnConstIterator KeyConstEnd() const;
 
     const std::string& Name() const
     {
@@ -270,7 +267,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    const std::size_t size()
+    std::size_t size()
     {
         KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and size() cannot be retrieved." << std::endl;
         return mSubRegistryItem.size();

@@ -46,7 +46,7 @@ namespace
         const std::vector<std::string>& rRegistryItemKeys)
     {
         std::size_t n_found = 0;
-        for (auto it = rRegistryItem.key_begin(); it != rRegistryItem.key_end(); ++it) {
+        for (auto it = rRegistryItem.KeyConstBegin(); it != rRegistryItem.KeyConstEnd(); ++it) {
             const auto it_found = std::find(rRegistryItemKeys.begin(), rRegistryItemKeys.end(), *it);
             const bool is_found = it_found != rRegistryItemKeys.end() ? true : false;
             if (is_found) {n_found++;}

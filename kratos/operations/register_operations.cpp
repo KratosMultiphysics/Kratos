@@ -18,8 +18,8 @@
 // External includes
 
 // Project includes
-#include "includes/kernel.h"
-#include "includes/registry.h"
+#include "includes/kratos_application.h"
+#include "includes/registry_auxiliaries.h"
 
 // Registering operations
 #include "operations/operation.h"
@@ -29,7 +29,7 @@ namespace Kratos
 
 void KratosApplication::RegisterOperations()
 {
-    KRATOS_REGISTER_OPERATION("KratosMultiphysics", "Operation", Operation())
+    RegistryAuxiliaries::RegisterOperationWithPrototype("KratosMultiphysics", "Operation", Operation());
 }
 
 }

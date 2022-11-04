@@ -17,11 +17,11 @@
 // External includes
 
 // Project includes
-#include "includes/kernel.h"
-#include "includes/registry.h"
-#include "processes/process.h"
+#include "includes/kratos_application.h"
+#include "includes/registry_auxiliaries.h"
 
 // Registering processes
+#include "processes/process.h"
 #include "processes/output_process.h"
 
 namespace Kratos
@@ -29,8 +29,8 @@ namespace Kratos
 
 void KratosApplication::RegisterProcesses()
 {
-    KRATOS_REGISTER_PROCESS("KratosMultiphysics", "Process", Process())
-    KRATOS_REGISTER_PROCESS("KratosMultiphysics", "OutputProcess", OutputProcess())
+    RegistryAuxiliaries::RegisterProcessWithPrototype("KratosMultiphysics", "Process", Process());
+    RegistryAuxiliaries::RegisterProcessWithPrototype("KratosMultiphysics", "OutputProcess", OutputProcess());
 }
 
 }
