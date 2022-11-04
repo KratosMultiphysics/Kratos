@@ -53,10 +53,10 @@ class PythonRegistry(object):
     def __getitem__(self, Name):
         if self.HasItem(Name, RegistryContext.PYTHON):
             # Get the class from the Python registry
-            return self.__InternalGetPythonItem(Name)
+            return self.__GetPythonItem(Name)
         elif self.HasItem(Name, RegistryContext.CPP):
             # Get the class from the c++ registry
-            return self.__InternalGetCppItem(Name)
+            return self.__GetCppItem(Name)
         else:
             err_msg = f"Asking to retrieve '{Name}' non-registered item."
             raise Exception(err_msg)
@@ -78,12 +78,12 @@ class PythonRegistry(object):
         # Get the c++ registry item keys
         cpp_keys = None
         if self.HasItems(Name, RegistryContext.CPP):
-            cpp_keys = self.__InternalGetCppItem(Name).keys()
+            cpp_keys = self.__GetCppItem(Name).keys()
         # Get the Python registry item keys
         # Note that this is a view object of the Python dictionary keys
         py_keys = None
         if self.HasItems(Name, RegistryContext.PYTHON):
-            py_keys = self.__InternalGetPythonItem(Name).keys()
+            py_keys = self.__GetPythonItem(Name).keys()
 
         # Return the c++ and Python registry keys in a tuple
         # Note that we return None if the item was not present in one of the registries
@@ -102,12 +102,12 @@ class PythonRegistry(object):
         # Get the c++ registry item values
         cpp_values = None
         if self.HasItems(Name, RegistryContext.CPP):
-            cpp_values = self.__InternalGetCppItem(Name).values()
+            cpp_values = self.__GetCppItem(Name).values()
         # Get the Python registry item values
         # Note that this is a view object of the Python dictionary values
         py_values = None
         if self.HasItems(Name, RegistryContext.PYTHON):
-            py_values = self.__InternalGetPythonItem(Name).values()
+            py_values = self.__GetPythonItem(Name).values()
 
         # Return the c++ and Python registry values in a tuple
         # Note that we return None if the item was not present in one of the registries
@@ -177,12 +177,12 @@ class PythonRegistry(object):
     def HasItem(self, Name, Context=RegistryContext.ALL):
         if Context == RegistryContext.ALL:
             is_registered_in_cpp = self.__cpp_registry.HasItem(Name)
-            is_registered_in_python = self.__InternalHasPythonItem(Name)
+            is_registered_in_python = self.__HasPythonItem(Name)
             return is_registered_in_cpp or is_registered_in_python
         elif Context == RegistryContext.CPP:
             return self.__cpp_registry.HasItem(Name)
         elif Context == RegistryContext.PYTHON:
-            return self.__InternalHasPythonItem(Name)
+            return self.__HasPythonItem(Name)
         else:
             raise Exception("Wrong registry context. Accepted options are 'ALL', 'CPP' and 'PYTHON'.")
 
@@ -191,7 +191,7 @@ class PythonRegistry(object):
         '''
         has_value = False
         if self.HasItem(Name, RegistryContext.PYTHON):
-            has_value = not isinstance(self.__InternalGetPythonItem(Name), dict)
+            has_value = not isinstance(self.__GetPythonItem(Name), dict)
         elif self.HasItem(Name, RegistryContext.CPP):
             has_value = self.__cpp_registry.HasValue(Name)
         else:
@@ -207,7 +207,7 @@ class PythonRegistry(object):
         has_subitems_py = None
         has_item_py = self.HasItem(Name, RegistryContext.PYTHON)
         if has_item_py:
-            has_subitems_py = isinstance(self.__InternalGetPythonItem(Name), dict)
+            has_subitems_py = isinstance(self.__GetPythonItem(Name), dict)
 
         # Check if current item has subitems in c++ registry
         has_subitems_cpp = None
@@ -240,13 +240,13 @@ class PythonRegistry(object):
             raise Exception(err_msg)
         else:
             # Add to the corresponding item All block
-            self.__InternalAddItemToAll(Name, ModuleName)
+            self.__AddItemToAll(Name, ModuleName)
             # Add item to the corresponding module
-            self.__InternalAddItem(Name, ModuleName)
+            self.__AddItem(Name, ModuleName)
 
     def RemoveItem(self, Name):
         if self.HasItem(Name, RegistryContext.PYTHON):
-            self.__InternalRemoveItem(Name)
+            self.__RemoveItem(Name)
         elif self.HasItem(Name, RegistryContext.CPP):
             #TODO: Discuss about removing stuff from the c++ registry. Do we allow it or not?
             # self.__cpp_registry.RemoveItem(Name)
@@ -264,7 +264,7 @@ class PythonRegistry(object):
             err_msg = f"'{ItemKeyword}' has not been addded to 'CppGetFunctionNamesMap'."
             raise Exception(err_msg)
 
-    def __InternalHasPythonItem(self, Name):
+    def __HasPythonItem(self, Name):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
@@ -273,7 +273,7 @@ class PythonRegistry(object):
             aux_dict = aux_dict[i_name]
         return split_name[-1] in aux_dict
 
-    def __InternalGetPythonItem(self, Name):
+    def __GetPythonItem(self, Name):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
@@ -281,7 +281,7 @@ class PythonRegistry(object):
         value = aux_dict[split_name[-1]]
         return value
 
-    def __InternalGetCppItem(self, Name):
+    def __GetCppItem(self, Name):
         # Check if current item has value
         if self.__cpp_registry.HasValue(Name):
             # Return the object from the c++ registry by filtering its type keyword
@@ -296,14 +296,14 @@ class PythonRegistry(object):
             # Return current subitem
             return self.__cpp_registry.GetItem(Name)
 
-    def __InternalRemoveItem(self, Name):
+    def __RemoveItem(self, Name):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
             aux_dict = aux_dict[i_name]
         aux_dict.pop(split_name[-1])
 
-    def __InternalAddItem(self, Name, Value):
+    def __AddItem(self, Name, Value):
         split_name = Name.split('.')
         aux_dict = self.__python_registry
         for i_name in split_name[:-1]:
@@ -312,7 +312,7 @@ class PythonRegistry(object):
             aux_dict = aux_dict[i_name]
         aux_dict[split_name[-1]] = Value
 
-    def __InternalAddItemToAll(self, Name, Value):
+    def __AddItemToAll(self, Name, Value):
         split_name = Name.split('.')
         item_keyword = split_name[0]
         class_name = split_name[-1]
@@ -320,7 +320,7 @@ class PythonRegistry(object):
         if self.HasItem(all_full_name, RegistryContext.ALL):
             err_msg = f"Trying to register '{Name}' but there is already an item with the same '{class_name}' name in the '{item_keyword}.All' block."
             raise Exception(err_msg)
-        self.__InternalAddItem(all_full_name, Value)
+        self.__AddItem(all_full_name, Value)
 
 def RegisterPrototype(RegistryPointName: str):
     '''Auxiliary function to be used as a class decorator
