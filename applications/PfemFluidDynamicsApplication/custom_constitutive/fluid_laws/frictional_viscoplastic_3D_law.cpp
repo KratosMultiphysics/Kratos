@@ -94,7 +94,7 @@ namespace Kratos
             const double friction_angle_rad = friction_angle * Globals::Pi / 180.0;
             const double tanFi = std::tan(friction_angle_rad);
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate);
+            effective_dynamic_viscosity = dynamic_viscosity + regularization * ((cohesion + tanFi * fabs(mean_pressure)) / equivalent_strain_rate);
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];

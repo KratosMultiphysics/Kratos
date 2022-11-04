@@ -12,8 +12,8 @@
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_JOP_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED)
-#define KRATOS_JOP_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED
+#if !defined(KRATOS_MU_I_RHEOLOGY_LAW_2D_H_INCLUDED)
+#define KRATOS_MU_I_RHEOLOGY_LAW_2D_H_INCLUDED
 
 // System includes
 
@@ -24,16 +24,17 @@
 
 namespace Kratos {
 /**
- * Defines a 3D Jop mu(I) rheology constitutive law
+ * Defines a 2D Papanastasiou mu(I) rheology constitutive law
  * This material law is defined by the parameters:
  * 1) STATIC_FRICTION
  * 2) DYNAMIC_FRICTION
  * 3) INERTIAL_NUMBER_ZERO
  * 4) GRAIN_DIAMETER
  * 5) GRAIN_DENSITY
+ * 6) REGULARIZATION_COEFFICIENT
  */
 
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) JopMuIRheology3DLaw : public PfemFluidConstitutiveLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheology2DLaw : public PfemFluidConstitutiveLaw {
    public:
     /**
      * Type Definitions
@@ -43,9 +44,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) JopMuIRheology3DLaw : public P
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of JopMuIRheology3DLaw
+     * Counted pointer of MuIRheology2DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(JopMuIRheology3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(MuIRheology2DLaw);
 
     /**
      * Life Cycle
@@ -54,7 +55,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) JopMuIRheology3DLaw : public P
     /**
      * Default constructor.
      */
-    JopMuIRheology3DLaw();
+    MuIRheology2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -65,12 +66,12 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) JopMuIRheology3DLaw : public P
     /**
      * Copy constructor.
      */
-    JopMuIRheology3DLaw(const JopMuIRheology3DLaw& rOther);
+    MuIRheology2DLaw(const MuIRheology2DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~JopMuIRheology3DLaw() override;
+    ~MuIRheology2DLaw() override;
 
     /**
      * Operators
@@ -164,8 +165,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) JopMuIRheology3DLaw : public P
 
     void load(Serializer& rSerializer) override;
 
-};  // Class JopMuIRheology3DLaw
+};  // Class MuIRheology2DLaw
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_JOP_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED  defined
+#endif  // KRATOS_MU_I_RHEOLOGY_LAW_2D_H_INCLUDED  defined
