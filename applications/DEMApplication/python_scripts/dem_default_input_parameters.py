@@ -182,6 +182,7 @@ def GetDefaultInputParameters():
             "LoadingVelocityBot"               : 0.0,
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {},
-            "RVEEvalFreq" : 1000
+            "RVEEvalFreq"              : 1000,
+            "LimitConsolidationStress" : 100000
         }""")
     return default_settings

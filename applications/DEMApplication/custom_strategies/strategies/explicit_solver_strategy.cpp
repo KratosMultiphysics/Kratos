@@ -1810,6 +1810,7 @@ namespace Kratos {
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
 
       // Initialize properties
+      mRVE_Compress   = true;
       mRVE_FreqWrite *= r_process_info[RVE_EVAL_FREQ];
       mRVE_Dimension  = r_process_info[DOMAIN_SIZE];
 
@@ -1946,6 +1947,21 @@ namespace Kratos {
 
       // Write files
       RVEWriteFiles();
+
+      // Stop compression
+      const double limit_stress = GetModelPart().GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+      if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
+        mRVE_Compress = false;
+
+        ModelPart& fem_model_part = GetFemModelPart();
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+          ModelPart& submp = *sub_model_part;
+          array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+          linear_velocity[0] = 0.0;
+          linear_velocity[1] = 0.0;
+          linear_velocity[2] = 0.0;
+        }
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------

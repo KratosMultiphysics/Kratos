@@ -190,6 +190,7 @@ class ExplicitStrategy():
         self.SetContinuumType()
 
         self.rve_eval_freq = DEM_parameters["RVEEvalFreq"].GetInt()
+        self.limit_consolidation_stress = DEM_parameters["LimitConsolidationStress"].GetDouble()
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -310,6 +311,7 @@ class ExplicitStrategy():
         self.settings.cluster_model_part = self.cluster_model_part
 
         self.spheres_model_part.ProcessInfo.SetValue(RVE_EVAL_FREQ, self.rve_eval_freq)
+        self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_STRESS, self.limit_consolidation_stress)
 
     def CheckMomentumConservation(self):
 
