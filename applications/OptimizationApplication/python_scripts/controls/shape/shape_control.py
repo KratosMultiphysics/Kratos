@@ -26,22 +26,13 @@ class ShapeControl():
         self.vector_fields = ["CX","D_CX","D_X"]
         self.scalar_fields = []
         
-        if self.project_to_normal or self.plane_symmetry:
+        if self.project_to_normal:
             self.vector_fields.append("NORMAL")
             self.scalar_fields.append("NODAL_AREA")
-
-        if self.plane_symmetry:
-            self.vector_fields.append("AUXILIARY_FIELD")
-            self.vector_fields.append("NEAREST_NEIGHBOUR_POINT")
-            self.scalar_fields.append("NEAREST_NEIGHBOUR_DIST")
-            self.scalar_fields.append("NEAREST_NEIGHBOUR_COND_ID")
 
         if self.auxiliary_field:
             self.vector_fields.append("AUXILIARY_FIELD")
         
-        if self.smooth_surface:
-            self.vector_fields.append("SX")
-
 
         self.vector_fields.append("ADJOINT_DISPLACEMENT")
 

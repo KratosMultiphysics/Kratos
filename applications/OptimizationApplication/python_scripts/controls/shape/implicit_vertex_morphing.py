@@ -24,14 +24,11 @@ class ImplicitVertexMorphing(ShapeControl):
                     "only_design_surface_parameterization" : true,
                     "formulate_on_the_undeformed_configuration" : true,
                     "automatic_filter_size" : true,
-                    "smooth_surface" : false,
                     "adaptive_filter_size" : false,
                     "surface_filter_radius" : 0.000000000001,
-                    "smooth_surface_filter_radius" : 0.000000000001,
                     "surface_bulk_ratio" : 2,
                     "project_to_normal" : false,
-                    "poisson_ratio" : 0.3,
-                    "plane_symmetry_settings": {},            
+                    "poisson_ratio" : 0.3,           
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -51,10 +48,6 @@ class ImplicitVertexMorphing(ShapeControl):
 
         self.technique_settings.ValidateAndAssignDefaults(self.default_technique_settings)
         self.project_to_normal = self.technique_settings["project_to_normal"].GetBool()
-        self.smooth_surface = self.technique_settings["smooth_surface"].GetBool()
-        self.plane_symmetry = False
-        if not self.technique_settings["plane_symmetry_settings"].IsNull():
-            self.plane_symmetry = True
 
         super().__init__(name,model,settings)
 
@@ -96,8 +89,6 @@ class ImplicitVertexMorphing(ShapeControl):
             if not extracted_root_model_part_name in root_model_parts:
                 root_model_parts.append(extracted_root_model_part_name)
                 self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"]))
-                if self.smooth_surface:
-                    self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"]))
                     
 
         self.implicit_vertex_morphing = KOA.ImplicitVertexMorphing(self.name,self.model,self.linear_solvers,self.settings)
