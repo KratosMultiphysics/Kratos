@@ -46,4 +46,4 @@ debugApp.AddConditions([
 
 debugApp.Generate()
 
-print("Your application has been generated in: applications/{}Application".format(appNameCamel))
+print(f"Your application has been generated in: applications/{appNameCamel}Application")
