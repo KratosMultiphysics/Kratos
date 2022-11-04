@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta and Alessandro Contri
 //
 
 
@@ -415,10 +415,6 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    //rVariables.detF0   *= rVariables.detF;
-    //double determinant_F = rVariables.detF;
-    //rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
-
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
     CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
@@ -430,9 +426,6 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(
 
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
     CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
-
-    //rVariables.detF     = determinant_F;
-    //rVariables.detF0   /= rVariables.detF;
 
 }
 //************************************************************************************
@@ -593,9 +586,6 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    //rVariables.detF0   *= rVariables.detF;
-    //double determinant_F = rVariables.detF;
-    //rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
     // Operation performed: add Km to the rLefsHandSideMatrix
     CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -618,8 +608,6 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    //rVariables.detF     = determinant_F;
-    //rVariables.detF0   /= rVariables.detF;
 
 }
 //************************************************************************************
@@ -774,7 +762,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-        // ATTENTION: class not used in the current implementation!!
+    // ATTENTION: class not used in the current implementation!!
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
