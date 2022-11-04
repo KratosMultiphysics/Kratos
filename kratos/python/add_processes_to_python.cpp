@@ -234,6 +234,8 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
+    py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<EntitiesEraseProcess<Element>, EntitiesEraseProcess<Element>::Pointer, Process>(m,"ElementEraseProcess")
