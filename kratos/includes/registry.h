@@ -55,7 +55,7 @@ namespace Kratos
  * This class is intended to act as global registry
  * Each time the AddItem method is called a pair of name and prototype is called
  */
-class KRATOS_API(KRATOS_CORE) Registry
+class KRATOS_API(KRATOS_CORE) Registry final
 {
 public:
     ///@name Type Definitions
@@ -72,7 +72,7 @@ public:
     Registry(){}
 
     /// Destructor.
-    virtual ~Registry(){}
+    ~Registry(){}
 
     ///@}
     ///@name Operators
@@ -169,13 +169,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
     std::string ToJson(std::string const& Indentation) const;
 
