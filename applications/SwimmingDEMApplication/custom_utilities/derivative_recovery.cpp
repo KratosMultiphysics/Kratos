@@ -702,7 +702,6 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
     GlobalPointersVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     std::map<std::size_t, std::size_t> ids; // map to keep track of all different ids corresponding to already added neighbours to avoid repetition
     ids[p_node->Id()] = p_node->Id();
-    unsigned int i = 0;
     for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
         Geometry<Node<3> >& geom = neigh_elems[i_el].GetGeometry();
         unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
@@ -716,7 +715,6 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
                 ids[p_neigh->Id()] = p_neigh->Id();
             }
         }
-        i += TDim;
     }
     OrderByDistance(p_node, neigh_nodes);
     if (neigh_nodes.size() < 10){ // Not worthwhile checking, since there are 10 independent coefficients to be determined
