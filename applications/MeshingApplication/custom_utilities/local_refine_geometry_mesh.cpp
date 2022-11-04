@@ -17,9 +17,6 @@
 #include <unordered_map>
 
 // External includes
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 // Project includes
 #include "utilities/math_utils.h"
