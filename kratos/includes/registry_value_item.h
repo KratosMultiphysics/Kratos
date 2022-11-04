@@ -54,7 +54,7 @@ namespace Kratos
  *  Value type should be copy constructable.
 */
 template<typename TValueType>
-class RegistryValueItem : public RegistryItem
+class RegistryValueItem final : public RegistryItem
 {
 public:
     ///@name Type Definitions
