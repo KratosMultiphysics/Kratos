@@ -227,7 +227,6 @@ public:
         KRATOS_ERROR_IF(this->HasValue()) <<
             "Trying to add '"<< ItemName << "' item to the RegistryItem '" << this->Name() << "' but this already has value. Items cannot have both value and subitem." << std::endl;
         auto insert_result = mSubRegistryItem.emplace(std::make_pair(ItemName, Kratos::make_unique<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...)));
-        KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting '" << ItemName << "' in registry item with name '" << this->Name() << "'." << std::endl;
         return *insert_result.first->second;
     }
 
