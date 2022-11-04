@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/kratos_application.h"
-#include "includes/registry.h"
+#include "includes/registry_auxiliaries.h"
 
 // Registering processes
 #include "processes/process.h"
@@ -29,8 +29,8 @@ namespace Kratos
 
 void KratosApplication::RegisterProcesses()
 {
-    KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE("KratosMultiphysics", "Process", Process())
-    KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE("KratosMultiphysics", "OutputProcess", OutputProcess())
+    RegistryAuxiliaries::RegisterProcessWithPrototype("KratosMultiphysics", "Process", Process());
+    RegistryAuxiliaries::RegisterProcessWithPrototype("KratosMultiphysics", "OutputProcess", OutputProcess());
 }
 
 }

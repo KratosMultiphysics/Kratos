@@ -22,7 +22,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/registry.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 
@@ -254,31 +253,6 @@ private:
 ///@name Type Definitions
 ///@{
 
-template<typename TPrototypeType>
-void RegisterProcessWithPrototype(
-    const std::string RegistryEntryName,
-    TPrototypeType rProcessPrototype)
-{
-    if (!Registry::HasItem(RegistryEntryName)) {
-        auto& r_process_item = Registry::AddItem<RegistryItem>(RegistryEntryName);
-        r_process_item.AddItem<RegistryValueItem<TPrototypeType>>("Prototype", rProcessPrototype);
-    } else {
-        KRATOS_ERROR << "Process '" << RegistryEntryName << "' is already registered." << std::endl;
-    }
-}
-
-#ifndef KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE
-#define KRATOS_REGISTER_PROCESS_WITH_PROTOTYPE(                                                              \
-    module_name,                                                                                             \
-    process_name,                                                                                            \
-    process_prototype)                                                                                       \
-    {                                                                                                        \
-        std::string all_path = std::string("Processes.All.") + process_name;                                 \
-        RegisterProcessWithPrototype(all_path, process_prototype);                                           \
-        std::string module_path = std::string("Processes.") + module_name + std::string(".") + process_name; \
-        RegisterProcessWithPrototype(module_path, process_prototype);                                        \
-    }
-#endif
 
 ///@}
 ///@name Input and output
