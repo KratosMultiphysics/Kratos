@@ -221,8 +221,8 @@ public:
         if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
             return projected_distance;
         } else {
-            const double distance_a = norm_2(rPoint.Coordinates() - rGeometry[0].Coordinates()); /// TODO: Replace with distance method if ever exists
-            const double distance_b = norm_2(rPoint.Coordinates() - rGeometry[1].Coordinates()); /// TODO: Replace with distance method if ever exists
+            const double distance_a = rPoint.Distance(rGeometry[0]);
+            const double distance_b = rPoint.Distance(rGeometry[1]);
             return std::min(distance_a, distance_b);
         }
     }
