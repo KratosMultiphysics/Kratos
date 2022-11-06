@@ -35,6 +35,7 @@ namespace Kratos
 {
 extern DenseVector<std::vector<double>> mExactScalar;
 extern DenseVector<std::vector<double>> mExactPorosity;
+extern DenseVector<std::vector<double>> mExactPorosityRate;
 extern DenseVector<Matrix> mExactBodyForce;
 extern DenseVector<Matrix> mExactPorosityGradient;
 extern DenseVector<Matrix> mExactVector;
