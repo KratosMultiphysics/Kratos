@@ -20,8 +20,8 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "utilities/geometry_utilities.h"
-#include "geometries/prism_3d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/pyramid_3d_5.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "optimization_application_variables.h"
@@ -59,9 +59,10 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3>                                PointType;
+    typedef Node<3>                             PointType;
     typedef Node<3>::Pointer                    PointPtrType;
-    typedef Prism3D6<PointType>            PrismGeometryType;
+    typedef Geometry<PointType>                 GeometryType;
+    typedef Pyramid3D5<PointType>               PyramidGeometryType;
     typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;    
 
     /// Counted pointer of HelmholtzSurfShapeElement
@@ -205,11 +206,9 @@ private:
 
     void CalculateSurfaceMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
     void CalculateSurfaceStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
-    void CalculatePrismDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;
-    void GetPrismShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
-    void CalculateTetrahedraDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;
-    void GetTetrahedraShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;    
-    void CalculateNormal(VectorType & r_n) const;
+    void GetPseudoBulkSurfaceShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculatePseudoBulkSurfaceDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;   
+    void CalculateAvgSurfUnitNormal(VectorType & rNormal) const;
     void CalculateCMatrix(MatrixType& rCMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const;
     void CalculateBMatrix(MatrixType& rBMatrix, const MatrixType& rDN_DX_tMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const;
 
