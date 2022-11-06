@@ -523,10 +523,6 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 
     // Stabilization alpha parameters
     double alpha_stabilization  = 1.0;
-    if( GetProperties().Has(STABILIZATION_FACTOR) ){
-        alpha_stabilization = GetProperties()[STABILIZATION_FACTOR];
-    }
-
     double shear_modulus = 0;
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
@@ -762,8 +758,6 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    // ATTENTION: class not used in the current implementation!!
-
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
@@ -795,7 +789,6 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
         indexpi += (dimension + 1);
     }
 
-
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -819,10 +812,6 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
 
     // Stabilization alpha parameters
     double alpha_stabilization = 1.0;
-    if (GetProperties().Has(STABILIZATION_FACTOR)) {
-        alpha_stabilization = GetProperties()[STABILIZATION_FACTOR];
-    }
-
     double shear_modulus = 0;
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
