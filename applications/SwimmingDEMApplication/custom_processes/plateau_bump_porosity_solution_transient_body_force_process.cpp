@@ -35,6 +35,7 @@ namespace Kratos
 {
 extern DenseVector<std::vector<double>> mExactScalar;
 extern DenseVector<std::vector<double>> mExactPorosity;
+extern DenseVector<std::vector<double>> mExactPorosityRate;
 extern DenseVector<Matrix> mExactBodyForce;
 extern DenseVector<Matrix> mExactPorosityGradient;
 extern DenseVector<Matrix> mExactVector;
@@ -153,6 +154,7 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
     const double step = mrModelPart.GetProcessInfo()[STEP];
+    const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
     const int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double alpha_min = mAlphaMin;
     const double alpha_max = mAlphaMax;
@@ -187,6 +189,12 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
         double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
         double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
 
+        double& r_u11 = it_node->FastGetSolutionStepValue(VELOCITY_X,1);
+        double& r_u21 = it_node->FastGetSolutionStepValue(VELOCITY_Y,1);
+
+        double& r_u12 = it_node->FastGetSolutionStepValue(VELOCITY_X,2);
+        double& r_u22 = it_node->FastGetSolutionStepValue(VELOCITY_Y,2);
+
         double& r_pressure = it_node->FastGetSolutionStepValue(EXACT_PRESSURE);
 
         Matrix& r_sigma = it_node->FastGetSolutionStepValue(PERMEABILITY);
@@ -194,6 +202,18 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
         double t = (std::pow(x1-x10,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow(x2-x20,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 
         if ((t > std::numeric_limits<double>::epsilon()) & (1-t > std::numeric_limits<double>::epsilon())){
+
+            if (step == 0){
+
+                r_u11 = std::cos(Globals::Pi * (time - delta_time)) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
+
+                r_u21 = std::cos(Globals::Pi * (time - delta_time)) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
+
+                r_u12 = std::cos(Globals::Pi * (time - 2.0*delta_time)) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
+
+                r_u22 = std::cos(Globals::Pi * (time - 2.0*delta_time)) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
+
+            }
 
             r_alpha = alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min);
 
@@ -204,8 +224,6 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
             du1dt = -Globals::Pi * std::sin(Globals::Pi * time) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
 
             du2dt = -Globals::Pi * std::sin(Globals::Pi * time) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
-
-            r_dalphat = 0.0;
 
             r_alpha1 = (alpha_max - alpha_min)*(((2*x1 - 2*x10)*std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/((-std::pow(a,2) + std::pow(b,2))*std::pow((1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))),2)) - (2*x1 - 2*x10)*std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/((-std::pow(a,2) + std::pow(b,2))*std::pow(((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))),2)))*std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/std::pow((std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))),2) + (2*x1 - 2*x10)*std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/((-std::pow(a,2) + std::pow(b,2))*std::pow(((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))),2)*(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))))));
 
@@ -241,6 +259,23 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
                 r_alpha = alpha_min;
             } else if ((1-t <= std::numeric_limits<double>::epsilon())){
                 r_alpha = alpha_max;
+            }
+
+            if (step == 0){
+
+                double& r_u11 = it_node->FastGetSolutionStepValue(VELOCITY_X,1);
+                double& r_u21 = it_node->FastGetSolutionStepValue(VELOCITY_Y,1);
+
+                r_u11 = std::cos(Globals::Pi * (time - delta_time)) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/r_alpha;
+
+                r_u21 = std::cos(Globals::Pi * (time - delta_time)) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/r_alpha;
+
+                double& r_u12 = it_node->FastGetSolutionStepValue(VELOCITY_X,2);
+                double& r_u22 = it_node->FastGetSolutionStepValue(VELOCITY_Y,2);
+
+                r_u12 = std::cos(Globals::Pi * (time - 2.0*delta_time)) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/r_alpha;
+
+                r_u22 = std::cos(Globals::Pi * (time - 2.0*delta_time)) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/r_alpha;
             }
 
             r_u1 = std::cos(Globals::Pi * time) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/r_alpha;
@@ -325,24 +360,18 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
             double& r_U1 = it_node->FastGetSolutionStepValue(VELOCITY_X);
             double& r_U2 = it_node->FastGetSolutionStepValue(VELOCITY_Y);
 
-            double& r_U11 = it_node->FastGetSolutionStepValue(VELOCITY_X,1);
-            double& r_U21 = it_node->FastGetSolutionStepValue(VELOCITY_Y,1);
+            double& r_P = it_node->FastGetSolutionStepValue(PRESSURE);
 
-            double& r_U12 = it_node->FastGetSolutionStepValue(VELOCITY_X,2);
-            double& r_U22 = it_node->FastGetSolutionStepValue(VELOCITY_Y,2);
+            double& r_dU1dt =  it_node->FastGetSolutionStepValue(ACCELERATION_X);
+            double& r_dU2dt =  it_node->FastGetSolutionStepValue(ACCELERATION_Y);
 
-            double& r_Pressure =  it_node->FastGetSolutionStepValue(PRESSURE);
+            r_dU1dt = du1dt;
+            r_dU2dt = du2dt;
 
             r_U1 = r_u1;
             r_U2 = r_u2;
+            r_P = r_pressure;
 
-            r_U11 = r_u1;
-            r_U21 = r_u2;
-
-            r_U12 = r_u1;
-            r_U22 = r_u2;
-
-            r_Pressure = r_pressure;
         }
 
     }
@@ -365,7 +394,7 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetValuesOnIntegratio
     const double rho = mDensity;
     const double nu = mViscosity;
     const double Re = std::pow(u_char,2) / (nu * alpha_min);
-    Matrix I = IdentityMatrix(Dim, Dim);
+    Matrix I = IdentityMatrix(Dim,Dim);
     Matrix sigma = ZeroMatrix(Dim,Dim);
 
     double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, dalphat, body_force1, body_force2;
