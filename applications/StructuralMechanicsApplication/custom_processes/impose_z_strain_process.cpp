@@ -48,8 +48,10 @@ void ImposeZStrainProcess::ExecuteInitializeSolutionStep()
     block_for_each(mrThisModelPart.Elements(), std::vector<double>(), [&r_proc_info, z_strain_value](
         auto& rElem, auto& rTls){
             const auto& r_int_pts = rElem.GetGeometry().IntegrationPoints(rElem.GetIntegrationMethod());
-            rTls.resize(r_int_pts.size());
-            std::fill(rTls.begin(), rTls.end(), z_strain_value);
+            if (r_int_pts.size() != rTls.size()){
+                rTls.resize(r_int_pts.size());
+                std::fill(rTls.begin(), rTls.end(), z_strain_value);
+            }
             rElem.SetValuesOnIntegrationPoints(IMPOSED_Z_STRAIN_VALUE, rTls, r_proc_info);
     });
 
