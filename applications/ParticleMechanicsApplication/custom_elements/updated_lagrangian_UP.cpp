@@ -603,7 +603,7 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp to the rLefsHandSideMatrix
-    //CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
