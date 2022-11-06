@@ -228,7 +228,7 @@ void HelmholtzSurfThicknessElement::CalculateSurfaceMassMatrix(
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
 
     MatrixType Ncontainer;
-    GetTetrahedraShapeFunctionsValues(Ncontainer,integration_method,rCurrentProcessInfo);    
+    GetPseudoBulkSurfaceShapeFunctionsValues(Ncontainer,integration_method,rCurrentProcessInfo);    
 
 
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
@@ -242,7 +242,7 @@ void HelmholtzSurfThicknessElement::CalculateSurfaceMassMatrix(
     KRATOS_CATCH("");
 }
 
-void HelmholtzSurfThicknessElement::GetTetrahedraShapeFunctionsValues(
+void HelmholtzSurfThicknessElement::GetPseudoBulkSurfaceShapeFunctionsValues(
     MatrixType& rNMatrix,
     const IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo
@@ -259,28 +259,51 @@ void HelmholtzSurfThicknessElement::GetTetrahedraShapeFunctionsValues(
     rNMatrix.resize( mat_size1, mat_size2, false );
     rNMatrix = ZeroMatrix( mat_size1, mat_size2 );
 
-    // create a tetrahedra here 
+    // create a pseudo bulk element here 
     double height = r_geom.Length();
-    const auto triangle_points = r_geom.Points();
+    Point geom_center = r_geom.Center();
+    const auto surf_points = r_geom.Points();
     VectorType n_surf;
-    CalculateNormal(n_surf);
-    PointPtrType p0 = new PointType(triangle_points[0].Id(),triangle_points[0]);
-    PointPtrType p1 = new PointType(triangle_points[1].Id(),triangle_points[1]);
-    PointPtrType p2 = new PointType(triangle_points[2].Id(),triangle_points[2]);
-    PointPtrType p3 = new PointType(triangle_points[0].Id()+3,((p0->Coordinates()+p1->Coordinates()+p2->Coordinates())/3.0) + height * n_surf);
-    TetrahedraGeometryType pseudo_tetrahedra(p0,p1,p2,p3);
+    CalculateAvgSurfUnitNormal(n_surf);
+    PointPtrType p0 = new PointType(surf_points[0].Id(),surf_points[0]);
+    PointPtrType p1 = new PointType(surf_points[1].Id(),surf_points[1]);
+    PointPtrType p2 = new PointType(surf_points[2].Id(),surf_points[2]);
+    
+    if(number_of_nodes==3){
+        PointPtrType p3 = new PointType(surf_points[0].Id()+3, geom_center.Coordinates() + height * n_surf);
+        TetrahedraGeometryType pseudo_tetrahedra(p0,p1,p2,p3);
 
-    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {    
-        Point gp_local_pt = Point(integration_points[point_number].Coordinates());
-        Point gp_global_pt;
-        r_geom.GlobalCoordinates(gp_global_pt,gp_local_pt);
-        Point elem_gp_local_pt;
-        pseudo_tetrahedra.PointLocalCoordinates(elem_gp_local_pt,gp_global_pt);
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {    
+            Point gp_local_pt = Point(integration_points[point_number].Coordinates());
+            Point gp_global_pt;
+            r_geom.GlobalCoordinates(gp_global_pt,gp_local_pt);
+            Point elem_gp_local_pt;
+            pseudo_tetrahedra.PointLocalCoordinates(elem_gp_local_pt,gp_global_pt);
 
-        for(IndexType i = 0; i < 3; ++i )
-            rNMatrix(point_number,i) = pseudo_tetrahedra.ShapeFunctionValue(i,elem_gp_local_pt);
+            for(IndexType i = 0; i < number_of_nodes; ++i )
+                rNMatrix(point_number,i) = pseudo_tetrahedra.ShapeFunctionValue(i,elem_gp_local_pt);
 
-    }  
+        }  
+
+    }else if(number_of_nodes==4) {
+        PointPtrType p3 = new PointType(surf_points[3].Id(),surf_points[3]);
+        PointPtrType p4 = new PointType(surf_points[0].Id()+4, geom_center.Coordinates() + height * n_surf);
+        PyramidGeometryType pseudo_pyramid(p0,p1,p2,p3,p4);
+
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {    
+            Point gp_local_pt = Point(integration_points[point_number].Coordinates());
+            Point gp_global_pt;
+            r_geom.GlobalCoordinates(gp_global_pt,gp_local_pt);
+            Point elem_gp_local_pt;
+            pseudo_pyramid.PointLocalCoordinates(elem_gp_local_pt,gp_global_pt);
+
+            for(IndexType i = 0; i < number_of_nodes; ++i )
+                rNMatrix(point_number,i) = pseudo_pyramid.ShapeFunctionValue(i,elem_gp_local_pt);
+        }  
+    }
+    else
+        KRATOS_ERROR<<"HelmholtzSurfShapeElement: this element only supports 3 and 4 noded surface elements"<<std::endl;
+
     KRATOS_CATCH("");
 }
 
@@ -318,7 +341,7 @@ void HelmholtzSurfThicknessElement::CalculateSurfaceStiffnessMatrix(
     r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);    
 
     VectorType n_surf;
-    CalculateNormal(n_surf);
+    CalculateAvgSurfUnitNormal(n_surf);
     MatrixType id_matrix = IdentityMatrix(dimension,dimension);
     MatrixType tangent_projection_matrix = id_matrix - outer_prod(n_surf, n_surf);
 
@@ -326,7 +349,7 @@ void HelmholtzSurfThicknessElement::CalculateSurfaceStiffnessMatrix(
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
         Matrix DN_DX;
-        CalculateTetrahedraDN_DXMatrix(DN_DX,integration_method,i_point,rCurrentProcessInfo);
+        CalculatePseudoBulkSurfaceDN_DXMatrix(DN_DX,integration_method,i_point,rCurrentProcessInfo);
         const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
 
         MatrixType DN_DX_t = prod(DN_DX,tangent_projection_matrix);
@@ -339,7 +362,7 @@ void HelmholtzSurfThicknessElement::CalculateSurfaceStiffnessMatrix(
     KRATOS_CATCH("");
 }
 
-void HelmholtzSurfThicknessElement::CalculateTetrahedraDN_DXMatrix(
+void HelmholtzSurfThicknessElement::CalculatePseudoBulkSurfaceDN_DXMatrix(
     MatrixType& rDN_DX,
     const IntegrationMethod& rIntegrationMethod,
     const IndexType PointNumber,
@@ -350,59 +373,73 @@ void HelmholtzSurfThicknessElement::CalculateTetrahedraDN_DXMatrix(
 
     const auto& r_geom = GetGeometry();
 
-    rDN_DX.resize( 3, 3, false );
-    rDN_DX = ZeroMatrix( 3, 3 );    
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size1 = number_of_nodes;
+    SizeType mat_size2 = 3;
 
-    // create a tetrahedra here
-    double height = r_geom.Length();
-    const auto triangle_points = r_geom.Points();
-    VectorType n_surf;
-    CalculateNormal(n_surf);
-    PointPtrType p0 = new PointType(triangle_points[0].Id(),triangle_points[0]);
-    PointPtrType p1 = new PointType(triangle_points[1].Id(),triangle_points[1]);
-    PointPtrType p2 = new PointType(triangle_points[2].Id(),triangle_points[2]);
-    PointPtrType p3 = new PointType(triangle_points[0].Id()+3,((p0->Coordinates()+p1->Coordinates()+p2->Coordinates())/3.0) + height * n_surf);
-    TetrahedraGeometryType pseudo_tetrahedra(p0,p1,p2,p3);
+    rDN_DX.resize( mat_size1, mat_size2, false );
+    rDN_DX = ZeroMatrix( mat_size1, mat_size2 );  
 
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(rIntegrationMethod);
     Point surf_gp_local_pt = Point(integration_points[PointNumber].Coordinates());
     Point surf_gp_global_pt;
     r_geom.GlobalCoordinates(surf_gp_global_pt,surf_gp_local_pt);
-    Point elem_surf_gp_local_pt;
-    pseudo_tetrahedra.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);    
+    Point elem_surf_gp_local_pt;  
+    MatrixType pseudo_elem_DN_DX;    
 
-    MatrixType DN_De;
-    pseudo_tetrahedra.ShapeFunctionsLocalGradients(DN_De,elem_surf_gp_local_pt);
+    // create a pseudo bulk element here
+    double height = r_geom.Length();
+    Point geom_center = r_geom.Center();
+    const auto surf_points = r_geom.Points();
+    VectorType n_surf;
+    CalculateAvgSurfUnitNormal(n_surf);
+    PointPtrType p0 = new PointType(surf_points[0].Id(),surf_points[0]);
+    PointPtrType p1 = new PointType(surf_points[1].Id(),surf_points[1]);
+    PointPtrType p2 = new PointType(surf_points[2].Id(),surf_points[2]);
+    if(number_of_nodes==3){
+        PointPtrType p3 = new PointType(surf_points[0].Id()+3, geom_center.Coordinates() + height * n_surf);
+        TetrahedraGeometryType pseudo_tetrahedra(p0,p1,p2,p3);
+        pseudo_tetrahedra.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);    
+        MatrixType DN_De;
+        pseudo_tetrahedra.ShapeFunctionsLocalGradients(DN_De,elem_surf_gp_local_pt);
+        MatrixType InvJ0;
+        pseudo_tetrahedra.InverseOfJacobian(InvJ0,elem_surf_gp_local_pt);
+        pseudo_elem_DN_DX = prod(DN_De,InvJ0); 
 
-    MatrixType InvJ0;
-    pseudo_tetrahedra.InverseOfJacobian(InvJ0,elem_surf_gp_local_pt);
+    }else if(number_of_nodes==4) {
+        PointPtrType p3 = new PointType(surf_points[3].Id(),surf_points[3]);
+        PointPtrType p4 = new PointType(surf_points[0].Id()+4, geom_center.Coordinates() + height * n_surf);
+        PyramidGeometryType pseudo_pyramid(p0,p1,p2,p3,p4);
+        pseudo_pyramid.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);    
+        MatrixType DN_De;
+        pseudo_pyramid.ShapeFunctionsLocalGradients(DN_De,elem_surf_gp_local_pt);
+        MatrixType InvJ0;
+        pseudo_pyramid.InverseOfJacobian(InvJ0,elem_surf_gp_local_pt);
+        pseudo_elem_DN_DX = prod(DN_De,InvJ0); 
+    }
+    else
+        KRATOS_ERROR<<"HelmholtzSurfShapeElement: this element only supports 3 and 4 noded surface elements"<<std::endl;
 
-    MatrixType elem_DN_DX = prod(DN_De,InvJ0);
-
-    for(IndexType i = 0; i<3; i++)
-        for(IndexType j = 0; j<3; j++)
-            rDN_DX(i,j) = elem_DN_DX(i,j);     
+    for(IndexType i = 0; i<mat_size1; i++)
+        for(IndexType j = 0; j<mat_size2; j++)
+            rDN_DX(i,j) = pseudo_elem_DN_DX(i,j);  
      
     KRATOS_CATCH("");
 }
 
-void HelmholtzSurfThicknessElement::CalculateNormal(VectorType & r_n) const
+void HelmholtzSurfThicknessElement::CalculateAvgSurfUnitNormal(VectorType & rNormal) const
 {
-    const auto& r_cond_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
+    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
 
-    array_1d<double,3> v1,v2;
-    v1[0] = r_cond_geom[1].X() - r_cond_geom[0].X();
-    v1[1] = r_cond_geom[1].Y() - r_cond_geom[0].Y();
-    v1[2] = r_cond_geom[1].Z() - r_cond_geom[0].Z();
+    rNormal.resize(3);
+    rNormal = ZeroVector(3);
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
+        rNormal += r_geom.UnitNormal(point_number,integration_method);
 
-    v2[0] = r_cond_geom[2].X() - r_cond_geom[0].X();
-    v2[1] = r_cond_geom[2].Y() - r_cond_geom[0].Y();
-    v2[2] = r_cond_geom[2].Z() - r_cond_geom[0].Z();
-
-    r_n.resize(3);
-    MathUtils<double>::CrossProduct(r_n,v1,v2);
-    double norm = MathUtils<double>::Norm3(r_n);
-    r_n /= norm;
+    rNormal /= integration_points.size();
+    rNormal /= MathUtils<double>::Norm3(rNormal); 
 }
 
 } // Namespace Kratos
