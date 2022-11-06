@@ -762,8 +762,6 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-    // FIXME: This is only for Solid Mechanics Problem with young_modulus Modulus and Poisson Ratio
-    // TODO: Think about a more general way to find Bulk Modulus
     const double& young_modulus = GetProperties()[YOUNG_MODULUS];
     const double& poisson_ratio = GetProperties()[POISSON_RATIO];
     double bulk_modulus = young_modulus / (3.0 * (1.0 - 2.0 * poisson_ratio));
@@ -781,7 +779,8 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi, indexpj) -= ((1.0) / (bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight / (delta_coefficient * (rVariables.detF0 / rVariables.detF));
+            rLeftHandSideMatrix(indexpi, indexpj) -= ((1.0) / (bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight / (delta_coefficient* (rVariables.detF0 / rVariables.detF));
+            // rLeftHandSideMatrix(indexpi, indexpj) -= (1.0 / bulk_modulus) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);
         }
