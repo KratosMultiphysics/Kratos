@@ -128,6 +128,7 @@ public:
     ///@name Access
     ///@{
 
+    FilterFunction::UniquePointer mpFilterFunction;
 
     ///@}
     ///@name Inquiry
@@ -215,7 +216,6 @@ private:
     Parameters mMapperSettings;
     double mFilterRadius;
     unsigned int mMaxNumberOfNeighbors;
-    FilterFunction::UniquePointer mpFilterFunction;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;

@@ -89,7 +89,8 @@ public:
     MapperVertexMorphing( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
         : mrOriginModelPart(rOriginModelPart),
           mrDestinationModelPart(rDestinationModelPart),
-          mMapperSettings(MapperSettings)
+          mMapperSettings(MapperSettings),
+          mFilterRadius(MapperSettings["filter_radius"].GetDouble())
     {
     }
 
@@ -193,6 +194,11 @@ protected:
 
     virtual void InitializeComputationOfMappingMatrix();
 
+    double GetVertexMorphingRadius(const NodeType& rNode) const
+    {
+        return mFilterRadius;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -228,6 +234,7 @@ private:
     SparseMatrixType mMappingMatrix;
     std::vector<Vector> mValuesOrigin;
     std::vector<Vector> mValuesDestination;
+    double mFilterRadius;
 
     ///@}
     ///@name Private Operators

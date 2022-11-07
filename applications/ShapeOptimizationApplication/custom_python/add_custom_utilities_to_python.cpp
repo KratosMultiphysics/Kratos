@@ -30,6 +30,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_adaptive_radius.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/damping/direction_damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
@@ -106,6 +107,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
         ;
+
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing> >(m, "MapperVertexMorphingAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>::Initialize)
+        .def("Update", &MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>::Update)
+        .def("Map", MapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        .def("Map", MapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>>)
+        ;
+
     py::class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)

@@ -20,6 +20,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "includes/node.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -151,6 +152,11 @@ protected:
   ///@}
   ///@name Protected Operators
   ///@{
+
+  virtual double GetVertexMorphingRadius(const NodeType& rNode) const
+  {
+      KRATOS_ERROR << "Please implement this method in the derrived class.";
+  }
 
   ///@}
   ///@name Protected Operations

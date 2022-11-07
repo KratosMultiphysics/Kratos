@@ -87,6 +87,9 @@ PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
 
+    // For adaptive filter
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VERTEX_MORPHING_RADIUS);
+
     // Bead optimization
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA_MAPPED);
