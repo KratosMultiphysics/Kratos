@@ -42,14 +42,14 @@ with open(optimization_log_filename, 'r') as csvfile:
         else:
             last_line = line
 
-    resulting_mass = float(last_line[1].strip())
-    resulting_strain_energy = float(last_line[5].strip())
+    resulting_mass = float(last_line[5].strip())
+    resulting_strain_energy = float(last_line[1].strip())
     resulting_sina_alpha = float(last_line[12].strip())
 
     # # Check against specifications
-    TestCase().assertAlmostEqual(resulting_mass, 3736.87,4)
-    TestCase().assertAlmostEqual(resulting_strain_energy, 0.00529714, 6)
-    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.87266, 5)
+    TestCase().assertAlmostEqual(resulting_mass, 3069.56,4)
+    TestCase().assertAlmostEqual(resulting_strain_energy, 0.00329134, 6)
+    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.228864, 5)
 
 shutil.rmtree(original_directory+"/Optimization_Results")
 shutil.rmtree(original_directory+"/Primal_Results")

@@ -120,7 +120,7 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("HelmholtzThickness:Initialize ") << "Starting initialization of thickness control "<<mControlName<<" ..." << std::endl;
 
-        CreateModelParts();
+        CreateHelmholtzThicknessModelParts();
 
         CalculateNodeNeighbourCount();
         
@@ -130,26 +130,63 @@ public:
             mpStrategies.push_back(mpStrategy);
         }
 
-        AdjustFilterSizes();
+        physical_thicknesses =  mTechniqueSettings["physical_thicknesses"].GetVector();
+        initial_thickness = mTechniqueSettings["initial_thickness"].GetDouble();
+        beta = mTechniqueSettings["beta_settings"]["initial_value"].GetDouble();
+        adaptive_beta = mTechniqueSettings["beta_settings"]["adaptive"].GetBool();
+        beta_fac = mTechniqueSettings["beta_settings"]["increase_fac"].GetDouble();
+        max_beta = mTechniqueSettings["beta_settings"]["max_value"].GetDouble();
+        beta_update_period = mTechniqueSettings["beta_settings"]["update_period"].GetInt();
 
-        //initialize control thicknesses with 
-        t_min = mTechniqueSettings["min_thickness"].GetInt();
-        t_max = mTechniqueSettings["max_thickness"].GetInt();
-        t_initial = mTechniqueSettings["initial_thickness"].GetDouble();
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++)
-            SetVariable(mpVMModelParts[model_i],CT,t_initial);
+        filtered_thicknesses.resize(physical_thicknesses.size());        
+        for(int i=0;i<physical_thicknesses.size();i++)
+            filtered_thicknesses[i] = i;
 
-        //now compute physical thicknesses
-        beta = mTechniqueSettings["beta"].GetDouble();
-        sigmoid_projection = mTechniqueSettings["sigmoid_projection"].GetBool();
-        penalization = mTechniqueSettings["penalization"].GetBool();
-        ComputePhyiscalThickness();
+        double initial_filtered_thickness = ProjectBackward(initial_thickness,filtered_thicknesses,physical_thicknesses,beta);
+        double initial_control_thickness = initial_filtered_thickness;
+
+        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+            SetVariable(mpVMModelParts[model_i],CT,initial_filtered_thickness); 
+            SetVariable(mpVMModelParts[model_i],FT,initial_filtered_thickness); 
+            SetVariable(mpVMModelParts[model_i],PT,initial_thickness);
+        } 
+
+        const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
+        const auto& fixed_model_parts_thicknesses = mTechniqueSettings["fixed_model_parts_thicknesses"].GetVector();
+
+        for(int i=0; i<fixed_model_parts.size();i++)
+        {
+            const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
+            auto model_part_phyisical_thick = fixed_model_parts_thicknesses[i];
+            double model_part_filtered_thick = ProjectBackward(model_part_phyisical_thick,filtered_thicknesses,physical_thicknesses,beta);
+            #pragma omp parallel for
+            for(auto& node_i : model_part.Nodes()){
+                auto& control_thickness = node_i.FastGetSolutionStepValue(CT);
+                auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
+                auto& physical_thickness = node_i.FastGetSolutionStepValue(PT);
+                control_thickness = model_part_filtered_thick;
+                filtered_thickness = model_part_filtered_thick;
+                physical_thickness = model_part_phyisical_thick;
+            }                
+        }
 
         KRATOS_INFO("HelmholtzThickness:Initialize") << "Finished initialization of thickness control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
     };
     // --------------------------------------------------------------------------
     void Update() override {
+        opt_itr++;
+
+        if(adaptive_beta){
+            if (opt_itr % beta_update_period == 0 && beta <max_beta){
+                beta *= beta_fac;
+                if(beta>max_beta)
+                    beta = max_beta;                  
+                KRATOS_INFO("HelmholtzThickness:Update") << "beta is updated to " <<beta<< std::endl;
+            }                          
+        }
+
+        ComputeFilteredThickness();
         ComputePhyiscalThickness();
     };  
     // --------------------------------------------------------------------------
@@ -165,55 +202,13 @@ public:
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            //do the inverse projection and penalization
-            for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
-                const auto& derivative = node_i.FastGetSolutionStepValue(rDerivativeVariable);
-                auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_THICKNESS);
-                if(sigmoid_projection)
-                {
-
-                    double reference_thickness = 0;
-                    if (filtered_thickness<=t_min)
-                        reference_thickness = t_min;
-                    else if (filtered_thickness>=t_max)
-                        reference_thickness = t_max-1;
-                    else
-                    {
-                        for(int t=t_min;t<t_max;t++){                        
-                            if (filtered_thickness>=t && filtered_thickness<=t+1)
-                            {
-                                reference_thickness = t;
-                                break;
-                            }
-                        }
-                    }
-
-                    double value = -2*beta*(filtered_thickness-(reference_thickness+0.5));
-                    if(value<-600)
-                        value = -600;
-                    if(value>600)
-                        value = 600;
-                    helmholtz_source = derivative * (2.0*beta*std::exp(value)) * std::pow(1.0/(1+std::exp(value)),2);
-
-                }
-                else if(penalization)
-                {
-                    helmholtz_source = 3 * filtered_thickness * filtered_thickness * derivative;
-                }
-                else
-                    helmholtz_source = derivative;
-
-            }
-
+            SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_THICKNESS);
             SetVariable(mpVMModePart,HELMHOLTZ_VAR_THICKNESS,0.0);
 
             //now solve 
             mpStrategies[model_i]->Solve();
-
             SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_THICKNESS,rMappedDerivativeVariable);
         }
-
     
         KRATOS_INFO("HelmholtzThickness:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
 
@@ -271,13 +266,17 @@ protected:
     std::vector<LinearSolverType::Pointer> rLinearSystemSolvers;
     std::vector<StrategyType*>mpStrategies;
     std::vector<ModelPart*> mpVMModelParts;
+    std::vector<Properties::Pointer> mpVMModelPartsProperties;    
     Parameters mTechniqueSettings;
     double beta;
-    bool sigmoid_projection;
-    bool penalization;
-    double t_min;
-    double t_max;
-    double t_initial;
+    bool adaptive_beta;
+    double beta_fac;
+    double max_beta;
+    int beta_update_period;
+    int opt_itr = 0;
+    Vector physical_thicknesses;
+    Vector filtered_thicknesses;
+    double initial_thickness; 
     
     ///@}
     ///@name Protected Operators
@@ -376,7 +375,7 @@ private:
         }
     } 
 
-    void CreateModelParts()
+    void CreateHelmholtzThicknessModelParts()
     {
         // creating vm model nodes and variables
         for(auto& control_obj : mControlSettings["controlling_objects"]){
@@ -384,13 +383,22 @@ private:
             ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
             std::string vm_model_part_name =  root_model_part.Name()+"_Helmholtz_Thickness_Part";
             ModelPart* p_vm_model_part;
+            Properties::Pointer p_vm_model_part_property;
 
-            if (root_model_part.HasSubModelPart(vm_model_part_name))
+            if (root_model_part.HasSubModelPart(vm_model_part_name)){
                 p_vm_model_part = &(root_model_part.GetSubModelPart(vm_model_part_name));
+                for(int i =0; i<mpVMModelParts.size(); i++)
+                    if(mpVMModelParts[i]->Name()==p_vm_model_part->Name())
+                        p_vm_model_part_property = mpVMModelPartsProperties[i];
+            }
             else{
                 p_vm_model_part = &(root_model_part.CreateSubModelPart(vm_model_part_name));
+                p_vm_model_part_property = p_vm_model_part->CreateNewProperties(root_model_part.NumberOfProperties()+1);
+                mpVMModelPartsProperties.push_back(p_vm_model_part_property);
                 mpVMModelParts.push_back(p_vm_model_part);
             }
+
+            p_vm_model_part_property->SetValue(HELMHOLTZ_RADIUS_THICKNESS,mTechniqueSettings["filter_radius"].GetDouble());
 
             for(auto& node : r_controlling_object.Nodes())
                 p_vm_model_part->AddNode(&node);
@@ -402,18 +410,16 @@ private:
             if(!r_controlling_object.Elements().size()>0)
                 KRATOS_ERROR << "HelmholtzThickness:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
+
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 const Properties& elem_i_prop = it->GetProperties();
-                if(!elem_i_prop.Has(THICKNESS))
-                    KRATOS_ERROR << "HelmholtzThickness:CreateModelParts : element " << it->Id()<<" of controlling model part "<<control_obj.GetString()<<" does not have thickness property !"<<std::endl;
-                Properties::Pointer model_part_new_prop = r_controlling_object.CreateNewProperties(r_controlling_object.NumberOfProperties()+1);
-                *model_part_new_prop = elem_i_prop;
-                model_part_new_prop->SetValue(HELMHOLTZ_RADIUS_THICKNESS,mTechniqueSettings["filter_radius"].GetDouble());
-                it->SetProperties(model_part_new_prop);
-                Element::Pointer p_element = new HelmholtzSurfThicknessElement(it->Id(), it->pGetGeometry(), model_part_new_prop);
+                Properties::Pointer elem_i_new_prop = r_controlling_object.CreateNewProperties(r_controlling_object.NumberOfProperties()+1);
+                *elem_i_new_prop = elem_i_prop;
+                it->SetProperties(elem_i_new_prop);
+                Element::Pointer p_element = new HelmholtzSurfThicknessElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 rmesh_elements.push_back(p_element);
-            }  
+            }   
         }
 
         // now add dofs
@@ -426,139 +432,211 @@ private:
             }
         }
 
+        // now apply dirichlet BC
+        const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
+
+        for(int i=0; i<fixed_model_parts.size();i++)
+        {
+            const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
+            for(auto& node_i : model_part.Nodes())
+                node_i.Fix(HELMHOLTZ_VAR_THICKNESS);
+        }   
+
+
     }
 
-    void AdjustFilterSizes()
-    {
-        // now adjust the filter size if its adaptive
-        if(mTechniqueSettings["automatic_filter_size"].GetBool()){
-            for(auto& control_obj : mControlSettings["controlling_objects"]){
-                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
-                ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-                std::string vm_model_part_name =  root_model_part.Name()+"_Helmholtz_Thickness_Part";
-                ModelPart* mpVMModePart = &(root_model_part.GetSubModelPart(vm_model_part_name));
+    void ComputeFilteredThickness(){   
 
-                double max_detJ = 0.0;
-                double min_detJ = 1e9;
-                for(auto& elem_i : mpVMModePart->Elements()){
-                    const auto& r_geom = elem_i.GetGeometry();
-                    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-                    const unsigned int NumGauss = integration_points.size();
-                    Vector GaussPtsJDet = ZeroVector(NumGauss);
-                    r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
-                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        if(GaussPtsJDet[i_point]>max_detJ)
-                            max_detJ = GaussPtsJDet[i_point];
-                        if(GaussPtsJDet[i_point]<min_detJ)
-                            min_detJ = GaussPtsJDet[i_point];                  
-                    }   
-                }     
-
-                double surface_filter_size = sqrt(std::pow(max_detJ/min_detJ, 0.5));
-                for(auto& elem_i : mpVMModePart->Elements())
-                    elem_i.GetProperties().SetValue(HELMHOLTZ_RADIUS_THICKNESS,surface_filter_size);
-
-                KRATOS_INFO("HelmholtzThickness:AdjustFilterSizes") << " Surface filter of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size << std::endl;
-            }
-        }    
-    }
-
-    void ComputePhyiscalThickness(){
-
-        //now initialize control and physical thicknesses
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
-            //first update control thicknesses
+
+            //first update control thickness
             AddVariable1ToVarible2(mpVMModelParts[model_i],D_CT,CT);
 
             //now filter nodal control thickness 
             //first we need to multiply with mass matrix 
             SetVariable(mpVMModelParts[model_i],HELMHOLTZ_VAR_THICKNESS,0.0);
             SetVariable(mpVMModelParts[model_i],HELMHOLTZ_SOURCE_THICKNESS,0.0);
-            //now we need to multiply with the mass matrix 
+            //now we need to multiply with the mass matrix
+            #pragma omp parallel for 
             for(auto& elem_i : mpVMModelParts[model_i]->Elements())
             {
                 VectorType origin_values;
                 GetElementVariableValuesVector(elem_i,CT,origin_values);
                 MatrixType mass_matrix;
-                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModelParts[model_i]->GetProcessInfo());            
+                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModelParts[model_i]->GetProcessInfo());           
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_THICKNESS,int_vals);
             }
 
+            //now we need to apply BCs
+            #pragma omp parallel for 
+            for(auto& node_i : mpVMModelParts[model_i]->Nodes())
+            {
+                auto& r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_THICKNESS);
+                if(node_i.IsFixed(HELMHOLTZ_VAR_THICKNESS))
+                    r_nodal_variable_hl_var = node_i.FastGetSolutionStepValue(FT);           
+            }
             mpStrategies[model_i]->Solve();
-
             SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_THICKNESS,FT);
+        }        
+    }     
 
+    void ComputePhyiscalThickness(){
+        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PT
+            #pragma omp parallel for
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
-                auto& physical_thickness = node_i.FastGetSolutionStepValue(PT);
-                if (sigmoid_projection)
-                {
-                    double reference_thickness = 0;
-                    if (filtered_thickness<=t_min)
-                        reference_thickness = t_min;
-                    else if (filtered_thickness>=t_max)
-                        reference_thickness = t_max-1;
-                    else
-                    {
-                        for(int t=t_min;t<t_max;t++){                        
-                            if (filtered_thickness>=t && filtered_thickness<=t+1)
-                            {
-                                reference_thickness = t;
-                                break;
-                            }
-                        }
-                    }
-
-                    double value = -2*beta*(filtered_thickness-(reference_thickness+0.5)); 
-                    if(value<-600)
-                        value = -600;
-                    if(value>600)
-                        value = 600;                    
-                    physical_thickness = (1.0/(1+std::exp(value)))+reference_thickness;
-                    if(physical_thickness<0.001)
-                        physical_thickness = 0.001;
-
-                }
-                else if(penalization){
-                    physical_thickness = std::pow(filtered_thickness,3);
-                }
-                else
-                    physical_thickness = filtered_thickness;
+                const auto& filtered_thick = node_i.FastGetSolutionStepValue(FT);
+                auto& thickness = node_i.FastGetSolutionStepValue(PT);
+                auto& thickness_der = node_i.FastGetSolutionStepValue(D_PT_D_FT);
+                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta);
+                thickness_der = FirstFilterDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta);
             }
-            //now compute element thicknesses
-            for(auto& elem_i : mpVMModelParts[model_i]->Elements()){
-
-                const auto& r_geom = elem_i.GetGeometry();	
-                const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-                const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-                const unsigned int NumGauss = integration_points.size();
-                Vector GaussPtsJDet = ZeroVector(NumGauss);
-                r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
-                const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
-
-                double elem_area = 0.0; 
-                for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-                    elem_area += integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-
-                double element_thickness = 0;
-                for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-                {
-                	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-                	const auto& rN = row(Ncontainer,i_point);
-                	int node_index = 0;
-                	for (auto& node_i : r_geom){
-                        const auto& nodal_thickness = node_i.FastGetSolutionStepValue(PT);
-                        element_thickness += nodal_thickness * rN[node_index] * IntToReferenceWeight / elem_area;
-                		node_index++;
-                	}						
-                }
-                elem_i.GetProperties().SetValue(THICKNESS,element_thickness);                                    
-            }
-
         }
+
+        // update elements' t
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            #pragma omp parallel for
+            for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
+                ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
+                double elem_i_thicknes = 0.0;
+                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++)
+                    elem_i_thicknes += it->GetGeometry()[node_element].FastGetSolutionStepValue(PT);
+                elem_i_thicknes /= it->GetGeometry().size();
+
+                double T_min,T_max;
+
+                for(int i=0;i<physical_thicknesses.size()-1;i++){
+                    if(elem_i_thicknes>=physical_thicknesses[i] && elem_i_thicknes<=physical_thicknesses[i+1]){
+                        T_min = physical_thicknesses[i];
+                        T_max = physical_thicknesses[i+1];
+                        break;
+                    }
+                }           
+                double penal_elem_i_thickness = T_min + std::pow((elem_i_thicknes-T_min)/(T_max-T_min),3.0) * (T_max-T_min); 
+                it->GetProperties().SetValue(THICKNESS,penal_elem_i_thickness);
+                it->GetProperties().SetValue(T_MIN,T_min);
+                it->GetProperties().SetValue(T_MAX,T_max);
+                it->GetProperties().SetValue(T_PR,elem_i_thicknes);
+                it->GetProperties().SetValue(T_PE,penal_elem_i_thickness);
+            }
+        }
+    }
+
+
+    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
+
+        double x1,x2,y1,y2;
+        int index_x1 = 0;
+        if(x>=x_limits[x_limits.size()-1]){
+            x1=x_limits[x_limits.size()-2];
+            index_x1 = x_limits.size()-2;
+            x2=x_limits[x_limits.size()-1];
+            y1=y_limits[y_limits.size()-2];
+            y2=y_limits[y_limits.size()-1];
+        }
+        else if(x<=x_limits[0]){
+            x1=x_limits[0];
+            index_x1 = 0;
+            x2=x_limits[1];
+            y1=y_limits[0];
+            y2=y_limits[1];
+        }
+        else{
+            for(int i=0;i<x_limits.size()-1;i++)
+                if((x>=x_limits[i]) && (x<=x_limits[i+1]))
+                {
+                    y1 = y_limits[i];
+                    y2 = y_limits[i+1];
+                    x1 = x_limits[i];
+                    index_x1 = i;
+                    x2 = x_limits[i+1];
+                    break;
+                }            
+        }        
+        
+        double pow_val = -2.0*beta*(x-(x1+x2)/2);
+
+        // if(index_x1>0){
+        //     double prev_x1,prev_x2,prev_y1,prev_y2;
+        //     prev_x1 = x_limits[index_x1-1];
+        //     prev_x2 = x_limits[index_x1];
+        //     prev_y1 = y_limits[index_x1-1];
+        //     prev_y2 = y_limits[index_x1];
+        //     double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
+        //     y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
+        // }
+
+        return (y2-y1)/(1+std::exp(pow_val)) + y1;
+    }
+
+
+    double ProjectBackward(double y,Vector x_limits,Vector y_limits,double beta){
+        
+        double x = 0;
+        if(y>=y_limits[y_limits.size()-1])
+            x = x_limits[y_limits.size()-1];
+        else if(y<=y_limits[0])
+            x = x_limits[0];
+        else{
+            for(int i=0;i<y_limits.size()-1;i++)
+                if((y>y_limits[i]) && (y<y_limits[i+1]))
+                {
+                    double y1 = y_limits[i];
+                    double y2 = y_limits[i+1];
+                    double x1 = x_limits[i];
+                    double x2 = x_limits[i+1];
+                    x = ((x2+x1)/2.0) + (1.0/(-2.0*beta)) * std::log(((y2-y1)/(y-y1))-1);
+                    break;
+                } 
+                else if(y==y_limits[i]){
+                    x = x_limits[i];
+                    break;
+                }
+                else if(y==y_limits[i+1]){
+                    x = x_limits[i+1];
+                    break;
+                }                           
+        }
+        return x;
+    }
+
+    double FirstFilterDerivative(double x,Vector x_limits,Vector y_limits,double beta){
+
+        double dfdx = 0;
+        double x1,x2,y1,y2;
+        if(x>=x_limits[x_limits.size()-1]){
+            x1=x_limits[x_limits.size()-2];
+            x2=x_limits[x_limits.size()-1];
+            y1=y_limits[y_limits.size()-2];
+            y2=y_limits[y_limits.size()-1];
+        }
+        else if(x<=x_limits[0]){
+            x1=x_limits[0];
+            x2=x_limits[1];
+            y1=y_limits[0];
+            y2=y_limits[1];
+        }
+        else{
+            for(int i=0;i<x_limits.size()-1;i++)
+                if((x>=x_limits[i]) && (x<=x_limits[i+1]))
+                {
+                    y1 = y_limits[i];
+                    y2 = y_limits[i+1];
+                    x1 = x_limits[i];
+                    x2 = x_limits[i+1];
+                    break;
+                }            
+        }
+
+        double pow_val = -2.0*beta*(x-(x1+x2)/2);
+        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
+
+        if (y2<y1)
+            dydx *=-1;
+
+        return dydx;
 
     }  
 
@@ -606,8 +684,8 @@ private:
         const SizeType num_nodes = rgeom.PointsNumber();
 
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-            auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
-            r_nodal_variable += rWeight * rValues[i_node];
+            #pragma omp atomic
+            rgeom[i_node].FastGetSolutionStepValue(rVariable) += (rWeight * rValues[i_node]);
         }
     }
 
@@ -629,31 +707,23 @@ private:
     
     void SetVariable(ModelPart* mpVMModePart, const Variable<double> &rVariable, const double value) 
     {
+        #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
-        {
-            auto& r_nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
-            r_nodal_variable = value;                   
-        }
+            node_i.FastGetSolutionStepValue(rVariable) = value;
     }
 
     void SetVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2) 
     {
+        #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
-        {
-            auto& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rVariable1);
-            auto& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
-            r_nodal_variable2 = r_nodal_variable1;                  
-        }
+            node_i.FastGetSolutionStepValue(rVariable2) = node_i.FastGetSolutionStepValue(rVariable1);
     }    
 
     void AddVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2) 
     {
+        #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
-        {
-            auto& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rVariable1);
-            auto& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
-            r_nodal_variable2 += r_nodal_variable1;                  
-        }
+            node_i.FastGetSolutionStepValue(rVariable2) += node_i.FastGetSolutionStepValue(rVariable1);
     }    
 
     ///@}

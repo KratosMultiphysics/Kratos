@@ -133,8 +133,10 @@ public:
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
 
         double element_mass = 0;
-        if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
-            element_mass = elem_i.GetGeometry().Area() * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
+        if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(T_PR))
+            element_mass = elem_i.GetGeometry().Area() * elem_i.GetProperties().GetValue(T_PR) * elem_i.GetProperties().GetValue(DENSITY);
+        else if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
+            element_mass = elem_i.GetGeometry().Area() * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);    
         if (local_space_dimension == 3 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
             element_mass = elem_i.GetGeometry().Volume() * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 3 && DomainSize == 3)
@@ -166,9 +168,13 @@ public:
                     if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
                         CalculateElementMaterialGradients(elem_i,domain_size);              
             }
-                
-            // else if(control_type=="thickness")
-            //     VariableUtils().SetHistoricalVariableToZero(D_MASS_D_PT, controlled_model_part.Nodes());
+            else if(control_type=="thickness"){
+                VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FT, controlled_model_part.Nodes());
+                #pragma omp parallel for
+                for (auto& elem_i : controlled_model_part.Elements())
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
+                        CalculateElementThicknessGradients(elem_i,domain_size);              
+            }            
             
         }
 
@@ -241,7 +247,22 @@ public:
     };        
 
     void CalculateElementThicknessGradients(Element& elem_i, const std::size_t DomainSize){
-     
+
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        double curr_thickness = elem_i.GetProperties().GetValue(T_PR);
+        elem_i.GetProperties().SetValue(T_PR,1.0);
+        double elem_thick_grad = CalculateElementMass(elem_i,DomainSize);
+        elem_i.GetProperties().SetValue(T_PR,curr_thickness);
+
+        for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+            const auto& d_pt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PT_D_FT);
+            #pragma omp atomic
+            r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FT) += d_pt_d_ft * elem_thick_grad / number_of_nodes;
+        }
+
     };
 
 

@@ -22,15 +22,15 @@ class ThicknessControl():
 
         self.control_variable_name = "CT"
         self.control_update_name = "D_CT"
-        self.output_names = ["CT","PT","FT","D_CT"]
+        self.scalar_fields = ["CT","FT","PT","D_CT","D_PT_D_FT"]
+        self.vector_fields = []
+        self.output_names = self.scalar_fields + self.vector_fields
 
         # add vars
         for model_part_name in self.controlling_objects:
             root_model = model_part_name.split(".")[0]
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.CT)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.PT)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.FT)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_CT)
+            for field_name in self.output_names:
+                self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(field_name))
 
 
     def Initialize(self):
@@ -38,10 +38,10 @@ class ThicknessControl():
         for model_part_name in self.controlling_objects:
             model_part = self.model.GetModelPart(model_part_name)         
             for node in model_part.Nodes:
-                node.SetSolutionStepValue(KOA.CT, 0.0)  
-                node.SetSolutionStepValue(KOA.PT, 0.0)
-                node.SetSolutionStepValue(KOA.FT, 0.0)
-                node.SetSolutionStepValue(KOA.D_CT, 0.0)
+                for vec_field in self.vector_fields:
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(vec_field), [0.0, 0.0, 0.0])
+                for scala_field in self.scalar_fields:
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(scala_field), 0)
  
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         raise RuntimeError("ThicknessControl:MapFirstDerivative: calling base class function") 

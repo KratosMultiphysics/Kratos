@@ -22,12 +22,17 @@ class HelmholtzThickness(ThicknessControl):
         self.default_technique_settings = KM.Parameters("""{
                     "automatic_filter_size" : true,
                     "filter_radius" : 0.000000000001,
-                    "beta":25,
-                    "sigmoid_projection":false,
-                    "penalization":false,
-                    "min_thickness": 0.001,
-                    "initial_thickness": 1.0,
-                    "max_thickness": 1.0,          
+                    "beta_settings": {
+                        "initial_value" : 25,
+                        "max_value" : 25,
+                        "adaptive" : false,
+                        "increase_fac" : 1.5,
+                        "update_period" : 20
+                    },
+                    "initial_thickness":0.000001,
+                    "physical_thicknesses": [],
+                    "fixed_model_parts": [],
+                    "fixed_model_parts_thicknesses": [],    
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",

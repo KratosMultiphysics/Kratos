@@ -15,6 +15,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from optimization_test_factory import top_opt_test
 from optimization_test_factory import mat_opt_test
 from optimization_test_factory import shell_shape_opt_test
+from optimization_test_factory import shell_thick_opt_test
 
 # Nightly tests
 
@@ -52,6 +53,7 @@ def AssembleTestSuites():
     validationSuite.addTest(top_opt_test('test_execution'))
     validationSuite.addTest(mat_opt_test('test_execution'))
     validationSuite.addTest(shell_shape_opt_test('test_execution'))
+    validationSuite.addTest(shell_thick_opt_test('test_execution'))    
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']

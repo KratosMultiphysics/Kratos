@@ -165,7 +165,7 @@ public:
 
                 for (auto& cond_i : controlled_model_part.Conditions())
                     if(cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true)
-                         CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);
+                        CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);
             }                
             else if(control_type=="material"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["material_gradient_field_name"].GetString();
@@ -173,8 +173,16 @@ public:
                 #pragma omp parallel for
                 for (auto& elem_i : controlled_model_part.Elements())
                     if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
-                         CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
+                        CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
             }
+            else if(control_type=="thickness"){
+                grad_field_name = mrResponseSettings["gradient_settings"]["thickness_gradient_field_name"].GetString();
+                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());  
+                #pragma omp parallel for
+                for (auto& elem_i : controlled_model_part.Elements())
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
+                        CalculateElementThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);
+            }            
 
         }
 
@@ -378,7 +386,36 @@ public:
 
 
     void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
-    
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        Vector u;
+        Vector lambda;
+        
+        // Get state solution
+        const auto& rConstElemRef = elem_i;
+        rConstElemRef.GetValuesVector(u,0);
+
+        // Get adjoint variables (Corresponds to 1/2*u)
+        lambda = 0.5*u;
+
+        Vector d_RHS_d_T;
+        double t_max = elem_i.GetProperties().GetValue(T_MAX);
+        double t_min = elem_i.GetProperties().GetValue(T_MIN);
+        double t_pr = elem_i.GetProperties().GetValue(T_PR);
+        double t_pe = elem_i.GetProperties().GetValue(T_PE);
+        elem_i.GetProperties().SetValue(THICKNESS,1.0);
+        elem_i.CalculateRightHandSide(d_RHS_d_T,rCurrentProcessInfo);
+        elem_i.GetProperties().SetValue(THICKNESS,t_pe);
+
+
+        for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+            const auto& d_pt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PT_D_FT);
+            #pragma omp atomic
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_pt_d_ft * (t_min + 3 * std::pow((t_pr-t_min)/(t_max-t_min),2.0) * (t_max-t_min)) * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
+        }    
     };
 
     // --------------------------------------------------------------------------
