@@ -181,7 +181,7 @@ public:
      * @return The diagonal  max value
      */
     template<class TSparseSpace>
-    static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA)
+    static double GetMaxDiagonal(const typename TSparseSpace::MatrixType& rA)
     {
         const double* Avalues = rA.value_data().begin();
         const std::size_t* Arow_indices = rA.index1_data().begin();
