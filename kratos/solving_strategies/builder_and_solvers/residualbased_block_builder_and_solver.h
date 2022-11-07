@@ -34,6 +34,7 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
