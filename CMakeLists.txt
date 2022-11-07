@@ -221,7 +221,7 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # After all the compiler check we can print the final flags
 message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-  
+
 # Old non-compatible versions of VS
 if(${MSVC})
   if(${MSVC_TOOLSET_VERSION} LESS 141)
@@ -291,8 +291,8 @@ endif(NOT DEFINED KRATOS_ENABLE_LTO)
 message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
-    message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 8))
+    message( FATAL_ERROR "Kratos only supports Python version 3.8 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 

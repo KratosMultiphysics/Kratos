@@ -258,8 +258,6 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     {}
 
 void KratosGeoMechanicsApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"
