@@ -24,7 +24,6 @@
 #include "includes/registry_value_item.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/string_utilities.h"
-#include "operations/operation.h"
 
 namespace Kratos
 {
@@ -243,33 +242,6 @@ private:
 ///@name Input and output
 ///@{
 
-template<class TObjectType>
-void AuxiliaryRegisterOperation (
-    const std::string Name,
-    const std::string ModuleName,
-    TObjectType& rPrototype)
-{
-    std::string aux_all_name = "operations.all." + Name;
-    if (!Registry::HasItem(aux_all_name)) {
-        Registry::AddItem<RegistryValueItem<TObjectType>>(aux_all_name, rPrototype);
-    } else {
-        KRATOS_ERROR << "Operation " << Name << " is already registered." << std::endl;
-    }
-    std::string aux_mod_name = "operations." + ModuleName + "." + Name;
-    if (!Registry::HasItem(aux_mod_name)) {
-        Registry::AddItem<RegistryValueItem<TObjectType>>(aux_mod_name, rPrototype);
-    }
-}
-
-// /// Define macro for registry
-// ///TODO: Discuss where to place this
-// #ifdef KRATOS_REGISTER_OPERATION
-// #undef KRATOS_REGISTER_OPERATION
-// #endif
-// #define KRATOS_REGISTER_OPERATION(name, module_name, reference) \
-//     if (!Registry::HasItem(std::string("operations.all.") + name)) {Registry::AddItem<RegistryValueItem<decltype(reference)>>(std::string("operations.all.") + name, reference);} \
-//     else {KRATOS_ERROR << "Operation " << name << " is already registered." << std::endl;} \
-//     if (!Registry::HasItem(std::string("operations.") + module_name + std::string(".") + name)) {Registry::AddItem<RegistryValueItem<decltype(reference)>>(std::string("operations.") + module_name + std::string(".") + name, reference);};
 
 /// input stream function
 inline std::istream& operator >> (
