@@ -205,7 +205,7 @@ public:
      * @return The diagonal min value
      */
     template<class TSparseSpace>
-    static double GetMinDiagonal(typename TSparseSpace::MatrixType& rA)
+    static double GetMinDiagonal(const typename TSparseSpace::MatrixType& rA)
     {
         const double* Avalues = rA.value_data().begin();
         const std::size_t* Arow_indices = rA.index1_data().begin();
