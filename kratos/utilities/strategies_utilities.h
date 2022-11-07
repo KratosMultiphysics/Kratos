@@ -133,7 +133,6 @@ public:
                 return GetDiagonalNorm<TSparseSpace>(rA)/static_cast<double>(rA.size1());
             case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
                 return GetMaxDiagonal<TSparseSpace>(rA);
-//                 return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
             default:
                 return GetMaxDiagonal<TSparseSpace>(rA);
         }
