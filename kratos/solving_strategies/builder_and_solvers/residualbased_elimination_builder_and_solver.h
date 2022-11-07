@@ -1041,7 +1041,7 @@ protected:
     ///@{
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-   std::vector<omp_lock_t> mLockArray; /// TODO: DISCUSS TO REMOVE THIS AS IN THE BlockBuilderAndSolver
+   std::vector<omp_lock_t> mLockArray; /// TODO: Replace with std::vector<LockObject>
 #endif
 
     double mScaleFactor = 1.0;         /// The manually set scale factor
