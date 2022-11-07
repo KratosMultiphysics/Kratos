@@ -62,7 +62,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             } else {
                 mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
             }
-        } 
+        }
 
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
 
@@ -82,7 +82,6 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
-    // We initialize the material reponse if required
     bool required = false;
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
@@ -91,6 +90,7 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         }
     }
     if (required) {
+        const bool is_rotated = IsElementRotated();
         const auto& r_geom = GetGeometry();
         const SizeType number_of_nodes = r_geom.size();
         const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -121,19 +121,21 @@ void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProces
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
 
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            // Compute constitutive law variables
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-                // Call the constitutive law to update material variables
-                mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
+            // Rotate to local axes strain/F
+            if (is_rotated)
+                RotateToLocalAxes(Values, this_kinematic_variables);
 
-                // TODO: Deprecated, remove this
-                mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geom, row( N_values, point_number ), rCurrentProcessInfo);
-            }
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
+
+            // TODO: Deprecated, remove this
+            mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geom, row( N_values, point_number ), rCurrentProcessInfo);
         }
     }
 }
@@ -171,7 +173,6 @@ void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentPr
 
 void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
-    // We finalize the material reponse if required
     bool required = false;
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
@@ -180,6 +181,7 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
         }
     }
     if (required) {
+        const bool is_rotated = IsElementRotated();
         const auto &r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
         const SizeType number_of_nodes = r_geometry.size();
@@ -209,19 +211,21 @@ void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessI
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-                // Compute constitutive law variables
-                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+            // Compute constitutive law variables
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-                // Call the constitutive law to update material variables
-                mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+            // Rotate to local axes strain/F
+            if (is_rotated)
+                RotateToLocalAxes(Values, this_kinematic_variables);
 
-                // TODO: Deprecated, remove this
-                mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
-            }
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+
+            // TODO: Deprecated, remove this
+            mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
         }
     }
 }
@@ -836,7 +840,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
 
@@ -895,9 +899,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                // Compute material reponse, not encessary to rotate since it's an invariant
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), false);
 
                 // Compute VM stress
                 if (dimension == 2) {
@@ -1023,6 +1026,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number] = mConstitutiveLawVector[point_number]->GetValue( INSITU_STRESS, rOutput[point_number] );
             }
         } else if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR ) {
+            const bool is_rotated = IsElementRotated();
             // Create and initialize element variables:
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
@@ -1043,14 +1047,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy, is_rotated);
                 } else {
                     // Compute material reponse
-                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2, is_rotated);
                 }
 
                 if (strain_size == 4) { // Axysimmetric
@@ -1090,9 +1093,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure, false);
 
                 if (strain_size == 4) { // Axysimmetric
                     if (rOutput[point_number].size() != 6)
@@ -1193,6 +1195,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
             }
         } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
+            const bool is_rotated = IsElementRotated();
             // Create and initialize element variables:
             const SizeType number_of_nodes = r_geom.size();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -1218,7 +1221,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), is_rotated);
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                     rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
@@ -1543,20 +1546,23 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure,
+    const bool IsElementRotated
     )
 {
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // rotate to local axes strain/F
-    RotateToLocalAxes(rValues, rThisKinematicVariables);
+    if (IsElementRotated)
+        RotateToLocalAxes(rValues, rThisKinematicVariables);
 
     // Actually do the computations in the ConstitutiveLaw in local axes
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 
     // We undo the rotation of strain/F, C, stress
-    RotateToGlobalAxes(rValues, rThisKinematicVariables);
+    if (IsElementRotated)
+        RotateToGlobalAxes(rValues, rThisKinematicVariables);
 }
 
 /***********************************************************************************/
@@ -1594,30 +1600,28 @@ void BaseSolidElement::RotateToLocalAxes(
     KinematicVariables& rThisKinematicVariables
     )
 {
-    if (this->IsElementRotated()) {
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-        BoundedMatrix<double, 3, 3> rotation_matrix;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    BoundedMatrix<double, 3, 3> rotation_matrix;
 
-        BuildRotationSystem(rotation_matrix, strain_size);
+    BuildRotationSystem(rotation_matrix, strain_size);
 
-        if (UseElementProvidedStrain()) { // we rotate strain
-            if (strain_size == 6) {
-                BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
-                ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
-                rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
-            } else if (strain_size == 3) {
-                BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
-                ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
-                rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
-            }
-        } else { // rotate F
-            BoundedMatrix<double, 3, 3> inv_rotation_matrix;
-            double aux_det;
-            MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
-            rThisKinematicVariables.F = prod(rotation_matrix, rThisKinematicVariables.F);
-            rThisKinematicVariables.F = prod(rThisKinematicVariables.F, inv_rotation_matrix);
-            rValues.SetDeformationGradientF(rThisKinematicVariables.F);
+    if (UseElementProvidedStrain()) { // we rotate strain
+        if (strain_size == 6) {
+            BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
+        } else if (strain_size == 3) {
+            BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
         }
+    } else { // Rotate F
+        BoundedMatrix<double, 3, 3> inv_rotation_matrix;
+        double aux_det;
+        MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+        rThisKinematicVariables.F = prod(rotation_matrix, rThisKinematicVariables.F);
+        rThisKinematicVariables.F = prod(rThisKinematicVariables.F, inv_rotation_matrix);
+        rValues.SetDeformationGradientF(rThisKinematicVariables.F);
     }
 }
 
@@ -1629,49 +1633,47 @@ void BaseSolidElement::RotateToGlobalAxes(
     KinematicVariables& rThisKinematicVariables
     )
 {
-    if (this->IsElementRotated()) {
-        const auto& r_options = rValues.GetOptions();
-        const bool stress_option = r_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
-        const bool constitutive_matrix_option = r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const auto& r_options = rValues.GetOptions();
+    const bool stress_option = r_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool constitutive_matrix_option = r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-        BoundedMatrix<double, 3, 3> rotation_matrix;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    BoundedMatrix<double, 3, 3> rotation_matrix;
 
-        BuildRotationSystem(rotation_matrix, strain_size);
+    BuildRotationSystem(rotation_matrix, strain_size);
 
-        // Undo the rotation in strain, stress and C
-        if (strain_size == 6) {
-            BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
-            ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
-            rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
-            if (stress_option)
-                rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            if (constitutive_matrix_option) {
-                BoundedMatrix<double, 6, 6> aux;
-                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
-                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
-            }
-        } else if (strain_size == 3) {
-            BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
-            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
-            rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
-            if (stress_option)
-                rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            if (constitutive_matrix_option) {
-                BoundedMatrix<double, 3, 3> aux;
-                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
-                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
-            }
+    // Undo the rotation in strain, stress and C
+    if (strain_size == 6) {
+        BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+        ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+        rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
+        if (stress_option)
+            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+        if (constitutive_matrix_option) {
+            BoundedMatrix<double, 6, 6> aux;
+            noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+            noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
         }
-        // Now undo the rotation in F if required
-        if (!UseElementProvidedStrain()) {
-            BoundedMatrix<double, 3, 3> inv_rotation_matrix;
-            double aux_det;
-            MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
-            rThisKinematicVariables.F = prod(inv_rotation_matrix, rThisKinematicVariables.F);
-            rThisKinematicVariables.F = prod(rThisKinematicVariables.F, rotation_matrix);
-            rValues.SetDeformationGradientF(rThisKinematicVariables.F);
+    } else if (strain_size == 3) {
+        BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+        ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+        rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
+        if (stress_option)
+            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+        if (constitutive_matrix_option) {
+            BoundedMatrix<double, 3, 3> aux;
+            noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+            noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
         }
+    }
+    // Now undo the rotation in F if required
+    if (!UseElementProvidedStrain()) {
+        BoundedMatrix<double, 3, 3> inv_rotation_matrix;
+        double aux_det;
+        MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+        rThisKinematicVariables.F = prod(inv_rotation_matrix, rThisKinematicVariables.F);
+        rThisKinematicVariables.F = prod(rThisKinematicVariables.F, rotation_matrix);
+        rValues.SetDeformationGradientF(rThisKinematicVariables.F);
     }
 }
 
@@ -1779,7 +1781,6 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
         MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
         GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     }
-    
     return detJ;
 }
 
