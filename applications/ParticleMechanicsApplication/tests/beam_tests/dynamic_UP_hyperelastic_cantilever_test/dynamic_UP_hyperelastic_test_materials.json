@@ -1,0 +1,38 @@
+{
+    "properties" : [{
+        "model_part_name" : "Initial_MPM_Material.Parts_Material_domain_Material_domain_Auto3",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HyperElasticNeoHookeanPlaneStrainUP2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"             : 1.0,
+                "PARTICLES_PER_ELEMENT" : 1,
+                "DENSITY"               : 1000.0,
+                "YOUNG_MODULUS"         : 90000000.0,
+                "POISSON_RATIO"         : 0.499
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Background_Grid.Parts_Grid_Grid_Auto3",
+        "properties_id"   : 2,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"                     : 7850.0,
+                "YOUNG_MODULUS"               : 206900000000.0,
+                "POISSON_RATIO"               : 0.29,
+                "C10"                         : 40096900000.0,
+                "BULK_MODULUS"                : 164206349206.0,
+                "YIELD_STRESS"                : 450000000.0,
+                "KINEMATIC_HARDENING_MODULUS" : 129240000.0,
+                "REFERENCE_HARDENING_MODULUS" : 450000000.0,
+                "INFINITY_HARDENING_MODULUS"  : 715000000.0,
+                "HARDENING_EXPONENT"          : 16.93,
+                "THICKNESS"                   : 1.0
+            },
+            "Tables"    : {}
+        }
+    }]
+}
