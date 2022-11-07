@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -54,7 +55,7 @@ namespace Kratos
  * This class is intended to act as global registry
  * Each time the AddItem method is called a pair of name and prototype is called
  */
-class Registry
+class KRATOS_API(KRATOS_CORE) Registry final
 {
 public:
     ///@name Type Definitions
@@ -71,7 +72,7 @@ public:
     Registry(){}
 
     /// Destructor.
-    virtual ~Registry(){}
+    ~Registry(){}
 
     ///@}
     ///@name Operators
@@ -121,8 +122,33 @@ public:
     ///@name Access
     ///@{
 
+    static auto begin()
+    {
+        return mspRootRegistryItem->begin();
+    }
+
+    static auto cbegin()
+    {
+        return mspRootRegistryItem->cbegin();
+    }
+
+    static auto end()
+    {
+        return mspRootRegistryItem->end();
+    }
+
+    static auto const cend()
+    {
+        return mspRootRegistryItem->cend();
+    }
+
     static RegistryItem& GetItem(std::string const& rItemFullName);
 
+    template<typename TDataType>
+    static TDataType const& GetValue(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).GetValue<TDataType>();
+    }
 
     static void RemoveItem(std::string const& ItemName);
 
@@ -130,20 +156,26 @@ public:
     ///@name Inquiry
     ///@{
 
+    static std::size_t size();
+
     static bool HasItem(std::string const& rItemFullName);
+
+    static bool HasValue(std::string const& rItemFullName);
+
+    static bool HasItems(std::string const& rItemFullName);
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
     std::string ToJson(std::string const& Indentation) const;
 
