@@ -79,6 +79,9 @@ public:
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
 
+        // Define  zero value tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         // The diagonal considered
         const double scale_factor = GetScaleNorm<TSparseSpace>(rModelPart, rA, ScalingDiagonal);
 
@@ -90,7 +93,7 @@ public:
             const std::size_t col_end = Arow_indices[Index + 1];
 
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(Avalues[j] != 0.0) {
+                if(std::abs(Avalues[j]) < zero_tolerance) {
                     empty = false;
                     break;
                 }

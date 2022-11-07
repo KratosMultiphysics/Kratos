@@ -436,6 +436,9 @@ public:
         std::size_t* Arow_indices = rA.index1_data().begin();
         std::size_t* Acol_indices = rA.index2_data().begin();
 
+        // Define  zero value tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         // The diagonal considered
         BaseType::mScaleFactor = StrategiesUtilities::GetScaleNorm<TSparseSpace>(rModelPart, rA, BaseType::mScalingDiagonal);
 
@@ -448,7 +451,7 @@ public:
             col_end = Arow_indices[Index + 1];
             empty = true;
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(Avalues[j] != 0.0) {
+                if(std::abs(Avalues[j]) < zero_tolerance) {
                     empty = false;
                     break;
                 }
