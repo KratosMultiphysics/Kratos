@@ -144,7 +144,6 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
     }
 
     /** Destructor.
