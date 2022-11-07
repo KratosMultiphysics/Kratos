@@ -155,27 +155,74 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
     const double Tolerance
     )
 {
-    // // If radius is zero, we compute the distance to the line
-    // if (Radius < std::numeric_limits<double>::epsilon()) {
-    //     return GeometricalProjectionUtilities::FastMinimalDistanceOnLine(rSegment, rPoint, Tolerance);
-    // } else {
-    //     Point projected_point;
-    //     const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(rSegment, rPoint, projected_point);
-    //     array_1d<double, 3> vector_line = rSegment[1].Coordinates() - rSegment[0].Coordinates();
-    //     vector_line /= norm_2(vector_line);
-    //     typename Geometry<NodeType>::CoordinatesArrayType projected_local;
-    //     if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
-    //         return projected_distance - Radius;
-    //     } else {
-    //         const double distance_a = norm_2(rPoint.Coordinates() - rSegment[0].Coordinates());
-    //         const double distance_b = norm_2(rPoint.Coordinates() - rSegment[1].Coordinates());
-    //         if (distance_a < distance_b) {
-    //             return distance_a - Radius;
-    //         } else {
-    //             return distance_b - Radius;
-    //         }
-    //     }
-    // }
+    // If radius is zero, we compute the distance to the line
+    if (Radius < std::numeric_limits<double>::epsilon()) {
+        return GeometricalProjectionUtilities::FastMinimalDistanceOnLine(rSegment, rPoint, Tolerance);
+    } else {
+        Point projected_point;
+        const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(rSegment, rPoint, projected_point);
+        array_1d<double, 3> vector_line = rSegment[1].Coordinates() - rSegment[0].Coordinates();
+        vector_line /= norm_2(vector_line);
+        typename Geometry<NodeType>::CoordinatesArrayType projected_local;
+        // If projection is inside, just remove the radius
+        if (rSegment.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
+            return projected_distance - Radius;
+        } else { // Othwerise we compute the distance to the closest node and compute the difference with the "radius cylinder"
+            // Distances to the nodes
+            const Point::Pointer point = Kratos::make_shared<Point>(rPoint.Coordinates());
+            const Point::Pointer aux_projected_point = Kratos::make_shared<Point>(projected_point.Coordinates());
+            const Point::Pointer point_a = Kratos::make_shared<Point>(rSegment[0].Coordinates());
+            const Point::Pointer point_b = Kratos::make_shared<Point>(rSegment[1].Coordinates());
+            const double distance_a = rPoint.Distance(*point_a);
+            const double distance_b = rPoint.Distance(*point_b);
+
+            // First get the point to a R distance of the line (projected point)
+            Geometry<Point>::PointsArrayType points_array_aux_line;
+            points_array_aux_line.reserve(2);
+            points_array_aux_line.push_back(aux_projected_point);
+            points_array_aux_line.push_back(point);
+            Line3D2<Point> aux_line(points_array_aux_line);
+            const double length = aux_line.Length();
+            // Positive distance. Remove distance to parallel line in Radius
+            if (Radius < length) {
+                const double N_line = Radius/length;
+                const Point::Pointer point_distance_r_projection = Kratos::make_shared<Point>(N_line * projected_point.Coordinates() + (1.0 - N_line) * rPoint.Coordinates());
+                const array_1d<double, 3> vector_projection_point = distance_a < distance_b ? projected_point.Coordinates() - point_a->Coordinates() : projected_point.Coordinates() - point_b->Coordinates();
+                const Point::Pointer aux_point_parallel = Kratos::make_shared<Point>(point_distance_r_projection->Coordinates() + vector_projection_point);
+                
+                // Parallel line to the segment
+                Geometry<Point>::PointsArrayType points_array_parallel_line;
+                points_array_parallel_line.reserve(2);
+                points_array_parallel_line.push_back(point_distance_r_projection);
+                points_array_parallel_line.push_back(aux_point_parallel);
+                Line3D2<Point> parallel_line(points_array_parallel_line);
+
+                // Line from the point to the segment
+                Geometry<Point>::PointsArrayType points_array_distance;
+                points_array_distance.reserve(2);
+                points_array_distance.push_back(point);
+                if (distance_a < distance_b) {
+                    points_array_distance.push_back(point_a);
+                } else {
+                    points_array_distance.push_back(point_b);
+                }
+                Line3D2<Point> distance_line(points_array_distance);
+
+                // Compute intersection
+                const auto line_intersection = Line3D2<Point>(IntersectionUtilities::ComputeClosestLineLineIntersection(parallel_line, distance_line));
+                const Point intersection_point(line_intersection.Center().Coordinates());
+
+                // Compute distance
+                if (distance_a < distance_b) {
+                    return distance_a - point_a->Distance(intersection_point);
+                } else {
+                    return distance_b - point_b->Distance(intersection_point);
+                }
+            } else { // Negative distance
+                // TODO
+            }
+        }
+    }
     return 0.0;
 }
 
