@@ -451,7 +451,7 @@ public:
             col_end = Arow_indices[Index + 1];
             empty = true;
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(std::abs(Avalues[j]) < zero_tolerance) {
+                if(std::abs(Avalues[j]) > zero_tolerance) {
                     empty = false;
                     break;
                 }

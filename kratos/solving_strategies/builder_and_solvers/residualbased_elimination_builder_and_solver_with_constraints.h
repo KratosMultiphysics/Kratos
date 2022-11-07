@@ -1395,7 +1395,7 @@ protected:
                 const IndexType col_end = Arow_indices[k+1];
                 bool empty = true;
                 for (IndexType j = col_begin; j < col_end; ++j) {
-                    if(std::abs(Avalues[j]) < zero_tolerance) {
+                    if(std::abs(Avalues[j]) > zero_tolerance) {
                         empty = false;
                         break;
                     }
