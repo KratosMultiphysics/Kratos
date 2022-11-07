@@ -440,7 +440,7 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // The diagonal considered
-        BaseType::mScaleFactor = StrategiesUtilities::GetScaleNorm<TSparseSpace>(rModelPart, rA, BaseType::mScalingDiagonal);
+        BaseType::mScaleFactor = StrategiesUtilities::GetScaleNorm<TSparseSpace>(rModelPart.GetProcessInfo(), rA, BaseType::mScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){

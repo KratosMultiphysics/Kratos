@@ -83,7 +83,7 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // The diagonal considered
-        const double scale_factor = GetScaleNorm<TSparseSpace>(rModelPart, rA, ScalingDiagonal);
+        const double scale_factor = GetScaleNorm<TSparseSpace>(rModelPart.GetProcessInfo(), rA, ScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
@@ -110,14 +110,14 @@ public:
 
     /**
      * @brief This method returns the scale norm considering for scaling the diagonal
-     * @param rModelPart The problem model part
+     * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
      * @param ScalingDiagonal The type of caling diagonal considered
      * @return The scale norm
      */
     template<class TSparseSpace>
     static double GetScaleNorm(
-        ModelPart& rModelPart,
+        const ProcessInfo& rProcessInfo,
         typename TSparseSpace::MatrixType& rA,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
         )
@@ -126,9 +126,8 @@ public:
             case SCALING_DIAGONAL::NO_SCALING:
                 return 1.0;
             case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
-                const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-                KRATOS_ERROR_IF_NOT(r_current_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
-                return r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
+                KRATOS_ERROR_IF_NOT(rProcessInfo.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
+                return rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
             }
             case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
                 return GetDiagonalNorm<TSparseSpace>(rA)/static_cast<double>(rA.size1());

@@ -46,7 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
-    r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 3.0);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info.SetValue(BUILD_SCALE_FACTOR, 3.0);
     
     SparseMatrixType matrix12x12(12, 12);
     for (IndexType i = 0; i < 12; ++i) {
@@ -55,13 +56,13 @@ KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
 
     // Test the norm of the matrix
     double norm = 0.0;
-    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_model_part, matrix12x12, SCALING_DIAGONAL::NO_SCALING);
+    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_process_info, matrix12x12, SCALING_DIAGONAL::NO_SCALING);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
-    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_model_part, matrix12x12, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
+    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 3.0);
-    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_model_part, matrix12x12, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
+    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
     KRATOS_CHECK_NEAR(norm, 2.124591464, 1.0e-6);
-    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_model_part, matrix12x12, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
+    norm = StrategiesUtilities::GetScaleNorm<SparseSpaceType>(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 12.0);
     norm = StrategiesUtilities::GetAveragevalueDiagonal<SparseSpaceType>(matrix12x12);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 6.5);
