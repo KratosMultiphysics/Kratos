@@ -70,9 +70,6 @@ public:
     /// Default constructor deleted.
     RegistryValueItem() = delete;
 
-    /// Constructor with the name
-    RegistryValueItem(std::string Name) : RegistryItem(Name){}
-
     /// Constructor with the name and value
     template<class... TArgumentsList >
     RegistryValueItem(
