@@ -102,6 +102,8 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItem("test"));
 
+    KRATOS_CHECK_DOUBLE_EQUAL(value_registry_item.GetValue<double>(), 3.14);
+
     std::string value_item_json = R"("value_item" : "3.14"
 )";
     KRATOS_CHECK_STRING_EQUAL(value_registry_item.ToJson(), value_item_json);
@@ -125,8 +127,6 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     registry_item.RemoveItem("sub_value_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_value_item"));
-
-    KRATOS_WATCH(registry_item.ToJson());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
