@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.python_registry import RegistryContext
 
 class TestPythonRegistry(KratosUnittest.TestCase):
 
@@ -14,13 +15,30 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
     def testHasItemPython(self):
         # Add a fake entity to the Python registry
-        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process)
+        KratosMultiphysics.Registry.AddItem("Processes.KratosMultiphysics.NewProcess", KratosMultiphysics.Process())
 
         # Check that the fake entity is registered
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.NewProcess"))
 
         # Remove the auxiliary testing entity from the Python registry
         KratosMultiphysics.Registry.RemoveItem("Processes")
+
+    def testNumberOfItems(self):
+        # Add some fake entities to the Python registr
+        KratosMultiphysics.Registry.AddItem("FakeEntities.MyModule1.MyObject11", object())
+        KratosMultiphysics.Registry.AddItem("FakeEntities.MyModule1.MyObject12", object())
+        KratosMultiphysics.Registry.AddItem("FakeEntities.MyModule2.MyObject21", object())
+
+        # Check the numer of items
+        self.assertEqual(KratosMultiphysics.Registry.NumberOfItems("FakeEntities.All"), 3)
+        self.assertEqual(KratosMultiphysics.Registry.NumberOfItems("FakeEntities.MyModule1"), 2)
+        self.assertEqual(KratosMultiphysics.Registry.NumberOfItems("FakeEntities.MyModule2"), 1)
+        self.assertEqual(KratosMultiphysics.Registry.NumberOfItems("FakeEntities.All", RegistryContext.CPP), 0)
+        self.assertEqual(KratosMultiphysics.Registry.NumberOfItems("FakeEntities.All", RegistryContext.PYTHON), 3)
+
+        # Remove the auxiliary testing tentities from the Python registry
+        KratosMultiphysics.Registry.RemoveItem("FakeEntities")
+
 
     def testAddItem(self):
         # Add some fake entities to the Python registry
