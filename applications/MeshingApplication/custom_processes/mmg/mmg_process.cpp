@@ -403,15 +403,17 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
     // GEtting variable for scalar filed
     const std::string& r_isosurface_variable_name = mThisParameters["isosurface_parameters"]["isosurface_variable"].GetString();
     const bool nonhistorical_variable = mThisParameters["isosurface_parameters"]["nonhistorical_variable"].GetBool();
+    const bool invert_value = mThisParameters["isosurface_parameters"]["invert_value"].GetBool();
     const Variable<double>& r_scalar_variable = KratosComponents<Variable<double>>::Get(r_isosurface_variable_name);
 
-    // Auxiliar value
+    // Auxiliary value
+    const double sign = invert_value ? -1.0 : 1.0;
     double isosurface_value = 0.0;
 
     // We iterate over the nodes
     auto& r_mmg_utilities = mMmgUtilities;
     IndexPartition<std::size_t>(r_nodes_array.size()).for_each(isosurface_value,
-        [&it_node_begin,&r_mmg_utilities,&r_scalar_variable,&r_isosurface_variable_name,&nonhistorical_variable](std::size_t i, double& isosurface_value) {
+        [&it_node_begin,&r_mmg_utilities,&r_scalar_variable,&r_isosurface_variable_name,&nonhistorical_variable,&sign](std::size_t i, double& isosurface_value) {
         auto it_node = it_node_begin + i;
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
@@ -429,7 +431,7 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
             }
 
             // We set the isosurface variable
-            r_mmg_utilities.SetMetricScalar(isosurface_value, i + 1);
+            r_mmg_utilities.SetMetricScalar(sign * isosurface_value, i + 1);
         }
     });
 
@@ -1333,6 +1335,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         "isosurface_parameters"                :
         {
             "isosurface_variable"              : "DISTANCE",
+            "invert_value"                     : false,
             "nonhistorical_variable"           : false,
             "use_metric_field"                 : false,
             "remove_internal_regions"          : false
