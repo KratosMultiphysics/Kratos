@@ -95,12 +95,6 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
 {
-    RegistryValueItem<double> empty_value_item("empty_value_item");
-    KRATOS_CHECK_STRING_EQUAL(empty_value_item.Name(),"empty_value_item");
-    KRATOS_CHECK_IS_FALSE(empty_value_item.HasValue());
-    KRATOS_CHECK_IS_FALSE(empty_value_item.HasItems());
-    KRATOS_CHECK_IS_FALSE(empty_value_item.HasItem("test"));
-
     double value = 3.14;
     RegistryValueItem<double> value_registry_item("value_item", value);
     KRATOS_CHECK_STRING_EQUAL(value_registry_item.Name(),"value_item");
