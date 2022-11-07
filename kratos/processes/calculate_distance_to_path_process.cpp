@@ -110,7 +110,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
         this->CalculateDistance(r_distance_model_part, geometries_vector);
     }
 
-    // Synchronize variables
+    // Synchronize variables (TODO: Should be absolute minimum)
     if constexpr ( THistorical) {
         r_comm.SynchronizeCurrentDataToMin(*mpDistanceVariable);
     } else {
@@ -176,19 +176,11 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
             const double distance_a = rPoint.Distance(*point_a);
             const double distance_b = rPoint.Distance(*point_b);
 
-            // First get the point to a R distance of the line (projected point)
-            Geometry<Point>::PointsArrayType points_array_aux_line;
-            points_array_aux_line.reserve(2);
-            points_array_aux_line.push_back(aux_projected_point);
-            points_array_aux_line.push_back(point);
-            Line3D2<Point> aux_line(points_array_aux_line);
-            const double length = aux_line.Length();
             // Positive distance. Remove distance to parallel line in Radius
-            if (Radius < length) {
-                const double N_line = Radius/length;
+            if (projected_distance > Radius) {
+                const double N_line = Radius/projected_distance;
                 const Point::Pointer point_distance_r_projection = Kratos::make_shared<Point>(N_line * projected_point.Coordinates() + (1.0 - N_line) * rPoint.Coordinates());
-                const array_1d<double, 3> vector_projection_point = distance_a < distance_b ? projected_point.Coordinates() - point_a->Coordinates() : projected_point.Coordinates() - point_b->Coordinates();
-                const Point::Pointer aux_point_parallel = Kratos::make_shared<Point>(point_distance_r_projection->Coordinates() + vector_projection_point);
+                const Point::Pointer aux_point_parallel = Kratos::make_shared<Point>(point_distance_r_projection->Coordinates() + vector_line);
                 
                 // Parallel line to the segment
                 Geometry<Point>::PointsArrayType points_array_parallel_line;
@@ -219,7 +211,15 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
                     return distance_b - point_b->Distance(intersection_point);
                 }
             } else { // Negative distance
-                // TODO
+                array_1d<double, 3> projection_vector = rPoint.Coordinates() - projected_point.Coordinates();
+                projection_vector /= norm_2(projection_vector);
+
+                // Parallel projected point
+                const array_1d<double, 3> aux_parallel_projection = (distance_a < distance_b) ? point_a->Coordinates() + projection_vector * Radius : point_b->Coordinates() + projection_vector * Radius;
+                Point parallel_projection_point(aux_parallel_projection);
+
+                // Compute distance
+                return - point->Distance(parallel_projection_point);
             }
         }
     }
