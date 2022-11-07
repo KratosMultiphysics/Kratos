@@ -991,7 +991,7 @@ public:
         });
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<TSparseSpace>(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1089,7 +1089,7 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            const double max_diag = StrategiesUtilities::GetMaxDiagonal<TSparseSpace>(rA);
+            const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
