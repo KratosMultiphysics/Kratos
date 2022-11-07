@@ -1046,7 +1046,8 @@ protected:
 
     double mScaleFactor = 1.0;         /// The manually set scale factor
 
-    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;; /// We identify the scaling considered for the dirichlet dofs
+
 
     ///@}
     ///@name Protected Operators
