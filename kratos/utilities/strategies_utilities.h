@@ -76,8 +76,8 @@ public:
     {
         const std::size_t system_size = rA.size1();
 
-        double* Avalues = rA.value_data().begin();
-        std::size_t* Arow_indices = rA.index1_data().begin();
+        const double* Avalues = rA.value_data().begin();
+        const std::size_t* Arow_indices = rA.index1_data().begin();
 
         // Define  zero value tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
