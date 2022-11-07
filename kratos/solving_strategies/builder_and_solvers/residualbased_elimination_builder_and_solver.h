@@ -935,7 +935,7 @@ public:
         ) override
     {
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<TSparseSpace>(rModelPart, rA, rb, mScalingDiagonal); 
+        mScaleFactor = StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<TSparseSpace>(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
     }
 
     /**

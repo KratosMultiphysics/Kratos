@@ -60,7 +60,7 @@ public:
     /**
      * @brief This method checks and corrects the zero diagonal values
      * @details This method returns the scale norm considering for scaling the diagonal
-     * @param rModelPart The problem model part
+     * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
      * @param rb The RHS vector
      * @param ScalingDiagonal The type of caling diagonal considered
@@ -68,7 +68,7 @@ public:
      */
     template<class TSparseSpace>
     static double CheckAndCorrectZeroDiagonalValues(
-        ModelPart& rModelPart,
+        const ProcessInfo& rProcessInfo,
         typename TSparseSpace::MatrixType& rA,
         typename TSparseSpace::VectorType& rb,
         const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
@@ -83,7 +83,7 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // The diagonal considered
-        const double scale_factor = GetScaleNorm<TSparseSpace>(rModelPart.GetProcessInfo(), rA, ScalingDiagonal);
+        const double scale_factor = GetScaleNorm<TSparseSpace>(rProcessInfo, rA, ScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){

@@ -27,7 +27,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
-    r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 1.0);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info.SetValue(BUILD_SCALE_FACTOR, 1.0);
     
     SparseMatrixType matrix12x12(12, 12);
     for (IndexType i = 0; i < 12; ++i) {
@@ -37,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite
 
     // Test the norm of the matrix
     double norm = 0.0;
-    norm = StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<SparseSpaceType>(r_model_part, matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING);
+    norm = StrategiesUtilities::CheckAndCorrectZeroDiagonalValues<SparseSpaceType>(r_process_info, matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
     KRATOS_CHECK_DOUBLE_EQUAL(matrix12x12(0, 0), 1.0);
 }
