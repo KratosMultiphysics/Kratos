@@ -1,10 +1,9 @@
 import os
-import re
 import sys
 from . import kratos_globals
 
-if sys.version_info < (3, 6):
-    raise Exception("Kratos only supports Python version 3.6 and above")
+if sys.version_info < (3, 8):
+    raise Exception("Kratos only supports Python version 3.8 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -87,7 +86,7 @@ if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.mi
         sys.version_info.major, sys.version_info.minor,
         kratos_version_info[0], kratos_version_info[1]
     ))
-    
+
 # Print the process id e.g. for attatching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
