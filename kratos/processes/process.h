@@ -261,7 +261,7 @@ void RegisterProcessWithPrototype(
 {
     if (!Registry::HasItem(RegistryEntryName)) {
         auto& r_process_item = Registry::AddItem<RegistryItem>(RegistryEntryName);
-        r_process_item.AddItem<RegistryValueItem<TPrototypeType>>("Prototype", rProcessPrototype);
+        r_process_item.AddItem<TPrototypeType>("Prototype", rProcessPrototype);
     } else {
         KRATOS_ERROR << "Process '" << RegistryEntryName << "' is already registered." << std::endl;
     }

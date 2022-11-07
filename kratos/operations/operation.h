@@ -158,14 +158,14 @@ public:
         std::string all_path = std::string("Operations.All.") + operation_name;                                 \
         if (!Registry::HasItem(all_path)) {                                                                     \
             auto& r_operation_item = Registry::AddItem<RegistryItem>(all_path);                                 \
-            r_operation_item.AddItem<RegistryValueItem<Operation>>("Prototype", operation_prototype);           \
+            r_operation_item.AddItem<Operation>("Prototype", operation_prototype);                              \
         } else {                                                                                                \
             KRATOS_ERROR << "Operation '" << operation_name << "' is already registered." << std::endl;         \
         }                                                                                                       \
         std::string module_path = std::string("Operations.") + module_name + std::string(".") + operation_name; \
         if (!Registry::HasItem(module_path)) {                                                                  \
             auto& r_operation_item = Registry::AddItem<RegistryItem>(module_path);                              \
-            r_operation_item.AddItem<RegistryValueItem<Operation>>("Prototype", operation_prototype);           \
+            r_operation_item.AddItem<Operation>("Prototype", operation_prototype);                              \
         }                                                                                                       \
     }
 #endif
