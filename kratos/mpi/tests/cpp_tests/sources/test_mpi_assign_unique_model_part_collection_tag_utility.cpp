@@ -110,7 +110,7 @@ namespace Kratos
                 }
             }
             r_data_communicator.Barrier();
-            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), filename + std::to_string(rank) + ".json"}));
+            Kratos::filesystem::remove(std::filesystem::current_path().string() + "/" + filename + std::to_string(rank) + ".json");
 
         }
     } // namespace Testing

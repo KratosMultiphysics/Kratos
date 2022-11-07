@@ -235,7 +235,8 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
         // Create folder if it doesn't exist before
         FilesystemExtensions::MPISafeCreateDirectories(output_path);
 
-        output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
+        output_file_name = output_path + "/" + output_file_name;
+        // output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }
 
     return output_file_name;
