@@ -32,11 +32,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class RegistryItem;
-
-template<typename TItemType>
-class RegistryValueItem;
-
 /// The registry item to be stored by Registry class. It is the base class for some more specific ones.
 /** RegistryItem has a tree node structure and stores its name, an optional
  *  value, and an unorder_set of its sub data.
@@ -271,6 +266,13 @@ private:
     ///@name Private classes
     ///@{
 
+    // This class is only a helper class to have the Json output
+    // with proper strings for each registry item. Therefore,
+    // this is hidden and not accessible from outside
+    // RegistryItem class
+    template<typename TItemType>
+    class RegistryValueItem;
+
     class SubRegistryItemFunctor
     {
     public:
@@ -306,25 +308,47 @@ private:
     SubRegistryItemType& GetSubRegistryItemMap() const;
 
     ///@}
+
 }; // Class RegistryItem
 
 // This class is only a helper class to have the Json output
-// with proper strings for each registry item.
+// with proper strings for each registry item. Therefore,
+// this is hidden and not accessible from outside
+// RegistryItem class
 template<typename TItemType>
-class RegistryValueItem : public RegistryItem
+class RegistryItem::RegistryValueItem : public RegistryItem
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of RegistryValueItem
+    KRATOS_CLASS_POINTER_DEFINITION(RegistryValueItem);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
     RegistryValueItem(
         std::string const& rName,
         std::any pValue)
         : RegistryItem(rName, pValue) {}
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    // Overrides to get the value string
+    // for JSON output.
     std::string GetValueString() const override
     {
         std::stringstream buffer;
         buffer << this->GetValue<TItemType>();
         return buffer.str();
     }
+
+    ///@}
+
 };
 
 ///@}
