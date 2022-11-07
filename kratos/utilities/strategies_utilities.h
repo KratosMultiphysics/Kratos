@@ -183,9 +183,9 @@ public:
     template<class TSparseSpace>
     static double GetMaxDiagonal(typename TSparseSpace::MatrixType& rA)
     {
-        double* Avalues = rA.value_data().begin();
-        std::size_t* Arow_indices = rA.index1_data().begin();
-        std::size_t* Acol_indices = rA.index2_data().begin();
+        const double* Avalues = rA.value_data().begin();
+        const std::size_t* Arow_indices = rA.index1_data().begin();
+        const std::size_t* Acol_indices = rA.index2_data().begin();
 
         return IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<MaxReduction<double>>([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
