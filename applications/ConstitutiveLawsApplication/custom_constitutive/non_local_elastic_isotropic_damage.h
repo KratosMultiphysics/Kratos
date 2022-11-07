@@ -285,8 +285,7 @@ protected:
      */
     void GetEigenValues(const Vector& StressVector,
                         Vector& Pri_Values,
-                        double& MaxValue,
-                        double& MinValue); 
+                        double& MaxValue); 
         
     ///@}
     

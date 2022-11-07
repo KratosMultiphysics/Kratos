@@ -217,9 +217,12 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         Matrix dJ2ddS = ZeroMatrix(6, 6); 
         Matrix dSprdS = ZeroMatrix(3,6);
         GetDerivatives( r_stress_vector, dI1dS, dJ2ddS,dJ2dS);
-        Vector Spr = ZeroVector(3);;
-        double SprMax, SprMin;
-        GetEigenValues(r_stress_vector, Spr, SprMax, SprMin);
+        Vector Spr = ZeroVector(3);
+        Vector dSmaxdSig = ZeroVector(6);;
+        double SprMax;
+        GetEigenValues(r_stress_vector, Spr, SprMax);
+        KRATOS_WATCH(Spr);
+        KRATOS_WATCH(SprMax);
         
         //manipulation of zero entries in stress
         if( (fabs(Spr(0)-Spr(1)) < 2.0*eps ) && ( fabs(Spr(0)-Spr(2)) < 2.0*eps ) && ( fabs(Spr(1)-Spr(2)) < 2.0*eps ) )
@@ -227,16 +230,12 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
             Spr(0) = Spr(0) + 1.1*eps;
             Spr(1) = Spr(1) + 0.75*eps;
             Spr(2) = Spr(2) + 0.5*eps;
-            dSprdS(0,0) = dSprdS(1,1) = dSprdS(2,2) = 1.0;
+            //dSprdS(0,0) = dSprdS(1,1) = dSprdS(2,2) = 1.0;
         }
         else{
             if( fabs(Spr(0)-Spr(1)) < eps ) Spr(1) = Spr(1) - eps;
             if( fabs(Spr(1)-Spr(2)) < eps ) Spr(2) = Spr(2) - eps;
-            ComputedSprdS(r_stress_vector, Spr, dSprdS);
-        }
-        Vector dSmaxdSig(6);
-        for(int i=0; i<6; ++i){
-          dSmaxdSig[i]= dSprdS(0,i); 
+            //ComputedSprdS(r_stress_vector, Spr, dSprdS);
         }
         //computing invariants of stress
         double I1, J2, D, DN, H, Eps_eq;
@@ -245,8 +244,13 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         if(SprMax < eps){
             H = 0.0;
         }else{
-            H = 1.0;   
+            H = 1.0;  
+            ComputedSprdS(r_stress_vector, Spr, dSprdS); 
+            for(int i=0; i<6; ++i){
+                dSmaxdSig[i]= dSprdS(0,i); 
+            }
         }
+        KRATOS_WATCH(H);
         //local damage equivalent strain
         Eps_eq = (std::sqrt( 3. * J2 ) + alphaL * I1 + betaL * H * SprMax) /(E * ( 1. - alphaL)) ;
         const double beta1t = 0.85;
@@ -293,6 +297,7 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         }else{       
             DN                  = std::pow((1.0 - NL_Damage_GP),2);
             r_stress_vector    *= DN;
+            KRATOS_WATCH(NL_Damage_GP);
             //Huu = dSigmadEps; HuDNL = dSigmadDNL; HDNLu = dDlocaldEps; HDNLDNL = dDlocal/dDNL;        
             double dKappadSmax  = betaL * H;
             Vector dKappadSig   = 1./(E * (1.-alphaL)) * (alphaL * dI1dS + 1.5/std::sqrt(3.*J2) * dJ2dS);
@@ -307,6 +312,7 @@ void NonLocalElasticIsotropicDamage::CalculateStressResponse(
         }
         if(D < 0.0) D = 0.0;
         rDamageVariable = D;
+        KRATOS_WATCH(D);
         KRATOS_WATCH(r_stress_vector);
         KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
         KRATOS_WATCH("-------------------------------------------");
@@ -340,8 +346,7 @@ void NonLocalElasticIsotropicDamage::GetDerivatives(
 void NonLocalElasticIsotropicDamage::GetEigenValues(
     const Vector& StressVector,
     Vector& Pri_Values,
-    double& MaxValue,
-    double& MinValue)
+    double& MaxValue)
 {
     KRATOS_TRY
     Matrix stress_matrix = ZeroMatrix(3,3);
@@ -358,9 +363,8 @@ void NonLocalElasticIsotropicDamage::GetEigenValues(
     Pri_Values[0] = EigenValues(0,0);
     Pri_Values[1] = EigenValues(1,1);
     Pri_Values[2] = EigenValues(2,2);
+    MaxValue    = std::max({Pri_Values[0],Pri_Values[1],Pri_Values[2]}, [](const double &a, const double &b){return std::abs(b) > std::abs(a);});
     std::sort(Pri_Values.begin(), Pri_Values.end(), std::greater<double>());
-    MaxValue = std::max(std::max(EigenValues(0,0),EigenValues(1,1)),EigenValues(2,2));
-    MinValue = std::min(std::min(EigenValues(0,0),EigenValues(1,1)),EigenValues(2,2));
     KRATOS_CATCH("")
 }
 
