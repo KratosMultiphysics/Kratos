@@ -79,7 +79,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
     if (r_distance_model_part.IsDistributed()) {
         r_data_comm.SumAll(size_vector);
     }
-    std::vector<Geometry<NodeType>> geometries_vector(size_vector);
+    std::vector<Geometry<NodeType>::Pointer> geometries_vector(size_vector);
     if (r_distance_model_part.IsDistributed()) {
         std::size_t counter = 0;
         for (int i=0; i<r_data_comm.Size(); ++i) {
@@ -88,8 +88,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
             const auto it_elem_begin = r_local_elements_array.begin();
             const std::size_t number_elements = r_local_elements_array.size();
             IndexPartition<std::size_t>(number_elements).for_each([&](std::size_t i){
-                auto& r_geom = (it_elem_begin + i)->GetGeometry();
-                geometries_vector[counter + i] = Line3D2<NodeType>(r_geom.Points());
+                geometries_vector[counter + i] = (it_elem_begin + i)->pGetGeometry();
             });
             counter += number_elements;
         }
@@ -97,8 +96,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
             const auto it_elem_begin = r_elements_array.begin();
             const std::size_t number_elements = r_elements_array.size();
             IndexPartition<std::size_t>(number_elements).for_each([&](std::size_t i){
-                auto& r_geom = (it_elem_begin + i)->GetGeometry();
-                geometries_vector[i] = Line3D2<NodeType>(r_geom.Points());
+                geometries_vector[i] = (it_elem_begin + i)->pGetGeometry();
             });
     }
 
@@ -124,7 +122,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
 template<bool THistorical>
 void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     ModelPart& rModelPart,
-    std::vector<Geometry<NodeType>>& rVectorSegments
+    std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
     )
 {
     // TODO: Use BinUtils
@@ -132,8 +130,8 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     for (auto& r_node : rModelPart.Nodes()) {
         double min_value = 0.0;
-        min_value = block_for_each<AbsMinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>& rSegment) {
-            return FastMinimalDistanceOnLineWithRadius(rSegment, r_node, radius_path, distance_tolerance);
+        min_value = block_for_each<AbsMinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>::Pointer& pSegment) {
+            return FastMinimalDistanceOnLineWithRadius(*pSegment, r_node, radius_path, distance_tolerance);
         });
         if constexpr (THistorical) {
             r_node.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
@@ -149,15 +147,15 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
 template<bool THistorical>
 void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
     ModelPart& rModelPart,
-    std::vector<Geometry<NodeType>>& rVectorSegments
+    std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
     )
 {
     const double radius_path = mThisParameters["radius_path"].GetDouble();
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     for (auto& r_node : rModelPart.Nodes()) {
         double min_value = 0.0;
-        min_value = block_for_each<AbsMinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>& rSegment) {
-            return FastMinimalDistanceOnLineWithRadius(rSegment, r_node, radius_path, distance_tolerance);
+        min_value = block_for_each<AbsMinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>::Pointer& pSegment) {
+            return FastMinimalDistanceOnLineWithRadius(*pSegment, r_node, radius_path, distance_tolerance);
         });
         if constexpr (THistorical) {
             r_node.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
@@ -179,23 +177,24 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
     )
 {
     // If radius is zero, we compute the distance to the line
+    Line3D2<NodeType> line(rSegment.Points()); // NOTE: TO ENSURE THAT IT IS 3D IN CASE IS DECLARED AS 2D
     if (Radius < std::numeric_limits<double>::epsilon()) {
-        return GeometricalProjectionUtilities::FastMinimalDistanceOnLine(rSegment, rPoint, Tolerance);
+        return GeometricalProjectionUtilities::FastMinimalDistanceOnLine(line, rPoint, Tolerance);
     } else {
         Point projected_point;
-        const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(rSegment, rPoint, projected_point);
-        array_1d<double, 3> vector_line = rSegment[1].Coordinates() - rSegment[0].Coordinates();
+        const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(line, rPoint, projected_point);
+        array_1d<double, 3> vector_line = line[1].Coordinates() - line[0].Coordinates();
         vector_line /= norm_2(vector_line);
         typename Geometry<NodeType>::CoordinatesArrayType projected_local;
         // If projection is inside, just remove the radius
-        if (rSegment.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
+        if (line.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
             return projected_distance - Radius;
         } else { // Othwerise we compute the distance to the closest node and compute the difference with the "radius cylinder"
             // Distances to the nodes
             const Point::Pointer point = Kratos::make_shared<Point>(rPoint.Coordinates());
             const Point::Pointer aux_projected_point = Kratos::make_shared<Point>(projected_point.Coordinates());
-            const Point::Pointer point_a = Kratos::make_shared<Point>(rSegment[0].Coordinates());
-            const Point::Pointer point_b = Kratos::make_shared<Point>(rSegment[1].Coordinates());
+            const Point::Pointer point_a = Kratos::make_shared<Point>(line[0].Coordinates());
+            const Point::Pointer point_b = Kratos::make_shared<Point>(line[1].Coordinates());
             const double distance_a = rPoint.Distance(*point_a);
             const double distance_b = rPoint.Distance(*point_b);
 

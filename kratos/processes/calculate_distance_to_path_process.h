@@ -220,7 +220,7 @@ private:
      */
     void CalculateDistance(
         ModelPart& rModelPart,
-        std::vector<Geometry<NodeType>>& rVectorSegments
+        std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
         );
 
     /**
@@ -230,7 +230,7 @@ private:
      */
     void CalculateDistanceByBruteForce(
         ModelPart& rModelPart,
-        std::vector<Geometry<NodeType>>& rVectorSegments
+        std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
         );
 
     /**
