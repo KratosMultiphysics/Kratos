@@ -132,6 +132,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
         double min_value = std::numeric_limits<double>::max();
         for (auto& p_segment : rVectorSegments) {
             const double potential_min = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*p_segment, rNode, distance_tolerance);
+            // TODO: Maybe the solution is to compute the distance to the axis, and then compute the real distance with the algorithm developed. It will be more accurate than the current solution with just removing radius_path
             // const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(potential_min, *p_segment, rNode, radius_path, distance_tolerance);
             min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
         }
@@ -158,6 +159,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
         double min_value = std::numeric_limits<double>::max();
         for (auto& p_segment : rVectorSegments) {
             const double potential_min = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*p_segment, rNode, distance_tolerance);
+            // TODO: Maybe the solution is to compute the distance to the axis, and then compute the real distance with the algorithm developed. It will be more accurate than the current solution with just removing radius_path
             // const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(potential_min, *p_segment, rNode, radius_path, distance_tolerance);
             min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
         }
