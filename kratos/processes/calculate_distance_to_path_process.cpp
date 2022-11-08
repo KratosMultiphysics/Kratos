@@ -130,10 +130,19 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
         double min_value = std::numeric_limits<double>::max();
+        bool direct_projected = false;
         for (auto& p_segment : rVectorSegments) {
             double potential_min;
             const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(potential_min, *p_segment, rNode, radius_path, distance_tolerance);
-            min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+            // In case of not direct projection find the minimal value
+            if (static_cast<int>(distance_computed_type) > 1) {
+                if (!direct_projected) {
+                    min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+                }
+            } else { // Direct projection. A priori always closest distance
+                min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+                direct_projected = true;
+            }
         }
         if constexpr (THistorical) {
             rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
@@ -156,10 +165,19 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
         double min_value = std::numeric_limits<double>::max();
+        bool direct_projected = false;
         for (auto& p_segment : rVectorSegments) {
             double potential_min;
             const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(potential_min, *p_segment, rNode, radius_path, distance_tolerance);
-            min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+            // In case of not direct projection find the minimal value
+            if (static_cast<int>(distance_computed_type) > 1) {
+                if (!direct_projected) {
+                    min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+                }
+            } else { // Direct projection. A priori always closest distance
+                min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+                direct_projected = true;
+            }
         }
         if constexpr (THistorical) {
             rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
