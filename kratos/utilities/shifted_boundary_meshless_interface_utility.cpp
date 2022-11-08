@@ -267,7 +267,7 @@ namespace
                         Vector w_sur_nodes(bd_nodes_ids.size());
                         for (std::size_t bd_node_id : bd_nodes_ids) {
                             const auto p_sur_bd_node = mpModelPart->pGetNode(bd_node_id);
-                            const double aux_dist = 1.0 / norm_2(r_node.Coordinates() - p_sur_bd_node->Coordinates());
+                            const double aux_dist = 1.0 / r_node.Distance(*p_sur_bd_node);
                             inv_tot_dist += aux_dist;
                             w_sur_nodes(aux_i) = aux_dist;
                             ++aux_i;
