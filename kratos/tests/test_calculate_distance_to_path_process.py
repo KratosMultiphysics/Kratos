@@ -108,5 +108,11 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
         # # Debug
         # VTKDebug(self.current_model)
 
+    # def test_calculate_distance_to_path_process_brute_force_radius(self):
+    #     self.__base_test_calculate_distance_to_path_process(0.1, True, 5e-3)
+
+    #     # # Debug
+    #     # VTKDebug(self.current_model)
+
 if __name__ == '__main__':
     KratosUnittest.main()
