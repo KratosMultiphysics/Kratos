@@ -127,8 +127,20 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     std::vector<Geometry<NodeType>>& rVectorSegments
     )
 {
-    /// TODO
+    // TODO: Use BinUtils
     const double radius_path = mThisParameters["radius_path"].GetDouble();
+    const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
+    for (auto& r_node : rModelPart.Nodes()) {
+        double min_value = 0.0;
+        min_value = block_for_each<AbsMinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>& rSegment) {
+            return FastMinimalDistanceOnLineWithRadius(rSegment, r_node, radius_path, distance_tolerance);
+        });
+        if constexpr (THistorical) {
+            r_node.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
+        } else {
+            r_node.GetValue(*mpDistanceVariable) = min_value;
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -144,7 +156,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     for (auto& r_node : rModelPart.Nodes()) {
         double min_value = 0.0;
-        min_value = block_for_each<MinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>& rSegment) {
+        min_value = block_for_each<AbsMinReduction<double>>(rVectorSegments, [&](Geometry<NodeType>& rSegment) {
             return FastMinimalDistanceOnLineWithRadius(rSegment, r_node, radius_path, distance_tolerance);
         });
         if constexpr (THistorical) {
