@@ -687,7 +687,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     const int expected_ghost = (rank + 1 < size) ? - 10.0*(rank+1) : - 10.0*(size-1);
 
     r_comm.SynchronizeCurrentDataToAbsMax(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), 10.0*(size-1));
+    KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE, 0), -10.0*(size-1));
     KRATOS_CHECK_EQUAL(r_local.FastGetSolutionStepValue(TEMPERATURE, 0), expected_local);
     KRATOS_CHECK_EQUAL(r_ghost.FastGetSolutionStepValue(TEMPERATURE, 0), expected_ghost);
 }
@@ -721,7 +721,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsM
     const int expected_ghost = (rank + 1 < size) ? - 10.0*(rank+1) : - 10.0*(size-1);
 
     r_comm.SynchronizeNonHistoricalDataToAbsMax(TEMPERATURE);
-    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 10.0*(size-1));
+    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), -10.0*(size-1));
     KRATOS_CHECK_EQUAL(r_local.GetValue(TEMPERATURE), expected_local);
     KRATOS_CHECK_EQUAL(r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
