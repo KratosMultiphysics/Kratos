@@ -707,7 +707,7 @@ public:
         const double scale_factor = GetScaleNorm(rProcessInfo, rA, ScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+        IndexPartition(system_size).for_each([&](std::size_t Index){
             bool empty = true;
 
             const std::size_t col_begin = Arow_indices[Index];
