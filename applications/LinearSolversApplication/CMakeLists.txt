@@ -71,6 +71,11 @@ if( USE_EIGEN_FEAST MATCHES ON )
     add_definitions(-D__MKL_SOLVERS_EE_H)
 endif()
 
+# Find Ginkgo libraries
+if (USE_GINKGO_SOLVER MATCHES ON)
+    find_package(Ginkgo REQUIRED PATHS ${GINKGO_ROOT})
+endif()
+
 ## generate variables with the sources
 set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
@@ -118,6 +123,14 @@ if( USE_EIGEN_MKL MATCHES ON )
             target_link_libraries(KratosLinearSolversCore PUBLIC feast4 gfortran m)
         endif()
     endif( MSVC )
+endif()
+
+if (USE_GINKGO_SOLVER MATCHES ON)
+    target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore Ginkgo::ginkgo)
+    if(GINKGO_BUILD_MPI)
+        find_package(MPI REQUIRED)
+        target_link_libraries(KratosLinearSolversCore PUBLIC MPI::MPI_CXX)
+    endif()
 endif()
 
 # changing the .dll suffix to .pyd
