@@ -11,9 +11,7 @@
 //                   Denis Demidov
 //
 
-#if !defined(KRATOS_REDUCTION_UTILITIES_H_INCLUDED )
-#define  KRATOS_REDUCTION_UTILITIES_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <tuple>
@@ -148,7 +146,7 @@ public:
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue = std::max(mValue,rOther.mValue);
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -179,7 +177,7 @@ public:
     void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
     {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue = (std::abs(mValue) < std::abs(rOther.mValue)) ? rOther.mValue : mValue;
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -210,7 +208,7 @@ public:
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue = std::min(mValue,rOther.mValue);
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -243,7 +241,7 @@ public:
     void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
     {
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue = (std::abs(mValue) < std::abs(rOther.mValue)) ? mValue : rOther.mValue;
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -348,5 +346,3 @@ struct CombinedReduction {
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REDUCTION_UTILITIES_H_INCLUDED  defined
