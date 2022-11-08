@@ -261,6 +261,10 @@ private:
                                         double& sum_of_weights );
 
     // --------------------------------------------------------------------------
+    double GetVertexMorphingRadius(const NodeType& rNode) const override
+    {
+        return mFilterRadius;
+    }
 
     ///@}
     ///@name Private  Access

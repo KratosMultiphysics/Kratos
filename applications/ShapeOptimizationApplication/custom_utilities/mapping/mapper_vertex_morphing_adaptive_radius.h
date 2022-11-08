@@ -128,7 +128,7 @@ private:
 
     void CalculateAdaptiveVertexMorphingRadius();
 
-    double GetVertexMorphingRadius(const NodeType& rNode) const;
+    double GetVertexMorphingRadius(const NodeType& rNode) const override;
 
     void CreateSearchTreeWithAllNodesInOriginModelPart();
 

@@ -194,7 +194,7 @@ protected:
 
     virtual void InitializeComputationOfMappingMatrix();
 
-    double GetVertexMorphingRadius(const NodeType& rNode) const
+    double GetVertexMorphingRadius(const NodeType& rNode) const override
     {
         return mFilterRadius;
     }

@@ -338,9 +338,8 @@ void MapperVertexMorphingMatrixFree::CreateListOfNodesInOriginModelPart()
 void MapperVertexMorphingMatrixFree::CreateFilterFunction()
 {
     std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-    double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
+    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type);
 }
 
 void MapperVertexMorphingMatrixFree::InitializeMappingVariables()
@@ -392,7 +391,7 @@ void MapperVertexMorphingMatrixFree::ComputeWeightForAllNeighbors(  ModelPart::N
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        double weight = mpFilterFunction->ComputeWeight( design_node.Coordinates(), neighbor_node.Coordinates() );
+        double weight = mpFilterFunction->ComputeWeight( design_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(design_node) );
 
         list_of_weights[neighbor_itr] = weight;
         sum_of_weights += weight;

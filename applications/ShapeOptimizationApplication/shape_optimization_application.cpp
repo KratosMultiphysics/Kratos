@@ -72,6 +72,7 @@ namespace Kratos
 
     // For adaptive filter
     KRATOS_CREATE_VARIABLE(double, VERTEX_MORPHING_RADIUS);
+    KRATOS_CREATE_VARIABLE(double, VERTEX_MORPHING_RADIUS_RAW);
 
     // For bead optimization
     KRATOS_CREATE_VARIABLE(double,ALPHA);
@@ -156,6 +157,7 @@ namespace Kratos
 
         // For adaptive filter
         KRATOS_REGISTER_VARIABLE(VERTEX_MORPHING_RADIUS);
+        KRATOS_REGISTER_VARIABLE(VERTEX_MORPHING_RADIUS_RAW);
 
         // For bead optimization
         KRATOS_REGISTER_VARIABLE(ALPHA);

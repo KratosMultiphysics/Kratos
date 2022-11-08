@@ -160,9 +160,10 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNei
             max_distance = std::max(max_distance, distance);
         }
 
-        KRATOS_INFO("ShapeOpt") << "max distance of node id = " << rNode.Id() << " : " << max_distance << std::endl;
+        // KRATOS_INFO("ShapeOpt") << "max distance of node id = " << rNode.Id() << " : " << max_distance << std::endl;
         rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor);
-        KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << max_distance * mFilterRadiusFactor << std::endl;
+        rNode.SetValue(VERTEX_MORPHING_RADIUS_RAW, max_distance * mFilterRadiusFactor);
+        // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << max_distance * mFilterRadiusFactor << std::endl;
     });
 
     KRATOS_CATCH("");
@@ -177,7 +178,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeig
     Vector raw_radius(number_of_nodes);
     Vector temp_radius(number_of_nodes);
     IndexPartition<IndexType>(number_of_nodes).for_each([&](const IndexType iNode) {
-        raw_radius[iNode] = (mrDestinationModelPart.NodesBegin() + iNode)->GetValue(VERTEX_MORPHING_RADIUS);
+        raw_radius[iNode] = (mrDestinationModelPart.NodesBegin() + iNode)->GetValue(VERTEX_MORPHING_RADIUS_RAW);
     });
 
     for (IndexType iter = 0; iter < mNumberOfSmoothingIterations; ++iter) {
@@ -225,7 +226,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeig
 template <class TBaseVertexMorphingMapper>
 double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::GetVertexMorphingRadius(const NodeType &rNode) const
 {
-    KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << rNode.GetValue(VERTEX_MORPHING_RADIUS) << std::endl;
+    // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << rNode.GetValue(VERTEX_MORPHING_RADIUS) << std::endl;
     return std::max(rNode.GetValue(VERTEX_MORPHING_RADIUS), mMinimumFilterRadius);
 }
 
