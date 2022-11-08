@@ -62,13 +62,13 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
 
     /* Getting a global vector of Line3D2N geometries */
     // First we check that every element in the modelpart is a line
-    const auto& r_elements_array = r_distance_model_part.Elements();
+    const auto& r_elements_array = r_path_model_part.Elements();
     // By default we consider that the model part is composed of elements
     if (r_elements_array.size() > 0) {
         for (auto& r_elem : r_elements_array) {
             const auto& r_geom = r_elem.GetGeometry();
             const auto geom_type = r_geom.GetGeometryType();
-            KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) || geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a line" << std::endl;
+            KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) && geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a line" << std::endl;
         }
     } else {
         KRATOS_ERROR << "The model part is empty. Please check the model part provided" << std::endl;
