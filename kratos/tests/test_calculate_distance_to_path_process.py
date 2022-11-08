@@ -24,7 +24,7 @@ def VTKDebug(model):
             "output_interval"                    : 2,
             "output_sub_model_parts"             : false,
             "output_path"                        : "vtk_output_torus",
-            "nodal_solution_step_data_variables" : ["DISTANCE", "TEMPERATURE"]
+            "nodal_solution_step_data_variables" : ["DISTANCE"]
         }
     }""")
 
@@ -41,7 +41,7 @@ def VTKDebug(model):
             "output_interval"                    : 2,
             "output_sub_model_parts"             : false,
             "output_path"                        : "vtk_output_circle",
-            "nodal_solution_step_data_variables" : ["TEMPERATURE"]
+            "nodal_solution_step_data_variables" : []
         }
     }""")
 
@@ -50,12 +50,64 @@ def VTKDebug(model):
     vtk_output_process_circle.ExecuteFinalizeSolutionStep()
     vtk_output_process_circle.PrintOutput()
 
+def GidDebug(model):
+    from KratosMultiphysics.gid_output_process import GiDOutputProcess
+    gid_output = GiDOutputProcess(
+        model.GetModelPart("Torus"),
+        "Torus",
+        KratosMultiphysics.Parameters("""{
+            "result_file_configuration": {
+                "gidpost_flags": {
+                    "GiDPostMode": "GiD_PostBinary",
+                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                    "WriteConditionsFlag": "WriteConditions",
+                    "MultiFileFlag": "SingleFile"
+                },
+                "file_label": "time",
+                "output_control_type": "step",
+                "output_interval": 1.0,
+                "body_output": true,
+                "nodal_results": ["DISTANCE"]
+            }
+        }"""))
+    gid_output.ExecuteInitialize()
+    gid_output.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteInitializeSolutionStep()
+    gid_output.PrintOutput()
+    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.ExecuteFinalize()
+
+    gid_output = GiDOutputProcess(
+        model.GetModelPart("Circle"),
+        "Circle",
+        KratosMultiphysics.Parameters("""{
+            "result_file_configuration": {
+                "gidpost_flags": {
+                    "GiDPostMode": "GiD_PostBinary",
+                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                    "WriteConditionsFlag": "WriteConditions",
+                    "MultiFileFlag": "SingleFile"
+                },
+                "file_label": "time",
+                "output_control_type": "step",
+                "output_interval": 1.0,
+                "body_output": true,
+                "nodal_results": []
+            }
+        }"""))
+    gid_output.ExecuteInitialize()
+    gid_output.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteInitializeSolutionStep()
+    gid_output.PrintOutput()
+    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.ExecuteFinalize()
+
 class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
-    def __base_test_calculate_distance_to_path_process(self, radius = 0.0, brute_force_calculation = False, check_tolerance = 5e-3):
+    def __base_test_calculate_distance_to_path_process(self, radius = 0.0, brute_force_calculation = False, check_tolerance = 5e-3, debug = False):
         # Define model
         self.current_model = KratosMultiphysics.Model()
 
@@ -64,7 +116,6 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
         model_part_torus.ProcessInfo[KratosMultiphysics.STEP] = 0
         model_part_torus.CloneTimeStep(0.0)
         model_part_torus.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part_torus.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/torus3d")
         model_part_io_torus = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io_torus.ReadModelPart(model_part_torus)
@@ -73,7 +124,6 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
         model_part_circle = self.current_model.CreateModelPart("Circle")
         model_part_circle.ProcessInfo[KratosMultiphysics.STEP] = 0
         model_part_circle.CloneTimeStep(0.0)
-        model_part_circle.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         input_mdpa = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/circle1d")
         model_part_io_circle = KratosMultiphysics.ModelPartIO(input_mdpa)
         model_part_io_circle.ReadModelPart(model_part_circle)
@@ -100,19 +150,21 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
 
         # Check results
         for node in model_part_torus.Nodes:
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), DistanceFunction(node, radius), delta=check_tolerance)
+            if debug:
+                print(node.Id, "\t", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), "\t", DistanceFunction(node, radius))
+            else:
+                self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), DistanceFunction(node, radius), delta=check_tolerance)
+
+        # Debug
+        if debug:
+            VTKDebug(self.current_model)
+            GidDebug(self.current_model)
 
     def test_calculate_distance_to_path_process_brute_force_zero_radius(self):
-        self.__base_test_calculate_distance_to_path_process(0.0, True, 5e-3)
-
-        # # Debug
-        # VTKDebug(self.current_model)
+        self.__base_test_calculate_distance_to_path_process(0.0, True, 5e-3, False)
 
     # def test_calculate_distance_to_path_process_brute_force_radius(self):
-    #     self.__base_test_calculate_distance_to_path_process(0.1, True, 5e-3)
-
-    #     # # Debug
-    #     # VTKDebug(self.current_model)
+    #     self.__base_test_calculate_distance_to_path_process(0.1, True, 5e-3, False)
 
 if __name__ == '__main__':
     KratosUnittest.main()
