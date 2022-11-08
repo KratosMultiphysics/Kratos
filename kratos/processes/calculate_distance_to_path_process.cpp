@@ -258,7 +258,7 @@ const Parameters CalculateDistanceToPathProcess<THistorical>::GetDefaultParamete
     const Parameters default_parameters = Parameters(R"({
         "distance_model_part_name" :  "",
         "path_model_part_name"     :  "",
-        "distance_variable"        : "DISTANCE",
+        "distance_variable_name"   : "DISTANCE",
         "brute_force_calculation"  : false,
         "radius_path"              : 0.0,
         "distance_tolerance"       : 1.0e-9
