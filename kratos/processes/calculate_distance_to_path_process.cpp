@@ -108,11 +108,11 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
         this->CalculateDistance(r_distance_model_part, geometries_vector);
     }
 
-    // Synchronize variables (TODO: Should be absolute minimum)
+    // Synchronize variables
     if constexpr ( THistorical) {
-        r_comm.SynchronizeCurrentDataToMin(*mpDistanceVariable);
+        r_comm.SynchronizeCurrentDataToAbsMin(*mpDistanceVariable);
     } else {
-        r_comm.SynchronizeNonHistoricalDataToMin(*mpDistanceVariable);
+        r_comm.SynchronizeNonHistoricalDataToAbsMin(*mpDistanceVariable);
     }
 }
 
