@@ -812,7 +812,7 @@ public:
                     return std::abs(Avalues[j]);
                 }
             }
-            return 0.0;
+            return std::numeric_limits<double>::lowest();
         });
     }
 
