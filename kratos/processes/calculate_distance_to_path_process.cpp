@@ -140,8 +140,12 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
                     min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
                 }
             } else { // Direct projection. A priori always closest distance
-                min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
-                direct_projected = true;
+                if (!direct_projected) {
+                    min_value = potential_min; 
+                    direct_projected = true;
+                } else {
+                    min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+                }
             }
         }
         if constexpr (THistorical) {
@@ -175,8 +179,12 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
                     min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
                 }
             } else { // Direct projection. A priori always closest distance
-                min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
-                direct_projected = true;
+                if (!direct_projected) {
+                    min_value = potential_min;
+                    direct_projected = true;
+                } else {
+                    min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+                }
             }
         }
         if constexpr (THistorical) {
