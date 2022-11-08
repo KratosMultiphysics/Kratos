@@ -10,33 +10,43 @@ class MultistageAnalysis(object):
 
     def __init__(self, model, project_parameters) -> None:
         self.model = model
-        self.current_stage_name = None
+        self.__current_stage_name = None
         self.settings = project_parameters
-        self.stages_map = self.__CreateStagesMap()
+        self.__stages_map = self.__CreateStagesMap()
 
     def Check(self):
-        for stage_name in self.settings["execution_list"].GetStringArray():
+        '''Performs the check of the complete multistage simulation.'''
+
+        for stage_name in self.__GetExecutionList():
             self.CheckStage(stage_name)
 
     def CheckStage(self, stage_name):
+        '''Performs the check of a single stage from a multistage simulation.'''
+
         if self.settings["stages"][stage_name].Has("stage_postprocess"):
             if self.settings["stages"][stage_name]["stage_postprocess"].Has("modelers"):
                 err_msg = f"Found 'modelers' field in 'stage_postprocess' of stage {stage_name}."
-                err_msg += f" Place the 'modelers' section in the next stage 'stage_postprocess'."
+                err_msg += f" Place the 'modelers' section in the next stage 'stage_preprocess'."
                 raise Exception(err_msg)
 
     def Run(self):
+        '''Main function that runs the complete multistage simulation.'''
+
         # First check all the stages input
         self.Check()
 
         # Run the stages list
-        for stage_name in self.settings["execution_list"].GetStringArray():
-            self.current_stage_name = stage_name
+        for stage_name in self.__GetExecutionList():
+            self.__current_stage_name = stage_name
             self.RunCurrentStagePreprocess()
             self.RunCurrentStage()
             self.RunCurrentStagePostprocess()
 
     def RunCurrentStagePreprocess(self):
+        '''This function executes the preprocess of current stage.
+        Note that the stage preprocess involves the execution of modelers and operations.
+        '''
+
         if self.settings["stages"][self.GetCurrentStageName()].Has("stage_preprocess"):
             if self.settings["stages"][self.GetCurrentStageName()]["stage_preprocess"].Has("modelers"):
                 for modeler in self.__GetModelers():
@@ -51,24 +61,59 @@ class MultistageAnalysis(object):
                     operation.Execute()
 
     def RunCurrentStage(self):
+        '''This function executes (solves) the current stage.
+        Note that this call is equivalent to the traditional single-stage simulation run call.
+        '''
+
         self.GetCurrentStage().Run()
 
     def RunCurrentStagePostprocess(self):
+        '''This function executes the postprocessing of current stage.
+        Note that the stage postprocess deliberately involves operations only.
+        '''
+
         if self.settings["stages"][self.GetCurrentStageName()].Has("stage_postprocess"):
             if self.settings["stages"][self.GetCurrentStageName()]["stage_postprocess"].Has("operations"):
                 for operation in self.__GetOperations("stage_postprocess"):
                     operation.Execute()
 
     def GetNumberOfStages(self):
-        return len(self.stages_map)
+        '''Returns the number of stages.'''
+
+        return len(self.__stages_map)
 
     def GetCurrentStage(self):
-        return self.stages_map[self.current_stage_name]
+        '''Returns the current stage instance.'''
+
+        return self.__stages_map[self.__current_stage_name]
 
     def GetCurrentStageName(self):
-        return self.current_stage_name
+        '''Returns the current stage name.'''
+        return self.__current_stage_name
+
+    def __GetExecutionList(self):
+        '''Creates and returns the execution list.
+        This method creates the execution list, either from a user-defined execution list or,
+        if this is not provided, from the stages declaration order.
+        '''
+
+        # Check if the execution list has been already created
+        if not hasattr(self, "__execution_list"):
+            # Default case in which the execution list is provided by the user
+            if self.settings.Has("execution_list"):
+                self.__execution_list = self.settings["execution_list"].GetStringArray()
+            # If not provided, create an auxiliary execution list from the stages declaration order
+            else:
+                KratosMultiphysics.Logger.PrintInfo("'execution_list' is not provided. Stages will be executed according to their declaration order.")
+                self.__execution_list = []
+                for stage_name in self.settings["stages"].keys():
+                    self.__execution_list.append(stage_name)
+
+        return self.__execution_list
 
     def __GetModelers(self):
+        '''This method creates the modelers at the preprocess execution point.'''
+
         #TODO: Add error thrown for wrong execution_point argument
         execution_point_settings = self.settings["stages"][self.GetCurrentStageName()]["stage_preprocess"]
 
@@ -76,6 +121,8 @@ class MultistageAnalysis(object):
         return factory.ConstructListOfItems(execution_point_settings["modelers"])
 
     def __GetOperations(self, execution_point):
+        '''This method creates the operations at any execution point.'''
+
         #TODO: Add error thrown for wrong execution_point argument
         execution_point_settings = self.settings["stages"][self.GetCurrentStageName()][execution_point]
 
@@ -83,8 +130,13 @@ class MultistageAnalysis(object):
         return factory.ConstructListOfItems(execution_point_settings["operations"])
 
     def __CreateStagesMap(self):
+        '''This method creates the stages map.
+        The keys of the map are the stage names, which are retrieved from the execution list (see __GetExecutionList()).
+        The values of the map are the stages instances, which are created by importing its corresponding analysis stage Python module.
+        '''
+
         stages_map = {}
-        for stage_name in self.settings["execution_list"].GetStringArray():
+        for stage_name in self.__GetExecutionList():
             analysis_stage_module_name = self.settings["stages"][stage_name]["analysis_stage"].GetString()
             analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
             analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
@@ -96,7 +148,12 @@ class MultistageAnalysis(object):
         return stages_map
 
     #TODO: Think about this
+    #TODO: I think we should be able to import a custom module in the current work directory
     def __CreateAnalysisStageWithFlushInstance(self, cls, global_model, parameters):
+        '''This method emulates the old single-stage MainKratos.py.
+        Note that it exploits dynammic inheritance to extend the corresponding analysis stage class.
+        '''
+
         class AnalysisStageWithFlush(cls):
 
             def __init__(self, model,project_parameters, flush_frequency=10.0):
