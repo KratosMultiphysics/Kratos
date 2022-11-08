@@ -126,20 +126,21 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     )
 {
     // TODO: Use BinUtils
-	const double radius_path = mThisParameters["radius_path"].GetDouble();
-	const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
-	block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
-		double min_value = std::numeric_limits<double>::max();
-		for (auto& p_segment : rVectorSegments) {
-			const double potential_min = FastMinimalDistanceOnLineWithRadius(*p_segment, rNode, radius_path, distance_tolerance);
-			min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
-		}
-		if constexpr (THistorical) {
-			rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
-		} else {
-			rNode.GetValue(*mpDistanceVariable) = min_value;
-		} 
-	});
+    const double radius_path = mThisParameters["radius_path"].GetDouble();
+    const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
+        double min_value = std::numeric_limits<double>::max();
+        for (auto& p_segment : rVectorSegments) {
+            double potential_min;
+            const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(potential_min, *p_segment, rNode, radius_path, distance_tolerance);
+            min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+        }
+        if constexpr (THistorical) {
+            rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
+        } else {
+            rNode.GetValue(*mpDistanceVariable) = min_value;
+        }
+    });
 }
 
 /***********************************************************************************/
@@ -151,27 +152,29 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
     std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
     )
 {
-	const double radius_path = mThisParameters["radius_path"].GetDouble();
-	const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
-	block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
-		double min_value = std::numeric_limits<double>::max();
-		for (auto& p_segment : rVectorSegments) {
-			const double potential_min = FastMinimalDistanceOnLineWithRadius(*p_segment, rNode, radius_path, distance_tolerance);
-			min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
-		}
-		if constexpr (THistorical) {
-			rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
-		} else {
-			rNode.GetValue(*mpDistanceVariable) = min_value;
-		} 
-	});
+    const double radius_path = mThisParameters["radius_path"].GetDouble();
+    const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
+        double min_value = std::numeric_limits<double>::max();
+        for (auto& p_segment : rVectorSegments) {
+            double potential_min;
+            const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(potential_min, *p_segment, rNode, radius_path, distance_tolerance);
+            min_value = std::abs(potential_min) < std::abs(min_value) ? potential_min : min_value;
+        }
+        if constexpr (THistorical) {
+            rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
+        } else {
+            rNode.GetValue(*mpDistanceVariable) = min_value;
+        }
+    });
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<bool THistorical>
-double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWithRadius(
+DistanceComputed CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWithRadius(
+    double& rDistance,
     const Geometry<NodeType>& rSegment,
     const Point& rPoint,
     const double Radius,
@@ -181,7 +184,8 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
     // If radius is zero, we compute the distance to the line
     Line3D2<NodeType> line(rSegment.Points()); // NOTE: TO ENSURE THAT IT IS 3D IN CASE IS DECLARED AS 2D
     if (Radius < std::numeric_limits<double>::epsilon()) {
-        return GeometricalProjectionUtilities::FastMinimalDistanceOnLine(line, rPoint, Tolerance);
+        rDistance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(line, rPoint, Tolerance);
+        return DistanceComputed::NO_RADIUS;
     } else {
         Point projected_point;
         const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(line, rPoint, projected_point);
@@ -190,7 +194,8 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
         typename Geometry<NodeType>::CoordinatesArrayType projected_local;
         // If projection is inside, just remove the radius
         if (line.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
-            return projected_distance - Radius;
+            rDistance = projected_distance - Radius;
+            return DistanceComputed::RADIUS_PROJECTED;
         } else { // Othwerise we compute the distance to the closest node and compute the difference with the "radius cylinder"
             // Distances to the nodes
             const Point::Pointer point = Kratos::make_shared<Point>(rPoint.Coordinates());
@@ -230,10 +235,11 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
 
                 // Compute distance
                 if (distance_a < distance_b) {
-                    return distance_a - point_a->Distance(intersection_point);
+                    rDistance = distance_a - point_a->Distance(intersection_point);
                 } else {
-                    return distance_b - point_b->Distance(intersection_point);
+                    rDistance = distance_b - point_b->Distance(intersection_point);
                 }
+                return DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE;
             } else { // Negative distance
                 array_1d<double, 3> projection_vector = rPoint.Coordinates() - projected_point.Coordinates();
                 projection_vector /= norm_2(projection_vector);
@@ -243,11 +249,12 @@ double CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanceOnLineWit
                 Point parallel_projection_point(aux_parallel_projection);
 
                 // Compute distance
-                return - point->Distance(parallel_projection_point);
+                rDistance = - point->Distance(parallel_projection_point);
+                return DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE;
             }
         }
     }
-    return 0.0;
+    return DistanceComputed::ERROR;
 }
 
 /***********************************************************************************/

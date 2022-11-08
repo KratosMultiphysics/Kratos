@@ -33,6 +33,18 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+/**
+ * @brief How the distance is computed enum
+ */
+enum class DistanceComputed
+{
+    ERROR,
+    NO_RADIUS,
+    RADIUS_PROJECTED,
+    RADIUS_NOT_PROJECTED_OUTSIDE,
+    RADIUS_NOT_PROJECTED_INSIDE
+};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -137,7 +149,6 @@ public:
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
@@ -236,12 +247,15 @@ private:
     /**
      * @brief Computes the minimal distance to a line with radius contribution
      * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @param rDistance The distance
      * @param rSegment The line segment
      * @param rPoint The point to compute distance
      * @param Radius The radius
      * @param Tolerance Tolerance to check it falls inside the line
+     * @return The Distance computation type
      */
-    double FastMinimalDistanceOnLineWithRadius(
+    DistanceComputed FastMinimalDistanceOnLineWithRadius(
+        double& rDistance,
         const Geometry<NodeType>& rSegment,
         const Point& rPoint,
         const double Radius,
