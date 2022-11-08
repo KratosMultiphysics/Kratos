@@ -11,7 +11,7 @@ def DistanceFunction(node, radius):
     y = node.Y
     node_radius = (x**2 + y**2)**0.5 - 1.0
     z = node.Z
-    sub_radius = (node_radius**2 + z**2)**0.5 - radius
+    sub_radius = (node_radius**2 + z**2)**0.5
     return sub_radius - radius
 
 def VTKDebug(model):
