@@ -161,8 +161,13 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNei
         }
 
         // KRATOS_INFO("ShapeOpt") << "max distance of node id = " << rNode.Id() << " : " << max_distance << std::endl;
-        rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor);
-        rNode.SetValue(VERTEX_MORPHING_RADIUS_RAW, max_distance * mFilterRadiusFactor);
+        double& vm_radius = rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS);
+        vm_radius = max_distance * mFilterRadiusFactor;
+        double& vm_radius_raw = rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS_RAW);
+        vm_radius_raw = max_distance * mFilterRadiusFactor;
+
+        // rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor);
+        // rNode.SetValue(VERTEX_MORPHING_RADIUS_RAW, max_distance * mFilterRadiusFactor);
         // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << max_distance * mFilterRadiusFactor << std::endl;
     });
 
@@ -178,13 +183,13 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeig
     Vector raw_radius(number_of_nodes);
     Vector temp_radius(number_of_nodes);
     IndexPartition<IndexType>(number_of_nodes).for_each([&](const IndexType iNode) {
-        raw_radius[iNode] = (mrDestinationModelPart.NodesBegin() + iNode)->GetValue(VERTEX_MORPHING_RADIUS_RAW);
+        raw_radius[iNode] = (mrDestinationModelPart.NodesBegin() + iNode)->FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS_RAW);
     });
 
     for (IndexType iter = 0; iter < mNumberOfSmoothingIterations; ++iter) {
         IndexPartition<IndexType>(number_of_nodes).for_each([&](const IndexType iNode) {
             const auto& r_node = *(mrDestinationModelPart.NodesBegin() + iNode);
-            double current_radius = r_node.GetValue(VERTEX_MORPHING_RADIUS);
+            double current_radius = r_node.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS);
             const double current_raw_radius = raw_radius[iNode];
             if (current_raw_radius > current_radius) {
                 temp_radius[iNode] = current_raw_radius;
@@ -195,7 +200,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeig
 
         IndexPartition<IndexType>(number_of_nodes).for_each([&](const IndexType iNode) {
             auto& r_node_i = *(mrDestinationModelPart.NodesBegin() + iNode);
-            double& radius = r_node_i.GetValue(VERTEX_MORPHING_RADIUS);
+            double& radius = r_node_i.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS);
 
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
@@ -227,7 +232,7 @@ template <class TBaseVertexMorphingMapper>
 double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::GetVertexMorphingRadius(const NodeType &rNode) const
 {
     // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << rNode.GetValue(VERTEX_MORPHING_RADIUS) << std::endl;
-    return std::max(rNode.GetValue(VERTEX_MORPHING_RADIUS), mMinimumFilterRadius);
+    return std::max(rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS), mMinimumFilterRadius);
 }
 
 template <class TBaseVertexMorphingMapper>
@@ -275,6 +280,8 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::ComputeWeigh
     std::vector<double>& list_of_weights,
     double& sum_of_weights)
 {
+    // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << destination_node.Id() << " : " << destination_node.GetValue(VERTEX_MORPHING_RADIUS) << std::endl;
+
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++) {
         const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
         const double weight = this->mpFilterFunction->ComputeWeight( destination_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(destination_node) );
