@@ -20,7 +20,7 @@ class ErrorNormCalculatorUtility:
 
         self.rho = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DENSITY)
         self.nu = self.model_part.Elements.__iter__().__next__().Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)/self.rho
-        Re = 1/self.nu
+        Re = self.u_characteristic/self.nu
         self.p_characteristic = (1/2)*self.rho*self.u_characteristic**2 * (1 + 1/Re)
 
         self.model_part.AddNodalSolutionStepVariable(SDEM.VECTORIAL_ERROR)

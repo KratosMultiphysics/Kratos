@@ -149,6 +149,7 @@ public:
     double                                                mSigma;
     double                                                mOmega;
     double                                     mSqueezeAmplitude;
+    double                                                    mk;
     double                                                mUchar;
     double                                             mX1Origin;
     double                                             mX2Origin;
