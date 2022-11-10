@@ -3,7 +3,6 @@ import time
 import importlib
 
 import KratosMultiphysics
-from KratosMultiphysics.modeler_factory import KratosModelerFactory
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
 class MultistageAnalysis(object):
@@ -26,7 +25,7 @@ class MultistageAnalysis(object):
         if self.settings["stages"][stage_name].Has("stage_postprocess"):
             if self.settings["stages"][stage_name]["stage_postprocess"].Has("modelers"):
                 err_msg = f"Found 'modelers' field in 'stage_postprocess' of stage {stage_name}."
-                err_msg += f" Place the 'modelers' section in the next stage 'stage_preprocess'."
+                err_msg += " Place the 'modelers' section in the next stage 'stage_preprocess'."
                 raise Exception(err_msg)
 
     def Run(self):
@@ -114,7 +113,6 @@ class MultistageAnalysis(object):
     def __GetModelers(self):
         '''This method creates the modelers at the preprocess execution point.'''
 
-        #TODO: Add error thrown for wrong execution_point argument
         execution_point_settings = self.settings["stages"][self.GetCurrentStageName()]["stage_preprocess"]
 
         factory = KratosModelParametersFactory(self.model)
@@ -123,7 +121,9 @@ class MultistageAnalysis(object):
     def __GetOperations(self, execution_point):
         '''This method creates the operations at any execution point.'''
 
-        #TODO: Add error thrown for wrong execution_point argument
+        if not execution_point in ["stage_preprocess","stage_postprocess"]:
+            err_msg = f"Wrong execution point '{execution_point}'. Supported ones are 'stage_preprocess' and 'stage_postprocess'."
+            raise Exception(err_msg)
         execution_point_settings = self.settings["stages"][self.GetCurrentStageName()][execution_point]
 
         factory = KratosModelParametersFactory(self.model)
@@ -137,45 +137,15 @@ class MultistageAnalysis(object):
 
         stages_map = {}
         for stage_name in self.__GetExecutionList():
+            # Get the Python module name and class name implementing each analysis stage
+            # Note that we assume that the class name is the provided module (file) name in CamelCase
             analysis_stage_module_name = self.settings["stages"][stage_name]["analysis_stage"].GetString()
             analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
             analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
 
+            # Import the stage module, create the corresponding instance and insert it to the map
             analysis_stage_module = importlib.import_module(analysis_stage_module_name)
             analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
+            stages_map[stage_name] = analysis_stage_class(self.model,  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
 
-            stages_map[stage_name] = self.__CreateAnalysisStageWithFlushInstance(analysis_stage_class, self.model,  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
         return stages_map
-
-    #TODO: Think about this
-    #TODO: I think we should be able to import a custom module in the current work directory
-    def __CreateAnalysisStageWithFlushInstance(self, cls, global_model, parameters):
-        '''This method emulates the old single-stage MainKratos.py.
-        Note that it exploits dynammic inheritance to extend the corresponding analysis stage class.
-        '''
-
-        class AnalysisStageWithFlush(cls):
-
-            def __init__(self, model,project_parameters, flush_frequency=10.0):
-                super().__init__(model,project_parameters)
-                self.flush_frequency = flush_frequency
-                self.last_flush = time.time()
-                sys.stdout.flush()
-
-            def Initialize(self):
-                super().Initialize()
-                sys.stdout.flush()
-
-            def FinalizeSolutionStep(self):
-                super().FinalizeSolutionStep()
-
-                if self.parallel_type == "OpenMP":
-                    now = time.time()
-                    if now - self.last_flush > self.flush_frequency:
-                        sys.stdout.flush()
-                        self.last_flush = now
-
-            def __repr__(self) -> str:
-                return super().__repr__()
-
-        return AnalysisStageWithFlush(global_model, parameters)
