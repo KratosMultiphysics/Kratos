@@ -137,6 +137,25 @@ public:
     void Execute() override;
 
     /**
+     * @brief Computes the minimal distance to a line with radius contribution
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @param rDistance The distance
+     * @param rSegment The line segment
+     * @param rPoint The point to compute distance
+     * @param Radius The radius
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return The Distance computation type
+     * @todo Add C++ test
+     */
+    static DistanceComputed FastMinimalDistanceOnLineWithRadius(
+        double& rDistance,
+        const Geometry<NodeType>& rSegment,
+        const Point& rPoint,
+        const double Radius,
+        const double Tolerance = 1.0e-9
+        );
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
@@ -242,24 +261,6 @@ private:
     void CalculateDistanceByBruteForce(
         ModelPart& rModelPart,
         std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
-        );
-
-    /**
-     * @brief Computes the minimal distance to a line with radius contribution
-     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
-     * @param rDistance The distance
-     * @param rSegment The line segment
-     * @param rPoint The point to compute distance
-     * @param Radius The radius
-     * @param Tolerance Tolerance to check it falls inside the line
-     * @return The Distance computation type
-     */
-    DistanceComputed FastMinimalDistanceOnLineWithRadius(
-        double& rDistance,
-        const Geometry<NodeType>& rSegment,
-        const Point& rPoint,
-        const double Radius,
-        const double Tolerance = 1.0e-9
         );
 
     ///@}
