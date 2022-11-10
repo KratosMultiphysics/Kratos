@@ -132,15 +132,26 @@ public:
         auto& r_this_geometry = elem_i.GetGeometry();
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
 
+        double volume_area = 0.0;
+        const IntegrationMethod this_integration_method = r_this_geometry.GetDefaultIntegrationMethod();    
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+        for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+        {
+            Matrix J0;
+            GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0); 
+            volume_area += integration_points[i_point].Weight() * MathUtils<double>::GeneralizedDet(J0);
+        }           
+
+
         double element_mass = 0;
         if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(T_PR))
-            element_mass = elem_i.GetGeometry().Area() * elem_i.GetProperties().GetValue(T_PR) * elem_i.GetProperties().GetValue(DENSITY);
+            element_mass = volume_area * elem_i.GetProperties().GetValue(T_PR) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
-            element_mass = elem_i.GetGeometry().Area() * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);    
+            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);    
         if (local_space_dimension == 3 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
-            element_mass = elem_i.GetGeometry().Volume() * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
+            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 3 && DomainSize == 3)
-            element_mass = elem_i.GetGeometry().Volume() * elem_i.GetProperties().GetValue(DENSITY);
+            element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
 
         return element_mass;
     }

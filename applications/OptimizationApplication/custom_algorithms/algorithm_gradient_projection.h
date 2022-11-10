@@ -319,7 +319,7 @@ public:
         auto correction_step_size = mrSettings["correction_step_size"].GetDouble();        
 
         // apply contraction if necessary
-        if (opt_itr>2 && current_is_feasible && (sum_objective_value>last_feasible_obj_val))
+        if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value>last_feasible_obj_val))
             mSumObjectivesImprovements *= 0.9;
 
         if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value<last_feasible_obj_val))
@@ -334,7 +334,7 @@ public:
             if(ratio>1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
                 scale = ratio; 
 
-            if(ratio<1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0)
+            if(ratio<1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
                 scale = ratio;
 
             if(scale>1.2)
@@ -342,7 +342,7 @@ public:
             if(scale<0.8) 
                 scale = 0.8;                  
 
-            if(sum_obj_improvement>0.0)
+            if(sum_obj_improvement>0.0 && current_is_feasible && prev_is_feasible)
                 scale = 0.8;
 
             projection_step_size *= scale;
