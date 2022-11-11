@@ -134,6 +134,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                         max_stress,
+                                                                                        reversion_factor,
                                                                                         local_number_of_cycles,
                                                                                         global_number_of_cycles,
                                                                                         B0,
@@ -155,6 +156,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             cycles_to_failure);
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                         max_stress,
+                                                                                        reversion_factor,
                                                                                         local_number_of_cycles,
                                                                                         global_number_of_cycles,
                                                                                         B0,
@@ -591,6 +593,8 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
         rValue = mPreviousCycleTime;
     } else if (rThisVariable == CYCLE_PERIOD) {
         rValue = mPeriod;
+    } else if (rThisVariable == INFINITY_YIELD_STRESS) {
+        rValue = mMinStress/mMaxStress;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }

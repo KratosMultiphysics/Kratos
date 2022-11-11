@@ -209,19 +209,25 @@ public:
 
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > rSth && MaxStress <= ultimate_stress) {
-            rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
-            rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+            if (std::abs(ReversionFactor) < 1.0){ 
+                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
+                rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
 
-            if (softening_type == curve_by_points) {
-                rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
+                if (softening_type == curve_by_points) {
+                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
+                }
+            }else{
+                rN_f = 1.0e15;
             }
         }
     }
+    
 
     /**
      * @brief This method computes the reduction factor and the wohler stress (SN curve)
      * @param MaterialParameters Material properties.
      * @param MaxStress Signed maximum stress in the current cycle.
+     * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle. 
      * @param LocalNumberOfCycles Number of cycles in the current load.
      * @param GlobalNumberOfCycles Number of cycles in the whole analysis.
      * @param B0 Internal variable of the fatigue model.
@@ -232,6 +238,7 @@ public:
      */
     static void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters,
                                                                 const double MaxStress,
+                                                                double ReversionFactor,
                                                                 unsigned int LocalNumberOfCycles,
                                                                 unsigned int GlobalNumberOfCycles,
                                                                 const double B0,
@@ -260,8 +267,12 @@ public:
             rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
         }
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
-            rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
+            if (std::abs(ReversionFactor) < 1.0){
+                rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
+                rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
+            } else{
+                rFatigueReductionFactor = 1.0;
+            }      
         }
     }
 
