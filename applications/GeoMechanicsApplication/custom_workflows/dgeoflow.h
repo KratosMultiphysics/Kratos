@@ -80,6 +80,11 @@ class NodeHYDRAULIC_DISCHARGE : public NodeOperation
 public:
     void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
 };
+class NodeHYDRAULIC_HEAD : public NodeOperation
+{
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
+};
 
 class GaussOperation
 {
@@ -150,9 +155,10 @@ namespace Kratos
         int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
                                   double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
                                   std::string criticalHeadBoundaryModelPartName,
-                                  void logCallback(char *),
-                                  void reportProgress(char *),
-                                  bool shouldCancel());
+                                  std::function<void(char*)> logCallback,
+                                  std::function<void(double)> reportProgress,
+                                  std::function<void(char*)> reportTextualProgress,
+                                  std::function<bool()> shouldCancel);
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -224,5 +230,7 @@ namespace Kratos
                           std::vector<std::shared_ptr<Process>> processes,
                           KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                           double time, double delta_time, double number_iterations);
+        
+        void calculateNodalHydraulicHead(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
     };
 }

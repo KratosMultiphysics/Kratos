@@ -176,7 +176,7 @@ def main():
     parser.add_argument('-c', '--command', default=cmd, help="Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used")
     parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'], help="Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'")
     parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2], help="Verbosity level: 0, 1 (Default), 2")
-    parser.add_argument('-a', '--applications', default=applications, choices=applications, help="List of applications to run separated by \':\'. All compiled applications will be run by default")
+    parser.add_argument('-a', '--applications', default=applications, help="List of applications to run separated by \':\'. All compiled applications will be run by default")
     parser.add_argument('-m', '--using-mpi', default=False, help="If running in MPI and executing the MPI-tests")
     parser.add_argument('-t', '--timer', default=-1, help="Use the provided custom time limit for the execution. If not provided, the default values are used")
 
@@ -187,7 +187,7 @@ def main():
         level = "mpi_" + level
 
     # Parser the applications
-    if args.applications is str:
+    if isinstance(args.applications,str):
         parsedApps = args.applications.split(':')
     else:
         parsedApps = args.applications

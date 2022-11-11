@@ -15,6 +15,8 @@
 // External includes
 
 // Project includes
+#include "structural_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "utilities/variable_utils.h"

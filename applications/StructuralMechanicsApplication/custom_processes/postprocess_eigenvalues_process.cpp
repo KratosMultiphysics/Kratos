@@ -12,13 +12,14 @@
 
 // System includes
 #include <cmath>
+#include <filesystem>
 #include <iomanip>
 
 // External includes
 
 // Project includes
-#include "includes/kratos_filesystem.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_io/gid_eigen_io.h"
@@ -166,8 +167,8 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     const std::string folder_name = mOutputParameters["folder_name"].GetString();
-    if (!Kratos::filesystem::exists(folder_name)) {
-        Kratos::filesystem::create_directories(folder_name);
+    if (!std::filesystem::exists(folder_name)) {
+        std::filesystem::create_directories(folder_name);
     }
 }
 
@@ -186,7 +187,6 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
     // Note: this is omega^2
     const SizeType num_eigenvalues = eigenvalue_vector.size();
-    const auto nodes_begin = mrModelPart.NodesBegin();
     const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
 
     std::vector<Variable<double>> requested_double_results;
@@ -200,20 +200,19 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
         for (SizeType j=0; j<num_eigenvalues; ++j) {
             const std::string label = GetLabel(j, num_eigenvalues, eigenvalue_vector[j]);
 
-            #pragma omp parallel for
-            for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
+            block_for_each(mrModelPart.Nodes(), [cos_angle, j](auto& rNode){
                 // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
-                DofsContainerType& r_node_dofs = (nodes_begin+k)->GetDofs();
-                const Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
+                DofsContainerType& r_node_dofs = rNode.GetDofs();
+                const Matrix& r_node_eigenvectors = rNode.GetValue(EIGENVECTOR_MATRIX);
 
                 KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                    << "Number of results on node #" << (nodes_begin+k)->Id() << " is wrong" << std::endl;
+                    << "Number of results on node #" << rNode.Id() << " is wrong" << std::endl;
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
                     r_dof->GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,l++);
                 }
-            }
+            });
 
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
         }
