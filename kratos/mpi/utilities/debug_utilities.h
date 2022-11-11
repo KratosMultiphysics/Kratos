@@ -180,7 +180,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [rVariable](GlobalPointer<typename TContainerType::data_type>& gp)-> typename TVarType::Type {
+            [&rVariable](GlobalPointer<typename TContainerType::data_type>& gp)-> typename TVarType::Type {
                 return gp->GetValue(rVariable);
             }
         );
@@ -246,7 +246,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [rVariable](GlobalPointer< Node<3> >& gp)-> std::pair<typename TVarType::Type, bool> {
+            [&rVariable](GlobalPointer< Node<3> >& gp)-> std::pair<typename TVarType::Type, bool> {
                 return {gp->FastGetSolutionStepValue(rVariable),gp->IsFixed(rVariable)};
             }
         );
