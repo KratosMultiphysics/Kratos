@@ -1,5 +1,3 @@
-import sys
-import time
 import importlib
 
 import KratosMultiphysics
@@ -121,7 +119,7 @@ class MultistageAnalysis(object):
     def __GetOperations(self, execution_point):
         '''This method creates the operations at any execution point.'''
 
-        if not execution_point in ["stage_preprocess","stage_postprocess"]:
+        if execution_point not in ["stage_preprocess","stage_postprocess"]:
             err_msg = f"Wrong execution point '{execution_point}'. Supported ones are 'stage_preprocess' and 'stage_postprocess'."
             raise Exception(err_msg)
         execution_point_settings = self.settings["stages"][self.GetCurrentStageName()][execution_point]
