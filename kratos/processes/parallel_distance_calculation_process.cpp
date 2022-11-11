@@ -76,7 +76,7 @@ const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters(
         "distance_database" : "nodal_historical",
         "max_levels" : 25,
         "max_distance" : 1.0,
-        "preserve_interface_strictly" : false,
+        "preserve_interface" : false,
         "calculate_exact_distances_to_plane" : false
     })");
 }
