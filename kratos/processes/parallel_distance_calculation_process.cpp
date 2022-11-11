@@ -47,7 +47,7 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
 
     mMaxLevels = Settings["max_levels"].GetInt();
     mMaxDistance = Settings["max_distance"].GetDouble();
-    mPreserveInterface = Settings["preserve_interface_strictly"].GetBool();
+    mPreserveInterface = Settings["preserve_interface"].GetBool();
     mCalculateExactDistancesToPlane = Settings["calculate_exact_distances_to_plane"].GetBool();
 
     const std::string distance_database = Settings["distance_database"].GetString();
