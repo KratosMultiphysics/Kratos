@@ -234,12 +234,15 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         // Elastic Matrix
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
+        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+
         // Converged values
         double threshold = this->GetThreshold();
         double damage = this->GetDamage();
 
-        // S0 = C:E
+        // S0 = C:(E-E0) + S0
         array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
         // Initialize Plastic Parameters
         double fatigue_reduction_factor = mFatigueReductionFactor;
@@ -339,12 +342,15 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // Elastic Matrix
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
+        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+
         // Converged values
         double threshold = this->GetThreshold();
         double damage = this->GetDamage();
 
-        // S0 = C:E
+        // S0 = C:(E-E0) + S0
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
+        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
         // Initialize Plastic Parameters
         double uniaxial_stress;
