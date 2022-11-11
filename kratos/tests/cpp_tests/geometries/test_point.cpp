@@ -18,8 +18,8 @@
 namespace Kratos::Testing {
 
 /**
-    *  Here the constructors are test
-    */
+ *  Here the constructors are test
+ */
 KRATOS_TEST_CASE_IN_SUITE(Constructors, KratosCoreGeometriesFastSuite)
 {
     const Point point;
@@ -57,8 +57,8 @@ KRATOS_TEST_CASE_IN_SUITE(Constructors, KratosCoreGeometriesFastSuite)
 }
 
 /**
-    *  Here the accesors are test
-    */
+ *  Here the accesors are test
+ */
 KRATOS_TEST_CASE_IN_SUITE(Access, KratosCoreGeometriesFastSuite)
 {
     Point point;
@@ -83,12 +83,23 @@ KRATOS_TEST_CASE_IN_SUITE(Access, KratosCoreGeometriesFastSuite)
 }
 
 /**
-    *  Here the Info is test
-    */
+ *  Here the Info is test
+ */
 KRATOS_TEST_CASE_IN_SUITE(Info, KratosCoreGeometriesFastSuite)
 {
     const Point point;
     KRATOS_CHECK_STRING_EQUAL(point.Info(), "Point");
+}
+
+/**
+ *  Here the Distance is test
+ */
+KRATOS_TEST_CASE_IN_SUITE(Distance, KratosCoreGeometriesFastSuite)
+{
+    const Point point;
+    const Point point_3d(3.0, 4.0, 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(point.Distance(point_3d), 5.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(point.SquaredDistance(point_3d), 25.0);
 }
 
 }  // namespace Kratos::Testing

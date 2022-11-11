@@ -93,7 +93,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
       - Python
 
-          You will need at least *Python* 3.7 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+          You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
           * [Download Python](http://www.python.org/downloads/)
 
@@ -144,7 +144,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         ```
 
     - Python 
-        You will need at least *Python* 3.7 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+        You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
         * [Download Python](http://www.python.org/downloads/)
 
@@ -419,7 +419,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # Set basic configuration
 export KRATOS_BUILD_TYPE="Release"
 export BOOST_ROOT="/path/to/boost"
-export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.7/bin/python3"
+export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.8/bin/python3"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -506,7 +506,7 @@ The result should be:
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.2."0"-4afb88094a-Release-ARM64
-           Compiled for GNU/Linux and Python3.6 with GCC-8.5
+           Compiled for GNU/Linux and Python3.8 with GCC-8.5
 Compiled with threading and MPI support.
 Maximum number of threads: 1.
 Running without MPI.
