@@ -532,7 +532,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             parallel_distance_settings = KratosMultiphysics.Parameters("""{
                 "max_levels" : 100,
                 "max_distance" : 1.0e2,
-                "preserve_interface_strictly" : false,
+                "preserve_interface" : false,
                 "calculate_exact_distances_to_plane" : true
             }""")
             parallel_distance_settings["max_levels"].SetInt(layers)
