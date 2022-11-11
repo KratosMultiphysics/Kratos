@@ -586,12 +586,11 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 
     // Stabilization alpha parameters
     double alpha_stabilization  = 1.0;
-    double shear_modulus = 0;
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
         const double& young_modulus = GetProperties()[YOUNG_MODULUS];
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
+        const double& shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
@@ -875,12 +874,11 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
 
     // Stabilization alpha parameters
     double alpha_stabilization = 1.0;
-    double shear_modulus = 0;
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
         const double& young_modulus = GetProperties()[YOUNG_MODULUS];
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
+        const double& shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
