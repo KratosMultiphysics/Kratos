@@ -81,6 +81,12 @@ public:
     /// Pointer definition of MapperVertexMorphing
     KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphing);
 
+// TODO: DELETE AGAIN
+    using ElementType = Element;
+
+    using ConditionType = Element;
+// END TODO: DELETE AGAIN
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -125,6 +131,10 @@ public:
 
     // --------------------------------------------------------------------------
     void Update() override;
+
+// TODO: DELETE AGAIN
+    void CalculateCurvature();
+// END TODO: DELETE AGAIN
 
     // --------------------------------------------------------------------------
 

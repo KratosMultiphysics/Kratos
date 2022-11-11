@@ -49,6 +49,10 @@ public:
     // Type definitions for better reading later
     using NodeType = Node <3>;
 
+    using ElementType = Element;
+
+    using ConditionType = Element;
+
     using IndexType = std::size_t;
 
     using NodeTypePointer = NodeType::Pointer;
@@ -58,6 +62,9 @@ public:
     using DoubleVectorIterator = std::vector<double>::iterator ;
 
     using NodeIterator = std::vector<NodeType::Pointer>::iterator;
+
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef SparseSpaceType::MatrixType SparseMatrixType;
 
     // Type definitions for tree-search
     using BucketType = Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator >;
@@ -121,6 +128,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateCurvature();
 
     void CalculateNeighbourBasedFilterRadius();
 

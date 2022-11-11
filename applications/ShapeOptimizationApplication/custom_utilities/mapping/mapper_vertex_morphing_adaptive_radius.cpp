@@ -28,6 +28,14 @@
 #include "utilities/pointer_communicator.h"
 
 // ------------------------------------------------------------------------------
+// External includes
+// ------------------------------------------------------------------------------
+#include "external_libraries/igl/include/igl/gaussian_curvature.h"
+#include "external_libraries/igl/include/igl/massmatrix.h"
+#include "external_libraries/igl/include/igl/invert_diag.h"
+#include "external_libraries/igl/include/igl/writeOFF.h"
+
+// ------------------------------------------------------------------------------
 // Base mapper includes
 // ------------------------------------------------------------------------------
 #include "mapper_vertex_morphing.h"
@@ -77,6 +85,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Update()
 {
     BaseType::Update();
     CalculateAdaptiveVertexMorphingRadius();
+    CalculateCurvature();
 }
 
 template <class TBaseVertexMorphingMapper>
@@ -95,6 +104,85 @@ template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::PrintData(std::ostream &rOStream) const
 {
 }
+
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCurvature()
+{
+    // count number of quad elements
+    // TODO: deal with quads 4, 8, 9 nodes
+    // TODO: deal with triangles 6 nodes
+    // int numQuadElms = 0;
+    // for (int i = 0; i < mrDestinationModelPart.NumberOfElements; ++i) {
+    //     ConditionType::Pointer condition_i = mrDestinationModelPart.mpConditions[i];
+    //     if (condition_i -> NumberOfNodes() == 4) numQuadElms++;
+    // }
+
+    // Load a mesh in OFF format
+    Eigen::MatrixXd V(mrDestinationModelPart.NumberOfNodes(), 3);
+    // Eigen::MatrixXi F(mrDestinationModelPart->mNumElems + numQuadElms, 3);
+    unsigned int i = 0;
+    for (auto& node_i : mrDestinationModelPart.Nodes()) {
+        V(i,0) = node_i.X();
+        V(i,1) = node_i.Y();
+        V(i,2) = node_i.Z();
+        ++i;
+    }
+    KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "Size of V : " << V.size() << "..." << std::endl;
+    // for (int i = 0; i < mrDestinationModelPart.NumberOfNodes(); ++i) {
+    //     NodeType::Pointer node_i = mrDestinationModelPart.GetNode()[i];
+    //     V(i,0) = node_i->X();
+    //     V(i,1) = node_i->Y();
+    //     V(i,2) = node_i->Z();
+    // }
+
+    // int counter = 0;
+    Eigen::MatrixXi F(mrDestinationModelPart.NumberOfConditions(), 3);
+    unsigned int j = 0;
+    for (auto& condition_j : mrDestinationModelPart.Conditions()) {
+        NodeType& r_node_1 = condition_j.GetGeometry()[0];
+        NodeType& r_node_2 = condition_j.GetGeometry()[1];
+        NodeType& r_node_3 = condition_j.GetGeometry()[2];
+        // KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "node_1 : " << r_node_1 << "..." << std::endl;
+        // KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "node_2 : " << r_node_2 << "..." << std::endl;
+        // KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "node_3 : " << r_node_3 << "..." << std::endl;
+        // KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "node_1_index : " << r_node_1.GetValue(MAPPING_ID) << "..." << std::endl;
+        // KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "node_2_index : " << r_node_2.GetValue(MAPPING_ID) << "..." << std::endl;
+        // KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "node_3_index : " << r_node_3.GetValue(MAPPING_ID) << "..." << std::endl;
+        F(j,0) = r_node_1.GetValue(MAPPING_ID);
+        F(j,1) = r_node_2.GetValue(MAPPING_ID);
+        F(j,2) = r_node_3.GetValue(MAPPING_ID);
+        ++j;
+        // counter ++;
+    }
+    KRATOS_INFO("ShapeOpt:::ADAPTIVE VM") << "Size of F : " << F.size() << "..." << std::endl;
+    Eigen::VectorXd K;
+    igl::gaussian_curvature(V,F,K);
+    Eigen::SparseMatrix<double> M,Minv;
+    // SparseMatrixType M,Minv;
+    igl::massmatrix(V,F,igl::MASSMATRIX_TYPE_DEFAULT,M);
+    igl::invert_diag(M,Minv);
+    K = (Minv*K).eval();
+
+    igl::writeOFF("test.off",V,F);
+
+    i = 0;
+    for (auto& node_i : mrDestinationModelPart.Nodes()) {
+        double& gaussian_curvature_i = node_i.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
+        gaussian_curvature_i = K[i];
+        ++i;
+    }
+    // // if quad elements in mesh, add a second triangle
+    // for (int j = 0; j < mpPart->mNumElems; ++j) {
+    //     Element::ConstPointer element_j = mpPart->mElements[j];
+    //     if (element_j -> NumberOfNodes() == 4) {
+    //         F(counter,0) = mpPart->GetNodeIndex(element_j -> mNodes[0]->mId);
+    //         F(counter,1) = mpPart->GetNodeIndex(element_j -> mNodes[2]->mId);
+    //         F(counter,2) = mpPart->GetNodeIndex(element_j -> mNodes[3]->mId);
+    //         counter ++;
+    //     }
+    // }
+}
+
 
 template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNeighbourBasedFilterRadius()

@@ -94,6 +94,7 @@ class Optimizer:
             model_part = self.model_part_controller.GetOptimizationModelPart()
             model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS)
             model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS_RAW)
+            model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
 
 
     # --------------------------------------------------------------------------
