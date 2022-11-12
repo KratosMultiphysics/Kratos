@@ -60,7 +60,7 @@ public:
     typedef std::size_t IndexType;
     typedef matrix<int> GraphType;
 
-    using BaseType::idxtype
+    using BaseType::idxtype;
 
     ///@}
     ///@name Life Cycle
