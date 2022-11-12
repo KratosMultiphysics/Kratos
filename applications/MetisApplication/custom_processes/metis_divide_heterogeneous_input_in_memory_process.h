@@ -12,8 +12,7 @@
 //                   Carlos Roig
 //
 
-#ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
-#define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
+#pragma once
 
 #ifdef KRATOS_USE_METIS_5
   #include "metis.h"
@@ -474,5 +473,3 @@ private:
 ///@} // addtogroup block
 
 }
-
-#endif // KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H

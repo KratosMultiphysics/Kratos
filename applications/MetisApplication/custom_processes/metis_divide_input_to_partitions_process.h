@@ -48,8 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED )
-#define  KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
+#pragma once
 
 
 // System includes
@@ -600,9 +599,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined
-
-

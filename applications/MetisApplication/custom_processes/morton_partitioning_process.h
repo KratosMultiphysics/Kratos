@@ -48,8 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_MORTON_PARTITIONING_PROCESS_INCLUDED )
-#define  KRATOS_MORTON_PARTITIONING_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -363,9 +362,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_MORTON_PARTITIONING_PROCESS_INCLUDED defined
-
-

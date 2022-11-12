@@ -12,8 +12,7 @@
 //
 
 
-#if !defined(KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED )
-#define  KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -400,7 +399,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED defined
-
-

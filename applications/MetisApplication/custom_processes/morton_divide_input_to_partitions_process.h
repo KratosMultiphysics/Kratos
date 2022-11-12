@@ -12,8 +12,7 @@
 //                   Carlos Roig
 //
 
-#if !defined(KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED )
-#define  KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
+#pragma once
 
 
 // System includes
@@ -530,7 +529,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined

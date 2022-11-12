@@ -1,5 +1,4 @@
-#ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H
-#define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H
+#pragma once
 
 #ifdef KRATOS_USE_METIS_5
   #include "metis.h"
@@ -883,5 +882,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} // addtogroup block
 
 }
-
-#endif // KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H

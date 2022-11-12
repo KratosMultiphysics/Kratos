@@ -31,8 +31,7 @@
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
 #endif
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddProcessesToPython(pybind11::module& m)
 {
@@ -96,5 +95,4 @@ void AddProcessesToPython(pybind11::module& m)
 
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python
