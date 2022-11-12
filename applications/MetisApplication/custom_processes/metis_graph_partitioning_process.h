@@ -11,27 +11,16 @@
 //
 //
 
-
 #pragma once
 
 // System includes
 
+// External includes
+#include "metis.h"
+
 // Project includes
+#include "includes/io.h"
 #include "processes/process.h"
-
-#ifdef KRATOS_USE_METIS_5
-  #include "metis.h"
-#else
-  // External includes
-  #include <parmetis.h>
-
-  extern "C" {
-      //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
-      extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*);
-  }
-#endif
-
-
 
 namespace Kratos
 {
@@ -67,9 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #endif
+    typedef idx_t idxtype;
 
     /// Pointer definition of MetisGraphPartitioningProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisGraphPartitioningProcess);
@@ -251,30 +238,9 @@ protected:
 
         int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
 
-        #ifndef KRATOS_USE_METIS_5
-        int etype;
-        if(number_of_element_nodes == 3) { // triangles
-            etype = 1;
-        }
-        else if(number_of_element_nodes == 4) {// tetrahedra or quadilateral
-            if(mDimension == 2){ // quadilateral
-                etype = 4;
-            }
-            else  {// tetrahedra
-                etype = 2;
-            }
-        }
-        else if(number_of_element_nodes == 8) { // hexahedra
-            etype = 3;
-        }
-        else {
-            KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
-        }
-        #else
         if(number_of_element_nodes != 3 && number_of_element_nodes != 4  && number_of_element_nodes != 8) {
             KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
         }
-        #endif
 
         //int numflag = 0;
         //int number_of_partitions = static_cast<int>(mNumberOfPartitions);
@@ -291,17 +257,8 @@ protected:
                 elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
 
         // Calling Metis to partition
-        #ifndef KRATOS_USE_METIS_5
-        int numflag = 0;
-        int number_of_partitions = static_cast<int>(mNumberOfPartitions);
-        int edgecut;
-        int ne = NumberOfElements;
-        int nn = NumberOfNodes;
-        METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
-        #else
         //METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
         KRATOS_WATCH("not implemented!!!")
-        #endif
 
         delete[] elmnts;
 
