@@ -56,9 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "includes/io.h"
 #include "processes/graph_coloring_process.h"
-#include "includes/model_part.h"
 #include "custom_processes/metis_graph_partitioning_process.h"
 
 namespace Kratos
@@ -101,11 +99,7 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
     typedef matrix<int> GraphType;
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #else
-      typedef int idxtype;
-    #endif
+    using MetisGraphPartitioningProcess::idxtype
 
     ///@}
     ///@name Life Cycle
