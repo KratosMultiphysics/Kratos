@@ -40,7 +40,9 @@ class MPMImplicitDynamicSolver(MPMSolver):
         grid_model_part = self.GetGridModelPart()
         domain_size = self._GetDomainSize()
         block_size  = domain_size
-        if (self.settings["pressure_dofs"].GetBool()):
+        is_mixedformulation = self.settings["pressure_dofs"].GetBool()
+        self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MIXEDFORMULATION, is_mixedformulation)
+        if (is_mixedformulation):
             block_size += 1
 
         # Setting the time integration schemes
