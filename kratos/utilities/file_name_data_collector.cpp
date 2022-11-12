@@ -125,7 +125,7 @@ std::string FileNameDataCollector::GetFileName() const
         file_name += r_flag.GetValueString(mrModelPart);
     }
 
-    return std::filesystem::path(mFilePath) / file_name;
+    return (std::filesystem::path(mFilePath) / file_name).string();
 
     KRATOS_CATCH("");
 }
@@ -154,7 +154,7 @@ bool FileNameDataCollector::RetrieveFileNameData(
         }
     }
 
-    rFileNameData.SetFileName(std::filesystem::path(mFilePath) / rFileNameWithoutPath);
+    rFileNameData.SetFileName((std::filesystem::path(mFilePath) / rFileNameWithoutPath).string());
 
     return true;
 
