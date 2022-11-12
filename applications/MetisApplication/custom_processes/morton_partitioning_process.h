@@ -52,8 +52,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 
-
 // Project includes
+#include "includes/io.h"
 #include "processes/process.h"
 
 namespace Kratos
@@ -90,9 +90,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #endif
+    typedef idx_t idxtype;
 
     /// Pointer definition of MortonPartitioningProcess
     KRATOS_CLASS_POINTER_DEFINITION(MortonPartitioningProcess);
