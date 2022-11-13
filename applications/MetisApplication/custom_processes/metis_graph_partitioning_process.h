@@ -56,13 +56,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef idx_t idxtype;
+    using idxtype = idx_t;
 
     /// Pointer definition of MetisGraphPartitioningProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisGraphPartitioningProcess);
 
     typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
     typedef std::vector<idxtype> PartitionIndicesType;
 
     ///@}

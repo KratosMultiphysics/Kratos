@@ -42,10 +42,8 @@ public:
 
     typedef MetisDivideInputToPartitionsProcess BaseType;
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef matrix<int> GraphType;
-
+    using BaseType::SizeType;
+    using BaseType::GraphType;
     using BaseType::idxtype;
 
     ///@}

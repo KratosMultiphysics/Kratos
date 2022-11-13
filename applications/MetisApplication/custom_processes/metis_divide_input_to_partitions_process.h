@@ -96,10 +96,10 @@ public:
     /// Pointer definition of MetisDivideInputToPartitionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideInputToPartitionsProcess);
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef matrix<int> GraphType;
-    using MetisGraphPartitioningProcess::idxtype
+    using SizeType = std::size_t;
+    using GraphType = matrix<int>;
+
+    using idxtype = MetisGraphPartitioningProcess::idxtype;
 
     ///@}
     ///@name Life Cycle
