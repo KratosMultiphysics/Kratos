@@ -182,11 +182,9 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
@@ -196,28 +194,22 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -228,7 +220,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -280,8 +271,8 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const;
-    void load(Serializer& rSerializer);
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
 
