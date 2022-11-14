@@ -11,8 +11,7 @@
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_MODEL_H_INCLUDED )
-#define  KRATOS_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -57,6 +56,7 @@ namespace Kratos
 * @author Riccardo Rossi
 */
 class KRATOS_API(KRATOS_CORE) Model final
+    : public DataValueContainer
 {
 public:
     ///@name Type Definitions
@@ -156,11 +156,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -175,14 +173,11 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const;
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -265,11 +260,9 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -280,7 +273,6 @@ private:
 
     /// Copy constructor.
 //       Model(Model const& rOther);
-
 
     ///@}
     ///@name Serialization
@@ -300,11 +292,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -325,5 +315,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MODEL_H_INCLUDED  defined
