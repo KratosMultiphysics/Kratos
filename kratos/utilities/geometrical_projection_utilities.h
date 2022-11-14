@@ -11,8 +11,7 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_GEOMETRICAL_PROJECTION_UTILITIES)
-#define KRATOS_GEOMETRICAL_PROJECTION_UTILITIES
+#pragma once
 
 // System includes
 
@@ -183,7 +182,7 @@ public:
      */
     template<class TGeometryType>
     static inline double FastProjectOnLine(const TGeometryType& rGeometry,
-                                           const Point& rPointToProject,
+                                           const PointType& rPointToProject,
                                            PointType& rPointProjected)
     {
         const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
@@ -197,6 +196,35 @@ public:
         rPointProjected.Coordinates() = r_p_a + factor * ab;
 
         return norm_2(rPointProjected.Coordinates()-p_c);
+    }
+
+
+    /**
+     * @brief Computes the minimal distance to a line
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @tparam TGeometryType The type of the line
+     * @param rGeometry The line where compute the distance
+     * @param rPoint The point to compute the distance
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return Distance The distance between point and line
+     */
+    template<class TGeometryType>
+    static inline double FastMinimalDistanceOnLine(
+        const TGeometryType& rGeometry,
+        const PointType& rPoint,
+        const double Tolerance = 1.0e-9
+        )
+    {
+        PointType projected_point;
+        const double projected_distance = FastProjectOnLine(rGeometry, rPoint, projected_point);
+        typename TGeometryType::CoordinatesArrayType projected_local;
+        if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
+            return projected_distance;
+        } else {
+            const double distance_a = rPoint.Distance(rGeometry[0]);
+            const double distance_b = rPoint.Distance(rGeometry[1]);
+            return std::min(distance_a, distance_b);
+        }
     }
 
     /**
@@ -336,5 +364,4 @@ private:
 
 ///@}
 
-}
-#endif /* KRATOS_GEOMETRICAL_PROJECTION_UTILITIES defined */
+} /// namespace Kratos

@@ -115,13 +115,13 @@ namespace Kratos {
             auto& r_geometry_0 = p_coupling_geometry->GetGeometryPart(0);
             for (std::size_t i = 0; i < r_geometry_master.size(); ++i) {
                 KRATOS_CHECK_EQUAL(r_geometry_0[i].Id(), r_geometry_master[i].Id());
-                KRATOS_CHECK_LESS(norm_2(r_geometry_0[i].Coordinates() - r_geometry_master[i].Coordinates()), 1.0e-6);
+                KRATOS_CHECK_LESS(r_geometry_0[i].Distance(r_geometry_master[i]), 1.0e-6);
             }
             auto& r_geometry_slave = *p_triangle_slave;
             auto& r_geometry_1 = p_coupling_geometry->GetGeometryPart(1);
             for (std::size_t i = 0; i < r_geometry_slave.size(); ++i) {
                 KRATOS_CHECK_EQUAL(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
-                KRATOS_CHECK_LESS(norm_2(r_geometry_1[i].Coordinates() - r_geometry_slave[i].Coordinates()), 1.0e-6);
+                KRATOS_CHECK_LESS(r_geometry_1[i].Distance(r_geometry_slave[i]), 1.0e-6);
             }
 
             p_coupling_geometry->RemoveGeometryPart(p_triangle_second_slave);
@@ -167,13 +167,13 @@ namespace Kratos {
             auto& r_geometry_0 = r_coupling_geometry.GetGeometryPart(0);
             for (std::size_t i = 0; i < r_geometry_master.size(); ++i) {
                 KRATOS_CHECK_EQUAL(r_geometry_0[i].Id(), r_geometry_master[i].Id());
-                KRATOS_CHECK_LESS(norm_2(r_geometry_0[i].Coordinates() - r_geometry_master[i].Coordinates()), 1.0e-6);
+                KRATOS_CHECK_LESS(r_geometry_0[i].Distance(r_geometry_master[i]), 1.0e-6);
             }
             auto& r_geometry_slave = *p_triangle_slave;
             auto& r_geometry_1 = r_coupling_geometry.GetGeometryPart(1);
             for (std::size_t i = 0; i < r_geometry_slave.size(); ++i) {
                 KRATOS_CHECK_EQUAL(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
-                KRATOS_CHECK_LESS(norm_2(r_geometry_1[i].Coordinates() - r_geometry_slave[i].Coordinates()), 1.0e-6);
+                KRATOS_CHECK_LESS(r_geometry_1[i].Distance(r_geometry_slave[i]), 1.0e-6);
             }
         }
 

@@ -1,10 +1,10 @@
 import os
-import re
 import sys
 from . import kratos_globals
+from . import python_registry
 
-if sys.version_info < (3, 6):
-    raise Exception("Kratos only supports Python version 3.6 and above")
+if sys.version_info < (3, 8):
+    raise Exception("Kratos only supports Python version 3.8 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -17,6 +17,12 @@ class KratosPaths(object):
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
+
+def __getattr__(name):
+    if name == "CppRegistry":
+        err_msg = "c++ registry must be accessed through 'KratosMultiphysics.Registry'."
+        raise Exception(err_msg)
+    raise AttributeError(f"Module {__name__} has no attribute {name}.")
 
 def __ModuleInitDetail():
     """
@@ -77,6 +83,15 @@ def __ModuleInitDetail():
 
 KratosGlobals = __ModuleInitDetail()
 
+# Create the Python global registry
+# Note that this interfaces the c++ registry.
+Registry = python_registry.PythonRegistry()
+RegisterPrototype = python_registry.RegisterPrototype
+
+# Remove CppRegistry from locals() in order to give preference to the exception thrown in __getattr__
+# This is required since we cannot use properties as usual due to the fact that we have no instance of CppRegistry (it is a static variable in c++)
+locals().pop("CppRegistry")
+
 # Detect kratos library version
 python_version = KratosGlobals.Kernel.PythonVersion()
 python_version = python_version.replace("Python","")
@@ -87,7 +102,7 @@ if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.mi
         sys.version_info.major, sys.version_info.minor,
         kratos_version_info[0], kratos_version_info[1]
     ))
-    
+
 # Print the process id e.g. for attatching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())

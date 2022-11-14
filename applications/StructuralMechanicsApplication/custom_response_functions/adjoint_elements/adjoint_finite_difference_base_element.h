@@ -414,7 +414,7 @@ protected:
         KRATOS_TRY;
 
         KRATOS_WARNING_IF("CalculateAdjointFieldOnIntegrationPoints", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+                << "The call of this non shared-memory-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
         const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
