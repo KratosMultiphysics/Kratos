@@ -25,6 +25,7 @@
 // STL includes
 #include <filesystem>
 #include <sstream>
+#include <cstdio>
 
 
 namespace Kratos
@@ -114,6 +115,47 @@ void JournalBase::Push(const Model& rModel)
     << "Extractor returned invalid output: " << output;
 
     p_access->value().first << output << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+
+void JournalBase::Erase(const_iterator Begin, const_iterator End)
+{
+    std::set<const_iterator> lines_to_be_erased;
+    for (; Begin!=End; ++Begin) {
+        lines_to_be_erased.insert(Begin);
+    }
+    this->Erase(lines_to_be_erased);
+}
+
+
+void JournalBase::Erase(const_iterator itEntry)
+{
+    auto it_end = itEntry;
+    ++itEntry;
+    this->Erase(itEntry, it_end);
+}
+
+
+void JournalBase::Erase(const std::set<const_iterator>& rLines)
+{
+    KRATOS_TRY;
+
+    // Create a temporary file to write to.
+    char buffer[L_tmpnam];
+    std::filesystem::path temp_file_path(std::tmpnam(buffer));
+
+    // Write everything except the lines to be erased.
+    {
+        std::ofstream temp_file(temp_file_path);
+        const auto it_end = this->end();
+        for (auto it=this->begin(); it!=it_end; ++it) {
+            if (rLines.find(it) == rLines.end()) {
+                temp_file << *it << '\n';
+            }
+        }
+    }
 
     KRATOS_CATCH("");
 }
@@ -308,6 +350,27 @@ void Journal::SetExtractor(const Extractor& rExtractor)
 void Journal::Push(const Model& rModel)
 {
     this->mBase.Push(rModel);
+}
+
+
+void Journal::Erase(const_iterator itEntry)
+{
+    mBase.Erase(itEntry.GetBase());
+}
+
+
+void Journal::Erase(const_iterator Begin, const_iterator End)
+{
+    mBase.Erase(Begin.GetBase(), End.GetBase());
+}
+
+
+void Journal::EraseIf(const std::function<bool(const value_type&)>& rPredicate)
+{
+    const auto predicate = [&rPredicate](const JournalBase::value_type& rLine) {
+        return rPredicate(Journal::value_type(rLine));
+    };
+    mBase.EraseIf(predicate);
 }
 
 

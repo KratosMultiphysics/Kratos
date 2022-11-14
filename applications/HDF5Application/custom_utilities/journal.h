@@ -115,6 +115,36 @@ public:
     /// @copydoc JournalBase::Push(const Model&)
     void Push(const value_type& rEntry);
 
+    /**
+     *  @brief Erase an entry from the associated file.
+     *  @warning The associated file must not be open.
+     *  @details This operation is extremely inefficient, as a new
+     *           new file has to be written that contains every line
+     *           of the currently associated file except the erased one.
+     *  @todo Make this function thread safe.
+    */
+    void Erase(const_iterator itEntry);
+
+    /**
+     *  @brief Erase a range of entries from the associated file.
+     *  @warning The associated file must not be open.
+     *  @details This operation is extremely inefficient, as a new
+     *           new file has to be written that contains every line
+     *           of the currently associated file except those to be
+     *           erased.
+     *  @todo Make this function thread safe.
+    */
+    void Erase(const_iterator Begin, const_iterator End);
+
+    /**
+     *  @brief Erase all lines from the associated file matching the input predicate.
+     *  @arg rPredicate Functor returning @a true for lines to be deleted.
+     *  @warning The associated file must not be open.
+     *  @details This function iterates through all lines in the associated file one
+     *           by one and calls JournalBase::Erase on each that matches the predicate.
+    */
+    void EraseIf(const std::function<bool(const value_type&)>& rPredicate);
+
     /// @brief Delete the associated file.
     /// @warning The associated file must not be open.
     void Clear();
@@ -160,6 +190,9 @@ protected:
     }; // class ThreadID
 
 private:
+    /// @brief Erase all lines in the provided set.
+    void Erase(const std::set<const_iterator>& rLines);
+
     /// @brief Check whether the result of an extractor invocation is valid (has no line breaks).
     static bool IsValidEntry(const value_type& rEntry);
 
@@ -216,6 +249,9 @@ public:
 
         value_type operator*() const;
 
+        JournalBase::iterator GetBase() const
+        {return mWrapped;}
+
         friend bool operator==(const iterator& rLeft, const iterator& rRight);
 
         friend bool operator!=(const iterator& rLeft, const iterator& rRight);
@@ -270,6 +306,15 @@ public:
 
     /// @copydoc JournalBase::Push(const Model&)
     void Push(const Model& rModel);
+
+    /// @copydoc JournalBase::Erase(const_iterator)
+    void Erase(const_iterator itEntry);
+
+    /// @copydoc JournalBase::Erase(const_iterator, const_iterator)
+    void Erase(const_iterator Begin, const_iterator End);
+
+    /// @copydoc JournalBase::EraseIf
+    void EraseIf(const std::function<bool(const value_type&)>& rPredicate);
 
     /// JournalBase::Clear()
     void Clear();
