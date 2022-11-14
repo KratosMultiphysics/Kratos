@@ -397,13 +397,15 @@ class TestModelPart(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.Set(KratosMultiphysics.ACTIVE)
-        self.assertEqual(model_part.Is(KratosMultiphysics.ACTIVE), True)
-        self.assertEqual(model_part.Is(KratosMultiphysics.BOUNDARY), False)
+        self.assertTrue(model_part.Is(KratosMultiphysics.ACTIVE))
+        self.assertFalse(model_part.Is(KratosMultiphysics.BOUNDARY))
 
     def test_model_part_datavaluecontainer(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertTrue(model_part.Has(KratosMultiphysics.DENSITY))
+        self.assertFalse(model_part.Has(KratosMultiphysics.TEMPERATURE))
         self.assertEqual(model_part.GetValue(KratosMultiphysics.DENSITY), 1.2)
 
     def test_model_part_properties_container(self):
