@@ -55,6 +55,19 @@ namespace Kratos {
         rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", {{5,6,3}});
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartDataValueContainerAndFlag, KratosCoreFastSuite)
+    {
+        Model model;
+        ModelPart& r_model_part = model.CreateModelPart("Main");
+        r_model_part.SetValue(DENSITY,1.0);
+        KRATOS_CHECK(r_model_part.Has(DENSITY));
+        KRATOS_CHECK_IS_FALSE(r_model_part.Has(TEMPERATURE));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_model_part.GetValue(DENSITY),1.0);
+        r_model_part.Set(ACTIVE);
+        KRATOS_CHECK(r_model_part.Is(ACTIVE));
+        KRATOS_CHECK_IS_FALSE(r_model_part.Is(BOUNDARY));
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
     {
         Model current_model;
