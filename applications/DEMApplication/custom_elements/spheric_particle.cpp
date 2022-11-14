@@ -943,6 +943,13 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 }
                 GeometryFunctions::normalize(tangent);
 
+                // Force chain
+                const double force = DEM_MODULUS_3(GlobalContactForce);
+                array_1d<double, 3>& coordinates_1 = this->GetGeometry()[0].Coordinates();
+                array_1d<double, 3>& coordinates_2 = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
+                std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_2[0], coordinates_2[1], coordinates_2[2], force };
+                mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
+
                 // Stiffness
                 const double kn = mDiscontinuumConstitutiveLaw->mKn;
                 const double kt = mDiscontinuumConstitutiveLaw->mKt;
@@ -1234,6 +1241,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
                 tangent[2] = -(data_buffer.mLocalCoordSystem[0][2] + data_buffer.mLocalCoordSystem[1][2]);
               }
               GeometryFunctions::normalize(tangent);
+
+              // Force chain
+              const double force = DEM_MODULUS_3(GlobalContactForce);
+              array_1d<double, 3>& coordinates_1 = this->GetGeometry()[0].Coordinates();
+              std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_1[0] + branch[0], coordinates_1[1] + branch[1], coordinates_1[2] + branch[2], force };
+              mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
 
               // Stiffness
               const double kn = mDiscontinuumConstitutiveLaw->mKn;

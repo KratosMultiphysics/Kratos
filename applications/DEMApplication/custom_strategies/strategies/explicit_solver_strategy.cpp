@@ -1843,6 +1843,7 @@ namespace Kratos {
         mRVE_FabricTensor  = ZeroMatrix(dim,dim);
         mRVE_CauchyTensor  = ZeroMatrix(dim,dim);
         mRVE_TangentTensor = ZeroMatrix(dim2,dim2);
+        mRVE_ForceChain.clear();
       }
     }
 
@@ -1862,6 +1863,7 @@ namespace Kratos {
       p_particle->mFabricTensor  = ZeroMatrix(dim,dim);
       p_particle->mCauchyTensor  = ZeroMatrix(dim,dim);
       p_particle->mTangentTensor = ZeroMatrix(dim2,dim2);
+      p_particle->mForceChain.clear();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1875,6 +1877,7 @@ namespace Kratos {
       mRVE_FabricTensor  += p_particle->mFabricTensor;
       mRVE_CauchyTensor  += p_particle->mCauchyTensor;
       mRVE_TangentTensor += p_particle->mTangentTensor;
+      mRVE_ForceChain.insert(mRVE_ForceChain.end(), p_particle->mForceChain.begin(), p_particle->mForceChain.end());
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2144,6 +2147,13 @@ namespace Kratos {
                              << mRVE_AvgCoordNum
                              << std::endl;
 
+      if (mRVE_FileForceChain.is_open()) {
+        mRVE_FileForceChain << time_step << " " << time << " ";
+        mRVE_FileForceChain << mRVE_ForceChain.size() << " ";
+        for (int i = 0; i < mRVE_ForceChain.size(); i++) mRVE_FileForceChain << mRVE_ForceChain[i] << " ";
+        mRVE_FileForceChain << std::endl;
+      }
+
       if (mRVE_FileRoseDiagram.is_open()) {
         mRVE_FileRoseDiagram << time_step << " " << time << " ";
         
@@ -2244,6 +2254,14 @@ namespace Kratos {
       mRVE_FileCoordNumber << "4 - AVG COORDINATION NUMBER";
       mRVE_FileCoordNumber << std::endl;
 
+      mRVE_FileForceChain.open("force_chain.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file force_chain.txt!" << std::endl;
+      mRVE_FileForceChain << "1 - STEP | ";
+      mRVE_FileForceChain << "2 - TIME | ";
+      mRVE_FileForceChain << "3 - NUMBER OF COMPONENTS (COORDINATES + FORCE) | ";
+      mRVE_FileForceChain << "4 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
+      mRVE_FileForceChain << std::endl;
+
       mRVE_FileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
       mRVE_FileRoseDiagram << "1 - STEP | ";
@@ -2305,6 +2323,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::RVECloseFiles(void) {
       if (mRVE_FilePorosity.is_open())      mRVE_FilePorosity.close();
       if (mRVE_FileCoordNumber.is_open())   mRVE_FileCoordNumber.close();
+      if (mRVE_FileForceChain.is_open())    mRVE_FileForceChain.close();
       if (mRVE_FileRoseDiagram.is_open())   mRVE_FileRoseDiagram.close();
       if (mRVE_FileAnisotropy.is_open())    mRVE_FileAnisotropy.close();
       if (mRVE_FileFabricTensor.is_open())  mRVE_FileFabricTensor.close();
