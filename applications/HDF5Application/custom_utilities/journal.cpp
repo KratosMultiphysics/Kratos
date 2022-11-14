@@ -143,6 +143,13 @@ void JournalBase::Erase(const std::set<const_iterator>& rLines)
     KRATOS_TRY;
 
     // Create a temporary file to write to.
+    // TODO: Apparently, std::tmpnam is considered dangerous (not for our use cases though)
+    //       because there's a slight delay between getting the temporary file name and
+    //       actually creating a file on that path, and that delay can be exploited by
+    //       another process. That said, I found no safe and portable alternative, apart from
+    //       solutions involving randomly generated numbers. Those are not desirable because
+    //       of reproducability issues. ==> you're welcome to change this to a better solution
+    //       if you happen to find one.
     char buffer[L_tmpnam];
     std::filesystem::path temp_file_path(std::tmpnam(buffer));
 
@@ -152,12 +159,36 @@ void JournalBase::Erase(const std::set<const_iterator>& rLines)
         const auto it_end = this->end();
         for (auto it=this->begin(); it!=it_end; ++it) {
             if (rLines.find(it) == rLines.end()) {
-                temp_file << *it << '\n';
+                temp_file << (*it) << '\n';
             }
         }
     }
 
+    // Overwrite the old journal file.
+    // Note: copy + delete is used instead of renaming because
+    // renaming throws an exception if the source and destination
+    // paths are on different file systems.
+    std::filesystem::remove(mJournalPath);
+    std::filesystem::copy(temp_file_path, mJournalPath);
+    std::filesystem::remove(temp_file_path);
+
     KRATOS_CATCH("");
+}
+
+
+void JournalBase::EraseIf(const std::function<bool(const value_type&)>& rPredicate)
+{
+    // Collect items to be erased.
+    std::set<const_iterator> items_to_erase;
+    const auto it_end = this->end();
+    for (auto it=this->begin(); it!=it_end; ++it) {
+        if (rPredicate(*it)) {
+            items_to_erase.insert(it);
+        }
+    }
+
+    // Erase collected items.
+    this->Erase(items_to_erase);
 }
 
 
@@ -367,10 +398,10 @@ void Journal::Erase(const_iterator Begin, const_iterator End)
 
 void Journal::EraseIf(const std::function<bool(const value_type&)>& rPredicate)
 {
-    const auto predicate = [&rPredicate](const JournalBase::value_type& rLine) {
+    const auto wrapped_predicate = [&rPredicate](const JournalBase::value_type& rLine) {
         return rPredicate(Journal::value_type(rLine));
     };
-    mBase.EraseIf(predicate);
+    mBase.EraseIf(wrapped_predicate);
 }
 
 
