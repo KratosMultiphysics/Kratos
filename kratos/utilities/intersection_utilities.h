@@ -246,7 +246,7 @@ public:
      * @return Return empty points array if no solution exists. Otherwise returns the line intersection points array
      */
     template<class TGeometryType>
-    static PointerVector<Point> ComputeClosestLineLineIntersection(
+    static PointerVector<Point> ComputeShortestLineBetweenTwoLines(
         const TGeometryType& rSegment1,
         const TGeometryType& rSegment2
         )

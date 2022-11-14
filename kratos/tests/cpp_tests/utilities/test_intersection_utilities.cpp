@@ -584,7 +584,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(int_id, 1);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ComputeClosestLineLineIntersection, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ComputeShortestLineBetweenTwoLines, KratosCoreFastSuite)
     {
         Point::Pointer p_point_1 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
         Point::Pointer p_point_2 = Kratos::make_shared<Point>(0.0, 1.0, 0.0);
@@ -599,11 +599,11 @@ namespace Testing {
         Line3D2<Point> line3(p_point_5, p_point_6);
 
         // Not intersecting lines
-        const auto line1_2 = Line3D2<Point>(IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line2));
+        const auto line1_2 = Line3D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(line1, line2));
         KRATOS_CHECK_NEAR(line1_2.Length(), 0.408248, 1.0e-6);
 
         // Intersecting lines
-        const auto line1_3 = Line3D2<Point>(IntersectionUtilities::ComputeClosestLineLineIntersection(line1, line3));
+        const auto line1_3 = Line3D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(line1, line3));
         KRATOS_CHECK_DOUBLE_EQUAL(line1_3.Length(), 0.0);
         array_1d<double, 3> expected_center = ZeroVector(3);
         expected_center[0] = 0.5;

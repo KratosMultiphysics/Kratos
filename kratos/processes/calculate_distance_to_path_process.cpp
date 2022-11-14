@@ -239,7 +239,7 @@ DistanceComputed CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanc
         //         Line3D2<Point> distance_line(points_array_distance);
 
         //         // Compute intersection
-        //         const auto line_intersection = Line3D2<Point>(IntersectionUtilities::ComputeClosestLineLineIntersection(parallel_line, distance_line));
+        //         const auto line_intersection = Line3D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(parallel_line, distance_line));
         //         const Point intersection_point(line_intersection.Center().Coordinates());
 
         //         // Compute distance
