@@ -69,7 +69,9 @@ class TestModel(KratosUnittest.TestCase):
 
     def test_model_datavaluecontainer(self):
         current_model = KratosMultiphysics.Model()
-        current_model.SetValue(KratosMultiphysics.DENSITY, 1.2)
+        current_model.SetValue(KratosMultiphysics.DENSITY, 1.2)        
+        self.assertTrue(current_model.Has(KratosMultiphysics.DENSITY))
+        self.assertFalse(current_model.Has(KratosMultiphysics.TEMPERATURE))
         self.assertEqual(current_model.GetValue(KratosMultiphysics.DENSITY), 1.2)
 
     def test_model_serialization(self):
