@@ -67,6 +67,11 @@ class TestModel(KratosUnittest.TestCase):
 
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
+    def test_model_datavaluecontainer(self):
+        current_model = KratosMultiphysics.Model()
+        current_model.SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertEqual(current_model.GetValue(KratosMultiphysics.DENSITY), 1.2)
+
     def test_model_serialization(self):
 
         file_name = "model_serialization"
