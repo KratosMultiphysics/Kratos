@@ -21,6 +21,12 @@
 
 namespace Kratos
 {
+    void CouplingPenaltyCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        mInitialLocation1 = GetGeometry().GetGeometryPart(0).Center();
+        mInitialLocation2 = GetGeometry().GetGeometryPart(1).Center();
+    }
+
     void CouplingPenaltyCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -483,6 +489,117 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
         return 0;
+    }
+
+    void CouplingPenaltyCondition::CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
+
+        array_1d<double, 3> CurrentLocation1 = GetGeometry().GetGeometryPart(0).Center();
+        array_1d<double, 3> CurrentLocation2 = GetGeometry().GetGeometryPart(1).Center();
+
+        array_1d<double, 3> InitialDifference1_2 = mInitialLocation1 - mInitialLocation2;
+        array_1d<double, 3> CurrentDifference1_2 = CurrentLocation1 - CurrentLocation2;
+
+        array_1d<double, 3> local_tangents;
+        GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangents);
+        Matrix J;
+        GetGeometry().GetGeometryPart(0).Jacobian(J, 0);
+
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
+
+        array_1d<double, 3> tangent_2 = a_1 * local_tangents[0] + a_2 * local_tangents[1];
+        array_1d<double, 3> tangent_1 = a_2 * local_tangents[0] + a_1 * local_tangents[1];
+        array_1d<double, 3> surface_normal = ZeroVector(3);
+        MathUtils<double>::UnitCrossProduct(surface_normal, tangent_1, tangent_2);
+
+        if (rVariable == PENALTY_FACTOR_NORMAL)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                const double& penalty_normal = GetProperties()[PENALTY_FACTOR];
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_normal = inner_prod(pertubation, surface_normal) / norm_2_square(surface_normal);
+                rOutput[point_number] = pertubation_normal * penalty_normal;
+            }
+        }
+        if (rVariable == PENALTY_FACTOR_TANGENT_1)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                const double& penalty_tangent_1 = GetProperties()[PENALTY_FACTOR];
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_tangent_1 = inner_prod(pertubation, tangent_1) / norm_2_square(tangent_1);
+                rOutput[point_number] = pertubation_tangent_1 * penalty_tangent_1;
+            }
+        }
+        else if (rVariable == PENALTY_FACTOR_TANGENT_2)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                const double& penalty_tangent_2 = GetProperties()[PENALTY_FACTOR];
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_tangent_2 = inner_prod(pertubation, tangent_2) / norm_2_square(tangent_2);
+                rOutput[point_number] = pertubation_tangent_2 * penalty_tangent_2;
+            }
+        }
+    }
+
+    void CouplingPenaltyCondition::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        const double& penalty_factor = GetProperties()[PENALTY_FACTOR];
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
+
+        array_1d<double, 3> CurrentLocation1 = GetGeometry().GetGeometryPart(0).Center();
+        array_1d<double, 3> CurrentLocation2 = GetGeometry().GetGeometryPart(1).Center();
+
+        array_1d<double, 3> InitialDifference1_2 = mInitialLocation1 - mInitialLocation2;
+        array_1d<double, 3> CurrentDifference1_2 = CurrentLocation1 - CurrentLocation2;
+
+        array_1d<double, 3> local_tangents;
+        GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangents);
+        Matrix J;
+        GetGeometry().GetGeometryPart(0).Jacobian(J, 0);
+
+        array_1d<double, 3> a_1 = column(J, 0);
+        array_1d<double, 3> a_2 = column(J, 1);
+
+        array_1d<double, 3> tangent_2 = a_1 * local_tangents[0] + a_2 * local_tangents[1];
+        array_1d<double, 3> tangent_1 = a_2 * local_tangents[0] + a_1 * local_tangents[1];
+        array_1d<double, 3> surface_normal = ZeroVector(3);
+        MathUtils<double>::UnitCrossProduct(surface_normal, tangent_1, tangent_2);
+
+        if (rVariable == PENALTY_REACTION_FORCE)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                array_1d<double, 3> pertubation = InitialDifference1_2 - CurrentDifference1_2;
+                double pertubation_normal = inner_prod(pertubation, surface_normal) / norm_2_square(surface_normal);
+                rOutput[point_number][0] = pertubation_normal * penalty_factor;
+                double pertubation_tangent_1 = inner_prod(pertubation, tangent_1) / norm_2_square(tangent_1);
+                rOutput[point_number][1] = pertubation_tangent_1 * penalty_factor;
+                double pertubation_tangent_2 = inner_prod(pertubation, tangent_2) / norm_2_square(tangent_2);
+                rOutput[point_number][2] = pertubation_tangent_2 * penalty_factor;
+            }
+        }
     }
 
     void CouplingPenaltyCondition::EquationIdVector(

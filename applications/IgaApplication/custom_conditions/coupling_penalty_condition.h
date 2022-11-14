@@ -114,6 +114,8 @@ public:
     ///@name Operations
     ///@{
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief This is called during the assembling process in order
     *        to calculate the condition right hand side matrix
@@ -192,6 +194,18 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+    /// Calculates internals with <double> variables
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Calculates internals with <double> variables
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian);
@@ -229,6 +243,10 @@ public:
     ///@}
 
 private:
+
+    array_1d<double, 3> mInitialLocation1;
+    array_1d<double, 3> mInitialLocation2;
+
     // Compute rotational shape functions
     void CalculateRotationalShapeFunctions(
         IndexType IntegrationPointIndex,

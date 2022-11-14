@@ -120,6 +120,12 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     void ReadMaterials(Parameters MaterialData);
 
     /**
+     * @brief This reads the properties from parameters
+     * @param MaterialData The configuration parameters defining the properties
+     */
+    void ReadMaterialsToModelPart(Parameters MaterialData);
+
+    /**
      * @brief This method assigns the material parameters to a property from configuration parameters
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
@@ -280,11 +286,15 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     void AssignPropertyBlock(Parameters Data);
 
+    void AddPropertyBlockToModelPart(Parameters Data);
+
     /**
      * @brief This method gets the properties of the different model parts
      * @param Materials The parameters containing the properties of the materials
      */
     void GetPropertyBlock(Parameters Materials);
+
+    void GetPropertyToModelPart(Parameters Materials);
 
     /**
      * @brief Checks if the materials are assigned uniquely to the modelparts
