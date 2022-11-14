@@ -31,12 +31,18 @@ namespace Kratos::Testing
         double distance;
         double radius = 0.0;
         auto line = Kratos::make_shared<Line3D2<Node<3>>>(
-            Kratos::make_intrusive<Node<3>>(0.0, 0.0, 0.0),
-            Kratos::make_intrusive<Node<3>>(1.0, 0.0, 0.0)
+            Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0),
+            Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0)
         );
-        Point point(0.0,0.0,0.1);
-        distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point);
-        const auto distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point, radius);
+        Point point1(0.0,0.0,0.1);
+        distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point1);
+        auto distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point1, radius);
         KRATOS_CHECK_NEAR(distance, 0.1, TOLERANCE);
+
+        radius = 0.01;
+        Point point2(0.0,0.0,0.1);
+        distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point2);
+        distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point2, radius);
+        KRATOS_CHECK_NEAR(distance, 0.09, TOLERANCE);
     }
 }
