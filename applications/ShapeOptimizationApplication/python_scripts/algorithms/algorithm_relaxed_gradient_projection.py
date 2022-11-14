@@ -218,23 +218,30 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     	for constraint in self.constraints:
             identifier = constraint["identifier"].GetString()
             constraint_value = self.communicator.getStandardizedValue(identifier)
+            constraint_value_m1 = self.constraint_buffer_variables[identifier]["constraint_value-1"]
+            buffer_size_factor = self.constraint_buffer_variables[identifier]["buffer_size_factor"]
+
 
             self.constraint_buffer_variables[identifier]["buffer_value-1"] = self.constraint_buffer_variables[identifier]["buffer_value"]
 
             if self.optimization_iteration > 1:
 
-                if abs(constraint_value - self.constraint_buffer_variables[identifier]["constraint_value-1"]) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
-                    self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(constraint_value - self.constraint_buffer_variables[identifier]["constraint_value-1"])
+                if abs(constraint_value - constraint_value_m1) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
+                    self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(constraint_value - constraint_value_m1)
 
-                self.constraint_buffer_variables[identifier]["buffer_size"] = max(self.constraint_buffer_variables[identifier]["buffer_size_factor"] * self.constraint_buffer_variables[identifier]["max_constraint_change"], 1e-12)
-            self.constraint_buffer_variables[identifier]["lower_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] - self.constraint_buffer_variables[identifier]["buffer_size"]
-            self.constraint_buffer_variables[identifier]["upper_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] + self.constraint_buffer_variables[identifier]["buffer_size"]
+                max_constraint_change = self.constraint_buffer_variables[identifier]["max_constraint_change"]
+                self.constraint_buffer_variables[identifier]["buffer_size"] = max(buffer_size_factor * max_constraint_change, 1e-12)
+
+            buffer_size = self.constraint_buffer_variables[identifier]["buffer_size"]
+            self.constraint_buffer_variables[identifier]["lower_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] - buffer_size
+            self.constraint_buffer_variables[identifier]["upper_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] + buffer_size
 
             if self.__isConstraintActive(constraint):
                 if constraint["type"].GetString() == "=":
-                    self.constraint_buffer_variables[identifier]["buffer_value"] = min(1 - abs(constraint_value) / self.constraint_buffer_variables[identifier]["buffer_size"], 2.0)
+                    self.constraint_buffer_variables[identifier]["buffer_value"] = min(1 - abs(constraint_value) / buffer_size, 2.0)
                 else:
-                    self.constraint_buffer_variables[identifier]["buffer_value"] = min( (constraint_value - self.constraint_buffer_variables[identifier]["lower_buffer_value"]) / self.constraint_buffer_variables[identifier]["buffer_size"], 2.0 )
+                    lower_buffer_value = self.constraint_buffer_variables[identifier]["lower_buffer_value"]
+                    self.constraint_buffer_variables[identifier]["buffer_value"] = min( (constraint_value - lower_buffer_value) / buffer_size, 2.0 )
             else:
                 self.constraint_buffer_variables[identifier]["buffer_value"] = 0.0
 
@@ -469,7 +476,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             identifier = constraint["identifier"].GetString()
             constraint_value = self.communicator.getStandardizedValue(identifier)
             constraint_value_m1 = self.constraint_buffer_variables[identifier]["constraint_value-1"]
-            constraint_value_m2 = constraint_value_m2
+            constraint_value_m2 = self.constraint_buffer_variables[identifier]["constraint_value-2"]
             constraint_value_m3 = self.constraint_buffer_variables[identifier]["constraint_value-3"]
 
             buffer_value = self.constraint_buffer_variables[identifier]["buffer_value"]
