@@ -97,6 +97,8 @@ public:
 
     friend bool operator!=(const FileContentIterator& rLeft, const FileContentIterator& rRight);
 
+    friend bool operator<(const FileContentIterator& rLeft, const FileContentIterator& rRight);
+
     /// @brief Set the iterator to the end of the file.
     void SeekEOF();
 
@@ -170,6 +172,8 @@ public:
     friend bool operator==(const FileStringIterator& rLeft, const FileStringIterator& rRight);
 
     friend bool operator!=(const FileStringIterator& rLeft, const FileStringIterator& rRight);
+
+    friend bool operator<(const FileStringIterator& rLeft, const FileStringIterator& rRight);
 
 private:
     FileContentIterator mWrapped;

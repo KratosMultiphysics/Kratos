@@ -161,6 +161,15 @@ bool operator!=(const FileContentIterator& rLeft, const FileContentIterator& rRi
 }
 
 
+
+bool operator<(const FileContentIterator& rLeft, const FileContentIterator& rRight)
+{
+    KRATOS_ERROR_IF_NOT(&rLeft.mpFileAccess->value().first == &rRight.mpFileAccess->value().first)
+    << "Comparison of incompatible iterators pointing to different files.";
+    return rLeft.mPosition < rRight.mPosition;
+}
+
+
 FileStringIterator::FileStringIterator(std::shared_ptr<FileAccess>&& rpFileAccess, char delimiter)
     : mWrapped(std::move(rpFileAccess), delimiter)
 {
@@ -209,6 +218,12 @@ bool operator==(const FileStringIterator& rLeft, const FileStringIterator& rRigh
 bool operator!=(const FileStringIterator& rLeft, const FileStringIterator& rRight)
 {
     return rLeft.mWrapped != rRight.mWrapped;
+}
+
+
+bool operator<(const FileStringIterator& rLeft, const FileStringIterator& rRight)
+{
+    return rLeft.mWrapped < rRight.mWrapped;
 }
 
 
