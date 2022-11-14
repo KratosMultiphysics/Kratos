@@ -254,6 +254,10 @@ public:
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
+        // Check geometry type
+        const auto geom_type = rSegment1.GetGeometryType();
+        KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) && geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a linear line" << std::endl;
+
         // Resulting line segment
         auto pa = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
         auto pb = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
