@@ -1,4 +1,4 @@
-from numpy import pi, sqrt, tanh
+from math import pi, sqrt, tanh
 from scipy.optimize import root
 
 
@@ -98,7 +98,7 @@ class BoussinesqTheory(WaveTheory):
     def _PhaseSpeed(self, wavenumber):
         kh = wavenumber * self.depth
         gh = self.gravity * self.depth
-        return sqrt(gh * (1 -(self.alpha + 1/3) * kh**2) / (1 -self.alpha * kh**2))
+        return sqrt(max(0, gh * (1 -(self.alpha + 1/3) * kh**2) / (1 -self.alpha * kh**2)))
 
 
 class LinearTheory(WaveTheory):

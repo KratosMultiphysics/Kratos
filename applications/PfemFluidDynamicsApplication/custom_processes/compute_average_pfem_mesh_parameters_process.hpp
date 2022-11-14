@@ -25,318 +25,334 @@
 #include "pfem_fluid_dynamics_application_variables.h"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//Flags:    (checked)
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// Flags:    (checked)
+//           (set)
+//           (modified)
+//           (reset)
 //(set):=(set in this process)
 
 namespace Kratos
 {
 
-///@name Kratos Classes
-///@{
-
-/// Refine Mesh Elements Process 2D and 3D
-/** The process labels the nodes to be refined (TO_REFINE)
-    if the ThresholdVariable  is larger than a ReferenceThreshold
-*/
-
-class ComputeAveragePfemMeshParametersProcess
-    : public MesherProcess
-{
-public:
-  ///@name Type Definitions
+  ///@name Kratos Classes
   ///@{
 
-  /// Pointer definition of Process
-  KRATOS_CLASS_POINTER_DEFINITION(ComputeAveragePfemMeshParametersProcess);
+  /// Refine Mesh Elements Process 2D and 3D
+  /** The process labels the nodes to be refined (TO_REFINE)
+      if the ThresholdVariable  is larger than a ReferenceThreshold
+  */
 
-  typedef ModelPart::NodeType NodeType;
-  typedef ModelPart::ConditionType ConditionType;
-  typedef ModelPart::PropertiesType PropertiesType;
-  typedef ConditionType::GeometryType GeometryType;
-
-  ///@}
-  ///@name Life Cycle
-  ///@{
-
-  /// Default constructor.
-  ComputeAveragePfemMeshParametersProcess(ModelPart &rModelPart,
-                                          MesherUtilities::MeshingParameters &rRemeshingParameters,
-                                          int EchoLevel)
-      : mrModelPart(rModelPart),
-        mrRemesh(rRemeshingParameters)
+  class ComputeAveragePfemMeshParametersProcess
+      : public MesherProcess
   {
-    KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated "<< std::endl;
+  public:
+    ///@name Type Definitions
+    ///@{
 
-    mEchoLevel = EchoLevel;
-  }
+    /// Pointer definition of Process
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeAveragePfemMeshParametersProcess);
 
-  /// Destructor.
-  virtual ~ComputeAveragePfemMeshParametersProcess() {}
+    typedef ModelPart::NodeType NodeType;
+    typedef ModelPart::ConditionType ConditionType;
+    typedef ModelPart::PropertiesType PropertiesType;
+    typedef ConditionType::GeometryType GeometryType;
 
-  ///@}
-  ///@name Operators
-  ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-  /// This operator is provided to call the process as a function and simply calls the Execute method.
-  void operator()()
-  {
-    Execute();
-  }
-
-  ///@}
-  ///@name Operations
-  ///@{
-
-  /// Execute method is used to execute the Process algorithms.
-  void Execute() override
-  {
-    KRATOS_TRY
-
-    if (mEchoLevel > 1)
-      std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
-
-    bool refiningBox = mrRemesh.UseRefiningBox;
-
-    array_1d<double, 3> &minExternalPointRefiningBox = mrRemesh.RefiningBoxMinExternalPoint;
-    array_1d<double, 3> &minInternalPointRefiningBox = mrRemesh.RefiningBoxMinInternalPoint;
-    array_1d<double, 3> &maxExternalPointRefiningBox = mrRemesh.RefiningBoxMaxExternalPoint;
-    array_1d<double, 3> &maxInternalPointRefiningBox = mrRemesh.RefiningBoxMaxInternalPoint;
-    array_1d<double, 3> &RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-    array_1d<double, 3> &RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-
-    double fluidNodes = 0;
-    double meanNodalSize = 0;
-
-    // double refinedFluidNodes = 0;
-    // double refinedMeanNodalSize = 0;
-
-    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-    // unsigned int count=0;
-    for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+    /// Default constructor.
+    ComputeAveragePfemMeshParametersProcess(ModelPart &rModelPart,
+                                            MesherUtilities::MeshingParameters &rRemeshingParameters,
+                                            int EchoLevel)
+        : mrModelPart(rModelPart),
+          mrRemesh(rRemeshingParameters)
     {
-      if (refiningBox == false)
+      KRATOS_INFO("ComputeAveragePfemMeshParametersProcess") << " activated " << std::endl;
+
+      mEchoLevel = EchoLevel;
+    }
+
+    /// Destructor.
+    virtual ~ComputeAveragePfemMeshParametersProcess() {}
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// This operator is provided to call the process as a function and simply calls the Execute method.
+    void operator()()
+    {
+      Execute();
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Execute method is used to execute the Process algorithms.
+    void Execute() override
+    {
+      KRATOS_TRY
+
+      if (mEchoLevel > 1)
+        std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
+
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+      const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBox.size();
+      Vector inBoxesNodes(numberOfRefiningBoxes);
+      noalias(inBoxesNodes) = ZeroVector(numberOfRefiningBoxes);
+      Vector inBoxesMeanNodalSize(numberOfRefiningBoxes);
+      noalias(inBoxesMeanNodalSize) = ZeroVector(numberOfRefiningBoxes);
+      double preliminaryOutOfBoxesFluidNodes = 0;
+      double preliminaryOutOfBoxesMeanNodalSize = 0;
+      bool homogeneousMesh = true;
+      for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
         if (i_node->Is(FLUID))
         {
-          fluidNodes += 1.0;
-          meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+          if (numberOfRefiningBoxes == 0 || (numberOfRefiningBoxes == 1 && mrRemesh.UseRefiningBox[0] == false))
+          {
+            preliminaryOutOfBoxesFluidNodes += 1.0;
+            preliminaryOutOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+          }
+          else
+          {
+            unsigned outOfRefiningBoxes = true;
+            for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+            {
+              array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
+              array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
+              if (mrRemesh.UseRefiningBox[index] == true)
+              {
+                homogeneousMesh = false;
+                if (dimension == 2)
+                {
+                  if (i_node->X() > RefiningBoxMinimumPoint[0] && i_node->Y() > RefiningBoxMinimumPoint[1] &&
+                      i_node->X() < RefiningBoxMaximumPoint[0] && i_node->Y() < RefiningBoxMaximumPoint[1])
+                  {
+                    outOfRefiningBoxes = false;
+                    inBoxesNodes[index] += 1.0;
+                    inBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
+                  }
+                }
+                else if (dimension == 3)
+                {
+                  if (i_node->X() > RefiningBoxMinimumPoint[0] && i_node->Y() > RefiningBoxMinimumPoint[1] && i_node->Z() > RefiningBoxMinimumPoint[2] &&
+                      i_node->X() < RefiningBoxMaximumPoint[0] && i_node->Y() < RefiningBoxMaximumPoint[1] && i_node->Z() < RefiningBoxMaximumPoint[2])
+                  {
+                    outOfRefiningBoxes = false;
+                    inBoxesNodes[index] += 1.0;
+                    inBoxesMeanNodalSize[index] += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
+                  }
+                }
+              }
+            }
+            // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
+            if (outOfRefiningBoxes == true)
+            {
+              preliminaryOutOfBoxesFluidNodes += 1.0;
+              preliminaryOutOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
+            }
+          }
         }
       }
-      else
+      preliminaryOutOfBoxesMeanNodalSize *= 1.0 / preliminaryOutOfBoxesFluidNodes;
+
+      mrRemesh.Refine->CriticalRadius = preliminaryOutOfBoxesMeanNodalSize;
+      mrRemesh.Refine->InitialRadius = preliminaryOutOfBoxesMeanNodalSize;
+
+      if (homogeneousMesh == false)
       {
-        if (dimension == 2)
+        double outOfBoxesFluidNodes = 0;
+        double outOfBoxesMeanNodalSize = 0;
+        for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
         {
-          if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] ||
-              i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1])
+          if (i_node->Is(FLUID))
           {
-            //CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
-            if (i_node->Is(FLUID))
+            unsigned outOfRefiningBoxes = true;
+            for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
             {
-              fluidNodes += 1.0;
-              meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+              const double transitionDistanceInInputMesh = mrRemesh.RefiningBoxElementsInTransitionZone[index] * mrRemesh.Refine->CriticalRadius;
+              array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
+              array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
+              if (mrRemesh.UseRefiningBox[index] == true)
+              {
+                if (dimension == 2)
+                {
+                  if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) &&
+                      i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh))
+                  {
+                    outOfRefiningBoxes = false;
+                  }
+                }
+                else if (dimension == 3)
+                {
+                  if (i_node->X() > (RefiningBoxMinimumPoint[0] - transitionDistanceInInputMesh) && i_node->Y() > (RefiningBoxMinimumPoint[1] - transitionDistanceInInputMesh) && i_node->Z() > (RefiningBoxMinimumPoint[2] - transitionDistanceInInputMesh) &&
+                      i_node->X() < (RefiningBoxMaximumPoint[0] + transitionDistanceInInputMesh) && i_node->Y() < (RefiningBoxMaximumPoint[1] + transitionDistanceInInputMesh) && i_node->Z() < (RefiningBoxMaximumPoint[2] + transitionDistanceInInputMesh))
+                  {
+                    outOfRefiningBoxes = false;
+                  }
+                }
+              }
+            }
+            // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
+            if (outOfRefiningBoxes == true)
+            {
+              outOfBoxesFluidNodes += 1.0;
+              outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
             }
           }
-          // else{
-          //   if (i_node->Is(FLUID))
-          //   {
-          //     refinedFluidNodes += 1.0;
-          //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-          //   }
-          // }
         }
-        else if (dimension == 3)
+        if (outOfBoxesFluidNodes == 0)
         {
-          if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] || i_node->Z() < RefiningBoxMinimumPoint[2] ||
-              i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1] || i_node->Z() > RefiningBoxMaximumPoint[2])
-          {
-            //CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
-            if (i_node->Is(FLUID))
-            {
-              fluidNodes += 1.0;
-              meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-            }
-          }
-          // else
-          // {
-          //   if (i_node->Is(FLUID))
-          //   {
-          //     refinedFluidNodes += 1.0;
-          //     refinedMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
-          //   }
-          // }
+          mrRemesh.Refine->CriticalRadius = preliminaryOutOfBoxesMeanNodalSize;
+          mrRemesh.Refine->InitialRadius = preliminaryOutOfBoxesMeanNodalSize;
+          std::cout << "the coarse zone is too thin, I'll take the preliminary mesh size estimation: " << preliminaryOutOfBoxesMeanNodalSize << std::endl;
+        }
+        else
+        {
+          outOfBoxesMeanNodalSize *= 1.0 / outOfBoxesFluidNodes;
+          mrRemesh.Refine->CriticalRadius = outOfBoxesMeanNodalSize;
+          mrRemesh.Refine->InitialRadius = outOfBoxesMeanNodalSize;
+        }
+
+        std::cout << "Mesh size outside the refining boxes is: " << outOfBoxesMeanNodalSize << std::endl;
+        for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
+        {
+          double localMeshSize = inBoxesMeanNodalSize[index] / inBoxesNodes[index];
+          std::cout << "Mesh size inside refining box n." << index << " is: " << localMeshSize << std::endl;
+
+          mrRemesh.SetRefiningBoxMeshSize(index, localMeshSize);
+          const double tolerance = mrRemesh.RefiningBoxMeshSize[index] * 0.01;
+          const double differenceOfSize = outOfBoxesMeanNodalSize - mrRemesh.RefiningBoxMeshSize[index];
+
+          mrRemesh.RefiningBoxMinimumPoint[index][0] += -tolerance; // the finest nodes at the frontier should not be erased
+          mrRemesh.RefiningBoxMinimumPoint[index][1] += -tolerance;
+          mrRemesh.RefiningBoxMinimumPoint[index][2] += -tolerance;
+
+          mrRemesh.RefiningBoxMaximumPoint[index][0] += tolerance;
+          mrRemesh.RefiningBoxMaximumPoint[index][1] += tolerance;
+          mrRemesh.RefiningBoxMaximumPoint[index][2] += tolerance;
+
+          const double transitionDistance = mrRemesh.RefiningBoxElementsInTransitionZone[index] * std::abs(differenceOfSize);
+
+          mrRemesh.RefiningBoxShiftedMinimumPoint[index][0] = mrRemesh.RefiningBoxMinimumPoint[index][0] - transitionDistance;
+          mrRemesh.RefiningBoxShiftedMinimumPoint[index][1] = mrRemesh.RefiningBoxMinimumPoint[index][1] - transitionDistance;
+          mrRemesh.RefiningBoxShiftedMinimumPoint[index][2] = mrRemesh.RefiningBoxMinimumPoint[index][2] - transitionDistance;
+
+          mrRemesh.RefiningBoxShiftedMaximumPoint[index][0] = mrRemesh.RefiningBoxMaximumPoint[index][0] + transitionDistance;
+          mrRemesh.RefiningBoxShiftedMaximumPoint[index][1] = mrRemesh.RefiningBoxMaximumPoint[index][1] + transitionDistance;
+          mrRemesh.RefiningBoxShiftedMaximumPoint[index][2] = mrRemesh.RefiningBoxMaximumPoint[index][2] + transitionDistance;
         }
       }
+
+      KRATOS_CATCH(" ")
     }
-    meanNodalSize *= 1.0 / fluidNodes;
-    // refinedMeanNodalSize *= 1.0 / refinedFluidNodes;
 
-    mrRemesh.Refine->CriticalRadius = meanNodalSize;
-    mrRemesh.Refine->InitialRadius = meanNodalSize;
+    ///@}
+    ///@name Access
+    ///@{
 
-    if (dimension == 3)
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
     {
-      mrRemesh.RefiningBoxMeshSize *= 0.8;
+      return "ComputeAveragePfemMeshParametersProcess";
     }
 
-    // std::cout << fluidNodes << " nodes in Not Refined area with mean element size: " << mrRemesh.Refine->CriticalRadius << std::endl;
-    // std::cout << refinedFluidNodes << " nodes in Refined area with mean element size:  " << mrRemesh.RefiningBoxMeshSize << std::endl;
-    // std::cout << " othermeanNodalSize " << refinedMeanNodalSize << std::endl;
-
-    double smallSize = meanNodalSize;
-
-    if (meanNodalSize < mrRemesh.RefiningBoxMeshSize)
+    /// Print information about this object.
+    void PrintInfo(std::ostream &rOStream) const override
     {
-      smallSize = mrRemesh.RefiningBoxMeshSize;
-
-      RefiningBoxMinimumPoint[0] += 0.01 * smallSize; //the finest nodes at the frontier should not be erased
-      RefiningBoxMinimumPoint[1] += 0.01 * smallSize;
-      RefiningBoxMinimumPoint[2] += 0.01 * smallSize;
-
-      RefiningBoxMaximumPoint[0] += -0.01 * smallSize;
-      RefiningBoxMaximumPoint[1] += -0.01 * smallSize;
-      RefiningBoxMaximumPoint[2] += -0.01 * smallSize;
-    }
-    else // the mesh is finer in the RefiningBox
-    {
-      RefiningBoxMinimumPoint[0] += -0.01 * smallSize; //the finest nodes at the frontier should not be erased
-      RefiningBoxMinimumPoint[1] += -0.01 * smallSize;
-      RefiningBoxMinimumPoint[2] += -0.01 * smallSize;
-
-      RefiningBoxMaximumPoint[0] += 0.01 * smallSize;
-      RefiningBoxMaximumPoint[1] += 0.01 * smallSize;
-      RefiningBoxMaximumPoint[2] += 0.01 * smallSize;
+      rOStream << "ComputeAveragePfemMeshParametersProcess";
     }
 
-    minExternalPointRefiningBox[0] = RefiningBoxMinimumPoint[0] - mrRemesh.Refine->CriticalRadius;
-    minExternalPointRefiningBox[1] = RefiningBoxMinimumPoint[1] - mrRemesh.Refine->CriticalRadius;
-    minExternalPointRefiningBox[2] = RefiningBoxMinimumPoint[2] - mrRemesh.Refine->CriticalRadius;
-    minInternalPointRefiningBox[0] = RefiningBoxMinimumPoint[0] + mrRemesh.RefiningBoxMeshSize;
-    minInternalPointRefiningBox[1] = RefiningBoxMinimumPoint[1] + mrRemesh.RefiningBoxMeshSize;
-    minInternalPointRefiningBox[2] = RefiningBoxMinimumPoint[2] + mrRemesh.RefiningBoxMeshSize;
+    ///@}
+    ///@name Friends
+    ///@{
 
-    maxExternalPointRefiningBox[0] = RefiningBoxMaximumPoint[0] + mrRemesh.Refine->CriticalRadius;
-    maxExternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] + mrRemesh.Refine->CriticalRadius;
-    maxExternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] + mrRemesh.Refine->CriticalRadius;
-    maxInternalPointRefiningBox[0] = RefiningBoxMaximumPoint[0] - mrRemesh.RefiningBoxMeshSize;
-    maxInternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] - mrRemesh.RefiningBoxMeshSize;
-    maxInternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] - mrRemesh.RefiningBoxMeshSize;
+    ///@}
 
-    // std::cout<<" RefiningBoxMinimumPoint "<<mrRemesh.RefiningBoxMinimumPoint <<std::endl;
-    // std::cout<<" minExternalPointRefiningBox "<<mrRemesh.RefiningBoxMinExternalPoint <<std::endl;
-    // std::cout<<" minInternalPointRefiningBox "<<mrRemesh.RefiningBoxMinInternalPoint <<std::endl;
-    // std::cout<<"     RefiningBoxMaximumPoint "<<mrRemesh.RefiningBoxMaximumPoint <<std::endl;
-    // std::cout<<"     maxExternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxExternalPoint <<std::endl;
-    // std::cout<<"     maxInternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxInternalPoint <<std::endl;
+  private:
+    ///@name Static Member Variables
+    ///@{
 
-    KRATOS_CATCH(" ")
-  }
+    ///@}
+    ///@name Static Member Variables
+    ///@{
+    ModelPart &mrModelPart;
+
+    MesherUtilities::MeshingParameters &mrRemesh;
+
+    MesherUtilities mMesherUtilities;
+
+    int mEchoLevel;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}/*  */
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    ComputeAveragePfemMeshParametersProcess &operator=(ComputeAveragePfemMeshParametersProcess const &rOther);
+
+    /// this function is a private function
+
+    /// Copy constructor.
+    // Process(Process const& rOther);
+
+    ///@}
+
+  }; // Class Process
 
   ///@}
-  ///@name Access
-  ///@{
 
-  ///@}
-  ///@name Inquiry
+  ///@name Type Definitions
   ///@{
 
   ///@}
   ///@name Input and output
   ///@{
 
-  /// Turn back information as a string.
-  std::string Info() const override
+  /// input stream function
+  inline std::istream &operator>>(std::istream &rIStream,
+                                  ComputeAveragePfemMeshParametersProcess &rThis);
+
+  /// output stream function
+  inline std::ostream &operator<<(std::ostream &rOStream,
+                                  const ComputeAveragePfemMeshParametersProcess &rThis)
   {
-    return "ComputeAveragePfemMeshParametersProcess";
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
   }
-
-  /// Print information about this object.
-  void PrintInfo(std::ostream &rOStream) const override
-  {
-    rOStream << "ComputeAveragePfemMeshParametersProcess";
-  }
-
   ///@}
-  ///@name Friends
-  ///@{
-
-  ///@}
-
-private:
-  ///@name Static Member Variables
-  ///@{
-
-  ///@}
-  ///@name Static Member Variables
-  ///@{
-  ModelPart &mrModelPart;
-
-  MesherUtilities::MeshingParameters &mrRemesh;
-
-  MesherUtilities mMesherUtilities;
-
-  int mEchoLevel;
-
-  ///@}
-  ///@name Private Operators
-  ///@{
-
-  ///@}
-  ///@name Private Operations
-  ///@{
-
-  ///@}
-  ///@name Private  Access
-  ///@{
-
-  ///@}/*  */
-  ///@name Private Inquiry
-  ///@{
-
-  ///@}
-  ///@name Un accessible methods
-  ///@{
-
-  /// Assignment operator.
-  ComputeAveragePfemMeshParametersProcess &operator=(ComputeAveragePfemMeshParametersProcess const &rOther);
-
-  /// this function is a private function
-
-  /// Copy constructor.
-  //Process(Process const& rOther);
-
-  ///@}
-
-}; // Class Process
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-/// input stream function
-inline std::istream &operator>>(std::istream &rIStream,
-                                ComputeAveragePfemMeshParametersProcess &rThis);
-
-/// output stream function
-inline std::ostream &operator<<(std::ostream &rOStream,
-                                const ComputeAveragePfemMeshParametersProcess &rThis)
-{
-  rThis.PrintInfo(rOStream);
-  rOStream << std::endl;
-  rThis.PrintData(rOStream);
-
-  return rOStream;
-}
-///@}
 
 } // namespace Kratos.
 

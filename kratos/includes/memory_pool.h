@@ -189,7 +189,7 @@ namespace Kratos
 			std::stringstream buffer;
 			double result = Bytes;
 			constexpr int units_size = 5;
-			constexpr char units[units_size] = { ' ', 'k','M','G','T' };
+			constexpr char units[units_size+1] = { ' ', 'k','M','G','T', 'T'};
 			int i = 0;
 			for (; i < units_size; i++)
 				if (result > 1024)

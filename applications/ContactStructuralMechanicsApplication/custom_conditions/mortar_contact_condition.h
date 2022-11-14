@@ -569,7 +569,7 @@ protected:
      */
     IntegrationMethod GetIntegrationMethod() const override
     {
-        // Setting the auxiliar integration points
+        // Setting the auxiliary integration points
         const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
         switch (integration_order) {
         case 1:

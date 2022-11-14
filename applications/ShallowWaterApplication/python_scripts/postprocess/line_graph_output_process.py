@@ -196,25 +196,25 @@ class LineGraphOutputProcess(KM.OutputProcess):
             start = "'NOT FOUND'"
             end = "'NOT FOUND'"
         time = self.model_part.ProcessInfo[KM.TIME]
-        header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
+        header = "# Results for '{}s' over line {}-{} at time {}\n#".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]
         for c in coordinates:
-            header += c + "\t\t"
+            header += " " + c
         for var in self.variables:
-            header += var.Name() + "\t"
+            header += " " + var.Name()
         for var in self.nonhistorical_variables:
-            header += var.Name() + "\t"
+            header += " " + var.Name()
         return header + "\n"
 
 
     def _GetPointData(self, node, entity, area_coords):
         data = self.print_format.format(node.X)
-        data += "\t" + self.print_format.format(node.Y)
-        data += "\t" + self.print_format.format(node.Z)
+        data += " " + self.print_format.format(node.Y)
+        data += " " + self.print_format.format(node.Z)
         for var in self.variables:
-            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=True))
+            data += " " + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=True))
         for var in self.nonhistorical_variables:
-            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=False))
+            data += " " + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=False))
         return data + "\n"
 
 

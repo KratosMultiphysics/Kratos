@@ -1262,12 +1262,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeome
     const GeometryType& r_geom = r_this.GetGeometry();
 
     // get element edges or faces depending on dimension of the problem
-    if(TDim == 2)
+    if constexpr (TDim == 2)
     {
         // current element edges
         rElementGeometryBoundary = r_geom.GenerateEdges();
     }
-    else if(TDim == 3)
+    else if constexpr (TDim == 3)
     {
         // current element faces
         rElementGeometryBoundary = r_geom.GenerateFaces();

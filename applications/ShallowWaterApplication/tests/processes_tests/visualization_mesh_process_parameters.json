@@ -37,7 +37,6 @@
             "Parameters"      : {
                 "model_part_name"                : "main_model_part",
                 "topographic_model_part_name"    : "topographic_model_part",
-                "create_topographic_model_part"  : true,
                 "free_surface_deformation_mode"  : "nodal_displacement",
                 "topography_deformation_mode"    : "nodal_displacement",
                 "nodal_variables_to_transfer"    : ["TOPOGRAPHY"]

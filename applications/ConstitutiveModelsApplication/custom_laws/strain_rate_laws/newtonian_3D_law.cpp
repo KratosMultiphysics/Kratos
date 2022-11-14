@@ -231,7 +231,7 @@ void NewtonianFluid3DLaw::CalculateStress(Vector& rStressVector,
 
   int NewtonianFluid3DLaw::Check(const Properties& rProperties,
                             const GeometryType& rElementGeometry,
-                            const ProcessInfo& rCurrentProcessInfo)
+                            const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

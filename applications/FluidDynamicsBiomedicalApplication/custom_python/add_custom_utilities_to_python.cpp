@@ -43,6 +43,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Parabolic profile utilities
     py::class_<ParabolicProfileUtilities>(m,"ParabolicProfileUtilities")
         .def_static("CalculateInletArea", &ParabolicProfileUtilities::CalculateInletArea)
+        .def_static("CreateAndFillInletAuxiliaryVolumeModelPart", &ParabolicProfileUtilities::CreateAndFillInletAuxiliaryVolumeModelPart, py::return_value_policy::reference_internal)
         .def_static("CalculateWallParallelDistance", &ParabolicProfileUtilities::CalculateWallParallelDistance)
         .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const double MaxParabolaValue){
             ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, MaxParabolaValue);})
