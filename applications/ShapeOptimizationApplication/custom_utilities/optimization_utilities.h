@@ -180,25 +180,10 @@ public:
         const std::vector<double>& rVariables)
     {
     	size_t VectorSize = rVariables.size();
-        if ((rMatrix.size1() != VectorSize || rMatrix.size2() !=  VectorSize)){
-            rMatrix.resize(VectorSize, VectorSize);
-        }
-
-
+        rMatrix = ZeroMatrix(VectorSize, VectorSize);
         for (size_t i=0; i < VectorSize; i++)
         {
-
-            for (size_t j=0;j < VectorSize; j++)
-            {
-            	if(i == j)
-            	{
-            	    rMatrix(i,j) = rVariables[i];
-            	}
-            	else
-            	{
-            	    rMatrix(i,j) = 0.0;
-            	}
-            }
+            rMatrix(i,i) = rVariables[i];
         }
     }
     /**
