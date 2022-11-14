@@ -123,5 +123,6 @@ class TestJournal(KratosUnittest.TestCase):
         for index, item in enumerate(journal):
             self.assertEqual(item.GetInt(), 2 * index)
 
+
 if __name__ == "__main__":
     KratosUnittest.main()
