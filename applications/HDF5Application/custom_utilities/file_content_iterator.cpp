@@ -92,6 +92,11 @@ std::string FileContentIterator::value() const
         }
     }
 
+    // Pop the delimiter.
+    if (!output.empty()) {
+        output.pop_back();
+    }
+
     return output;
 }
 
