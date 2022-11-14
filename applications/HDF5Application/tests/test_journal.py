@@ -87,6 +87,41 @@ class TestJournal(KratosUnittest.TestCase):
         KratosMultiphysics.HDF5Application.TestingUtilities.TestJournal(model, journal)
         self.assertTrue(len(journal))
 
+    def test_Erase(self) -> None:
+        """ Create a journal that logs the STEP on each call, then erase
+            every odd entry. 10 steps are executed, so the resulting Journal
+            should look like this in the end:
+            0
+            2
+            4
+            6
+            8
+        """
+
+        journal = HDF5.Journal(self.test_file_path)
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("test")
+
+        def extractor(model: KratosMultiphysics.Model):
+            model_part = model.GetModelPart("test")
+            step = model_part.ProcessInfo[KratosMultiphysics.STEP]
+            return KratosMultiphysics.Parameters(f"{step}")
+
+        journal.SetExtractor(extractor)
+
+        for step in range(10):
+            model_part.CloneSolutionStep()
+            model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+            journal.Push(model)
+
+        def erase_predicate(item: KratosMultiphysics.Parameters) -> bool:
+            return bool(item.GetInt() % 2)
+
+        journal.EraseIf(erase_predicate)
+
+        self.assertEqual(len(journal), 10 // 2)
+        for index, item in enumerate(journal):
+            self.assertEqual(item.GetInt(), 2 * index)
 
 if __name__ == "__main__":
     KratosUnittest.main()
