@@ -24,12 +24,9 @@
 #include "includes/define.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
 
 
 
 
-}  // namespace Kratos.
-
-
+} // namespace Kratos

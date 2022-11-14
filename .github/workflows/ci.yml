@@ -8,6 +8,9 @@ on:
       - '**.md'
       - 'documents/**'
       - 'scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
+      - '.github/workflows/ci-dummy.yml'
+      - '.github/workflows/build_docker_image*.yml'
+      - '.github/workflows/nightly_build.yml'
       - 'kratos/templates/**'
       - 'kratos/python_scripts/application_generator/**'
 
@@ -36,28 +39,26 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Installing dependencies
-      shell: bash
-      run: |
-        python3 -m pip install parameterized
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Build
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc
-          export CXX=/usr/bin/g++
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang
-          export CXX=/usr/bin/clang++
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
         else
@@ -187,10 +188,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Installing dependencies
-      shell: bash
-      run: |
-        python3.8 -m pip install parameterized
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Build
       run: |
@@ -211,7 +210,7 @@ jobs:
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
@@ -234,13 +233,13 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        export CC=/usr/lib/ccache/clang-10
-        export CXX=/usr/lib/ccache/clang++-10
+        export CC=/usr/lib/ccache/clang-14
+        export CXX=/usr/lib/ccache/clang++-14
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
         export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-        export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+        export PYTHON_EXECUTABLE="/usr/bin/python3.10"
         export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
         add_app () {
@@ -256,7 +255,6 @@ jobs:
         # Configure
         cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
         -DUSE_MPI=ON \
-        -DPYBIND11_PYTHON_VERSION="3.8" \
         -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
         -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
         -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
@@ -404,16 +402,14 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Installing dependencies
-      shell: bash
-      run: |
-        python3 -m pip install parameterized
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Build
       shell: bash
