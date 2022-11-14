@@ -68,7 +68,7 @@ void CalculateDistanceToPathProcess<THistorical>::Execute()
         for (auto& r_elem : r_elements_array) {
             const auto& r_geom = r_elem.GetGeometry();
             const auto geom_type = r_geom.GetGeometryType();
-            KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) && geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a line" << std::endl;
+            KRATOS_ERROR_IF((geom_type != GeometryData::KratosGeometryType::Kratos_Line2D2) && geom_type != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a linear line" << std::endl;
         }
     } else {
         KRATOS_ERROR << "The model part is empty. Please check the model part provided" << std::endl;
