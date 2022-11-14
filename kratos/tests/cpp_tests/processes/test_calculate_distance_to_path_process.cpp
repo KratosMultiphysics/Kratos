@@ -52,5 +52,12 @@ namespace Kratos::Testing
         distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point3, radius);
         KRATOS_CHECK_NEAR(distance, std::sqrt(std::pow(0.09, 2) * 2), TOLERANCE);
         KRATOS_CHECK_EQUAL(distance_computed_type, DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE);
+
+        radius = 0.1;
+        Point point4(-0.1,0.0,0.09);
+        distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point4);
+        distance_computed_type = CalculateDistanceToPathProcess<true>::FastMinimalDistanceOnLineWithRadius(distance, *line, point4, radius);
+        KRATOS_CHECK_NEAR(distance, -(std::sqrt(std::pow(0.01, 2) + std::pow(0.1, 2))), TOLERANCE);
+        KRATOS_CHECK_EQUAL(distance_computed_type, DistanceComputed::RADIUS_NOT_PROJECTED_INSIDE);
     }
 }
