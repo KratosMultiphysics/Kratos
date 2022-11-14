@@ -292,7 +292,7 @@ message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 8))
-    message( FATAL_ERROR "Kratos only supports Python version 3.8 and above")
+    message(WARNING "Kratos only supports Python version 3.8 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
