@@ -54,6 +54,87 @@ enum class DistanceComputed
 ///@{
 
 /**
+ * @class PointGeometry
+ * @ingroup KratosCore
+ * @brief Custom Point container to be used by the search
+ * @details It stores the pointer of a certain geometry
+ * @author Vicente Mataix Ferrandiz
+ */
+class PointGeometry
+    : public Point
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    /// Base class definition
+    typedef Point BaseType;
+
+    /// The definition of the node
+    typedef Node<3> NodeType;
+
+    /// Counted pointer of PointGeometry
+    KRATOS_CLASS_POINTER_DEFINITION( PointGeometry );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    PointGeometry(Geometry<NodeType>& rGeometry):
+        mrGeometry(rGeometry)
+    {
+        UpdatePoint();
+    }
+
+    ///Copy constructor  (not really required)
+    PointGeometry(const PointGeometry& rRHS):
+        BaseType(rRHS),
+        mrGeometry(rRHS.mrGeometry)
+    {
+    }
+
+    /// Destructor.
+    ~PointGeometry() override= default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the geometry associated to the point
+     * @return mrGeometry The reference to the geometry associated to the point
+     */
+    Geometry<NodeType>& GetGeometry()
+    {
+        return mrGeometry;
+    }
+
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint()
+    {
+        noalias(this->Coordinates()) = mrGeometry.Center().Coordinates();
+    }
+
+private:
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    Geometry<NodeType>& mrGeometry; // Line instance
+
+    ///@}
+
+}; // Class PointGeometry
+
+/**
  * @brief This struct is used in order to identify when using the hitorical and non historical variables
  */
 struct CalculateDistanceToPathSettings
