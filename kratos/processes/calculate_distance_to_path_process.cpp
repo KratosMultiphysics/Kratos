@@ -20,6 +20,7 @@
 #include "utilities/geometrical_projection_utilities.h"
 #include "processes/calculate_distance_to_path_process.h"
 #include "utilities/variable_utils.h"
+#include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
 {
@@ -125,13 +126,56 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
     std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
     )
 {
-    // TODO: Use BinUtils
+    // Max length of the segments considered
+    double max_length = 0.0;
+    max_length = block_for_each<MaxReduction<double>>(rVectorSegments, [&](Geometry<NodeType>::Pointer pGeometry) {
+        return pGeometry->Length();
+    });
+
+    /// Type definitions for the tree
+    using PointType = PointGeometry;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointTypePointer>;
+    using PointIterator = PointVector::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = DistanceVector::iterator;
+
+    /// KDtree definitions
+    using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator >;
+    using KDTree = Tree< KDTreePartition<BucketType> >;
+
+    // Some auxiliary values
+    const IndexType allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt();                 // Allocation size for the vectors and max number of potential results
+    const double search_factor = mThisParameters["search_parameters"]["search_factor"].GetDouble();                     // The search factor to be considered
+    const double search_increment_factor = mThisParameters["search_parameters"]["search_increment_factor"].GetDouble(); // The search increment factor to be considered
+    IndexType bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt();                               // Bucket size for kd-tree
+
+    KRATOS_ERROR_IF(rVectorSegments.size() == 0) << "Path not initialized" << std::endl;
+    PointVector points_vector;
+    points_vector.reserve(rVectorSegments.size());
+    for (auto& p_geom : rVectorSegments) {
+        points_vector.push_back(PointTypePointer(new PointType(p_geom)));
+    }
+    KDTree tree_points(points_vector.begin(), points_vector.end(), bucket_size);
+
     const double radius_path = mThisParameters["radius_path"].GetDouble();
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
+        double search_radius = search_factor * max_length;
+
+        // Initialize values
+        PointVector points_found(allocation_size);
+        IndexType number_points_found = 0;
+        while (number_points_found == 0) {
+            search_radius *= search_increment_factor;
+            const PointGeometry point(rNode.X(), rNode.Y(), rNode.Z());
+            number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
+        }
+
         double min_value = std::numeric_limits<double>::max();
         Geometry<NodeType>::Pointer p_closest_geometry = nullptr;
-        for (auto& p_segment : rVectorSegments) {
+        for (auto p_point : points_found) {
+            auto p_segment = p_point->pGetGeometry();
             const double potential_min = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*p_segment, rNode, distance_tolerance);
             if (std::abs(potential_min) < std::abs(min_value)) {
                 min_value = potential_min;
@@ -156,6 +200,8 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
     std::vector<Geometry<NodeType>::Pointer>& rVectorSegments
     )
 {
+    KRATOS_ERROR_IF(rVectorSegments.size() == 0) << "Path not initialized" << std::endl;
+
     const double radius_path = mThisParameters["radius_path"].GetDouble();
     const double distance_tolerance = mThisParameters["distance_tolerance"].GetDouble();
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
@@ -276,7 +322,13 @@ const Parameters CalculateDistanceToPathProcess<THistorical>::GetDefaultParamete
         "distance_variable_name"   : "DISTANCE",
         "brute_force_calculation"  : false,
         "radius_path"              : 0.0,
-        "distance_tolerance"       : 1.0e-9
+        "distance_tolerance"       : 1.0e-9,
+        "search_parameters"        :  {
+            "allocation_size"         : 1000,
+            "bucket_size"             : 4,
+            "search_factor"           : 2.0,
+            "search_increment_factor" : 2.0
+        }
     })" );
 
     return default_parameters;

@@ -82,8 +82,16 @@ public:
     ///@{
 
     /// Default constructors
-    PointGeometry(Geometry<NodeType>& rGeometry):
-        mrGeometry(rGeometry)
+    PointGeometry():
+        BaseType()
+    {}
+
+    PointGeometry(const double X, const double Y, const double Z)
+        : BaseType(X, Y, Z)
+    {}
+
+    PointGeometry(Geometry<NodeType>::Pointer pGeometry):
+        mpGeometry(pGeometry)
     {
         UpdatePoint();
     }
@@ -91,7 +99,7 @@ public:
     ///Copy constructor  (not really required)
     PointGeometry(const PointGeometry& rRHS):
         BaseType(rRHS),
-        mrGeometry(rRHS.mrGeometry)
+        mpGeometry(rRHS.mpGeometry)
     {
     }
 
@@ -110,9 +118,9 @@ public:
      * @brief Returns the geometry associated to the point
      * @return mrGeometry The reference to the geometry associated to the point
      */
-    Geometry<NodeType>& GetGeometry()
+    Geometry<NodeType>::Pointer pGetGeometry()
     {
-        return mrGeometry;
+        return mpGeometry;
     }
 
     /**
@@ -120,7 +128,7 @@ public:
      */
     void UpdatePoint()
     {
-        noalias(this->Coordinates()) = mrGeometry.Center().Coordinates();
+        noalias(this->Coordinates()) = mpGeometry->Center().Coordinates();
     }
 
 private:
@@ -128,7 +136,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Geometry<NodeType>& mrGeometry; // Line instance
+    Geometry<NodeType>::Pointer mpGeometry = nullptr; // Line instance
 
     ///@}
 
@@ -167,7 +175,7 @@ public:
 
     /// The definition of the node
     typedef Node<3> NodeType;
-    
+
     /// Pointer definition of CalculateDistanceToPathProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateDistanceToPathProcess);
 
