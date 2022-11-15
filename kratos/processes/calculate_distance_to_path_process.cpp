@@ -174,7 +174,8 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
 
         double min_value = std::numeric_limits<double>::max();
         Geometry<NodeType>::Pointer p_closest_geometry = nullptr;
-        for (auto p_point : points_found) {
+        for (IndexType i = 0; i < number_points_found; ++i) {
+            auto p_point = points_found[i];
             auto p_segment = p_point->pGetGeometry();
             const double potential_min = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*p_segment, rNode, distance_tolerance);
             if (std::abs(potential_min) < std::abs(min_value)) {
@@ -182,6 +183,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
                 p_closest_geometry = p_segment;
             }
         }
+
         const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(min_value, *p_closest_geometry, rNode, radius_path, distance_tolerance);
         if constexpr (THistorical) {
             rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
@@ -327,7 +329,7 @@ const Parameters CalculateDistanceToPathProcess<THistorical>::GetDefaultParamete
             "allocation_size"         : 1000,
             "bucket_size"             : 4,
             "search_factor"           : 2.0,
-            "search_increment_factor" : 2.0
+            "search_increment_factor" : 1.5
         }
     })" );
 
