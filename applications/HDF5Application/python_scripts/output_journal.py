@@ -126,7 +126,6 @@ class OutputJournal:
                 elif path.is_dir():
                     raise FileExistsError(f"{path} is a directory")
 
-        print("# of items in the journal", len(self.__journal))
         recorded_predicate.StopRecording()
         self.__journal.EraseIf(recorded_predicate)
 
@@ -176,9 +175,7 @@ class OutputJournal:
                 else:
                     return False
 
-        print("Pruning duplicates")
         self.EraseIf(ErasePredicate(entry_to_keep))
-        print("Finised pruning duplicates")
 
 
     @staticmethod
