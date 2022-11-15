@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/point.h"
+#include "geometries/geometry_data.h"
 #include "containers/pointer_vector.h"
 #include "utilities/math_utils.h"
 
