@@ -2131,12 +2131,20 @@ namespace Kratos {
         return;
 
       if (mRVE_FileCoordinates.is_open()) {
-        const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
-        const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
-        const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
-        const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
-        const double zmin = mRVE_WallZMin[0]->GetGeometry()[0][2];
-        const double zmax = mRVE_WallZMax[0]->GetGeometry()[0][2];
+        double xmin, xmax, ymin, ymax, zmin, zmax;
+
+        if (mRVE_WallXMin.size() > 0) xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
+        else                          xmin = 0.0;
+        if (mRVE_WallXMax.size() > 0) xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
+        else                          xmax = 0.0;
+        if (mRVE_WallYMin.size() > 0) ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
+        else                          ymin = 0.0;
+        if (mRVE_WallYMax.size() > 0) ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
+        else                          ymax = 0.0;
+        if (mRVE_WallZMin.size() > 0) zmin = mRVE_WallZMin[0]->GetGeometry()[0][2];
+        else                          zmin = 0.0;
+        if (mRVE_WallZMax.size() > 0) zmax = mRVE_WallZMax[0]->GetGeometry()[0][2];
+        else                          zmax = 0.0;
 
         mRVE_FileCoordinates << time_step << " " << time << " ";
         mRVE_FileCoordinates << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " ";
@@ -2147,8 +2155,9 @@ namespace Kratos {
           const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
           const double z = mListOfSphericParticles[i]->GetGeometry()[0][2];
           const double r = mListOfSphericParticles[i]->GetRadius();
-          mRVE_FileCoordinates << x << " " << y << " " << z << " " << r << std::endl;
+          mRVE_FileCoordinates << x << " " << y << " " << z << " " << r << " ";
         }
+        mRVE_FileCoordinates << std::endl;
       }
 
       if (mRVE_FilePorosity.is_open())
@@ -2256,8 +2265,8 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEOpenFiles(void) {
 
-      mRVE_FileCoordinates.open("coordinates.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileCoordinates) << "Could not open file coordinates.txt!" << std::endl;
+      mRVE_FileCoordinates.open("rve_coordinates.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileCoordinates) << "Could not open file rve_coordinates.txt!" << std::endl;
       mRVE_FileCoordinates << "1 - STEP | ";
       mRVE_FileCoordinates << "2 - TIME | ";
       mRVE_FileCoordinates << "3 - WALL_MIN_X WALL_MAX_X WALL_MIN_Y WALL_MAX_Y WALL_MIN_Z WALL_MAX_Z | ";
@@ -2283,8 +2292,8 @@ namespace Kratos {
       mRVE_FileCoordNumber << "4 - AVG COORDINATION NUMBER";
       mRVE_FileCoordNumber << std::endl;
 
-      mRVE_FileForceChain.open("force_chain.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file force_chain.txt!" << std::endl;
+      mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
       mRVE_FileForceChain << "1 - STEP | ";
       mRVE_FileForceChain << "2 - TIME | ";
       mRVE_FileForceChain << "3 - NUMBER OF COMPONENTS (COORDINATES + FORCE) | ";
