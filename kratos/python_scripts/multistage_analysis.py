@@ -102,9 +102,7 @@ class MultistageAnalysis:
             # If not provided, create an auxiliary execution list from the stages declaration order
             else:
                 KratosMultiphysics.Logger.PrintInfo("'execution_list' is not provided. Stages will be executed according to their declaration order.")
-                self.__execution_list = []
-                for stage_name in self.settings["stages"].keys():
-                    self.__execution_list.append(stage_name)
+                self.__execution_list = list(self.settings["stages"].keys())
 
         return self.__execution_list
 
