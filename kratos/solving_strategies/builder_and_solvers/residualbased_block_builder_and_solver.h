@@ -277,9 +277,9 @@ public:
         if (step == 1 || step % 2 == 0) {
           double h = 0.0;
           for (int k = 0; k < nconditions; k++) {
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-            ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
-            h += cond.mConvectionCoefficient;
+            //ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            //ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
+            //h += cond.mConvectionCoefficient;
           }
           h = h / nconditions;
 
