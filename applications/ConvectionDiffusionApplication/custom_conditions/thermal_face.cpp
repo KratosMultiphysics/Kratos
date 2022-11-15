@@ -320,7 +320,7 @@ void ThermalFace::AddIntegrationPointRHSContribution(
     if (fabs(rData.ConvectionCoefficient) > std::numeric_limits<double>::epsilon()) {
       h = rData.ConvectionCoefficient;
     }
-    else {
+    else if (rData.ConvectionCoefficient < std::numeric_limits<double>::epsilon()) {
       const double T1 = gauss_pt_unknown;
       const double T2 = rData.AmbientTemperature;
       const double dT = T1 - T2;
@@ -363,7 +363,7 @@ void ThermalFace::AddIntegrationPointLHSContribution(
     if (fabs(rData.ConvectionCoefficient) > std::numeric_limits<double>::epsilon()) {
       h = rData.ConvectionCoefficient;
     }
-    else {
+    else if (rData.ConvectionCoefficient < std::numeric_limits<double>::epsilon()) {
       const double T1 = rData.GaussPointUnknown();
       const double T2 = rData.AmbientTemperature;
       const double dT = T1 - T2;
