@@ -3,7 +3,7 @@ import importlib
 import KratosMultiphysics
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
-class MultistageAnalysis(object):
+class MultistageAnalysis:
 
     def __init__(self, model, project_parameters) -> None:
         self.model = model
