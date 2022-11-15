@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED )
-#define  KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -433,7 +432,7 @@ private:
     ///@{
 
     /**
-     * @brief This auxiliar method performs the seach using a KDTree
+     * @brief This auxiliary method performs the seach using a KDTree
      * @param rSubContactModelPart The submodel part studied
      * @param rSubComputingContactModelPart The computing contact submodel part
      */
@@ -443,7 +442,7 @@ private:
         );
 
     /**
-     * @brief This auxiliar method performs the seach using a Octree
+     * @brief This auxiliary method performs the seach using a Octree
      * @param rSubContactModelPart The submodel part studied
      * @param rSubComputingContactModelPart The computing contact submodel part
      */
@@ -544,7 +543,7 @@ private:
     inline IndexType GetMaximumConditionsIds();
 
     /**
-     * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
+     * @brief This method checks the potential pairing between two conditions/geometries (auxiliary one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
      * @param pObjectSlave The pointer to the slave condition
@@ -581,12 +580,12 @@ private:
     inline void ComputeWeightedReaction();
 
     /**
-     * @brief This method creates the auxiliar the pairing
+     * @brief This method creates the auxiliary the pairing
      * @param rContactModelPart The modelpart  used in the assemble of the system
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
      */
-    inline void CreateAuxiliarConditions(
+    inline void CreateAuxiliaryConditions(
         ModelPart& rContactModelPart,
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
@@ -661,5 +660,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined

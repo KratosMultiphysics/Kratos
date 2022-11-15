@@ -16,8 +16,9 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         build-essential \
         ccache \
-        gcc-12 \
-        clang \
+        g++-12 \
+        gfortran-12 \
+        clang-14 \
         libomp-dev \
         cmake \
         gfortran \
@@ -53,7 +54,8 @@ RUN apt-get update -y && apt-get upgrade -y && \
     pip3 install \
         numpy \
         scipy \
-        sympy && \
+        sympy \
+        parameterized && \
     # install MMG 5.5
     git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
     mkdir /tmp/mmg_5_5_1/build && \

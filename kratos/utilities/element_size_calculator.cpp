@@ -116,6 +116,34 @@ double ElementSizeCalculator<2,3>::MinimumElementSizeDerivative(
     KRATOS_CATCH("");
 }
 
+// Triangle2D6 version.
+template<>
+double ElementSizeCalculator<2,6>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double minimum_element_size = ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);
+
+
+    return minimum_element_size;
+}
+
+// Triangle2D6 version.
+template<>
+double ElementSizeCalculator<2,6>::MinimumElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 3)
+        element_size_derivative = ElementSizeCalculator<2,3>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
+}
+
 // Quadrilateral2D4 version.
 template<>
 double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
@@ -127,8 +155,8 @@ double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& 
     const Node<3>& r_node_3 = rGeometry[3];
 
     // Calculate face centers
-    const double x10 = (r_node_1.X() + r_node_3.X())/2.;
-    const double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
+    const double x10 = (r_node_1.X() + r_node_0.X())/2.;
+    const double y10 = (r_node_1.Y() + r_node_0.Y())/2.;
 
     const double x21 = (r_node_2.X() + r_node_1.X())/2.;
     const double y21 = (r_node_2.Y() + r_node_1.Y())/2.;
@@ -178,11 +206,11 @@ double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
     const Node<3>& r_node_3 = rGeometry[3];
 
     // Calculate face centers
-    const double x10 = (r_node_1.X() + r_node_3.X())/2.;
-    const double x10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 0) / 2.;
+    const double x10 = (r_node_1.X() + r_node_0.X())/2.;
+    const double x10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 0) / 2.;
 
-    const double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
-    const double y10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 3)) * (DerivativeDirectionIndex == 1) / 2.;
+    const double y10 = (r_node_1.Y() + r_node_0.Y())/2.;
+    const double y10_derivative = ((DerivativeNodeIndex == 1) + (DerivativeNodeIndex == 0)) * (DerivativeDirectionIndex == 1) / 2.;
 
     const double x21 = (r_node_2.X() + r_node_1.X())/2.;
     const double x21_derivative = ((DerivativeNodeIndex == 2) + (DerivativeNodeIndex == 1)) * (DerivativeDirectionIndex == 0) / 2.;
@@ -223,11 +251,37 @@ double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
     const double h2_eta_derivative = 2 * deta_x * deta_x_derivative + 2 * deta_y * deta_y_derivative;
 
     const double h2 = h2_xi < h2_eta ? h2_xi : h2_eta;
-    const double h2_derivative = h2_xi < h2_eta ? h2_xi_derivative : h2_eta_derivative;
+    double h2_derivative = h2_xi < h2_eta ? h2_xi_derivative : h2_eta_derivative;
+    if (std::abs(h2_xi - h2_eta) < 1.0e-12)
+        h2_derivative = std::min(h2_xi_derivative,h2_eta_derivative);
 
     return 0.5 * h2_derivative / std::sqrt(h2);
 
     KRATOS_CATCH("");
+}
+
+// Quadrilateral2D9 version.
+template<>
+double ElementSizeCalculator<2,9>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double minimum_element_size = ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);
+
+    return minimum_element_size;
+}
+
+template<>
+double ElementSizeCalculator<2,9>::MinimumElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
 }
 
 // Tetrahedra3D4 version.
@@ -379,6 +433,34 @@ double ElementSizeCalculator<3,4>::MinimumElementSizeDerivative(
     Hsq = (hsq < Hsq) ? hsq : Hsq;
 
     return 0.5 * Hsq_derivative / std::sqrt(Hsq);
+
+    KRATOS_CATCH("");
+}
+
+// Tetrahedra3D4 version.
+template<>
+double ElementSizeCalculator<3,10>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double minimum_element_size = ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);
+
+    return minimum_element_size;
+}
+
+template<>
+double ElementSizeCalculator<3,10>::MinimumElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+    KRATOS_TRY
+
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<3,4>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
 
     KRATOS_CATCH("");
 }
@@ -641,6 +723,34 @@ double ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(
     KRATOS_CATCH("");
 }
 
+// Hexahedra3D27 version. We use the distance between face centers to compute lengths.
+template<>
+double ElementSizeCalculator<3,27>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double minimum_element_size = ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);
+
+    return minimum_element_size;
+}
+
+template<>
+double ElementSizeCalculator<3,27>::MinimumElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+    KRATOS_TRY
+
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 8)
+        element_size_derivative = ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
+    KRATOS_CATCH("");
+}
+
 // Triangle2D3 version.
 template<>
 double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
@@ -684,6 +794,34 @@ double ElementSizeCalculator<2,3>::AverageElementSizeDerivative(
     const double y20_derivative = EdgeLengthDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, 2, 0, 1);
 
     return 0.5 * 0.5 * (x10_derivative*y20+x10*y20_derivative-x20_derivative*y10-x20*y10_derivative) / std::sqrt(0.5 * (x10*y20-x20*y10) );
+
+    KRATOS_CATCH("");
+}
+
+// Triangle2D6 version.
+template<>
+double ElementSizeCalculator<2,6>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double average_element_size = ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);
+
+    return average_element_size;
+}
+
+template<>
+double ElementSizeCalculator<2,6>::AverageElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+    KRATOS_TRY
+
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 3)
+        element_size_derivative = ElementSizeCalculator<2,3>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
 
     KRATOS_CATCH("");
 }
@@ -733,6 +871,32 @@ double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
     return 0.5 * (x10_derivative*y30+x10*y30_derivative-x30_derivative*y10-x30*y10_derivative) / (x10*y30-x30*y10);
 
     KRATOS_CATCH("");
+}
+
+// Quadrilateral2D9 version.
+template<>
+double ElementSizeCalculator<2,9>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double average_element_size = ElementSizeCalculator<2,4>::AverageElementSize(rGeometry);
+
+    return average_element_size;
+}
+
+template<>
+double ElementSizeCalculator<2,9>::AverageElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<2,4>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
 }
 
 // Tetrahedra3D4 version.
@@ -823,6 +987,35 @@ double ElementSizeCalculator<3,4>::AverageElementSizeDerivative(
     detJ_derivative -= z10 * y20 * x30_derivative;
 
     return (1./3.) * (detJ_derivative/6.0) / std::pow(detJ/6.0, 2./3.);
+
+    KRATOS_CATCH("");
+}
+
+// Tetrahedra3D10 version.
+template<>
+double ElementSizeCalculator<3,10>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double average_element_size = ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);
+
+    return average_element_size;
+}
+
+template<>
+double ElementSizeCalculator<3,10>::AverageElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+    KRATOS_TRY
+
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 4)
+        element_size_derivative = ElementSizeCalculator<3,4>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
 
     KRATOS_CATCH("");
 }
@@ -1013,6 +1206,33 @@ double ElementSizeCalculator<3,8>::AverageElementSizeDerivative(
     KRATOS_CATCH("");
 }
 
+// Hexahedra3D27 version.
+template<>
+double ElementSizeCalculator<3,27>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
+
+    const double average_element_size = ElementSizeCalculator<3,8>::AverageElementSize(rGeometry);
+
+    return average_element_size;
+}
+
+template<>
+double ElementSizeCalculator<3,27>::AverageElementSizeDerivative(
+    const unsigned int DerivativeNodeIndex,
+    const unsigned int DerivativeDirectionIndex,
+    const Geometry<Node<3> >& rGeometry)
+{
+    KRATOS_TRY
+    double element_size_derivative = 0.0;
+
+    if (DerivativeNodeIndex < 8)
+        element_size_derivative = ElementSizeCalculator<3,8>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+
+    return element_size_derivative;
+
+    KRATOS_CATCH("");
+}
+
 // Triangle2D3 version.
 template<>
 double ElementSizeCalculator<2,3>::ProjectedElementSize(
@@ -1046,6 +1266,16 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(
     return Hvel;
 }
 
+// Triangle2D6 version
+template<>
+double ElementSizeCalculator<2,6>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
 // Quadrilateral2D4 version.
 template<>
 double ElementSizeCalculator<2,4>::ProjectedElementSize(
@@ -1056,6 +1286,16 @@ double ElementSizeCalculator<2,4>::ProjectedElementSize(
     const double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
 
     return Hvel;
+}
+
+// Quadrilateral2D9 version
+template<>
+double ElementSizeCalculator<2,9>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
 }
 
 // Tetrahedra3D4 version.
@@ -1093,6 +1333,16 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(
     return Hvel;
 }
 
+// Tetrahedra3D10 version.
+template<>
+double ElementSizeCalculator<3,10>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
 // Prism3D6 version
 template<>
 double ElementSizeCalculator<3,6>::ProjectedElementSize(
@@ -1102,7 +1352,6 @@ double ElementSizeCalculator<3,6>::ProjectedElementSize(
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
     return 0.0; // Just to avoid warning during compilations
 }
-
 
 // Hexahedra3D8 version.
 template<>
@@ -1190,6 +1439,16 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(
     return Hvel;
 }
 
+// Hexahedra3D27 version.
+template<>
+double ElementSizeCalculator<3,27>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
 // Triangle2D3 version.
 template<std::size_t TDim, std::size_t TNumNodes>
 double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX)
@@ -1226,10 +1485,14 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const Bounded
 // Template class instantiation
 
 template class ElementSizeCalculator<2,3>;
+template class ElementSizeCalculator<2,6>;
 template class ElementSizeCalculator<2,4>;
+template class ElementSizeCalculator<2,9>;
 template class ElementSizeCalculator<3,4>;
 template class ElementSizeCalculator<3,6>;
+template class ElementSizeCalculator<3,10>;
 template class ElementSizeCalculator<3,8>;
+template class ElementSizeCalculator<3,27>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

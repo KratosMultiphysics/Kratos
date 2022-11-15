@@ -360,6 +360,18 @@ public:
     virtual bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable);
 
     /** 
+     * @brief Synchronize variable in nodal solution step data to the absolute maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal data to the absolute maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable);
+
+    /** 
      * @brief Synchronize variable in nodal solution step data to the minimum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
@@ -370,6 +382,18 @@ public:
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the absolute minimum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable);
+
+    /**
+     * @brief Synchronize variable in nodal data to the absolute minimum value across all processes. 
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable);
 
     virtual bool SynchronizeElementalFlags();
 
