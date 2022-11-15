@@ -5,9 +5,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
-if KratosMultiphysics.IsDistributedRun():
-    from KratosMultiphysics.mpi import distributed_import_model_part_utility
-
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
