@@ -27,6 +27,8 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
+#include "../applications/ConvectionDiffusionApplication/custom_conditions/thermal_face.h" 
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -664,6 +666,32 @@ public:
             p_builder_and_solver->CalculateReactions(p_scheme,
                                                      BaseType::GetModelPart(),
                                                      rA, rDx, rb);
+
+       
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        const int step = r_process_info[STEP];
+        const double time = r_process_info[TIME];
+        const int nconditions = static_cast<int>(BaseType::GetModelPart().Conditions().size());
+        ModelPart::ConditionsContainerType::iterator cond_begin = BaseType::GetModelPart().ConditionsBegin();
+
+        if (step == 1 || step % 2 == 0) {
+          double h = 0.0;
+          for (int k = 0; k < nconditions; k++) {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
+            h += cond.mConvectionCoefficient;
+          }
+          h = h / nconditions;
+
+          std::ofstream file_ConvCoeff;
+          if (step == 1)
+            file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::out);
+          else
+            file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::app);
+          file_ConvCoeff << time << " " << h << std::endl;
+          if (file_ConvCoeff.is_open())
+            file_ConvCoeff.close();
+        }
 
         return true;
     }
