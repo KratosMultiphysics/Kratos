@@ -205,6 +205,8 @@ public:
         } else {
             rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
 			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
+            // rSth = Se;
+            // rAlphat = 0.0;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
@@ -218,6 +220,7 @@ public:
                 }
             }else{
                 rN_f = 1.0e15;
+                // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
             }
         }
     }
@@ -272,7 +275,9 @@ public:
                 rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
             } else{
                 rFatigueReductionFactor = 1.0;
-            }      
+            }
+            // rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
+            // rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;      
         }
     }
 
