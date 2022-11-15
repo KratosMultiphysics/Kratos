@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/model_part_io.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/openmp_utils.h"
