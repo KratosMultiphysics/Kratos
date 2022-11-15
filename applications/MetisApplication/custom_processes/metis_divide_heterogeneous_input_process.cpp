@@ -34,7 +34,7 @@ void MetisDivideHeterogeneousInputProcess::Execute()
 
     // Partition elements
     IO::ConnectivitiesContainerType ElementConnectivities;
-    SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
+    SizeType NumElements =  mrIO.ReadElementsConnectivities(ElementConnectivities);
     if (NumElements != ElementConnectivities.size())
     {
         std::stringstream Msg;
@@ -55,7 +55,7 @@ void MetisDivideHeterogeneousInputProcess::Execute()
 
     // Partition conditions
     IO::ConnectivitiesContainerType ConditionConnectivities;
-    SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
+    SizeType NumConditions = mrIO.ReadConditionsConnectivities(ConditionConnectivities);
     if (NumConditions != ConditionConnectivities.size())
     {
         std::stringstream Msg;
@@ -135,9 +135,9 @@ void MetisDivideHeterogeneousInputProcess::GetNodesPartitions(std::vector<idxtyp
     // Read nodal graph from input
     IO::ConnectivitiesContainerType kratos_format_node_connectivities;
 
-    rNumNodes = BaseType::mrIO.ReadNodalGraph(kratos_format_node_connectivities);
+    rNumNodes = mrIO.ReadNodalGraph(kratos_format_node_connectivities);
 
-    SizeType num_nodes_in_mesh = BaseType::mrIO.ReadNodesNumber();
+    SizeType num_nodes_in_mesh = mrIO.ReadNodesNumber();
     if (rNumNodes != num_nodes_in_mesh)
         KRATOS_ERROR << "Invalid mesh: number of connected nodes = " << rNumNodes
                         << ", number of mesh nodes = " << num_nodes_in_mesh << "."
@@ -164,7 +164,7 @@ int MetisDivideHeterogeneousInputProcess::PartitionNodes(SizeType NumNodes,
     mNumNodes = NumNodes;
     idxtype n = static_cast<idxtype>(NumNodes);
 
-    idxtype nparts = static_cast<idxtype>(BaseType::mNumberOfPartitions);
+    idxtype nparts = static_cast<idxtype>(mNumberOfPartitions);
     idxtype edgecut;
     rNodePartition.resize(NumNodes);
 
@@ -203,7 +203,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMesh(std::vector<idxtype> co
                     std::vector<idxtype>& rElemPartition)
 {
     SizeType NumElements = rElemConnectivities.size();
-    std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
+    std::vector<int> PartitionWeights(mNumberOfPartitions,0);
 
     // initialize ElementPartition
     rElemPartition.resize(NumElements,-1);
@@ -234,7 +234,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionMesh(std::vector<idxtype> co
 
     // Now distribute boundary elements
     itElem = rElemConnectivities.begin();
-    int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
+    int MaxWeight = 1.03 * NumElements / mNumberOfPartitions;
     for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
     {
         if (*itPart == -1) // If element is still unassigned
@@ -348,7 +348,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionElementsSynchronous(std::vec
 
     // Now distribute boundary elements
     itElem = rElemConnectivities.begin();
-    //int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
+    //int MaxWeight = 1.03 * NumElements / mNumberOfPartitions;
     for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
     {
         if (*itPart == -1) // If element is still unassigned
@@ -438,7 +438,7 @@ void MetisDivideHeterogeneousInputProcess::PartitionConditionsSynchronous(const 
 
     // Now distribute boundary conditions
     itCond = rCondConnectivities.begin();
-    //int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
+    //int MaxWeight = 1.03 * NumConditions / mNumberOfPartitions;
     for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
     {
         if (*itPart == -1) // If condition is still unassigned
