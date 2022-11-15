@@ -367,6 +367,14 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMod
     const SizeType total_number_conditions = mrMainModelPart.GetRootModelPart().NumberOfConditions();
 
     std::vector<Condition::Pointer> auxiliary_conditions_vector;
+    const std::size_t size_vector = block_for_each<SumReduction<std::size_t>>(r_conditions_array, [&](Condition& r_cond){
+        if (r_cond.Is(MARKER)) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    auxiliary_conditions_vector.reserve(size_vector);
 
     for(Condition& r_cond : r_conditions_array) {
         if (r_cond.Is(MARKER)) {
@@ -1009,9 +1017,20 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::FillPointListDe
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
 
+    // Reserve
+    const bool check = !this->Is(BaseContactSearchProcess::INVERTED_SEARCH) || this->IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE);
+    const std::size_t size_vector = block_for_each<SumReduction<std::size_t>>(r_conditions_array, [&](Condition& r_cond){
+        if (r_cond.Is(MASTER) == check) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    mPointListDestination.reserve(size_vector);
+
     for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
         auto it_cond = it_cond_begin + i;
-        if (it_cond->Is(MASTER) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH) || this->IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) {
+        if (it_cond->Is(MASTER) == check) {
             mPointListDestination.push_back(Kratos::make_shared<PointType>((*it_cond.base())));
         }
     }
@@ -1128,6 +1147,15 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     /* Clear the mPointListDestination */
     // Clearing the vector
     mPointListDestination.clear();
+    const std::size_t size_vector = block_for_each<SumReduction<std::size_t>>(r_conditions_array, [&](Condition& r_cond){
+        IndexMap::Pointer p_indexes_pairs = r_cond.GetValue(INDEX_MAP);
+        if (p_indexes_pairs->size() == 0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    mPointListDestination.reserve(size_vector);
 
     // Refilling
     for(int i = 0; i < num_conditions; ++i) {
