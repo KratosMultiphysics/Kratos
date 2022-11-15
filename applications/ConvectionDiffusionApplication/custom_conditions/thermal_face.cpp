@@ -350,7 +350,7 @@ void ThermalFace::AddIntegrationPointRHSContribution(
         rRightHandSideVector[i] -= rData.N(i) * aux_conv_rhs * rData.Weight;
     }
 
-    mConvectionCoefficient = rData.ConvectionCoefficient;
+    mConvectionCoefficient = h;
 }
 
 void ThermalFace::AddIntegrationPointLHSContribution(
@@ -393,7 +393,7 @@ void ThermalFace::AddIntegrationPointLHSContribution(
         }
     }
 
-    mConvectionCoefficient = rData.ConvectionCoefficient;
+    mConvectionCoefficient = h;
 }
 
 void ThermalFace::FillConditionDataStructure(
