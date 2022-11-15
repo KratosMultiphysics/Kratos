@@ -18,7 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kratos_filesystem.h"
+#include "includes/kratos_filesystem_extension.h"
 #include "utilities/parallel_utilities.h"
 #include "testing/scoped_file.h"
 
