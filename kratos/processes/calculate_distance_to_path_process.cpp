@@ -184,7 +184,7 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistance(
             }
         }
 
-        const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(min_value, *p_closest_geometry, rNode, radius_path, distance_tolerance);
+        FastMinimalDistanceOnLineWithRadius(min_value, *p_closest_geometry, rNode, radius_path, distance_tolerance);
         if constexpr (THistorical) {
             rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
         } else {
@@ -216,7 +216,8 @@ void CalculateDistanceToPathProcess<THistorical>::CalculateDistanceByBruteForce(
                 p_closest_geometry = p_segment;
             }
         }
-        const auto distance_computed_type = FastMinimalDistanceOnLineWithRadius(min_value, *p_closest_geometry, rNode, radius_path, distance_tolerance);
+        
+        FastMinimalDistanceOnLineWithRadius(min_value, *p_closest_geometry, rNode, radius_path, distance_tolerance);
         if constexpr (THistorical) {
             rNode.FastGetSolutionStepValue(*mpDistanceVariable) = min_value;
         } else {
