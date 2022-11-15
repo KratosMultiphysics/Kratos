@@ -317,10 +317,10 @@ void ThermalFace::AddIntegrationPointRHSContribution(
     const double aux_rad_rhs = rData.Emissivity * StefanBoltzmann * (std::pow(gauss_pt_unknown, 4) - pow(rData.AmbientTemperature, 4));
     double h = 0.0;
 
-    if (fabs(rData.ConvectionCoefficient) > std::numeric_limits<double>::epsilon()) {
+    if (rData.ConvectionCoefficient >= 0.0) {
       h = rData.ConvectionCoefficient;
     }
-    else if (rData.ConvectionCoefficient < std::numeric_limits<double>::epsilon()) {
+    else {
       const double T1 = gauss_pt_unknown;
       const double T2 = rData.AmbientTemperature;
       const double dT = T1 - T2;
@@ -360,10 +360,10 @@ void ThermalFace::AddIntegrationPointLHSContribution(
     const double aux_rad_lhs = rData.Emissivity * StefanBoltzmann * 4.0 * std::pow(rData.GaussPointUnknown(), 3);
     double h = 0.0;
 
-    if (fabs(rData.ConvectionCoefficient) > std::numeric_limits<double>::epsilon()) {
+    if (rData.ConvectionCoefficient >= 0.0) {
       h = rData.ConvectionCoefficient;
     }
-    else if (rData.ConvectionCoefficient < std::numeric_limits<double>::epsilon()) {
+    else {
       const double T1 = rData.GaussPointUnknown();
       const double T2 = rData.AmbientTemperature;
       const double dT = T1 - T2;
