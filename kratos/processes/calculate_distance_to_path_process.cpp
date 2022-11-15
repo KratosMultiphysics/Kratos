@@ -326,7 +326,7 @@ const Parameters CalculateDistanceToPathProcess<THistorical>::GetDefaultParamete
         "radius_path"              : 0.0,
         "distance_tolerance"       : 1.0e-9,
         "search_parameters"        :  {
-            "allocation_size"         : 1000,
+            "allocation_size"         : 100,
             "bucket_size"             : 4,
             "search_factor"           : 2.0,
             "search_increment_factor" : 1.5
