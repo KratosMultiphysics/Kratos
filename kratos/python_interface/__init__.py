@@ -1,5 +1,17 @@
 import os
 import sys
+
+# This is a "dirty" fix to force python to keep loading shared libraries from
+# the PATH in windows (See https://docs.python.org/3/library/os.html#os.add_dll_directory)
+# THIS NEEDS TO BE EXECUTED BEFORE ANY DLL / DEPENDENCY IS LOADED.
+if os.name == 'nt': # This means "Windows"
+    for lib_path in os.environ["PATH"].split(os.pathsep):
+        try:
+            os.add_dll_directory(lib_path.replace("\\","/"))
+        except Exception as e:
+            # We need to capture possible invalid paths.
+            pass
+
 from . import kratos_globals
 from . import python_registry
 

@@ -357,8 +357,8 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
 
     const std::function<double(const Node<3>&)>& r_weight_method =
         (IsInverseWeightProvided) ?
-        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
-        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
+        static_cast<std::function<double(const Node<3>&)>>([&rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
+        static_cast<std::function<double(const Node<3>&)>>([&rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
 
 #pragma omp parallel for
     for (int i_entity = 0; i_entity < n_entities; ++i_entity)
