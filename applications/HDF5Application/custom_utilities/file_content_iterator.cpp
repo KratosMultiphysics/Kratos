@@ -27,6 +27,11 @@ FileContentIterator::FileContentIterator(std::shared_ptr<FileAccess>&& rpFileAcc
       mDelimiter(delimiter),
       mPosition(0)
 {
+    // Set file pointer to EOF if the file is empty
+    this->RestoreState();
+    if (mpFileAccess->value().first.peek() == std::ifstream::traits_type::eof()) {
+        this->SeekEOF();
+    }
 }
 
 
@@ -36,6 +41,11 @@ FileContentIterator::FileContentIterator(const std::shared_ptr<FileAccess>& rpFi
       mDelimiter(delimiter),
       mPosition(0)
 {
+    // Set file pointer to EOF if the file is empty
+    this->RestoreState();
+    if (mpFileAccess->value().first.peek() == std::ifstream::traits_type::eof()) {
+        this->SeekEOF();
+    }
 }
 
 
