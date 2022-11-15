@@ -32,8 +32,8 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class contains legacy versions of utilities used by the metis partitioners.
+/** The new impleementation of these functionalities is part of the MetisPartitioningUtilities.
 */
 class KRATOS_API(METIS_APPLICATION) LegacyPartitioningUtilities
 {

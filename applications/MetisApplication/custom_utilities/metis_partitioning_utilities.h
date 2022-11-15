@@ -32,7 +32,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
+/// This class contains utilities used by the metis partitioners.
 /** Detail class definition.
 */
 class KRATOS_API(METIS_APPLICATION) MetisPartitioningUtilities
