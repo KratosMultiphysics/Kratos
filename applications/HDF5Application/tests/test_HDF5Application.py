@@ -21,27 +21,33 @@ from test_hdf5_xdmf import TestCreateXdmfTemporalGridFromMultifile
 from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5PointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
 from test_journal import TestJournal
+from test_output_journal import TestOutputJournal
 
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5FileIO]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Operations]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Controllers]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5ModelPartIO]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Processes]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTryOpenH5File]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfSpatialGrid]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfNodalResults]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfElementResults]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfConditionResults]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfResults]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTimeLabel]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFindMatchingFiles]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfTemporalGridFromMultifile]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCase(TestJournal))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(
+        [
+            TestHDF5FileIO,
+            TestHDF5Operations,
+            TestHDF5Controllers,
+            TestHDF5ModelPartIO,
+            TestHDF5Processes,
+            TestTryOpenH5File,
+            TestCreateXdmfSpatialGrid,
+            TestXdmfNodalResults,
+            TestXdmfElementResults,
+            TestXdmfConditionResults,
+            TestXdmfResults,
+            TestTimeLabel,
+            TestFindMatchingFiles,
+            TestCreateXdmfTemporalGridFromMultifile,
+            TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess,
+            TestJournal,
+            TestOutputJournal
+        ]
+    ))
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     allSuite = suites['all']
