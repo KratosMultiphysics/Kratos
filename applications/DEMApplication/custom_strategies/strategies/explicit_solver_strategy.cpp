@@ -2146,7 +2146,8 @@ namespace Kratos {
           const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
           const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
           const double z = mListOfSphericParticles[i]->GetGeometry()[0][2];
-          mRVE_FileCoordinates << x << " " << y << " " << z << std::endl;
+          const double r = mListOfSphericParticles[i]->GetRadius();
+          mRVE_FileCoordinates << x << " " << y << " " << z << " " << r << std::endl;
         }
       }
 
@@ -2260,7 +2261,7 @@ namespace Kratos {
       mRVE_FileCoordinates << "1 - STEP | ";
       mRVE_FileCoordinates << "2 - TIME | ";
       mRVE_FileCoordinates << "3 - WALL_MIN_X WALL_MAX_X WALL_MIN_Y WALL_MAX_Y WALL_MIN_Z WALL_MAX_Z | ";
-      mRVE_FileCoordinates << "4 - X Y Z of all particles";
+      mRVE_FileCoordinates << "4 - X Y Z R of all particles";
       mRVE_FileCoordinates << std::endl;
 
       mRVE_FilePorosity.open("rve_porosity.txt", std::ios::out);
