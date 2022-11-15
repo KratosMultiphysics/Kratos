@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_FOR_SEARCH_H_INCLUDED )
-#define  KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_FOR_SEARCH_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -45,7 +44,7 @@ namespace Kratos
  * @class FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class is a modification of FindIntersectedGeometricalObjectsWithOBBProcess for contact search
- * @details Fills the serach set. Only works for Conditions
+ * @details Fills the search set. Only works for Conditions
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
@@ -254,5 +253,3 @@ inline std::istream& operator >> (std::istream& rIStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_FOR_SEARCH_H_INCLUDED  defined

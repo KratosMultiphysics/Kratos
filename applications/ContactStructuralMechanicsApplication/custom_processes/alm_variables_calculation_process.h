@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_VARIABLES_CALCULATION_PROCESS)
-#define KRATOS_ALM_VARIABLES_CALCULATION_PROCESS
+#pragma once
 
 // System includes
 
@@ -296,4 +295,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_ALM_VARIABLES_CALCULATION_PROCESS defined */
