@@ -110,7 +110,22 @@ void JournalBase::Push(const Model& rModel)
 
     auto p_access = this->Open(std::ios::app | std::ios::out);
 
-    const auto output = this->mExtractor.first(rModel);
+    value_type output;
+
+    // If an exception is thrown here, it means that the extractor
+    // invocation failed. If the extractor is a python object, finding
+    // where the error came from may be tricky, but here are some tips
+    // to get you started:
+    //  - if the extractor was set from python and your exception passes
+    //    through here, you can be sure that the error either originated
+    //    from python, or passed through a python object.
+    //  - if you see a C++ traceback, no python traceback, and no error
+    //    message, the problem may still be on the python side => it's
+    //    most likely a missing return statement.
+    KRATOS_TRY;
+    output = this->mExtractor.first(rModel);
+    KRATOS_CATCH("Extractor call failed in JournalBase");
+
     KRATOS_ERROR_IF_NOT(this->IsValidEntry(output))
     << "Extractor returned invalid output: " << output;
 
