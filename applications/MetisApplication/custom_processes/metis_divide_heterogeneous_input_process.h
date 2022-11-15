@@ -1,30 +1,10 @@
-#ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H
-#define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H
+#pragma once
 
-#ifdef KRATOS_USE_METIS_5
-  #include "metis.h"
-#else
-  #include <parmetis.h>
-#endif
+// External includes
+#include "metis.h"
 
 // Project includes
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
-
-#ifndef KRATOS_USE_METIS_5
-  extern "C" {
-  extern void METIS_PartGraphKway(int*,  //int* n
-                                  int*,  //idxtype* xadj
-                                  int*,  //idxtype* adjcncy
-                                  int*,  //idxtype* vwgt
-                                  int*,  //idxtype* adjwgt
-                                  int*,  //int* wgtflag
-                                  int*,  //int* numflag
-                                  int*,  //int* nparts
-                                  int*,  //int* options
-                                  int*,  //int* edgecut
-                                  int*); //indxtype* part
-  }
-#endif
 
 namespace Kratos
 {
@@ -57,20 +37,14 @@ public:
     ///@name Type Definitions
     ///@{
 
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #else
-      typedef int idxtype;
-    #endif
-
     /// Pointer definition of MetisDivideHeterogeneousInputProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideHeterogeneousInputProcess);
 
     typedef MetisDivideInputToPartitionsProcess BaseType;
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef matrix<int> GraphType;
+    using BaseType::SizeType;
+    using BaseType::GraphType;
+    using BaseType::idxtype;
 
     ///@}
     ///@name Life Cycle
@@ -366,19 +340,9 @@ protected:
         idxtype edgecut;
         rNodePartition.resize(NumNodes);
 
+        idxtype ncon = 1; //The number of balancing constraints. It should be at least 1.
 
-#ifndef KRATOS_USE_METIS_5
-        idxtype wgtflag = 0; // Graph is not weighted
-        idxtype numflag = 0; // Nodes are numbered from 0 (C style)
-        idxtype options[5]; // options array
-        options[0] = 0; // use default options
-
-        //old version
-        METIS_PartGraphKway(&n,NodeIndices,NodeConnectivities,NULL,NULL,&wgtflag,&numflag,&nparts,&options[0],&edgecut,&rNodePartition[0]);
-#else
-        idx_t ncon = 1; //The number of balancing constraints. It should be at least 1.
-
-        idx_t options[METIS_NOPTIONS];
+        idxtype options[METIS_NOPTIONS];
         METIS_SetDefaultOptions(options);
 
         int metis_return = METIS_PartGraphKway(&n,&ncon,NodeIndices,NodeConnectivities,NULL,NULL,NULL,&nparts,NULL,NULL,&options[0],&edgecut,&rNodePartition[0]);
@@ -399,9 +363,6 @@ protected:
          * idx_t *options,
          * idx_t *objval, idx t *part)
          */
-#endif
-
-
 
         // Debug: print partition
         PrintDebugData("Node Partition",rNodePartition);
@@ -883,5 +844,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} // addtogroup block
 
 }
-
-#endif // KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H

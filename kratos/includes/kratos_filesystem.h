@@ -92,17 +92,17 @@ std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rP
 /**
  * @brief Returns list of files and directories in rPath
  *
- * @param rPath                         Path
- * @return std::vector<std::string>     List of files and folders in rPath
+ * @param rPath                               Path
+ * @return std::vector<std::filesystem::path> List of files and folders in rPath
  */
-std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string& rPath);
+std::vector<std::filesystem::path> KRATOS_API(KRATOS_CORE) ListDirectory(const std::filesystem::path& rPath);
 
 /**
  * @brief Create directories in MPI, when sometimes filesystems are slow. Intended to be called by all ranks (that make use of this directory). It returns only after the folder exists
  *
  * @param rPath                         Path
  */
-void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
+void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::filesystem::path& rPath);
 
 /** @brief Resolve symlinks recursively.
  *

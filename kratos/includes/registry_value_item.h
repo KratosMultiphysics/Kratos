@@ -54,7 +54,7 @@ namespace Kratos
  *  Value type should be copy constructable.
 */
 template<typename TValueType>
-class RegistryValueItem : public RegistryItem
+class RegistryValueItem final : public RegistryItem
 {
 public:
     ///@name Type Definitions
@@ -69,9 +69,6 @@ public:
 
     /// Default constructor deleted.
     RegistryValueItem() = delete;
-
-    /// Constructor with the name
-    RegistryValueItem(std::string Name) : RegistryItem(Name){}
 
     /// Constructor with the name and value
     template<class... TArgumentsList >
