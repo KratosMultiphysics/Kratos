@@ -2179,7 +2179,6 @@ namespace Kratos {
 
       if (mRVE_FileForceChain.is_open()) {
         mRVE_FileForceChain << time_step << " " << time << " ";
-        mRVE_FileForceChain << mRVE_ForceChain.size() << " ";
         for (int i = 0; i < mRVE_ForceChain.size(); i++) mRVE_FileForceChain << mRVE_ForceChain[i] << " ";
         mRVE_FileForceChain << std::endl;
       }
@@ -2296,8 +2295,7 @@ namespace Kratos {
       KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
       mRVE_FileForceChain << "1 - STEP | ";
       mRVE_FileForceChain << "2 - TIME | ";
-      mRVE_FileForceChain << "3 - NUMBER OF COMPONENTS (COORDINATES + FORCE) | ";
-      mRVE_FileForceChain << "4 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
+      mRVE_FileForceChain << "3 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
       mRVE_FileForceChain << std::endl;
 
       mRVE_FileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
