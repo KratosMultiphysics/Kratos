@@ -10,7 +10,7 @@ def GetFilePath(fileName):
 
 class TestMetisSubModelPartList(KratosUnittest.TestCase):
     def setUp(self):
-        self.comm = KratosMultiphysics.DataCommunicator.GetDefault()
+        self.comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         self.size = self.comm.Size()
         self.rank = self.comm.Rank()
 
