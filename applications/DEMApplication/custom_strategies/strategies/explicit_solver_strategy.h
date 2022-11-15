@@ -311,6 +311,7 @@ namespace Kratos {
         Matrix mRVE_CauchyTensor;            // Cauchy stress tensor
         Matrix mRVE_TangentTensor;           // Tangent operator tensor
 
+        std::ofstream mRVE_FileCoordinates;
         std::ofstream mRVE_FilePorosity;
         std::ofstream mRVE_FileCoordNumber;
         std::ofstream mRVE_FileForceChain;

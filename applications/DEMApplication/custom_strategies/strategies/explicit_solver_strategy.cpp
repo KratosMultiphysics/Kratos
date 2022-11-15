@@ -2130,6 +2130,26 @@ namespace Kratos {
       if (time_step % mRVE_FreqWrite != 0.0)
         return;
 
+      if (mRVE_FileCoordinates.is_open()) {
+        const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
+        const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
+        const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
+        const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
+        const double zmin = mRVE_WallZMin[0]->GetGeometry()[0][2];
+        const double zmax = mRVE_WallZMax[0]->GetGeometry()[0][2];
+
+        mRVE_FileCoordinates << time_step << " " << time << " ";
+        mRVE_FileCoordinates << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " ";
+
+        const int number_of_particles = (int)mListOfSphericParticles.size();
+        for (int i = 0; i < number_of_particles; i++) {
+          const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+          const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+          const double z = mListOfSphericParticles[i]->GetGeometry()[0][2];
+          mRVE_FileCoordinates << x << " " << y << " " << z << std::endl;
+        }
+      }
+
       if (mRVE_FilePorosity.is_open())
         mRVE_FilePorosity << time_step     << " "
                           << time          << " "
@@ -2235,6 +2255,14 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEOpenFiles(void) {
 
+      mRVE_FileCoordinates.open("coordinates.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileCoordinates) << "Could not open file coordinates.txt!" << std::endl;
+      mRVE_FileCoordinates << "1 - STEP | ";
+      mRVE_FileCoordinates << "2 - TIME | ";
+      mRVE_FileCoordinates << "3 - WALL_MIN_X WALL_MAX_X WALL_MIN_Y WALL_MAX_Y WALL_MIN_Z WALL_MAX_Z | ";
+      mRVE_FileCoordinates << "4 - X Y Z of all particles";
+      mRVE_FileCoordinates << std::endl;
+
       mRVE_FilePorosity.open("rve_porosity.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FilePorosity) << "Could not open file rve_porosity.txt!" << std::endl;
       mRVE_FilePorosity << "1 - STEP | ";
@@ -2321,6 +2349,7 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
+      if (mRVE_FileCoordinates.is_open())   mRVE_FileCoordinates.close();
       if (mRVE_FilePorosity.is_open())      mRVE_FilePorosity.close();
       if (mRVE_FileCoordNumber.is_open())   mRVE_FileCoordNumber.close();
       if (mRVE_FileForceChain.is_open())    mRVE_FileForceChain.close();
