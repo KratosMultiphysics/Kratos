@@ -46,7 +46,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalLSPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralLSPGRom]))
 
-
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']

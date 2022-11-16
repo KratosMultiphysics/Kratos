@@ -41,8 +41,8 @@ class FluidFractionTestSolver(BaseSolver):
         self.L2_error_calculator = L2_error_calculator.L2ErrorCalculatorUtility(self.fluid_solver.main_model_part, self.project_parameters)
 
     def CalculateL2Error(self):
-        self.velocity_error_norm, self.pressure_error_norm, self.error_model_part = self.L2_error_calculator.CalculateL2()
-        return self.velocity_error_norm, self.pressure_error_norm, self.error_model_part
+        self.velocity_error_norm, self.pressure_error_norm, self.error_model_part, self.reynolds_number, self.porosity_mean = self.L2_error_calculator.CalculateL2()
+        return self.velocity_error_norm, self.pressure_error_norm, self.error_model_part, self.reynolds_number, self.porosity_mean
 
     def _ConstructProjectionModule(self):
         pass

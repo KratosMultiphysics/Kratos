@@ -75,11 +75,11 @@ double CoulombFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::G
     } else {
         double delta_weighted_gap = 0.0;
 
-        // Getting auxiliar indixes
+        // Getting auxiliary indixes
         const IndexType derivative_node_index = IndexDerivative/TDim;
         const IndexType derivative_dimension_index = IndexDerivative%TDim;
 
-        // Auxiliar values
+        // Auxiliary values
         const double common_epsilon = rCurrentProcessInfo[INITIAL_PENALTY];
         const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
 

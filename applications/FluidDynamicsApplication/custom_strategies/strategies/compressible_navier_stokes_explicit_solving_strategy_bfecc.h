@@ -75,7 +75,7 @@ public:
 
     // Replace with proper std::optional when upgrading to c++17
 #if __cplusplus >= 201703L
-    using std::optional;
+    // using std::optional;
 #else
     /** Naive implementation of std::optional, used as a replacement for c++11 support.
      * Use only with simple types.
@@ -335,10 +335,17 @@ private:
     ///@name Member Variables
     ///@{
 
+#if __cplusplus >= 201703L
+    struct Stash {
+        std::optional<double> conductivity = {};
+        std::optional<double> dynamic_viscosity = {};
+    } mDiffusionStash;
+#else
     struct Stash {
         optional<double> conductivity = {};
         optional<double> dynamic_viscosity = {};
     } mDiffusionStash;
+#endif
 
     ///@}
     ///@name Private Operators
