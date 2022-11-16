@@ -11,8 +11,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_AALM_ADAPT_PENALTY_VALUE_PROCESS)
-#define KRATOS_AALM_ADAPT_PENALTY_VALUE_PROCESS
+#pragma once
 
 // System includes
 
@@ -255,4 +254,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_AALM_ADAPT_PENALTY_VALUE_PROCESS defined */

@@ -12,19 +12,18 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
-#define  KRATOS_MODEL_PART_IO_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
+#include <filesystem>
 #include <fstream>
+#include <string>
 #include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_filesystem.h"
 #include "includes/io.h"
 #include "containers/flags.h"
 
@@ -797,5 +796,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_IO_H_INCLUDED  defined

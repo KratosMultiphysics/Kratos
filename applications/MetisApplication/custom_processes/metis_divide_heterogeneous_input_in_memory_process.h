@@ -12,35 +12,13 @@
 //                   Carlos Roig
 //
 
-#ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
-#define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
-
-#ifdef KRATOS_USE_METIS_5
-  #include "metis.h"
-#else
-  #include <parmetis.h>
-#endif
+#pragma once
 
 // Project includes
 #include "includes/model_part_io.h"
-#include "custom_processes/metis_divide_input_to_partitions_process.h"
+#include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
-#ifndef KRATOS_USE_METIS_5
-  extern "C" {
-  extern void METIS_PartGraphKway(int*,  //int* n
-                                  int*,  //idxtype* xadj
-                                  int*,  //idxtype* adjcncy
-                                  int*,  //idxtype* vwgt
-                                  int*,  //idxtype* adjwgt
-                                  int*,  //int* wgtflag
-                                  int*,  //int* numflag
-                                  int*,  //int* nparts
-                                  int*,  //int* options
-                                  int*,  //int* edgecut
-                                  int*); //indxtype* part
-  }
-#endif
 
 namespace Kratos
 {
@@ -73,20 +51,14 @@ public:
     ///@name Type Definitions
     ///@{
 
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #else
-      typedef int idxtype;
-    #endif
-
     /// Pointer definition of MetisDivideHeterogeneousInputInMemoryProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideHeterogeneousInputInMemoryProcess);
 
     typedef MetisDivideHeterogeneousInputProcess BaseType;
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef matrix<int> GraphType;
+    using BaseType::SizeType;
+    using BaseType::GraphType;
+    using BaseType::idxtype;
 
     ///@}
     ///@name Life Cycle
@@ -474,5 +446,3 @@ private:
 ///@} // addtogroup block
 
 }
-
-#endif // KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
