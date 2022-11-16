@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED )
-#define  KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -661,5 +660,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined
