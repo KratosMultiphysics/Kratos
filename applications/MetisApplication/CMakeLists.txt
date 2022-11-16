@@ -15,6 +15,7 @@ install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 file( GLOB KRATOS_METIS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 ## Metis python interface sources
