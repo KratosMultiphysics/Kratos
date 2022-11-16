@@ -8,11 +8,11 @@
 //           Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Vicente Mataix Ferrandiz
 //
 //
 
 // Project includes
-#include "geometries/point.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
