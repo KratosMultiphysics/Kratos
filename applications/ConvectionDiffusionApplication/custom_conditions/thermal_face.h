@@ -91,8 +91,6 @@ public:
     /// Stefan Boltzmann constant for radiation in SI units: [W / (m^2 K^4)].
     constexpr static double StefanBoltzmann = 5.67e-8;
 
-    double mConvectionCoefficient;
-
     ///@}
     ///@name Life Cycle
     ///@{

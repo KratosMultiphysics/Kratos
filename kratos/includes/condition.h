@@ -186,6 +186,8 @@ public:
         return *this;
     }
 
+    double mConvectionCoefficient;
+
     ///@}
     ///@name Operations
     ///@{

@@ -271,27 +271,26 @@ public:
             }
         }
 
-        //const int step = CurrentProcessInfo[STEP];
-        //const double time = CurrentProcessInfo[TIME];
+        const int step = CurrentProcessInfo[STEP];
+        const double time = CurrentProcessInfo[TIME];
 
-        //if (step == 1 || step % 2 == 0) {
-        //  double h = 0.0;
-        //  for (int k = 0; k < nconditions; k++) {
-        //    ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-        //    ThermalFace& cond = dynamic_cast<ThermalFace&> (*it);
-        //    h += cond.mConvectionCoefficient;
-        //  }
-        //  h = h / nconditions;
+        if (step == 1 || step % 2 == 0) {
+          double h = 0.0;
+          for (int k = 0; k < nconditions; k++) {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            h += (it)->mConvectionCoefficient;
+          }
+          h = h / nconditions;
 
-        //  std::ofstream file_ConvCoeff;
-        //  if (step == 1)
-        //    file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::out);
-        //  else
-        //    file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::app);
-        //  file_ConvCoeff << time << " " << h << std::endl;
-        //  if (file_ConvCoeff.is_open())
-        //    file_ConvCoeff.close();
-        //}
+          std::ofstream file_ConvCoeff;
+          if (step == 1)
+            file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::out);
+          else
+            file_ConvCoeff.open("CONVECTION_COEFFICIENT.txt", std::ios::app);
+          file_ConvCoeff << time << " " << h << std::endl;
+          if (file_ConvCoeff.is_open())
+            file_ConvCoeff.close();
+        }
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
