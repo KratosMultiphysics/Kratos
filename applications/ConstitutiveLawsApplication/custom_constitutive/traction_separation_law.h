@@ -21,7 +21,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/rule_of_mixtures_law.h"
 
 
 namespace Kratos

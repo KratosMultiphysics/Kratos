@@ -1828,13 +1828,15 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
             rValues.SetMaterialProperties(r_prop);
             p_law->CalculateMaterialResponsePK2(rValues);
-            p_law->FinalizeMaterialResponsePK2(rValues);
+            // p_law->FinalizeMaterialResponsePK2(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             noalias(layer_stress[i_layer]) = rValues.GetStressVector();
             noalias(delamination_damage_affected_stress_matrix[i_layer]) = rValues.GetStressVector();
             // noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
+
+            p_law->FinalizeMaterialResponsePK2(rValues);
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
