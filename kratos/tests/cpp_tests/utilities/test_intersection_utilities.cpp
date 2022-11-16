@@ -8,11 +8,11 @@
 //           Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Vicente Mataix Ferrandiz
 //
 //
 
 // Project includes
-#include "geometries/point.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
@@ -584,7 +584,25 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(int_id, 1);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ComputeShortestLineBetweenTwoLines, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ComputeShortestLineBetweenTwoLines2D, KratosCoreFastSuite)
+    {
+        auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, 1.0, 0.0, 0.0);
+        auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
+        Line2D2<Node<3>> line1(p_point_1, p_point_2);
+
+        auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, 0.0, 0.0, 0.0);
+        auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, 2.0, 2.0, 0.0);
+        Line2D2<Node<3>> line2(p_point_3, p_point_4);
+
+        const auto line1_2 = Line2D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(line1, line2));
+        KRATOS_CHECK_DOUBLE_EQUAL(line1_2.Length(), 0.0);
+        array_1d<double, 3> expected_center = ZeroVector(3);
+        expected_center[0] = 0.5;
+        expected_center[1] = 0.5;
+        KRATOS_CHECK_VECTOR_NEAR(line1_2.Center().Coordinates(), expected_center, 1e-10);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ComputeShortestLineBetweenTwoLines3D, KratosCoreFastSuite)
     {
         Point::Pointer p_point_1 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
         Point::Pointer p_point_2 = Kratos::make_shared<Point>(0.0, 1.0, 0.0);
