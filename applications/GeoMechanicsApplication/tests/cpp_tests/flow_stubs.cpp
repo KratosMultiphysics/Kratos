@@ -1,4 +1,3 @@
-
 // KRATOS___
 //     //   ) )
 //    //         ___      ___
@@ -8,8 +7,16 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Jonathan Nuttall
+//  Main authors:    Carlos Lubbers
 //
 
-#pragma once
-#include "cpp_geomechanics_application.h"
+#include "flow_stubs.h"
+
+namespace flow_stubs
+{
+    void emptyProgress(double progress) {}
+    void emptyLog(char* log) {}
+    bool emptyCancel() {
+        return false;
+    }
+}

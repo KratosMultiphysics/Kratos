@@ -25,8 +25,8 @@ namespace Kratos
 void VtkEigenOutput::PrintEigenOutput(
         const std::string& rLabel,
         const int AnimationStep,
-        const std::vector<Variable<double>>& rRequestedDoubleResults,
-        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults)
+        const std::vector<const Variable<double>*>& rRequestedDoubleResults,
+        const std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults)
 {
     std::ofstream output_file;
     const std::string output_file_name = GetEigenOutputFileName(AnimationStep);
@@ -55,12 +55,12 @@ void VtkEigenOutput::PrintEigenOutput(
         OpenOutputFile(output_file_name, ios_flags, output_file);
     }
 
-    for (const auto& r_variable : rRequestedDoubleResults) {
-        WriteScalarEigenVariable(mrModelPart.Nodes(), r_variable, rLabel, output_file);
+    for (const auto& p_variable : rRequestedDoubleResults) {
+        WriteScalarEigenVariable(mrModelPart.Nodes(), *p_variable, rLabel, output_file);
     }
 
-    for (const auto& r_variable : rRequestedVectorResults) {
-        WriteVectorEigenVariable(mrModelPart.Nodes(), r_variable, rLabel, output_file);
+    for (const auto& p_variable : rRequestedVectorResults) {
+        WriteVectorEigenVariable(mrModelPart.Nodes(), *p_variable, rLabel, output_file);
     }
 
     output_file.close();
