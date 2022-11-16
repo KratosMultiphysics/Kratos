@@ -272,7 +272,7 @@ public:
             // The nodes array
             auto& r_nodes_array = rModelPart.Nodes();
 
-            // Auxiliar values
+            // Auxiliary values
             struct AuxValues {
                 std::size_t dof_id = 0;
                 double residual_dof_value = 0.0;
@@ -282,7 +282,7 @@ public:
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
 
-            // Auxiliar displacement DoF check
+            // Auxiliary displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
             [](const VariableData& rCurrVar) -> bool {return true;};
             const std::function<bool(const VariableData&)> check_with_rot =
@@ -329,7 +329,7 @@ public:
                 return std::make_tuple(0.0,0.0,0.0,0.0,0.0,0,0,0,0,0);
             });
 
-            // Auxiliar dofs counters
+            // Auxiliary dofs counters
             if (mStickCounter > 0) {
                 if (lm_stick_dof_num == 0) {
                     mStickCounter = 0;
@@ -793,8 +793,8 @@ private:
     double mLMTangentSlipInitialResidualNorm;  /// The reference norm of the tangent LM residual (slip)
     double mLMTangentSlipCurrentResidualNorm;  /// The current norm of the tangent LM residual (slip)
 
-    std::size_t mStickCounter = 0;                /// This is an auxiliar counter for stick dofs
-    std::size_t mSlipCounter = 0;                 /// This is an auxiliar counter for slip dofs
+    std::size_t mStickCounter = 0;                /// This is an auxiliary counter for stick dofs
+    std::size_t mSlipCounter = 0;                 /// This is an auxiliary counter for slip dofs
 
     double mNormalTangentRatio;                /// The ratio to accept a non converged tangent component in case
 

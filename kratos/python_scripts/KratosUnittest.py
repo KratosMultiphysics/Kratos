@@ -8,7 +8,7 @@ from contextlib import contextmanager
 import argparse
 import sys
 import os
-from time import time
+import time
 
 
 class TestLoader(TestLoader):
@@ -30,9 +30,9 @@ test_timing_results = {}
 class TestCase(TestCase):
 
     def run(self, result=None):
-        start_time = time()
+        start_time = time.time()
         super().run(result)
-        time_needed = time()-start_time
+        time_needed = time.time()-start_time
         test_timing_results[time_needed] = str(self)
 
     def skipTestIfApplicationsNotAvailable(self, *application_names):
@@ -73,7 +73,7 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
-    def assertVectorAlmostEqual(self, vector1, vector2, prec=7, msg=None):
+    def assertVectorAlmostEqual(self, vector1, vector2, places=7, msg=None, delta=None):
         class LazyErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
             def __init__(self, mismatch_idx, aux_message=None):
@@ -89,9 +89,9 @@ class TestCase(TestCase):
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, prec, msg=LazyErrMsg(i, msg))
+            self.assertAlmostEqual(v1, v2, places, LazyErrMsg(i, msg), delta)
 
-    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7, msg=None):
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, places=7, msg=None, delta=None):
         class LazyDimErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
             def __init__(self, aux_message=None):
@@ -124,8 +124,58 @@ class TestCase(TestCase):
 
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=LazyValErrMsg(i,j,msg))
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], places, LazyValErrMsg(i,j,msg), delta)
 
+class KratosTextTestResult(TextTestResult):
+    def __init__(self, stream, descriptions, verbosity):
+        super().__init__(stream=stream, descriptions=descriptions,
+                         verbosity=verbosity)
+        self.buffer = True
+        self.__start_time = None
+        self.show_test_times = verbosity > 1
+
+    def startTest(self, test):
+        super().startTest(test)
+        self.__start_time = time.perf_counter()
+
+    def addError(self, test, err):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addError(test, err)
+
+    def addExpectedFailure(self, test, err):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addExpectedFailure(test, err)
+
+    def addFailure(self, test, err):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addFailure(test, err)
+
+    def addSkip(self, test, reason):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addSkip(test, reason)
+
+    def addSuccess(self, test):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addSuccess(test)
+
+    def addUnexpectedSuccess(self, test):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addUnexpectedSuccess(test)
+
+    def getDescription(slef, test):
+        return str(test)
 
 def skipIfApplicationsNotAvailable(*application_names):
     '''Skips the test if required applications are not available'''
@@ -180,7 +230,7 @@ def runTests(tests):
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
-    parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2])
+    parser.add_argument('-v', '--verbosity', default=2, type=int, choices=[0, 1, 2])
     parser.add_argument('--timing', action='store_true')
     parser.add_argument('--using-mpi', action='store_true')
 
@@ -193,7 +243,7 @@ def runTests(tests):
     if tests[level].countTestCases() == 0:
         print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)
     else:
-        result = not TextTestRunner(verbosity=args.verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        result = not TextTestRunner(verbosity=args.verbosity, buffer=True, resultclass=KratosTextTestResult).run(tests[level]).wasSuccessful()
         if Testing.GetDefaultDataCommunicator().Rank() == 0 and args.timing:
             print("Test Execution Times:")
             for test_time, test_name in sorted(test_timing_results.items(), reverse=True):

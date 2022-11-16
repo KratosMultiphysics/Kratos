@@ -63,6 +63,10 @@
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/single_import_model_part.h"
 #include "utilities/rve_periodicity_utility.h"
+#include "utilities/communication_coloring_utilities.h"
+#include "utilities/model_part_graph_utilities.h"
+#include "utilities/shifted_boundary_meshless_interface_utility.h"
+#include "utilities/particles_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -99,6 +103,7 @@ void SetOnProcessInfo(
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
+    KRATOS_WARNING("[DEPRECATED] Timer.PrintTimingInformation") << "This will be removed at end of 2022. Please, call this function without arguments." << std::endl;
     rTimer.PrintTimingInformation();
 }
 
@@ -249,6 +254,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
         .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", [](){Timer::PrintTimingInformation();})
         .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
@@ -714,8 +720,74 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Finalize",&RVEPeriodicityUtility::Finalize)
         ;
 
+    py::class_<MPIColoringUtilities>(m, "MPIColoringUtilities")
+        .def(py::init<>())
+        .def("ComputeRecvList", &MPIColoringUtilities::ComputeRecvList)
+        .def("ComputeCommunicationScheduling", &MPIColoringUtilities::ComputeCommunicationScheduling)
+        ;
+
+    py::class_<ModelPartGraphUtilities>(m, "ModelPartGraphUtilities")
+        .def_static("ComputeGraph", &ModelPartGraphUtilities::ComputeGraph)
+        .def_static("ComputeCSRGraph", &ModelPartGraphUtilities::ComputeCSRGraph)
+        .def_static("ComputeConnectedComponents", &ModelPartGraphUtilities::ComputeConnectedComponents)
+        .def_static("ComputeConnectedComponentsWithActiveNodesCheck", &ModelPartGraphUtilities::ComputeConnectedComponentsWithActiveNodesCheck)
+        .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
+        ;
+
+    py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<2,true>)
+        .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<3,true>)
+        .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<2,false>)
+        .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<3,false>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,double,true>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,double,true>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,double,false>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,double,false>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,int,true>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,int,true>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,int,false>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,int,false>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,unsigned int,true>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,unsigned int,true>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,unsigned int,false>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,double,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,double,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,std::size_t,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,std::size_t,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,unsigned int,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,unsigned int,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,array_1d<double,3>,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,array_1d<double,3>,true>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,double,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,double,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,std::size_t,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,std::size_t,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,array_1d<double,3>,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,array_1d<double,3>,false>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,double, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,double, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,std::size_t, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,std::size_t, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,unsigned int, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, true>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,double, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,double, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,std::size_t, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,std::size_t, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,unsigned int, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, false>)
+        ;
+
     auto fs_extensions = m.def_submodule("FilesystemExtensions");
     fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
+
+    py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
+    ;
 }
 
 } // namespace Python.

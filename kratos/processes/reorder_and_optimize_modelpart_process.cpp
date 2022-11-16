@@ -74,7 +74,7 @@ namespace Kratos
 
             auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
 
-            paux->Data() = pelem->Data();
+            paux->GetData() = pelem->GetData();
 
             pelem = paux;
         });
@@ -89,7 +89,7 @@ namespace Kratos
 
             auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
 
-            paux->Data() = pcond->Data();
+            paux->GetData() = pcond->GetData();
 
             pcond = paux;
         });

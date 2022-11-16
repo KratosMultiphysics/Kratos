@@ -12,29 +12,13 @@
 //                   Eric Gonzales
 //					 Philipp Hofer
 //					 Erich Wehrle
-//
-// ==============================================================================
-
 #if !defined(KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED )
 #define  KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED
 
-
-
-// System includes
-
-// External includes
-
-// Core applications
 #include "topology_optimization_application.h"
 #include "custom_elements/small_displacement_simp_element.h"
-
-// Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
-
-//elements
-
 
 namespace Kratos
 {
@@ -45,7 +29,8 @@ namespace Kratos
     // Variables definition with Python connection
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, YOUNGS_MODULUS_MIN)
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, YOUNGS_MODULUS_0 )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION,double, PENAL )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, PENAL )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, std::string, MAT_INTERP)
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, X_PHYS )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, X_PHYS_OLD )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, DCDX )
@@ -151,11 +136,9 @@ namespace Kratos
         KratosComponents<Condition>().PrintData(rOStream);
         }
 
-
         ///@}
         ///@name Friends
         ///@{
-
 
         ///@}
 
@@ -163,36 +146,29 @@ namespace Kratos
         ///@name Protected static Member Variables
         ///@{
 
-
         ///@}
         ///@name Protected member Variables
         ///@{
-
 
         ///@}
         ///@name Protected Operators
         ///@{
 
-
         ///@}
         ///@name Protected Operations
         ///@{
-
 
         ///@}
         ///@name Protected  Access
         ///@{
 
-
         ///@}
         ///@name Protected Inquiry
         ///@{
 
-
         ///@}
         ///@name Protected LifeCycle
         ///@{
-
 
         ///@}
 
@@ -209,28 +185,21 @@ namespace Kratos
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
 
-
-
-
         ///@}
         ///@name Private Operators
         ///@{
-
 
         ///@}
         ///@name Private Operations
         ///@{
 
-
         ///@}
         ///@name Private  Access
         ///@{
 
-
         ///@}
         ///@name Private Inquiry
         ///@{
-
 
         ///@}
         ///@name Un accessible methods
@@ -242,17 +211,14 @@ namespace Kratos
         /// Copy constructor.
         KratosTopologyOptimizationApplication(KratosTopologyOptimizationApplication const& rOther);
 
-
         ///@}
 
     }; // Class KratosTopologyOptimizationApplication
 
     ///@}
 
-
     ///@name Type Definitions
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -260,8 +226,6 @@ namespace Kratos
 
     ///@}
 
-
 }  // namespace Kratos.
 
 #endif // KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED  defined
-

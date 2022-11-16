@@ -58,7 +58,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
                 "process_name"   : "CompareTwoFilesCheckProcess",
                 "Parameters"            : {
                     "reference_file_name"   : "",
-                    "output_file_name"      : "Main-0.300.dat",
+                    "output_file_name"      : "Main_0.300.dat",
                     "comparison_type"       : "dat_file"
                 }
             },{
@@ -67,7 +67,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
                 "process_name"   : "CompareTwoFilesCheckProcess",
                 "Parameters"            : {
                     "reference_file_name"   : "",
-                    "output_file_name"      : "Main-3.300.dat",
+                    "output_file_name"      : "Main_3.300.dat",
                     "comparison_type"       : "dat_file"
                 }
             }]

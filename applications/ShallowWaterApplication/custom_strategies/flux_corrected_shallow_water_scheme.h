@@ -577,7 +577,7 @@ protected:
         const LocalSystemVectorType& rU,
         const LocalSystemVectorType& rDotU)
     {
-        if (rMc.size1() != 0) {
+        if (rD.size1() != 0) {
             // Construction of the incremental element contribution of anti-fluxes
             auto& cum = rEntity.GetValue(CUMULATIVE_CORRECTIONS);
             auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);

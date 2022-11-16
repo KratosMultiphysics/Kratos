@@ -75,7 +75,7 @@ bool ContainsPartialString(
     )
 {
     // Value to return
-    std::string sub_string = rMainString;
+    const std::string& sub_string = rMainString;
 
     // Search for the substring in string
     std::size_t pos = sub_string.find(rToCheck);

@@ -168,10 +168,9 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWake
 
     MatrixType laplacian_matrix = ZeroMatrix(2 * NumNodes, 2 * NumNodes);
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{this->GetGeometry()};
 
     // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
     data.distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(*this);
 
     const double density = BaseType::ComputeDensity(rCurrentProcessInfo);

@@ -39,7 +39,7 @@
     "NeighbourSearchFrequency"       : 50,
     "GraphExportFreq"                : 1,
     "VelTrapGraphExportFreq"         : 1,
-    "OutputTimeStep"                 : 0.01,
+    "OutputTimeStep"                 : 2.0,
     "PostBoundingBox"                : false,
     "PostLocalContactForce"          : false,
     "PostDisplacement"               : true,

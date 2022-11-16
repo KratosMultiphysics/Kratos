@@ -559,8 +559,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculate shape functions
-    ElementalData data;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{GetGeometry()};
 
     const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
 
@@ -623,8 +622,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     const array_1d<double, TDim>& rVelocity)
 {
     // Calculate shape functions
-    ElementalData data;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{GetGeometry()};
 
     rRhs_total = - data.vol * rDensity * prod(data.DN_DX, rVelocity);
 }
@@ -696,10 +694,8 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     }
     rLeftHandSideMatrix.clear();
 
-    ElementalData data;
+    ElementalData data{GetGeometry()};
 
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
     // Compute upper and lower velocities
@@ -777,11 +773,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     }
     rRightHandSideVector.clear();
 
-    ElementalData data;
-
-    // Calculate shape functions
     const auto& r_geometry = this->GetGeometry();
-    GeometryUtils::CalculateGeometryData(r_geometry, data.DN_DX, data.N, data.vol);
+
+    ElementalData data{r_geometry};
     GetWakeDistances(data.distances);
 
     const array_1d<double, 3>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
@@ -905,10 +899,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     Matrix& lhs_negative,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    ElementalData data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{GetGeometry()};
 
     GetWakeDistances(data.distances);
 
@@ -987,10 +978,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateVolume
     double& rLower_vol,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    ElementalData data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{GetGeometry()};
 
     GetWakeDistances(data.distances);
 
@@ -1147,8 +1135,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleSuperso
         densityDerivativeWRTVelocity, densityDerivativeWRTUpwindVelocity, velocity, upwindVelocity, rCurrentProcessInfo);
 
     // Calculate shape functions
-    ElementalData data;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData data{GetGeometry()};
 
     const double density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwindVelocity, rCurrentProcessInfo);
 
@@ -1185,11 +1172,8 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
 
     const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
 
-    ElementalData currentElementdata;
-    ElementalData upwindElementdata;
-
-    GeometryUtils::CalculateGeometryData(r_geom, currentElementdata.DN_DX, currentElementdata.N, currentElementdata.vol);
-    GeometryUtils::CalculateGeometryData(r_upwind_geom, upwindElementdata.DN_DX, upwindElementdata.N, upwindElementdata.vol);
+    ElementalData currentElementdata{r_geom};
+    ElementalData upwindElementdata{r_upwind_geom};
 
     const BoundedVector<double, TNumNodes> current_DNV = densityDerivativeWRTVelocitySquared * prod(currentElementdata.DN_DX, velocity);
     const BoundedVector<double, TNumNodes> upwind_DNV = densityDerivativeWRTUpwindVelocitySquared * prod(upwindElementdata.DN_DX, upwindVelocity);
@@ -1278,12 +1262,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeome
     const GeometryType& r_geom = r_this.GetGeometry();
 
     // get element edges or faces depending on dimension of the problem
-    if(TDim == 2)
+    if constexpr (TDim == 2)
     {
         // current element edges
         rElementGeometryBoundary = r_geom.GenerateEdges();
     }
-    else if(TDim == 3)
+    else if constexpr (TDim == 3)
     {
         // current element faces
         rElementGeometryBoundary = r_geom.GenerateFaces();
