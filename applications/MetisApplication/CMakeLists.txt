@@ -6,14 +6,6 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
-# Use Metis 5 by default
-OPTION ( USE_METIS_5 "Using Metis 5 (and not 4)" ON )
-
-if(${USE_METIS_5} MATCHES OFF)
-    message( FATAL_ERROR "Support for Metis version < 5 has been dropped")
-endif(${USE_METIS_5} MATCHES OFF)
-
-add_definitions(-DKRATOS_USE_METIS_5)
 find_package(METIS REQUIRED)
 include_directories(${METIS_INCLUDE_DIR})
 link_directories(${METIS_LIBRARIES})

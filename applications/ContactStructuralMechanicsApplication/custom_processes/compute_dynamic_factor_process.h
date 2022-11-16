@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_COMPUTE_DYNAMIC_FACTOR_PROCESS)
-#define KRATOS_COMPUTE_DYNAMIC_FACTOR_PROCESS
+#pragma once
 
 // System includes
 
@@ -274,4 +273,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }
-#endif /* KRATOS_COMPUTE_DYNAMIC_FACTOR_PROCESS defined */
