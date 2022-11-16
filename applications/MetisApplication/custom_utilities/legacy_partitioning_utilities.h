@@ -13,15 +13,14 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/io.h"
+#include "custom_processes/metis_divide_input_to_partitions_process.h"
 
 
 namespace Kratos {
@@ -44,6 +43,9 @@ public:
     /// Pointer definition of LegacyPartitioningUtilities
     KRATOS_CLASS_POINTER_DEFINITION(LegacyPartitioningUtilities);
 
+    using idxtype = idx_t; // from metis
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -65,6 +67,33 @@ public:
     ///@name Operations
     ///@{
 
+    static void CalculateDomainsGraph(
+        IO::GraphType& rDomainsGraph,
+        SizeType NumberOfElements,
+        IO::ConnectivitiesContainerType& ElementsConnectivities,
+        MetisGraphPartitioningProcess::PartitionIndicesType const& NPart,
+        MetisGraphPartitioningProcess::PartitionIndicesType const&  EPart);
+
+    static void DividingNodes(
+        IO::PartitionIndicesContainerType& rNodesAllPartitions,
+        IO::ConnectivitiesContainerType& ElementsConnectivities,
+        IO::ConnectivitiesContainerType& ConditionsConnectivities,
+        MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions,
+        MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions,
+        MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions);
+
+    static void DividingElements(
+        IO::PartitionIndicesContainerType& rElementsAllPartitions,
+        MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions);
+
+    static void DividingConditions(
+        IO::PartitionIndicesContainerType& rConditionsAllPartitions,
+        MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions);
+
+    static void ConvertKratosToCSRFormat(
+        IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities,
+        idxtype** NodeIndices,
+        idxtype** NodeConnectivities);
 
     ///@}
 
