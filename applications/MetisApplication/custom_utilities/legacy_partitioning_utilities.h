@@ -16,11 +16,11 @@
 
 
 // External includes
+#include "metis.h"
 
 
 // Project includes
 #include "includes/io.h"
-#include "custom_processes/metis_divide_input_to_partitions_process.h"
 
 
 namespace Kratos {
@@ -44,6 +44,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(LegacyPartitioningUtilities);
 
     using idxtype = idx_t; // from metis
+    using PartitionIndicesType = std::vector<idxtype>;
     using SizeType = std::size_t;
 
     ///@}
@@ -71,24 +72,24 @@ public:
         IO::GraphType& rDomainsGraph,
         SizeType NumberOfElements,
         IO::ConnectivitiesContainerType& ElementsConnectivities,
-        MetisGraphPartitioningProcess::PartitionIndicesType const& NPart,
-        MetisGraphPartitioningProcess::PartitionIndicesType const&  EPart);
+        PartitionIndicesType const& NPart,
+        PartitionIndicesType const&  EPart);
 
     static void DividingNodes(
         IO::PartitionIndicesContainerType& rNodesAllPartitions,
         IO::ConnectivitiesContainerType& ElementsConnectivities,
         IO::ConnectivitiesContainerType& ConditionsConnectivities,
-        MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions,
-        MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions,
-        MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions);
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesType const& ElementsPartitions,
+        PartitionIndicesType const& ConditionsPartitions);
 
     static void DividingElements(
         IO::PartitionIndicesContainerType& rElementsAllPartitions,
-        MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions);
+        PartitionIndicesType const& ElementsPartitions);
 
     static void DividingConditions(
         IO::PartitionIndicesContainerType& rConditionsAllPartitions,
-        MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions);
+        PartitionIndicesType const& ConditionsPartitions);
 
     static void ConvertKratosToCSRFormat(
         IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities,

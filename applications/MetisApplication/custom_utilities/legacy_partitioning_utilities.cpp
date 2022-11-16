@@ -26,8 +26,8 @@ void LegacyPartitioningUtilities::CalculateDomainsGraph(
     IO::GraphType& rDomainsGraph,
     SizeType NumberOfElements,
     IO::ConnectivitiesContainerType& ElementsConnectivities,
-    MetisGraphPartitioningProcess::PartitionIndicesType const& NPart,
-    MetisGraphPartitioningProcess::PartitionIndicesType const&  EPart )
+    PartitionIndicesType const& NPart,
+    PartitionIndicesType const&  EPart )
 {
     for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++)
         for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;
@@ -47,9 +47,9 @@ void LegacyPartitioningUtilities::DividingNodes(
     IO::PartitionIndicesContainerType& rNodesAllPartitions,
     IO::ConnectivitiesContainerType& ElementsConnectivities,
     IO::ConnectivitiesContainerType& ConditionsConnectivities,
-    MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions,
-    MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions,
-    MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
+    PartitionIndicesType const& NodesPartitions,
+    PartitionIndicesType const& ElementsPartitions,
+    PartitionIndicesType const& ConditionsPartitions)
 {
     SizeType number_of_nodes = NodesPartitions.size();
     SizeType number_of_elements = ElementsPartitions.size();
@@ -111,7 +111,7 @@ void LegacyPartitioningUtilities::DividingNodes(
 
 void LegacyPartitioningUtilities::DividingElements(
     IO::PartitionIndicesContainerType& rElementsAllPartitions,
-    MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions)
+    PartitionIndicesType const& ElementsPartitions)
 {
     SizeType number_of_elements = ElementsPartitions.size();
 
@@ -126,7 +126,7 @@ void LegacyPartitioningUtilities::DividingElements(
 
 void LegacyPartitioningUtilities::DividingConditions(
     IO::PartitionIndicesContainerType& rConditionsAllPartitions,
-    MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
+    PartitionIndicesType const& ConditionsPartitions)
 {
     SizeType number_of_conditions = ConditionsPartitions.size();
 
