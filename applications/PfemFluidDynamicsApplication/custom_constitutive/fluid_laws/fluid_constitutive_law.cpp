@@ -62,8 +62,14 @@ namespace Kratos
                                                      const Variable<double> &rThisVariable, double &rValue)
     {
 
-        rValue = this->GetEffectiveMaterialParameter(rParameters, DENSITY);
-        /// CUIDADOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+        if (rThisVariable.Name() == "DENSITY")
+        {
+            rValue = this->GetEffectiveMaterialParameter(rParameters, DENSITY);
+        }
+        else
+        {
+            KRATOS_ERROR << " An unexpected property has been passed " << std::endl;
+        }
         return rValue;
     }
 
@@ -140,7 +146,6 @@ namespace Kratos
         rConstitutiveMatrix(4, 4) = +EffectiveDynamicViscosity;
         rConstitutiveMatrix(5, 5) = +EffectiveDynamicViscosity;
     }
-
 
     double PfemFluidConstitutiveLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {

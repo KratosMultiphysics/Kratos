@@ -128,9 +128,6 @@ namespace Kratos
 
         double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
-        /// Get the flow index for the fluid.
-        double GetFlowIndex(ConstitutiveLaw::Parameters &rParameters) const;
-
         ///@}
 
     private:

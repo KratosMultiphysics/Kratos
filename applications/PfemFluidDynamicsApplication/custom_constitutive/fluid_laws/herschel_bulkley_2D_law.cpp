@@ -62,14 +62,12 @@ namespace Kratos
         const double dynamic_viscosity = this->GetEffectiveMaterialParameter(rValues, DYNAMIC_VISCOSITY);
         const double yield_shear = this->GetEffectiveMaterialParameter(rValues, YIELD_SHEAR);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
-        double effective_dynamic_viscosity;
-        const double flow_index = this->GetFlowIndex(rValues);
+        const double flow_index = r_properties[FLOW_INDEX];
+        double effective_dynamic_viscosity = 0;
 
         const double equivalent_strain_rate =
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
                       4.0 * r_strain_vector[2] * r_strain_vector[2]);
-
-        // KRATOS_WATCH("Hola que tal")
 
         // Ensuring that the case of equivalent_strain_rate = 0 is not problematic.
         const double tolerance = 1e-8;
@@ -134,12 +132,7 @@ namespace Kratos
     {
         return rParameters.GetMaterialProperties()[rVariable];
     }
-
-    double HerschelBulkley2DLaw::GetFlowIndex(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[FLOW_INDEX];
-    }
-
+    
     void HerschelBulkley2DLaw::save(Serializer &rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PfemFluidConstitutiveLaw)
