@@ -34,15 +34,15 @@
 
 namespace Kratos {
 
-// deprecated namespaces wrongly issue a warning with GCC 9, hence disabling until removed
-#if defined(__GNUG__) && __GNUC__ == 9 && !defined(__clang__) && !defined(__INTEL_COMPILER)
+// deprecated namespaces wrongly issue a warning with GCC < 10, hence disabling until removed
+#if defined(__GNUG__) && __GNUC__ < 10 && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 #endif
 
 namespace KRATOS_DEPRECATED_MESSAGE("Please use std::filesystem directly") filesystem {
 
-#if defined(__GNUG__) && __GNUC__ == 9 && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#if defined(__GNUG__) && __GNUC__ < 10 && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic pop
 #endif
 
