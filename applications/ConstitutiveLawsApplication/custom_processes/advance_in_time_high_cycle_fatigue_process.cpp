@@ -157,6 +157,8 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
     }
     if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
         rAdvancingStrategy = true;
+        KRATOS_WATCH("HELLO")        
+        KRATOS_WATCH(rAdvancingStrategy)
     }
 }
 

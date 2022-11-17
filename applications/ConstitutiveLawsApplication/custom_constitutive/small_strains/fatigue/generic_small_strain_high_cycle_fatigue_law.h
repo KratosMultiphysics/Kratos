@@ -412,6 +412,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    double mDamage = 0.0;
     double mFatigueReductionFactor = 1.0;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
@@ -452,6 +453,7 @@ private:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("Damage", mDamage);
         rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.save("PreviousStresses", mPreviousStresses);
         rSerializer.save("MaxStress", mMaxStress);
@@ -477,6 +479,7 @@ private:
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("Damage", mDamage);
         rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.load("PreviousStresses", mPreviousStresses);
         rSerializer.load("MaxStress", mMaxStress);
