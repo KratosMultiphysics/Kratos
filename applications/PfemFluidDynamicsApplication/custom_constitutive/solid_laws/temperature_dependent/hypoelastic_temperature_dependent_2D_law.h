@@ -106,14 +106,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependen
     ///@name Protected Operations
     ///@{
 
-    /// Get the effective Young Modulus for the solid.
-    double GetEffectiveYoungModulus(ConstitutiveLaw::Parameters& rParameters) const override;
-
-    /// Get the effective Poisson ratio for the solid.
-    double GetEffectivePoissonRatio(ConstitutiveLaw::Parameters& rParameters) const override;
-
     /// Get the effective density for the solid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
+    double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
     ///@}
 

@@ -22,140 +22,131 @@
 // Project includes
 #include "custom_constitutive/fluid_laws/newtonian_3D_law.h"
 
-namespace Kratos {
-/**
- * Defines a temperature dependent Newtonian constitutive law for 3D
- * This material law is defined by the parameters:
- * 1) DYNAMIC_VISCOSITY
- */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3DLaw : public Newtonian3DLaw {
-   public:
+namespace Kratos
+{
     /**
-     * Type Definitions
+     * Defines a temperature dependent Newtonian constitutive law for 3D
+     * This material law is defined by the parameters:
+     * 1) DYNAMIC_VISCOSITY
      */
-    typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
+    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3DLaw : public Newtonian3DLaw
+    {
+    public:
+        /**
+         * Type Definitions
+         */
+        typedef ProcessInfo ProcessInfoType;
+        typedef ConstitutiveLaw BaseType;
+        typedef std::size_t SizeType;
 
-    /**
-     * Counted pointer of Newtonian3DLaw
-     */
-    KRATOS_CLASS_POINTER_DEFINITION(NewtonianTemperatureDependent3DLaw);
+        /**
+         * Counted pointer of Newtonian3DLaw
+         */
+        KRATOS_CLASS_POINTER_DEFINITION(NewtonianTemperatureDependent3DLaw);
 
-    /**
-     * Life Cycle
-     */
+        /**
+         * Life Cycle
+         */
 
-    /**
-     * Default constructor.
-     */
-    NewtonianTemperatureDependent3DLaw();
+        /**
+         * Default constructor.
+         */
+        NewtonianTemperatureDependent3DLaw();
 
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     */
-    ConstitutiveLaw::Pointer Clone() const override;
+        /**
+         * Clone function (has to be implemented by any derived class)
+         * @return a pointer to a new instance of this constitutive law
+         */
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    NewtonianTemperatureDependent3DLaw(const NewtonianTemperatureDependent3DLaw& rOther);
+        /**
+         * Copy constructor.
+         */
+        NewtonianTemperatureDependent3DLaw(const NewtonianTemperatureDependent3DLaw &rOther);
 
-    /**
-     * Destructor.
-     */
-    ~NewtonianTemperatureDependent3DLaw() override;
+        /**
+         * Destructor.
+         */
+        ~NewtonianTemperatureDependent3DLaw() override;
 
-    /**
-     * Operations needed by the base class:
-     */
+        /**
+         * Operations needed by the base class:
+         */
 
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return
-     */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
+        /**
+         * This function is designed to be called once to perform all the checks needed
+         * on the input provided. Checks can be "expensive" as the function is designed
+         * to catch user's errors.
+         * @param rMaterialProperties
+         * @param rElementGeometry
+         * @param rCurrentProcessInfo
+         * @return
+         */
+        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
-    /**
-     * Input and output
-     */
+        /**
+         * Input and output
+         */
 
-    /**
-     * Turn back information as a string.
-     */
-    std::string Info() const override;
+        /**
+         * Turn back information as a string.
+         */
+        std::string Info() const override;
 
-   protected:
-    ///@name Protected static Member Variables
-    ///@{
+    protected:
+        ///@name Protected static Member Variables
+        ///@{
 
+        ///@}
+        ///@name Protected member Variables
+        ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+        ///@}
+        ///@name Protected Operators
+        ///@{
 
+        ///@}
+        ///@name Protected Operations
+        ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+        /// Get the effective density for the fluid.
+        double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
+        ///@}
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
+    private:
+        ///@name Static Member Variables
+        ///@{
 
-    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-    /// Get the effective density for the fluid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
+        ///@}
+        ///@name Private Operators
+        ///@{
 
-    ///@}
+        ///@}
+        ///@name Private Operations
+        ///@{
 
-   private:
-    ///@name Static Member Variables
-    ///@{
+        ///@}
+        ///@name Private  Access
+        ///@{
 
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+        void save(Serializer &rSerializer) const override;
 
+        void load(Serializer &rSerializer) override;
+        ///@}
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+    }; // Class NewtonianTemperatureDependent3DLaw
 
+} // namespace Kratos.
 
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const override;
-
-    void load(Serializer& rSerializer) override;
-    ///@}
-
-};  // Class NewtonianTemperatureDependent3DLaw
-
-}  // namespace Kratos.
-
-#endif  // KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED  defined
