@@ -131,11 +131,6 @@ namespace Kratos
         return 0;
     }
 
-    double HerschelBulkley3DLaw::GetApparentViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetConstitutiveMatrix()(5, 5);
-    }
-
     double HerschelBulkley3DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {
         return rParameters.GetMaterialProperties()[rVariable];

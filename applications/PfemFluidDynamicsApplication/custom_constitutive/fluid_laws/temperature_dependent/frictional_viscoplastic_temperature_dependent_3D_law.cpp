@@ -79,11 +79,6 @@ namespace Kratos
         return 0;
     }
 
-    double FrictionalViscoplasticTemperatureDependent3DLaw::GetApparentViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetConstitutiveMatrix()(5, 5);
-    }
-
     double FrictionalViscoplasticTemperatureDependent3DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {
         const Properties &r_properties = rParameters.GetMaterialProperties();

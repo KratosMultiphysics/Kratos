@@ -142,14 +142,6 @@ namespace Kratos
         ///@{
 
         /**
-         * @brief Get the Effective Viscosity object
-         * Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-         * @param rParameters constitutive law parameters
-         * @return double obtained effective viscosity
-         */
-        virtual double GetApparentViscosity(ConstitutiveLaw::Parameters &rParameters) const;
-
-        /**
          * @brief Get the Effective Density object
          * Get the effective density for the fluid.
          * @param rParameters constitutive law parameters

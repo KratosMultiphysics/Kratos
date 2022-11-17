@@ -126,10 +126,7 @@ namespace Kratos
         return 0;
     }
 
-    double Bingham3DLaw::GetApparentViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetConstitutiveMatrix()(5, 5);
-    }
+
 
     double Bingham3DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {

@@ -141,13 +141,6 @@ namespace Kratos
         rConstitutiveMatrix(5, 5) = +EffectiveDynamicViscosity;
     }
 
-    // Protected access ///////////////////////////////////////////////////////////
-
-    double PfemFluidConstitutiveLaw::GetApparentViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        KRATOS_ERROR << "Accessing base class PfemFluidConstitutiveLaw::GetApparentViscosity." << std::endl;
-        return 0.0;
-    }
 
     double PfemFluidConstitutiveLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {

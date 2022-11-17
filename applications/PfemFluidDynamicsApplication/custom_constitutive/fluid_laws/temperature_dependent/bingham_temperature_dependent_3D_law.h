@@ -116,9 +116,6 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-        double GetApparentViscosity(ConstitutiveLaw::Parameters &rParameters) const override;
-
         double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
         ///@}
