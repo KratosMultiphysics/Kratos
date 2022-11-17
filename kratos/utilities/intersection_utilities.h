@@ -22,6 +22,7 @@
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -297,21 +298,37 @@ public:
         d2121 = p21[0] * p21[0] + p21[1] * p21[1] + p21[2] * p21[2];
 
         denom = d2121 * d4343 - d4321 * d4321;
-        if (std::abs(denom) < zero_tolerance) // Parallel lines, infinite solutions
-            return resulting_line;
-        numer = d1343 * d4321 - d1321 * d4343;
-
-        mua = numer / denom;
-        mub = (d1343 + d4321 * mua) / d4343;
-
         auto pa = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
         auto pb = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
-        pa->X() = p1.X() + mua * p21[0];
-        pa->Y() = p1.Y() + mua * p21[1];
-        pa->Z() = p1.Z() + mua * p21[2];
-        pb->X() = p3.X() + mub * p43[0];
-        pb->Y() = p3.Y() + mub * p43[1];
-        pb->Z() = p3.Z() + mub * p43[2];
+        if (std::abs(denom) < zero_tolerance) { // Parallel lines, infinite solutions. Projecting points and getting one perpendicular line
+            Point projected_point;
+            array_1d<double,3> local_coords;
+            GeometricalProjectionUtilities::FastProjectOnLine(rSegment2, rSegment1[0], projected_point);
+            if (rSegment2.IsInside(projected_point, local_coords)) {
+                pa->Coordinates() = rSegment1[0].Coordinates();
+                pb->Coordinates() = projected_point;
+            } else {
+                GeometricalProjectionUtilities::FastProjectOnLine(rSegment2, rSegment1[1], projected_point);
+                if (rSegment2.IsInside(projected_point, local_coords)) {
+                    pa->Coordinates() = rSegment1[1].Coordinates();
+                    pb->Coordinates() = projected_point;
+                } else { // Parallel and not projection possible
+                    return resulting_line;
+                }
+            }
+        } else {
+            numer = d1343 * d4321 - d1321 * d4343;
+
+            mua = numer / denom;
+            mub = (d1343 + d4321 * mua) / d4343;
+
+            pa->X() = p1.X() + mua * p21[0];
+            pa->Y() = p1.Y() + mua * p21[1];
+            pa->Z() = p1.Z() + mua * p21[2];
+            pb->X() = p3.X() + mub * p43[0];
+            pb->Y() = p3.Y() + mub * p43[1];
+            pb->Z() = p3.Z() + mub * p43[2];
+        }
 
         resulting_line.push_back(pa);
         resulting_line.push_back(pb);
