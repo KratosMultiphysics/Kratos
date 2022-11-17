@@ -179,7 +179,7 @@ jobs:
   centos:
     runs-on: ubuntu-latest
     env:
-      KRATOS_BUILD_TYPE: Release
+      KRATOS_BUILD_TYPE: Custom
 
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7:latest

@@ -42,8 +42,8 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=OFF \
 -DPYBIND11_PYTHON_VERSION="3.8" \
--DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall" \
--DCMAKE_UNITY_BUILD=ON                              \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall -Werror=maybe-uninitialized" \
+-DCMAKE_UNITY_BUILD=ON
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
