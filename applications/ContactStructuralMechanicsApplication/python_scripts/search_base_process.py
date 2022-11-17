@@ -281,7 +281,7 @@ class SearchBaseProcess(KM.Process):
         pass
 
     def _compute_search(self):
-        """ This method return if the serach must be computed
+        """ This method return if the search must be computed
 
         Keyword arguments:
         self -- It signifies an instance of a class.
