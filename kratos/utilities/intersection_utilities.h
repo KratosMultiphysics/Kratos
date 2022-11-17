@@ -303,7 +303,7 @@ public:
     }
 
     /**
-     * @brief Calculates the line to line intersection (shortest line). If line is length 0, it is considered a point and therefore there is intersection
+     * @brief Calculates the line to line intersection (shortest line). If line is length 0, it is considered a point and therefore there is intersection (3D version)
      * @details Calculate the line segment PaPb that is the shortest route between two lines P1P2 and P3P4. Calculate also the values of mua and mub where
      *    Pa = P1 + mua (P2 - P1)
      *    Pb = P3 + mub (P4 - P3)
@@ -317,7 +317,72 @@ public:
     static PointerVector<Point> ComputeShortestLineBetweenTwoLines(
         const TGeometryType& rSegment1,
         const TGeometryType& rSegment2
-        );
+        )  
+    {
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+        // Check geometry type
+        KRATOS_ERROR_IF(rSegment1.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line3D2) << "The geometry type is not correct, it is suppossed to be a linear 3D line" << std::endl;
+
+        // Resulting line segment
+        auto resulting_line = PointerVector<Point>();
+
+        // Variable definitions
+        array_1d<double, 3> p13,p43,p21;
+        double d1343,d4321,d1321,d4343,d2121;
+        double mua, mub;
+        double numer,denom;
+
+        // Points segments
+        const Point& p1 = rSegment1[0];
+        const Point& p2 = rSegment1[1];
+        const Point& p3 = rSegment2[0];
+        const Point& p4 = rSegment2[1];
+
+        p13[0] = p1.X() - p3.X();
+        p13[1] = p1.Y() - p3.Y();
+        p13[2] = p1.Z() - p3.Z();
+
+        p43[0] = p4.X() - p3.X();
+        p43[1] = p4.Y() - p3.Y();
+        p43[2] = p4.Z() - p3.Z();
+        if (std::abs(p43[0]) < zero_tolerance && std::abs(p43[1]) < zero_tolerance && std::abs(p43[2]) < zero_tolerance)
+            return resulting_line;
+
+        p21[0] = p2.X() - p1.X();
+        p21[1] = p2.Y() - p1.Y();
+        p21[2] = p2.Z() - p1.Z();
+        if (std::abs(p21[0]) < zero_tolerance && std::abs(p21[1]) < zero_tolerance && std::abs(p21[2]) < zero_tolerance)
+            return resulting_line;
+
+        d1343 = p13[0] * p43[0] + p13[1] * p43[1] + p13[2] * p43[2];
+        d4321 = p43[0] * p21[0] + p43[1] * p21[1] + p43[2] * p21[2];
+        d1321 = p13[0] * p21[0] + p13[1] * p21[1] + p13[2] * p21[2];
+        d4343 = p43[0] * p43[0] + p43[1] * p43[1] + p43[2] * p43[2];
+        d2121 = p21[0] * p21[0] + p21[1] * p21[1] + p21[2] * p21[2];
+
+        denom = d2121 * d4343 - d4321 * d4321;
+        if (std::abs(denom) < zero_tolerance) // Parallel lines, infinite solutions
+            return resulting_line;
+        numer = d1343 * d4321 - d1321 * d4343;
+
+        mua = numer / denom;
+        mub = (d1343 + d4321 * mua) / d4343;
+
+        auto pa = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        auto pb = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        pa->X() = p1.X() + mua * p21[0];
+        pa->Y() = p1.Y() + mua * p21[1];
+        pa->Z() = p1.Z() + mua * p21[2];
+        pb->X() = p3.X() + mub * p43[0];
+        pb->Y() = p3.Y() + mub * p43[1];
+        pb->Z() = p3.Z() + mub * p43[2];
+
+        resulting_line.push_back(pa);
+        resulting_line.push_back(pb);
+        return resulting_line;
+    }
 
     /**
      * Find the 2D intersection of two lines (both bounded)
