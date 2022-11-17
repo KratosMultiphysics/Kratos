@@ -179,7 +179,7 @@ jobs:
   centos:
     runs-on: ubuntu-latest
     env:
-      KRATOS_BUILD_TYPE: Custom
+      KRATOS_BUILD_TYPE: Release
 
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7:latest
@@ -199,8 +199,8 @@ jobs:
 
     - name: Running python tests
       run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
 
 
