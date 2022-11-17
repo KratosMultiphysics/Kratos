@@ -1256,7 +1256,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
 
     //resizing as needed the LHS
     unsigned int matrix_size;
-    if (rCurrentProcessInfo.GetValue(IS_MIXEDFORMULATION)) {
+    if (rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)) {
         matrix_size = number_of_nodes * (dimension + 1);
     }
     else {
