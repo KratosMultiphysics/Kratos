@@ -618,6 +618,12 @@ namespace Testing {
         expected_intersection_point2[1] = 0.25;
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, expected_intersection_point1);
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, expected_intersection_point2);
+
+        // Not intersecting line 
+        point_1.Z() = 1.25; 
+        point_2.Z() = 1.25;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
+        KRATOS_CHECK_EQUAL(intersection, 0);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ComputeShortestLineBetweenTwoLines, KratosCoreFastSuite)
