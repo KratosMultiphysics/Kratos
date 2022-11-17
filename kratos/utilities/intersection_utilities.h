@@ -264,36 +264,85 @@ public:
         for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
             array_1d<double,3> intersection_point;
             const int face_solution = ComputeTriangleLineIntersection(r_face, rLinePoint1, rLinePoint2, intersection_point, Epsilon);
-            if (face_solution == 1) {
+            if (face_solution == 1) { // The line intersects the face
                 if (point == 0) {
-                    rIntersectionPoint1 = intersection_point;
+                    noalias(rIntersectionPoint1) = intersection_point;
                     solution = 2;
                 } else {
-                    rIntersectionPoint2 = intersection_point;
+                    noalias(rIntersectionPoint2) = intersection_point;
                     solution = 1;
                     break;
                 }
                 ++point;
-            } else if (face_solution == 2) {
+            } else if (face_solution == 2) { // The line is coincident with the face
                 // Compute intersection with the edges
-                Point::Pointer p_point_1 = Kratos::make_shared<Point>(rIntersectionPoint1);
-                Point::Pointer p_point_2 = Kratos::make_shared<Point>(rIntersectionPoint2);
-                Line3D2<Point> line(p_point_1, p_point_2);
+                array_1d<double,3> vector_line = rLinePoint2 - rLinePoint1;
+                vector_line /= norm_2(vector_line);
                 // Compute two points of the face
                 for (auto& r_edge : r_face.GenerateEdges()) {
-                    Point::Pointer p_point_3 = Kratos::make_shared<Point>(r_edge[0].Coordinates());
-                    Point::Pointer p_point_4 = Kratos::make_shared<Point>(r_edge[1].Coordinates());
-                    Line3D2<Point> edge(p_point_3, p_point_4);
-                    const auto points = ComputeShortestLineBetweenTwoLines(line, edge);
-                    if (points.size() == 0) continue; // No intersection
-                    const auto line_intersection = Line3D2<Point>(points);
-                    if (point == 0) {
-                        rIntersectionPoint1 = line_intersection.Center().Coordinates();
-                        solution = 2;
-                    } else {
-                        rIntersectionPoint2 = line_intersection.Center().Coordinates();
-                        solution = 1;
-                        break;
+                    const auto edge_point_1 = r_edge[0].Coordinates();
+                    const auto edge_point_2 = r_edge[1].Coordinates();
+                    array_1d<double,3> vector_edge = edge_point_2 - edge_point_1;
+                    vector_edge /= norm_2(vector_edge);
+                    const double residual = norm_2(vector_line - vector_edge);
+                    if (residual < Epsilon || residual > (2 - Epsilon)) { // Aligned
+                        array_1d<double,3> local_coordinates;
+                        // First point
+                        if (r_edge.IsInside(rLinePoint1, local_coordinates)) { // Is inside the line
+                            if (point == 0) {
+                                noalias(rIntersectionPoint1) = rLinePoint1;
+                                solution = 2;
+                            } else {
+                                noalias(rIntersectionPoint2) = rLinePoint1;
+                                solution = 1;
+                                break;
+                            }
+                            ++point;
+                        } else { // Is in the border of the line
+                            if (point == 0) {
+                                noalias(rIntersectionPoint1) = norm_2(edge_point_1 - rLinePoint1) <  norm_2(edge_point_2 - rLinePoint1) ? edge_point_1 : edge_point_2;
+                                solution = 2;
+                            } else {
+                                noalias(rIntersectionPoint2) = norm_2(edge_point_1 - rLinePoint1) <  norm_2(edge_point_2 - rLinePoint1) ? edge_point_1 : edge_point_2;
+                                solution = 1;
+                                break;
+                            }
+                            ++point;
+                        }
+                        // Second point
+                        if (r_edge.IsInside(rLinePoint2, local_coordinates)) { // Is inside the line
+                            if (point == 0) {
+                                noalias(rIntersectionPoint1) = rLinePoint2;
+                                solution = 2;
+                            } else {
+                                noalias(rIntersectionPoint2) = rLinePoint2;
+                                solution = 1;
+                                break;
+                            }
+                            ++point;
+                        } else { // Is in the border of the line
+                            if (point == 0) {
+                                noalias(rIntersectionPoint1) = norm_2(edge_point_1 - rLinePoint2) <  norm_2(edge_point_2 - rLinePoint2) ? edge_point_1 : edge_point_2;
+                                solution = 2;
+                            } else {
+                                noalias(rIntersectionPoint2) = norm_2(edge_point_1 - rLinePoint2) <  norm_2(edge_point_2 - rLinePoint2) ? edge_point_1 : edge_point_2;
+                                solution = 1;
+                                break;
+                            }
+                        }
+                    } else { // Direct intersection
+                        array_1d<double, 3> intersection_point;
+                        const auto check = ComputeLineLineIntersection(rIntersectionPoint1, rIntersectionPoint2, edge_point_1, edge_point_2, intersection_point, Epsilon);
+                        if (check == 0) continue; // No intersection
+                        if (point == 0) {
+                            noalias(rIntersectionPoint1) = intersection_point;
+                            solution = 2;
+                        } else {
+                            noalias(rIntersectionPoint2) = intersection_point;
+                            solution = 1;
+                            break;
+                        }
+                        ++point;
                     }
                 }
                 break;
