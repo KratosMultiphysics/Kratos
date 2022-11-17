@@ -237,6 +237,72 @@ public:
     }
 
     /**
+     * Find the 3D intersection of a line (bounded) with a tetrahedra (bounded)
+     * @param rTriangleGeometry Is the tetrahedra to intersect
+     * @param rLinePoint1 Coordinates of the first point of the intersecting line
+     * @param rLinePoint2 Coordinates of the second point of the intersecting line
+     * @return rIntersectionPoint1 The first intersection point coordinates
+     * @return rIntersectionPoint2 The second intersection point coordinates
+     * @return The intersection type index:
+     * 0 (disjoint - no intersection)
+     * 1 (intersect in two points)
+     * 2 (intersect in one point)
+     */
+    template <class TGeometryType>
+    static int ComputeTetrahedraLineIntersection(
+        const TGeometryType& rTetrahedraGeometry,
+        const array_1d<double,3>& rLinePoint1,
+        const array_1d<double,3>& rLinePoint2,
+        array_1d<double,3>& rIntersectionPoint1,
+        array_1d<double,3>& rIntersectionPoint2,
+        const double Epsilon = 1e-12
+        ) 
+    {
+        int solution = 0;
+        unsigned int point = 0;
+        for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
+            array_1d<double,3> intersection_point;
+            const int face_solution = ComputeTriangleLineIntersection(r_face, rLinePoint1, rLinePoint2, intersection_point, Epsilon);
+            if (face_solution == 1) {
+                if (point == 0) {
+                    rIntersectionPoint1 = intersection_point;
+                    solution = 2;
+                } else {
+                    rIntersectionPoint2 = intersection_point;
+                    solution = 1;
+                    break;
+                }
+                ++point;
+            } else if (face_solution == 2) {
+                // Compute intersection with the edges
+                Point::Pointer p_point_1 = Kratos::make_shared<Point>(rIntersectionPoint1);
+                Point::Pointer p_point_2 = Kratos::make_shared<Point>(rIntersectionPoint2);
+                Line3D2<Point> line(p_point_1, p_point_2);
+                // Compute two points of the face
+                for (auto& r_edge : r_face.GenerateEdges()) {
+                    Point::Pointer p_point_3 = Kratos::make_shared<Point>(r_edge[0].Coordinates());
+                    Point::Pointer p_point_4 = Kratos::make_shared<Point>(r_edge[1].Coordinates());
+                    Line3D2<Point> edge(p_point_3, p_point_4);
+                    const auto points = ComputeShortestLineBetweenTwoLines(line, edge);
+                    if (points.size() == 0) continue; // No intersection
+                    const auto line_intersection = Line3D2<Point>(points);
+                    if (point == 0) {
+                        rIntersectionPoint1 = line_intersection.Center().Coordinates();
+                        solution = 2;
+                    } else {
+                        rIntersectionPoint2 = line_intersection.Center().Coordinates();
+                        solution = 1;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        return solution;
+    }
+
+    /**
      * @brief Calculates the line to line intersection (shortest line). If line is length 0, it is considered a point and therefore there is intersection
      * @details Calculate the line segment PaPb that is the shortest route between two lines P1P2 and P3P4. Calculate also the values of mua and mub where
      *    Pa = P1 + mua (P2 - P1)
