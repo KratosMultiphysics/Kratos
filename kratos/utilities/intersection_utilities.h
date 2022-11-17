@@ -297,7 +297,6 @@ public:
                                 solution = 1;
                                 break;
                             }
-                            ++point;
                         } else { // Is in the border of the line
                             if (point == 0) {
                                 noalias(rIntersectionPoint1) = norm_2(edge_point_1 - rLinePoint1) <  norm_2(edge_point_2 - rLinePoint1) ? edge_point_1 : edge_point_2;
@@ -307,33 +306,26 @@ public:
                                 solution = 1;
                                 break;
                             }
-                            ++point;
                         }
+                        ++point;
                         // Second point
-                        if (r_edge.IsInside(rLinePoint2, local_coordinates)) { // Is inside the line
-                            if (point == 0) {
-                                noalias(rIntersectionPoint1) = rLinePoint2;
-                                solution = 2;
-                            } else {
+                        if (point == 1) {
+                            if (r_edge.IsInside(rLinePoint2, local_coordinates)) { // Is inside the line
                                 noalias(rIntersectionPoint2) = rLinePoint2;
                                 solution = 1;
                                 break;
-                            }
-                            ++point;
-                        } else { // Is in the border of the line
-                            if (point == 0) {
-                                noalias(rIntersectionPoint1) = norm_2(edge_point_1 - rLinePoint2) <  norm_2(edge_point_2 - rLinePoint2) ? edge_point_1 : edge_point_2;
-                                solution = 2;
-                            } else {
+                            } else { // Is in the border of the line
                                 noalias(rIntersectionPoint2) = norm_2(edge_point_1 - rLinePoint2) <  norm_2(edge_point_2 - rLinePoint2) ? edge_point_1 : edge_point_2;
                                 solution = 1;
                                 break;
                             }
+                        } else { // We are done
+                            break;
                         }
                     } else { // Direct intersection
                         array_1d<double, 3> intersection_point;
                         const auto check = ComputeLineLineIntersection(rIntersectionPoint1, rIntersectionPoint2, edge_point_1, edge_point_2, intersection_point, Epsilon);
-                        if (check == 0) continue; // No intersection
+                        if (check == 0 || check == 2) continue; // No intersection or overlapping
                         if (point == 0) {
                             noalias(rIntersectionPoint1) = intersection_point;
                             solution = 2;
