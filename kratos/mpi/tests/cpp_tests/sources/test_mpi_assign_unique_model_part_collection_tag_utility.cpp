@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <filesystem>
 #include <unordered_set>
 
 // External includes
@@ -19,7 +20,6 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_filesystem.h"
 #include "utilities/cpp_tests_utilities.h"
 #include "mpi/includes/mpi_communicator.h"
 
@@ -110,8 +110,8 @@ namespace Kratos
                 }
             }
             r_data_communicator.Barrier();
-            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), filename + std::to_string(rank) + ".json"}));
 
+            std::filesystem::remove(std::filesystem::current_path() / (filename + std::to_string(rank) + ".json"));
         }
     } // namespace Testing
 }  // namespace Kratos.
