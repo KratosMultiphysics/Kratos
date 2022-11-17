@@ -585,7 +585,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(int_id, 1);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ComputeTetrahedraLineIntersection, KratosCoreFastSuite2)
+    KRATOS_TEST_CASE_IN_SUITE(ComputeTetrahedraLineIntersection, KratosCoreFastSuite)
     {
         Point point_1 = Point(0.0, 0.0, 0.5);
         Point point_2 = Point(1.0, 0.0, 0.5);
@@ -608,15 +608,16 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, expected_intersection_point1);
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, expected_intersection_point2);
 
-        // // Intersecting line (edge)
-        // point_1.X() = 0.25;
-        // point_1.Z() = 0.0;
-        // point_2.X() = 0.75;
-        // point_2.Z() = 0.0;
-        // intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
-        // KRATOS_CHECK_EQUAL(intersection, 1);
-        // KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, point_1.Coordinates());
-        // KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, point_2.Coordinates());
+        // Intersecting line (edge)
+        point_1.X() = 0.25;
+        point_1.Z() = 0.0;
+        point_2.X() = 0.75;
+        point_2.Z() = 0.0;
+        array_1d<double,3> intersection_point3, intersection_point4;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point3, intersection_point4);
+        KRATOS_CHECK_EQUAL(intersection, 1);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point3, point_1.Coordinates());
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point4, point_2.Coordinates());
 
         // Intersecting line 
         point_1.X() = 0.0; 
@@ -625,18 +626,20 @@ namespace Testing {
         point_2.X() = 1.0;
         point_2.Y() = 0.25;
         point_2.Z() = 0.5;
-        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
+        array_1d<double,3> intersection_point5, intersection_point6;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point5, intersection_point6);
         KRATOS_CHECK_EQUAL(intersection, 1);
         expected_intersection_point1[0] = 0.25;
         expected_intersection_point1[1] = 0.25;
         expected_intersection_point2[1] = 0.25;
-        KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, expected_intersection_point1);
-        KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, expected_intersection_point2);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point5, expected_intersection_point1);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point6, expected_intersection_point2);
 
         // Not intersecting line 
         point_1.Z() = 1.25; 
         point_2.Z() = 1.25;
-        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
+        array_1d<double,3> intersection_point7, intersection_point8;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point7, intersection_point8);
         KRATOS_CHECK_EQUAL(intersection, 0);
     }
 
