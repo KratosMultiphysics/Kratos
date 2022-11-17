@@ -15,10 +15,5 @@
             },
             "Tables"           : {}
         }
-    },{
-        "model_part_name" : "Background_Grid.Parts_Grid_Grid_Auto3",
-        "properties_id"   : 2,
-        "Material"        : {
-        }
     }]
 }
