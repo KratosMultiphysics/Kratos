@@ -587,8 +587,8 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(ComputeTetrahedraLineIntersection, KratosCoreFastSuite)
     {
-        const Point point_1 = Point(0.0, 0.0, 0.5);
-        const Point point_2 = Point(1.0, 0.0, 0.5);
+        Point point_1 = Point(0.0, 0.0, 0.5);
+        Point point_2 = Point(1.0, 0.0, 0.5);
 
         Point::Pointer p_point_3 = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
         Point::Pointer p_point_4 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
@@ -596,7 +596,7 @@ namespace Testing {
         Point::Pointer p_point_6 = Kratos::make_shared<Point>(0.0, 0.0, 1.0);
         Tetrahedra3D4<Point> tetrahedra(p_point_3, p_point_4, p_point_5, p_point_6);
 
-        // Intersecting line
+        // Intersecting line (face)
         array_1d<double,3> intersection_point1, intersection_point2;
         auto intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
         KRATOS_CHECK_EQUAL(intersection, 1);
@@ -605,6 +605,17 @@ namespace Testing {
         expected_intersection_point1[2] = 0.5;
         array_1d<double,3> expected_intersection_point2 = ZeroVector(3);
         expected_intersection_point2[2] = 0.5;
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, expected_intersection_point1);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, expected_intersection_point2);
+
+        // Intersecting line 
+        point_1.Y() = 0.25; 
+        point_2.Y() = 0.25;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
+        KRATOS_CHECK_EQUAL(intersection, 1);
+        expected_intersection_point1[0] = 0.25;
+        expected_intersection_point1[1] = 0.25;
+        expected_intersection_point2[1] = 0.25;
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, expected_intersection_point1);
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, expected_intersection_point2);
     }
