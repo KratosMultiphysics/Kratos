@@ -25,12 +25,14 @@
 namespace Kratos
 {
     /**
-     * Defines a 3D frictional visco-plastic non-Newtonian constitutive law
+     * Defines a 3D Papanastasiou mu(I) rheology constitutive law
      * This material law is defined by the parameters:
-     * 1) DYNAMIC_VISCOSITY
-     * 2) INTERNAL_FRICTION_ANGLE
-     * 3) COHESION
-     * 4) ADAPTIVE_EXPONENT
+     * 1) STATIC_FRICTION
+     * 2) DYNAMIC_FRICTION
+     * 3) INERTIAL_NUMBER_ZERO
+     * 4) GRAIN_DIAMETER
+     * 5) GRAIN_DENSITY
+     * 6) REGULARIZATION_COEFFICIENT
      */
     class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheologyTemperatureDependent3DLaw : public MuIRheology3DLaw
     {
