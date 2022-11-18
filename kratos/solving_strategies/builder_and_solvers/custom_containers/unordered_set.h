@@ -21,6 +21,10 @@
 
 namespace Kratos {
 
+// This namespace containers wrappers to std containers globally modifying its allocators
+// to avoid having to include all possible allocators in every file where a custom allocator
+// is needed.
+
 // Usually we would preffer to have a KratosContainers class but namespace is needed
 // unless we want to include all reference container in the same file, which is not correct
 namespace Containers {

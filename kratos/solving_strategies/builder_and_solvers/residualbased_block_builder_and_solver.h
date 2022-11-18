@@ -23,19 +23,18 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containets/custom_allocator_containers.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
-#include "utilities/timer.h"
-#include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
+#include "utilities/timer.h"
+#include "utilities/variable_utils.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
-#include "solving_strategies/builder_and_solvers/custom_allocators/unordered_set.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/custom_containers/unordered_set.h"
 
 namespace Kratos
 {
