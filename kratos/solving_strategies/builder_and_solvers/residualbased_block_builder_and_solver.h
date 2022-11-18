@@ -14,22 +14,16 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
-/* OneTbb */
-#ifdef KRATOS_INTEL_TBB
-    #define NOMINMAX // Fix for windows.h
-    #include "tbb/scalable_allocator.h"
-#endif
+// System includes
 
-/* System includes */
-#include <unordered_set>
-
-/* External includes */
+// External includes
 #ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
+#include "containets/custom_allocator_containers.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
@@ -41,6 +35,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
+#include "solving_strategies/builder_and_solvers/custom_allocators/unordered_set.h"
 
 namespace Kratos
 {
@@ -132,19 +127,8 @@ public:
     typedef typename DofType::Pointer DofPointerType;
 
     /// Large Structure definitions
-#ifdef KRATOS_INTEL_TBB
-    typedef std::unordered_set<
-        std::size_t,
-        std::hash<std::size_t>, 
-        std::equal_to<std::size_t>, 
-        tbb::scalable_allocator<std::size_t>
-    > IndicesType;
-#else 
-    typedef std::unordered_set<
-        std::size_t
-    > IndicesType;
-#endif
-    
+    typedef Kratos::Containers::unordered_set<std::size_t> IndicesType;
+
     ///@}
     ///@name Life Cycle
     ///@{
