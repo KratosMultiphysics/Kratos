@@ -50,6 +50,19 @@ namespace Testing
         ));
     }
 
+    /** Generates a point type sample triangle2D3.
+    * Generates a point type right triangle with origin in the origin and leg size 1.
+    * @return  Pointer to a triangle2D3
+    */
+    template<class TPointType>
+    typename Triangle3D3<TPointType>::Pointer GeneratePlaneRightTriangle3D3() {
+        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+        GeneratePoint<TPointType>(0.0, 0.0, 0.0),
+        GeneratePoint<TPointType>(1.0, 0.0, 0.0),
+        GeneratePoint<TPointType>(0.0, 1.0, 0.0)
+        ));
+    }
+
     /** Generates a sample Triangle3D3.
     * Generates a right triangle with origin in the origin and leg size 1.
     * @return  Pointer to a Triangle3D3
@@ -73,6 +86,19 @@ namespace Testing
         GeneratePoint<TPointType>(1.0, 0.0, 0.0),
         GeneratePoint<TPointType>(0.0, 1.0, 0.0),
         GeneratePoint<TPointType>(0.0, 0.0, 1.0)
+        ));
+    }
+
+    /** Generates a sample Triangle3D3.
+    * Generates an equilateral triangle with vertices at each axis.
+    * @return  Pointer to a Triangle3D3
+    */
+    template<class TPointType>
+    typename Triangle3D3<TPointType>::Pointer GeneratePointsSkewedTriangle3D3() {
+        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+        GeneratePoint<TPointType>(1.0, 0.0, 0.0),
+        GeneratePoint<TPointType>(0.0, 0.0, 1.0),
+        GeneratePoint<TPointType>(0.0, 1.0, 0.5)
         ));
     }
 
@@ -213,6 +239,56 @@ namespace Testing
         auto geom = GenerateRightTriangle3D3<NodeType>();
 
         KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
+    }
+
+    /**
+    * Test an intersection with another line and skewed triangle
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SkewedTriangle3D3HasIntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsSkewedTriangle3D3<NodeType>();
+        NodeType::Pointer p_point_1 = Kratos::make_intrusive<NodeType>(1,  2.0, 0.0, 0.0);
+        NodeType::Pointer p_point_2 = Kratos::make_intrusive<NodeType>(2, -1.0, 0.25, 0.25);
+        Line3D2<NodeType> geom_2(p_point_1, p_point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(geom_2));
+    }
+
+    /**
+    * Test an intersection with another line
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3GetIntersectionPointsWithAnotherLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePlaneRightTriangle3D3<NodeType>();
+        NodeType::Pointer p_point_1 = Kratos::make_intrusive<NodeType>(1,  1.0, -0.5, 0.0);
+        NodeType::Pointer p_point_2 = Kratos::make_intrusive<NodeType>(2, -0.5, 1.0, 0.0);
+        Line3D2<NodeType> geom_2(p_point_1, p_point_2);
+        const auto intersection = geom_1->GetIntersectionPoints(geom_2);
+        const Point pt0(0.5,0.0,0.0);
+        const Point pt1(0.0,0.5,0.0);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
+        KRATOS_CHECK_VECTOR_EQUAL(intersection[1], pt1.Coordinates());
+    }
+
+    /**
+    * Test an intersection with another parallel line
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3GetIntersectionPointsWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePlaneRightTriangle3D3<NodeType>();
+        NodeType::Pointer p_point_1 = Kratos::make_intrusive<NodeType>(1,  1.0, 1.0, 0.0);
+        NodeType::Pointer p_point_2 = Kratos::make_intrusive<NodeType>(2, -0.5, 2.5, 0.0);
+        Line3D2<NodeType> geom_2(p_point_1, p_point_2);
+        KRATOS_CHECK_EQUAL(geom_1->GetIntersectionPoints(geom_2).size(), 0);
+    }
+
+    /**
+    * Test an intersection with another line and skewed triangle
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SkewedTriangle3D3GetIntersectionPointsWithAnotherLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsSkewedTriangle3D3<NodeType>();
+        NodeType::Pointer p_point_1 = Kratos::make_intrusive<NodeType>(1,  2.0, 0.0, 0.0);
+        NodeType::Pointer p_point_2 = Kratos::make_intrusive<NodeType>(2, -1.0, 0.25, 0.25);
+        Line3D2<NodeType> geom_2(p_point_1, p_point_2);
+        const auto intersection = geom_1->GetIntersectionPoints(geom_2);
+        const Point pt(0.857143,0.0952381,0.0952381);
+        KRATOS_CHECK_VECTOR_NEAR(intersection[0], pt.Coordinates(), 1e-6);
     }
 
     /** Checks the ProjectionPoint test for a given point respect to the triangle
