@@ -35,7 +35,7 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
     def setUp(self):
         self.comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         self.file_name = "combine_model_part_modeler"
-        self.work_folder = "auxiliar_files_for_python_unittest\combine_model_part_modeler"
+        self.work_folder = "auxiliar_files_for_python_unittest/combine_model_part_modeler"
         self.parameters = SetParameters(self.file_name, use_memory="false")
         self.size = self.comm.Size()
         self.rank = self.comm.Rank()
@@ -120,7 +120,7 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
         self.assertEqual(self.model["thermal_model_part.submodelpart_liquid"].GetCommunicator().GlobalNumberOfNodes(), 52)
         self.assertEqual(self.model["thermal_model_part.submodelpart_liquid"].GetCommunicator().GlobalNumberOfElements(), 114)
         self.assertEqual(self.model["thermal_model_part.submodelpart_liquid"].GetCommunicator().GlobalNumberOfConditions(), 98)
-        
+
         #Liquid2Solid
         self.assertEqual(self.model["thermal_model_part.submodelpart_liquid.contact_liquid2solid.contact_liquid2chiller_62"].GetCommunicator().GlobalNumberOfNodes(), 11)
         self.assertEqual(self.model["thermal_model_part.submodelpart_liquid.contact_liquid2solid.contact_liquid2chiller_62"].GetCommunicator().GlobalNumberOfElements(), 0)
