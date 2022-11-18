@@ -69,7 +69,7 @@ void TestShapeFunctionsLocalGradients_Point(Geometry<Node<3>> const& rGeom)
     KRATOS_TRY;
     Matrix local_gradient;
     auto integration_points = rGeom.IntegrationPoints();
-    for (auto point : integration_points)
+    for (const auto& point : integration_points)
         TestShapeFunctionsLocalGradient(
             rGeom, point, rGeom.ShapeFunctionsLocalGradients(local_gradient, point));
     KRATOS_CATCH("");
@@ -92,7 +92,7 @@ void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
 
 namespace
 {
-double FiniteDifference4(std::function<double(double)> f, double delta=1e-3);
+double FiniteDifference4(const std::function<double(double)>& f, double delta=1e-3);
 }
 
 void TestShapeFunctionsLocalGradient(Geometry<Node<3>> const& rGeom,
@@ -125,7 +125,7 @@ namespace {
 * @return Finite difference approximation.
 */
 //
-double FiniteDifference4(std::function<double(double)> f, double delta)
+double FiniteDifference4(const std::function<double(double)>& f, double delta)
 {
     return (-f(2.0 * delta) + 8.0 * f(delta) - 8.0 * f(-delta) + f(-2.0 * delta)) /
            (12.0 * delta);

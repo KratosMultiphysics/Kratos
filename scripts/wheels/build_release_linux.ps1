@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 $RELEASE_BRANCH="v9.1.1"
+=======
+$RELEASE_BRANCH="Release-9.2"
+>>>>>>> master
 
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="/data_swap_guest"

@@ -66,8 +66,8 @@ class SpatialStatisticsProcess(Kratos.Process):
                 "interval"               : [0.0, "End"],
                 "output_control_variable": "STEP",
                 "output_time_interval"   : 1,
-                "write_kratos_version"   : true,
-                "write_time_stamp"       : true,
+                "write_kratos_version"   : false,
+                "write_time_stamp"       : false,
                 "output_value_precision" : 5,
                 "output_value_length"    : 14,
                 "output_file_settings"   : {
@@ -195,7 +195,7 @@ class SpatialStatisticsProcess(Kratos.Process):
         output_control_counter = self.__get_model_part().ProcessInfo[self.output_control_variable]
 
         if self.interval_utility.IsInInterval(output_control_counter):
-            if (output_control_counter - self.previous_process_info_value) > self.output_interval:
+            if (output_control_counter - self.previous_process_info_value) >= self.output_interval:
 
                 # execute the statistics computation process
                 if self.statistics_computation_processeses is not None:

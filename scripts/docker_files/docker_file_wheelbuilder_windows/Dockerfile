@@ -56,22 +56,14 @@ RUN powershell.exe -Command \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
-# Install python 3.5
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
-    mkdir c:\python\35; \
-    Start-Process c:\temp\python35.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\35' -Wait; \
-    c:\python\35\python.exe -m pip install --upgrade pip; \
-    c:\python\35\python.exe -m pip install --upgrade setuptools wheel
-
-# Install python 3.6
+#Install python 3.6
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe -OutFile c:\temp\python36.exe; \
     mkdir c:\python\36; \
     Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
     c:\python\36\python.exe -m pip install --upgrade pip; \
+    c:\python\36\python.exe -m pip install mypy; \
     c:\python\36\python.exe -m pip install --upgrade setuptools wheel
 
 
@@ -82,6 +74,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\37; \
     Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
     c:\python\37\python.exe -m pip install --upgrade pip; \
+    c:\python\37\python.exe -m pip install mypy; \
     c:\python\37\python.exe -m pip install --upgrade setuptools wheel
 
 # Install python 3.8
@@ -91,6 +84,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\38; \
     Start-Process c:\temp\python38.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\38' -Wait; \
     c:\python\38\python.exe -m pip install --upgrade pip; \
+    c:\python\38\python.exe -m pip install mypy; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
 # Install python 3.9
@@ -100,14 +94,17 @@ RUN powershell.exe -Command \
     mkdir c:\python\39; \
     Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
     c:\python\39\python.exe -m pip install --upgrade pip; \
+    c:\python\39\python.exe -m pip install mypy; \
     c:\python\39\python.exe -m pip install --upgrade setuptools wheel
 
-# #Downloand blas/lapack
-# RUN powershell.exe -Command \
-# 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-# 	mkdir c:\libs; \
-# 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
-# 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
+#Install python 3.10
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe -OutFile c:\temp\python310.exe; \
+    mkdir c:\python\310; \
+    Start-Process c:\temp\python310.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\310' -Wait; \
+    c:\python\310\python.exe -m pip install --upgrade pip; \
+    c:\python\310\python.exe -m pip install --upgrade setuptools wheel
 
 # Set env variables
 ENV CMAKE       "C:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe"

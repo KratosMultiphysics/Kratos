@@ -111,7 +111,7 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                     ],
                     "output_settings" : {
                         "output_control_variable": "STEP",
-                        "output_time_interval"   : 1,
+                        "output_time_interval"   : 2,
                         "write_kratos_version"   : false,
                         "write_time_stamp"       : false,
                         "output_file_settings"   : {

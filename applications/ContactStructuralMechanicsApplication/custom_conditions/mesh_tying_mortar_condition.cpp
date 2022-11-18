@@ -273,7 +273,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size )
         rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
-    // Creating an auxiliar vector
+    // Creating an auxiliary vector
     VectorType aux_right_hand_side_vector = Vector();
 
     // Calculate condition system
@@ -289,7 +289,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Creating an auxiliar matrix
+    // Creating an auxiliary matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Compute the matrix size
@@ -436,7 +436,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
         const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
 
         if (bad_shape == false) {
-            const GeometryType::IntegrationPointsArrayType integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+            const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
             // Integrating the mortar operators
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {

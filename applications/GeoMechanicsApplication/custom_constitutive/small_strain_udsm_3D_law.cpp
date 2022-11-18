@@ -846,6 +846,12 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
 
+   // KRATOS_INFO("IDTask") << *pIDTask << std::endl;
+   // KRATOS_INFO("mStressVectorFinalized") << mStressVectorFinalized << std::endl;
+   // KRATOS_INFO("mDeltaStrainVector") << mDeltaStrainVector << std::endl;
+   // KRATOS_INFO("mStateVariablesFinalized") << mStateVariablesFinalized << std::endl;
+   // KRATOS_INFO("deltaTime") << deltaTime << std::endl;
+
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(pIDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,

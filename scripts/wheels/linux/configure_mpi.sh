@@ -36,6 +36,7 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 # add_app ${KRATOS_APP_DIR}/FSIApplication;
 # add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+<<<<<<< HEAD
 # add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 # # add_app ${KRATOS_APP_DIR}/FemToDemApplication;
 # # add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
@@ -57,6 +58,30 @@ add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 # add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 # add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 # add_app ${KRATOS_APP_DIR}/RomApplication;
+=======
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
+add_app ${KRATOS_APP_DIR}/FemToDemApplication;
+add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
+add_app ${KRATOS_APP_DIR}/MeshingApplication;
+add_app ${KRATOS_APP_DIR}/MetisApplication;
+add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
+add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
+add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
+add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
+add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
+# add_app ${KRATOS_APP_DIR}/CableNetApplication;
+add_app ${KRATOS_APP_DIR}/RANSApplication;
+add_app ${KRATOS_APP_DIR}/MappingApplication;
+add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
+# add_app ${KRATOS_APP_DIR}/HDF5Application;
+add_app ${KRATOS_APP_DIR}/IgaApplication;
+add_app ${KRATOS_APP_DIR}/ChimeraApplication;
+add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
+add_app ${KRATOS_APP_DIR}/StatisticsApplication;
+add_app ${KRATOS_APP_DIR}/RomApplication;
+add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
+>>>>>>> master
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
@@ -78,4 +103,5 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DUSE_EIGEN_MKL=ON                                                     \
 -DKRATOS_BUILD_TESTING=OFF                                             \
--DINSTALL_RUNKRATOS=OFF
+-DINSTALL_RUNKRATOS=OFF                                                \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \
