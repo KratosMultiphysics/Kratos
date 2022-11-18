@@ -15,8 +15,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LINE_2D_2_H_INCLUDED )
-#define  KRATOS_LINE_2D_2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -27,6 +26,7 @@
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -968,7 +968,7 @@ public:
 
     /** Test the intersection with another geometry
      *  Test if this geometry intersects with other line_2d_2
-     *
+     * @todo Should be possible to use any geometry and therefore check the geometry type
      * @param  rOtherGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
@@ -1047,6 +1047,31 @@ public:
         return false;
     }
 
+    /** 
+     * @brief Returns the intersection coordinates with another geometry
+     * @param  rThisGeometry Geometry to intersect with
+     * @return A STL vector containing the intersection points coordinates
+     */
+    std::vector<array_1d<double, 3>> GetIntersectionPoints (const BaseType& rThisGeometry) const override {
+        std::vector<array_1d<double, 3>> intersection_points;
+        const auto type = rThisGeometry.GetGeometryType();
+        if (type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
+            // Call the intersection utility
+            array_1d<double, 3> int_pt;
+            const int int_id = IntersectionUtilities::ComputeLineLineIntersection(*this, rThisGeometry[0].Coordinates(), rThisGeometry[1].Coordinates(), int_pt);
+            if (int_id == 1 || int_id == 3) { // Intersection
+                intersection_points.push_back(int_pt);
+            } else if (int_id == 2) { // Overlap
+                intersection_points.push_back(rThisGeometry[0].Coordinates());
+                intersection_points.push_back(rThisGeometry[1].Coordinates());
+            }
+        } else if (type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+            return rThisGeometry.GetIntersectionPoints(*this);
+        } else {
+            KRATOS_ERROR << " 'GetIntersectionPoints ' method not implemented in Line2D2 with geometry " << rThisGeometry.Info() << std::endl;
+        }
+        return intersection_points;
+    }
 
     /**
      * @brief Returns the local coordinates of a given arbitrary point
@@ -1409,5 +1434,3 @@ const GeometryDimension Line2D2<TPointType>::msGeometryDimension(
     2, 2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined

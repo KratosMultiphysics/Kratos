@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_3D_2_H_INCLUDED )
-#define  KRATOS_LINE_3D_2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -410,6 +409,7 @@ public:
     /**
      * @brief Test if this geometry intersects with other geometry
      * @param  ThisGeometry Geometry to intersect with
+     * @todo Should be possible to use any geometry and therefore check the geometry type
      * @return True if the geometries intersect, False in any other case.
      * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
      */
@@ -424,6 +424,31 @@ public:
         return IntersectionUtilities::ComputeLineLineIntersection(r_geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
     }
 
+    /** 
+     * @brief Returns the intersection coordinates with another geometry
+     * @param  rThisGeometry Geometry to intersect with
+     * @return A STL vector containing the intersection points coordinates
+     */
+    std::vector<array_1d<double, 3>> GetIntersectionPoints (const BaseType& rThisGeometry) const override {
+        std::vector<array_1d<double, 3>> intersection_points;
+        const auto type = rThisGeometry.GetGeometryType();
+        if (type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
+            // Call the intersection utility
+            array_1d<double, 3> int_pt;
+            const int int_id = IntersectionUtilities::ComputeLineLineIntersection(*this, rThisGeometry[0].Coordinates(), rThisGeometry[1].Coordinates(), int_pt);
+            if (int_id == 1 || int_id == 3) { // Intersection
+                intersection_points.push_back(int_pt);
+            } else if (int_id == 2) { // Overlap
+                intersection_points.push_back(rThisGeometry[0].Coordinates());
+                intersection_points.push_back(rThisGeometry[1].Coordinates());
+            }
+        } else if (type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+            return rThisGeometry.GetIntersectionPoints(*this);
+        } else {
+            KRATOS_ERROR << " 'GetIntersectionPoints ' method not implemented in Line3D2 with geometry " << rThisGeometry.Info() << std::endl;
+        }
+        return intersection_points;
+    }
 
     ///@}
     ///@name Jacobian
@@ -1164,5 +1189,3 @@ const GeometryDimension Line3D2<TPointType>::msGeometryDimension(
     3, 3, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined
