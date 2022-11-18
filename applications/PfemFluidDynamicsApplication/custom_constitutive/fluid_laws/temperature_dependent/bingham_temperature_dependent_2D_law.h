@@ -6,36 +6,32 @@
 //
 //  BSD License:    PfemFluidDynamicsApplication/license.txt
 //
-//  Main authors:   Alessandro Franci
-//  Collaborators:  Massimiliano Zecchetto
+//  Main authors:   Massimiliano Zecchetto
+//  Collaborators:
 //
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED)
-#define KRATOS_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED
+#if !defined(KRATOS_BINGHAM_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED)
+#define KRATOS_BINGHAM_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "fluid_constitutive_law.h"
+#include "custom_constitutive/fluid_laws/bingham_2D_law.h"
 
 namespace Kratos
 {
     /**
-     * Defines a 3D Papanastasiou mu(I) rheology constitutive law
+     * Defines a 2D Bingham non-Newtonian constitutive law
      * This material law is defined by the parameters:
-     * 1) STATIC_FRICTION
-     * 2) DYNAMIC_FRICTION
-     * 3) INERTIAL_NUMBER_ZERO
-     * 4) GRAIN_DIAMETER
-     * 5) GRAIN_DENSITY
-     * 6) REGULARIZATION_COEFFICIENT
+     * 1) DYNAMIC_VISCOSITY
+     * 2) YIELD_SHEAR
+     * 3) ADAPTIVE_EXPONENT
      */
-
-    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheology3DLaw : public PfemFluidConstitutiveLaw
+    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DLaw : public Bingham2DLaw
     {
     public:
         /**
@@ -46,9 +42,9 @@ namespace Kratos
         typedef std::size_t SizeType;
 
         /**
-         * Counted pointer of MuIRheology3DLaw
+         * Counted pointer of BinghamTemperatureDependent2DLaw
          */
-        KRATOS_CLASS_POINTER_DEFINITION(MuIRheology3DLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(BinghamTemperatureDependent2DLaw);
 
         /**
          * Life Cycle
@@ -57,7 +53,7 @@ namespace Kratos
         /**
          * Default constructor.
          */
-        MuIRheology3DLaw();
+        BinghamTemperatureDependent2DLaw();
 
         /**
          * Clone function (has to be implemented by any derived class)
@@ -68,12 +64,12 @@ namespace Kratos
         /**
          * Copy constructor.
          */
-        MuIRheology3DLaw(const MuIRheology3DLaw &rOther);
+        BinghamTemperatureDependent2DLaw(const BinghamTemperatureDependent2DLaw &rOther);
 
         /**
          * Destructor.
          */
-        ~MuIRheology3DLaw() override;
+        ~BinghamTemperatureDependent2DLaw() override;
 
         /**
          * Operators
@@ -82,18 +78,6 @@ namespace Kratos
         /**
          * Operations needed by the base class:
          */
-
-        /**
-         * @return Working space dimension constitutive law
-         */
-        SizeType WorkingSpaceDimension() override;
-
-        /**
-         * @return Size of the strain vector (in Voigt notation) for the constitutive law
-         */
-        SizeType GetStrainSize() const override;
-
-        void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
         /**
          * This function is designed to be called once to perform all the checks needed
@@ -119,24 +103,26 @@ namespace Kratos
     protected:
         ///@name Protected static Member Variables
         ///@{
+
         ///@}
         ///@name Protected member Variables
         ///@{
+
         ///@}
         ///@name Protected Operators
         ///@{
+
         ///@}
         ///@name Protected Operations
         ///@{
 
-        /// Get the effective density for the fluid.
         double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
-
         ///@}
 
     private:
         ///@name Static Member Variables
         ///@{
+
         ///@}
         ///@name Member Variables
         ///@{
@@ -163,9 +149,10 @@ namespace Kratos
         void save(Serializer &rSerializer) const override;
 
         void load(Serializer &rSerializer) override;
+        ///@}
 
-    }; // Class MuIRheology3DLaw
+    }; // Class BinghamTemperatureDependent2DLaw
 
 } // namespace Kratos.
 
-#endif // KRATOS_MU_I_RHEOLOGY_LAW_3D_H_INCLUDED  defined
+#endif // KRATOS_BINGHAM_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED  defined
