@@ -702,7 +702,7 @@ public:
             // Check the intersection of each edge against the intersecting object
             array_1d<double,3> int_point;
             // Call the intersection utility
-            const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(*this, rThisGeometry[0].Coordinates(), rThisGeometry[1].Coordinates(), int_point);
+            const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rThisGeometry[0].Coordinates(), rThisGeometry[1].Coordinates(), int_point);
             if (int_id == 1) { // One point
                 intersection_points.push_back(int_point);
             } else if (int_id == 2) { // Same plane
