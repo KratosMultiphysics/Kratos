@@ -24,28 +24,6 @@ CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication
 @REM CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
-<<<<<<< HEAD
-@REM CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
-@REM @REM CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
-@REM @REM CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\DemStructuresCouplingApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\CoSimulationApplication;
-@REM @REM CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
-@REM @REM CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
-@REM CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\MultilevelMonteCarloApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\RomApplication;
-=======
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
 CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
@@ -67,7 +45,6 @@ CALL :add_app %KRATOS_APP_DIR%\MultilevelMonteCarloApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
 CALL :add_app %KRATOS_APP_DIR%\RomApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShallowWaterApplication;
->>>>>>> master
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
