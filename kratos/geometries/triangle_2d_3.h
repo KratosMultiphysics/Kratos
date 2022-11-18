@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_2D_3_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_3_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -537,6 +535,62 @@ public:
         box_half_size[2] = 0.00;
 
         return TriBoxOverlap(box_center, box_half_size);
+    }
+
+    /** 
+     * @brief Returns the intersection coordinates with another geometry
+     * @param  rThisGeometry Geometry to intersect with
+     * @return A STL vector containing the intersection points coordinates
+     */
+    std::vector<array_1d<double, 3>> GetIntersectionPoints (const BaseType& rThisGeometry) const override {
+        std::vector<array_1d<double, 3>> intersection_points;
+        const auto type = rThisGeometry.GetGeometryType();
+        if (type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
+            // Check the intersection of each edge against the intersecting object
+            array_1d<double,3> int_point;
+            const BaseType& r_triangle = *this;
+            const auto& r_vert_0 = r_triangle[0].Coordinates();
+            const auto& r_vert_1 = r_triangle[1].Coordinates();
+            const auto& r_point_0 = rThisGeometry[0].Coordinates();
+            const auto& r_point_1 = rThisGeometry[1].Coordinates();
+            int int_sol = IntersectionUtilities::ComputeLineLineIntersection(r_vert_0, r_vert_1, r_point_0, r_point_1, int_point);
+            if (int_sol == 1 || int_sol == 3) {
+                intersection_points.push_back(int_point);
+            } else if (int_sol == 2) {
+                intersection_points.push_back(r_point_0);
+                intersection_points.push_back(r_point_1);
+            }
+            if (intersection_points.size() == 2) return intersection_points;;
+            const auto& r_vert_2 = r_triangle[2].Coordinates();
+            int_sol = IntersectionUtilities::ComputeLineLineIntersection(r_vert_1, r_vert_2, r_point_0, r_point_1, int_point);
+            if (int_sol == 1 || int_sol == 3) {
+                intersection_points.push_back(int_point);
+            } else if (int_sol == 2) {
+                if (intersection_points.size() == 0) {
+                    intersection_points.push_back(r_point_0);
+                    intersection_points.push_back(r_point_1);
+                } else {
+                    if (norm_2(intersection_points[0] - r_point_0)) intersection_points.push_back(r_point_1);
+                    else intersection_points.push_back(r_point_0);
+                }
+            }
+            if (intersection_points.size() == 2) return intersection_points;;
+            int_sol = IntersectionUtilities::ComputeLineLineIntersection(r_vert_2, r_vert_0, r_point_0, r_point_1, int_point);
+            if (int_sol == 1 || int_sol == 3) {
+                intersection_points.push_back(int_point);
+            } else if (int_sol == 2) {
+                if (intersection_points.size() == 0) {
+                    intersection_points.push_back(r_point_0);
+                    intersection_points.push_back(r_point_1);
+                } else {
+                    if (norm_2(intersection_points[0] - r_point_0)) intersection_points.push_back(r_point_1);
+                    else intersection_points.push_back(r_point_0);
+                }
+            }
+        } else {
+            KRATOS_ERROR << " 'GetIntersectionPoints ' method not implemented in Line3D2 with geometry " << rThisGeometry.Info() << std::endl;
+        }
+        return intersection_points;
     }
 
     /** This method calculates and returns length, area or volume of
@@ -2230,5 +2284,3 @@ GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(
     2, 2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_2D_3_H_INCLUDED  defined
