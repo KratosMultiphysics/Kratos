@@ -301,8 +301,10 @@ public:
         auto pa = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
         auto pb = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
         if (std::abs(denom) < zero_tolerance) { // Parallel lines, infinite solutions. Projecting points and getting one perpendicular line
+            // Projection auxiliary variables
             Point projected_point;
             array_1d<double,3> local_coords;
+            // Projecting first segment
             GeometricalProjectionUtilities::FastProjectOnLine(rSegment2, rSegment1[0], projected_point);
             if (rSegment2.IsInside(projected_point, local_coords)) {
                 pa->Coordinates() = rSegment1[0].Coordinates();
@@ -312,8 +314,20 @@ public:
                 if (rSegment2.IsInside(projected_point, local_coords)) {
                     pa->Coordinates() = rSegment1[1].Coordinates();
                     pb->Coordinates() = projected_point;
-                } else { // Parallel and not projection possible
-                    return resulting_line;
+                } else { // Trying to project second segment
+                    GeometricalProjectionUtilities::FastProjectOnLine(rSegment1, rSegment2[0], projected_point);
+                    if (rSegment1.IsInside(projected_point, local_coords)) {
+                        pa->Coordinates() = rSegment2[0].Coordinates();
+                        pb->Coordinates() = projected_point;
+                    } else {
+                        GeometricalProjectionUtilities::FastProjectOnLine(rSegment1, rSegment2[1], projected_point);
+                        if (rSegment1.IsInside(projected_point, local_coords)) {
+                            pa->Coordinates() = rSegment2[1].Coordinates();
+                            pb->Coordinates() = projected_point;
+                        } else { // Parallel and not projection possible
+                            return resulting_line;
+                        }
+                    }
                 }
             }
         } else {
