@@ -668,6 +668,10 @@ namespace Testing {
         Point::Pointer p_point_8 = Kratos::make_shared<Point>(0.0, 2.0, 0.0);
         Line3D2<Point> line4(p_point_7, p_point_8);
 
+        Point::Pointer p_point_9 = Kratos::make_shared<Point>(1.75, 0.25, 0.0);
+        Point::Pointer p_point_10 = Kratos::make_shared<Point>(0.25, 1.75, 0.0);
+        Line3D2<Point> line5(p_point_9, p_point_10);
+
         // Not intersecting lines
         const auto line1_2 = Line3D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(line1, line2));
         KRATOS_CHECK_NEAR(line1_2.Length(), 0.408248, 1.0e-6);
@@ -683,6 +687,9 @@ namespace Testing {
         // Not intersecting lines (parallel lines)
         const auto line1_4 = Line3D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(line1, line4));
         KRATOS_CHECK_NEAR(line1_4.Length(), std::sqrt(2.0)/2.0, 1.0e-6);
+
+        const auto line1_5 = Line3D2<Point>(IntersectionUtilities::ComputeShortestLineBetweenTwoLines(line1, line5));
+        KRATOS_CHECK_NEAR(line1_5.Length(), std::sqrt(2.0)/2.0, 1.0e-6);
     }
 
 }  // namespace Testing.
