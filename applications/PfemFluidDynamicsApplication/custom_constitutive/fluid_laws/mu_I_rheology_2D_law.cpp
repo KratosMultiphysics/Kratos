@@ -122,31 +122,31 @@ namespace Kratos
                                 const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_ERROR_IF(rMaterialProperties[STATIC_FRICTION] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[STATIC_FRICTION] < 0.0)
             << "Incorrect or missing STATIC_FRICTION provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[STATIC_FRICTION] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_FRICTION] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_FRICTION] < 0.0)
             << "Incorrect or missing DYNAMIC_FRICTION provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[DYNAMIC_FRICTION] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[INERTIAL_NUMBER_ZERO] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[INERTIAL_NUMBER_ZERO] < 0.0)
             << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[INERTIAL_NUMBER_ZERO] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[GRAIN_DIAMETER] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[GRAIN_DIAMETER] < 0.0)
             << "Incorrect or missing GRAIN_DIAMETER provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[GRAIN_DIAMETER] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[GRAIN_DENSITY] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[GRAIN_DENSITY] < 0.0)
             << "Incorrect or missing GRAIN_DENSITY provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[GRAIN_DENSITY] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[REGULARIZATION_COEFFICIENT] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[REGULARIZATION_COEFFICIENT] < 0.0)
             << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
 
-        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
             << "Incorrect or missing BULK_MODULUS provided in process info for MuIRheology2DLaw: "
             << rMaterialProperties[BULK_MODULUS] << std::endl;
 
