@@ -1,4 +1,5 @@
 import math
+from tokenize import Double
 import KratosMultiphysics
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
@@ -25,7 +26,9 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             "interval"           : [0.0,"End"],
             "hydrostatic_outlet" : false,
             "h_top"              : 0.0,
-            "outlet_inflow_contribution" : false
+            "outlet_inflow_contribution" : false,
+            "outlet_inflow_contribution_characteristic_velocity_value" : 0.0,
+            "outlet_inflow_contribution_characteristic_velocity_calculation" : "outlet_average"
         }
         """)
 
@@ -40,6 +43,9 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         pres_settings = settings.Clone()
         pres_settings.RemoveValue("hydrostatic_outlet")
         pres_settings.RemoveValue("h_top")
+        pres_settings.RemoveValue("outlet_inflow_contribution")
+        pres_settings.RemoveValue("outlet_inflow_contribution_characteristic_velocity_value")
+        pres_settings.RemoveValue("outlet_inflow_contribution_characteristic_velocity_calculation")
 
         # Create a copy of the PRESSURE settings to set the EXTERNAL_PRESSURE
         ext_pres_settings = pres_settings.Clone()
@@ -73,9 +79,18 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             condition.Set(KratosMultiphysics.OUTLET, True)
 
         # Outlet inflow contribution
-        self.outlet_inflow_contribution = settings["outlet_inflow_contribution"].GetBool()
-        if self.outlet_inflow_contribution:
+        self.__outlet_inflow_contribution = settings["outlet_inflow_contribution"].GetBool()
+        if self.__outlet_inflow_contribution:
             self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_SWITCH] = True
+            self.__outlet_char_velocity = None
+            self.__outlet_char_velocity_type = settings["outlet_inflow_contribution_characteristic_velocity_calculation"].GetString()
+            if self.__outlet_char_velocity_type in ["user_defined", "outlet_average", "outlet_max"]:
+                if self.__outlet_char_velocity_type == "user_defined":
+                    self.__outlet_char_velocity = settings["outlet_inflow_contribution_characteristic_velocity_value"].GetDouble()
+                    if self.__outlet_char_velocity < 1.0e-12:
+                        raise ValueError(f"Wrong 'outlet_inflow_contribution_characteristic_velocity_value', must be greater than zero. Provided {self.__outlet_char_velocity}.")
+            else:
+                raise Exception(f"Wrong 'outlet_inflow_contribution_characteristic_velocity_calculation'. Provided value is '{self.__outlet_char_velocity_type }'.")
         else:
             self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_SWITCH] = False
 
@@ -93,9 +108,15 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         if (self.hydrostatic_outlet):
             self._AddOutletHydrostaticComponent()
 
-        # Compute the outlet average velocity
-        if self.outlet_inflow_contribution:
-            self._ComputeOutletCharacteristicVelocity()
+        # Set the characteristic outlet velocity in the outlet model part ProcessInfo
+        if self.__outlet_inflow_contribution:
+            # If required, update the outlet characteristic velocity
+            if self.__outlet_char_velocity_type == "outlet_average":
+                self.__outlet_char_velocity = self.__ComputeOutletAverageVelocity()
+            else:
+                self.__outlet_char_velocity = self.__ComputeOutletMaxVelocity()
+            # Save value to be used in the boundary terms integration
+            self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = self.__outlet_char_velocity
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -138,7 +159,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE, 0, hyd_pres+cur_pres)               # Add the hydrostatic component to the EXTERNAL_PRESSURE value
 
 
-    def _ComputeOutletCharacteristicVelocity(self):
+    def __ComputeOutletAverageVelocity(self):
         # Compute the outlet average velocity
         outlet_avg_vel_norm = 0.0
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
@@ -152,9 +173,21 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
         outlet_avg_vel_norm /= tot_len
 
-        # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
+        # Check the outlet average velocity minimum value and return
         min_outlet_avg_vel_norm = 1.0e-12
-        if (outlet_avg_vel_norm >= min_outlet_avg_vel_norm):
-            self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = outlet_avg_vel_norm
-        else:
-            self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = min_outlet_avg_vel_norm
+        return outlet_avg_vel_norm if outlet_avg_vel_norm >= min_outlet_avg_vel_norm else min_outlet_avg_vel_norm
+
+    def __ComputeOutletMaxVelocity(self):
+        # Compute the outlet max velocity
+        outlet_max_vel_norm = 0.0
+        for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
+            v_node = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            aux_val = v_node[0]*v_node[0] + v_node[1]*v_node[1] + v_node[2]*v_node[2]
+            if aux_val > outlet_max_vel_norm:
+                outlet_max_vel_norm = aux_val
+        outlet_max_vel_norm = self.outlet_model_part.GetCommunicator().GetDataCommunicator().MaxAll(outlet_max_vel_norm)
+        outlet_max_vel_norm = math.sqrt(outlet_max_vel_norm)
+
+        # Check the outlet max velocity minimum value and return
+        min_outlet_vel_norm = 1.0e-12
+        return outlet_max_vel_norm if outlet_max_vel_norm >= min_outlet_vel_norm else min_outlet_vel_norm
