@@ -229,6 +229,54 @@ namespace Testing {
     KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
   }
 
+  /**
+    * Test an intersection with another line
+    */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3HasIntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
+      auto geom_1 = GeneratePointsRightTriangle2D3();
+      Point::Pointer p_point_1 = Kratos::make_shared<Point>(1.0, -0.5, 0.0);
+      Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 1.0, 0.0);
+      Line2D2<Point> geom_2(p_point_1, p_point_2);
+      KRATOS_CHECK(geom_1->HasIntersection(geom_2));
+  }
+
+  /**
+    * Test an intersection with another parallel line
+    */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3HasIntersectionWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+      auto geom_1 = GeneratePointsRightTriangle2D3();
+      Point::Pointer p_point_1 = Kratos::make_shared<Point>( 1.0, 1.0, 0.0);
+      Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 2.5, 0.0);
+      Line2D2<Point> geom_2(p_point_1, p_point_2);
+      KRATOS_CHECK_IS_FALSE(geom_1->HasIntersection(geom_2));
+  }
+
+  /**
+    * Test an intersection with another line
+    */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GetIntersectionPointsWithAnotherLine, KratosCoreGeometriesFastSuite) {
+      auto geom_1 = GeneratePointsRightTriangle2D3();
+      Point::Pointer p_point_1 = Kratos::make_shared<Point>(1.0, -0.5, 0.0);
+      Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 1.0, 0.0);
+      Line2D2<Point> geom_2(p_point_1, p_point_2);
+      const auto intersection = geom_1->GetIntersectionPoints(geom_2);
+      const Point pt0(0.5,0.0,0.0);
+      const Point pt1(0.0,0.5,0.0);
+      KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
+      KRATOS_CHECK_VECTOR_EQUAL(intersection[1], pt1.Coordinates());
+  }
+
+  /**
+    * Test an intersection with another parallel line
+    */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GetIntersectionPointsWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+      auto geom_1 = GeneratePointsRightTriangle2D3();
+      Point::Pointer p_point_1 = Kratos::make_shared<Point>( 1.0, 1.0, 0.0);
+      Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 2.5, 0.0);
+      Line2D2<Point> geom_2(p_point_1, p_point_2);
+      KRATOS_CHECK_EQUAL(geom_1->GetIntersectionPoints(geom_2).size(), 0);
+  }
+
   /** Checks the inside test for a given point respect to the triangle
    * Checks the inside test for a given point respect to the triangle
    * It performs 4 tests:
