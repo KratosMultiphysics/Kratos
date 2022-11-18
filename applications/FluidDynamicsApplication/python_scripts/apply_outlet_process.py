@@ -24,7 +24,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             "value"              : 0.0,
             "interval"           : [0.0,"End"],
             "hydrostatic_outlet" : false,
-            "h_top"              : 0.0
+            "h_top"              : 0.0,
+            "outlet_inflow_contribution" : false
         }
         """)
 
@@ -71,6 +72,13 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         for condition in self.outlet_model_part.Conditions:
             condition.Set(KratosMultiphysics.OUTLET, True)
 
+        # Outlet inflow contribution
+        self.outlet_inflow_contribution = settings["outlet_inflow_contribution"].GetBool()
+        if self.outlet_inflow_contribution:
+            self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_SWITCH] = True
+        else:
+            self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_SWITCH] = False
+
         # Construct the base process AssignValueProcess
         self.aux_pressure_process = AssignScalarVariableProcess(Model, pres_settings)
         self.aux_external_pressure_process = AssignScalarVariableProcess(Model, ext_pres_settings)
@@ -86,7 +94,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             self._AddOutletHydrostaticComponent()
 
         # Compute the outlet average velocity
-        self._ComputeOutletCharacteristicVelocity()
+        if self.outlet_inflow_contribution:
+            self._ComputeOutletCharacteristicVelocity()
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -144,7 +153,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         outlet_avg_vel_norm /= tot_len
 
         # Store the average velocity in the ProcessInfo to be used in the outlet inflow prevention condition
-        min_outlet_avg_vel_norm = 1.0
+        min_outlet_avg_vel_norm = 1.0e-12
         if (outlet_avg_vel_norm >= min_outlet_avg_vel_norm):
             self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = outlet_avg_vel_norm
         else:
