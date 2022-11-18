@@ -11,14 +11,13 @@
 //                   Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //                   Carlos Roig
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GEOMETRY_H_INCLUDED )
-#define  KRATOS_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 #include <typeinfo>
@@ -1461,10 +1460,10 @@ public:
      *
      * Test if this geometry intersects with other geometry
      *
-     * @param  ThisGeometry Geometry to intersect with
+     * @param  rThisGeometry Geometry to intersect with
      * @return              True if the geometries intersect, False in any other case.
      */
-    virtual bool HasIntersection(const GeometryType& ThisGeometry) const {
+    virtual bool HasIntersection(const GeometryType& rThisGeometry) const {
       KRATOS_ERROR << "Calling base class 'HasIntersection' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return false;
     }
@@ -1483,11 +1482,16 @@ public:
       return false;
     }
 
-    // virtual void BoundingBox(BoundingBoxType& rResult) const
-    // {
-    //
-    //   Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-    // }
+    /** 
+     * @brief Returns the intersection coordinates with another geometry
+     * @param  rThisGeometry Geometry to intersect with
+     * @return A STL vector containing the intersection points coordinates
+     */
+    virtual std::vector<array_1d<double, 3>> GetIntersectionPoints (const GeometryType& rThisGeometry) const {
+        std::vector<array_1d<double, 3>> dummy;  
+        KRATOS_ERROR << "Calling base class 'GetIntersectionPoints ' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return dummy;
+    }
 
     /**
      * @brief Calculates the boundingbox of the geometry.
@@ -4317,5 +4321,3 @@ const GeometryDimension Geometry<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_H_INCLUDED  defined
