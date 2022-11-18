@@ -571,7 +571,7 @@ public:
                     intersection_points.push_back(r_point_1);
                 } else {
                     if (norm_2(intersection_points[0] - r_point_0)) intersection_points.push_back(r_point_1);
-                    else intersection_points.push_back(r_point_0);
+                    else if (norm_2(intersection_points[0] - r_point_1)) intersection_points.push_back(r_point_0);
                 }
             }
             if (intersection_points.size() == 2) return intersection_points;;
@@ -584,7 +584,7 @@ public:
                     intersection_points.push_back(r_point_1);
                 } else {
                     if (norm_2(intersection_points[0] - r_point_0)) intersection_points.push_back(r_point_1);
-                    else intersection_points.push_back(r_point_0);
+                    else if (norm_2(intersection_points[0] - r_point_1)) intersection_points.push_back(r_point_0);
                 }
             }
         } else {
