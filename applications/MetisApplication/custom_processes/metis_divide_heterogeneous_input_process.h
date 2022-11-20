@@ -39,13 +39,11 @@ public:
     /// Pointer definition of MetisDivideHeterogeneousInputProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideHeterogeneousInputProcess);
 
-    typedef MetisDivideInputToPartitionsProcess BaseType;
-
     using SizeType = IO::SizeType;
     using GraphType = IO::GraphType;
     using PartitionIndicesType = IO::PartitionIndicesType;
     using PartitionIndicesContainerType = IO::PartitionIndicesContainerType;
-    using BaseType::idxtype;
+    using idxtype = idx_t; // from metis
 
     ///@}
     ///@name Life Cycle
@@ -149,39 +147,6 @@ protected:
     };
 
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    void ExecutePartitioning(PartitioningInfo& rPartitioningInfo);
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -199,6 +164,8 @@ protected:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void ExecutePartitioning(PartitioningInfo& rPartitioningInfo);
 
     /// Call Metis to create a partition of nodes based on the nodal graph.
     /**
