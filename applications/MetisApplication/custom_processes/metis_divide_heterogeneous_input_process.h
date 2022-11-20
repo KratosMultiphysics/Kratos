@@ -134,9 +134,19 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected LifeCycle
     ///@{
 
+    struct PartitioningInfo
+    {
+        GraphType mGraph;
+        PartitionIndicesType mNodesPartitions;
+        PartitionIndicesType mElementsPartitions;
+        PartitionIndicesType mConditionsPartitions;
+        PartitionIndicesContainerType mNodesAllPartitions;
+        PartitionIndicesContainerType mElementsAllPartitions;
+        PartitionIndicesContainerType mConditionsAllPartitions;
+    };
 
     ///@}
     ///@name Protected member Variables
@@ -147,6 +157,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    void ExecutePartitioning(PartitioningInfo& rPartitioningInfo);
 
     ///@}
     ///@name Protected Operations
@@ -162,21 +173,6 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    struct PartitioningInfo
-    {
-        GraphType mGraph;
-        PartitionIndicesType mNodesPartitions;
-        PartitionIndicesType mElementsPartitions;
-        PartitionIndicesType mConditionsPartitions;
-        PartitionIndicesContainerType mNodesAllPartitions;
-        PartitionIndicesContainerType mElementsAllPartitions;
-        PartitionIndicesContainerType mConditionsAllPartitions;
-    };
 
     ///@}
 
