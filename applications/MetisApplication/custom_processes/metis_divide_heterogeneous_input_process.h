@@ -140,12 +140,12 @@ protected:
     struct PartitioningInfo
     {
         GraphType mGraph;
-        PartitionIndicesType mNodesPartitions;
-        PartitionIndicesType mElementsPartitions;
-        PartitionIndicesType mConditionsPartitions;
-        PartitionIndicesContainerType mNodesAllPartitions;
-        PartitionIndicesContainerType mElementsAllPartitions;
-        PartitionIndicesContainerType mConditionsAllPartitions;
+        PartitionIndicesType mNodesPartitions; // partition where the Node is local
+        PartitionIndicesType mElementsPartitions; // partition where the Element is local
+        PartitionIndicesType mConditionsPartitions; // partition where the Condition is local
+        PartitionIndicesContainerType mNodesAllPartitions; // partitions, in which the Node is present (local & ghost)
+        PartitionIndicesContainerType mElementsAllPartitions; // partitions, in which the Element is present (local & ghost)
+        PartitionIndicesContainerType mConditionsAllPartitions; // partitions, in which the Condition is present (local & ghost)
     };
 
     ///@}
