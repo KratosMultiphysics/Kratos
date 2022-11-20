@@ -41,8 +41,10 @@ public:
 
     typedef MetisDivideInputToPartitionsProcess BaseType;
 
-    using BaseType::SizeType;
-    using BaseType::GraphType;
+    using SizeType = IO::SizeType;
+    using GraphType = IO::GraphType;
+    using PartitionIndicesType = IO::PartitionIndicesType;
+    using PartitionIndicesContainerType = IO::PartitionIndicesContainerType;
     using BaseType::idxtype;
 
     ///@}
@@ -165,6 +167,16 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    struct PartitioningInfo
+    {
+        GraphType mGraph;
+        PartitionIndicesType mNodesPartitions;
+        PartitionIndicesType mElementsPartitions;
+        PartitionIndicesType mConditionsPartitions;
+        PartitionIndicesContainerType mNodesAllPartitions;
+        PartitionIndicesContainerType mElementsAllPartitions;
+        PartitionIndicesContainerType mConditionsAllPartitions;
+    };
 
     ///@}
 
