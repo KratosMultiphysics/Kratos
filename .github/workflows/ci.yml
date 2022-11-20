@@ -415,8 +415,8 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        export CC=icc
-        export CXX=icpc
+        export CC=icx
+        export CXX=icpx
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/intel_configure.sh configure.sh
         bash configure.sh
