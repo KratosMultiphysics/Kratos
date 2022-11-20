@@ -86,8 +86,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
     int NumColors;
-    GraphType ColoredDomainGraph;
-    GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.mGraph,NumColors).Execute();
 
     if (mVerbosity > 0)
     {
@@ -96,7 +95,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
 if (mVerbosity > 2)
 {
-        KRATOS_WATCH(ColoredDomainGraph);
+        KRATOS_WATCH(rPartitioningInfo.mGraph);
 }
 
     // Write partition info into separate input files
