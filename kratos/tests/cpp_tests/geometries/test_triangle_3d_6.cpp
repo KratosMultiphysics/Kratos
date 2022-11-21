@@ -61,7 +61,7 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle3D6();
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        KRATOS_CHECK_NEAR(geom->Volume(), 0.0, ZERO_TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6MinEdgeLength, KratosCoreGeometriesFastSuite) {
