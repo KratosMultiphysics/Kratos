@@ -3,7 +3,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/metis_divide_input_to_partitions_process.h"
+#include "metis_divide_input_to_partitions_process.h"
 
 namespace Kratos
 {
