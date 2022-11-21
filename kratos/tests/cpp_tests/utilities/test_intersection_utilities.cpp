@@ -644,6 +644,24 @@ namespace Testing {
         point_2.Z() = 1.25;
         intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
         KRATOS_CHECK_EQUAL(intersection, 0);
+
+        // Intersecting line (totally inside)
+        p_point_4->X() = 100.0;
+        p_point_5->Y() = 100.0;
+        p_point_6->Z() = 100.0;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
+        KRATOS_CHECK_EQUAL(intersection, 1);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point1, point_1.Coordinates());
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, point_2.Coordinates());
+
+        // Intersecting line (partially inside)
+        point_2.Z() = 125.0;
+        intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
+        KRATOS_CHECK_EQUAL(intersection, 1);
+        expected_intersection_point1[0] = 0.789579;
+        expected_intersection_point1[2] = 98.9604;
+        KRATOS_CHECK_VECTOR_NEAR(intersection_point1, expected_intersection_point1, 1.0e-4);
+        KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, point_1.Coordinates());
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ComputeShortestLineBetweenTwoLines, KratosCoreFastSuite)
