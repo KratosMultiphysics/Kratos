@@ -38,6 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/particle_levelset_utility.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -181,6 +182,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
         ;
 
+    //corrects the levelset position by taking into account the motion of particles around the interface
+    py::class_<
+        ParticleLevelsetUtility<2>>
+        (m,"ParticleLevelsetUtility2D")
+        .def(py::init< ModelPart&, ModelPart&, const Variable<double>&, const double>())
+        .def("Prepare", &ParticleLevelsetUtility<2>::Prepare)
+        .def("MoveAndCorrect", &ParticleLevelsetUtility<2>::MoveAndCorrect)
+        ;
 }
 
 }  // namespace Python.
