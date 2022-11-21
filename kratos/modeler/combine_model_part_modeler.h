@@ -33,9 +33,10 @@ namespace Kratos
 /**
  * @class CombineModelPartModeler
  * @ingroup KratosCore
- * @brief This modeler combines several model parts in serial, reading its respective *.mdpa files (maybe others in the future)
- * @details Uses ModelPartCombinationUtilities to combine different ModelParts into one single ModelPart, with the corresponding sub ModelParts
- * @author Vicente Maataix Ferrandiz
+ * @brief This modeler combines several model parts into a new one. All input model parts should share 
+ *   the same root model part.
+ * @details ProcessInfo is shallow-copied from root origin model part.
+ * @author Daniel Diez @ddiezrod
  */
 class KRATOS_API(KRATOS_CORE) CombineModelPartModeler 
     : public Modeler {
@@ -170,6 +171,10 @@ protected:
         ModelPart& rDestinationModelPart
     ) const;
 
+    void ResetModelPart(ModelPart& rCombinedModelPart) const;
+
+    void CheckOriginModelPartsAndAssignRoot();
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -193,6 +198,8 @@ private:
     Model* mpModel = nullptr; /// The model of the problem
 
     Parameters mParameters;   /// The configuration parameters
+
+    ModelPart* mpOriginRootModelPart = nullptr; /// Root model part of all origin model parts
 
     ///@}
     ///@name Private Operators

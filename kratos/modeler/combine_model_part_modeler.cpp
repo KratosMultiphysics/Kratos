@@ -8,6 +8,7 @@
 // Project includes
 #include "includes/define.h"
 #include "modeler/combine_model_part_modeler.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -44,7 +45,9 @@ void CombineModelPartModeler::SetupModelPart()
     auto& r_combined_model_part = mpModel->HasModelPart(r_new_model_part_name) ? 
         mpModel->GetModelPart(r_new_model_part_name) : mpModel->CreateModelPart(r_new_model_part_name);
 
-    //TODO: RESET combined model part
+    this->ResetModelPart(r_combined_model_part);
+
+    this->CheckOriginModelPartsAndAssignRoot();
 
     this->CopyCommonData(r_combined_model_part);
 
@@ -62,21 +65,62 @@ void CombineModelPartModeler::SetupModelPart()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CombineModelPartModeler::ResetModelPart(ModelPart& rCombinedModelPart) const
+{
+    VariableUtils().SetFlag(TO_ERASE, true, rCombinedModelPart.Nodes());
+    VariableUtils().SetFlag(TO_ERASE, true, rCombinedModelPart.Elements());
+    VariableUtils().SetFlag(TO_ERASE, true, rCombinedModelPart.Conditions());
+
+    rCombinedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    rCombinedModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+    rCombinedModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CombineModelPartModeler::CheckOriginModelPartsAndAssignRoot()
+{
+    KRATOS_TRY;
+
+    Parameters model_part_list = mParameters["model_part_list"];
+
+    KRATOS_ERROR_IF(model_part_list.size() == 0) <<
+        "\"model_part_list\" is empty!\n";
+
+    const std::string& first_origin_model_pat = model_part_list[0]["origin_model_part"].GetString();
+    mpOriginRootModelPart =  &(mpModel->GetModelPart(first_origin_model_pat).GetRootModelPart());
+
+    for (unsigned int i = 1; i < model_part_list.size(); i++) {
+        ModelPart& r_origin_model_part = mpModel->GetModelPart(model_part_list[i]["origin_model_part"].GetString());
+        if (r_origin_model_part.GetRootModelPart().FullName() != mpOriginRootModelPart->FullName()) {
+            KRATOS_ERROR << "The origin model part \"" << r_origin_model_part.FullName() << 
+                "\" does not have the same root as the rest of origin model parts: \"" <<
+                mpOriginRootModelPart->FullName() << "\".\n";
+        }
+    }
+
+    KRATOS_CATCH("Failure in CheckOriginModelPartsAndAssignRoot");
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void CombineModelPartModeler::CopyCommonData(
     ModelPart& rCombinedModelPart) const
 {
     KRATOS_TRY;
-    const auto& r_main_model_part_name = mParameters["main_model_part_name"].GetString();
-    ModelPart& r_main_model_part = mpModel->GetModelPart(r_main_model_part_name);
-
+    
     if (!rCombinedModelPart.IsSubModelPart()) {
-        rCombinedModelPart.SetNodalSolutionStepVariablesList(r_main_model_part.pGetNodalSolutionStepVariablesList());
-        rCombinedModelPart.SetBufferSize( r_main_model_part.GetBufferSize() );
+        rCombinedModelPart.SetNodalSolutionStepVariablesList(mpOriginRootModelPart->pGetNodalSolutionStepVariablesList());
+        rCombinedModelPart.SetBufferSize( mpOriginRootModelPart->GetBufferSize() );
     }
     
-    rCombinedModelPart.SetProcessInfo( r_main_model_part.pGetProcessInfo() );
-    rCombinedModelPart.PropertiesArray() = r_main_model_part.PropertiesArray();
-    rCombinedModelPart.Tables() = r_main_model_part.Tables();
+    rCombinedModelPart.SetProcessInfo( mpOriginRootModelPart->pGetProcessInfo() );
+    rCombinedModelPart.PropertiesArray() = mpOriginRootModelPart->PropertiesArray();
+    rCombinedModelPart.Tables() = mpOriginRootModelPart->Tables();
     KRATOS_CATCH("Failure in CopyCommonData");
 
 }
@@ -100,7 +144,7 @@ void CombineModelPartModeler::DuplicateMesh() const
 
     Parameters model_part_list = mParameters["model_part_list"];
 
-    for (unsigned int i = 0; i < mParameters["model_part_list"].size(); i++) {
+    for (unsigned int i = 0; i < model_part_list.size(); i++) {
         ModelPart& r_origin_model_part = mpModel->GetModelPart(model_part_list[i]["origin_model_part"].GetString());
         const std::string& destination_model_part_name = model_part_list[i]["destination_model_part"].GetString();
         ModelPart* p_destination_model_part;
@@ -109,7 +153,6 @@ void CombineModelPartModeler::DuplicateMesh() const
         } else {
             p_destination_model_part = &mpModel->CreateModelPart(destination_model_part_name);
         }
-        //TODO check this does not fail in MPI
         p_destination_model_part->AddNodes(r_origin_model_part.NodesBegin(), r_origin_model_part.NodesEnd());
         this->DuplicateElements(r_origin_model_part, *p_destination_model_part, reference_element);
         this->DuplicateConditions(r_origin_model_part, *p_destination_model_part, reference_condition);
@@ -135,12 +178,9 @@ void CombineModelPartModeler::CreateCommunicators()
         r_destination_model_part.SetCommunicator( p_destination_comm );
 
         ModelPart* p_current_model_part = &r_destination_model_part;
-        const auto& r_main_model_part_name = mParameters["main_model_part_name"].GetString();
-        ModelPart& r_main_model_part = mpModel->GetModelPart(r_main_model_part_name);
-        //correct this so it is not done for every model part in the list
         while (p_current_model_part->IsSubModelPart()) {
             p_current_model_part = &(p_current_model_part->GetParentModelPart());
-            Communicator& r_parent_reference_comm = r_main_model_part.GetCommunicator();
+            Communicator& r_parent_reference_comm = mpOriginRootModelPart->GetCommunicator();
             Communicator::Pointer p_parent_destination_comm = r_parent_reference_comm.Create();
             p_parent_destination_comm->SetNumberOfColors(r_parent_reference_comm.GetNumberOfColors());
             p_parent_destination_comm->NeighbourIndices() = r_parent_reference_comm.NeighbourIndices();
@@ -402,7 +442,6 @@ const Parameters CombineModelPartModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "combined_model_part_name" : "",
-        "main_model_part_name"     : "main_model_part",
         "model_part_list"          : [],
         "element_name"             : "Element3D4N",
         "condition_name"           : "SurfaceCondition3D3N"

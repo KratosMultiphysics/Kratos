@@ -48,6 +48,29 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
                 KratosUtilities.DeleteDirectoryIfExisting(self.file_name + "_partitioned")
             self.comm.Barrier()
 
+    def test_CheckModelPartsHaveSameRoot(self):
+        self.model = KratosMultiphysics.Model()
+        self.model.CreateModelPart("main_model_part.submodel_1")
+        self.model.CreateModelPart("not_main_model_part.submodel_2")
+        settings = KratosMultiphysics.Parameters('''{
+            "combined_model_part_name" : "thermal_model_part",
+            "model_part_list" : [
+                {
+                    "origin_model_part": "main_model_part.submodel_1",
+                    "destination_model_part": "thermal_model_part.submodel_1"
+                },
+                {
+                    "origin_model_part": "not_main_model_part.submodel_2",
+                    "destination_model_part": "thermal_model_part.submodel_2"
+                }
+            ]
+        }''')
+        modeler = KratosMultiphysics.CombineModelPartModeler(self.model, settings)
+        expected_error_msg = "The origin model part \"not_main_model_part.submodel_2\" does not have"
+        expected_error_msg += " the same root as the rest of origin model parts: \"main_model_part\"."
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            modeler.SetupModelPart()
+
     def test_CombineModelParts(self):
         model_part = self._CreateModelPart()
         material_settings = KratosMultiphysics.Parameters('''{
