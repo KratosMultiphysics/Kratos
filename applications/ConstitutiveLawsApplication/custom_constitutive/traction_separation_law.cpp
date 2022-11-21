@@ -72,6 +72,7 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const TractionSeparationL
     //   minitial_threshold(rOther.minitial_threshold),
     //   mthreshold(rOther.mthreshold),
       mdelamination_damage(rOther.mdelamination_damage),
+      m_mode_mix_factor(rOther.m_mode_mix_factor),
     //   mAParameter(rOther.mAParameter),
     //   mDamageIndicator(rOther.mDamageIndicator),
       mstatus_coeff(rOther.mstatus_coeff)
@@ -958,6 +959,9 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     mdelamination_damage.resize(mConstitutiveLaws.size()+1, false);
     noalias(mdelamination_damage) = ZeroVector(mConstitutiveLaws.size()+1);
 
+    m_mode_mix_factor.resize(mConstitutiveLaws.size()-1, false);
+    noalias(m_mode_mix_factor) = ZeroVector(mConstitutiveLaws.size()-1);
+
     // mAParameter.resize(mConstitutiveLaws.size()-1, false);
     // noalias(mAParameter) = ZeroVector(mConstitutiveLaws.size()-1);
 }
@@ -1072,6 +1076,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         // Vector initial_threshold(mConstitutiveLaws.size()-1);
         // Vector threshold(mConstitutiveLaws.size()-1);
         Vector delamination_damage(mConstitutiveLaws.size()+1);
+        Vector mode_mix_factor(mConstitutiveLaws.size()-1);
         Vector negative_interfacial_stress_index(mConstitutiveLaws.size()+1);
         noalias(negative_interfacial_stress_index) = ZeroVector(mConstitutiveLaws.size()+1);
         // Vector AParameter(mConstitutiveLaws.size()-1);
@@ -1082,6 +1087,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         // noalias(initial_threshold) = minitial_threshold;
         // noalias(threshold) = mthreshold;
         noalias(delamination_damage) = mdelamination_damage;
+        noalias(mode_mix_factor) = m_mode_mix_factor;
         // noalias(AParameter) = mAParameter;
         // noalias(DamageIndicator) = mDamageIndicator;
         noalias(status_coeff) = mstatus_coeff;
@@ -1129,20 +1135,20 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             // double T_eq = std::sqrt(3.0 * J2);
             const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // const double mode_mix_factor = std::pow(T_shear / T_eq,2.0);
-            const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
-            const double mode_mix_factor = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
-            // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor, Eta));
-            const double initial_threshold = T0s;
+            // const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
+            // const double mode_mix_factor = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
+            // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor[i], Eta));
+            const double initial_threshold = 50000000;
             const double threshold = status_coeff[i] * initial_threshold;
             const double F = T_eq - threshold;
             if (F > tolerance) {
-                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
                 // const double Gc = GIIc;
-                const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor, Eta);
+                const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
                 // const double K = Gi;
                 // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
                 // const double AParameter = 1.00 / (Gc * K / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
-                const double AParameter = 0.0847;
+                const double AParameter = 0.092;
                 KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
 
                 // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
@@ -1153,6 +1159,7 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
                 delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
 
                 // KRATOS_ERROR_IF(delamination_damage[i+1] < mdelamination_damage[i+1]) << "AParameter is negative." << std::endl;
+                // const double time = rValues.GetProcessInfo()[TIME];  DELTA_TIME
             }
 
             // End damage calculation
@@ -1847,6 +1854,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
         // Vector initial_threshold(mConstitutiveLaws.size()-1);
         // Vector threshold(mConstitutiveLaws.size()-1);
         Vector delamination_damage(mConstitutiveLaws.size()+1);
+        Vector mode_mix_factor(mConstitutiveLaws.size()-1);
         Vector negative_interfacial_stress_index(mConstitutiveLaws.size()+1);
         noalias(negative_interfacial_stress_index) = ZeroVector(mConstitutiveLaws.size()+1);
         // Vector AParameter(mConstitutiveLaws.size()-1);
@@ -1857,6 +1865,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
         // noalias(initial_threshold) = minitial_threshold;
         // noalias(threshold) = mthreshold;
         noalias(delamination_damage) = mdelamination_damage;
+        noalias(mode_mix_factor) = m_mode_mix_factor;
         // noalias(AParameter) = mAParameter;
         // noalias(DamageIndicator) = mDamageIndicator;
         noalias(status_coeff) = mstatus_coeff;
@@ -1904,20 +1913,20 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             // double T_eq = std::sqrt(3.0 * J2);
             const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // const double mode_mix_factor = std::pow(T_shear / T_eq,2.0);
-            const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
-            const double mode_mix_factor = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
-            // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor, Eta));
-            const double initial_threshold = T0s;
+            // const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
+            // const double mode_mix_factor = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
+            // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor[i], Eta));
+            const double initial_threshold = 50000000;
             const double threshold = status_coeff[i] * initial_threshold;
             const double F = T_eq - threshold;
             if (F > tolerance) {
-                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
                 // const double Gc = GIIc; // Benzeggagh-Kenane (B-K) Law
-                const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor, Eta);
+                const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
                 // const double K = Gi;
                 // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
                 // const double AParameter = 1.00 / (Gc * K / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
-                const double AParameter = 0.0847;
+                const double AParameter = 0.092;
                 KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
 
                 // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
@@ -1930,6 +1939,10 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
                 mdelamination_damage[i+1] = delamination_damage[i+1];
                 mstatus_coeff[i] = T_eq / initial_threshold;
             }
+            const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
+            m_mode_mix_factor[i] = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
+            // const double time = rValues.GetProcessInfo()[DELTA_TIME];
+            // KRATOS_WATCH(time);
 
             // End damage calculation
         }

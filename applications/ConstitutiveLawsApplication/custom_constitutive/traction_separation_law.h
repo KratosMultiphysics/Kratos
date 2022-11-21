@@ -628,6 +628,7 @@ private:
     // Vector minitial_threshold;
     // Vector mthreshold;
     Vector mdelamination_damage;
+    Vector m_mode_mix_factor;
     // Vector mAParameter;
     // Vector mDamageIndicator;
     Vector mstatus_coeff;
