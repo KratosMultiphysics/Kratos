@@ -540,9 +540,14 @@ public:
     /** 
      * @brief Returns the intersection coordinates with another geometry
      * @param  rThisGeometry Geometry to intersect with
+     * @param Tolerance The tolerance considered for the intersection
      * @return A STL vector containing the intersection points coordinates
      */
-    std::vector<array_1d<double, 3>> GetIntersectionPoints (const BaseType& rThisGeometry) const override {
+    std::vector<array_1d<double, 3>> GetIntersectionPoints (
+        const BaseType& rThisGeometry,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
         std::vector<array_1d<double, 3>> intersection_points;
         const auto type = rThisGeometry.GetGeometryType();
         if (type == GeometryData::KratosGeometryType::Kratos_Line2D2) {

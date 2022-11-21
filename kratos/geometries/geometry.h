@@ -1485,9 +1485,14 @@ public:
     /** 
      * @brief Returns the intersection coordinates with another geometry
      * @param  rThisGeometry Geometry to intersect with
+     * @param Tolerance The tolerance considered for the intersection
      * @return A STL vector containing the intersection points coordinates
      */
-    virtual std::vector<array_1d<double, 3>> GetIntersectionPoints (const GeometryType& rThisGeometry) const {
+    virtual std::vector<array_1d<double, 3>> GetIntersectionPoints (
+        const GeometryType& rThisGeometry,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const 
+    {
         std::vector<array_1d<double, 3>> dummy;  
         KRATOS_ERROR << "Calling base class 'GetIntersectionPoints ' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return dummy;
