@@ -200,7 +200,7 @@ private:
  * @brief This is basic mapper of values between domains using mortar formulation
  * @details Using the dual mortar formulation the resolution of the system of equations is not needed.
  * Several types of constructors are avaible depending of the needs.
- * If the pairs sets are not provided a serach will be performed using a KDTree
+ * If the pairs sets are not provided a search will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
