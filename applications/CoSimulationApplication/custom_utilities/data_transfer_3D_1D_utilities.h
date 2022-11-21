@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -28,6 +29,92 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @class PointElement
+ * @ingroup CoSimulationApplication
+ * @brief Custom Point container to be used by the search
+ * @details It stores the pointer of a certain element
+ * @author Vicente Mataix Ferrandiz
+ */
+class PointElement
+    : public Point
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    /// Base class definition
+    typedef Point BaseType;
+
+    /// Counted pointer of PointElement
+    KRATOS_CLASS_POINTER_DEFINITION( PointElement );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    PointElement():
+        BaseType()
+    {}
+
+    PointElement(const double X, const double Y, const double Z)
+        : BaseType(X, Y, Z)
+    {}
+
+    PointElement(Element::Pointer pElement):
+        mpElement(pElement)
+    {
+        UpdatePoint();
+    }
+
+    ///Copy constructor  (not really required)
+    PointElement(const PointElement& rRHS):
+        BaseType(rRHS),
+        mpElement(rRHS.mpElement)
+    {
+    }
+
+    /// Destructor.
+    ~PointElement() override= default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the element associated to the point
+     * @return mpElement The reference to the element associated to the point
+     */
+    Element::Pointer pGetElement()
+    {
+        return mpElement;
+    }
+
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint()
+    {
+        noalias(this->Coordinates()) = mpElement->GetGeometry().Center().Coordinates();
+    }
+
+private:
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    Element::Pointer mpElement = nullptr; // The element instance
+
+    ///@}
+
+}; // Class PointElement
 
 /**
  * @class DataTransfer3D1DUtilities
@@ -43,6 +130,12 @@ public:
 
     /// Pointer definition of DataTransfer3D1DUtilities
     KRATOS_CLASS_POINTER_DEFINITION(DataTransfer3D1DUtilities);
+
+    /// Node definition
+    typedef Node<3> NodeType;
+
+    /// Geometry definition
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -68,7 +161,8 @@ public:
      */
     static void From3Dto1DDataTransfer(
         ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters = Parameters(R"({})")
         );
 
     /**
@@ -78,8 +172,17 @@ public:
      */
     static void From1Dto3DDataTransfer(
         ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters = Parameters(R"({})")
         );
+
+    ///@}
+
+private:
+    ///@name Private Operations
+    ///@{
+
+    static Parameters GetDefaultParameters();
 
     ///@}
 }; // Class DataTransfer3D1DUtilities
