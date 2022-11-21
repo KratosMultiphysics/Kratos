@@ -12,25 +12,24 @@
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_BINGHAM_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED)
-#define KRATOS_BINGHAM_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED
+#if !defined(KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED)
+#define KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/fluid_laws/bingham_2D_law.h"
+#include "custom_constitutive/solid_laws/hypoelastic_2D_law.h"
 
 namespace Kratos {
 /**
- * Defines a 2D Bingham non-Newtonian constitutive law
+ * Defines an Hypoelastic constitutive law for 2D
  * This material law is defined by the parameters:
- * 1) DYNAMIC_VISCOSITY
- * 2) YIELD_SHEAR
- * 3) ADAPTIVE_EXPONENT
+ * 1) YOUNG MODULUS
+ * 2) POISSON RATIO
  */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DLaw : public Bingham2DLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependent2DLaw : public Hypoelastic2DLaw {
    public:
     /**
      * Type Definitions
@@ -40,9 +39,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of BinghamTemperatureDependent2DLaw
+     * Counted pointer of HypoelasticTemperatureDependent2DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(BinghamTemperatureDependent2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HypoelasticTemperatureDependent2DLaw);
 
     /**
      * Life Cycle
@@ -51,7 +50,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
     /**
      * Default constructor.
      */
-    BinghamTemperatureDependent2DLaw();
+    HypoelasticTemperatureDependent2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -62,16 +61,12 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
     /**
      * Copy constructor.
      */
-    BinghamTemperatureDependent2DLaw(const BinghamTemperatureDependent2DLaw& rOther);
+    HypoelasticTemperatureDependent2DLaw(const HypoelasticTemperatureDependent2DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~BinghamTemperatureDependent2DLaw() override;
-
-    /**
-     * Operators
-     */
+    ~HypoelasticTemperatureDependent2DLaw() override;
 
     /**
      * Operations needed by the base class:
@@ -101,30 +96,18 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
    protected:
     ///@name Protected static Member Variables
     ///@{
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
     ///@}
     ///@name Protected Operators
     ///@{
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
-
-    /// Get the effective density for the fluid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
-
-    /// Get the effective yield shear for the fluid.
-    double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const override;
-
-    /// Get the effective dynamic viscosity for the fluid.
-    double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+    /// Get the effective density for the solid.
+    double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
     ///@}
 
@@ -143,12 +126,10 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
     ///@}
     ///@name Private Operations
     ///@{
-    ///@}
 
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
@@ -160,8 +141,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
     void load(Serializer& rSerializer) override;
     ///@}
 
-};  // Class BinghamTemperatureDependent2DLaw
+};  // Class HypoelasticTemperatureDependent2DLaw
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_BINGHAM_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED  defined
+#endif  // KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED  defined
