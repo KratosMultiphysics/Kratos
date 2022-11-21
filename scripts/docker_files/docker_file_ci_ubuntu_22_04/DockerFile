@@ -56,14 +56,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
         scipy \
         sympy \
         parameterized && \
-    # install MMG 5.5
-    git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
-    mkdir /tmp/mmg_5_5_1/build && \
-    mkdir -p /external_libraries/mmg/mmg_5_5_1 && \
-    cd /tmp/mmg_5_5_1/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
-    make -j2 install && \
-    cd / && \
     # install MMG v5.6.0
     git clone -b 'v5.6.0' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_6_0 && \
     mkdir /tmp/mmg_5_6_0/build && \
@@ -71,16 +63,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     cd /tmp/mmg_5_6_0/build && \
     cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_6_0" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make -j2 install && \
-    cd / && \
-    # install PARMMG
-    git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
-    mkdir /tmp/ParMmg_5ffc6ad/build && \
-    mkdir -p /external_libraries/ParMmg_5ffc6ad && \
-    cd /tmp/ParMmg_5ffc6ad/build && git checkout 5ffc6ada4afb1af50a43e1fa6f4c409cff2ea25c && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_5ffc6ad" -DUSE_SCOTCH=OFF -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_5_1" -DMMG_BUILDDIR="/tmp/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
-    make -j2 install && \
-    rm -r /tmp/mmg_5_5_1 && \
-    rm -r /tmp/ParMmg_5ffc6ad && \
     cd / && \
     # install ParMmg v1.4.0
     git clone -b 'v1.4.0' --depth 1 https://github.com/MmgTools/ParMmg /tmp/ParMmg_1_4_0 && \
