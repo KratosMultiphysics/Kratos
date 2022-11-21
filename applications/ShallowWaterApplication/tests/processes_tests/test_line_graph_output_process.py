@@ -35,7 +35,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
             "process_list" : [{
                 "python_module"  : "line_graph_output_process",
                 "kratos_module"  : "KratosMultiphysics.ShallowWaterApplication.postprocess",
-                "process_name"   : "PointOutputProcess",
+                "process_name"   : "LineGraphOutputProcess",
                 "Parameters"            : {
                     "model_part_name"      : "Main",
                     "start_point"          : [0.55, 0.2, 0.0],
@@ -44,8 +44,8 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
                     "entity_type"          : "element",
                     "search_configuration" : "current",
                     "output_file_settings" : {
-                        "file_name"   : "<model_part>",
-                        "output_path" : "auxiliar_files_for_python_unittest/test_folder"
+                        "file_name"   : "Main",
+                        "output_path" : ""
                     },
                     "output_control_settings" : {
                         "output_control_type"     : "time",
@@ -58,7 +58,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
                 "process_name"   : "CompareTwoFilesCheckProcess",
                 "Parameters"            : {
                     "reference_file_name"   : "",
-                    "output_file_name"      : "auxiliar_files_for_python_unittest/test_folder/Main-0.300.dat",
+                    "output_file_name"      : "Main_0.300.dat",
                     "comparison_type"       : "dat_file"
                 }
             },{
@@ -67,7 +67,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
                 "process_name"   : "CompareTwoFilesCheckProcess",
                 "Parameters"            : {
                     "reference_file_name"   : "",
-                    "output_file_name"      : "auxiliar_files_for_python_unittest/test_folder/Main-3.300.dat",
+                    "output_file_name"      : "Main_3.300.dat",
                     "comparison_type"       : "dat_file"
                 }
             }]
@@ -83,7 +83,6 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
-        kratos_utils.DeleteDirectoryIfExisting("test_folder")
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]

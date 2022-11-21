@@ -37,10 +37,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         self.snapshots_interval = settings["snapshots_interval"].GetDouble()
 
         # Get the variables list to be used to get the snapshots matrix information
+        # Note that we sort the snapshot variables list alphabetically
+        # This is required in order to establish a consensum for the possible visualization model part projections
         nodal_unknowns = settings["nodal_unknowns"].GetStringArray()
         if len(nodal_unknowns) == 0:
             err_msg = "The snapshots matrix variables need to be specified by the user in the \'nodal_unknowns\' string array."
             raise Exception(err_msg)
+        if any(nodal_unknowns.count(var_name) > 1 for var_name in nodal_unknowns):
+            err_msg = "There are repeated variables in the \'nodal_unknowns\' string array."
+            raise Exception(err_msg)
+        nodal_unknowns.sort()
 
         self.snapshot_variables_list = []
         for var_name in nodal_unknowns:

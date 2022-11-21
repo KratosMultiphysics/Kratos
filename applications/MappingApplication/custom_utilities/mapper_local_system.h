@@ -154,6 +154,11 @@ public:
         return false;
     }
 
+    virtual bool IsDoneSearching() const
+    {
+        return HasInterfaceInfoThatIsNotAnApproximation();
+    }
+
     virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
     {
         KRATOS_ERROR << "Create is not implemented for NodePointerType!" << std::endl;

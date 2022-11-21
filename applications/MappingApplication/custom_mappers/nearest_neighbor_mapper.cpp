@@ -86,11 +86,11 @@ void NearestNeighborLocalSystem::PairingInfo(std::ostream& rOStream, const int E
 
 void NearestNeighborLocalSystem::SetPairingStatusForPrinting()
 {
-        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, 0);
-        } else {
-            mpNode->SetValue(PAIRING_STATUS, -1);
-        }
+    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+        mpNode->SetValue(PAIRING_STATUS, 0);
+    } else {
+        mpNode->SetValue(PAIRING_STATUS, -1);
+    }
 }
 
 }  // namespace Kratos.

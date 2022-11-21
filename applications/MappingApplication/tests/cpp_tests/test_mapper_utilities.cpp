@@ -678,5 +678,20 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_RestoreCurrentConfiguration, KratosMap
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointsAreCollinear, KratosMappingApplicationSerialTestSuite)
+{
+    Point p1(0,0,0);
+    Point p2(1,0,0);
+    Point p3(2,0,0);
+    Point p4(2,1,0);
+
+    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p1,p2,p3));
+    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p2,p3,p1));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p2,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p3,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
+}
+
 }  // namespace Testing
 }  // namespace Kratos

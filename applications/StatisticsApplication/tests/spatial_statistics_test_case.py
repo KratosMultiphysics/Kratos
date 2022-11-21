@@ -27,6 +27,10 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
 
+    def setUp(self):
+        self.model_part.ProcessInfo[Kratos.TIME] = 0.0
+        self.model_part.ProcessInfo[Kratos.STEP] = 0
+
     def testSpatialStatisticsProcessNodalHistorical(self):
         settings = SpatialStatisticsTestCase.__GetDefaultParameters("nodal_historical")
         self.__TestMethod(settings)
@@ -66,99 +70,52 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                 "python_module" : "spatial_statistics_process",
                 "Parameters" : {
                     "model_part_name" : "test_model_part",
+                    "echo_level"      : 0,
                     "input_variable_settings" : [
                         {
-                            "method_name"    : "sum",
                             "norm_type"      : "none",
                             "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY"],
-                            "method_settings": {}
+                            "variable_names" : ["PRESSURE", "VELOCITY"]
                         },
                         {
-                            "method_name"    : "mean",
-                            "norm_type"      : "none",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY"],
-                            "method_settings": {}
-                        },
-                        {
-                            "method_name"    : "variance",
-                            "norm_type"      : "none",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY"],
-                            "method_settings": {}
-                        },
-                        {
-                            "method_name"    : "rootmeansquare",
-                            "norm_type"      : "none",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY"],
-                            "method_settings": {}
-                        },
-                        {
-                            "method_name"    : "sum",
                             "norm_type"      : "magnitude",
                             "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"]
+                        }
+                    ],
+                    "statistics_methods": [
+                        {
+                            "method_name"    : "sum"
                         },
                         {
-                            "method_name"    : "mean",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "mean"
                         },
                         {
-                            "method_name"    : "variance",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "variance"
                         },
                         {
-                            "method_name"    : "rootmeansquare",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "rootmeansquare"
                         },
                         {
-                            "method_name"    : "min",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "min"
                         },
                         {
-                            "method_name"    : "max",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "max"
                         },
                         {
-                            "method_name"    : "median",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "median"
                         },
                         {
-                            "method_name"    : "distribution",
-                            "norm_type"      : "magnitude",
-                            "container"      : "<CONTAINER_NAME>",
-                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
-                            "method_settings": {}
+                            "method_name"    : "distribution"
                         }
                     ],
                     "output_settings" : {
                         "output_control_variable": "STEP",
-                        "output_time_interval"   : 1,
+                        "output_time_interval"   : 2,
                         "write_kratos_version"   : false,
                         "write_time_stamp"       : false,
                         "output_file_settings"   : {
-                            "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
+                            "file_name"  : "<model_part_name>_<CONTAINER_NAME>.dat",
                             "output_path": "spatial_statistics_process",
                             "write_buffer_size" : -1
                         }
@@ -173,33 +130,13 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
                 "help": "",
                 "process_name": "CompareTwoFilesCheckProcess",
                 "Parameters": {
-                    "output_file_name": "spatial_statistics_process/<OUTPUT_FILE_NAME>",
-                    "reference_file_name": "spatial_statistics_process/<INPUT_FILE_NAME>",
-                    "comparison_type": "dat_file",
+                    "output_file_name": "spatial_statistics_process/test_model_part_<CONTAINER_NAME>.dat",
+                    "reference_file_name": "spatial_statistics_process/test_model_part_<CONTAINER_NAME>.ref.dat",
+                    "comparison_type": "deterministic",
                     "remove_output_file": true,
                     "tolerance": 1e-16
                 }
             }
         '''
-        final_settings_str = "[\n" + settings_str.replace("<CONTAINER_NAME>", container_name)
-        method_list = {}
-        method_list["sum"] = ["none", "magnitude"]
-        method_list["mean"] = ["none", "magnitude"]
-        method_list["variance"] = ["none", "magnitude"]
-        method_list["rootmeansquare"] = ["none", "magnitude"]
-        method_list["min"] = ["magnitude"]
-        method_list["max"] = ["magnitude"]
-        method_list["median"] = ["magnitude"]
-        method_list["distribution"] = ["magnitude"]
-
-        for method, norm_types in method_list.items():
-            for norm_type in norm_types:
-                name_prefix = "test_model_part_" + container_name + "_" + norm_type + "_" + method
-                file_output_name = name_prefix + ".dat"
-                reference_file_name = name_prefix + ".ref.dat"
-                current_settings = check_settings.replace("<OUTPUT_FILE_NAME>", file_output_name)
-                current_settings = current_settings.replace("<INPUT_FILE_NAME>", reference_file_name)
-                final_settings_str += ",\n" + current_settings
-
-        final_settings_str += "\n]"
+        final_settings_str = "[\n" + settings_str.replace("<CONTAINER_NAME>", container_name) + ",\n" + check_settings.replace("<CONTAINER_NAME>", container_name) + "\n]"
         return Kratos.Parameters(final_settings_str)

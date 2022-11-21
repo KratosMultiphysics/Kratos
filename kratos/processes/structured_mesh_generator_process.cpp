@@ -267,7 +267,7 @@ int StructuredMeshGeneratorProcess::Check()
     KRATOS_CHECK(CheckDomainGeometry());
     KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
 
-    if ((mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) &
+    if ((mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) &&
         (mrGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))
         KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
 

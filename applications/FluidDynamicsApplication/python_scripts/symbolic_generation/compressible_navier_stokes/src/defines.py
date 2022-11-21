@@ -1,8 +1,24 @@
 import sympy
 
 class CompressibleNavierStokesDefines:
-    matrix_format = "{name}({i},{j})"
-    vector_format = "{name}({i})"
+    matrix_format = None
+    vector_format = None
+
+    @classmethod
+    def SetFormat(cls, language):
+        formats = {
+            'python': ("{name}[{i},{j}]", "{name}[{i}]"),
+            'c'     : ("{name}({i},{j})", "{name}({i})")
+        }
+
+        if language in formats:
+            cls.matrix_format, cls.vector_format = formats[language]
+            return
+
+        msg = "Only formats implemented are for languages:\n"
+        for lang in formats:
+            msg += " - " + lang + "\n"
+        raise ValueError(msg)
 
     @classmethod
     def Matrix(cls, name, n, m, **kwargs):

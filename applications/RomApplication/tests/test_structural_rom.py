@@ -1,12 +1,6 @@
 import os
 import types
 
-try:
-    import numpy as np
-    numpy_available = True
-except:
-    numpy_available = False
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -20,9 +14,8 @@ class TestStructuralRom(KratosUnittest.TestCase):
     def setUp(self):
         self.relative_tolerance = 1.0e-12
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralStaticRom2D(self):
-        self.work_folder = "structural_static_test_files"
+        self.work_folder = "structural_static_test_files/ROM/"
         parameters_filename = "ProjectParametersROM.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
@@ -30,9 +23,8 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Run test case
             self.simulation.Run()
@@ -52,9 +44,8 @@ class TestStructuralRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralStaticHRom2D(self):
-        self.work_folder = "structural_static_test_files"
+        self.work_folder = "structural_static_test_files/HROM/"
         parameters_filename = "ProjectParametersHROM.json"
         expected_output_filename = "ExpectedOutputHROM.npy"
 
@@ -62,9 +53,11 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up and run simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = True
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+
+            #setting hrom flag to true
+            #self.simulation.parameters
 
             # Run test case
             self.simulation.Run()
@@ -84,7 +77,6 @@ class TestStructuralRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralDynamicRom2D(self):
         self.work_folder = "structural_dynamic_test_files"
         parameters_filename = "ProjectParameters.json"
@@ -96,9 +88,8 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up and run simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Patch the RomAnalysis class to save the selected time steps results
             def Initialize(cls):

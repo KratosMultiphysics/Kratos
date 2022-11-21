@@ -70,6 +70,12 @@ Begin Conditions LineCondition2D2N
 1948 1        973        974
 End Conditions
 
+Begin NodalData BOUNDARY
+1
+2
+973
+974
+End NodalData
 
 Begin NodalData DISPLACEMENT_X
 1 1 0.100000

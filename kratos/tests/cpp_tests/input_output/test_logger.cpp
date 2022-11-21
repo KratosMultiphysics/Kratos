@@ -19,11 +19,11 @@
 
 #if defined(KRATOS_COLORED_OUTPUT)
 #include "utilities/color_utilities.h"
-static std::string _KYEL=KYEL;
-static std::string _RST=RST;
+static std::string TEST_KYEL=KYEL;
+static std::string TEST_RST=RST;
 #else
-static std::string _KYEL="";
-static std::string _RST="";
+static std::string TEST_KYEL="";
+static std::string TEST_RST="";
 #endif
 
 namespace Kratos {
@@ -172,7 +172,7 @@ namespace Kratos {
 
             KRATOS_WARNING("TestWarning") << "Test warning message";
 
-            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? _KYEL+"[WARNING] TestWarning: Test warning message"+_RST : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? TEST_KYEL+"[WARNING] TestWarning: Test warning message"+TEST_RST : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -185,7 +185,7 @@ namespace Kratos {
             KRATOS_WARNING_IF("TestWarning", true) << "Test warning message";
             KRATOS_WARNING_IF("TestWarning", false) << "This should not appear";
 
-            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? _KYEL+"[WARNING] TestWarning: Test warning message"+_RST : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? TEST_KYEL+"[WARNING] TestWarning: Test warning message"+TEST_RST : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -200,7 +200,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? _KYEL+"[WARNING] TestWarning: Test warning message - 0"+_RST : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? TEST_KYEL+"[WARNING] TestWarning: Test warning message - 0"+TEST_RST : "";
 #else
             std::string expected_output = "";
 #endif
@@ -219,7 +219,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? _KYEL+"[WARNING] TestWarning: ."+_RST+_KYEL+"[WARNING] TestWarning: ."+_RST+_KYEL+"[WARNING] TestWarning: ."+_RST+_KYEL+"[WARNING] TestWarning: ."+_RST : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? TEST_KYEL+"[WARNING] TestWarning: ."+TEST_RST+TEST_KYEL+"[WARNING] TestWarning: ."+TEST_RST+TEST_KYEL+"[WARNING] TestWarning: ."+TEST_RST+TEST_KYEL+"[WARNING] TestWarning: ."+TEST_RST : "";
 #else
             std::string expected_output = "";
 #endif
@@ -547,7 +547,7 @@ namespace Kratos {
             KRATOS_INFO("TestInfo") << "Test message\n";
             KRATOS_DETAIL("TestDetail") << "Test message\n";
 
-            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? _KYEL+"TestWarning: Test message\n"+_RST+"TestInfo: Test message\nTestDetail: Test message\n" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? TEST_KYEL+"TestWarning: Test message\n"+TEST_RST+"TestInfo: Test message\nTestDetail: Test message\n" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -568,7 +568,7 @@ namespace Kratos {
             KRATOS_INFO("TestInfo") << "Test message\n";
             KRATOS_DETAIL("TestDetail") << "Test message\n";
 
-            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? _KYEL+"[WARNING] TestWarning: Test message\n"+_RST+"[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? TEST_KYEL+"[WARNING] TestWarning: Test message\n"+TEST_RST+"[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 

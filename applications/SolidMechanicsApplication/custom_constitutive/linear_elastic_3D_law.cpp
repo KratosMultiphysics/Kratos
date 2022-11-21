@@ -501,7 +501,7 @@ bool LinearElastic3DLaw::CheckParameters(Parameters& rValues)
 
 int LinearElastic3DLaw::Check(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
-                              const ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)

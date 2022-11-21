@@ -81,7 +81,6 @@ class ExplicitStrategy():
         self.search_increment_for_walls = 0.0
         self.search_increment_for_bonds_creation = 0.0
         self.coordination_number = 10.0
-        self.case_option = 3
 
         if self._GetInputType() == 'rest':
             self.search_control = 2
@@ -190,7 +189,6 @@ class ExplicitStrategy():
 
         self.SetContinuumType()
 
-    @classmethod
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")
@@ -231,7 +229,6 @@ class ExplicitStrategy():
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option)
@@ -283,7 +280,7 @@ class ExplicitStrategy():
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
             for subproperties in properties.GetSubProperties():
-                self.ModifySubProperties(subproperties)
+                self.ModifySubProperties(subproperties, properties.Id)
 
         for submp in self.inlet_model_part.SubModelParts:
             if submp.Has(CLUSTER_FILE_NAME):
@@ -377,7 +374,7 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        (self.cplusplus_strategy).SolveSolutionStep()
+        self.cplusplus_strategy.SolveSolutionStep()
         return True
 
     def AdvanceInTime(self, time):
@@ -415,13 +412,10 @@ class ExplicitStrategy():
         '''
 
         AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
-        # model_part.ProcessInfo[TIME] = time
-        # model_part.ProcessInfo[DELTA_TIME] = dt
-        # model_part.ProcessInfo[TIME_STEPS] += 1
-        # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
+
 
     def FinalizeSolutionStep(self):
-        (self.cplusplus_strategy).FinalizeSolutionStep()
+        self.cplusplus_strategy.FinalizeSolutionStep()
 
     def Finalize(self):
         pass
@@ -429,22 +423,23 @@ class ExplicitStrategy():
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self.cplusplus_strategy.ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
 
-        (self.cplusplus_strategy).InitializeSolutionStep()
+        self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
+        self.cplusplus_strategy.SetNormalRadiiOnAllParticles(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
+
+        self.cplusplus_strategy.SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
     def RebuildListOfDiscontinuumSphericParticles(self):
-        (self.cplusplus_strategy).RebuildListOfDiscontinuumSphericParticles()
+        self.cplusplus_strategy.RebuildListOfDiscontinuumSphericParticles()
 
     def Compute_RigidFace_Movement(self):
-        (self.cplusplus_strategy).Compute_RigidFace_Movement()
+        self.cplusplus_strategy.Compute_RigidFace_Movement()
 
 
     def FixDOFsManually(self, time):
@@ -477,13 +472,13 @@ class ExplicitStrategy():
             self.Procedures.KratosPrintInfo("DOFs for the DEM solution added correctly")
 
     def PrepareElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareElementsForPrinting()
+        self.cplusplus_strategy.PrepareElementsForPrinting()
 
     def PrepareContactElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+        self.cplusplus_strategy.PrepareContactElementsForPrinting()
 
     def AttachSpheresToStickyWalls(self):
-        (self.cplusplus_strategy).AttachSpheresToStickyWalls()
+        self.cplusplus_strategy.AttachSpheresToStickyWalls()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
@@ -546,7 +541,6 @@ class ExplicitStrategy():
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
-    @classmethod
     def SinAlphaConicalDamage(self, e):
 
         if e < 0.001:
@@ -669,7 +663,12 @@ class ExplicitStrategy():
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
-    def ModifySubProperties(self, properties, param = 0):
+        if self.DEM_parameters["RotationOption"].GetBool() and self.DEM_parameters["RollingFrictionOption"].GetBool():
+            #The function is to transfer the Rolling Friction Model Name from subProperties to Properties or set a default name
+            #Because some rolling friction models depend the particle but not the contact between particles
+            self.TransferRollingFrictionModelNameOrSetDefault(properties)
+
+    def ModifySubProperties(self, properties, parent_id, param = 0):
 
         DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
         coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
@@ -724,6 +723,13 @@ class ExplicitStrategy():
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+        if not properties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelConstantTorque"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelConstantTorque] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
+
+        rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+        rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)
+
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass
 
@@ -732,3 +738,28 @@ class ExplicitStrategy():
 
     def GetComputingModelPart(self):
         return self.spheres_model_part
+
+    def TransferRollingFrictionModelNameOrSetDefault(self, properties):
+
+        has_subproperties = False
+        has_rolling_friction_model_name = False
+
+        for subproperties in properties.GetSubProperties():
+            has_subproperties = True
+            if subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
+                has_rolling_friction_model_name = True
+
+        for subproperties in properties.GetSubProperties():
+            if not subproperties.Has(DEM_ROLLING_FRICTION_MODEL_NAME) and has_rolling_friction_model_name is False:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+                self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+            else:
+                properties[DEM_ROLLING_FRICTION_MODEL_NAME] = subproperties[DEM_ROLLING_FRICTION_MODEL_NAME]
+        
+        if has_subproperties is False and properties.Id != 0:
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material property with parameter \"material_id\": [" + str(properties.Id) + "]")
+
+        if properties.Id != 0:
+            rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
+            rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)

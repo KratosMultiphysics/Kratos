@@ -75,7 +75,7 @@ class CreatePointBasedEntitiesProcess(KM.Process):
 
         new_model_part.AddNodes(node_ids)
 
-        props = root_model_part.GetProperties(properties_id, 0) # 0 is mesh-id # maybe check and then create the props
+        props = root_model_part.GetProperties(properties_id)
         mp_comm = root_model_part.GetCommunicator()
 
         if entity_type == "element":

@@ -160,7 +160,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentElementType>(
-            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -194,7 +194,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentElementType>(
-            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
+            NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
         KRATOS_CATCH("");
     }
 

@@ -15,7 +15,7 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
     """
 
     def ExecuteInitialize(self):
-        # Costruction of the wave settings
+        # Construction of the wave settings
         benchmark_settings = self.settings["benchmark_settings"]
         self.boundary_model_part = self.model.GetModelPart(benchmark_settings["boundary_model_part_name"].GetString())
         self.wave = SolitaryWaveFactory(self.boundary_model_part, benchmark_settings["wave_specifications"])
@@ -64,15 +64,21 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
         return [u_x, 0.0, 0.0]
 
 
+    def ExecuteBeforeSolutionLoop(self):
+        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
+        SW.ShallowWaterUtilities().SetMinimumValue(self.model_part, SW.HEIGHT, 0.0)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
+
+
     def ExecuteInitializeSolutionStep(self):
         time = self.boundary_model_part.ProcessInfo[KM.TIME]
         for node in self.boundary_model_part.Nodes:
             node.SetSolutionStepValue(KM.VELOCITY, self._Velocity(node, time))
-            node.SetSolutionStepValue(SW.FREE_SURFACE_ELEVATION, self._FreeSurfaceElevation(node, time))
+            node.SetSolutionStepValue(SW.HEIGHT, self._Height(node, time))
         KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.boundary_model_part.Nodes)
-        KM.VariableUtils().ApplyFixity(SW.FREE_SURFACE_ELEVATION, True, self.boundary_model_part.Nodes)
+        KM.VariableUtils().ApplyFixity(SW.HEIGHT, True, self.boundary_model_part.Nodes)
 
 
     def ExecuteFinalizeSolutionStep(self):
         KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.boundary_model_part.Nodes)
-        KM.VariableUtils().ApplyFixity(SW.FREE_SURFACE_ELEVATION, False, self.boundary_model_part.Nodes)
+        KM.VariableUtils().ApplyFixity(SW.HEIGHT, False, self.boundary_model_part.Nodes)

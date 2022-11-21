@@ -325,6 +325,9 @@ void MPMParticleBaseCondition::CalculateOnIntegrationPoints(const Variable<array
     if (rVariable == MP_COORD || rVariable == MPC_COORD) {
         rValues[0] = m_xg;
     }
+    else if (rVariable == MPC_DISPLACEMENT) {
+        rValues[0] = m_displacement;
+    }
     else if (rVariable == MPC_VELOCITY) {
         rValues[0] = m_velocity;
     }
@@ -365,6 +368,9 @@ void MPMParticleBaseCondition::SetValuesOnIntegrationPoints(const Variable<array
 
     if (rVariable == MP_COORD || rVariable == MPC_COORD) {
         m_xg = rValues[0];
+    }
+    else if (rVariable == MPC_DISPLACEMENT) {
+        m_displacement = rValues[0];
     }
     else if (rVariable == MPC_VELOCITY) {
         m_velocity = rValues[0];

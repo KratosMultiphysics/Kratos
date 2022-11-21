@@ -88,9 +88,10 @@ void Exception::update_what(){
     if (mCallStack.empty()) {
         buffer << "in Unknown Location";
     } else {
-        buffer << "in " << mCallStack[0] << "\n";
+        buffer << "in 1. " << mCallStack[0] << "\n";
+        int counter = 2;
         for (auto i = mCallStack.begin()+1; i != mCallStack.end(); ++i) {
-            buffer << "   " << *i << "\n";
+            buffer << "   " << counter++ << ". " << *i << "\n";
         }
     }
     mWhat = buffer.str();

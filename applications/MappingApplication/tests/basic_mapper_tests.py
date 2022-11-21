@@ -1,5 +1,4 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
 data_comm = KM.Testing.GetDefaultDataCommunicator()
 if data_comm.IsDistributed():
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension

@@ -93,11 +93,13 @@ public:
 
     typedef std::size_t SizeType;
 
+    typedef Dof<double> DofType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -283,7 +285,7 @@ public:
      * @return default integration method of the used Geometry
      * this method is: OPTIONAL ( is recommended to reimplement it in the derived class )
      */
-    virtual IntegrationMethod GetIntegrationMethod()
+    virtual IntegrationMethod GetIntegrationMethod() const
     {
         return pGetGeometry()->GetDefaultIntegrationMethod();
     }

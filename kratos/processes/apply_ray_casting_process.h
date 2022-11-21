@@ -41,6 +41,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Nodal databases auxiliary enum
+    enum class DistanceDatabase {
+        NodeHistorical,
+        NodeNonHistorical
+    };
+
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
@@ -52,6 +58,9 @@ public:
 
     typedef Element::GeometryType IntersectionGeometryType;
     typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
+
+    using NodeType = ModelPart::NodeType;
+    using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode, const Variable<double>& rDistanceVariable)>;
 
     ///@}
     ///@name Life Cycle
@@ -91,6 +100,20 @@ public:
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         const double RelativeTolerance);
+
+    /**
+     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     *
+     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
+     * @param pDistanceVariable user-defined variabe to be used to read and store the distance to the skin
+     * @param rDistanceDatabase enum value specifying the database from which the distance variable is retrieved (see DistanceDatabase)
+     */
+    ApplyRayCastingProcess(
+        FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
+        const double RelativeTolerance,
+        const Variable<double>* pDistanceVariable,
+        const DistanceDatabase& rDistanceDatabase);
 
     /// Destructor.
     ~ApplyRayCastingProcess() override;
@@ -192,6 +215,10 @@ private:
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
     double mCharacteristicLength = 1.0;
+
+    const Variable<double>* mpDistanceVariable = &DISTANCE;
+
+    const DistanceDatabase mDistanceDatabase = DistanceDatabase::NodeHistorical;
 
     ///@}
     ///@name Private Operators

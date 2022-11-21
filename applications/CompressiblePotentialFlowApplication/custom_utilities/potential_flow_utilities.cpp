@@ -269,10 +269,7 @@ double ComputeVelocityMagnitude(
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     data.potentials = GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
@@ -282,10 +279,7 @@ array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement)
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
@@ -297,10 +291,7 @@ array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement)
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement)
 {
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    ElementalData<NumNodes, Dim> data{rElement.GetGeometry()};
 
     const auto& r_distances = GetWakeDistances<Dim,NumNodes>(rElement);
 
@@ -1024,10 +1015,9 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 {
     const int wake = rElement.GetValue(WAKE);
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
@@ -1067,6 +1057,104 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 }
 
 template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const int wake = rElement.GetValue(WAKE);
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
+
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
+
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        if (rElement.GetGeometry()[i].GetValue(KUTTA))
+        {
+            if (wake==0)  {
+                for (unsigned int j = 0; j < NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                }
+            } else {
+                for (unsigned int j = 0; j < NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                    rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_kutta(i, j);
+                }
+            }
+        }
+    }
+}
+
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const int wake = rElement.GetValue(WAKE);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
+
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
+    BoundedMatrix<double, NumNodes, NumNodes>  n_matrix = outer_prod(n_angle, n_angle);
+
+    if (wake == 0) {
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+        BoundedVector<double, NumNodes> velvector = prod(n_matrix,  velocity);
+        BoundedVector<double, NumNodes> rhs_penalty = -penalty*data.vol*free_stream_density*prod(data.DN_DX,  velvector);
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            if (rElement.GetGeometry()[i].GetValue(KUTTA)) {
+                rRightHandSideVector(i) += rhs_penalty(i);
+            }
+        }
+
+    }
+    else {
+        array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+        array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+        for (unsigned int i = 0; i < Dim; i++){
+            upper_velocity[i] += free_stream_velocity[i];
+            lower_velocity[i] += free_stream_velocity[i];
+        }
+        const BoundedVector<double, NumNodes> upper_velocity_vector = prod(n_matrix,  upper_velocity);
+        const BoundedVector<double, NumNodes> lower_velocity_vector = prod(n_matrix,  lower_velocity);
+
+        const BoundedVector<double, NumNodes> upper_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX, upper_velocity_vector);
+        const BoundedVector<double, NumNodes> lower_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX, lower_velocity_vector);
+
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            if (rElement.GetGeometry()[i].GetValue(KUTTA))
+            {
+                rRightHandSideVector(i) += upper_rhs(i);
+                rRightHandSideVector(i + NumNodes) += lower_rhs(i);
+            }
+        }
+    }
+}
+
+
+template <int Dim, int NumNodes>
 void AddPotentialGradientStabilizationTerm(
         Element& rElement,
         Matrix& rLeftHandSideMatrix,
@@ -1094,10 +1182,10 @@ void AddPotentialGradientStabilizationTerm(
                     const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
                     const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
                     Vector detJ0;
-                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
-
-                    GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                    
+                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data{r_geometry};
                     neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+
                     r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
 
                     const int is_neighbour_wake = r_elem.GetValue(WAKE);
@@ -1146,8 +1234,7 @@ void AddPotentialGradientStabilizationTerm(
     }
     averaged_nodal_gradient = averaged_nodal_gradient/number_of_positive_nodes;
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
-    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data{rElement.GetGeometry()};
 
     auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
     auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
@@ -1258,6 +1345,10 @@ template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateAre
 template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationRHS<2, 3>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationRHS<3, 4>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationLHS<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationLHS<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
