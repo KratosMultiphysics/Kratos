@@ -248,6 +248,8 @@ public:
      * 0 (disjoint - no intersection)
      * 1 (intersect in two points)
      * 2 (intersect in one point)
+     * 3 (intersect in two points inside the tetrahedra)
+     * 4 (intersect in two points, one inside the tetrahedra)
      */
     template <class TGeometryType>
     static int ComputeTetrahedraLineIntersection(
@@ -346,15 +348,15 @@ public:
             array_1d<double,3> local_coordinates;
             if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
                 noalias(rIntersectionPoint1) = rLinePoint1;
-                solution = 2;
+                solution = 4;
                 ++point;
             }
             if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
                 noalias(rIntersectionPoint2) = rLinePoint2;
                 if (point == 0) {
-                    solution = 2;
+                    solution = 4;
                 } else {
-                    solution = 1;
+                    solution = 3;
                 }
             }
         } else if (point == 1) {
@@ -362,7 +364,7 @@ public:
             if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
                 if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
                     noalias(rIntersectionPoint2) = rLinePoint1;
-                    solution = 1;
+                    solution = 4;
                     ++point;
                 }
             } 
@@ -370,7 +372,7 @@ public:
                 if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
                     if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
                         noalias(rIntersectionPoint2) = rLinePoint2;
-                        solution = 1;
+                        solution = 4;
                     }
                 }
             }
