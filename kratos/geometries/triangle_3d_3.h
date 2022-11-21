@@ -711,11 +711,15 @@ public:
             if (int_id == 1) { // One point
                 intersection_points.push_back(int_point);
             } else if (int_id == 2) { // Same plane
+                // Check the intersection of each edge against the intersecting object
+                array_1d<double,3> int_point;
                 const BaseType& r_triangle = *this;
                 const auto& r_vert_0 = r_triangle[0].Coordinates();
                 const auto& r_vert_1 = r_triangle[1].Coordinates();
                 const auto& r_point_0 = rThisGeometry[0].Coordinates();
                 const auto& r_point_1 = rThisGeometry[1].Coordinates();
+
+                // First edge
                 int int_sol = IntersectionUtilities::ComputeLineLineIntersection(r_vert_0, r_vert_1, r_point_0, r_point_1, int_point);
                 if (int_sol == 1 || int_sol == 3) {
                     intersection_points.push_back(int_point);
@@ -723,7 +727,9 @@ public:
                     intersection_points.push_back(r_point_0);
                     intersection_points.push_back(r_point_1);
                 }
-                if (intersection_points.size() == 2) return intersection_points;;
+                if (intersection_points.size() == 2) return intersection_points;
+
+                // Second edge
                 const auto& r_vert_2 = r_triangle[2].Coordinates();
                 int_sol = IntersectionUtilities::ComputeLineLineIntersection(r_vert_1, r_vert_2, r_point_0, r_point_1, int_point);
                 if (int_sol == 1 || int_sol == 3) {
@@ -733,11 +739,13 @@ public:
                         intersection_points.push_back(r_point_0);
                         intersection_points.push_back(r_point_1);
                     } else {
-                        if (norm_2(intersection_points[0] - r_point_0)) intersection_points.push_back(r_point_1);
-                        else if (norm_2(intersection_points[0] - r_point_1)) intersection_points.push_back(r_point_0);
+                        if (norm_2(intersection_points[0] - r_point_0) > Tolerance) intersection_points.push_back(r_point_1);
+                        else if (norm_2(intersection_points[0] - r_point_1) > Tolerance) intersection_points.push_back(r_point_0);
                     }
                 }
-                if (intersection_points.size() == 2) return intersection_points;;
+                if (intersection_points.size() == 2) return intersection_points;
+
+                // Third edge
                 int_sol = IntersectionUtilities::ComputeLineLineIntersection(r_vert_2, r_vert_0, r_point_0, r_point_1, int_point);
                 if (int_sol == 1 || int_sol == 3) {
                     intersection_points.push_back(int_point);
@@ -746,8 +754,31 @@ public:
                         intersection_points.push_back(r_point_0);
                         intersection_points.push_back(r_point_1);
                     } else {
-                        if (norm_2(intersection_points[0] - r_point_0)) intersection_points.push_back(r_point_1);
-                        else if (norm_2(intersection_points[0] - r_point_1)) intersection_points.push_back(r_point_0);
+                        if (norm_2(intersection_points[0] - r_point_0) > Tolerance) intersection_points.push_back(r_point_1);
+                        else if (norm_2(intersection_points[0] - r_point_1) > Tolerance) intersection_points.push_back(r_point_0);
+                    }
+                }
+                if (intersection_points.size() == 2) return intersection_points;
+
+                // Now check if points are inside
+                array_1d<double, 3> point_local_coordinates;
+
+                // First point
+                if (this->IsInside(r_point_0, point_local_coordinates)) {
+                    if (intersection_points.size() == 0) {
+                        intersection_points.push_back(r_point_0);
+                    } else {
+                        if (norm_2(intersection_points[0] - r_point_0) > Tolerance) intersection_points.push_back(r_point_0);
+                    }
+                }
+                if (intersection_points.size() == 2) return intersection_points;
+
+                // Second point
+                if (this->IsInside(r_point_1, point_local_coordinates)) {
+                    if (intersection_points.size() == 0) {
+                        intersection_points.push_back(r_point_1);
+                    } else {
+                        if (norm_2(intersection_points[0] - r_point_1) > Tolerance) intersection_points.push_back(r_point_1);
                     }
                 }
             }
