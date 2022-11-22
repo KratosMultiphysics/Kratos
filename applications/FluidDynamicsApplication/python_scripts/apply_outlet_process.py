@@ -1,5 +1,4 @@
 import math
-from tokenize import Double
 import KratosMultiphysics
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 
