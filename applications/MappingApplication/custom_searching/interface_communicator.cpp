@@ -120,15 +120,35 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         init_search_radius = mSearchSettings["search_radius"].GetDouble();
         KRATOS_ERROR_IF(init_search_radius < std::numeric_limits<double>::epsilon()) << "Search radius must be larger than 0.0!" << std::endl;
     } else {
-        if (mpInterfaceObjectsOrigin->size() > 1) { // this partition has part of the interface and large enough bins
-            const array_1d<double, 3> box_size = mpLocalBinStructure->GetMaxPoint() - mpLocalBinStructure->GetMinPoint();
-            init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / num_interface_obj_bin;
-        }
+        array_1d<double,3> max_point;
+        max_point[0] = -std::numeric_limits<double>::max();
+        max_point[1] = -std::numeric_limits<double>::max();
+        max_point[2] = -std::numeric_limits<double>::max();
+        array_1d<double,3> min_point;
+        min_point[0] = std::numeric_limits<double>::max();
+        min_point[1] = std::numeric_limits<double>::max();
+        min_point[2] = std::numeric_limits<double>::max();
 
-        init_search_radius = MaxAll(
-            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
-            rComm.GetDataCommunicator(),
-            init_search_radius);
+        InterfaceObjectConfigure::PointType low, high;
+        for (auto i_object = mpInterfaceObjectsOrigin->begin(); i_object != mpInterfaceObjectsOrigin->end(); i_object++) {
+            InterfaceObjectConfigure::CalculateBoundingBox(*i_object, low, high);
+            for(SizeType i = 0 ; i < 3 ; i++)
+            {
+                max_point[i] = (max_point[i] < high[i]) ? high[i] : max_point[i];
+                min_point[i] = (min_point[i] > low[i])  ? low[i]  : min_point[i];
+            }
+        }
+        max_point[0] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_point[0]);
+        max_point[1] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_point[1]);
+        max_point[2] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_point[2]);
+        min_point[0] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(min_point[0]);
+        min_point[1] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(min_point[1]);
+        min_point[2] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(min_point[2]);
+        const array_1d<double, 3> box_size = max_point - min_point;
+
+        unsigned long global_num_interface_obj_bin = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_obj_bin);
+        init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / global_num_interface_obj_bin;
+
 
         if (init_search_radius < std::numeric_limits<double>::epsilon()) {
             // very rare case when all bins only have one entry
