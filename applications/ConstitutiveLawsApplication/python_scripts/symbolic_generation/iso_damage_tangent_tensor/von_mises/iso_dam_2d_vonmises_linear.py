@@ -4,25 +4,7 @@ import KratosMultiphysics.ConstitutiveLawsApplication.symbolic_generation.iso_da
 
 mode = "c"
 
-# Strain
-Strain0 = Symbol("r_strain[0]")
-Strain1 = Symbol("r_strain[1]")
-Strain2 = Symbol("r_strain[2]")
-
-# Tangent constitutive tensor
-Ct = DefineMatrix('r_Ct', 3, 3)
-
-# Stress (effective and integrated and deviatoric)
-Seff = DefineVector('Seff',3)
-Stress = DefineVector('Stress', 3)
-Deviator = DefineVector('Deviator', 3)
-
-# material parameters
-Young = Symbol("Young")
-nu = Symbol("nu")
-threshold = Symbol("threshold")
-Gf = Symbol("Gf")
-characteristic_length = Symbol("characteristic_length")
+Strain0, Strain1, Strain2, Seff, Stress, Deviator, Ct, Young, nu, threshold, Gf, characteristic_length = AuxLib.SetUp2DProblem()
 
 
 Seff[0], Seff[1], Seff[2] = AuxLib.ComputePredictorStressVector2D(Young, nu, Strain0, Strain1, Strain2)
