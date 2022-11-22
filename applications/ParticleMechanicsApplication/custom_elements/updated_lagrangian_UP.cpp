@@ -593,7 +593,6 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                 if (i == j)
                     consistent = 2 * alpha_stabilization / 36.0;
 
-
                 rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
             }
             else
