@@ -92,7 +92,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     InitializeSearch(rpInterfaceInfo); // to create the bins and the data structure needed in the following for determining search radius etc
 
-    const SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
+    const unsigned long num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
     double init_search_radius = -1.0;
     double max_search_radius = 0.0;
