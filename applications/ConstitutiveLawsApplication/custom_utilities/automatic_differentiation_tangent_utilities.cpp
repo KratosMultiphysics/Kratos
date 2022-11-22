@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/autom_differentiation_tangent_utilities.h"
+#include "custom_utilities/automatic_differentiation_tangent_utilities.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 // Yield surfaces
