@@ -1,5 +1,6 @@
 from KratosMultiphysics.sympy_fe_utilities import *
 from sympy import *
+import math
 
 """
 Auxiliary file used as a library for automatic
@@ -76,8 +77,8 @@ Here we define the problem in terms of dimension, yield surface and linear/expon
 
 # INPUT DATA
 dimension = 2 # 3
-yield_surface = "VonMises" # DruckerPrager, ModifiedMohrCoulomb, Rankine
-softening = "Linear" # Exponential
+yield_surface = "DruckerPrager" # DruckerPrager, ModifiedMohrCoulomb, Rankine, VonMises
+softening = "Exponential" # Exponential, Linear
 
 # Common variables
 mode = "c"
@@ -95,6 +96,25 @@ if (dimension == 2):
         J2 =  ComputeJ2Invariant2D(Deviator, pmean)
         VonMisesStress = sqrt(3.0*J2)
         damage = ComputeDamage(VonMisesStress, threshold, Gf, characteristic_length, Young, softening)
+    elif (yield_surface == "Rankine"):
+        rankine_yield = 0.5 * (Seff[0] + Seff[1]) + sqrt((0.5 * (Seff[0] - Seff[1]))**2  + (Seff[2])**2)
+        damage = ComputeDamage(rankine_yield, threshold, Gf, characteristic_length, Young, softening)
+    elif (yield_surface == "DruckerPrager"):
+        sin_phi = Symbol("sin_phi")
+        J2 =  ComputeJ2Invariant2D(Deviator, pmean)
+        root_3 = math.sqrt(3.0)
+        CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0)
+        TEN0 = 6.0 * pmean * sin_phi / (root_3 * (3.0 - sin_phi)) + sqrt(J2)
+        DruckerPragerStress = CFL*TEN0
+        damage_threshold = abs(threshold * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0))
+        if (softening == "Exponential"):
+            A = 1.0 / (Gf * Young / (characteristic_length * threshold**2) - 0.5)
+            damage_threshold = abs(threshold * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0))
+            damage = 1.0 - (damage_threshold / DruckerPragerStress) * exp(A * (1.0 - DruckerPragerStress / damage_threshold))
+        else:
+            A = -threshold**2 / (2.0 * Young * Gf / characteristic_length);
+            damage = (1.0 - damage_threshold / DruckerPragerStress) / (1.0 + A);
+
 
     Stress[0] = (1.0 - damage)*Seff[0]
     Stress[1] = (1.0 - damage)*Seff[1]
