@@ -38,8 +38,7 @@ class EmpiricalCubatureMethod():
     def SetUp(
         self,
         ResidualsBasis,
-        InitialCandidatesSet = None,
-        constrain_sum_of_weights=True
+        InitialCandidatesSet = None
     ):
         """
         Method for setting up the element selection
@@ -48,11 +47,11 @@ class EmpiricalCubatureMethod():
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
         self.y = InitialCandidatesSet
-        if constrain_sum_of_weights:
+        if np.linalg.norm(np.sum(self.G, axis=1)) <= 1e-6* np.linalg.norm(self.G):
             """
             -This is necessary in case the sum of the columns of G equals the 0 vector,to avoid the trivial solution
             -It is enforcing that the sum of the weights equals the number of columns in G (total number of elements). It
-            loses this meaning if algorithm is being called within a nested strategy
+            loses this meaning as part of a partitioned workflow
             """
             a = self.W - self.G.T@( self.G @ self.W)
             self.G = np.vstack([ self.G , a] )
