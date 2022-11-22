@@ -1,0 +1,33 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+    1   0.0    0.002501   0.0
+End Nodes
+
+Begin Elements SphericParticle3D// GUI group identifier: Body
+    1   1   1
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Body
+        1   0   0.0025
+End NodalData
+
+Begin SubModelPart Parts_Body // Group Body // Subtree Parts
+    Begin SubModelPartNodes
+        1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin NodalData VELOCITY_Y  // GUI group identifier: ball1 Elementid SphericPartDEMElement3D
+1   0   -3.9
+End NodalData

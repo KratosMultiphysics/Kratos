@@ -238,7 +238,7 @@ The _CoSimulationApplication_ consists of the following main components (taken f
 - **IO**: Responsible for communicating and data exchange with external solvers/codes
 - **DataTransferOperator**: Transfers data from one discretization to another, e.g. by use of mapping techniques
 - **CouplingOperation**: Tool for customizing coupled simulations
-- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simulations by use of relaxation techniques
+- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simulations by use of relaxation or Quasi-Newton techniques
 - **ConvergenceCriteria**: Checks if convergence is achieved in a strongly coupled simulation.
 - **Predictor**: Improves the convergence by using a prediction as initial guess for the coupled solution
 

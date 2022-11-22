@@ -14,7 +14,7 @@
 //  Main authors:    Hubert Balcerzak
 
 // System includes
-#include <stdlib.h>
+#include <cstdlib>
 
 // External includes
 

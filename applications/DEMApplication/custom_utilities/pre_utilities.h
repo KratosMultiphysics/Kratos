@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
 #include <time.h>
 #include <string>
 

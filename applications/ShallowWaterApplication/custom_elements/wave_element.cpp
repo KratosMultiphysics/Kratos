@@ -267,33 +267,37 @@ void WaveElement<TNumNodes>::UpdateGaussPointData(
 
 
 template<>
-void WaveElement<3>::CalculateGeometryData(
-    const GeometryType& rGeometry,
-    Vector &rGaussWeights,
-    Matrix &rNContainer,
-    ShapeFunctionsGradientsType &rDN_DXContainer)
+GeometryData::IntegrationMethod WaveElement<3>::GetIntegrationMethod() const
 {
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
 
-    if (rGaussWeights.size() != 1) {
-        rGaussWeights.resize(1, false);
-    }
-    rGaussWeights[0] = area;
 
-    if (rNContainer.size1() != 1 && rNContainer.size2() != 3) {
-        rNContainer.resize(1, 3, false);
-    }
-    for (std::size_t i = 0; i < 3; ++i) {
-        rNContainer(0, i) = N[i];
-    }
+template<>
+GeometryData::IntegrationMethod WaveElement<4>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
 
-    if (rDN_DXContainer.size() != 1) {
-        rDN_DXContainer.resize(1, false);
-    }
-    rDN_DXContainer[0] = DN_DX;
+
+template<>
+GeometryData::IntegrationMethod WaveElement<6>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
+}
+
+
+template<>
+GeometryData::IntegrationMethod WaveElement<8>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
+}
+
+
+template<>
+GeometryData::IntegrationMethod WaveElement<9>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 
@@ -305,8 +309,7 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
     ShapeFunctionsGradientsType &rDN_DXContainer)
 {
     Vector det_j_vector;
-    // const auto& r_geom = this->GetGeometry();
-    const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
+    const auto integration_method = GetIntegrationMethod();
     rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
     rGeometry.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method);
 
@@ -321,14 +324,14 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
 }
 
 
-template<>
-double WaveElement<3>::ShapeFunctionProduct(
-    const array_1d<double,3>& rN,
-    const std::size_t I,
-    const std::size_t J)
-{
-    return (I == J) ? 1.0/6.0 : 1.0/12.0;
-}
+// template<>
+// double WaveElement<3>::ShapeFunctionProduct(
+//     const array_1d<double,3>& rN,
+//     const std::size_t I,
+//     const std::size_t J)
+// {
+//     return (I == J) ? 1.0/6.0 : 1.0/12.0;
+// }
 
 
 template<std::size_t TNumNodes>
@@ -463,14 +466,14 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const auto z = rData.nodal_z;
     const double l = StabilizationParameter(rData);
 
-    const BoundedMatrix<double,3,3> AA11 = prod(rData.A1, rData.A1);
-    const BoundedMatrix<double,3,3> AA22 = prod(rData.A2, rData.A2);
-    const BoundedMatrix<double,3,3> AA12 = prod(rData.A1, rData.A2);
-    const BoundedMatrix<double,3,3> AA21 = prod(rData.A2, rData.A1);
-    const array_1d<double,3> Ab11 = prod(rData.A1, rData.b1);
-    const array_1d<double,3> Ab22 = prod(rData.A2, rData.b2);
-    const array_1d<double,3> Ab12 = prod(rData.A1, rData.b2);
-    const array_1d<double,3> Ab21 = prod(rData.A2, rData.b1);
+    const BoundedMatrix<double,3,3> AA11 = prod(trans(rData.A1), rData.A1);
+    const BoundedMatrix<double,3,3> AA22 = prod(trans(rData.A2), rData.A2);
+    const BoundedMatrix<double,3,3> AA12 = prod(trans(rData.A1), rData.A2);
+    const BoundedMatrix<double,3,3> AA21 = prod(trans(rData.A2), rData.A1);
+    const array_1d<double,3> Ab11 = prod(trans(rData.A1), rData.b1);
+    const array_1d<double,3> Ab22 = prod(trans(rData.A2), rData.b2);
+    const array_1d<double,3> Ab12 = prod(trans(rData.A1), rData.b2);
+    const array_1d<double,3> Ab21 = prod(trans(rData.A2), rData.b1);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -518,6 +521,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddFrictionTerms(
     LocalMatrixType& rMatrix,
@@ -538,8 +542,8 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     this->CalculateArtificialDamping(art_s, rData);
     Sf += art_s;
 
-    BoundedMatrix<double,3,3> ASf1 = prod(rData.A1, Sf);
-    BoundedMatrix<double,3,3> ASf2 = prod(rData.A2, Sf);
+    BoundedMatrix<double,3,3> ASf1 = prod(trans(rData.A1), Sf);
+    BoundedMatrix<double,3,3> ASf2 = prod(trans(rData.A2), Sf);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -558,6 +562,7 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddDispersiveTerms(
     LocalVectorType& rVector,
@@ -566,6 +571,7 @@ void WaveElement<TNumNodes>::AddDispersiveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {}
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
@@ -636,11 +642,11 @@ void WaveElement<TNumNodes>::AddMassTerms(
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
         }
     }
 }
@@ -692,7 +698,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         AddArtificialViscosityTerms(lhs, rhs, data, N, DN_DX, weight);
     }
 
-    // Substracting the Dirichlet term (since we use a residualbased approach)
+    // Subtracting the Dirichlet term (since we use a residual based approach)
     noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
 
     noalias(rLeftHandSideMatrix) = lhs;

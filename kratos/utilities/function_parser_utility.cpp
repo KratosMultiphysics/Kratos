@@ -61,19 +61,8 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
     const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
     mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
-#else
-    if (CheckThereIsNotx(mFunctionBody)                           &&
-        mFunctionBody.find(std::string("y")) == std::string::npos &&
-        mFunctionBody.find(std::string("z")) == std::string::npos &&
-        mFunctionBody.find(std::string("X")) == std::string::npos &&
-        mFunctionBody.find(std::string("Y")) == std::string::npos &&
-        mFunctionBody.find(std::string("Z")) == std::string::npos) {
-        mDependsOnSpace = false;
-    }
-#endif
 }
 
 /***********************************************************************************/
