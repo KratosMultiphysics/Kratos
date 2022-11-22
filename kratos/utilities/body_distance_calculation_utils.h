@@ -431,7 +431,7 @@ private:
     /*@{ */
 
 
-    class CompareElementDistance : public std::binary_function<const Element::Pointer, const Element::Pointer, bool >
+    class CompareElementDistance
     {
     public:
 

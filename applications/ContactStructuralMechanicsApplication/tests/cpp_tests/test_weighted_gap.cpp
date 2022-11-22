@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -129,7 +129,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -140,19 +140,19 @@ namespace Kratos
 
             // We set the database
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition2D2N"));
-                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop, p_master_cond->pGetGeometry());
+                    Condition::Pointer p_auxiliary_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
-                    p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
+                    r_computing_contact_model_part.AddCondition(p_auxiliary_condition);
+                    p_auxiliary_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
-                    p_auxiliar_condition->Set(ACTIVE, true);
-                    p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize(r_process_info);
-                    p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                    p_auxiliary_condition->Set(ACTIVE, true);
+                    p_auxiliary_condition->Set(SLAVE, true);
+                    p_auxiliary_condition->Initialize(r_process_info);
+                    p_auxiliary_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
@@ -285,7 +285,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -296,19 +296,19 @@ namespace Kratos
 
             // We set the database
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
-                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
+                    Condition::Pointer p_auxiliary_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
-                    p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
+                    r_computing_contact_model_part.AddCondition(p_auxiliary_condition);
+                    p_auxiliary_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
-                    p_auxiliar_condition->Set(ACTIVE, true);
-                    p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize(r_process_info);
-                    p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                    p_auxiliary_condition->Set(ACTIVE, true);
+                    p_auxiliary_condition->Set(SLAVE, true);
+                    p_auxiliary_condition->Initialize(r_process_info);
+                    p_auxiliary_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
@@ -480,7 +480,7 @@ namespace Kratos
             master_conds.push_back(pcond5);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -489,7 +489,7 @@ namespace Kratos
                     r_cond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             }
 
-            // We set the auxiliar Coordinates
+            // We set the auxiliary Coordinates
             for(auto& r_node : rModelPart.Nodes()) {
                 if (r_node.Is(MASTER))
                     r_node.SetValue(AUXILIAR_COORDINATES, r_node.Coordinates());
@@ -510,8 +510,8 @@ namespace Kratos
                 if (r_node.Is(SLAVE)) {
                     // We compute the gap
                     const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
-                    const array_1d<double, 3>& r_auxiliar_coordinates = r_node.GetValue(AUXILIAR_COORDINATES);
-                    const array_1d<double, 3>& r_components_gap = ( r_node.Coordinates() - r_auxiliar_coordinates);
+                    const array_1d<double, 3>& r_auxiliary_coordinates = r_node.GetValue(AUXILIAR_COORDINATES);
+                    const array_1d<double, 3>& r_components_gap = ( r_node.Coordinates() - r_auxiliary_coordinates);
                     const double gap = inner_prod(r_components_gap, - r_normal);
                     r_node.SetValue(NORMAL_GAP, gap);
                 } else
@@ -520,19 +520,19 @@ namespace Kratos
 
             // We set the database
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
-                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
+                    Condition::Pointer p_auxiliary_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
-                    p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
+                    r_computing_contact_model_part.AddCondition(p_auxiliary_condition);
+                    p_auxiliary_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
-                    p_auxiliar_condition->Set(ACTIVE, true);
-                    p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Initialize(r_process_info);
-                    p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                    p_auxiliary_condition->Set(ACTIVE, true);
+                    p_auxiliary_condition->Set(SLAVE, true);
+                    p_auxiliary_condition->Initialize(r_process_info);
+                    p_auxiliary_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
@@ -670,7 +670,7 @@ namespace Kratos
             }
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -679,7 +679,7 @@ namespace Kratos
                     id_cond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             }
 
-            // We set the auxiliar Coordinates
+            // We set the auxiliary Coordinates
             for(auto& r_node : rModelPart.Nodes()) {
                 if (r_node.Is(MASTER))
                     r_node.SetValue(AUXILIAR_COORDINATES, r_node.Coordinates());
@@ -700,8 +700,8 @@ namespace Kratos
                 if (r_node.Is(SLAVE)) {
                     // We compute the gap
                     const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
-                    const array_1d<double, 3>& r_auxiliar_coordinates = r_node.GetValue(AUXILIAR_COORDINATES);
-                    const array_1d<double, 3>& r_components_gap = ( r_node.Coordinates() - r_auxiliar_coordinates);
+                    const array_1d<double, 3>& r_auxiliary_coordinates = r_node.GetValue(AUXILIAR_COORDINATES);
+                    const array_1d<double, 3>& r_components_gap = ( r_node.Coordinates() - r_auxiliary_coordinates);
                     const double gap = inner_prod(r_components_gap, - r_normal);
                     r_node.SetValue(NORMAL_GAP, gap);
                 } else
@@ -711,19 +711,19 @@ namespace Kratos
             // We set the database
             const auto& r_process_info = rModelPart.GetProcessInfo();
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto p_slave_cond : slave_conds) {
-                for (auto p_master_cond : master_conds) {
+            for (const auto& p_slave_cond : slave_conds) {
+                for (const auto& p_master_cond : master_conds) {
                     id_cond++;
                     const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
-                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
+                    Condition::Pointer p_auxiliary_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
-                    p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
+                    r_computing_contact_model_part.AddCondition(p_auxiliary_condition);
+                    p_auxiliary_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
-                    p_auxiliar_condition->Set(SLAVE, true);
-                    p_auxiliar_condition->Set(ACTIVE, true);
-                    p_auxiliar_condition->Initialize(r_process_info);
-                    p_auxiliar_condition->InitializeSolutionStep(r_process_info);
+                    p_auxiliary_condition->Set(SLAVE, true);
+                    p_auxiliary_condition->Set(ACTIVE, true);
+                    p_auxiliary_condition->Initialize(r_process_info);
+                    p_auxiliary_condition->InitializeSolutionStep(r_process_info);
                 }
             }
 
@@ -746,7 +746,7 @@ namespace Kratos
                     }
                 }
 
-                // We set the auxiliar Coordinates
+                // We set the auxiliary Coordinates
                 for(auto& r_node : rModelPart.Nodes()) {
                     if (r_node.Is(MASTER))
                         r_node.SetValue(AUXILIAR_COORDINATES, r_node.Coordinates());
@@ -761,8 +761,8 @@ namespace Kratos
                     if (r_node.Is(SLAVE)) {
                         // We compute the gap
                         const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
-                        const array_1d<double, 3>& r_auxiliar_coordinates = r_node.GetValue(AUXILIAR_COORDINATES);
-                        const array_1d<double, 3>& r_components_gap = ( r_node.Coordinates() - r_auxiliar_coordinates);
+                        const array_1d<double, 3>& r_auxiliary_coordinates = r_node.GetValue(AUXILIAR_COORDINATES);
+                        const array_1d<double, 3>& r_components_gap = ( r_node.Coordinates() - r_auxiliary_coordinates);
                         const double gap = inner_prod(r_components_gap, - r_normal);
                         r_node.SetValue(NORMAL_GAP, gap);
                     } else

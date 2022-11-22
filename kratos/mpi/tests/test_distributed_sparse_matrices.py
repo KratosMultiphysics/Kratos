@@ -2,7 +2,7 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi
-import numpy as np
+import numpy as np 
 
 class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
@@ -61,9 +61,6 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         (31,39):1.0,(22,28):1.0,(22,31):1.0,(22,39):1.0,(39,28):1.0,(39,31):1.0,(39,22):1.0,(1,28):1.0,(1,13):1.0,(1,7):1.0,(28,1):1.0,(28,13):1.0,(28,7):1.0,(13,1):1.0,(13,28):1.0,(13,13):1.0,(13,7):1.0,(7,1):1.0,(7,28):1.0,(7,13):1.0,
         (17,10):1.0,(17,36):1.0,(17,7):1.0,(10,17):1.0,(10,36):1.0,(10,7):1.0,(36,17):1.0,(36,10):1.0,(7,17):1.0,(7,10):1.0,(25,30):1.0,(25,9):1.0,(14,30):1.0,(30,25):1.0,(30,14):1.0,(30,9):1.0,(9,25):1.0,(9,30):1.0
     }
-
-    bref_all = np.array([1,3,2,3,3,3,5,6,4,4,2,4,3,1,6,3,5,3,6,3,0,1,4,1,4,4,6,1,5,2,2,3,1,4,1,5,2,4,1,3])
-
 
     def DivideInPartitions(self,NumTerms,NumThreads):
         Partitions = np.zeros(NumThreads + 1)
@@ -130,8 +127,14 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         for i in range(y.LocalSize()):
             global_i = y.GetNumbering().GlobalId(i);
             self.assertEqual(y[i],  reference_spmv_res[global_i], 1e-14 )
+
+        y = A@b
     
         B = A.SpMM(A)
+
+        for i in range(y.LocalSize()):
+            global_i = y.GetNumbering().GlobalId(i);
+            self.assertEqual(y[i],  reference_spmv_res[global_i], 1e-14 )
 
         #emulating y = A@b by low level interface
         local_mat = A.GetDiagonalBlock()
@@ -155,7 +158,37 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
         if(my_rank == 0):
             self.assertEqual(dotprod, np.dot(reference_spmv_res,reference_spmv_res), 1e-14)
-  
+
+        #test transpose and TransposeSpMV
+        b.SetValue(1.0)
+        y.SetValue(0.0)
+        A.TransposeSpMV(b,y) 
+
+        At = A.Transpose()
+        y2 =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)
+        y2.SetValue(0.0)  
+        At.SpMV(b,y2)
+        for i in range(y.LocalSize()):
+            self.assertEqual(y[i], y2[i], 1e-14)
+
+        #test moving material to serial
+        target_rank = 0
+        Aserial = A.ToSerialCSR(target_rank)
+        if(my_rank == 0):
+            y_serial = KratosMultiphysics.Vector(Aserial.Size1())
+            y_serial.fill(1.0)
+            b_serial = KratosMultiphysics.Vector(Aserial.Size1())
+            b_serial.fill(0.0)
+            Aserial.SpMV(y_serial, b_serial)
+            
+            self.assertVectorAlmostEqual(b_serial, reference_spmv_res)
+
+        #test operations
+        b.SetValue(1.0)
+        y.SetValue(2.0)
+        c = 2.0*b+y*2.0 - b
+        for i in range(y.LocalSize()):
+            self.assertEqual(c[i], 5.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()

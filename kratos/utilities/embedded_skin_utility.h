@@ -96,7 +96,7 @@ public:
         ModelPart &rModelPart,
         ModelPart &rSkinModelPart,
         const std::string LevelSetType = "continuous",
-        const std::vector<std::string> InterpolatedSkinVariables = {}) :
+        const std::vector<std::string>& InterpolatedSkinVariables = {}) :
         mrModelPart(rModelPart),
         mrSkinModelPart(rSkinModelPart),
         mLevelSetType(LevelSetType == "continuous" ? Continuous : Discontinuous),
@@ -347,7 +347,7 @@ private:
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the divide geometry utility
      */
-    DivideGeometry::Pointer SetDivideGeometryUtility(
+    DivideGeometry<Node<3>>::Pointer SetDivideGeometryUtility(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances);
 

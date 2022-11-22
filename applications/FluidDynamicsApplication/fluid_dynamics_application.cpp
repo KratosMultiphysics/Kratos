@@ -159,7 +159,6 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FLUID_STRESS);
     KRATOS_REGISTER_VARIABLE(GAPS);
     KRATOS_REGISTER_VARIABLE(DIVERGENCE);
-    KRATOS_REGISTER_VARIABLE(AUX_DISTANCE);
     KRATOS_REGISTER_VARIABLE(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)
 
     // KRATOS_REGISTER_VARIABLE(Y_WALL);
@@ -240,6 +239,8 @@ void KratosFluidDynamicsApplication::Register() {
     // Two-phase flow momentum correction
     KRATOS_REGISTER_VARIABLE( MOMENTUM_CORRECTION )
     KRATOS_REGISTER_VARIABLE( DISTANCE_CORRECTION )
+
+    KRATOS_REGISTER_VARIABLE( Y_PLUS )
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention

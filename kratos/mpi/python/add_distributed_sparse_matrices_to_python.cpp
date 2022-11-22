@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "containers/distributed_system_vector.h"
@@ -23,6 +24,7 @@
 #include "containers/distributed_csr_matrix.h"
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
+
 namespace Kratos {
 namespace Python {
 
@@ -35,7 +37,7 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
     py::class_<DistributedNumbering<IndexType>,DistributedNumbering<IndexType>::Pointer>(m,"DistributedNumbering")
         .def(py::init<const DataCommunicator&, IndexType>())
         .def(py::init<const DataCommunicator&, IndexType, MPIIndexType>())
-        .def("GetComm", &DistributedNumbering<IndexType>::GetComm, py::return_value_policy::reference)
+        .def("GetComm", &DistributedNumbering<IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("LocalSize", &DistributedNumbering<IndexType>::LocalSize)
         .def("Size", &DistributedNumbering<IndexType>::Size)
         .def("IsLocal", &DistributedNumbering<IndexType>::IsLocal)
@@ -43,29 +45,31 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def("GlobalId", &DistributedNumbering<IndexType>::GlobalId)
         .def("RemoteLocalId", &DistributedNumbering<IndexType>::RemoteLocalId)
         .def("OwnerRank", &DistributedNumbering<IndexType>::OwnerRank)
-        .def("GetCpuBounds", &DistributedNumbering<IndexType>::GetCpuBounds, py::return_value_policy::reference)
+        .def("GetCpuBounds", &DistributedNumbering<IndexType>::GetCpuBounds, py::return_value_policy::reference_internal)
         ;
 
     py::class_<DistributedVectorExporter<IndexType>,DistributedVectorExporter<IndexType>::Pointer>(m,"DistributedVectorExporter")
         .def(py::init<const DataCommunicator&, const std::vector<IndexType>&, const DistributedNumbering<IndexType>&>())
-        .def("GetComm", &DistributedVectorExporter<IndexType>::GetComm, py::return_value_policy::reference)
-        .def("ApplyAddition", &DistributedVectorExporter<IndexType>::Apply<DistributedSystemVector<IndexType>, DenseVector<double>, std::plus<double>>)
-        .def("ApplySubtraction", &DistributedVectorExporter<IndexType>::Apply<DistributedSystemVector<IndexType>, DenseVector<double>, std::minus<double>>)
+        .def("GetComm", &DistributedVectorExporter<IndexType>::GetComm, py::return_value_policy::reference_internal)
+        .def("ApplyAddition", 
+            &DistributedVectorExporter<IndexType>::Apply<DistributedSystemVector<double,IndexType>, DenseVector<double>, std::plus<double>>)
+        .def("ApplySubtraction", 
+            &DistributedVectorExporter<IndexType>::Apply<DistributedSystemVector<double,IndexType>, DenseVector<double>, std::minus<double>>)
         ;
 
     py::class_<DistributedVectorImporter<double,IndexType>,DistributedVectorImporter<double,IndexType>::Pointer>(m,"DistributedVectorImporter")
         .def(py::init<const DataCommunicator&, const std::vector<IndexType>&, const DistributedNumbering<IndexType>&>())
-        .def("GetComm", &DistributedVectorImporter<double,IndexType>::GetComm, py::return_value_policy::reference)
+        .def("GetComm", &DistributedVectorImporter<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("ImportData", &DistributedVectorImporter<double,IndexType>::ImportData)
         ;
 
     py::class_<DistributedSparseGraph<IndexType>, DistributedSparseGraph<IndexType>::Pointer>(m,"DistributedSparseGraph")
         .def(py::init<const IndexType, DataCommunicator&>())
-        .def("GetComm", &DistributedSparseGraph<IndexType>::GetComm, py::return_value_policy::reference)
+        .def("GetComm", &DistributedSparseGraph<IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("Size", &DistributedSparseGraph<IndexType>::Size)
         .def("LocalSize", &DistributedSparseGraph<IndexType>::LocalSize)
         .def("Has", &DistributedSparseGraph<IndexType>::Has)
-        .def("GetRowNumbering", &DistributedSparseGraph<IndexType>::GetRowNumbering, py::return_value_policy::reference)
+        .def("GetRowNumbering", &DistributedSparseGraph<IndexType>::GetRowNumbering, py::return_value_policy::reference_internal)
         .def("ComputeLocalMinMaxColumnIndex", &DistributedSparseGraph<IndexType>::ComputeLocalMinMaxColumnIndex)
         .def("ComputeMaxGlobalColumnIndex", &DistributedSparseGraph<IndexType>::ComputeMaxGlobalColumnIndex)
         .def("AddEntry", &DistributedSparseGraph<IndexType>::AddEntry)
@@ -84,12 +88,15 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def(py::init<const DistributedSparseGraph<IndexType>&>())
         .def(py::init<DistributedSystemVector<double,IndexType>&>())
         .def(py::init<const DistributedNumbering<IndexType>&>())
-        .def("GetComm", &DistributedSystemVector<double,IndexType>::GetComm, py::return_value_policy::reference)
+        .def("copy", [](const DistributedSystemVector<double,IndexType>& self){
+            return Kratos::make_shared<DistributedSystemVector<double,IndexType>>(self);
+        })
+        .def("GetComm", &DistributedSystemVector<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("LocalSize", [](const DistributedSystemVector<double,IndexType>& self)
             {return self.LocalSize();})
         .def("GetLocalData", [](DistributedSystemVector<double,IndexType>& self) -> DenseVector<double>&
-             {return self.GetLocalData();}, py::return_value_policy::reference)
-        .def("GetNumbering", &DistributedSystemVector<double,IndexType>::GetNumbering, py::return_value_policy::reference)
+             {return self.GetLocalData();}, py::return_value_policy::reference_internal)
+        .def("GetNumbering", &DistributedSystemVector<double,IndexType>::GetNumbering, py::return_value_policy::reference_internal)
         .def("Size", &DistributedSystemVector<double,IndexType>::Size)
         .def("size", &DistributedSystemVector<double,IndexType>::Size)
         .def("Clear", &DistributedSystemVector<double,IndexType>::Clear)
@@ -105,6 +112,7 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         self.Assemble(values,indices);
         })
         .def("Dot", &DistributedSystemVector<double,IndexType>::Dot)
+
         //inplace
         .def("__iadd__", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec) -> DistributedSystemVector<double,IndexType>& {self += other_vec; return self;}, py::is_operator() )
         .def("__isub__", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec) -> DistributedSystemVector<double,IndexType>& {self -= other_vec;  return self;}, py::is_operator() )
@@ -116,6 +124,25 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def("Sub", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec){self -= other_vec;  } )
         .def("Mult", [](DistributedSystemVector<double,IndexType>& self, const double value){ self*=value; } )
         .def("Div", [](DistributedSystemVector<double,IndexType>& self, const double value){ self/=value; } )
+        //out of place
+        .def("__mul__", [](const DistributedSystemVector<double,IndexType>& self, const double factor) -> DistributedSystemVector<double,IndexType>::Pointer{
+            auto paux = std::make_shared<DistributedSystemVector<double,IndexType>>(self);
+            (*paux) *= factor;
+            return paux;}, py::is_operator())
+        .def("__rmul__", [](const DistributedSystemVector<double,IndexType>& self, const double factor) -> DistributedSystemVector<double,IndexType>::Pointer{
+            auto paux = std::make_shared<DistributedSystemVector<double,IndexType>>(self);
+            (*paux) *= factor;
+            return paux;}, py::is_operator())
+        .def("__add__", [](const DistributedSystemVector<double,IndexType>& vec1, const DistributedSystemVector<double,IndexType>& vec2){ //implies an internal copy
+                auto paux = std::make_shared<DistributedSystemVector<double,IndexType>>(vec1);
+                *paux += vec2;
+                return paux;}
+                , py::is_operator())
+        .def("__sub__", [](const DistributedSystemVector<double,IndexType>& vec1, const DistributedSystemVector<double,IndexType>& vec2){ //implies an internal copy
+                auto paux = std::make_shared<DistributedSystemVector<double,IndexType>>(vec1);
+                *paux -= vec2;
+                return paux;}
+                , py::is_operator())
         //access operators
         .def("__setitem__", [](DistributedSystemVector<double,IndexType>& self, const unsigned int i, const double value){self[i] = value;} )
         .def("__getitem__", [](const DistributedSystemVector<double,IndexType>& self, const unsigned int i){return self[i];} )
@@ -125,7 +152,11 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
 
     py::class_<DistributedCsrMatrix<double,IndexType>, DistributedCsrMatrix<double,IndexType>::Pointer>(m,"DistributedCsrMatrix")
         .def(py::init<const DistributedSparseGraph<IndexType>&>())
-        .def("GetComm", &DistributedCsrMatrix<double,IndexType>::GetComm, py::return_value_policy::reference)
+        .def(py::init<const DistributedCsrMatrix<double,IndexType>&>())
+        .def("copy", [](const DistributedCsrMatrix<double,IndexType>& self){
+            return Kratos::make_shared<DistributedCsrMatrix<double,IndexType>>(self);
+        })
+        .def("GetComm", &DistributedCsrMatrix<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("GetRowNumbering", &DistributedCsrMatrix<double,IndexType>::GetRowNumbering, py::return_value_policy::reference_internal)
         .def("GetColNumbering", &DistributedCsrMatrix<double,IndexType>::GetColNumbering, py::return_value_policy::reference_internal)
         .def("SetValue", &DistributedCsrMatrix<double,IndexType>::SetValue)
@@ -153,13 +184,29 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
             const IndexType i,
             const IndexType j){
             return self.GetLocalDataByGlobalId(i,j);} )
-        .def("GetDiagonalIndex2DataInGlobalNumbering", &DistributedCsrMatrix<double,IndexType>::GetDiagonalIndex2DataInGlobalNumbering)
-        .def("GetOffDiagonalIndex2DataInGlobalNumbering", &DistributedCsrMatrix<double,IndexType>::GetOffDiagonalIndex2DataInGlobalNumbering)
+        .def("GetDiagonalIndex2DataInGlobalNumbering", [](DistributedCsrMatrix<double,IndexType>& self) {
+            return py::array_t<IndexType>(
+                self.GetDiagonalIndex2DataInGlobalNumbering().size(),
+                self.GetDiagonalIndex2DataInGlobalNumbering().data().begin()
+            );
+        } )
+        .def("GetOffDiagonalIndex2DataInGlobalNumbering", [](DistributedCsrMatrix<double,IndexType>& self) {
+            return py::array_t<IndexType>(
+                self.GetOffDiagonalIndex2DataInGlobalNumbering().size(),
+                self.GetOffDiagonalIndex2DataInGlobalNumbering().data().begin()
+            );
+        } )
         .def("SpMV", [](DistributedCsrMatrix<double,IndexType>& rA,
                         DistributedSystemVector<double,IndexType>& x,
                         DistributedSystemVector<double,IndexType>& y){
             rA.SpMV(x,y);
         })
+        .def("__matmul__", [](const DistributedCsrMatrix<double,IndexType>& rA,const DistributedSystemVector<double,IndexType>& x){
+            auto py  = std::make_shared<DistributedSystemVector<double,IndexType>>(rA.GetRowNumbering());
+            py->SetValue(0.0); 
+            rA.SpMV(x,*py);
+            return py;
+        }, py::is_operator())
         .def("TransposeSpMV", [](DistributedCsrMatrix<double,IndexType>& rA,
                         DistributedSystemVector<double,IndexType>& x,
                         DistributedSystemVector<double,IndexType>& y){
@@ -168,6 +215,13 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def("SpMM", [](const DistributedCsrMatrix<double,IndexType>& self,
                         const DistributedCsrMatrix<double,IndexType>& rB){
             return DistributedAmgclCSRSpMMUtilities::SparseMultiply(self,rB);
+        })
+        .def("__matmul__", [](const DistributedCsrMatrix<double,IndexType>& self,
+                        const DistributedCsrMatrix<double,IndexType>& rB){
+            return DistributedAmgclCSRSpMMUtilities::SparseMultiply(self,rB);
+        })
+        .def("Transpose", [](DistributedCsrMatrix<double,IndexType>& rA){
+            return AmgclDistributedCSRConversionUtilities::Transpose<double,IndexType>(rA);
         })
         .def("NormFrobenius", &DistributedCsrMatrix<double,IndexType>::NormFrobenius)
         .def("BeginAssemble", &DistributedCsrMatrix<double,IndexType>::BeginAssemble)
@@ -187,7 +241,7 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
             rA.AssembleEntry(value,I,J);
             })
         .def("ApplyHomogeneousDirichlet", &DistributedCsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet )
-
+        .def("ToSerialCSR", &DistributedCsrMatrix<double,IndexType>::ToSerialCSR )
         .def("__str__", PrintObject<DistributedCsrMatrix<double,IndexType>>);
 }
 

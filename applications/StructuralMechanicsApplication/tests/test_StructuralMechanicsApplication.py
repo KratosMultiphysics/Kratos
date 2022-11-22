@@ -94,6 +94,7 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
 from structural_mechanics_test_factory import SDTwoDTensionQuaPatchTest as TSDTwoDTensionQuaPatchTest
@@ -280,7 +281,6 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
     # Membranes
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
     # Formfinding
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
@@ -334,6 +334,7 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDTensionQuaPatchTest('test_execution'))
@@ -368,7 +369,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
-    nightSuite.addTest(TMembraneHemisphereTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressHorizontalTests('test_execution'))
@@ -381,10 +381,8 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
     # Shell tests
     nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
@@ -450,7 +448,8 @@ def AssembleTestSuites():
     validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
-    validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    validationSuite.addTest(T2D2NBeamCrTest('test_execution'))
+    validationSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     validationSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution')) # TODO should be in nightSuite but is too slow
     # Pendulus tests with Solid Elements
     validationSuite.addTest(TPendulusTLTest('test_execution'))
@@ -469,9 +468,13 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
 
     # Explicit solid beam
     validationSuite.addTest(TExplicitSolidBeam('test_execution'))
+
+    # Membrane tests
+    validationSuite.addTest(TMembraneHemisphereTests('test_execution'))
 
     ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
     # They have been moved to validation temporarily until they will be removed

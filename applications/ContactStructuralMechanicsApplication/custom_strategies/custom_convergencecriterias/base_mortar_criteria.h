@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -325,7 +325,7 @@ public:
     {
         // Update normal of the conditions
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(r_contact_model_part, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
         const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
         if (frictional_problem) {
             const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
@@ -540,7 +540,7 @@ private:
     {
         // Compute normal and tangent
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(r_contact_model_part, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_contact_model_part, true);
 
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");

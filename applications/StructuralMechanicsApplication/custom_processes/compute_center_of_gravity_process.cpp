@@ -32,7 +32,7 @@ void ComputeCenterOfGravityProcess::Execute()
     // Now we iterate over the elements to calculate the total mass
     auto& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
-    // Making this loop omp-parallel requires locking all the geometries & nodes, which
+    // Making this loop shared-memory-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
     for (auto& elem_i : elements_array) {
         const double elem_mass = TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);

@@ -260,7 +260,7 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
     KRATOS_TRY;
 
     block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-        rNode.Data().Erase(rVariable);
+        rNode.GetData().Erase(rVariable);
     });
 
     KRATOS_CATCH("");

@@ -108,6 +108,26 @@ public:
         SetValue(0.0);
     }
 
+    CsrMatrix(const MatrixMapType& matrix_map)
+    {
+        SparseGraph<TIndexType> Agraph;
+        for(const auto& item : matrix_map){
+            IndexType I = item.first.first;
+            IndexType J = item.first.second;
+            Agraph.AddEntry(I,J);
+        }
+        Agraph.Finalize();
+
+        this->BeginAssemble();
+        for(const auto item : matrix_map){
+            IndexType I = item.first.first;
+            IndexType J = item.first.second;
+            TDataType value = item.second;
+            this->AssembleEntry(value,I,J);
+        }        
+        this->FinalizeAssemble();
+    }
+
     explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
     {
         mpComm = rOtherMatrix.mpComm;
@@ -685,7 +705,8 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "CsrMatrix";
+        rOStream << "CsrMatrix" << std::endl;
+        PrintData(rOStream);
     }
 
     /// Print object's data.

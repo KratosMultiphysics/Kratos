@@ -150,7 +150,7 @@ namespace ShockCapturingPhysicsBasedTesting{
 
         // Check values
         const double tolerance = 1.0e-8;
-        KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_CONDUCTIVITY), 8.63118e-06, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000107443, tolerance);
         KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.00090307, tolerance);
         KRATOS_CHECK_NEAR(r_model_part.GetNode(5100).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 6.45513e-05, tolerance);
 
@@ -199,8 +199,8 @@ namespace ShockCapturingPhysicsBasedTesting{
 
         // Check values
         const double tolerance = 1.0e-6;
-        KRATOS_CHECK_NEAR(r_model_part.GetNode(4223).GetValue(ARTIFICIAL_CONDUCTIVITY), 1.39565e-05, tolerance);
-        KRATOS_CHECK_NEAR(r_model_part.GetNode(4364).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000119494, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4223).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000188814, tolerance);
+        KRATOS_CHECK_NEAR(r_model_part.GetNode(4364).GetValue(ARTIFICIAL_CONDUCTIVITY), 0.000303616, tolerance);
         KRATOS_CHECK_NEAR(r_model_part.GetNode(7131).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000284181, tolerance);
         KRATOS_CHECK_NEAR(r_model_part.GetNode(5309).GetValue(ARTIFICIAL_BULK_VISCOSITY), 0.000542645, tolerance);
         KRATOS_CHECK_NEAR(r_model_part.GetNode(4810).GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), 3.08555e-05, tolerance);

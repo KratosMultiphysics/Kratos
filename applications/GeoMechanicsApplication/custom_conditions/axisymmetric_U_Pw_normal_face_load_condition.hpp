@@ -53,7 +53,13 @@ public:
     AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry) {}
 
     // Constructor 2
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId,
+                                            GeometryType::Pointer pGeometry,
+                                            PropertiesType::Pointer pProperties )
+                                            : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    {
+        mThisIntegrationMethod = this->GetIntegrationMethod();
+    }
 
     // Destructor
     ~AxisymmetricUPwNormalFaceLoadCondition() override {}
@@ -61,6 +67,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

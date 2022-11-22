@@ -88,7 +88,13 @@ public:
         //compute the columns size
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
-        mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+            
+        //this ensures that diagonal blocks are square for square matrices
+        if (tot_col_size == mpRowNumbering->Size()) {
+            mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, mpRowNumbering->GetCpuBounds());
+        } else {
+            mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+        }
 
         mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
@@ -210,19 +216,18 @@ public:
         mpComm(rOtherMatrix.mpComm),
         mpRowNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetRowNumbering())),
         mpColNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetColNumbering())),
-        mpDiagonalBlock(Kratos::make_unique<TDataType,IndexType>(rOtherMatrix.GetDiagonalBlock())),
-        mpOffDiagonalBlock(Kratos::make_unique<TDataType,IndexType>(rOtherMatrix.GetOffDiagonalBlock())),
+        mpDiagonalBlock(Kratos::make_unique<CsrMatrix<TDataType,TIndexType>>(rOtherMatrix.GetDiagonalBlock())),
+        mpOffDiagonalBlock(Kratos::make_unique<CsrMatrix<TDataType,TIndexType>>(rOtherMatrix.GetOffDiagonalBlock())),
         mNonLocalData(rOtherMatrix.mNonLocalData),
-        mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
-        mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
         mOffDiagonalLocalIds(rOtherMatrix.mOffDiagonalLocalIds),
         mOffDiagonalGlobalIds(rOtherMatrix.mOffDiagonalGlobalIds),
         mfem_assemble_colors(rOtherMatrix.mfem_assemble_colors),
-        mpVectorImporter(rOtherMatrix.mpVectorImporter)
+        mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
+        mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
+        mpVectorImporter(Kratos::make_unique<DistributedVectorImporter<TDataType,TIndexType>>(*rOtherMatrix.mpVectorImporter))
     {
         ReconstructDirectAccessVectors();
     }
-
 
     //move constructor
     DistributedCsrMatrix(DistributedCsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
@@ -692,6 +697,74 @@ public:
         return value_map;
     }
 
+    typename CsrMatrix<TDataType,TIndexType>::Pointer ToSerialCSR(MpiIndexType target_rank=0) const
+    {
+        // Flatten all data (both indices and values) into a single vector of doubles
+        std::vector<double> tmp_data;
+        tmp_data.reserve(GetDiagonalBlock().nnz()*3 + GetOffDiagonalBlock().nnz()*3);
+        for(unsigned int i=0; i<GetDiagonalBlock().size1(); ++i){
+            IndexType row_begin = GetDiagonalBlock().index1_data()[i];
+            IndexType row_end   = GetDiagonalBlock().index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                const IndexType j = GetDiagonalBlock().index2_data()[k];
+                const TDataType v = GetDiagonalBlock().value_data()[k];
+                tmp_data.push_back(GetRowNumbering().GlobalId(i));
+                tmp_data.push_back(GetColNumbering().GlobalId(j));
+                tmp_data.push_back(v);
+            }
+        }
+        for(unsigned int i=0; i<GetOffDiagonalBlock().size1(); ++i){
+            IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
+            IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                const IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
+                const TDataType v = GetOffDiagonalBlock().value_data()[k];
+                tmp_data.push_back(GetRowNumbering().GlobalId(i));
+                tmp_data.push_back(mOffDiagonalGlobalIds[j]);
+                tmp_data.push_back(v);
+            }
+        }
+
+        auto collected_data = GetComm().Gatherv(tmp_data,target_rank);
+
+        const MpiIndexType num_processors = GetComm().Size();
+        const MpiIndexType my_rank = GetComm().Rank();
+
+        typename SparseContiguousRowGraph<TIndexType>::UniquePointer p_csr_graph;
+        typename CsrMatrix<TDataType,TIndexType>::Pointer p_csr_output;
+
+        if(my_rank==target_rank){
+            p_csr_graph = std::move( Kratos::make_unique<SparseContiguousRowGraph<TIndexType>>(GetRowNumbering().Size()) );
+
+            for(int i_proc=0; i_proc<num_processors; ++i_proc){
+                const auto& data = collected_data[i_proc];
+                for(IndexType i=0; i<data.size(); i+=3){
+                    IndexType I = static_cast<IndexType>(data[i]);
+                    IndexType J = static_cast<IndexType>(data[i+1]);
+                    p_csr_graph->AddEntry(I,J);
+                }
+            }
+            p_csr_graph->Finalize();
+        }
+
+        if(my_rank==target_rank){
+            p_csr_output = Kratos::make_shared<CsrMatrix<TDataType,TIndexType>>(*p_csr_graph);
+            p_csr_output->BeginAssemble();
+            for(int i_proc=0; i_proc<num_processors; ++i_proc){
+                const auto& data = collected_data[i_proc];
+                for(IndexType i=0; i<data.size(); i+=3){
+                    const IndexType I = static_cast<IndexType>(data[i]);
+                    const IndexType J = static_cast<IndexType>(data[i+1]);
+                    const double    v = data[i+2];
+                    p_csr_output->AssembleEntry(v,I,J);
+                }
+            }
+            p_csr_output->FinalizeAssemble();
+        }        
+        
+        return p_csr_output;
+    }
+
     //TODO
     // LeftScaling
     // RightScaling
@@ -728,7 +801,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "DistributedCsrMatrix";
+        rOStream << "DistributedCsrMatrix" << std::endl;
     }
 
     /// Print object's data.

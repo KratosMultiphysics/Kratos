@@ -24,7 +24,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 # Find trilinos solver package -- this is our own find package!!
 IF(NOT TRILINOS_FOUND)
     MESSAGE( FATAL_ERROR "Could not find Trilinos or one of its packages. Please set the cmake var TRILINOS_ROOT or the environment vars TRILINOS_INCLUDE_DIR and TRILINOS_LIBRARY_DIR, note also that if in your system the library have a prefix, like \"libtrilinos_epetra.so\" instead of \"libepetra.so\" you can specify the prefix by the variable -DTRILINOS_LIBRARY_PREFIX=\"trilinos_\" "    )
-ENDIF(TRILINOS_FOUND)
+ENDIF(NOT TRILINOS_FOUND)
 
 # Amesos2 is currenlty under development and is disabled by default. This can be removed in the future to enable it by default.
 OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )
@@ -96,8 +96,8 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-# TODO: Move this to the new system. Not sure how it will work on windows but being trillinos should give no problem.
-message("Trilinos libs to be installed" ${TRILINOS_LIBRARIES})
+# TODO: Move this to the new system. Not sure how it will work on windows but being Trilinos should give no problem.
+message(STATUS "Trilinos libs to be installed: " ${TRILINOS_LIBRARIES})
 install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.

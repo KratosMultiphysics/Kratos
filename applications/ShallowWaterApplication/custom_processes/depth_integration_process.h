@@ -155,9 +155,8 @@ private:
     array_1d<double,3> mDirection;
     bool mStoreHistorical;
 
-    // Option to substitute the depth integration by the specific depth
-    bool mVelocityDepthIntegration;
-    double mVelocityRelativeDepth;
+    // Option to print a debug file
+    bool mPrintVelocityProfile;
 
     // Option to substitute the boundaries by the neighbor
     bool mExtrapolateBoundaries;

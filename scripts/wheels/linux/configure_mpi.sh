@@ -34,8 +34,8 @@ add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-# add_app ${KRATOS_APP_DIR}/FemToDemApplication;
-# add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/FemToDemApplication;
+add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
@@ -43,7 +43,7 @@ add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-# add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
+add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 # add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
@@ -54,6 +54,7 @@ add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
+add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
@@ -62,7 +63,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # -DKRATOS_ENABLE_LTO=ON                                                 \
 
-${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
@@ -72,6 +73,7 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DINCLUDE_MMG=ON                                                       \
--DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_4_1"               \
+-DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
--DINSTALL_RUNKRATOS=OFF
+-DINSTALL_RUNKRATOS=OFF                                                \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \

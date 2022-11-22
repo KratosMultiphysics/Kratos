@@ -92,6 +92,9 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
+    def GetElementalGradient(self, variable):
+        raise NotImplementedError("GetElementalGradient needs to be implemented for StrainEnergyResponseFunction")
+
 # ==============================================================================
 class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
     """Eigenfrequency response function. The internal procedure is the same as
@@ -135,6 +138,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+
 
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
 
@@ -212,6 +216,9 @@ class MassResponseFunction(ResponseFunctionInterface):
         for node in self.model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
+
+    def GetElementalGradient(self, variable):
+        raise NotImplementedError("GetElementalGradient needs to be implemented for MassResponseFunction")
 
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionInterface):
@@ -294,6 +301,20 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         for node in self.adjoint_model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
+
+    def GetElementalGradient(self, variable):
+        if variable not in [
+                            StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY,
+                            StructuralMechanicsApplication.THICKNESS_SENSITIVITY,
+                            StructuralMechanicsApplication.I22_SENSITIVITY,
+                            StructuralMechanicsApplication.I33_SENSITIVITY,
+                            ]:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for element in self.adjoint_model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+        return gradient
+
 
     def Finalize(self):
         self.primal_analysis.Finalize()
