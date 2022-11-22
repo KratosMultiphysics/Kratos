@@ -31,8 +31,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-typedef std::size_t SizeType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -60,6 +58,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AutomaticDifferentiationTangentU
   public:
     ///@name Type definitions
     ///@{
+    typedef std::size_t SizeType;
+
     typedef TYieldSurfaceType YieldSurfaceType;
 
     /// We define the dimension
