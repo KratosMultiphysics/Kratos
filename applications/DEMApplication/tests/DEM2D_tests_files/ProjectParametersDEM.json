@@ -42,7 +42,7 @@
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 2e-4,
-"FinalTime"                        : 0.20,
+"FinalTime"                        : 0.2,
 "ControlTime"                      : 100.0,
 "NeighbourSearchFrequency"         : 20,
 "material_test_settings" : {
@@ -56,7 +56,7 @@
 "ElementType"                      : "CylinderContPartDEMElement2D",
 "GraphExportFreq"                  : 1e-3,
 "VelTrapGraphExportFreq"           : 1e-3,
-"OutputTimeStep"                   : 1e-2,
+"OutputTimeStep"                   : 1e-3,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
 "PostElasticForces"                : false,

@@ -141,7 +141,7 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
     for (auto& r_node : mrOriginMainModelPart.Nodes()) {
         const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            auto& r_data = r_node.Data();
+            auto& r_data = r_node.GetData();
             for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
                 mListVariables.insert((it_data->first)->Name());
             }

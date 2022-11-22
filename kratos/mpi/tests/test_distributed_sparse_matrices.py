@@ -2,12 +2,7 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi
-try:
-    import numpy as np
-    numpy_availabe = True
-except ImportError:
-    numpy_availabe = False
-
+import numpy as np 
 
 class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
@@ -86,7 +81,6 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
             local_connectivities.append(self.all_connectivities[i])
         return local_connectivities
 
-    @KratosUnittest.skipIf(not numpy_availabe, "This test requires numpy")
     def test_matrix_construction(self):
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
 

@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosHDF5Application",
 	"included_modules": ["HDF5Application"],
-	"included_binaries": ["KratosHDF5Application.*", "KratosHDF5Core.*", "libKratosHDF5Core.*"],
+	"included_binaries": ["KratosHDF5Application.*", "KratosHDF5Core.*", "libKratosHDF5Core.*", "hdf5.*", "hdf5_hl.*", "hdf5_tools.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
