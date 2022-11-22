@@ -72,7 +72,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const std::size_t voigt_size = (TDim == 3) ? 6 : 3;
+        const std::size_t voigt_size = rInitialStateVector.size();
 
         mInitialStrain.resize(voigt_size, false);
         mInitialStress.resize(voigt_size, false);
@@ -124,14 +124,19 @@ namespace Kratos
     void SetInitialStateProcess<TDim>::ExecuteInitializeSolutionStep()
     {
         KRATOS_TRY
+        const std::size_t strain_size = mInitialStrain.size();
+        InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>(mInitialStrain, mInitialStress, mInitialF);
 
-        Vector aux_initial_strain = mInitialStrain;
-        Vector aux_initial_stress = mInitialStress;
-        Matrix aux_initial_F      = mInitialF;
-        InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>
-            (aux_initial_strain, aux_initial_stress, aux_initial_F);
+        block_for_each(mrModelPart.Elements(), [&](Element &r_element) {
+            Vector aux_initial_strain(strain_size);
+            noalias(aux_initial_strain) = mInitialStrain;
 
-        block_for_each(mrModelPart.Elements(), [&](Element& r_element){
+            Vector aux_initial_stress(strain_size);
+            noalias(aux_initial_stress) = mInitialStress;
+
+            Matrix aux_initial_F(TDim, TDim);
+            noalias(aux_initial_F) = mInitialF;
+
             // If the values are set element-wise have priority
             bool requires_unique_initial_state = false;
             if (r_element.GetGeometry().Has(INITIAL_STRAIN_VECTOR)) {
@@ -159,8 +164,7 @@ namespace Kratos
                 for (IndexType point_number = 0; point_number < constitutive_law_vector.size(); ++point_number) {
                     constitutive_law_vector[point_number]->SetInitialState(p_initial_state);
                 }
-            }
-        });
+            }});
         KRATOS_CATCH("")
     }
 

@@ -96,8 +96,8 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
-# TODO: Move this to the new system. Not sure how it will work on windows but being trillinos should give no problem.
-message("Trilinos libs to be installed" ${TRILINOS_LIBRARIES})
+# TODO: Move this to the new system. Not sure how it will work on windows but being Trilinos should give no problem.
+message(STATUS "Trilinos libs to be installed: " ${TRILINOS_LIBRARIES})
 install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.

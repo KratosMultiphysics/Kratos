@@ -1,7 +1,8 @@
 # Kratos imports
 import KratosMultiphysics
-from KratosMultiphysics.FreeSurfaceApplication.edgebased_levelset_solver import EdgeBasedLevelSetSolver
+
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FreeSurfaceApplication import python_solvers_wrapper_free_surface
 
 
 class FreeSurfaceAnalysis(AnalysisStage):
@@ -24,10 +25,21 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
         # Initialize remaining nodes
         density = self.project_parameters["solver_settings"]["density"].GetDouble()
-        body_force = self.project_parameters["solver_settings"]["body_force"].GetVector()
         small_value = 1e-4
         active_node_count = 0
+
+        # Initialize body force value
+        body_force = KratosMultiphysics.Vector(3)
+
+        # Get the body force value
         for node in self.model.GetModelPart(model_part_name).Nodes:
+            body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE, 0)
+            break
+
+        for node in self.model.GetModelPart(model_part_name).Nodes:
+            # Initialize DENSITY
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, density)
+
             # Initialize DISTANCE
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
                 active_node_count += 1
@@ -49,8 +61,10 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
         self._GetSolver()._Redistance()
 
-    def _CreateSolver(self) -> EdgeBasedLevelSetSolver:
-        return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"])
+    # def _CreateSolver(self) -> EdgeBasedLevelSetSolver:
+    #     return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"])
+    def _CreateSolver(self):
+        return python_solvers_wrapper_free_surface.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self) -> str:
         return "Free Surface Analysis"

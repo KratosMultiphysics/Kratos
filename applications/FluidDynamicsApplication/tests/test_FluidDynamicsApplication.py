@@ -26,7 +26,7 @@ from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
 from embedded_couette_flow_test import EmbeddedCouetteFlowTest
-from embedded_couette_imposed_test import EmbeddedCouetteImposedTest
+from embedded_couette_imposed_flow_test import EmbeddedCouetteImposedFlowTest
 from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulationTest
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
@@ -38,7 +38,6 @@ from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
-from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 from adjoint_conditions import TestAdjointMonolithicWallCondition
@@ -51,7 +50,8 @@ if sympy_available:
 from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
 from compute_drag_process_test import ComputeDragProcessTest
-
+from test_compute_y_plus_process import ComputeYPlusProcessTest
+from test_fluid_computation_processes import FluidComputationProcessesTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -74,14 +74,13 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D'))
     smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip'))
     smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D'))
-    smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
+    smallSuite.addTest(EmbeddedCouetteImposedFlowTest('testEmbeddedCouetteImposedFlowEmbeddedWeaklyCompressibleNavierStokes2D'))
     smallSuite.addTest(EmbeddedPistonTest('testEmbeddedPiston2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
-    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))
-    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmbeddedVelocityInletEmulationTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
@@ -89,6 +88,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -105,13 +105,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3D'))
     nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3DSlip'))
     nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D'))
-    nightSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed3D'))
-    nightSuite.addTest(FluidElementTest('testCavityQSASGS'))
-    nightSuite.addTest(FluidElementTest('testCavityQSOSS'))
-    nightSuite.addTest(FluidElementTest('testCavityDASGS'))
-    nightSuite.addTest(FluidElementTest('testCavityDOSS'))
-    nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
-    nightSuite.addTest(FluidElementTest('testSymbolic'))
+    nightSuite.addTest(EmbeddedCouetteImposedFlowTest('testEmbeddedCouetteImposedFlowEmbeddedWeaklyCompressibleNavierStokes3D'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
@@ -124,12 +118,13 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidElementTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -158,4 +153,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
+        KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())

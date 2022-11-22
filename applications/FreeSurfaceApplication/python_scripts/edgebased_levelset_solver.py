@@ -1,6 +1,8 @@
 # Kratos imports
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+
 import KratosMultiphysics.FreeSurfaceApplication as FreeSurface
 
 # STL imports
@@ -23,7 +25,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         {
             "model_part_name"                       : "",
             "domain_size"                           : 3,
-            "body_force"                            : [0.0, 0.0, 0.0],
             "density"                               : 0.0,
             "viscosity"                             : 0.0,
             "wall_law_y"                            : 0.0,
@@ -33,7 +34,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "redistance_frequency"                  : 5,
             "extrapolation_layers"                  : 5,
             "tau2_factor"                           : 0.0,
-            "edge_detection_angle"                  : 45.0,
             "max_safety_factor"                     : 0.5,
             "max_time_step_size"                    : 1e-2,
             "initial_time_step_size"                : 1e-5,
@@ -43,6 +43,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "use_parallel_distance_calculation"     : false,
             "compute_porous_resistance_law"         : "NONE",    ["NONE", "ERGUN", "CUSTOM"]
             "echo_level"                            : 0,
+            "solver_type"                           : "EdgebasedLevelset",
+            "linear_solver_settings"      : {
+                "solver_type"                       : "amgcl"
+            },
             "model_import_settings"                 : { }
         }
         """
@@ -60,7 +64,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         # Parse numeric parameters
         self.domain_size = self.settings["domain_size"].GetInt()
-        self.body_force = self.settings["body_force"].GetVector()
         self.density = self.settings["density"].GetDouble()
         self.viscosity = self.settings["viscosity"].GetDouble()
         self.wall_law_y = self.settings["wall_law_y"].GetDouble()
@@ -69,7 +72,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.redistance_frequency = self.settings["redistance_frequency"].GetInt()
         self.extrapolation_layers = self.settings["extrapolation_layers"].GetInt()
         self.tau2_factor = self.settings["tau2_factor"].GetDouble()
-        self.edge_detection_angle = self.settings["edge_detection_angle"].GetDouble()
         self.max_safety_factor = self.settings["max_safety_factor"].GetDouble()
         self.max_time_step_size = self.settings["max_time_step_size"].GetDouble()
         self.initial_time_step_size = self.settings["initial_time_step_size"].GetDouble()
@@ -81,12 +83,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.assume_constant_pressure = self.settings["assume_constant_pressure"].GetBool()
         self.use_parallel_distance_calculation = self.settings["use_parallel_distance_calculation"].GetBool()
         self.compute_porous_resistance_law = EdgeBasedLevelSetSolver.PorousResistanceComputation[self.settings["compute_porous_resistance_law"].GetString()]
-
-        # Other linear solvers considered in the original script:
-        # - CGSolver(1e3, 5000)
-        # - CGSolver(1e3, 500, DiagonalPreconditioner())
-        # - BICGSTabSolver(1e3, 5000, DiagonalPreconditioner())
-        self.pressure_linear_solver = KratosMultiphysics.BICGSTABSolver(1e-3, 5000)
+        self.pressure_linear_solver = self._CreateLinearSolver()
 
         # Preparations before the model part is read
         # (apart from adding variables)
@@ -97,7 +94,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.distance_utils = self.__MakeDistanceUtilities()
 
         # Declare other members
-        self.fluid_solver          = None # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
+        self.fluid_solver = None # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
         self.safety_factor = self.max_safety_factor
         self.current_step_size = self.initial_time_step_size
         self.current_max_step_size = self.max_time_step_size
@@ -108,7 +105,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return KratosMultiphysics.Parameters("""{
             "model_part_name"                       : "",
             "domain_size"                           : 3,
-            "body_force"                            : [0.0, 0.0, 0.0],
             "density"                               : 0.0,
             "viscosity"                             : 0.0,
             "wall_law_y"                            : 0.0,
@@ -118,7 +114,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "redistance_frequency"                  : 5,
             "extrapolation_layers"                  : 5,
             "tau2_factor"                           : 0.0,
-            "edge_detection_angle"                  : 45.0,
             "max_safety_factor"                     : 0.5,
             "max_time_step_size"                    : 1e-2,
             "initial_time_step_size"                : 1e-5,
@@ -128,6 +123,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "use_parallel_distance_calculation"     : false,
             "compute_porous_resistance_law"         : "NONE",
             "echo_level"                            : 0,
+            "solver_type"                           : "EdgebasedLevelset",
+            "linear_solver_settings"      : {
+                "solver_type"                       : "amgcl"
+            },
             "model_import_settings"                 : { }
         }""")
 
@@ -142,9 +141,11 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_INDEX)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIAMETER)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LIN_DARCY_COEF)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NONLIN_DARCY_COEF)
@@ -165,8 +166,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def Check(self) -> None:
-        if all(not component for component in self.body_force):
-            raise ValueError("Body force cannot be a zero vector")
+        super().Check()
 
     def Initialize(self) -> None:
         # Get rid of isolated nodes
@@ -194,6 +194,16 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         if 1e-10 < self.wall_law_y:
             self.fluid_solver.ActivateWallResistance(self.wall_law_y)
+
+    def InitializeSolutionStep(self) -> None:
+        # Transfer density and viscosity to the nodes
+        for node in self.model_part.Nodes:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <= 0.0:
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, self.density)
+                node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, self.viscosity)
+            else:
+                node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, 0.0)
 
     def AdvanceInTime(self, current_time: float) -> float:
         """
@@ -287,6 +297,22 @@ class EdgeBasedLevelSetSolver(PythonSolver):
                 KratosMultiphysics.DISTANCE,
                 self.distance_size)
 
+        # Make sure that at least one node has negative distance
+        active_node_count = False
+        for node in self.model_part.Nodes:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
+                active_node_count = True
+                break
+
+        if not active_node_count:
+            raise RuntimeError("At least 1 node must have negative DISTANCE")
+
+    def _CreateLinearSolver(self):
+        # Create the pressure linear solver
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        linear_solver = linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        return linear_solver
+
     def __MakeMatrixContainer(self) -> FreeSurface.MatrixContainer3D:
         if self.domain_size == 2:
             return FreeSurface.MatrixContainer2D()
@@ -317,9 +343,9 @@ class EdgeBasedLevelSetSolver(PythonSolver):
                 raise ValueError("Invalid domain size: {}".format(self.domain_size))
         else:
             if self.domain_size == 2:
-                return KratosMultiphysics.SignedDistanceCalculationUtils2D()
+                return FreeSurface.EdgebasedLevelsetAuxiliaryUtils2D()
             elif self.domain_size == 3:
-                return KratosMultiphysics.SignedDistanceCalculationUtils3D()
+                return FreeSurface.EdgebasedLevelsetAuxiliaryUtils3D()
             else:
                 raise ValueError("Invalid domain size: {}".format(self.domain_size))
 
@@ -339,12 +365,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.model_part,
             self.viscosity,
             self.density,
-            self.body_force,
             self.use_mass_correction,
-            self.edge_detection_angle,
             self.stabdt_pressure_factor,
             self.stabdt_convection_factor,
-            self.edge_detection_angle,
+            self.tau2_factor,
             self.assume_constant_pressure)
 
     def __EstimateTimeStep(self, safety_factor: float, max_time_step_size: float) -> float:

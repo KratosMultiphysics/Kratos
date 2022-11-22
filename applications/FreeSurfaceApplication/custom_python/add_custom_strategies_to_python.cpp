@@ -42,15 +42,6 @@ namespace Kratos
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 			typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
 			typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
-
-			//********************************************************************
-			//********************************************************************
-			// 			py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-			// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-			// 				("TestStrategy",
-			// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-			// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-			// 				;
 		}
 
 	} // namespace Python.

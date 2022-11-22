@@ -11,19 +11,12 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/mat_variables.h"
-#include "includes/kernel.h"
-#include "includes/node.h"
-
-#include "includes/kratos_flags.h"
+#include "includes/kratos_application.h"
 
 //commented variables are defined in the variables.h and variables.cpp
 
@@ -153,12 +146,12 @@ namespace Kratos
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WATER_ACCELERATION )
-  
+
   KRATOS_CREATE_VARIABLE( double, STRESS_INV_P )
   KRATOS_CREATE_VARIABLE( double, STRESS_INV_J2 )
   KRATOS_CREATE_VARIABLE( double, STRESS_INV_THETA )
   KRATOS_CREATE_VARIABLE( Matrix, INVERSE_DEFORMATION_GRADIENT )
-    
+
   void KratosApplication::RegisterMATVariables()
   {
 
