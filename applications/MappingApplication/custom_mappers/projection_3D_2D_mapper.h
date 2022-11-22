@@ -108,7 +108,12 @@ public:
         mPointPlane.Coordinates() = JsonParameters["reference_plane_coordinates"].GetVector();
 
         // Create the base mapper
-        const std::string& r_mapper_name = JsonParameters["base_mapper"].GetString();
+        const std::string mapper_name = JsonParameters["base_mapper"].GetString();
+
+        // Cleaning the parameters
+        JsonParameters.RemoveValue("normal_plane");
+        JsonParameters.RemoveValue("reference_plane_coordinates");
+        JsonParameters.RemoveValue("base_mapper");
 
         // TODO: Before creating the mappers, we must generate the projected modelparts
         /* Origin model part */
@@ -124,7 +129,7 @@ public:
         }
 
         // In case of nearest_element we generate "geometries" to be able to interpolate
-        if (r_mapper_name == "nearest_element" || r_mapper_name == "barycentric") { // || r_mapper_name == "coupling_geometry") {
+        if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
             DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
         }
 
@@ -137,21 +142,24 @@ public:
         }
 
         // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
-        if (r_mapper_name == "nearest_element" || r_mapper_name == "barycentric") { // || r_mapper_name == "coupling_geometry") {
+        if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
             DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
         }
 
         // Initializing the base mapper
-        if (r_mapper_name == "nearest_neighbor") {
+        if (mapper_name == "nearest_neighbor") {
+            JsonParameters.RemoveValue("interpolation_type");
+            JsonParameters.RemoveValue("local_coord_tolerance");
             mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        } else if (r_mapper_name == "nearest_element") {
+        } else if (mapper_name == "nearest_element") {
+            JsonParameters.RemoveValue("interpolation_type");
             mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        } else if (r_mapper_name == "barycentric") {
+        } else if (mapper_name == "barycentric") {
             mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        // } else if (r_mapper_name == "coupling_geometry") {
+        // } else if (mapper_name == "coupling_geometry") {
         //    mpBaseMapper = Kratos::make_unique<CouplingGeometryMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
         } else {
-            KRATOS_ERROR << "ERROR:: Mapper " << r_mapper_name << " is not available as base mapper for projection" << std::endl;
+            KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
         }
 
         // Now we copy the mapping matrix
@@ -294,14 +302,6 @@ private:
             "use_initial_configuration"    : false,
             "print_pairing_status_to_file" : false,
             "pairing_status_file_path"     : "",
-            "dual_mortar"                   : false,
-            "precompute_mapping_matrix"     : false,
-            "modeler_name"                  : "UNSPECIFIED",
-            "modeler_parameters"            : {},
-            "consistency_scaling"           : true,
-            "row_sum_tolerance"             : 1e-12,
-            "destination_is_slave"          : true,
-            "linear_solver_settings"        : {},
             "base_mapper"                  : "nearest_neighbor",
             "normal_plane"                 : [0.0,0.0,1.0],
             "reference_plane_coordinates"  : [0.0,0.0,0.0]
