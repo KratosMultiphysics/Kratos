@@ -3,6 +3,7 @@ Auxiliary file used as a library for automatic
 differentiation files
 """
 
+# 2D calculations
 
 def ComputePredictorStressVector2D(Young, nu, Strain0, Strain1, Strain2):
     c0 = Young / ((1.00 + nu)*(1 - 2 * nu));
@@ -21,3 +22,7 @@ def ComputeJ2Invariant2D(Deviator, pmean):
 
 def ComputePmean2D(StressVector):
     return (StressVector[0] + StressVector[1]) / 3.0
+
+def ComputeDamageLinear(UniaxialStress, Threshold, A):
+    return (1.0 - Threshold / UniaxialStress) / (1.0 + A)
+
