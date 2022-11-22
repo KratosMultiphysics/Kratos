@@ -330,17 +330,16 @@ class NavierStokesSolverMonolithic(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # If required, compute the BDF coefficients
-            if hasattr(self, 'time_discretization'):
-                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # If required, compute the BDF coefficients
+        if hasattr(self, 'time_discretization'):
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-            # If the mesh is deformed, update the slip MPCs with the new normals
-            if self.consider_mpc_slip_conditions and self.settings["move_mesh_flag"].GetBool():
-                self._CreateSlipBoundaryConditionMPCs()
+        # If the mesh is deformed, update the slip MPCs with the new normals
+        if self.consider_mpc_slip_conditions and self.settings["move_mesh_flag"].GetBool():
+            self._CreateSlipBoundaryConditionMPCs()
 
-            # Perform the solver InitializeSolutionStep
-            self._GetSolutionStrategy().InitializeSolutionStep()
+        # Perform the solver InitializeSolutionStep
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def _SetFormulation(self):
         self.formulation = StabilizedFormulation(self.settings["formulation"])

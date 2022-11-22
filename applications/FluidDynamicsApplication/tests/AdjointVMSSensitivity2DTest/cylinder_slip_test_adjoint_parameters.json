@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name": "cylinder_test",
-        "start_step": 0.11,
-        "nsteps": 10,
+        "start_time": 1.0e-12,
+        "end_time": 0.1,
         "echo_level": 0,
         "parallel_type": "<PARALLEL_TYPE>"
     },
@@ -56,7 +56,7 @@
         },
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": -0.01
+            "time_step": 0.01
         }
     },
     "processes": {

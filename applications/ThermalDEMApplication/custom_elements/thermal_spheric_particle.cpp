@@ -115,47 +115,48 @@ namespace Kratos
   void ThermalSphericParticle::Initialize(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
+    Properties& r_properties = GetProperties();
+
     // Initialize base class
     SphericParticle::Initialize(r_process_info);
 
-    // Set flags
-    mHasMotion = r_process_info[MOTION_OPTION];
-
-    if ((GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) && GetProperties()[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
-         GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
-      mHasVariableRadius = true;
-    }
-    else {
-      mHasVariableRadius = false;
-    }
-
     // Set pointers to to auxiliary objects
-    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = GetProperties()[THERMAL_INTEGRATION_SCHEME_POINTER];
-    NumericalIntegrationMethod::Pointer&  numerical_integration_method = GetProperties()[NUMERICAL_INTEGRATION_METHOD_POINTER];
-    HeatExchangeMechanism::Pointer&       direct_conduction_model      = GetProperties()[DIRECT_CONDUCTION_MODEL_POINTER];
-    HeatExchangeMechanism::Pointer&       indirect_conduction_model    = GetProperties()[INDIRECT_CONDUCTION_MODEL_POINTER];
-    HeatExchangeMechanism::Pointer&       convection_model             = GetProperties()[CONVECTION_MODEL_POINTER];
-    HeatExchangeMechanism::Pointer&       radiation_model              = GetProperties()[RADIATION_MODEL_POINTER];
-    HeatGenerationMechanism::Pointer&     generation_model             = GetProperties()[GENERATION_MODEL_POINTER];
-    RealContactModel::Pointer&            real_contact_model           = GetProperties()[REAL_CONTACT_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       direct_conduction_model      = r_properties[DIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       indirect_conduction_model    = r_properties[INDIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       convection_model             = r_properties[CONVECTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       radiation_model              = r_properties[RADIATION_MODEL_POINTER];
+    HeatGenerationMechanism::Pointer&     generation_model             = r_properties[GENERATION_MODEL_POINTER];
+    RealContactModel::Pointer&            real_contact_model           = r_properties[REAL_CONTACT_MODEL_POINTER];
+    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = r_properties[THERMAL_INTEGRATION_SCHEME_POINTER];
+    NumericalIntegrationMethod::Pointer&  numerical_integration_method = r_properties[NUMERICAL_INTEGRATION_METHOD_POINTER];
 
-    SetThermalIntegrationScheme(thermal_integration_scheme);
-    SetNumericalIntegrationMethod(numerical_integration_method);
     SetDirectConductionModel(direct_conduction_model);
     SetIndirectConductionModel(indirect_conduction_model);
     SetConvectionModel(convection_model);
     SetRadiationModel(radiation_model);
     SetGenerationModel(generation_model);
     SetRealContactModel(real_contact_model);
+    SetThermalIntegrationScheme(thermal_integration_scheme);
+    SetNumericalIntegrationMethod(numerical_integration_method);
 
-    // Set flag to store contact parameters during mechanical loop over neighbors
+    // Set flags
+    mHasMotion = r_process_info[MOTION_OPTION];
+    
+    mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+                          r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
+
     mStoreContactParam = mHasMotion &&
                         (r_process_info[HEAT_GENERATION_OPTION]  ||
                         (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
-
+    
     // Clear maps
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
+
+    // Initialze accumulated energy dissipations
+    mPreviousViscodampingEnergy = 0.0;
+    mPreviousFrictionalEnergy   = 0.0;
+    mPreviousRollResistEnergy   = 0.0;
 
     KRATOS_CATCH("")
   }
@@ -174,7 +175,7 @@ namespace Kratos
     mIsTimeToSolve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
 
     // Number of steps passed between thermal evaluation steps
-    mNumStepsEval = (r_process_info[TIME_STEPS] == 1) ? 1 : r_process_info[THERMAL_FREQUENCY];
+    mNumStepsEval = (step == 1) ? 1 : freq;
 
     // Save pre-step temperature
     mPreviousTemperature = GetParticleTemperature();
@@ -193,15 +194,15 @@ namespace Kratos
     // Initialize heat fluxes contributions
     mConductionDirectHeatFlux         = 0.0;
     mConductionIndirectHeatFlux       = 0.0;
+    mConvectionHeatFlux               = 0.0;
     mRadiationHeatFlux                = 0.0;
     mGenerationHeatFlux               = 0.0;
+    mGenerationHeatFlux_damp_particle = 0.0;
+    mGenerationHeatFlux_damp_wall     = 0.0;
     mGenerationHeatFlux_slid_particle = 0.0;
     mGenerationHeatFlux_slid_wall     = 0.0;
     mGenerationHeatFlux_roll_particle = 0.0;
     mGenerationHeatFlux_roll_wall     = 0.0;
-    mGenerationHeatFlux_damp_particle = 0.0;
-    mGenerationHeatFlux_damp_wall     = 0.0;
-    mConvectionHeatFlux               = 0.0;
     mPrescribedHeatFlux               = 0.0;
     mTotalHeatFlux                    = 0.0;
 
@@ -282,7 +283,7 @@ namespace Kratos
     if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().FinalizeHeatFlux(r_process_info, this);
 
-    // Compute convection with surrounding fluid
+    // Convection with surrounding fluid
     if (r_process_info[CONVECTION_OPTION])
       mConvectionHeatFlux += GetConvectionModel().ComputeHeatFlux(r_process_info, this);
 
@@ -295,7 +296,7 @@ namespace Kratos
       mPrescribedHeatFlux += mPrescribedHeatFluxVolume * GetParticleVolume();
 
     // Sum up heat fluxes contributions
-    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mGenerationHeatFlux + mConvectionHeatFlux + mPrescribedHeatFlux;
+    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mConvectionHeatFlux + mGenerationHeatFlux + mPrescribedHeatFlux;
     SetParticleHeatFlux(mTotalHeatFlux);
 
     KRATOS_CATCH("")
@@ -357,59 +358,69 @@ namespace Kratos
   void ThermalSphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info,
                                                           SphericParticle::ParticleDataBuffer& data_buffer,
                                                           double GlobalContactForceTotal[3],
+                                                          double LocalContactForceTotal[3],
                                                           double LocalContactForceDamping[3],
-                                                          bool sliding) {
+                                                          bool   sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding);
 
-    if (!mStoreContactParam || !mIsTimeToSolve)
+    if (!mStoreContactParam)
       return;
 
     // Increment number of contact particle neighbors
     SphericParticle* neighbor = data_buffer.mpOtherParticle;
     mNumberOfContactParticleNeighbor++;
 
-    // Local components of relavive velocity (normal and tangential)
-    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
+    // New contact
+    if (!mContactParamsParticle.count(neighbor)) {
+      // Add new parameters to map
+      ContactParams params;
+      mContactParamsParticle[neighbor] = params;
 
-    // Local components of total contact force (normal and sliding tangential)
-    double LocalContactForceTotal[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForceTotal, LocalContactForceTotal);
-    std::vector<double> LocalForceTotal{ LocalContactForceTotal[2] };
+      // Initialize contact parameters
+      mContactParamsParticle[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsParticle[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
+      mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
+      mContactParamsParticle[neighbor].frictional_energy   = 0.0;
+      mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
+    }
 
-    // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
-    // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
-    if (sliding)
-      LocalForceTotal.push_back(sqrt(LocalContactForceTotal[0] * LocalContactForceTotal[0] + LocalContactForceTotal[1] * LocalContactForceTotal[1]));
-    else
-      LocalForceTotal.push_back(0.0);
-
-    // Local components of damping force (normal and tangential)
-    std::vector<double> LocalForceDamping{ LocalContactForceDamping[2], sqrt(LocalContactForceDamping[0] * LocalContactForceDamping[0] + LocalContactForceDamping[1] * LocalContactForceDamping[1]) };
-
-    // Update contact parameters
-    ContactParams params;
-    params.updated_step        = r_process_info[TIME_STEPS];
-    params.local_velocity      = LocalRelativeVelocity;
-    params.local_force_total   = LocalForceTotal;
-    params.local_force_damping = LocalForceDamping;
-    
-    if (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) {
-      // Keep impact parameters if contact is not new
-      if (mContactParamsParticle.count(neighbor)) {
-        params.impact_time     = mContactParamsParticle[neighbor].impact_time;
-        params.impact_velocity = mContactParamsParticle[neighbor].impact_velocity;
+    if (r_process_info[HEAT_GENERATION_OPTION]) {
+      // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
+      if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
+        mContactParamsParticle[neighbor].viscodamping_energy = 0.0;
+        mContactParamsParticle[neighbor].frictional_energy   = 0.0;
+        mContactParamsParticle[neighbor].rollresist_energy   = 0.0;
       }
-      // Set impact parameters for new contacts
-      else {
-        params.impact_time     = r_process_info[TIME];
-        params.impact_velocity = LocalRelativeVelocity;
+
+      // Update energy dissipated in this interaction (since last thermal solution) with the difference between
+      // current and previous accumulated dissipations
+      // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (0.5 to each particle)
+      if (r_process_info[GENERATION_DAMPING_OPTION]) {
+        const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
+        const double increment_viscodamping_energy = 2.0 * (current_viscodamping_energy - mPreviousViscodampingEnergy);
+        mPreviousViscodampingEnergy                = current_viscodamping_energy;
+        mContactParamsParticle[neighbor].viscodamping_energy += increment_viscodamping_energy;
+      }
+
+      if (r_process_info[GENERATION_SLIDING_OPTION]) {
+        const double current_frictional_energy   = GetInelasticFrictionalEnergy();
+        const double increment_frictional_energy = 2.0 * (current_frictional_energy - mPreviousFrictionalEnergy);
+        mPreviousFrictionalEnergy                = current_frictional_energy;
+        mContactParamsParticle[neighbor].frictional_energy += increment_frictional_energy;
+      }
+
+      if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+        const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
+        const double increment_rollingresistance_energy = 2.0 * (current_rollingresistance_energy - mPreviousRollResistEnergy);
+        mPreviousRollResistEnergy                       = current_rollingresistance_energy;
+        mContactParamsParticle[neighbor].rollresist_energy += increment_rollingresistance_energy;
       }
     }
 
-    // Add/Update parameters in map
-    mContactParamsParticle[neighbor] = params;
+    // Update time step
+    mContactParamsParticle[neighbor].updated_step = r_process_info[TIME_STEPS];
 
     KRATOS_CATCH("")
   }
@@ -418,58 +429,68 @@ namespace Kratos
   void ThermalSphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info,
                                                                SphericParticle::ParticleDataBuffer& data_buffer,
                                                                double GlobalContactForceTotal[3],
+                                                               double LocalContactForceTotal[3],
                                                                double LocalContactForceDamping[3],
-                                                               bool sliding) {
+                                                               bool   sliding) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding);
 
-    if (!mStoreContactParam || !mIsTimeToSolve)
+    if (!mStoreContactParam)
       return;
 
     // Get neighbor wall
     DEMWall* neighbor = data_buffer.mpOtherRigidFace;
 
-    // Local components of relavive velocity (normal and tangential)
-    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
+    // New contact
+    if (!mContactParamsWall.count(neighbor)) {
+      // Add new parameters to map
+      ContactParams params;
+      mContactParamsWall[neighbor] = params;
 
-    // Local components of total contact force (normal and sliding tangential)
-    double LocalContactForceTotal[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForceTotal, LocalContactForceTotal);
-    std::vector<double> LocalForceTotal{ LocalContactForceTotal[2] };
+      // Initialize contact parameters
+      mContactParamsWall[neighbor].impact_time         = r_process_info[TIME];
+      mContactParamsWall[neighbor].impact_velocity     = { data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) }; // local components of relavive velocity (normal and tangential)
+      mContactParamsWall[neighbor].viscodamping_energy = 0.0;
+      mContactParamsWall[neighbor].frictional_energy   = 0.0;
+      mContactParamsWall[neighbor].rollresist_energy   = 0.0;
+    }
 
-    // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
-    // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
-    if (sliding)
-      LocalForceTotal.push_back(sqrt(LocalContactForceTotal[0] * LocalContactForceTotal[0] + LocalContactForceTotal[1] * LocalContactForceTotal[1]));
-    else
-      LocalForceTotal.push_back(0.0);
-
-    // Local components of damping force (normal and tangential)
-    std::vector<double> LocalForceDamping{ LocalContactForceDamping[2], sqrt(LocalContactForceDamping[0] * LocalContactForceDamping[0] + LocalContactForceDamping[1] * LocalContactForceDamping[1]) };
-
-    // Update contact parameters
-    ContactParams params;
-    params.updated_step        = r_process_info[TIME_STEPS];
-    params.local_velocity      = LocalRelativeVelocity;
-    params.local_force_total   = LocalForceTotal;
-    params.local_force_damping = LocalForceDamping;
-
-    if (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) {
-      // Keep impact parameters if contact is not new
-      if (mContactParamsWall.count(neighbor)) {
-        params.impact_time = mContactParamsWall[neighbor].impact_time;
-        params.impact_velocity = mContactParamsWall[neighbor].impact_velocity;
+    if (r_process_info[HEAT_GENERATION_OPTION]) {
+      // If thermal problem was solved in previous step, reset dissipated energies accumulated for this interaction
+      if ((r_process_info[TIME_STEPS] - 2) % r_process_info[THERMAL_FREQUENCY] == 0) {
+        mContactParamsWall[neighbor].viscodamping_energy = 0.0;
+        mContactParamsWall[neighbor].frictional_energy   = 0.0;
+        mContactParamsWall[neighbor].rollresist_energy   = 0.0;
       }
-      // Set impact parameters for new contacts
-      else {
-        params.impact_time = r_process_info[TIME];
-        params.impact_velocity = LocalRelativeVelocity;
+
+      // Update energy dissipated in this interaction (since last thermal solution) with the difference between
+      // current and previous accumulated dissipations
+      // ATTENTION: Energy increment is multiplied by the inverse of the partition factor used during energy calculation (1.0 to the particle)
+      if (r_process_info[GENERATION_DAMPING_OPTION]) {
+        const double current_viscodamping_energy   = GetInelasticViscodampingEnergy();
+        const double increment_viscodamping_energy = current_viscodamping_energy - mPreviousViscodampingEnergy;
+        mPreviousViscodampingEnergy                = current_viscodamping_energy;
+        mContactParamsWall[neighbor].viscodamping_energy += increment_viscodamping_energy;
+      }
+
+      if (r_process_info[GENERATION_SLIDING_OPTION]) {
+        const double current_frictional_energy   = GetInelasticFrictionalEnergy();
+        const double increment_frictional_energy = current_frictional_energy - mPreviousFrictionalEnergy;
+        mPreviousFrictionalEnergy                = current_frictional_energy;
+        mContactParamsWall[neighbor].frictional_energy += increment_frictional_energy;
+      }
+
+      if (r_process_info[GENERATION_ROLLING_OPTION] && this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+        const double current_rollingresistance_energy   = GetInelasticRollingResistanceEnergy();
+        const double increment_rollingresistance_energy = current_rollingresistance_energy - mPreviousRollResistEnergy;
+        mPreviousRollResistEnergy                       = current_rollingresistance_energy;
+        mContactParamsWall[neighbor].rollresist_energy += increment_rollingresistance_energy;
       }
     }
 
-    // Add/Update parameters in map
-    mContactParamsWall[neighbor] = params;
+    // Update time step
+    mContactParamsWall[neighbor].updated_step = r_process_info[TIME_STEPS];
 
     KRATOS_CATCH("")
   }
@@ -493,24 +514,20 @@ namespace Kratos
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (mHasMotion)
+    if (mHasMotion) {
       SphericParticle::FinalizeSolutionStep(r_process_info);
 
-    if (mIsTimeToSolve) {
       // Remove non-contacting neighbors from maps of contact parameters
-      if (mStoreContactParam) {
+      if (mStoreContactParam)
         CleanContactParameters(r_process_info);
-      }
+    }
 
-      // Update temperature dependent radius
-      if (mHasVariableRadius) {
-        UpdateTemperatureDependentRadius(r_process_info);
-
-        // Update search distance
-        double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
-        ComputeAddedSearchDistance(r_process_info, added_search_distance);
-        SetSearchRadius(GetRadius() + added_search_distance);
-      }
+    // Update temperature dependent radius
+    if (mIsTimeToSolve && mHasVariableRadius) {
+      double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+      UpdateTemperatureDependentRadius(r_process_info);
+      ComputeAddedSearchDistance(r_process_info, added_search_distance);
+      SetSearchRadius(GetRadius() + added_search_distance);
     }
 
     KRATOS_CATCH("")
@@ -531,20 +548,6 @@ namespace Kratos
 
     KRATOS_CATCH("")
   }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info,
-                                                                                                double& thermalDeltDisp,
-                                                                                                double& thermalRelVel,
-                                                                                                SphericParticle* element2) {}
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
-                                                                                              double DeltDisp[3], //IN GLOBAL AXES
-                                                                                              double RelVel[3],   //IN GLOBAL AXES
-                                                                                              double OldLocalCoordSystem[3][3],
-                                                                                              double LocalCoordSystem[3][3],
-                                                                                              SphericParticle* neighbor_iterator) {}
 
   //=====================================================================================================================================================================================
   // Auxiliary computations
@@ -979,16 +982,6 @@ namespace Kratos
   // Get/Set methods
 
   //------------------------------------------------------------------------------------------------------------
-  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme(void) {
-    return *mpThermalIntegrationScheme;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  NumericalIntegrationMethod& ThermalSphericParticle::GetNumericalIntegrationMethod(void) {
-    return *mpNumericalIntegrationMethod;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
   HeatExchangeMechanism& ThermalSphericParticle::GetDirectConductionModel(void) {
     return *mpDirectConductionModel;
   }
@@ -1016,6 +1009,16 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   RealContactModel& ThermalSphericParticle::GetRealContactModel(void) {
     return *mpRealContactModel;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme(void) {
+    return *mpThermalIntegrationScheme;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  NumericalIntegrationMethod& ThermalSphericParticle::GetNumericalIntegrationMethod(void) {
+    return *mpNumericalIntegrationMethod;
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -1407,24 +1410,14 @@ namespace Kratos
     }
     else {
       ContactParams null_param;
-      null_param.updated_step = 0;
-      null_param.impact_time  = 0.0;
+      null_param.updated_step        = 0;
+      null_param.impact_time         = 0.0;
+      null_param.viscodamping_energy = 0.0;
+      null_param.frictional_energy   = 0.0;
+      null_param.rollresist_energy   = 0.0;
       null_param.impact_velocity.assign(2, 0.0);
-      null_param.local_velocity.assign(2, 0.0);
-      null_param.local_force_total.assign(2, 0.0);
-      null_param.local_force_damping.assign(2, 0.0);
       return null_param;
     }
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetThermalIntegrationScheme(ThermalDEMIntegrationScheme::Pointer& scheme) {
-    mpThermalIntegrationScheme = scheme->CloneRaw();
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::SetNumericalIntegrationMethod(NumericalIntegrationMethod::Pointer& method) {
-    mpNumericalIntegrationMethod = method->CloneRaw();
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -1455,6 +1448,16 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetRealContactModel(RealContactModel::Pointer& model) {
     mpRealContactModel = model->CloneRaw();
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetThermalIntegrationScheme(ThermalDEMIntegrationScheme::Pointer& scheme) {
+    mpThermalIntegrationScheme = scheme->CloneRaw();
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetNumericalIntegrationMethod(NumericalIntegrationMethod::Pointer& method) {
+    mpNumericalIntegrationMethod = method->CloneRaw();
   }
 
   //------------------------------------------------------------------------------------------------------------

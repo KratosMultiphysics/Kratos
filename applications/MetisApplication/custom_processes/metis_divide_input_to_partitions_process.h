@@ -48,8 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED )
-#define  KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
+#pragma once
 
 
 // System includes
@@ -57,9 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "includes/io.h"
 #include "processes/graph_coloring_process.h"
-#include "includes/model_part.h"
 #include "custom_processes/metis_graph_partitioning_process.h"
 
 namespace Kratos
@@ -99,14 +96,10 @@ public:
     /// Pointer definition of MetisDivideInputToPartitionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideInputToPartitionsProcess);
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef matrix<int> GraphType;
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #else
-      typedef int idxtype;
-    #endif
+    using SizeType = std::size_t;
+    using GraphType = matrix<int>;
+
+    using idxtype = MetisGraphPartitioningProcess::idxtype;
 
     ///@}
     ///@name Life Cycle
@@ -600,9 +593,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined
-
-

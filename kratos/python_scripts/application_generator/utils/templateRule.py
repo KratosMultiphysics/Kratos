@@ -2,7 +2,7 @@ import sys
 
 from utils.io import bcolors, Formatc
 
-class TemplateRule(object):
+class TemplateRule:
 
     def __init__(self):
         self.rules = []

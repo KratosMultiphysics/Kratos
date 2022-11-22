@@ -121,7 +121,7 @@ namespace Kratos {
             }
             
             // Transfer elemental variables to new element
-            p_element->Data() = it->Data();
+            p_element->GetData() = it->GetData();
             p_element->GetValue(SPLIT_ELEMENT) = false;
             NewElements.push_back(p_element);
 
@@ -188,7 +188,7 @@ namespace Kratos {
                 p_cond ->FinalizeSolutionStep(r_current_process_info);
 
                 // Transfer condition variables
-                p_cond->Data() = it->Data();
+                p_cond->GetData() = it->GetData();
                 p_cond->GetValue(SPLIT_ELEMENT) = false;
                 NewConditions.push_back(p_cond);
 
