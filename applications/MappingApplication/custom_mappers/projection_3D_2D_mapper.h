@@ -53,8 +53,8 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
-class KRATOS_API(MAPPING_APPLICATION) Projection3D2DMapper
-    : public Mapper<TSparseSpace, TDenseSpace>
+class Projection3D2DMapper
+    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
     ///@name Type Definitions
@@ -64,7 +64,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Projection3D2DMapper);
 
     /// BaseType definitions
-    typedef Mapper<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
+    typedef Kratos::unique_ptr<BaseType> BaseMapperUniquePointerType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
 
     /// Interface definitions
@@ -75,7 +76,7 @@ public:
     typedef NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend> NearestNeighborMapperType;
     typedef NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>   NearestElementMapperType;
     typedef BarycentricMapper<TSparseSpace, TDenseSpace, TMapperBackend>         BarycentricMapperType;
-    typedef CouplingGeometryMapper<TSparseSpace, TDenseSpace> CouplingGeometryMapperType;
+    // typedef CouplingGeometryMapper<TSparseSpace, TDenseSpace> CouplingGeometryMapperType; // Not compatible with base class InterpolativeMapperBase
 
     ///@}
     ///@name Life Cycle
@@ -107,7 +108,7 @@ public:
         mPointPlane.Coordinates() = JsonParameters["reference_plane_coordinates"].GetVector();
 
         // Create the base mapper
-        const std::string& r_mapper_name = JsonParameters["base_mapper"];
+        const std::string& r_mapper_name = JsonParameters["base_mapper"].GetString();
 
         // TODO: Before creating the mappers, we must generate the projected modelparts
         /* Origin model part */
@@ -118,12 +119,12 @@ public:
         double distance;
         array_1d<double, 3> projected_point_coordinates;
         for (auto& r_node : rModelPartOrigin.Nodes()) {
-            noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).GetCoordinates();
+            noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
             r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
         }
 
         // In case of nearest_element we generate "geometries" to be able to interpolate
-        if (r_mapper_name == "nearest_element" || r_mapper_name == "barycentric" || r_mapper_name == "coupling_geometry") {
+        if (r_mapper_name == "nearest_element" || r_mapper_name == "barycentric") { // || r_mapper_name == "coupling_geometry") {
             DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
         }
 
@@ -131,24 +132,24 @@ public:
         auto& r_destination_model = rModelPartDestination.GetModel();
         auto& r_projected_destination_modelpart = r_destination_model.CreateModelPart("projected_destination_modelpart");
         for (auto& r_node : rModelPartDestination.Nodes()) {
-            noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).GetCoordinates();
+            noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
             r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
         }
 
         // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
-        if (r_mapper_name == "nearest_element" || r_mapper_name == "barycentric" || r_mapper_name == "coupling_geometry") {
+        if (r_mapper_name == "nearest_element" || r_mapper_name == "barycentric") { // || r_mapper_name == "coupling_geometry") {
             DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
         }
 
         // Initializing the base mapper
         if (r_mapper_name == "nearest_neighbor") {
-            mpBaseMapper = NearestNeighborMapperType().Clone(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
         } else if (r_mapper_name == "nearest_element") {
-            mpBaseMapper = NearestElementMapperType().Clone(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
         } else if (r_mapper_name == "barycentric") {
-            mpBaseMapper = BarycentricMapperType().Clone(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        } else if (r_mapper_name == "coupling_geometry") {
-            mpBaseMapper = CouplingGeometryMapperType().Clone(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+        // } else if (r_mapper_name == "coupling_geometry") {
+        //    mpBaseMapper = Kratos::make_unique<CouplingGeometryMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
         } else {
             KRATOS_ERROR << "ERROR:: Mapper " << r_mapper_name << " is not available as base mapper for projection" << std::endl;
         }
@@ -178,7 +179,7 @@ public:
     {
         KRATOS_TRY;
 
-        return Kratos::make_unique<Projection3D2DMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin, rModelPartDestination, JsonParameters);
+        return Kratos::make_unique<Projection3D2DMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(rModelPartOrigin, rModelPartDestination, JsonParameters);
 
         KRATOS_CATCH("");
     }
@@ -261,9 +262,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    MapperUniquePointerType mpBaseMapper;  /// Pointer to the base mapper
-    array_1d<double, 3> mNormalPlane;      /// The normal defining the plane to project
-    Point mPointPlane;                     /// The coordinates of the plane to project
+    BaseMapperUniquePointerType mpBaseMapper; /// Pointer to the base mapper
+    array_1d<double, 3> mNormalPlane;         /// The normal defining the plane to project
+    Point mPointPlane;                        /// The coordinates of the plane to project
 
     ///@}
     ///@name Private Operations
@@ -271,15 +272,16 @@ private:
 
     void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
-        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
+        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems
+        ) override
     {
         // Calling base mapper method. But not sure if this must be changed
-        mpBaseMapper->CreateMapperLocalSystems(rModelPartCommunicator, rLocalSystems);
+        AccessorInterpolativeMapperBase<TMapperBackend>::CreateMapperLocalSystems(*mpBaseMapper, rModelPartCommunicator, rLocalSystems);
     }
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return mpBaseMapper->GetMapperInterfaceInfo();
+        return AccessorInterpolativeMapperBase<TMapperBackend>::GetMapperInterfaceInfo(*mpBaseMapper);
     }
 
     Parameters GetMapperDefaultSettings() const override
