@@ -307,7 +307,7 @@ public:
         VectorType& rB
         ) override
     {
-        // Auxiliar size
+        // Auxiliary size
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
         const SizeType total_disp_size = mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + mSlaveActiveIndices.size();
@@ -851,7 +851,7 @@ protected:
     {
         KRATOS_TRY
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1148,7 +1148,7 @@ protected:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSASA, aslave_auxKSASA);
         }
 
-        // Auxiliar indexes
+        // Auxiliary indexes
         const SizeType other_dof_initial_index = 0;
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
@@ -1180,13 +1180,13 @@ protected:
 
         IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
             if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+                ComputeAuxiliaryValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             }
         });
 
@@ -1461,7 +1461,7 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
-    inline void ComputeAuxiliarValuesDispDoFs(
+    inline void ComputeAuxiliaryValuesDispDoFs(
         const IndexType* Index1,
         const IndexType* Index2,
         const double* Values,
@@ -1472,12 +1472,12 @@ private:
         double* AuxVals
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
 
-        // Auxiliar indexes
+        // Auxiliary indexes
         const SizeType other_dof_initial_index = 0;
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
@@ -1528,7 +1528,7 @@ private:
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      */
-    inline void ComputeAuxiliarValuesPartialDispDoFs(
+    inline void ComputeAuxiliaryValuesPartialDispDoFs(
         const IndexType* Index1,
         const IndexType* Index2,
         const double* Values,
@@ -1539,12 +1539,12 @@ private:
         double* AuxVals
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
 
-        // Auxiliar indexes
+        // Auxiliary indexes
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
         const SizeType assembling_slave_dof_initial_index = slave_inactive_dof_initial_index + slave_inactive_size;
@@ -1611,7 +1611,7 @@ private:
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1654,7 +1654,7 @@ private:
         VectorType& ResidualU
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1719,7 +1719,7 @@ private:
         VectorType& rResidualLMA
         )
     {
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
@@ -1782,7 +1782,7 @@ private:
         VectorType& rResidualLMI
         )
     {
-        // Auxiliar size
+        // Auxiliary size
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
 
         // We get the displacement residual of the active slave nodes
@@ -1977,7 +1977,7 @@ private:
 //             const double value = diagA_vector[i];
             if (std::abs(value) > Tolerance)
                 aux_val[i] = 1.0/value;
-            else // Auxiliar value
+            else // Auxiliary value
                 aux_val[i] = 1.0;
         });
 
