@@ -1,0 +1,11 @@
+{
+	"wheel_name": "KratosMultiphysics",
+    "included_modules":  ["response_functions", "mpi"],
+	"included_binaries": ["Kratos.*", "KratosCore.*", "KratosCore.*", "KratosMPICore.*", "KratosMPI.*", "zlib.*", "libz.*"],
+	"dependencies": ["numpy"],
+	"author": "Kratos Team",
+	"author_email": "kratos@listas.cimne.upc.edu",
+	"description": "KratosMultiphysics distribution with Intel components (TBB)",
+	"readme": "scripts/wheels/README.md",
+    "licence": ["BSD", "ISSL"]
+}

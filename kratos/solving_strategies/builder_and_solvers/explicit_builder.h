@@ -15,8 +15,6 @@
 #define  KRATOS_EXPLICIT_BUILDER
 
 // System includes
-#include <set>
-#include <unordered_set>
 
 // External includes
 
@@ -28,6 +26,7 @@
 #include "includes/kratos_parameters.h"
 #include "factories/factory.h"
 #include "utilities/atomic_utilities.h"
+#include "solving_strategies/builder_and_solvers/custom_containers/unordered_set.h"
 
 namespace Kratos
 {
@@ -107,7 +106,7 @@ public:
     typedef ModelPart::DofsVectorType DofsVectorType;
 
     /// The definition of the DoF set type
-    typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
+    typedef Kratos::Containers::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
 
     /// The containers of the entities
     typedef ModelPart::NodesContainerType NodesArrayType;

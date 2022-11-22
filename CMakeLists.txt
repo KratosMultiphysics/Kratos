@@ -20,6 +20,11 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
+# Semicolon in the name of the targets (because TBB::mallocproxy etc...)
+if(POLICY CMP0028)
+  cmake_policy(SET CMP0028 NEW)
+endif(POLICY CMP0028)
+
 # Lists
 if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)

@@ -5,6 +5,9 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+# Enable intel things because intel is special
+source /opt/intel/oneapi/setvars.sh
+
 export MPI_HOME=/usr/lib64/mpich/bin
 export PATH=${PATH}:${MPI_HOME}
 
@@ -23,15 +26,15 @@ export PYTHON_EXECUTABLE=$1
 # Set applications to compile
 export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
-add_app ${KRATOS_APP_DIR}/DEMApplication
-add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
-add_app ${KRATOS_APP_DIR}/DamApplication;
-add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
-add_app ${KRATOS_APP_DIR}/FSIApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+# add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+# add_app ${KRATOS_APP_DIR}/DEMApplication
+# add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
+# add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+# add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
+# add_app ${KRATOS_APP_DIR}/DamApplication;
+# add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
+# add_app ${KRATOS_APP_DIR}/FSIApplication;
+# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 add_app ${KRATOS_APP_DIR}/FemToDemApplication;
@@ -74,6 +77,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
+-DUSE_EIGEN_MKL=ON                                                     \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DINSTALL_RUNKRATOS=OFF                                                \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \
