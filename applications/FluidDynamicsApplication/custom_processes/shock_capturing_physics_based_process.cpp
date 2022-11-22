@@ -34,7 +34,7 @@ namespace Kratos
     {
         Check();
         ExecuteInitialize();
-        ExecuteFinalizeSolutionStep();
+        ExecuteInitializeSolutionStep();
     }
 
     void ShockCapturingPhysicsBasedProcess::ExecuteInitialize()
@@ -73,7 +73,7 @@ namespace Kratos
         nodal_area_process.Execute();
     }
 
-    void ShockCapturingPhysicsBasedProcess::ExecuteFinalizeSolutionStep()
+    void ShockCapturingPhysicsBasedProcess::ExecuteInitializeSolutionStep()
     {
         CalculatePhysicsBasedShockCapturing();
     }
@@ -310,11 +310,11 @@ namespace Kratos
         array_1d<double,3>& rTemperatureLocalGradient)
     {
         // Calculate temperature gradient
-        array_1d<double,3> grad_temp = ZeroVector(3);
+        rTemperatureGradient = ZeroVector(3);
         for (std::size_t j = 0; j < TNumNodes; ++j) {
             const double& r_temp_j = rGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
             for (std::size_t i = 0; i < TDim; ++i) {
-                grad_temp(i) += rDN_DX(j,i) * r_temp_j;
+                rTemperatureGradient(i) += rDN_DX(j,i) * r_temp_j;
             }
         }
 
@@ -322,7 +322,7 @@ namespace Kratos
         rTemperatureLocalGradient = ZeroVector(3);
         for (unsigned int i = 0; i < TDim; ++i) {
             for (unsigned int j = 0; j < TDim; ++j) {
-                rTemperatureLocalGradient(i) += rJacobianMatrix(j, i) * grad_temp(j);
+                rTemperatureLocalGradient(i) += rJacobianMatrix(j, i) * rTemperatureGradient(j);
             }
         }
     }

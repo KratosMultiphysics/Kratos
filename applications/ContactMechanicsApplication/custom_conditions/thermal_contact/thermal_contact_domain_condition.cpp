@@ -95,7 +95,7 @@ ThermalContactDomainCondition::~ThermalContactDomainCondition()
 //************************************************************************************
 //************************************************************************************
 
-ThermalContactDomainCondition::IntegrationMethod ThermalContactDomainCondition::GetIntegrationMethod()
+ThermalContactDomainCondition::IntegrationMethod ThermalContactDomainCondition::GetIntegrationMethod() const
 {
   return mThisIntegrationMethod;
 }

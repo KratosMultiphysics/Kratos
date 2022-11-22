@@ -283,11 +283,31 @@ public:
 
     /**
      * @brief Operations to get the pointer to the explicit builder and solver
-     * @return mpExplicitBuilder: The explicit builder and solver
+     * @return mpExplicitBuilder: A pointer to the explicit builder and solver
      */
-    ExplicitBuilderPointerType& pGetExplicitBuilder()
+    ExplicitBuilderPointerType pGetExplicitBuilder()
     {
         return mpExplicitBuilder;
+    };
+
+    /**
+     * @brief Operations to get the explicit builder and solver
+     * @return The explicit builder and solver
+     */
+    ExplicitBuilderType& GetExplicitBuilder()
+    {
+        KRATOS_ERROR_IF(mpExplicitBuilder == nullptr) << "Asking for builder and solver when it is empty" << std::endl;
+        return *mpExplicitBuilder;
+    };
+
+    /**
+     * @brief Operations to get the explicit builder and solver
+     * @return The explicit builder and solver
+     */
+    const ExplicitBuilderType& GetExplicitBuilder() const
+    {
+        KRATOS_ERROR_IF(mpExplicitBuilder == nullptr) << "Asking for builder and solver when it is empty" << std::endl;
+        return *mpExplicitBuilder;
     };
 
     /**
@@ -297,11 +317,11 @@ public:
     double GetResidualNorm() override
     {
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
+        auto& r_explicit_bs = GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
 
         // Calculate the explicit residual
-        p_explicit_bs->BuildRHS(BaseType::GetModelPart());
+        r_explicit_bs.BuildRHS(BaseType::GetModelPart());
 
         // Calculate the residual norm
         double res_norm = 0.0;

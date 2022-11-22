@@ -34,7 +34,6 @@
 #include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
 //#include "utilities/enrichment_utilities.h"
 
@@ -201,14 +200,14 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
 
 	for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
 	  {
-	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)==true or (node_it)->FastGetSolutionStepValue(IS_WATER)==1 )
+	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)==true || (node_it)->FastGetSolutionStepValue(IS_WATER)==1 )
 	      { //IS_FREE_SURFACE
 		work_point.X() = node_it->X();
 		work_point.Y() = node_it->Y();
@@ -306,7 +305,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -338,7 +337,7 @@ namespace Kratos
 			double weight = SPHCubicKernel(sigma, distance, radius);
 			PointIterator it_found = Results.begin() + k;
 			//if((*it_found)->FastGetSolutionStepValue(IS_BOUNDARY)>0.5) //MATERIAL_VARIABLE
-			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1 or (*it_found)->FastGetSolutionStepValue(IS_WATER) ==1  ) //MATERIAL_VARIABLE
+			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1 || (*it_found)->FastGetSolutionStepValue(IS_WATER) ==1  ) //MATERIAL_VARIABLE
 			  {
 			    double tempp=0.0;
 			    tempp=(*it_found)->FastGetSolutionStepValue(YCH4);
@@ -1340,7 +1339,7 @@ namespace Kratos
 
 	double sigma = 0.0;
 
-	if (TDim == 2)
+	if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
 	else
 	  sigma = 1.0 / 3.1415926;
@@ -1494,7 +1493,7 @@ namespace Kratos
             double y3 = geom[3].Y();
 	    double z3 = geom[3].Z();
 	    double area=0.0;
-	    //if(TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
+	    //if constexpr (TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
             //else
 	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 

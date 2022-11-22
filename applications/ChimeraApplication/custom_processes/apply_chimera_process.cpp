@@ -603,7 +603,7 @@ void ApplyChimera<TDim>::MakeConstraints(
                                StartConstraintId + init_index,
                                rConstraintIdVector, rVelocityMsConstraintsVector);
     init_index += (TDim + 1);
-    if (TDim == 3) {
+    if constexpr (TDim == 3) {
         ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, VELOCITY_Z,
                                    StartConstraintId + init_index, rConstraintIdVector,
                                    rVelocityMsConstraintsVector);

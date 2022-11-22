@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <utility>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -63,10 +64,10 @@ namespace Kratos
  */
 template<class TDataType,
          class TGetKeyType = SetIdentityFunction<TDataType>,
-         class TCompareType = std::less<typename TGetKeyType::result_type>,
-         class TEqualType = std::equal_to<typename TGetKeyType::result_type>,
+         class TCompareType = std::less<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
+         class TEqualType = std::equal_to<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TPointerType = typename TDataType::Pointer,
-         class TContainerType = std::vector<TPointerType> >
+         class TContainerType = std::vector<TPointerType>>
 class PointerVectorSet final
 {
 public:
@@ -77,7 +78,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PointerVectorSet);
 
     /// Key type for searching in this container.
-    typedef typename TGetKeyType::result_type key_type;
+    typedef typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type key_type;
 
     /// data type stores in this container.
     typedef TDataType data_type;
@@ -488,19 +489,40 @@ public:
         return mData;
     }
 
+    /**
+     * @brief Get the maximum size of buffer used in the container
+     */
+    size_type GetMaxBufferSize() const 
+    {
+        return mMaxBufferSize;
+    }
 
-    /** Set the maximum size of buffer used in the container.
-
-    This container uses a buffer which keep data unsorted. After
-    buffer size arrived to the MaxBufferSize it will sort all
-    container and empties buffer.
-
-    @param NewSize Is the new buffer maximum size. */
-    void SetMaxBufferSize(size_type NewSize)
+    /** 
+     * @brief Set the maximum size of buffer used in the container.
+     * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetMaxBufferSize(const size_type NewSize)
     {
         mMaxBufferSize = NewSize;
     }
 
+    /**
+     * @brief Get the sorted part size of buffer used in the container. 
+     */
+    size_type GetSortedPartSize() const 
+    {
+        return mSortedPartSize;
+    }
+
+    /** 
+     * @brief Set the sorted part size of buffer used in the container.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetSortedPartSize(const size_type NewSize)
+    {
+        mSortedPartSize = NewSize;
+    }
 
     ///@}
     ///@name Inquiry
@@ -578,34 +600,34 @@ protected:
     ///@}
 private:
 
-    class CompareKey : public std::binary_function<TPointerType, TPointerType, typename TCompareType::result_type>
+    class CompareKey
     {
     public:
-        typename TCompareType::result_type operator()(key_type a, TPointerType b) const
+        bool operator()(key_type a, TPointerType b) const
         {
             return TCompareType()(a, TGetKeyType()(*b));
         }
-        typename TCompareType::result_type operator()(TPointerType a, key_type b) const
+        bool operator()(TPointerType a, key_type b) const
         {
             return TCompareType()(TGetKeyType()(*a), b);
         }
-        typename TCompareType::result_type operator()(TPointerType a, TPointerType b) const
+        bool operator()(TPointerType a, TPointerType b) const
         {
             return TCompareType()(TGetKeyType()(*a), TGetKeyType()(*b));
         }
     };
 
-    class EqualKeyTo : public std::binary_function<TPointerType, TPointerType, typename TEqualType::result_type>
+    class EqualKeyTo
     {
         key_type mKey;
     public:
         EqualKeyTo() : mKey() {}
         explicit EqualKeyTo(key_type Key) : mKey(Key) {}
-        typename TEqualType::result_type operator()(TPointerType a) const
+        bool operator()(TPointerType a) const
         {
             return TEqualType()(mKey, TGetKeyType()(*a));
         }
-        typename TEqualType::result_type operator()(TPointerType a, TPointerType b) const
+        bool operator()(TPointerType a, TPointerType b) const
         {
             return TEqualType()(TGetKeyType()(*a), TGetKeyType()(*b));
         }

@@ -24,7 +24,7 @@
 #include "pfem_fluid_dynamics_application_variables.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {

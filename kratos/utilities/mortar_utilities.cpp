@@ -137,9 +137,9 @@ void ComputeNodesMeanNormalModelPart(
 {
     KRATOS_WARNING("MortarUtilities") << "This method is deprecated. Please use NormalCalculationUtils().CalculateUnitNormals" << std::endl;
     if (ComputeConditions) {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
     } else {
-        NormalCalculationUtils().CalculateUnitNormals<Element>(rModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(rModelPart, true);
     }
 }
 

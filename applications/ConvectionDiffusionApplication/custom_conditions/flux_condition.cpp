@@ -163,7 +163,7 @@ void FluxCondition<TNodeNumber>::GetDofList(
 }
 
 template< unsigned int TNodeNumber >
-GeometryData::IntegrationMethod FluxCondition<TNodeNumber>::GetIntegrationMethod()
+GeometryData::IntegrationMethod FluxCondition<TNodeNumber>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }

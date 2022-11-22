@@ -37,6 +37,8 @@
 #include "geometries/quadrilateral_3d_9.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
+#include "geometries/pyramid_3d_5.h"
+#include "geometries/pyramid_3d_13.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -231,6 +233,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Calculate", Calculate<array_1d<double, 6>>)
     .def("Calculate", Calculate<Vector>)
     .def("Calculate", Calculate<Matrix>)
+    // Info
+    .def("Info",&GeometryType::Info)
     // Print
     .def("__str__", PrintObject<GeometryType>)
     // Access to nodes
@@ -273,6 +277,10 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<Tetrahedra3D4<NodeType>, Tetrahedra3D4<NodeType>::Pointer,  GeometryType  >(m,"Tetrahedra3D4").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
     py::class_<Tetrahedra3D10<NodeType>, Tetrahedra3D10<NodeType>::Pointer,  GeometryType  >(m,"Tetrahedra3D10").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
+    py::class_<Pyramid3D5<NodeType>, Pyramid3D5<NodeType>::Pointer,  GeometryType  >(m,"Pyramid3D5").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
+    py::class_<Pyramid3D13<NodeType>, Pyramid3D13<NodeType>::Pointer,  GeometryType  >(m,"Pyramid3D13").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
     py::class_<Prism3D6<NodeType>, Prism3D6<NodeType>::Pointer,  GeometryType  >(m,"Prism3D6").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;

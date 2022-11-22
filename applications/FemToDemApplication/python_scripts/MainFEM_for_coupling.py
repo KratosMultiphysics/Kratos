@@ -76,7 +76,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
 
         if (self.ProjectParameters["solver_settings"]["strategy_type"].GetString() == "arc_length"):
-            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, 2, 5)
+            neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
             neighbour_elemental_finder.Execute()
             self.InitializeIntegrationPointsVariables()
             self.model_processes.ExecuteBeforeSolutionLoop()

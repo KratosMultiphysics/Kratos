@@ -25,7 +25,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application_variables.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "spatial_containers/spatial_containers.h"
 
@@ -101,7 +101,7 @@ public:
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+        EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
         double my_alpha = 1.4, double h_factor=0.5)
     {
 
@@ -1176,7 +1176,7 @@ private:
     boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
-    //NodeEraseProcess* mpNodeEraseProcess;
+    //EntitiesEraseProcess<Node<3>>* mpNodeEraseProcess;
 
 
     ///@}

@@ -113,14 +113,11 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
                     0)
         else:
             for variable in self.variables:
-                for node_src, node_dest in zip(self.interface_model_part.Nodes, self.output_model_part.Nodes):
-                    node_dest.SetValue(variable, node_src.GetValue(variable))
-                #TODO: implement this function in VariableUtils
-                # KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
-                #     variable,
-                #     self.interface_model_part,
-                #     self.output_model_part,
-                #     KM.Flags(), True)
+                KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+                    variable, variable,
+                    self.interface_model_part,
+                    self.output_model_part,
+                    KM.Flags(), False)
 
 
     def _SetOutputProcessInfo(self):

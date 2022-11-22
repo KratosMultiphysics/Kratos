@@ -25,7 +25,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadModelPart(GetFilePath("test_mpi_communicator"), main_model_part)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_communicator"), main_model_part)
 
         ## Check submodelpart of each main_model_part of each processor
         self.assertTrue(main_model_part.HasSubModelPart("Skin"))
