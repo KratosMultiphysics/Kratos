@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
 //                   Guglielmo Scovazzi
 //
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_MIXED_VOLUMETRIC_STRAIN_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_MIXED_VOLUMETRIC_STRAIN_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -643,5 +642,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_TOTAL_LAGRANGIAN_MIXED_VOLUMETRIC_STRAIN_ELEMENT_H_INCLUDED  defined

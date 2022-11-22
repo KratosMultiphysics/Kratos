@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -18,7 +18,7 @@
 #include "factories/linear_solver_factory.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -28,10 +28,7 @@
 // Application includes
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 
-namespace Kratos
-{
-
-namespace Testing
+namespace Kratos::Testing
 {
 
     /**
@@ -325,5 +322,4 @@ namespace Testing
         }
     }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing
