@@ -162,6 +162,8 @@ private:
 
     void CalculateInnerAngleAndMixedAreaOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
 
+    void CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(const Kratos::Point::CoordinatesArrayType& rNodeI, const Kratos::Point::CoordinatesArrayType& rNodeJ, const Kratos::Point::CoordinatesArrayType& rNodeK, double& rInnerAngle, double& rMixedArea);
+
     void CalculateInnerAngleAndMixedAreaOf3Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
 
     void CalculateInnerAngleAndMixedAreaOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);

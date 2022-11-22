@@ -200,20 +200,21 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
 
     double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 
-    // check if node lies on edge
-    // TODO: for all element types
-    for (const auto& r_neighbour : r_neighbours) {
-        int count = 0;
-        for (const auto& r_condition_neighbour : r_condition_neighbours) {
-            if (r_condition_neighbour->GetGeometry()[0].Id() == r_neighbour->Id()) count++;
-            else if (r_condition_neighbour->GetGeometry()[1].Id() == r_neighbour->Id()) count++;
-            else if (r_condition_neighbour->GetGeometry()[2].Id() == r_neighbour->Id()) count++;
-        }
-        if (count < 2) {
-            r_gaussian_curvature = 0;
-            return;
-        }
-    }
+    // TODO: ACTIVATE AGAIN / FIND A WAY TO DEAL WITH EDGE NODES!
+    // // check if node lies on edge
+    // // TODO: for all element types
+    // for (const auto& r_neighbour : r_neighbours) {
+    //     int count = 0;
+    //     for (const auto& r_condition_neighbour : r_condition_neighbours) {
+    //         for (int i = 0; i < r_condition_neighbour->GetGeometry().PointsNumber(); ++i) {
+    //             if (r_condition_neighbour->GetGeometry()[i].Id() == r_neighbour->Id()) count++;
+    //         }
+    //     }
+    //     if (count < 2) {
+    //         r_gaussian_curvature = 0;
+    //         return;
+    //     }
+    // }
 
     r_gaussian_curvature = 2*Globals::Pi;
     double A_mixed = 0.0;
@@ -225,45 +226,11 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
 
         r_gaussian_curvature -= element_angle;
         A_mixed += element_a_mixed;
-        // Kratos::Point::CoordinatesArrayType r_node_j;
-        // Kratos::Point::CoordinatesArrayType r_node_k;
-        // if (r_condition_neighbour->GetGeometry()[0].Id() == rNode.Id()) {
-        //     r_node_j = r_condition_neighbour->GetGeometry()[1].Coordinates();
-        //     r_node_k = r_condition_neighbour->GetGeometry()[2].Coordinates();
-        // } else if (r_condition_neighbour->GetGeometry()[1].Id() == rNode.Id()) {
-        //     r_node_j = r_condition_neighbour->GetGeometry()[0].Coordinates();
-        //     r_node_k = r_condition_neighbour->GetGeometry()[2].Coordinates();
-        // } else if (r_condition_neighbour->GetGeometry()[2].Id() == rNode.Id()) {
-        //     r_node_j = r_condition_neighbour->GetGeometry()[0].Coordinates();
-        //     r_node_k = r_condition_neighbour->GetGeometry()[1].Coordinates();
-        // }
-        // const Kratos::Point::CoordinatesArrayType edge_ij = r_node_j - r_node_i;
-        // const Kratos::Point::CoordinatesArrayType edge_ik = r_node_k - r_node_i;;
-        // const double cos_theta_i = inner_prod(edge_ij, edge_ik) / (norm_2(edge_ij) * norm_2(edge_ik));
-        // const double theta_i = acos(cos_theta_i);
-        // r_gaussian_curvature -= theta_i;
-
-        // const Kratos::Point::CoordinatesArrayType edge_jk = r_node_k - r_node_j;
-        // const double theta_j = acos(inner_prod(-edge_ij, edge_jk) / (norm_2(-edge_ij) * norm_2(edge_jk)));
-        // const double theta_k = acos(inner_prod(-edge_ik, -edge_jk) / (norm_2(-edge_ik) * norm_2(-edge_jk)));
-
-        // // triangle is obtuse => 1/2 or 1/4 * triangle area
-        // if (theta_i > Globals::Pi / 2 || theta_j > Globals::Pi / 2 || theta_k > Globals::Pi / 2) {
-        //     if (theta_i > Globals::Pi / 2) {
-        //         A_mixed += 0.5 * r_condition_neighbour->GetGeometry().Area();
-        //     } else {
-        //         A_mixed += 0.25 * r_condition_neighbour->GetGeometry().Area();
-        //     }
-        // }
-        // // triangle is non-obtuse => Voronoi area
-        // else {
-        //     A_mixed += 0.125 * (norm_2(edge_ij) * this->Cotan(theta_k) + norm_2(edge_ik) * this->Cotan(theta_j));
-        // }
-
-        // KRATOS_INFO("ShapeOpt:::CONDITION NEIGHBOUR : ") << r_condition_neighbour->Id() << "..." << std::endl;
     }
 
+    // KRATOS_INFO("ShapeOpt") << "Final 2pi-inner angle at node id = " << rNode.Id() << " : " << r_gaussian_curvature << std::endl;
     r_gaussian_curvature /= A_mixed;
+    // KRATOS_INFO("ShapeOpt") << "Final mixed area at node id = " << rNode.Id() << " : " << A_mixed << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -278,11 +245,60 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInn
 
     if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
         this->CalculateInnerAngleAndMixedAreaOf3Node3DTriangletAtNode(rNode, pElement, rInnerAngle, rMixedArea);
+    } else if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6) {
+        this->CalculateInnerAngleAndMixedAreaOf6Node3DTriangletAtNode(rNode, pElement, rInnerAngle, rMixedArea);
+    } else if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
+        this->CalculateInnerAngleAndMixedAreaOf4Node3DQuadrilateraltAtNode(rNode, pElement, rInnerAngle, rMixedArea);
+    } else if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8) {
+        this->CalculateInnerAngleAndMixedAreaOf8Node3DQuadrilateraltAtNode(rNode, pElement, rInnerAngle, rMixedArea);
     } else {
         KRATOS_ERROR << "ShapeOpt Adaptive Filter: Geometry type not supported for adaptive filter vertex morphing method." << std::endl;
     }
 }
 
+/**
+ *      v
+ *      ^
+ *      |
+ *      k
+ *      |`\
+ *      |  `\
+ *      |    `\
+ *      |      `\
+ *      |        `\
+ *      i----------j --> u
+ */
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(const Kratos::Point::CoordinatesArrayType& rNodeI, const Kratos::Point::CoordinatesArrayType& rNodeJ, const Kratos::Point::CoordinatesArrayType& rNodeK, double& rInnerAngle, double& rMixedArea) {
+
+    const Kratos::Point::CoordinatesArrayType edge_ij = rNodeJ - rNodeI;
+    const Kratos::Point::CoordinatesArrayType edge_ik = rNodeK - rNodeI;;
+    const double cos_theta_i = inner_prod(edge_ij, edge_ik) / (norm_2(edge_ij) * norm_2(edge_ik));
+    const double theta_i = acos(cos_theta_i);
+    rInnerAngle = theta_i;
+
+    const Kratos::Point::CoordinatesArrayType edge_jk = rNodeK - rNodeJ;
+    const double theta_j = acos(inner_prod(-edge_ij, edge_jk) / (norm_2(-edge_ij) * norm_2(edge_jk)));
+    const double theta_k = acos(inner_prod(-edge_ik, -edge_jk) / (norm_2(-edge_ik) * norm_2(-edge_jk)));
+
+    // triangle is obtuse => 1/2 or 1/4 * triangle area
+    if (theta_i > Globals::Pi / 2 || theta_j > Globals::Pi / 2 || theta_k > Globals::Pi / 2) {
+        const double a = norm_2(edge_ij);
+        const double b = norm_2(edge_ik);
+        const double c = norm_2(edge_jk);
+        const double s = (a+b+c) / 2.0;
+        const double area = std::sqrt(s*(s-a)*(s-b)*(s-c));
+        if (theta_i > Globals::Pi / 2) {
+            rMixedArea += 0.5 * area;
+        } else {
+            rMixedArea += 0.25 * area;
+        }
+    }
+    // triangle is non-obtuse => Voronoi area
+    else {
+        rMixedArea += 0.125 * (norm_2_square(edge_ij) * this->Cotan(theta_k) + norm_2_square(edge_ik) * this->Cotan(theta_j));
+    }
+}
 
 template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInnerAngleAndMixedAreaOf3Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
@@ -302,28 +318,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInn
         r_node_j = pElement->GetGeometry()[0].Coordinates();
         r_node_k = pElement->GetGeometry()[1].Coordinates();
     }
-    const Kratos::Point::CoordinatesArrayType edge_ij = r_node_j - r_node_i;
-    const Kratos::Point::CoordinatesArrayType edge_ik = r_node_k - r_node_i;;
-    const double cos_theta_i = inner_prod(edge_ij, edge_ik) / (norm_2(edge_ij) * norm_2(edge_ik));
-    const double theta_i = acos(cos_theta_i);
-    rInnerAngle = theta_i;
-
-    const Kratos::Point::CoordinatesArrayType edge_jk = r_node_k - r_node_j;
-    const double theta_j = acos(inner_prod(-edge_ij, edge_jk) / (norm_2(-edge_ij) * norm_2(edge_jk)));
-    const double theta_k = acos(inner_prod(-edge_ik, -edge_jk) / (norm_2(-edge_ik) * norm_2(-edge_jk)));
-
-    // triangle is obtuse => 1/2 or 1/4 * triangle area
-    if (theta_i > Globals::Pi / 2 || theta_j > Globals::Pi / 2 || theta_k > Globals::Pi / 2) {
-        if (theta_i > Globals::Pi / 2) {
-            rMixedArea += 0.5 * pElement->GetGeometry().Area();
-        } else {
-            rMixedArea += 0.25 * pElement->GetGeometry().Area();
-        }
-    }
-    // triangle is non-obtuse => Voronoi area
-    else {
-        rMixedArea += 0.125 * (norm_2_square(edge_ij) * this->Cotan(theta_k) + norm_2_square(edge_ik) * this->Cotan(theta_j));
-    }
+    this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, rInnerAngle, rMixedArea);
 }
 
 template <class TBaseVertexMorphingMapper>
@@ -367,35 +362,126 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInn
     }
 
     if (corner_node) {
-        const Kratos::Point::CoordinatesArrayType edge_ij = r_node_j - r_node_i;
-        const Kratos::Point::CoordinatesArrayType edge_ik = r_node_k - r_node_i;;
-        const double cos_theta_i = inner_prod(edge_ij, edge_ik) / (norm_2(edge_ij) * norm_2(edge_ik));
-        const double theta_i = acos(cos_theta_i);
-        rInnerAngle = theta_i;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, rInnerAngle, rMixedArea);
+    } else {
+        double inner_angle = 0.0;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_corner_j, r_node_j, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_k, r_node_corner_k, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+    }
+}
 
-        const Kratos::Point::CoordinatesArrayType edge_jk = r_node_k - r_node_j;
-        const double theta_j = acos(inner_prod(-edge_ij, edge_jk) / (norm_2(-edge_ij) * norm_2(edge_jk)));
-        const double theta_k = acos(inner_prod(-edge_ik, -edge_jk) / (norm_2(-edge_ik) * norm_2(-edge_jk)));
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInnerAngleAndMixedAreaOf4Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
 
-        // triangle is obtuse => 1/2 or 1/4 * triangle area
-        if (theta_i > Globals::Pi / 2 || theta_j > Globals::Pi / 2 || theta_k > Globals::Pi / 2) {
-            const double a = norm2(edge_ij);
-            const double b = norm2(edge_ik);
-            const double c = norm2(edge_jk);
-            const double s = (a+b+c) / 2.0;
-            const double area = std::sqrt(s*(s-a)*(s-b)*(s-c));
-            if (theta_i > Globals::Pi / 2) {
-                rMixedArea += 0.5 * area;
-            } else {
-                rMixedArea += 0.25 * area;
-            }
-        }
-        // triangle is non-obtuse => Voronoi area
-        else {
-            rMixedArea += 0.125 * (norm_2_square(edge_ij) * this->Cotan(theta_k) + norm_2_square(edge_ik) * this->Cotan(theta_j));
-        }
+    // TODO: check angle at corner and decide how to triangulate based on that
+    const auto& r_node_i = rNode.Coordinates();
+
+    Kratos::Point::CoordinatesArrayType r_node_j;
+    Kratos::Point::CoordinatesArrayType r_node_k;
+    Kratos::Point::CoordinatesArrayType r_node_l;
+
+    bool one_triangle = false;
+    if (pElement->GetGeometry()[0].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[1].Coordinates();
+        r_node_k = pElement->GetGeometry()[2].Coordinates();
+        r_node_l = pElement->GetGeometry()[3].Coordinates();
+    } else if (pElement->GetGeometry()[2].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[3].Coordinates();
+        r_node_k = pElement->GetGeometry()[0].Coordinates();
+        r_node_l = pElement->GetGeometry()[1].Coordinates();
+    } else if (pElement->GetGeometry()[1].Id() == rNode.Id()) {
+        one_triangle = true;
+        r_node_j = pElement->GetGeometry()[2].Coordinates();
+        r_node_k = pElement->GetGeometry()[0].Coordinates();
+    } else if (pElement->GetGeometry()[3].Id() == rNode.Id()) {
+        one_triangle = true;
+        r_node_j = pElement->GetGeometry()[0].Coordinates();
+        r_node_k = pElement->GetGeometry()[2].Coordinates();
     }
 
+    if (one_triangle) {
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, rInnerAngle, rMixedArea);
+    } else {
+        double inner_angle = 0.0;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_k, r_node_l, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+    }
+}
+
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInnerAngleAndMixedAreaOf8Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
+
+    const auto& r_node_i = rNode.Coordinates();
+
+    Kratos::Point::CoordinatesArrayType r_node_j;
+    Kratos::Point::CoordinatesArrayType r_node_k;
+    Kratos::Point::CoordinatesArrayType r_node_l;
+    Kratos::Point::CoordinatesArrayType r_node_m;
+    Kratos::Point::CoordinatesArrayType r_node_n;
+    Kratos::Point::CoordinatesArrayType r_center_point = Kratos::ZeroVector(3);
+    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+        r_center_point += pElement->GetGeometry().ShapeFunctionValue(i, Kratos::ZeroVector(2)) * pElement->GetGeometry()[i].Coordinates();
+    }
+
+    bool corner_node = true;
+    bool four_triangles = false;
+    if (pElement->GetGeometry()[0].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[4].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[7].Coordinates();
+    } else if (pElement->GetGeometry()[1].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[5].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[4].Coordinates();
+    } else if (pElement->GetGeometry()[2].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[6].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[5].Coordinates();
+    } else if (pElement->GetGeometry()[3].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[7].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[6].Coordinates();
+    } else if (pElement->GetGeometry()[4].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[1].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[0].Coordinates();
+    } else if (pElement->GetGeometry()[6].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[3].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[2].Coordinates();
+    } else if (pElement->GetGeometry()[5].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[2].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[1].Coordinates();
+    } else if (pElement->GetGeometry()[7].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[0].Coordinates();
+        r_node_k = r_center_point;
+        r_node_l = pElement->GetGeometry()[3].Coordinates();
+    }
+
+    if (corner_node) {
+        double inner_angle = 0.0;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_k, r_node_l, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+    } else {
+        double inner_angle = 0.0;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_k, r_node_l, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_l, r_node_m, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        this->CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_m, r_node_n, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+    }
 }
 
 template <class TBaseVertexMorphingMapper>
