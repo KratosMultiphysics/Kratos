@@ -66,6 +66,7 @@ public:
     /// BaseType definitions
     typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef Kratos::unique_ptr<BaseType> BaseMapperUniquePointerType;
+    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
 
     /// Interface definitions
@@ -115,7 +116,6 @@ public:
         JsonParameters.RemoveValue("reference_plane_coordinates");
         JsonParameters.RemoveValue("base_mapper");
 
-        // TODO: Before creating the mappers, we must generate the projected modelparts
         /* Origin model part */
         auto& r_origin_model = rModelPartOrigin.GetModel();
         auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
@@ -141,10 +141,11 @@ public:
             r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
         }
 
-        // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
-        if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
-            DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
-        }
+        // In destination we only consider nodes, so no Delaunay is required
+        // // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
+        // if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
+        //     DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
+        // }
 
         // Initializing the base mapper
         if (mapper_name == "nearest_neighbor") {
@@ -163,7 +164,7 @@ public:
         }
 
         // Now we copy the mapping matrix
-        this->GetMappingMatrix() = mpBaseMapper->GetMappingMatrix();
+        BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
 
         KRATOS_CATCH("");
     }
