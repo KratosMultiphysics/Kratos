@@ -41,6 +41,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     //double increment;
 
+    this->CyclicLoad();  //This method checks if a cyclic load is being applied.
+
     if (!process_info[DAMAGE_ACTIVATION]) {
 
 
@@ -74,6 +76,63 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
+{
+    auto& process_info = mrModelPart.GetProcessInfo();
+    double time = process_info[TIME];
+    double delta_time;
+    if (mThisParameters["solver_settings"]["time_stepping"].Has("time_step")) {
+        delta_time = mThisParameters["solver_settings"]["time_stepping"]["time_step"].GetDouble();
+    } else if (mThisParameters["solver_settings"]["time_stepping"].Has("time_step_table")) {
+        const Matrix time_step_table = mThisParameters["solver_settings"]["time_stepping"]["time_step_table"].GetMatrix();
+        KRATOS_ERROR << "Advance in time process not prepared yet for time_step_table!" << std::endl;
+    } else {
+        KRATOS_ERROR << "Time stepping not defined!" << std::endl;
+    }
+
+    //Monotonic (false) or cyclic (true) load. If a monotonic and a cyclic load coexist, cyclic type will be considered
+    // bool current_load_type = false;
+    bool new_model_part = false;
+    bool break_condition = false;
+
+    const bool has_constraints_list = mThisParameters["fatigue"].Has("constraints_process_list");
+    if (!has_constraints_list) {
+        KRATOS_ERROR << "Using the advance in time strategy without using the constraints_process_list" << std::endl;
+    }
+
+    if (has_constraints_list) {
+        std::vector<std::string> constraints_list = mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
+        //Loop on the cyclic constraints list
+        for (unsigned int i = 0; i < constraints_list.size(); i++) {
+            for (unsigned int j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
+                std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
+                double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
+                double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+                if (constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time) {
+                    // current_load_type = true;
+                    new_model_part = false; //This is done just in case a new monotonic load coexists with a cyclic load.
+                                            //Then the thresholds used as reference should not be updated. This needs to be checked.
+
+                    //Checking if this is the first step of a new model part
+                    double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
+                    if (time - delta_time <= model_part_start_time) {
+                        new_model_part = true;
+                    }
+                }
+            }
+            // if (current_load_type) {
+            //     break;
+            // }
+        }
+    }
+
+    // process_info[CURRENT_LOAD_TYPE] = current_load_type;
+    process_info[NEW_MODEL_PART] = new_model_part;
 }
 
 /***********************************************************************************/
