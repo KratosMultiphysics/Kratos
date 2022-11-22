@@ -111,7 +111,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AutomaticDifferentiationTangentU
      * @param rI2 The second invariant
      * @todo Adapt for 2D dimension
      */
-    static void CalculateTangentTensorAutomDiffIsotropicDamage(ConstitutiveLaw::Parameters rValues);
+    static void CalculateTangentTensorIsotropicDamage(ConstitutiveLaw::Parameters rValues);
 
 
 private:

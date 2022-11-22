@@ -156,9 +156,9 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateTangen
     if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
         const SizeType softening_type = r_material_properties[SOFTENING_TYPE];
         if (softening_type == static_cast<SizeType>(SofteningType::Linear)) {
-            AutomaticDifferentiationTangentUtilities<typename TConstLawIntegratorType::YieldSurfaceType, 0>::CalculateTangentTensorAutomDiffIsotropicDamage(rValues);
+            AutomaticDifferentiationTangentUtilities<typename TConstLawIntegratorType::YieldSurfaceType, 0>::CalculateTangentTensorIsotropicDamage(rValues);
         } else if (softening_type == static_cast<SizeType>(SofteningType::Exponential)) {
-            AutomaticDifferentiationTangentUtilities<typename TConstLawIntegratorType::YieldSurfaceType, 1>::CalculateTangentTensorAutomDiffIsotropicDamage(rValues);
+            AutomaticDifferentiationTangentUtilities<typename TConstLawIntegratorType::YieldSurfaceType, 1>::CalculateTangentTensorIsotropicDamage(rValues);
         } else {
             KRATOS_ERROR << "The analytical tangent operator is not implemented for this SOFTENING_TYPE" << std::endl;
         }

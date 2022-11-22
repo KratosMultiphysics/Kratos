@@ -46,7 +46,7 @@ namespace Kratos
 
 template<>
 void AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -247,7 +247,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -556,7 +556,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -568,7 +568,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -755,7 +755,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<RankineYieldSurface<RankinePlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1211,7 +1211,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1223,7 +1223,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1232,7 +1232,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1411,7 +1411,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1724,7 +1724,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1736,7 +1736,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -1928,7 +1928,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<RankineYieldSurface<RankinePlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2439,7 +2439,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2451,7 +2451,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2463,7 +2463,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2556,7 +2556,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2758,7 +2758,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2770,7 +2770,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2882,7 +2882,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<RankineYieldSurface<RankinePlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2973,7 +2973,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2985,7 +2985,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -2994,7 +2994,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -3080,7 +3080,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -3271,7 +3271,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -3283,7 +3283,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -3384,7 +3384,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<RankineYieldSurface<RankinePlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -3473,7 +3473,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
@@ -3485,7 +3485,7 @@ CalculateTangentTensorAutomDiffIsotropicDamage(
 
 template<>
 void AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
-CalculateTangentTensorAutomDiffIsotropicDamage(
+CalculateTangentTensorIsotropicDamage(
   ConstitutiveLaw::Parameters rValues
   )
 {
