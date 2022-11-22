@@ -106,9 +106,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         max_stress = (1 - damage) * mMaxStress;
         min_stress = (1 - damage) * mMinStress;
 
-        // KRATOS_WATCH(max_stress)
-        // KRATOS_WATCH(min_stress)
-
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
@@ -473,6 +470,8 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         return true;
     } else if (rThisVariable == CYCLE_PERIOD) {
+        return true;
+    } else if (rThisVariable == INFINITY_YIELD_STRESS) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
