@@ -26,3 +26,6 @@ def ComputePmean2D(StressVector):
 def ComputeDamageLinear(UniaxialStress, Threshold, A):
     return (1.0 - Threshold / UniaxialStress) / (1.0 + A)
 
+def ComputeAParameterLinear(Threshold, Gf, L, Young):
+    return -Threshold**2 / (2.0 * Young * Gf / L)
+
