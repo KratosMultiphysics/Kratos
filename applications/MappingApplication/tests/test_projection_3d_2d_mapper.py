@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.MappingApplication # registering the mappers
 from KratosMultiphysics import KratosUnittest
 default_data_comm = KM.Testing.GetDefaultDataCommunicator()
 if default_data_comm.IsDistributed():
