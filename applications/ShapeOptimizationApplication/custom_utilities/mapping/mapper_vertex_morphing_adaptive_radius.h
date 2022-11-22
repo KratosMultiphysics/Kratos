@@ -118,6 +118,8 @@ private:
     ModelPart& mrDestinationModelPart;
     double mFilterRadiusFactor;
     double mMinimumFilterRadius;
+    double mCurvatureLimit;
+    double mTolerance;
     IndexType mNumberOfSmoothingIterations;
     IndexType mMaxNumberOfNeighbors;
 
@@ -129,7 +131,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateCurvature();
+    void CalculateCurvatureIGL();
+
+    void CalculateCurvatureAtNode(NodeType& rNode);
+
+    void CalculateCurvatureBasedFilterRadius();
 
     void CalculateNeighbourBasedFilterRadius();
 
@@ -152,6 +158,19 @@ private:
 
     void AssignMappingIds();
 
+    double Cotan(const double& rAngle);
+
+    void CalculateInnerAngleAndMixedAreaOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void CalculateInnerAngleAndMixedAreaOf3Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void CalculateInnerAngleAndMixedAreaOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void CalculateInnerAngleAndMixedAreaOf4Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void CalculateInnerAngleAndMixedAreaOf8Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void CalculateInnerAngleAndMixedAreaOf9Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
     ///@}
 
 }; // Class MapperVertexMorphingAdaptiveRadius

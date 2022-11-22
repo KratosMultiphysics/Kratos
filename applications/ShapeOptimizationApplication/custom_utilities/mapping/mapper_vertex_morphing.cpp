@@ -238,7 +238,7 @@ void MapperVertexMorphing::Update()
 
     ComputeMappingMatrix();
 
-    CalculateCurvature();
+    // CalculateCurvature();
 
     KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
 }

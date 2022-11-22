@@ -54,9 +54,9 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     if mapper_settings.Has("filter_radius"):
         if mapper_settings["filter_radius"].IsString():
             if mapper_settings["filter_radius"].GetString() == "adaptive":
-                # mapper_vertex_morphing_matrix_free = KSO.MapperVertexMorphingMatrixFreeAdaptiveRadius
-                # mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegrationAdaptiveRadius
-                # mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetricAdaptiveRadius
+                mapper_vertex_morphing_matrix_free = KSO.MapperVertexMorphingMatrixFreeAdaptiveRadius
+                mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegrationAdaptiveRadius
+                mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetricAdaptiveRadius
                 mapper_vertex_morphing = KSO.MapperVertexMorphingAdaptiveRadius
 
                 if mapper_settings.Has("in_plane_morphing"):
