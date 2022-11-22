@@ -205,13 +205,13 @@ public:
             double rot_solution_norm = 0.0, rot_increase_norm = 0.0;
             IndexType rot_dof_num(0);
 
-            // Auxiliar values
+            // Auxiliary values
             struct AuxValues {
                 std::size_t dof_id = 0;
                 double dof_value = 0.0, dof_incr = 0.0;
             };
 
-            // Auxiliar displacement DoF check
+            // Auxiliary displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
             [](const VariableData& rCurrVar) -> bool {return true;};
             const std::function<bool(const VariableData&)> check_with_rot =

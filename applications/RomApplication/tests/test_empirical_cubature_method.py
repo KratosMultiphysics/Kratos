@@ -3,13 +3,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 #import python packages
-try:
-    import numpy as np
-    from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
-    from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-    numpy_available = True
-except:
-    numpy_available = False
+import numpy as np
+from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
+from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
 def synthetic_matrix(degree, rows = 100):
     TestMatrix = np.zeros((rows,degree+1))
@@ -25,7 +21,6 @@ def calculate_basis(TestMatrix):
 
 class TestEmpiricalCubatureMethod(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_empirical_cubature_method(self):
 
         for degree in range(5,10):
