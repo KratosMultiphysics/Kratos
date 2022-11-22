@@ -180,6 +180,97 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+    * @brief Updates the mapping-system after the geometry/mesh has changed
+    * After changes in the topology (e.g. remeshing or sliding interfaces)
+    * the relations for the mapping have to be recomputed. This means that
+    * the search has to be conducted again and the mapping-system has to be
+    * rebuilt, hence this is expensive
+    * @param MappingOptions flags used to specify how the update has to be done
+    * @param SearchRadius search radius used for the search
+    */
+    void UpdateInterface(
+        Kratos::Flags MappingOptions,
+        double SearchRadius
+        ) override
+    {
+        mpBaseMapper->UpdateInterface(MappingOptions, SearchRadius);
+    }
+
+    /**
+    * @brief Mapping from Origin to Destination, Scalar Variable
+    * Data is exchanged on the Interface, from the Origin-Modelpart
+    * to the Destination-ModelPart (the modelparts were specified in the
+    * construction Phase of the Mapper)
+    * @param rOriginVariable Variable on the Origin-ModelPart
+    * @param rDestinationVariable Variable on the Destination-ModelPart
+    * @param MappingOptions flags used to specify options for the mapping
+    * @see InverseMap
+    */
+    void Map(
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        Kratos::Flags MappingOptions
+        ) override
+    {
+        mpBaseMapper->Map(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
+
+    /**
+    * @brief Mapping from Origin to Destination, Vector Variable
+    * Same as Map, but maps an array3-variable
+    * @see Map
+    */
+    void Map(
+        const Variable< array_1d<double, 3> >& rOriginVariable,
+        const Variable< array_1d<double, 3> >& rDestinationVariable,
+        Kratos::Flags MappingOptions
+        ) override
+    {
+        mpBaseMapper->Map(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
+
+    /**
+    * @brief Mapping from Destination to Origin, Scalar Variable
+    * Data is exchanged on the Interface, from the Destination-Modelpart
+    * to the Origin-ModelPart (the modelparts were specified in the
+    * construction Phase of the Mapper)
+    * It does the opposite of Map
+    * @param rOriginVariable Variable on the Origin-ModelPart
+    * @param rDestinationVariable Variable on the Destination-ModelPart
+    * @param MappingOptions flags used to specify options for the mapping
+    * @see Map
+    */
+    void InverseMap(
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        Kratos::Flags MappingOptions
+        ) override
+    {
+        mpBaseMapper->InverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
+
+    /**
+    * @brief Mapping from Destination to Origin, Vector Variable
+    * Same as InveseMap, but maps an array3-variable
+    * @see InverseMap
+    */
+    void InverseMap(
+        const Variable< array_1d<double, 3> >& rOriginVariable,
+        const Variable< array_1d<double, 3> >& rDestinationVariable,
+        Kratos::Flags MappingOptions
+        ) override
+    {
+        mpBaseMapper->InverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
+
+    /**
+    * @brief Cloning the Mapper
+    * returns a clone of the current Mapper
+    * pure virtual, has to be implemented in every derived mapper,
+    * used in the creation of the Mappers
+    * @see MapperFactory
+    */
     MapperUniquePointerType Clone(
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
