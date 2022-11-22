@@ -251,6 +251,8 @@ protected:
 
     int mMeshesAreConforming = false;
 
+    TMappingMatrixUniquePointerType mpMappingMatrix;
+
    /**
     * @brief Initializing the Mapper
     * This has to be called in the constructor of the
@@ -319,8 +321,6 @@ private:
     Parameters mMapperSettings;
 
     MapperUniquePointerType mpInverseMapper = nullptr;
-
-    TMappingMatrixUniquePointerType mpMappingMatrix;
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 
