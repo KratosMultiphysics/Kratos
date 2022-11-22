@@ -646,6 +646,9 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(intersection, 0);
 
         // Intersecting line (totally inside)
+        p_point_3->X() = -10.0;
+        p_point_3->Y() = -10.0;
+        p_point_3->Z() = -10.0;
         p_point_4->X() = 100.0;
         p_point_5->Y() = 100.0;
         p_point_6->Z() = 100.0;
