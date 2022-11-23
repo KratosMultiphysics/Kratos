@@ -23,6 +23,7 @@
 
 // Application includes
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
@@ -361,7 +362,7 @@ void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateLocalSystem(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < 2; ++d) {
-            kinematic_variables.Displacements(i_node * 2 + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -1026,7 +1027,7 @@ void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateLocalSystem(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < 3; ++d) {
-            kinematic_variables.Displacements(i_node * 3 + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -3352,7 +3353,7 @@ void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateLeftHandSide(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < 2; ++d) {
-            kinematic_variables.Displacements(i_node * 2 + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -3943,7 +3944,7 @@ void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateLeftHandSide(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < 3; ++d) {
-            kinematic_variables.Displacements(i_node * 3 + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -6029,7 +6030,7 @@ void TotalLagrangianMixedVolumetricStrainElement<2>::CalculateRightHandSide(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < 2; ++d) {
-            kinematic_variables.Displacements(i_node * 2 + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -6178,7 +6179,7 @@ void TotalLagrangianMixedVolumetricStrainElement<3>::CalculateRightHandSide(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (IndexType d = 0; d < 3; ++d) {
-            kinematic_variables.Displacements(i_node * 3 + d) = r_disp[d];
+            kinematic_variables.Displacements(i_node, d) = r_disp[d];
         }
         kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
     }
@@ -7010,8 +7011,37 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
         rOutput.resize(n_gauss);
     }
 
-    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else if (rVariable == VON_MISES_STRESS) {
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables;
+        for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+            const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            for (IndexType d = 0; d < TDim; ++d) {
+                kinematic_variables.Displacements(i_node, d) = r_disp[d];
+            }
+            kinematic_variables.JacobianDeterminant[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+
+        // Create the constitutive variables and values containers
+        ConstitutiveVariables constitutive_variables;
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto& r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Compute material reponse
+            CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
+
+            // Calculate and save Von-Mises equivalent stress
+            rOutput[i_gauss] = ConstitutiveLawUtilities<StrainSize>::CalculateVonMisesEquivalentStress(constitutive_variables.StressVector);
+        }
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -7056,7 +7086,6 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
         r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Calculate kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
@@ -7076,7 +7105,7 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
             }
             rOutput[i_gauss] = constitutive_variables.StressVector;
         }
-    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rVariable == ALMANSI_STRAIN_VECTOR) {
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables;
         for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -7094,11 +7123,47 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
             // Calculate Green-Lagrange strain
             TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateEquivalentStrain(kinematic_variables);
 
-            // Check sizes and save the output stress
+            // Check sizes and save the output strain
             if (rOutput[i_gauss].size() != StrainSize) {
                 rOutput[i_gauss].resize(StrainSize, false);
             }
-            rOutput[i_gauss] = kinematic_variables.EquivalentStrain;
+
+            if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+                // If asked for Green-Lagrange directly output the equivalent strain
+                rOutput[i_gauss] = kinematic_variables.EquivalentStrain;
+            } else {
+                // If asked for Almansi, calculate the transformation
+                double det_F;
+                BoundedMatrix<double, TDim, TDim> inv_F;
+                MathUtils<double>::InvertMatrix(kinematic_variables.F, inv_F, det_F);
+                auto& r_e_strain = rOutput[i_gauss];
+                const auto& r_E_strain_voigt = kinematic_variables.EquivalentStrain;
+                if constexpr (TDim == 2) {
+                    const double aux_0_0 = r_E_strain_voigt[0]*inv_F(0,0) + 0.5*r_E_strain_voigt[2]*inv_F(1,0);
+                    const double aux_1_0 = 0.5*r_E_strain_voigt[2]*inv_F(0,0) + r_E_strain_voigt[1]*inv_F(1,0);
+                    const double aux_0_1 = r_E_strain_voigt[0]*inv_F(0,1) + 0.5*r_E_strain_voigt[2]*inv_F(1,1);
+                    const double aux_1_1 = 0.5*r_E_strain_voigt[2]*inv_F(0,1) + r_E_strain_voigt[1]*inv_F(1,1);
+                    r_e_strain[0] = inv_F(0,0)*aux_0_0 + inv_F(1,0)*aux_1_0;
+                    r_e_strain[1] = inv_F(0,1)*aux_0_1 + inv_F(1,1)*aux_1_1;
+                    r_e_strain[2] = 2.0*(inv_F(0,0)*aux_0_1 + inv_F(1,0)*aux_1_1);
+                } else {
+                    const double aux_0_0 = r_E_strain_voigt[0]*inv_F(0,0) + 0.5*r_E_strain_voigt[3]*inv_F(1,0) + 0.5*r_E_strain_voigt[5]*inv_F(2,0);
+                    const double aux_0_1 = r_E_strain_voigt[0]*inv_F(0,1) + 0.5*r_E_strain_voigt[3]*inv_F(1,1) + 0.5*r_E_strain_voigt[5]*inv_F(2,1);
+                    const double aux_0_2 = r_E_strain_voigt[0]*inv_F(0,2) + 0.5*r_E_strain_voigt[3]*inv_F(1,2) + 0.5*r_E_strain_voigt[5]*inv_F(2,2);
+                    const double aux_1_0 = 0.5*r_E_strain_voigt[3]*inv_F(0,0) + r_E_strain_voigt[1]*inv_F(1,0) + 0.5*r_E_strain_voigt[4]*inv_F(2,0);
+                    const double aux_1_1 = 0.5*r_E_strain_voigt[3]*inv_F(0,1) + r_E_strain_voigt[1]*inv_F(1,1) + 0.5*r_E_strain_voigt[4]*inv_F(2,1);
+                    const double aux_1_2 = 0.5*r_E_strain_voigt[3]*inv_F(0,2) + r_E_strain_voigt[1]*inv_F(1,2) + 0.5*r_E_strain_voigt[4]*inv_F(2,2);
+                    const double aux_2_0 = 0.5*r_E_strain_voigt[5]*inv_F(0,0) + 0.5*r_E_strain_voigt[4]*inv_F(1,0) + r_E_strain_voigt[2]*inv_F(2,0);
+                    const double aux_2_1 = 0.5*r_E_strain_voigt[5]*inv_F(0,1) + 0.5*r_E_strain_voigt[4]*inv_F(1,1) + r_E_strain_voigt[2]*inv_F(2,1);
+                    const double aux_2_2 = 0.5*r_E_strain_voigt[5]*inv_F(0,2) + 0.5*r_E_strain_voigt[4]*inv_F(1,2) + r_E_strain_voigt[2]*inv_F(2,2);
+                    r_e_strain[0] = inv_F(0,0)*aux_0_0 + inv_F(1,0)*aux_1_0 + inv_F(2,0)*aux_2_0;
+                    r_e_strain[1] = inv_F(0,1)*aux_0_1 + inv_F(1,1)*aux_1_1 + inv_F(2,1)*aux_2_1;
+                    r_e_strain[2] = inv_F(0,2)*aux_0_2 + inv_F(1,2)*aux_1_2 + inv_F(2,2)*aux_2_2;
+                    r_e_strain[3] = 2.0*(inv_F(0,0)*aux_0_1 + inv_F(1,0)*aux_1_1 + inv_F(2,0)*aux_2_1);
+                    r_e_strain[4] = 2.0*(inv_F(0,1)*aux_0_2 + inv_F(1,1)*aux_1_2 + inv_F(2,1)*aux_2_2);
+                    r_e_strain[5] = 2.0*(inv_F(0,0)*aux_0_2 + inv_F(1,0)*aux_1_2 + inv_F(2,0)*aux_2_2);
+                }
+            }
         }
     } else {
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
@@ -7114,10 +7179,10 @@ const Parameters TotalLagrangianMixedVolumetricStrainElement<TDim>::GetSpecifica
     const Parameters specifications = Parameters(R"({
         "time_integration"           : ["static"],
         "framework"                  : "lagrangian",
-        "symmetric_lhs"              : true,
+        "symmetric_lhs"              : false,
         "positive_definite_lhs"      : true,
         "output"                     : {
-            "gauss_point"            : ["CAUCHY_STRESS_VECTOR"],
+            "gauss_point"            : ["CAUCHY_STRESS_VECTOR","PK2_STRESS_VECTOR","GREEN_LAGRANGE_STRAIN_VECTOR"],
             "nodal_historical"       : ["DISPLACEMENT","VOLUMETRIC_STRAIN"],
             "nodal_non_historical"   : [],
             "entity"                 : []
@@ -7128,16 +7193,16 @@ const Parameters TotalLagrangianMixedVolumetricStrainElement<TDim>::GetSpecifica
         "compatible_geometries"      : ["Triangle2D3", "Tetrahedra3D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
-            "type"        : ["PlaneStrain","PlaneStress","ThreeDimensional"],
+            "type"        : ["PlaneStrain","ThreeDimensional"],
             "dimension"   : ["2D","3D"],
             "strain_size" : [3,6]
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit as well as with anisotropy."
+            "This element implements a total Lagrangian mixed displacement - volumetric strain formulation with Variational MultiScales (VMS) stabilization. This formulation is capable to deal with materials in the incompressible limit."
     })");
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {

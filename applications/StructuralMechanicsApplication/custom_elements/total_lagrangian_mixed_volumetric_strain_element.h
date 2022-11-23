@@ -56,6 +56,8 @@ namespace Kratos
  * the Jacobian determinant. This is a strain-driven formulation, meaning that it can be used
  * in combination with any constitutive model, including (almost) incompressible materials.
  * Note that the ASGS stabilization is specifically designed for linear triangle and tetrahedra.
+ * Also note that the volumetric strain definition in the formulation implies that the plane
+ * stress case cannot be considered in 2D.
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  * @author Guglielmo Scovazzi
