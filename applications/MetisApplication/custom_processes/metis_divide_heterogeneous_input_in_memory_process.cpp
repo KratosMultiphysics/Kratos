@@ -20,10 +20,8 @@
 
 
 // Project includes
-#include "processes/graph_coloring_process.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "metis_divide_heterogeneous_input_in_memory_process.h"
-#include "custom_utilities/legacy_partitioning_utilities.h" // TODO remove
 
 
 namespace Kratos {
