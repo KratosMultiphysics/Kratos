@@ -142,10 +142,10 @@ public:
             }
             // Getting from parameters if not elements or conditions
             if (p_geometry == nullptr) {
+                KRATOS_ERROR_IF_NOT(mapper_name == "nearest_neighbor") << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl;
                 noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
                 noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
             } else {
-                KRATOS_ERROR_IF(mapper_name == "nearest_neighbor") << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl;
                 GeometryType::CoordinatesArrayType aux_coords;
                 noalias(mPointPlane.Coordinates()) = p_geometry->Center();
                 p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
