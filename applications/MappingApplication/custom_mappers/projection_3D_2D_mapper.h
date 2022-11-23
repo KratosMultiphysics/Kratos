@@ -102,17 +102,20 @@ public:
         // Validate input
         this->ValidateInput();
 
+        // We copy the parameters to avoid conflicts in inverse mapping
+        Parameters copied_parameters = JsonParameters.Clone();
+
         // We generate retrieve the values of interest
-        mNormalPlane = JsonParameters["normal_plane"].GetVector();
-        mPointPlane.Coordinates() = JsonParameters["reference_plane_coordinates"].GetVector();
+        mNormalPlane = copied_parameters["normal_plane"].GetVector();
+        mPointPlane.Coordinates() = copied_parameters["reference_plane_coordinates"].GetVector();
 
         // Create the base mapper
-        const std::string mapper_name = JsonParameters["base_mapper"].GetString();
+        const std::string mapper_name = copied_parameters["base_mapper"].GetString();
 
         // Cleaning the parameters
-        JsonParameters.RemoveValue("normal_plane");
-        JsonParameters.RemoveValue("reference_plane_coordinates");
-        JsonParameters.RemoveValue("base_mapper");
+        copied_parameters.RemoveValue("normal_plane");
+        copied_parameters.RemoveValue("reference_plane_coordinates");
+        copied_parameters.RemoveValue("base_mapper");
 
         /* Origin model part */
         auto& r_origin_model = rModelPartOrigin.GetModel();
@@ -155,14 +158,14 @@ public:
             auto& r_projected_origin_modelpart = r_origin_model.GetModelPart("projected_origin_modelpart");
             auto& r_projected_destination_modelpart = r_destination_model.GetModelPart("projected_destination_modelpart");
             if (mapper_name == "nearest_neighbor") {
-                JsonParameters.RemoveValue("interpolation_type");
-                JsonParameters.RemoveValue("local_coord_tolerance");
-                mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+                copied_parameters.RemoveValue("interpolation_type");
+                copied_parameters.RemoveValue("local_coord_tolerance");
+                mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
             } else if (mapper_name == "nearest_element") {
-                JsonParameters.RemoveValue("interpolation_type");
-                mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+                copied_parameters.RemoveValue("interpolation_type");
+                mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
             } else if (mapper_name == "barycentric") {
-                mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+                mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
             } else {
                 KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
             }
