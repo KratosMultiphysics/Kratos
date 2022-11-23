@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_FAST_INIT_PROCESS)
-#define KRATOS_ALM_FAST_INIT_PROCESS
+#pragma once
 
 // System includes
 
@@ -262,4 +261,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_ALM_FAST_INIT_PROCESS defined */

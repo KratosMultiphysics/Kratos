@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MASTER_SLAVE_PROCESS)
-#define KRATOS_MASTER_SLAVE_PROCESS
+#pragma once
 
 // System includes
 
@@ -258,4 +257,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_MASTER_SLAVE_PROCESS defined */

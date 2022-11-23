@@ -16,6 +16,7 @@ from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticSur
 from particle_mechanics_test_factory import BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverDynamicConsistentMassTest as TBeamCantileverDynamicConsistentMassTest
+from particle_mechanics_test_factory import BeamCantileverDynamicHyperelasticUPTest as TBeamCantileverDynamicHyperelasticUPTest
 
 from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCooksMembraneCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
@@ -114,7 +115,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
-    
+    nightSuite.addTest(TBeamCantileverDynamicHyperelasticUPTest('test_execution'))
+
+
     nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointUSFTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointMUSLTest('test_execution'))
