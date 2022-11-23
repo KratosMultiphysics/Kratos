@@ -1,10 +1,6 @@
 Begin Properties 0
 End Properties
 
-Begin ModelPartData
-//  VARIABLE_NAME value
-End ModelPartData
-
 Begin Nodes
     1   2.0500000000   0.0000000000   0.0000000000
     2   2.0500000000   0.5000000000   0.0000000000
@@ -425,8 +421,7 @@ Begin Nodes
   417   0.0000000000   1.0000000000  10.0000000000
 End Nodes
 
-
-Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto1
+Begin Elements Element3D4N
         1          0   348   339   361   350 
         2          0   339   361   350   353 
         3          0   350   339   353   334 
@@ -1066,7 +1061,7 @@ Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto1
       637          0   256   277   279   255 
 End Elements
 
-Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto2
+Begin Elements Element3D4N
       638          0   341   332   355   343 
       639          0   332   355   343   345 
       640          0   343   332   345   330 
@@ -1704,3 +1699,52 @@ Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto2
      1272          0     5     2    15    17 
      1273          0    70    66    99   100 
 End Elements
+
+Begin Elements Element3D3N
+      1274 0 402 403 404
+      1275 0 404 403 408
+      1276 0 403 406 408
+      1277 0 404 408 409
+      1278 0 409 408 411
+      1279 0 404 409 405
+      1280 0 412 414 410
+      1281 0 413 407 410
+      1282 0 414 413 410
+      1283 0 414 416 413
+      1284 0 416 414 417
+      1285 0 413 416 415
+End Elements
+
+Begin SubModelPart Parts_2D
+    Begin SubModelPartNodes
+            402
+            403
+            404
+            405
+            406
+            407
+            408
+            409
+            410
+            411
+            412
+            413
+            414
+            415
+            416
+            417
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1274
+            1275
+            1276
+            1278
+            1279
+            1280
+            1281
+            1282
+            1283
+            1284
+            1285
+    End SubModelPartElements
+End SubModelPart

@@ -1,10 +1,6 @@
 Begin Properties 0
 End Properties
 
-Begin ModelPartData
-//  VARIABLE_NAME value
-End ModelPartData
-
 Begin Nodes
     1   2.0500000000   0.0000000000  10.0000000000
     2   2.0500000000   0.0000000000   9.6000000000
@@ -855,7 +851,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto1
+Begin Elements Element3D4N
         1          0   196   169   153   176 
         2          0   196   169   176   205 
         3          0   154   120   139   159 
@@ -2351,7 +2347,7 @@ Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto1
      1493          0    35    34    77    68 
 End Elements
 
-Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto2
+Begin Elements Element3D4N
      1494          0    20    12     8    17 
      1495          0    20    12    17    40 
      1496          0    42    32    47    23 
@@ -3832,3 +3828,63 @@ Begin Elements Element3D4N// GUI group identifier: Add SubModelPart Auto2
      2971          0    51    20    37    57 
      2972          0   113    92    66    88 
 End Elements
+
+Begin Elements Element3D3N
+      2973 0 1 4 3
+      2974 0 3 4 9
+      2975 0 21 3 30
+      2976 0 3 9 30
+      2977 0 4 22 31
+      2978 0 9 4 31
+      2979 0 9 31 30
+      2980 0 30 31 53
+      2981 0 25 34 68
+      2982 0 68 34 77
+      2983 0 68 77 131
+      2984 0 68 131 125
+      2985 0 34 56 97
+      2986 0 97 77 34
+      2987 0 131 77 97
+      2988 0 131 97 155
+End Elements
+
+Begin SubModelPart Parts_2D
+    Begin SubModelPartNodes
+            1
+            3
+            4
+            9
+            21
+            22
+            25
+            30
+            31
+            34
+            53
+            56
+            68
+            77
+            97
+            125
+            131
+            155
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            2973
+            2974
+            2975
+            2976
+            2977
+            2978
+            2979
+            2980
+            2981
+            2982
+            2983
+            2984
+            2985
+            2986
+            2987
+            2988
+    End SubModelPartElements
+End SubModelPart
