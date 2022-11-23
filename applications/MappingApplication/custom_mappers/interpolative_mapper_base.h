@@ -311,6 +311,16 @@ protected:
         }
     }
 
+    /**
+     * @brief This function creates the inverted mapping parameters if they are required to be differemt from the forward mapping parameters
+     * @details This function has to be implemented in the derived classes in case the inverted mapping parameters are required to be different from the forward mapping parameters
+     * @return The inverted mapping parameters
+     */
+    virtual Parameters GetInvertedMappingParameters(Parameters ForwardMappingParameters)
+    {
+        return ForwardMappingParameters.Clone();
+    }
+
 private:
     ///@name Member Variables
     ///@{
@@ -576,7 +586,7 @@ private:
 
         mpInverseMapper = this->Clone(mrModelPartDestination,
                                       mrModelPartOrigin,
-                                      mMapperSettings);
+                                      GetInvertedMappingParameters(mMapperSettings));
 
         KRATOS_CATCH("");
     }
