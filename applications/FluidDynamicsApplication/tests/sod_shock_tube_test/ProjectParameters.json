@@ -4,7 +4,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 0.2
+        "end_time"        : 0.01
     },
     "output_processes" : {
         "gid_output" : []
@@ -30,7 +30,7 @@
         "skin_parts"                   : ["NoSlip2D_Right","NoSlip2D_Left","Slip2D"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
-            "time_step" : 0.005,
+            "time_step" : 0.0005,
             "automatic_time_step" : false
         },
         "use_oss" : false,

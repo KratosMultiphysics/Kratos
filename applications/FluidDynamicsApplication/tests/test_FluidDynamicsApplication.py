@@ -125,6 +125,12 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSPhysicsBasedShockCapturing'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSEntropyBasedShockCapturing'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSPhysicsBasedShockCapturing'))
+    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSEntropyBasedShockCapturing'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -134,13 +140,8 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipNormCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
-    #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
     validationSuite.addTest(AdjointFluidTest('testCylinder'))
     validationSuite.addTest(AdjointFluidTest('testSlipCylinder'))
-    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
-    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
-    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
-    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     if sympy_available:
         validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTriangle'))
         validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTetrahedron'))
