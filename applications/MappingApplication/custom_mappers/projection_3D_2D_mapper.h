@@ -114,7 +114,7 @@ public:
 
         // 2D model parts if any
         const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
-        const std::string destination_2d_sub_model_part_name = copied_parameters["destination_2d_sub_model_part_name"].GetString();
+        //const std::string destination_2d_sub_model_part_name = copied_parameters["destination_2d_sub_model_part_name"].GetString();
 
         // Cleaning the parameters
         copied_parameters.RemoveValue("normal_plane");
@@ -277,6 +277,25 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This function creates the inverted mapping parameters if they are required to be differemt from the forward mapping parameters
+     * @details This function has to be implemented in the derived classes in case the inverted mapping parameters are required to be different from the forward mapping parameters
+     * @return The inverted mapping parameters
+     */
+    Parameters GetInvertedMappingParameters(Parameters ForwardMappingParameters) override
+    {
+        // Copy the parameters
+        Parameters inverted_parameters = ForwardMappingParameters.Clone();
+
+        // Invserse 2D submodelparts mapping parameters
+        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
+        const std::string destination_2d_sub_model_part_name = copied_parameters["destination_2d_sub_model_part_name"].GetString();
+        inverted_parameters["origin_2d_sub_model_part_name"].SetString(destination_2d_sub_model_part_name);
+        inverted_parameters["destination_2d_sub_model_part_name"].SetString(origin_2d_sub_model_part_name);
+        
+        return inverted_parameters;
+    }
 
     ///@}
     ///@name Protected  Access
