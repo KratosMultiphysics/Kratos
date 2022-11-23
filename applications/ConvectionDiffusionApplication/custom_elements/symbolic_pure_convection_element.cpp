@@ -125,7 +125,7 @@ void SymbolicPureConvectionElement<TDim, TNumNodes>::CalculateLocalSystem(
     // These coefficients would be O(1.0) if we follow the analytical estimation (based on the dimensional analysis)
     const double supg_tau_coeff = this->GetValue(r_supg_tau_var);
     const double supg_dyn_tau_coeff = this->GetValue(r_supg_dyn_tau_var);
-    const double cross_wind_alpha_coeff = this->GetValue(r_crosswind_alpha_var);
+    const double cross_wind_alpha_coeff = 0.7*this->GetValue(r_crosswind_alpha_var);
 
     BoundedMatrix<double,TNumNodes, TNumNodes> mass_matrix_stabilized = ZeroMatrix(TNumNodes, TNumNodes);
     BoundedMatrix<double,TNumNodes, TNumNodes> conv_matrix_stabilized = ZeroMatrix(TNumNodes, TNumNodes);
@@ -166,16 +166,18 @@ void SymbolicPureConvectionElement<TDim, TNumNodes>::CalculateLocalSystem(
 
             const double discontinuity_capturing_coeff = 0.5*cross_wind_alpha_coeff*h*fabs(residual/norm_grad_phi);
 
-            // Only if we want to remove stream-wise contribution (here we have preserved the freedom to reduce tau while increasing alpha; this would do the magic)
-            /* BoundedMatrix<double,TDim,TDim> artificial_diffusion_matrix = discontinuity_capturing_coeff*IdentityMatrix(TDim);
+            // Only if we want to remove stream-wise contribution (here, if commented, we have preserved the freedom to reduce tau while increasing alpha; this would do the magic)
+            /**/ 
+            BoundedMatrix<double,TDim,TDim> artificial_diffusion_matrix = discontinuity_capturing_coeff*IdentityMatrix(TDim);
             const double norm_vel_squared = norm_vel*norm_vel;
             artificial_diffusion_matrix += (std::max(discontinuity_capturing_coeff - supg_tau_coeff*tau_estimated*norm_vel_squared, 0.0)
                 - discontinuity_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
 
             noalias(tmp) = prod(DN_DX,artificial_diffusion_matrix);
-            noalias(conv_matrix_stabilized) += prod(tmp,trans(DN_DX)); */
+            noalias(conv_matrix_stabilized) += prod(tmp,trans(DN_DX)); 
+            /**/
 
-            noalias(conv_matrix_stabilized) += discontinuity_capturing_coeff*prod(DN_DX, trans(DN_DX));
+            /* noalias(conv_matrix_stabilized) += discontinuity_capturing_coeff*prod(DN_DX, trans(DN_DX)); */
         }
     }
 
