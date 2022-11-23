@@ -23,6 +23,7 @@
 #include "custom_mappers/barycentric_mapper.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos
 {
@@ -77,6 +78,10 @@ public:
     typedef NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>   NearestElementMapperType;
     typedef BarycentricMapper<TSparseSpace, TDenseSpace, TMapperBackend>         BarycentricMapperType;
 
+    /// Geometric definitions
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -105,16 +110,48 @@ public:
         // We copy the parameters to avoid conflicts in inverse mapping
         Parameters copied_parameters = JsonParameters.Clone();
 
-        // We generate retrieve the values of interest
-        mNormalPlane = copied_parameters["normal_plane"].GetVector();
-        mPointPlane.Coordinates() = copied_parameters["reference_plane_coordinates"].GetVector();
-
         // Create the base mapper
         const std::string mapper_name = copied_parameters["base_mapper"].GetString();
 
+        // Origin model
+        auto& r_origin_model = rModelPartOrigin.GetModel();
+
+        // Destination model part
+        auto& r_destination_model = rModelPartDestination.GetModel();
+
         // 2D model parts if any
-        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
-        //const std::string destination_2d_sub_model_part_name = copied_parameters["destination_2d_sub_model_part_name"].GetString();
+        std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
+
+        // We retrieve the values of interest
+        if (origin_2d_sub_model_part_name == "") {
+            noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
+            noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
+        } else {
+            // We will assume that the plane is the one defined by the 2D submodelpart
+            if (origin_2d_sub_model_part_name != rModelPartOrigin.Name()) {
+                origin_2d_sub_model_part_name = rModelPartOrigin.Name() + "." + origin_2d_sub_model_part_name;
+            }
+            const auto& r_origin_sub_model_part = r_origin_model.GetModelPart(origin_2d_sub_model_part_name);
+            GeometryType::Pointer p_geometry = nullptr;
+            if (r_origin_sub_model_part.NumberOfElements() > 0) {
+                const auto first_element = r_origin_sub_model_part.ElementsBegin();
+                p_geometry = first_element->pGetGeometry();
+            } else if (r_origin_sub_model_part.NumberOfConditions() > 0) {
+                const auto first_condition = r_origin_sub_model_part.ConditionsBegin();
+                p_geometry = first_condition->pGetGeometry();
+            }
+            // Getting from parameters if not elements or conditions
+            if (p_geometry == nullptr) {
+                noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
+                noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
+            } else {
+                KRATOS_ERROR_IF(mapper_name == "nearest_neighbor") << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl;
+                GeometryType::CoordinatesArrayType aux_coords;
+                noalias(mPointPlane.Coordinates()) = p_geometry->Center();
+                p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
+                noalias(mNormalPlane) = p_geometry->UnitNormal(aux_coords);
+            }
+        }
 
         // Cleaning the parameters
         copied_parameters.RemoveValue("normal_plane");
@@ -123,11 +160,8 @@ public:
         copied_parameters.RemoveValue("origin_2d_sub_model_part_name");
         copied_parameters.RemoveValue("destination_2d_sub_model_part_name");
 
-        /* Origin model part */
-        auto& r_origin_model = rModelPartOrigin.GetModel();
-
-        // Projected origin model part
-        {
+        // Projected origin model part. If the origin model part is not 2D we project it
+        if (origin_2d_sub_model_part_name == "") {
             auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
 
             // Iterate over the existing nodes
@@ -135,7 +169,7 @@ public:
             array_1d<double, 3> projected_point_coordinates;
             for (auto& r_node : rModelPartOrigin.Nodes()) {
                 noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-                r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
+                r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
             }
 
             // In case of nearest_element we generate "geometries" to be able to interpolate
@@ -144,8 +178,6 @@ public:
             }
         }
 
-        /* Destination model part */
-        auto& r_destination_model = rModelPartDestination.GetModel();
         // Projected destination model part
         {
             auto& r_projected_destination_modelpart = r_destination_model.CreateModelPart("projected_destination_modelpart");
@@ -155,13 +187,13 @@ public:
             array_1d<double, 3> projected_point_coordinates;
             for (auto& r_node : rModelPartDestination.Nodes()) {
                 noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-                r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
+                r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
             }
         }
 
         // Initializing the base mapper
         {
-            auto& r_projected_origin_modelpart = r_origin_model.GetModelPart("projected_origin_modelpart");
+            auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : r_origin_model.GetModelPart(origin_2d_sub_model_part_name);
             auto& r_projected_destination_modelpart = r_destination_model.GetModelPart("projected_destination_modelpart");
             if (mapper_name == "nearest_neighbor") {
                 copied_parameters.RemoveValue("interpolation_type");
@@ -184,7 +216,9 @@ public:
         BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
 
         // Remove the created model parts to not crash in InvertedMap
-        r_origin_model.DeleteModelPart("projected_origin_modelpart");
+        if (r_origin_model.HasModelPart("projected_origin_modelpart")) {
+            r_origin_model.DeleteModelPart("projected_origin_modelpart");
+        }
         r_destination_model.DeleteModelPart("projected_destination_modelpart");
 
         KRATOS_CATCH("");
@@ -289,8 +323,8 @@ protected:
         Parameters inverted_parameters = ForwardMappingParameters.Clone();
 
         // Invserse 2D submodelparts mapping parameters
-        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
-        const std::string destination_2d_sub_model_part_name = copied_parameters["destination_2d_sub_model_part_name"].GetString();
+        const std::string origin_2d_sub_model_part_name = inverted_parameters["origin_2d_sub_model_part_name"].GetString();
+        const std::string destination_2d_sub_model_part_name = inverted_parameters["destination_2d_sub_model_part_name"].GetString();
         inverted_parameters["origin_2d_sub_model_part_name"].SetString(destination_2d_sub_model_part_name);
         inverted_parameters["destination_2d_sub_model_part_name"].SetString(origin_2d_sub_model_part_name);
         
