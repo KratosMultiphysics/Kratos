@@ -21,7 +21,6 @@
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
 #include "custom_mappers/barycentric_mapper.h"
-#include "custom_mappers/coupling_geometry_mapper.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 
@@ -77,7 +76,6 @@ public:
     typedef NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend> NearestNeighborMapperType;
     typedef NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>   NearestElementMapperType;
     typedef BarycentricMapper<TSparseSpace, TDenseSpace, TMapperBackend>         BarycentricMapperType;
-    // typedef CouplingGeometryMapper<TSparseSpace, TDenseSpace> CouplingGeometryMapperType; // Not compatible with base class InterpolativeMapperBase
 
     ///@}
     ///@name Life Cycle
@@ -132,7 +130,7 @@ public:
             }
 
             // In case of nearest_element we generate "geometries" to be able to interpolate
-            if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
+            if (mapper_name == "nearest_element" || mapper_name == "barycentric") {
                 DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
             }
         }
@@ -153,7 +151,7 @@ public:
 
             // In destination we only consider nodes, so no Delaunay is required
             // // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
-            // if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
+            // if (mapper_name == "nearest_element" || mapper_name == "barycentric") {
             //     DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
             // }
         }
@@ -171,8 +169,6 @@ public:
                 mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
             } else if (mapper_name == "barycentric") {
                 mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-            // } else if (mapper_name == "coupling_geometry") {
-            //    mpBaseMapper = Kratos::make_unique<CouplingGeometryMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
             } else {
                 KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
             }
