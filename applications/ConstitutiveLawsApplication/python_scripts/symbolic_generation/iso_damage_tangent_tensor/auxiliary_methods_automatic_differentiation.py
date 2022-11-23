@@ -126,7 +126,7 @@ Here we define the problem in terms of dimension, yield surface and linear/expon
 ---------------------------------------------------------------------------------------------------
 """
 dimension = 3 # 2, 3
-yield_surface = "VonMises" # DruckerPrager, ModifiedMohrCoulomb, Rankine, VonMises
+yield_surface = "DruckerPrager" # DruckerPrager, ModifiedMohrCoulomb, Rankine, VonMises
 softening = "Exponential" # Exponential, Linear
 """
 ---------------------------------------------------------------------------------------------------
@@ -214,7 +214,7 @@ if (dimension == 2):
 
 else: # 3D
     Strain0, Strain1, Strain2, Strain3, Strain4, Strain5, Seff, Stress, Deviator, Ct, Young, nu, threshold, Gf, characteristic_length = SetUp3DProblem()
-    Seff[0], Seff[1], Seff[2], Seff[3], Seff[4], Seff[5] = ComputePredictorStressVector3D(Young, nu, Strain0, Strain1, Strain2)
+    Seff[0], Seff[1], Seff[2], Seff[3], Seff[4], Seff[5] = ComputePredictorStressVector3D(Young, nu, Strain0, Strain1, Strain2, Strain3, Strain4, Strain5)
     pmean = ComputePmean3D(Seff)
 
     Deviator[0] = Seff[0] - pmean
