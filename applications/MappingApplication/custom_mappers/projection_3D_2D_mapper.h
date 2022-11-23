@@ -42,6 +42,35 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+namespace ModelPartUtility
+{
+/**
+ * @brief This function returns the corresponding model part considering the parameters
+ * @param rOriginModelPart The model part to be considered
+ * @param ThisParameters The configuration parameters
+*/
+ModelPart& GetOriginModelPart(
+    ModelPart& rOriginModelPart,
+    Parameters ThisParameters = Parameters(R"({})")
+    )
+{
+    // We get the model part name
+    const std::string origin_2d_sub_model_part_name = ThisParameters.Has("origin_2d_sub_model_part_name") ? ThisParameters["origin_2d_sub_model_part_name"].GetString() : "";
+
+    // We check if the submodelpart exists
+    if (origin_2d_sub_model_part_name != "") {
+        // We check if the submodelpart is the modelpart
+        if (rOriginModelPart.Name() == origin_2d_sub_model_part_name) {
+            return rOriginModelPart;
+        } else { // We retrieve the orginal modelpart if not
+            return rOriginModelPart.GetSubModelPart(origin_2d_sub_model_part_name);
+        }
+    } else { // We return the origin model part if not defined
+        return rOriginModelPart;
+    }
+}
+} // namespace Utility
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -100,7 +129,7 @@ public:
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
         Parameters JsonParameters
-        ) : BaseType(rModelPartOrigin, rModelPartDestination, JsonParameters)
+        ) : BaseType(ModelPartUtility::GetOriginModelPart(rModelPartOrigin, JsonParameters), rModelPartDestination, JsonParameters)
     {
         KRATOS_TRY;
 
@@ -119,19 +148,15 @@ public:
         // Destination model part
         auto& r_destination_model = rModelPartDestination.GetModel();
 
-        // 2D model parts if any
-        std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
+        // 2D model parts name if any
+        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
 
         // We retrieve the values of interest
         if (origin_2d_sub_model_part_name == "") {
             noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
             noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
         } else {
-            // We will assume that the plane is the one defined by the 2D submodelpart
-            if (origin_2d_sub_model_part_name != rModelPartOrigin.Name()) {
-                origin_2d_sub_model_part_name = rModelPartOrigin.Name() + "." + origin_2d_sub_model_part_name;
-            }
-            const auto& r_origin_sub_model_part = r_origin_model.GetModelPart(origin_2d_sub_model_part_name);
+            const auto& r_origin_sub_model_part = this->GetOriginModelPart();
             GeometryType::Pointer p_geometry = nullptr;
             if (r_origin_sub_model_part.NumberOfElements() > 0) {
                 const auto first_element = r_origin_sub_model_part.ElementsBegin();
@@ -193,7 +218,7 @@ public:
 
         // Initializing the base mapper
         {
-            auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : r_origin_model.GetModelPart(origin_2d_sub_model_part_name);
+            auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : this->GetOriginModelPart();
             auto& r_projected_destination_modelpart = r_destination_model.GetModelPart("projected_destination_modelpart");
             if (mapper_name == "nearest_neighbor") {
                 copied_parameters.RemoveValue("interpolation_type");
