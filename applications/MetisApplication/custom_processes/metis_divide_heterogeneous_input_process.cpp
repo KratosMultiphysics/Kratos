@@ -86,7 +86,7 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
     LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
     int NumColors;
-    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.mGraph,NumColors).Execute();
+    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,NumColors).Execute();
 
     if (mVerbosity > 0)
     {
@@ -95,18 +95,18 @@ void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo&
 
 if (mVerbosity > 2)
 {
-        KRATOS_WATCH(rPartitioningInfo.mGraph);
+        KRATOS_WATCH(rPartitioningInfo.Graph);
 }
 
     // Write partition info into separate input files
     // Create lists containing all nodes/elements/conditions known to each partition
-    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.mNodesAllPartitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-    LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.mElementsAllPartitions, ElementPartition);
-    LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.mConditionsAllPartitions, ConditionPartition);
+    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
+    LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, ElementPartition);
+    LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, ConditionPartition);
 
     if (mVerbosity > 1)
     {
-        auto& nodes_all_partitions = rPartitioningInfo.mNodesAllPartitions;
+        auto& nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
         std::cout << "Final list of nodes known by each partition" << std::endl;
         for(SizeType i = 0 ; i < NumNodes ; i++)
         {
@@ -117,28 +117,28 @@ if (mVerbosity > 2)
         }
     }
 
-    rPartitioningInfo.mNodesPartitions.assign(NodePartition.begin(), NodePartition.end());
-    rPartitioningInfo.mElementsPartitions.assign(ElementPartition.begin(), ElementPartition.end());
-    rPartitioningInfo.mConditionsPartitions.assign(ConditionPartition.begin(), ConditionPartition.end());
+    rPartitioningInfo.NodesPartitions.assign(NodePartition.begin(), NodePartition.end());
+    rPartitioningInfo.ElementsPartitions.assign(ElementPartition.begin(), ElementPartition.end());
+    rPartitioningInfo.ConditionsPartitions.assign(ConditionPartition.begin(), ConditionPartition.end());
 }
 
 void MetisDivideHeterogeneousInputProcess::Execute()
 {
 
-    PartitioningInfo part_info;
+    auto part_info(Kratos::make_shared<PartitioningInfo>());
 
-    ExecutePartitioning(part_info);
+    ExecutePartitioning(*part_info);
 
     // Write files
     mrIO.DivideInputToPartitions(
         mNumberOfPartitions,
-        part_info.mGraph,
-        part_info.mNodesPartitions,
-        part_info.mElementsPartitions,
-        part_info.mConditionsPartitions,
-        part_info.mNodesAllPartitions,
-        part_info.mElementsAllPartitions,
-        part_info.mConditionsAllPartitions);
+        part_info->Graph,
+        part_info->NodesPartitions,
+        part_info->ElementsPartitions,
+        part_info->ConditionsPartitions,
+        part_info->NodesAllPartitions,
+        part_info->ElementsAllPartitions,
+        part_info->ConditionsAllPartitions);
 }
 
 

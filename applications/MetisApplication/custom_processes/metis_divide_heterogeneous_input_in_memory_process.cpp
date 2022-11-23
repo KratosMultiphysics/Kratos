@@ -59,21 +59,21 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
     // Main process calculates the partitions and writes the result into temporal streams
     if(mpi_rank == 0) {
 
-        PartitioningInfo part_info;
+        auto part_info(Kratos::make_shared<PartitioningInfo>());
 
-        ExecutePartitioning(part_info);
+        ExecutePartitioning(*part_info);
 
         // Write partitions to streams
         mrIO.DivideInputToPartitions(
             streams,
             mNumberOfPartitions,
-            part_info.mGraph,
-            part_info.mNodesPartitions,
-            part_info.mElementsPartitions,
-            part_info.mConditionsPartitions,
-            part_info.mNodesAllPartitions,
-            part_info.mElementsAllPartitions,
-            part_info.mConditionsAllPartitions);
+            part_info->Graph,
+            part_info->NodesPartitions,
+            part_info->ElementsPartitions,
+            part_info->ConditionsPartitions,
+            part_info->NodesAllPartitions,
+            part_info->ElementsAllPartitions,
+            part_info->ConditionsAllPartitions);
     }
 
     // Calculate the message and prepare the buffers
