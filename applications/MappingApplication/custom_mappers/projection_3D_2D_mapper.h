@@ -148,12 +148,6 @@ public:
                 noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
                 r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
             }
-
-            // In destination we only consider nodes, so no Delaunay is required
-            // // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
-            // if (mapper_name == "nearest_element" || mapper_name == "barycentric") {
-            //     DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
-            // }
         }
 
         // Initializing the base mapper
