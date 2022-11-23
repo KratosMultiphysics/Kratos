@@ -428,8 +428,9 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(
     // Operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
     CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
-    // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-    CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
+        // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
+        CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     rVariables.detF     = determinant_F;
     rVariables.detF0   /= rVariables.detF;
@@ -640,8 +641,9 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     // Operation performed: add Kpp to the rLefsHandSideMatrix
     CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
-    CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
+        // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
+        CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     rVariables.detF     = determinant_F;
     rVariables.detF0   /= rVariables.detF;
