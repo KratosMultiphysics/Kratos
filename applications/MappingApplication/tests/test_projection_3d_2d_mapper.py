@@ -39,6 +39,9 @@ class Projection3D2DMapperNearestNeighbor(mapper_test_case.MapperTestCase):
         }""")
         cls.setUpMapper(mapper_params)
 
+    def _GetFileName(self, file_appendix):
+        return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
+
     def test_Projection3D2DMapper_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
@@ -62,9 +65,6 @@ class Projection3D2DMapperNearestNeighbor(mapper_test_case.MapperTestCase):
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_origin, KM.FORCE)
-
-    def _GetFileName(self, file_appendix):
-        return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
 
 class Projection3D2DMapperNearestElement(mapper_test_case.MapperTestCase):
     '''This class contains the tests for 3D-2D projections for the NearestElement mapper
@@ -92,6 +92,9 @@ class Projection3D2DMapperNearestElement(mapper_test_case.MapperTestCase):
         }""")
         cls.setUpMapper(mapper_params)
 
+    def _GetFileName(self, file_appendix):
+        return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
+
     def test_Projection3D2DMapper_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
@@ -115,9 +118,6 @@ class Projection3D2DMapperNearestElement(mapper_test_case.MapperTestCase):
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_origin, KM.FORCE)
-
-    def _GetFileName(self, file_appendix):
-        return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
 
 def SetHistoricalNonUniformSolutionScalar(nodes, variable):
     for node in nodes:
