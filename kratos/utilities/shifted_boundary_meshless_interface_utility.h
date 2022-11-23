@@ -152,6 +152,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights();
 
     ///@}
 private:
@@ -306,7 +307,7 @@ private:
      * and the value is another map containing the surrounding nodes and their weighted gradients.
      * @return std::unordered_map<std::size_t, std::map<std::size_t, Vector>> Map with the nodal gradients for each node in the surrogate boundary
      */
-    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights();
+    
 
     ///@}
     ///@name Private  Access

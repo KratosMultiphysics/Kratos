@@ -787,6 +787,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
+        .def("SetSurrogateBoundaryNodalGradientWeights", &ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights)
     ;
 }
 
