@@ -603,6 +603,19 @@ private:
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    void DivideInputToPartitionsImpl(
+        OutputFilesContainerType& rOutputFiles,
+        SizeType NumberOfPartitions,
+        GraphType const& rDomainsColoredGraph,
+        PartitionIndicesType const& rNodesPartitions,
+        // PartitionIndicesType const& rGeometriesPartitions,
+        PartitionIndicesType const& rElementsPartitions,
+        PartitionIndicesType const& rConditionsPartitions,
+        PartitionIndicesContainerType const& rNodesAllPartitions,
+        // PartitionIndicesContainerType const& rGeometriesAllPartitions,
+        PartitionIndicesContainerType const& rElementsAllPartitions,
+        PartitionIndicesContainerType const& rConditionsAllPartitions);
+
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
     void DivideTableBlock(OutputFilesContainerType& OutputFiles);
