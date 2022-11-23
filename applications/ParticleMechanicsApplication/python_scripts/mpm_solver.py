@@ -58,7 +58,7 @@ class MPMSolver(PythonSolver):
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
-            "stabilization"                      : "PPP",
+            "stabilization"                      : "ppp",
             "compressible"                       : true,
             "axis_symmetric_flag"                : false,
             "consistent_mass_matrix"             : false,
@@ -214,9 +214,10 @@ class MPMSolver(PythonSolver):
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, False)
         stabilization          = self.settings["stabilization"].GetString()
         if pressure_dofs:
-            if (stabilization=="NONE"):
+            if (stabilization=="none"):
                 stabilization_type = 0
-            elif (stabilization =="PPP"):
+                KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: No stabilization considered for a mixed formulation.")
+            elif (stabilization =="ppp"): #Polynomial Pressure Projection stabilization
                 stabilization_type = 1
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.STABILIZATION_TYPE, stabilization_type)
 
