@@ -29,6 +29,30 @@ def SetUp2DProblem():
 
     return Strain0, Strain1, Strain2, Seff, Stress, Deviator, Ct, Young, nu, threshold, Gf, characteristic_length
 
+def SetUp3DProblem():
+    Strain0 = Symbol("r_strain[0]")
+    Strain1 = Symbol("r_strain[1]")
+    Strain2 = Symbol("r_strain[2]")
+    Strain3 = Symbol("r_strain[3]")
+    Strain4 = Symbol("r_strain[4]")
+    Strain5 = Symbol("r_strain[5]")
+
+    Ct = DefineMatrix('r_Ct', 6, 6)
+
+    # Stress (effective and integrated and deviatoric)
+    Seff = DefineVector('Seff',6)
+    Stress = DefineVector('Stress', 6)
+    Deviator = DefineVector('Deviator', 6)
+
+    # material parameters
+    Young = Symbol("Young")
+    nu = Symbol("nu")
+    threshold = Symbol("threshold")
+    Gf = Symbol("Gf")
+    characteristic_length = Symbol("characteristic_length")
+
+    return Strain0, Strain1, Strain2, Strain3, Strain4, Strain5, Seff, Stress, Deviator, Ct, Young, nu, threshold, Gf, characteristic_length
+
 
 def ComputePredictorStressVector2D(Young, nu, Strain0, Strain1, Strain2):
     c0 = Young / ((1.00 + nu)*(1 - 2 * nu));
@@ -79,8 +103,8 @@ Here we define the problem in terms of dimension, yield surface and linear/expon
 """
 
 # INPUT DATA
-dimension = 2 # 3
-yield_surface = "ModifiedMohrCoulomb" # DruckerPrager, ModifiedMohrCoulomb, Rankine, VonMises
+dimension = 3 # 3
+yield_surface = "VonMises" # DruckerPrager, ModifiedMohrCoulomb, Rankine, VonMises
 softening = "Exponential" # Exponential, Linear
 
 # Common variables
@@ -135,7 +159,7 @@ if (dimension == 2):
         K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
         sint3 = (-3.0 * sqrt(3.0) * J3) / (2.0 * J2 * sqrt(J2))
         LodeAngle = asin(sint3) / 3.0;
-        ModifiedMohrCoulombStress = (2.0 * tan(math.pi * 0.25 + phi * 0.5) / cos(phi)) * ((I1 * K3 / 3.0) +sqrt(J2) * (K1 * cos(LodeAngle) - K2 * sin(LodeAngle) * sin_phi / sqrt(3.0)))
+        ModifiedMohrCoulombStress = (2.0 * tan(math.pi * 0.25 + phi * 0.5) / cos(phi)) * ((3.0*pmean * K3 / 3.0) +sqrt(J2) * (K1 * cos(LodeAngle) - K2 * sin(LodeAngle) * sin_phi / sqrt(3.0)))
         if (softening == "Exponential"):
             A = 1.0 / (Gf * Young * R * R / (characteristic_length * threshold_compression**2) - 0.5)
             damage = 1.0 - (threshold_compression / ModifiedMohrCoulombStress) * exp(A * (1.0 - ModifiedMohrCoulombStress / threshold_compression))
@@ -160,3 +184,6 @@ if (dimension == 2):
 
     out = OutputMatrix_CollectingFactors(Ct, "r_Ct", mode)
     print(out)
+
+# else: # 3D
+
