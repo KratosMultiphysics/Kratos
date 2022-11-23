@@ -50,8 +50,12 @@ namespace Kratos
 /**
  * @class TotalLagrangianMixedVolumetricStrainElement
  * @ingroup StructuralMechanicsApplication
- * @brief Small displacement with strain based mixed formulation element
- * @details This implements a total Lagrangian element formulation with an extra Jacobian determinant nodal DOF
+ * @brief Total Lagrangian mixed displacement volumetric strain formulation element
+ * @details This implements an ASGS stabilized total Lagrangian element mixed formulation.
+ * The nodal DOFs are the displacement and the volumetric strain, which is defined as 1 minus
+ * the Jacobian determinant. This is a strain-driven formulation, meaning that it can be used
+ * in combination with any constitutive model, including (almost) incompressible materials.
+ * Note that the ASGS stabilization is specifically designed for linear triangle and tetrahedra.
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  * @author Guglielmo Scovazzi
