@@ -112,10 +112,16 @@ public:
         // Create the base mapper
         const std::string mapper_name = copied_parameters["base_mapper"].GetString();
 
+        // 2D model parts if any
+        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
+        const std::string destination_2d_sub_model_part_name = copied_parameters["destination_2d_sub_model_part_name"].GetString();
+
         // Cleaning the parameters
         copied_parameters.RemoveValue("normal_plane");
         copied_parameters.RemoveValue("reference_plane_coordinates");
         copied_parameters.RemoveValue("base_mapper");
+        copied_parameters.RemoveValue("origin_2d_sub_model_part_name");
+        copied_parameters.RemoveValue("destination_2d_sub_model_part_name");
 
         /* Origin model part */
         auto& r_origin_model = rModelPartOrigin.GetModel();
@@ -318,16 +324,18 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
-            "search_settings"              : {},
-            "echo_level"                   : 0,
-            "interpolation_type"           : "unspecified",
-            "local_coord_tolerance"        : 0.25,
-            "use_initial_configuration"    : false,
-            "print_pairing_status_to_file" : false,
-            "pairing_status_file_path"     : "",
-            "base_mapper"                  : "nearest_neighbor",
-            "normal_plane"                 : [0.0,0.0,1.0],
-            "reference_plane_coordinates"  : [0.0,0.0,0.0]
+            "search_settings"                    : {},
+            "echo_level"                         : 0,
+            "interpolation_type"                 : "unspecified",
+            "origin_2d_sub_model_part_name"      : "",
+            "destination_2d_sub_model_part_name" : "",
+            "local_coord_tolerance"              : 0.25,
+            "use_initial_configuration"          : false,
+            "print_pairing_status_to_file"       : false,
+            "pairing_status_file_path"           : "",
+            "base_mapper"                        : "nearest_neighbor",
+            "normal_plane"                       : [0.0,0.0,1.0],
+            "reference_plane_coordinates"        : [0.0,0.0,0.0]
         })");
     }
 
