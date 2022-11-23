@@ -118,56 +118,75 @@ public:
 
         /* Origin model part */
         auto& r_origin_model = rModelPartOrigin.GetModel();
-        auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
 
-        // Iterate over the existing nodes
-        double distance;
-        array_1d<double, 3> projected_point_coordinates;
-        for (auto& r_node : rModelPartOrigin.Nodes()) {
-            noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-            r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
-        }
+        // Projected origin model part
+        {
+            auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
 
-        // In case of nearest_element we generate "geometries" to be able to interpolate
-        if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
-            DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
+            // Iterate over the existing nodes
+            double distance;
+            array_1d<double, 3> projected_point_coordinates;
+            for (auto& r_node : rModelPartOrigin.Nodes()) {
+                noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
+                r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
+            }
+
+            // In case of nearest_element we generate "geometries" to be able to interpolate
+            if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
+                DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
+            }
         }
 
         /* Destination model part */
         auto& r_destination_model = rModelPartDestination.GetModel();
-        auto& r_projected_destination_modelpart = r_destination_model.CreateModelPart("projected_destination_modelpart");
-        for (auto& r_node : rModelPartDestination.Nodes()) {
-            noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-            r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
-        }
+        // Projected destination model part
+        {
+            auto& r_projected_destination_modelpart = r_destination_model.CreateModelPart("projected_destination_modelpart");
 
-        // In destination we only consider nodes, so no Delaunay is required
-        // // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
-        // if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
-        //     DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
-        // }
+            // Iterate over the existing nodes
+            double distance;
+            array_1d<double, 3> projected_point_coordinates;
+            for (auto& r_node : rModelPartDestination.Nodes()) {
+                noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
+                r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]); // TODO: This is assuming the plane is always XY, to fix after this works
+            }
+
+            // In destination we only consider nodes, so no Delaunay is required
+            // // In case of nearest_element or barycentric or coupling_geometry we generate "geometries" to be able to interpolate
+            // if (mapper_name == "nearest_element" || mapper_name == "barycentric") { // || mapper_name == "coupling_geometry") {
+            //     DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_destination_modelpart);
+            // }
+        }
 
         // Initializing the base mapper
-        if (mapper_name == "nearest_neighbor") {
-            JsonParameters.RemoveValue("interpolation_type");
-            JsonParameters.RemoveValue("local_coord_tolerance");
-            mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        } else if (mapper_name == "nearest_element") {
-            JsonParameters.RemoveValue("interpolation_type");
-            mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        } else if (mapper_name == "barycentric") {
-            mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        // } else if (mapper_name == "coupling_geometry") {
-        //    mpBaseMapper = Kratos::make_unique<CouplingGeometryMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
-        } else {
-            KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
+        {
+            auto& r_projected_origin_modelpart = r_origin_model.GetModelPart("projected_origin_modelpart");
+            auto& r_projected_destination_modelpart = r_destination_model.GetModelPart("projected_destination_modelpart");
+            if (mapper_name == "nearest_neighbor") {
+                JsonParameters.RemoveValue("interpolation_type");
+                JsonParameters.RemoveValue("local_coord_tolerance");
+                mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            } else if (mapper_name == "nearest_element") {
+                JsonParameters.RemoveValue("interpolation_type");
+                mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            } else if (mapper_name == "barycentric") {
+                mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            // } else if (mapper_name == "coupling_geometry") {
+            //    mpBaseMapper = Kratos::make_unique<CouplingGeometryMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, JsonParameters);
+            } else {
+                KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
+            }
         }
+
+        // Calling initialize
+        this->Initialize();
 
         // Now we copy the mapping matrix
         BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
 
-        // Calling initialize
-        this->Initialize();
+        // Remove the created model parts to not crash in InvertedMap
+        r_origin_model.DeleteModelPart("projected_origin_modelpart");
+        r_destination_model.DeleteModelPart("projected_destination_modelpart");
 
         KRATOS_CATCH("");
     }
