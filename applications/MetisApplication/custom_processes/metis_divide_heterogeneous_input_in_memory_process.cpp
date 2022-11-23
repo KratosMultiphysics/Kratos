@@ -20,8 +20,10 @@
 
 
 // Project includes
+#include "processes/graph_coloring_process.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "metis_divide_heterogeneous_input_in_memory_process.h"
+#include "custom_utilities/legacy_partitioning_utilities.h" // TODO remove
 
 
 namespace Kratos {
@@ -66,7 +68,7 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
         idxtype* NodeIndices = 0;
         idxtype* NodeConnectivities = 0;
 
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
+        LegacyPartitioningUtilities::ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
 
         std::vector<idxtype> NodePartition;
         PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
@@ -123,8 +125,8 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
 
         // Coloring
         GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
-        CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
-        CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
+        LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
+        LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
         int NumColors;
         GraphType ColoredDomainGraph;
@@ -144,9 +146,9 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
         IO::PartitionIndicesContainerType conditions_all_partitions;
 
         // Create lists containing all nodes/elements/conditions known to each partition
-        DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-        DividingElements(elements_all_partitions, ElementPartition);
-        DividingConditions(conditions_all_partitions, ConditionPartition);
+        LegacyPartitioningUtilities::DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
+        LegacyPartitioningUtilities::DividingElements(elements_all_partitions, ElementPartition);
+        LegacyPartitioningUtilities::DividingConditions(conditions_all_partitions, ConditionPartition);
 
         if (mVerbosity > 1) {
             std::cout << "Final list of nodes known by each partition" << std::endl;
