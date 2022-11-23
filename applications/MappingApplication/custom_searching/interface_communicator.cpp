@@ -49,6 +49,40 @@ T MaxAll(
     return Value;
 }
 
+// Since either ModelPart might not be part of this rank,
+// we have to check and reduce over both
+template<typename T>
+T MinAll(
+    const DataCommunicator& rDataComm1,
+    const DataCommunicator& rDataComm2,
+    T Value)
+{
+    if (rDataComm1.IsDefinedOnThisRank()) {
+        Value = rDataComm1.MinAll(Value);
+    }
+    if (rDataComm2.IsDefinedOnThisRank()) {
+        Value = rDataComm2.MinAll(Value);
+    }
+    return Value;
+}
+
+// Since either ModelPart might not be part of this rank,
+// we have to check and reduce over both
+template<typename T>
+T SumAll(
+    const DataCommunicator& rDataComm1,
+    const DataCommunicator& rDataComm2,
+    T Value)
+{
+    if (rDataComm1.IsDefinedOnThisRank()) {
+        Value = rDataComm1.SumAll(Value);
+    }
+    if (rDataComm2.IsDefinedOnThisRank()) {
+        Value = rDataComm2.SumAll(Value);
+    }
+    return Value;
+}
+
 double LogBase(const double Val, const double Base)
 {
     return std::log(Val) / std::log(Base);
@@ -130,23 +164,47 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         min_point[2] = std::numeric_limits<double>::max();
 
         InterfaceObjectConfigure::PointType low, high;
-        for (auto i_object = mpInterfaceObjectsOrigin->begin(); i_object != mpInterfaceObjectsOrigin->end(); i_object++) {
-            InterfaceObjectConfigure::CalculateBoundingBox(*i_object, low, high);
-            for(SizeType i = 0 ; i < 3 ; i++)
-            {
-                max_point[i] = (max_point[i] < high[i]) ? high[i] : max_point[i];
-                min_point[i] = (min_point[i] > low[i])  ? low[i]  : min_point[i];
+        if (mpInterfaceObjectsOrigin->size() > 0) {
+            for (auto i_object = mpInterfaceObjectsOrigin->begin(); i_object != mpInterfaceObjectsOrigin->end(); i_object++) {
+                InterfaceObjectConfigure::CalculateBoundingBox(*i_object, low, high);
+                for(SizeType i = 0 ; i < 3 ; i++)
+                {
+                    max_point[i] = (max_point[i] < high[i]) ? high[i] : max_point[i];
+                    min_point[i] = (min_point[i] > low[i])  ? low[i]  : min_point[i];
+                }
             }
         }
-        max_point[0] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_point[0]);
-        max_point[1] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_point[1]);
-        max_point[2] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_point[2]);
-        min_point[0] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(min_point[0]);
-        min_point[1] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(min_point[1]);
-        min_point[2] = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(min_point[2]);
+        max_point[0] = MaxAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            max_point[0]);
+        max_point[1] = MaxAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            max_point[1]);
+        max_point[2] = MaxAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            max_point[2]);
+        min_point[0] = MinAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            min_point[0]);
+        min_point[1] = MinAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            min_point[1]);
+        min_point[2] = MinAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            min_point[2]);
         const array_1d<double, 3> box_size = max_point - min_point;
 
-        unsigned long global_num_interface_obj_bin = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_obj_bin);
+        unsigned long global_num_interface_obj_bin = SumAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            num_interface_obj_bin);
+
         init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / global_num_interface_obj_bin;
 
 
