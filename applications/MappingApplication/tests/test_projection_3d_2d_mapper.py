@@ -210,7 +210,6 @@ class Projection3D2DMapperNearestElementSimplified2D(mapper_test_case.MapperTest
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination, KM.TEMPERATURE)
-        mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination.GetSubModelPart("Parts_2D"), KM.TEMPERATURE)
 
     def test_Projection3D2DMapper_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_destination.Nodes, KM.TEMPERATURE)
