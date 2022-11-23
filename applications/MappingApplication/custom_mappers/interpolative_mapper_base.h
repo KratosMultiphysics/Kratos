@@ -321,6 +321,30 @@ protected:
         return ForwardMappingParameters.Clone();
     }
 
+    ///@}
+    ///@name Protected Access
+    ///@{
+
+    /**
+     * @brief This function origin model part
+     * @return The origin model part
+     */
+    ModelPart& GetOriginModelPart()
+    {
+        return mrModelPartOrigin;
+    }
+
+    /**
+     * @brief This function destination model part
+     * @return The destination model part
+     */
+    ModelPart& GetDestinationModelPart()
+    {
+        return mrModelPartDestination;
+    }
+
+    ///@}
+    
 private:
     ///@name Member Variables
     ///@{
