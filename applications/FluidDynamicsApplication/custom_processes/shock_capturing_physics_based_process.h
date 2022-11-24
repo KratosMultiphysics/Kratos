@@ -116,7 +116,12 @@ public:
     /// Constructor with model part
     ShockCapturingPhysicsBasedProcess(
         ModelPart& rModelPart,
-        Parameters rParameters);
+        Parameters rParameters)
+        : Process()
+        , mrModelPart(rModelPart)
+    {
+        ValidateAndAssignParameters(rParameters);
+    };
 
     /// Destructor.
     ~ShockCapturingPhysicsBasedProcess() {};
@@ -174,7 +179,7 @@ public:
 
 
     ///@}
-    private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -189,11 +194,11 @@ public:
     bool mShockSensor;
     bool mShearSensor;
     bool mThermalSensor;
-    double mK_beta_constant  = 0.0;
-    double mPr_beta_constant = 0.0;
-    double mK_kappa_constant = 0.0;
-    double mK_mu_constant    = 0.0;
     bool mThermallyCoupledFormulation;
+    double mArtBulkViscosityConstant = 0.0;
+    double mFarFieldPrandtl = 0.0;
+    double mArtConductivityConstant = 0.0;
+    double mArtDynViscosityConstant = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -204,6 +209,7 @@ public:
     ///@name Private Operations
     ///@{
 
+    void ValidateAndAssignParameters(Parameters &rParameters);
 
     /**
      * @brief Physics-based shock capturing
@@ -265,16 +271,28 @@ public:
 
         // Set auxiliary constants
         const double k = 1.0; // Polynomial order of the numerical simulation
-        const double eps = 1.0e-10; // Small constant to avoid division by 0
+        const double eps = 1.0e-7; // Small constant to avoid division by 0
 
         // Calculate the midpoint values
-        double midpoint_rho, midpoint_temp;
+        double midpoint_rho, formulation_midpoint_temp;
         auto& r_midpoint_v = rShockCapturingTLS.MidpointVelocity;
-        FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY), std::tie(midpoint_temp, TEMPERATURE));
+        if (mThermallyCoupledFormulation) {
+            // Get required midpoint values
+            double midpoint_temp;
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_temp, TEMPERATURE));
+            // If the formulation is thermally coupled, the temperature for the stagnation temperature is the midpoint value
+            formulation_midpoint_temp = midpoint_temp;
+        } else {
+            // Get required midpoint values
+            double midpoint_p;
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_p, PRESSURE), std::tie(midpoint_rho, DENSITY));
+            // If the formulation is not energy coupled, the temperature for the stagnation temperature it's calculated by the state equation with the midpoint values
+            formulation_midpoint_temp = midpoint_p / (midpoint_rho * (gamma - 1.0) * c_v);
+        }
 
         // Calculate common values
         const double v_norm_pow = SquaredArrayNorm(r_midpoint_v);
-        const double stagnation_temp = midpoint_temp + 0.5 * inner_prod(r_midpoint_v,r_midpoint_v)/(gamma * c_v);
+        const double stagnation_temp = formulation_midpoint_temp + 0.5 * inner_prod(r_midpoint_v,r_midpoint_v)/(gamma * c_v);
         const double critical_temp = stagnation_temp * (2.0 / (gamma + 1.0));
         const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * critical_temp); // Critical speed of sound
         const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star, 2));
@@ -282,10 +300,10 @@ public:
         // Shock sensor values
         if (mShockSensor) {
             // Calculate the required differential operators
-            double div_v;
+            double div_v, mach;
             auto& r_grad_rho = rShockCapturingTLS.DensityGradient;
             auto& r_rot_v = rShockCapturingTLS.VelocityRotational;
-            CalculateShockSensorValues<TDim,TNumNodes>(r_geom, r_N, r_DN_DX, div_v, r_grad_rho, r_rot_v);
+            CalculateShockSensorValues<TDim,TNumNodes>(r_geom, r_N, r_DN_DX, mach, div_v, r_grad_rho, r_rot_v);
 
             // Characteristic element size along the direction of the density gradient
             const double h_beta = h_ref * norm_2(r_grad_rho) / std::sqrt(CalculateProjectedInverseMetricElementSize(r_inv_metric_tensor, r_grad_rho) + eps);
@@ -300,21 +318,30 @@ public:
             const double s_w = div_v_pow / (div_v_pow + rot_v_norm_pow + eps);
 
             // Calculate limited shock sensor
-            const double s_beta_min = 0.0;
+            const double s_beta_0 = 0.01;
             const double s_beta_max = 2.0 / std::sqrt(std::pow(gamma, 2) - 1.0);
-            const double s_beta_th = 0.01;
             const double s_beta = s_omega * s_w;
-            const double s_beta_hat = SmoothedLimitingFunction(s_beta,s_beta_min,s_beta_max);
+            // const double s_beta_hat = LimitingFunction(s_beta, s_beta_0, s_beta_max);
+            const double s_beta_hat = SmoothedLimitingFunction(s_beta, s_beta_0, s_beta_max);
             rElement.GetValue(SHOCK_SENSOR) = s_beta_hat;
 
             // Calculate elemental artificial bulk viscosity
-            const double elem_b_star = (mK_beta_constant * h_beta / k) * ref_mom_norm * s_beta_hat;
+            const double elem_b_star = (mArtBulkViscosityConstant * h_beta / k) * ref_mom_norm * s_beta_hat;
             rElement.GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
 
             // Calculate elemental artificial conductivity (dilatancy)
             // Note that this is only required if the formulation is thermally coupled
             if (mThermallyCoupledFormulation) {
-                const double elem_k1_star = (gamma * c_v / mPr_beta_constant) * elem_b_star;
+                const double Pr_beta_min = 0.9;
+                const double alpha_pr_beta = 2.0;
+                const double mach_threshold = 3.0;
+                double Pr_beta;
+                if (mFarFieldPrandtl == 0.0) {
+                    Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
+                } else {
+                    Pr_beta = mFarFieldPrandtl;
+                }
+                const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
                 rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k1_star;
             }
         }
@@ -335,15 +362,14 @@ public:
                 const double h_kappa = h_ref * norm_2(r_grad_temp) / std::sqrt(CalculateProjectedInverseMetricElementSize(r_inv_metric_tensor, r_grad_temp) + eps);
 
                 // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
-                const double s_kappa_min = 0.0;
+                const double s_kappa_0 = 1.0;
                 const double s_kappa_max = 2.0;
-                const double s_kappa_th = 1.0;
                 const double s_kappa = h_ref * norm_2(r_grad_temp_local) / k / stagnation_temp;
-                const double s_kappa_hat = SmoothedLimitingFunction(s_kappa,s_kappa_min,s_kappa_max);
+                const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
                 rElement.GetValue(THERMAL_SENSOR) = s_kappa_hat;
 
                 // Calculate elemental artificial conductivity (thermal sensor)
-                const double elem_k2_star = (gamma * c_v) * (mK_kappa_constant * h_kappa / k) * ref_mom_norm * s_kappa_hat;
+                const double elem_k2_star = (gamma * c_v) * (mArtConductivityConstant * h_kappa / k) * ref_mom_norm * s_kappa_hat;
                 rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k2_star;
             }
 
@@ -368,15 +394,15 @@ public:
 
                 // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
                 const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) * std::pow(r_c, 2));
-                const double s_mu_min = 0.0;
-                const double s_mu_th = 1.0;
+                const double s_mu_0 = 1.0;
                 const double s_mu_max = 2.0;
                 const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
-                const double s_mu_hat = SmoothedLimitingFunction(s_mu,s_mu_min,s_mu_max);
+                // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
+                const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
                 rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
 
                 // Calculate elemental artificial dynamic viscosity
-                const double elem_mu_star = (mK_mu_constant * h_mu / k) * ref_mom_norm * s_mu_hat;
+                const double elem_mu_star = (mArtDynViscosityConstant * h_mu / k) * ref_mom_norm * s_mu_hat;
                 rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
             }
         }
@@ -401,6 +427,21 @@ public:
     {
         return rArray[0]*rArray[0] + rArray[1]*rArray[1] + rArray[2]*rArray[2];
     }
+
+    /**
+     * @brief Limiting function
+     * Function to limit a given value between two bounds
+     * @param s Value to limit
+     * @param s_0 Initial value
+     * @param s_max Maximum value
+     * @param s_min Minimum values
+     * @return double Provided value or the corresponding minimum or maximum one
+     */
+    double LimitingFunction(
+        const double s,
+        const double s_0,
+        const double s_max,
+        const double s_min = 0.0);
 
     /**
      * @brief Smoothed limiting function
@@ -461,6 +502,7 @@ public:
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+        double& rMachNumber,
         double& rVelocityDivergence,
         array_1d<double,3>& rDensityGradient,
         array_1d<double,3>& rVelocityRotational);
