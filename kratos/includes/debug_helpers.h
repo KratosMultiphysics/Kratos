@@ -52,6 +52,6 @@
     }
 
 // Cout a message with appended line and function information.
-#define KRATOS_LINE_WATCH(...) std::cout << __VA_ARGS__ << KRATOS_CODE_LOCATION << std::endl
+#define KRATOS_WATCH_LINE(...) std::cout << __VA_ARGS__ << KRATOS_CODE_LOCATION << std::endl
 
 #endif /* KRATOS_DEBUG_HELPERS_H_INCLUDED  defined */
