@@ -85,9 +85,9 @@ def ComputeJ2Invariant2D(Deviator, pmean):
 def ComputeJ2Invariant3D(Deviator, pmean):
     return 0.5*(Deviator[0]**2+Deviator[1]**2+Deviator[2]**2) + (Deviator[3]**2+Deviator[4]**2+Deviator[5]**2)
 
-def ComputeJ3_2D(Deviator):
+def ComputeJ3Invariant2D(Deviator):
     return Deviator[0] * Deviator[1] - (Deviator[2]**2)
-def ComputeJ3_3D(Deviator):
+def ComputeJ3Invariant3D(Deviator):
     return Deviator[0] * (Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4]) + Deviator[3] * (-Deviator[3] * Deviator[2] + Deviator[5] * Deviator[4]) + Deviator[5] * (Deviator[3] * Deviator[4] - Deviator[5] * Deviator[1])
 
 def ComputePmean2D(StressVector):
@@ -116,13 +116,8 @@ def ComputeAParameterExponential(Threshold, Gf, L, Young):
     return 1.0 / (Gf * Young / (L * Threshold**2) - 0.5)
 
 
-
 """
 Here we define the problem in terms of dimension, yield surface and linear/exponential softening
-"""
-
-# INPUT DATA
-"""
 ---------------------------------------------------------------------------------------------------
 """
 dimension = 3 # 2, 3
@@ -178,7 +173,7 @@ if (dimension == 2):
         Rmohr = (tan((math.pi / 4.0) + phi / 2.0))**2
         alpha_r = R / Rmohr
         sin_phi = sin(phi);
-        J3 = ComputeJ3_2D(Deviator)
+        J3 = ComputeJ3Invariant2D(Deviator)
         K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sin_phi;
         K2 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) / sin_phi;
         K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
@@ -280,7 +275,7 @@ else: # 3D
         Rmohr = (tan((math.pi / 4.0) + phi / 2.0))**2
         alpha_r = R / Rmohr
         sin_phi = sin(phi);
-        J3 = ComputeJ3_3D(Deviator)
+        J3 = ComputeJ3Invariant3D(Deviator)
         K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sin_phi;
         K2 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) / sin_phi;
         K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
