@@ -321,6 +321,24 @@ protected:
         return ForwardMappingParameters.Clone();
     }
 
+    /**
+     * @brief This function origin model part (for inverse mapping)
+     * @return The origin model part
+     */
+    virtual ModelPart& GetOriginModelPartForInverseMapping()
+    {
+        return mrModelPartDestination;
+    }
+
+    /**
+     * @brief This function destination model part (for inverse mapping)
+     * @return The destination model part
+     */
+    virtual ModelPart& GetDestinationModelPartForInverseMapping()
+    {
+        return mrModelPartOrigin;
+    }
+
     ///@}
     ///@name Protected Access
     ///@{
@@ -608,8 +626,8 @@ private:
     {
         KRATOS_TRY;
 
-        mpInverseMapper = this->Clone(mrModelPartDestination,
-                                      mrModelPartOrigin,
+        mpInverseMapper = this->Clone(GetOriginModelPartForInverseMapping(),
+                                      GetDestinationModelPartForInverseMapping(),
                                       GetInvertedMappingParameters(mMapperSettings));
 
         KRATOS_CATCH("");
