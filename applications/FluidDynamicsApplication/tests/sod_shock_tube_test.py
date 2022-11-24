@@ -12,10 +12,17 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
-    def testSodShockTubeExplicitASGSShockCapturing(self):
+    def testSodShockTubeExplicitASGSPhysicsBasedShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = False
         self.shock_capturing_type = "physics_based"
+        self._CustomizeTestSettings()
+        self._RunSodShockTubeTest()
+
+    def testSodShockTubeExplicitASGSEntropyBasedShockCapturing(self):
+        self.solver_type = "CompressibleExplicit"
+        self.use_oss = False
+        self.shock_capturing_type = "entropy_based"
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
@@ -26,16 +33,23 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
-    def testSodShockTubeExplicitOSSShockCapturing(self):
+    def testSodShockTubeExplicitOSSPhysicsBasedShockCapturing(self):
         self.solver_type = "CompressibleExplicit"
         self.use_oss = True
         self.shock_capturing_type = "physics_based"
         self._CustomizeTestSettings()
         self._RunSodShockTubeTest()
 
+    def testSodShockTubeExplicitOSSEntropyBasedShockCapturing(self):
+        self.solver_type = "CompressibleExplicit"
+        self.use_oss = True
+        self.shock_capturing_type = "entropy_based"
+        self._CustomizeTestSettings()
+        self._RunSodShockTubeTest()
+
     def setUp(self):
         self.print_output = False
-        self.print_reference_values = False
+        self.print_reference_values = True
         self.check_absolute_tolerance = 1.0e-8
         self.check_relative_tolerance = 1.0e-10
         self.work_folder = "sod_shock_tube_test"
@@ -108,7 +122,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         output_name = "sod_shock_tube{0}{1}{2}".format(
             "_explicit" if self.solver_type == "CompressibleExplicit" else "_implicit",
             "_ASGS" if self.use_oss == False else "_OSS",
-            "" if self.shock_capturing_type=="none" else "_SC")
+            "_physics_based" if self.shock_capturing_type=="physics_based" else "_entropy_based")
         gid_output_settings["Parameters"]["output_name"].SetString(output_name)
         self.parameters["output_processes"]["gid_output"].Append(gid_output_settings)
 
@@ -127,7 +141,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         output_file_name = "sod_shock_tube{0}{1}{2}_results.json".format(
             "_explicit" if self.solver_type == "CompressibleExplicit" else "_implicit",
             "_ASGS" if self.use_oss == False else "_OSS",
-            "" if self.shock_capturing_type=="none" else "_SC")
+            "_physics_based" if self.shock_capturing_type=="physics_based" else "_entropy_based")
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
 
@@ -148,7 +162,7 @@ class SodShockTubeTest(KratosUnittest.TestCase):
         input_file_name = "sod_shock_tube{0}{1}{2}_results.json".format(
             "_explicit" if self.solver_type == "CompressibleExplicit" else "_implicit",
             "_ASGS" if self.use_oss == False else "_OSS",
-            "" if self.shock_capturing_type=="none" else "_SC")
+            "_physics_based" if self.shock_capturing_type=="physics_based" else "_entropy_based")
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_absolute_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
