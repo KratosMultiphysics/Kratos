@@ -18,10 +18,9 @@ The recent research and development have been focused solely on the Material Poi
 
 This application is part of the Kratos Multiphysics Platform. Instructions on how to download, install and run the software in your local machine for development and testing purposes are available for both Linux and Windows distributions [Installation page](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md).
 
-### Prerequisites
+**Prerequisites**
 
 Build Kratos and check the [configuration files](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#configuration-scripts-examples)
-
 
 In LINUX: check that in the /path_to_kratos/scripts/configure.sh the followinglines are written:
 
@@ -51,7 +50,7 @@ It requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
 Particle or meshfree methods are a category of methods where the state of a system is represented by a set of particles, without a fixed connectivity; hence, making such methods suitable for the analysis of moving discontinuities and large deformations with breaking and fragmentation. This approach does not suffer from the mesh distortion and entanglement issues posed by other Lagrangian discretizations such as the finite element method.
 
-### Material Point Method
+**Material Point Method**
 
 The MPM is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material informations. MPM has gained a remarkably increasing popularity due to its capability in simulating  problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of Eulerian and Lagrangian methods, it has been utilized in various engineering applications and industrial purposes, in particular in geomechanics and environmental fluid dynamics field. 
 
@@ -62,7 +61,8 @@ Recommended references for implementation details of MPM in Kratos:
 - Wilson, P., Wüchner, R., & Fernando, D. (2021). Distillation of the material point method cell crossing error leading to a novel quadrature‐based C 0 remedy. International Journal for Numerical Methods in Engineering, 122(6), 1513-1537.
 - Iaconeta, I., Larese, A., Rossi, R., & Oñate, E. (2018). A stabilized mixed implicit Material Point Method for non-linear incompressible solid mechanics. *Computational Mechanics*, 1-18.
 - Iaconeta, I., Larese, A., Rossi, R., & Zhiming, G. (2016). Comparison of a material point method and a Galerkin meshfree method for the simulation of cohesive-frictional materials. *Materials*, 10(10), p. 1150.
-- 
+
+
 ## Features
 
 The following features are currently available and subject to development within the Particle Mechanics Application:
