@@ -64,7 +64,7 @@ ModelPart& GetOriginModelPart(
         if (rOriginModelPart.Name() == origin_2d_sub_model_part_name) {
             return rOriginModelPart;
         } else { // We retrieve the orginal modelpart if not
-            KRATOS_ERROR_IF_NOT(rOriginModelPart.HasSubModelPart(origin_2d_sub_model_part_name)) << "Subodelpart " << rOriginModelPart.FullName() << "." << origin_2d_sub_model_part_name << " does not exist" << std::endl;
+            KRATOS_ERROR_IF_NOT(rOriginModelPart.HasSubModelPart(origin_2d_sub_model_part_name)) << "Submodelpart " << rOriginModelPart.FullName() << "." << origin_2d_sub_model_part_name << " does not exist" << std::endl;
             return rOriginModelPart.GetSubModelPart(origin_2d_sub_model_part_name);
         }
     } else { // We return the origin model part if not defined
