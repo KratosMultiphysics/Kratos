@@ -13,7 +13,7 @@ Depending on the selected `Reponse`, the `Advanced Settings` section may vary. D
 | Analysis type | Solution type                                | Solution code | Available responses                                  |
 |---------------|----------------------------------------------|---------------|------------------------------------------------------|
 | Structural    | SOL 101 Linear Statics                       | SESTATIC 101  | [Mass](Responses/mass.html), [Strain Energy](Responses/strain_energy.html), [Kreisselmeier Aggregated Stress](Responses/kreisselmeier_aggregated_stress.html) |
-| Structural    | SOL 101 Linear Statics                       | SEMODES 103   | [Mass](Responses/mass.html), [Eigen frequency](Responses/eigen_frequency.html)                                |
+| Structural    | SOL 101 Linear Statics                       | SEMODES 103   | [Mass](Responses/mass.html)                                |
 | Thermal       | SOL 153 Steady State Nonlinear Heat Transfer | NLSCSH 153    | [Mass](Responses/mass.html), [Average temperature](Responses/average_temperature.html)                            |
 
 The `Gradient Mode` is also varying depending on the type of the objective. The `finite_differencing` method uses finite difference approach to calculate the sensitivities as explained in [Finite difference or direct approach](../General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html). The `semi_analytic` method uses direct approach to calculate sensitivities of the objective with respect to state variables and uses finite difference approach to compute sensitivities with respect to nodal coordinates. Following table lists which approach is used in which objective when computing sensitivities. In the case of `finite_differencing` and `semi_analytic`, the `Perturbation Size` refers to the size of the perturbation which is used on each variable where `finite difference` approach is used.
@@ -23,7 +23,6 @@ The `Gradient Mode` is also varying depending on the type of the objective. The 
 | [Mass](Responses/mass.html)                            | Finite differencing |
 | [Strain Energy](Responses/strain_energy.html)                 | Semi analytic       |
 | [Kreisselmeier Aggregated Stress](Responses/kreisselmeier_aggregated_stress.html) | Semi analytic       |
-| [Eigen frequency](Responses/eigen_frequency.html)                 | Semi analytic       |
 | [Average temperature](Responses/average_temperature.html)             | Semi analytic       |
 
 ## Objectives interface

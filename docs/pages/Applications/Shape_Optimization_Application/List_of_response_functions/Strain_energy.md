@@ -13,6 +13,6 @@ This computes the summation of strain energy from each element as the response v
 ## Formulation
 
 Following formulation is used to compute the summation of strain energy from each element in the chosen model part where $$\underline{u}$$ is the displacement vector for the element and $$\mathbf{K}$$ is the stiffness matrix of the element.
-<p align="center">$$ J   = \frac{1}{2}\sum_{\Omega} \underline{u}^T \mathbf{K} \underline{u}  $$</p>
+<p align="center">$$ J   = \frac{1}{2}\sum_{\forall \Omega_i \in \Omega} \underline{u}^T_i \mathbf{K}_i \underline{u}_i  $$</p>
 
 Location: ["applications/StructuralMechanicsApplication/python_scripts/structural_response.py"](https://github.com/KratosMultiphysics/Kratos/blob/shapeopt/kreisselmeier_aggregation/applications/StructuralMechanicsApplication/python_scripts/structural_response.py)

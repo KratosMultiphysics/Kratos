@@ -16,3 +16,5 @@ summary:
 Figure 1 illustrates `Response Settings` and `Advanced Settings` related to `Average Temperature` response.
 
 `Selection Method` defines the surface or mesh group on which the average temperature is computed. User is supposed to select a surface of the optimization model to correctly construct the response.
+
+Refer to [average temperature](../../List_of_response_functions/average_temperature.html) for more details.

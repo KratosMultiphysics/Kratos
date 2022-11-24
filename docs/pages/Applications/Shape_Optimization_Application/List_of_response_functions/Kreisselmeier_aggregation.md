@@ -13,7 +13,7 @@ Kreisselmeier aggregation is objective with an aggregation methodology used when
 ## Formulation
 
 The response function is computed as follows where $$\beta$$ is chosen value for each entity in the $$\Omega$$ ($$\Omega$$ can be nodal value or elemental gauss point value):
-<p align="center">$$ J   = \frac{1}{\rho}\log\left({\sum_\Omega{e^{\rho \frac{\beta}{\alpha}}}}\right)$$</p>
+<p align="center">$$ J   = \frac{1}{\rho}\log\left({\sum_{\forall \Omega_i \in \Omega}{e^{\rho \frac{\beta_i}{\alpha}}}}\right)$$</p>
 
 The coefficients are listed in the following table:
 

@@ -9,8 +9,8 @@ entries:
     - title: Overview
       url: /pages/Applications/Shape_Optimization_Application/General/Overview.html
       output: web
-    - title: Multi objective optimization
-      url: /pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
+    - title: Application Structure
+      url: /pages/Applications/Shape_Optimization_Application/General/Application_structure.html
       output: web
       subfolders:
       - title: Sensitivity Analysis
@@ -47,18 +47,12 @@ entries:
         - title: Penalized Projection
           url: /pages/Applications/Shape_Optimization_Application/Technologies/Algorithms/penalized_projection.html
           output: web
-  - title: Interfaces
-    output: web
-    folderitems:
-    - title: Analyzer interface
-      url: https://github.com/KratosMultiphysics/Kratos/blob/master/applications/ShapeOptimizationApplication/python_scripts/analyzers/analyzer_base.py
-      output: web
-    - title: Response function interface
-      url: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/response_functions/response_function_interface.py
-      output: web
   - title: List of response functions
     output: web
     folderitems:
+    - title: Average temperature
+      url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/average_temperature.html
+      output: web
     - title: Kreisselmeier aggregation
       url: /pages/Applications/Shape_Optimization_Application/List_of_response_functions/Kreisselmeier_aggregation.html
       output: web
@@ -107,9 +101,6 @@ entries:
           output: web
         - title: Strain Energy
           url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/strain_energy.html
-          output: web
-        - title: eigen frequency
-          url: /pages/Applications/Shape_Optimization_Application/Siemens_NX/Responses/eigen_frequency.html
           output: web
       - title: Guided beam example
         output: web

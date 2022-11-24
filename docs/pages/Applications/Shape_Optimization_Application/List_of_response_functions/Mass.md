@@ -13,7 +13,7 @@ This reponse function computes the mass of the given model part.
 ## Formulation
 
 Following formulation is used.
-<p align="center">$$ J   = \sum_{\Omega} m $$</p>
+<p align="center">$$ J   = \sum_{\forall \Omega_i \in \Omega} m_i $$</p>
 
 ## Source
 
