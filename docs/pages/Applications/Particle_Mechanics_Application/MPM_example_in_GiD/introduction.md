@@ -1,5 +1,5 @@
 ---
-title: Description
+title: Introduction
 keywords: 
 tags: [introduction.md]
 sidebar: particle_mechanics_application

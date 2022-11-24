@@ -9,12 +9,7 @@ summary:
 
 This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanical phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
-
-
-!!! GRAPHIC IS STILL MISSING !!!
-<p align="center">
-  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/ParticleMechanicsApplication.gif" width="618" height="280"/>
-</p>
+![ParticleMechanicsApplication](https://user-images.githubusercontent.com/51473791/191960884-1f1c5a0c-efec-40ca-ac6d-2d53b5530739.gif)
 
 
 The recent research and development have been focused solely on the Material Point Method (MPM) and on partiotioned coupled formulations MPM-FEM and MPM-DEM.
@@ -62,6 +57,7 @@ The MPM is an hybrid thechnique which uses a fixed background grid (or mesh) for
 
 Recommended references for implementation details of MPM in Kratos:
 
+- Singer, V.; Sautter, K.B., Larese, A., Wüchner, R.; Bletzinger, K.U.; A partitioned material point method and discrete element method coupling scheme, Advanced Modeling and Simulation in Engineering Sciences, 9(16), (2022); DOI: https://doi.org/10.1186/s40323-022-00229-5
 - Chandra, B., Singer, V., Teschemacher, T., Wuechner, R., & Larese, A. (2021). Nonconforming Dirichlet boundary conditions in implicit material point method by means of penalty augmentation. Acta Geotechnica, 16(8), 2315-2335.
 - Wilson, P., Wüchner, R., & Fernando, D. (2021). Distillation of the material point method cell crossing error leading to a novel quadrature‐based C 0 remedy. International Journal for Numerical Methods in Engineering, 122(6), 1513-1537.
 - Iaconeta, I., Larese, A., Rossi, R., & Oñate, E. (2018). A stabilized mixed implicit Material Point Method for non-linear incompressible solid mechanics. *Computational Mechanics*, 1-18.

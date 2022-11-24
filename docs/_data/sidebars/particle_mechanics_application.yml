@@ -12,7 +12,7 @@ entries:
   - title: MPM example in GiD
     output: web
     folderitems:
-    - title: Description
+    - title: Introduction
       url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/introduction.html
       output: web
     - title: Set up of example
@@ -21,18 +21,15 @@ entries:
     - title: Meshing
       url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/meshing.html
       output: web
-    - title: Description
+    - title: Calculation
       url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/calculation.html
       output: web
     - title: Post processing
       url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/post_processing.html
       output: web
-    - title: Description
-      url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/Description.html
-      output: web
   - title: Examples
     output: web
     folderitems:
-    - title: Granular flow 2d readme
-      url: /pages/Applications/Particle_Mechanics_Application/Examples/remote_Granular_flow_2d_readme.html
+    - title: README
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/remote_README.html
       output: web
