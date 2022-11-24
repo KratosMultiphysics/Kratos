@@ -24,6 +24,7 @@
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -158,12 +159,14 @@ public:
         } else {
             const auto& r_origin_sub_model_part = this->GetOriginModelPart();
             GeometryType::Pointer p_geometry = nullptr;
+            int entity = 0;
             if (r_origin_sub_model_part.NumberOfElements() > 0) {
                 const auto first_element = r_origin_sub_model_part.ElementsBegin();
                 p_geometry = first_element->pGetGeometry();
             } else if (r_origin_sub_model_part.NumberOfConditions() > 0) {
                 const auto first_condition = r_origin_sub_model_part.ConditionsBegin();
                 p_geometry = first_condition->pGetGeometry();
+                entity = 1;
             }
             // Getting from parameters if not elements or conditions
             if (p_geometry == nullptr) {
@@ -175,6 +178,31 @@ public:
                 noalias(mPointPlane.Coordinates()) = p_geometry->Center();
                 p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
                 noalias(mNormalPlane) = p_geometry->UnitNormal(aux_coords);
+
+                // Doing a check that all normals are aligned
+                std::size_t check_normal;
+                const double numerical_limit = std::numeric_limits<double>::epsilon() * 1.0e4;
+                struct normal_check {
+                    normal_check(array_1d<double, 3>& rNormal) : reference_normal(rNormal) {};
+                    array_1d<double, 3> reference_normal;
+                    GeometryType::CoordinatesArrayType aux_coords;
+                };
+                if (entity == 0) {
+                    check_normal = block_for_each<SumReduction<std::size_t>>(r_origin_sub_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
+                        auto& r_geom = r_elem.GetGeometry();
+                        r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
+                        const auto normal = r_geom.UnitNormal(nc.aux_coords);
+                        if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
+                    });
+                } else {
+                    check_normal = block_for_each<SumReduction<std::size_t>>(r_origin_sub_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
+                        auto& r_geom = r_cond.GetGeometry();
+                        r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
+                        const auto normal = r_geom.UnitNormal(nc.aux_coords);
+                        if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
+                    });
+                }
+                KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
             }
         }
 
