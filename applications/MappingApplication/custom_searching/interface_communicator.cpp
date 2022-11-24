@@ -66,23 +66,6 @@ T MinAll(
     return Value;
 }
 
-// Since either ModelPart might not be part of this rank,
-// we have to check and reduce over both
-template<typename T>
-T SumAll(
-    const DataCommunicator& rDataComm1,
-    const DataCommunicator& rDataComm2,
-    T Value)
-{
-    if (rDataComm1.IsDefinedOnThisRank()) {
-        Value = rDataComm1.SumAll(Value);
-    }
-    if (rDataComm2.IsDefinedOnThisRank()) {
-        Value = rDataComm2.SumAll(Value);
-    }
-    return Value;
-}
-
 double LogBase(const double Val, const double Base)
 {
     return std::log(Val) / std::log(Base);
@@ -200,13 +183,26 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
             min_point[2]);
         const array_1d<double, 3> box_size = max_point - min_point;
 
-        unsigned long global_num_interface_obj_bin = SumAll(
-            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
-            rComm.GetDataCommunicator(),
-            num_interface_obj_bin);
+        unsigned long num_objs_origin = 0;
+        unsigned long num_objs_destination = 0;
+        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+            num_objs_origin = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_obj_bin);
+        }
+        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+            unsigned long tmp = 0; //avoid counting twice
+            if (!mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+                tmp = num_interface_obj_bin;
+            }
+            num_objs_destination = rComm.GetDataCommunicator().SumAll(tmp);
+        }
 
-        init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / global_num_interface_obj_bin;
+        unsigned long global_num_interface_obj_bin = num_objs_origin + num_objs_destination;
 
+        if (global_num_interface_obj_bin > 0) {
+            init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / global_num_interface_obj_bin;
+        } else {
+            init_search_radius = max_search_radius/1000;
+        }
 
         if (init_search_radius < std::numeric_limits<double>::epsilon()) {
             // very rare case when all bins only have one entry
