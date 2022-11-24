@@ -113,8 +113,5 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AutomaticDifferentiationTangentU
      */
     static void CalculateTangentTensorIsotropicDamage(ConstitutiveLaw::Parameters rValues);
 
-
-private:
-
 };
 }
