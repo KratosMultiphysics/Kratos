@@ -151,10 +151,11 @@ public:
         auto& r_destination_model = rModelPartDestination.GetModel();
 
         // 2D model parts name if any
-        const bool 2d_sub_model = copied_parameters["origin_2d_sub_model_part_name"].GetString() == "" ? false : true;
+        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
+        const bool is_2d_origin = (origin_2d_sub_model_part_name != "") ? true : false;
 
         // We retrieve the values of interest
-        if (2d_sub_model) {
+        if (is_2d_origin) {
             noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
             noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
         } else {
@@ -215,7 +216,7 @@ public:
         copied_parameters.RemoveValue("destination_2d_sub_model_part_name");
 
         // Projected origin model part. If the origin model part is not 2D we project it
-        if (2d_sub_model) {
+        if (is_2d_origin) {
             auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
 
             // Iterate over the existing nodes
