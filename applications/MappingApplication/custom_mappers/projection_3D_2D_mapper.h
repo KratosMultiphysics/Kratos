@@ -121,7 +121,9 @@ public:
     Projection3D2DMapper(
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination
-        ) : BaseType(rModelPartOrigin, rModelPartDestination) 
+        ) : BaseType(rModelPartOrigin, rModelPartDestination),
+            mrUnalteredModelPartOrigin(rModelPartOrigin),
+            mrUnalteredModelPartDestination(rModelPartDestination)
     {
 
     }
@@ -131,7 +133,9 @@ public:
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
         Parameters JsonParameters
-        ) : BaseType(ModelPartUtility::GetOriginModelPart(rModelPartOrigin, JsonParameters), rModelPartDestination, JsonParameters)
+        ) : BaseType(ModelPartUtility::GetOriginModelPart(rModelPartOrigin, JsonParameters), rModelPartDestination, JsonParameters),
+            mrUnalteredModelPartOrigin(rModelPartOrigin),
+            mrUnalteredModelPartDestination(rModelPartDestination)
     {
         KRATOS_TRY;
 
@@ -145,10 +149,10 @@ public:
         const std::string mapper_name = copied_parameters["base_mapper"].GetString();
 
         // Origin model
-        auto& r_origin_model = rModelPartOrigin.GetModel();
+        auto& r_origin_model = mrUnalteredModelPartOrigin.GetModel();
 
         // Destination model part
-        auto& r_destination_model = rModelPartDestination.GetModel();
+        auto& r_destination_model = mrUnalteredModelPartDestination.GetModel();
 
         // 2D model parts name if any
         const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
@@ -240,7 +244,7 @@ public:
             // Iterate over the existing nodes
             double distance;
             array_1d<double, 3> projected_point_coordinates;
-            for (auto& r_node : rModelPartDestination.Nodes()) {
+            for (auto& r_node : mrUnalteredModelPartDestination.Nodes()) {
                 noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
                 r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
             }
@@ -407,13 +411,33 @@ private:
     ///@name Member Variables
     ///@{
 
-    BaseMapperUniquePointerType mpBaseMapper; /// Pointer to the base mapper
-    array_1d<double, 3> mNormalPlane;         /// The normal defining the plane to project
-    Point mPointPlane;                        /// The coordinates of the plane to project
+    ModelPart& mrUnalteredModelPartOrigin;      /// The unaltered origin model part (as it comes from the input)
+    ModelPart& mrUnalteredModelPartDestination; /// The unaltered destination model part (as it comes from the input)
+    BaseMapperUniquePointerType mpBaseMapper;   /// Pointer to the base mapper
+    array_1d<double, 3> mNormalPlane;           /// The normal defining the plane to project
+    Point mPointPlane;                          /// The coordinates of the plane to project
 
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This function origin model part (for inverse mapping)
+     * @return The origin model part
+     */
+    ModelPart& GetOriginModelPartForInverseMapping() override
+    {
+        return mrUnalteredModelPartDestination;
+    }
+
+    /**
+     * @brief This function destination model part (for inverse mapping)
+     * @return The destination model part
+     */
+    ModelPart& GetDestinationModelPartForInverseMapping() override
+    {
+        return mrUnalteredModelPartOrigin;
+    }
 
     void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
