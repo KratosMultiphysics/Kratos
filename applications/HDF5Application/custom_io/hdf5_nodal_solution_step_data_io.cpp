@@ -6,6 +6,7 @@
 #include "includes/communicator.h"
 #include "custom_utilities/registered_component_lookup.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
+#include "includes/debug_helpers.h"
 
 namespace Kratos
 {
@@ -92,6 +93,8 @@ NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Poin
     mVariableNames.resize(Settings["list_of_variables"].size());
     for (unsigned i = 0; i < mVariableNames.size(); ++i)
         mVariableNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
+
+    std::sort(mVariableNames.begin(), mVariableNames.end());
 
     KRATOS_CATCH("");
 }

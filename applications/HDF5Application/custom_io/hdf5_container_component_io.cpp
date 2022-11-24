@@ -386,6 +386,8 @@ ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::Contai
     for (std::size_t i = 0; i < num_components; ++i)
         mComponentNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
 
+    std::sort(mComponentNames.begin(), mComponentNames.end());
+
     KRATOS_CATCH("");
 }
 
