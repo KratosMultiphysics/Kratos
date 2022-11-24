@@ -1,8 +1,11 @@
-# Granular Flow 2D Validation Test
-**Author:** Bodhinanda Chandra
-
-**Kratos version:** Development branch. **Expected 6.0**
-
+---
+title: Granular Flow 2D Validation Test
+keywords: 
+tags: [Granular_flow_2D.md]
+sidebar: particle_mechanics_application
+summary: 
+---
+**Author:** Bodhinanda Chandra\
 **Source files:** [granular_flow_2D](https://github.com/KratosMultiphysics/Examples/tree/master/particle_mechanics/validation/granular_flow_2D/source)
 
 ## Case Specification
@@ -15,7 +18,7 @@ The following application of Kratos is used:
 The problem geometry as well as the boundary conditions are sketched below:
 
 <p align="center">
-  <img src="data/granular_flow_2D_initial.png" alt="Initial mesh and boundary conditions." width="350" />
+  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/particle_mechanics/validation/granular_flow_2D/data/granular_flow_2D_initial.png" alt="Initial mesh and boundary conditions." width="350" />
 </p>
 
 An elasto-plastic Mohr-Coulomb plane stress constitutive law with unit thickness is considered with the following material parameters:
@@ -33,7 +36,7 @@ The time step is 0.00005 seconds, while the total simulation time is 2.0 seconds
 The problem stated above has been solved with a structured mesh with 3 material points per cell is considered with average mesh size of 0.002 m. The obtained numerical result is compared with experimental and simulation results conducted by (Bui et al., 2008) as depicted by the following figures:
 
 <p align="center">
-  <img src="data/granular_flow_2D_results.png" alt="Obtained results and comparison." width="700" />
+  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/particle_mechanics/validation/granular_flow_2D/data/granular_flow_2D_results.png" alt="Obtained results and comparison." width="700" />
   
   (a.) Experiment conducted by (Bui et al., 2008), (b.) comparison of final surface configuration and failure line, (c.) simulation results of (Bui et al., 2008) by using SPH method, (d.) simulation results obtained by implicit MPM method
 </p>
