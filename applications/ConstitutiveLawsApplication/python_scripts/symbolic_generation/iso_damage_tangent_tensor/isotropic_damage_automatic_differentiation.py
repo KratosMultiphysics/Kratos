@@ -189,20 +189,13 @@ if (dimension == 2):
     else:
         raise Exception("yield_surface not correctly defined, options available: VonMises, DruckerPrager, Rankine and ModifiedMohrCoulomb")
 
-    Stress[0] = (1.0 - damage)*Seff[0]
-    Stress[1] = (1.0 - damage)*Seff[1]
-    Stress[2] = (1.0 - damage)*Seff[2]
+    Stress = (1.0 - damage)*Seff
+    Strain = [Strain0, Strain1, Strain2]
 
     # Ct = dS/dE
-    Ct[0,0] = ((Stress[0]).diff(Strain0))
-    Ct[0,1] = ((Stress[0]).diff(Strain1))
-    Ct[0,2] = ((Stress[0]).diff(Strain2))
-    Ct[1,0] = ((Stress[1]).diff(Strain0))
-    Ct[1,1] = ((Stress[1]).diff(Strain1))
-    Ct[1,2] = ((Stress[1]).diff(Strain2))
-    Ct[2,0] = ((Stress[2]).diff(Strain0))
-    Ct[2,1] = ((Stress[2]).diff(Strain1))
-    Ct[2,2] = ((Stress[2]).diff(Strain2))
+    for i in range(3):
+        for j in range(3):
+            Ct[i,j] = Stress[i].diff(Strain[j])
 
     out = OutputMatrix_CollectingFactors(Ct, "r_Ct", mode)
     print(out)
@@ -291,56 +284,13 @@ else: # 3D
     else:
         raise Exception("yield_surface not correctly defined, options available: VonMises, DruckerPrager, Rankine and ModifiedMohrCoulomb")
 
-    Stress[0] = (1.0 - damage)*Seff[0]
-    Stress[1] = (1.0 - damage)*Seff[1]
-    Stress[2] = (1.0 - damage)*Seff[2]
-    Stress[3] = (1.0 - damage)*Seff[3]
-    Stress[4] = (1.0 - damage)*Seff[4]
-    Stress[5] = (1.0 - damage)*Seff[5]
+    Stress = (1.0 - damage)*Seff
+    Strain = [Strain0, Strain1, Strain2, Strain3, Strain4, Strain5]
 
-    # # Ct = dS/dE
-    Ct[0,0] = ((Stress[0]).diff(Strain0))
-    Ct[0,1] = ((Stress[0]).diff(Strain1))
-    Ct[0,2] = ((Stress[0]).diff(Strain2))
-    Ct[0,3] = ((Stress[0]).diff(Strain3))
-    Ct[0,4] = ((Stress[0]).diff(Strain4))
-    Ct[0,5] = ((Stress[0]).diff(Strain5))
-
-    Ct[1,0] = ((Stress[1]).diff(Strain0))
-    Ct[1,1] = ((Stress[1]).diff(Strain1))
-    Ct[1,2] = ((Stress[1]).diff(Strain2))
-    Ct[1,3] = ((Stress[1]).diff(Strain3))
-    Ct[1,4] = ((Stress[1]).diff(Strain4))
-    Ct[1,5] = ((Stress[1]).diff(Strain5))
-
-    Ct[2,0] = ((Stress[2]).diff(Strain0))
-    Ct[2,1] = ((Stress[2]).diff(Strain1))
-    Ct[2,2] = ((Stress[2]).diff(Strain2))
-    Ct[2,3] = ((Stress[2]).diff(Strain3))
-    Ct[2,4] = ((Stress[2]).diff(Strain4))
-    Ct[2,5] = ((Stress[2]).diff(Strain5))
-
-    Ct[3,0] = ((Stress[3]).diff(Strain0))
-    Ct[3,1] = ((Stress[3]).diff(Strain1))
-    Ct[3,2] = ((Stress[3]).diff(Strain2))
-    Ct[3,3] = ((Stress[3]).diff(Strain3))
-    Ct[3,4] = ((Stress[3]).diff(Strain4))
-    Ct[3,5] = ((Stress[3]).diff(Strain5))
-
-    Ct[4,0] = ((Stress[4]).diff(Strain0))
-    Ct[4,1] = ((Stress[4]).diff(Strain1))
-    Ct[4,2] = ((Stress[4]).diff(Strain2))
-    Ct[4,3] = ((Stress[4]).diff(Strain3))
-    Ct[4,4] = ((Stress[4]).diff(Strain4))
-    Ct[4,5] = ((Stress[4]).diff(Strain5))
-
-    Ct[5,0] = ((Stress[5]).diff(Strain0))
-    Ct[5,1] = ((Stress[5]).diff(Strain1))
-    Ct[5,2] = ((Stress[5]).diff(Strain2))
-    Ct[5,3] = ((Stress[5]).diff(Strain3))
-    Ct[5,4] = ((Stress[5]).diff(Strain4))
-    Ct[5,5] = ((Stress[5]).diff(Strain5))
-    # ...
+    # Ct = dS/dE
+    for i in range(6):
+        for j in range(6):
+            Ct[i,j] = Stress[i].diff(Strain[j])
 
     out = OutputMatrix_CollectingFactors(Ct, "r_Ct", mode)
     print(out)
