@@ -238,7 +238,9 @@ public:
     }
 
     /**
-     * Find the 3D intersection of a line (bounded) with a tetrahedra (bounded)
+     * @brief Find the 3D intersection of a line (bounded) with a tetrahedra (bounded)
+     * @tparam TGeometryType The geometry type
+     * @tparam TConsiderInsidePoints If considering inside points or just the intersections in the faces
      * @param rTriangleGeometry Is the tetrahedra to intersect
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
@@ -251,7 +253,7 @@ public:
      * 3 (intersect in two points inside the tetrahedra)
      * 4 (intersect in two points, one inside the tetrahedra)
      */
-    template <class TGeometryType>
+    template <class TGeometryType, bool TConsiderInsidePoints = true>
     static int ComputeTetrahedraLineIntersection(
         const TGeometryType& rTetrahedraGeometry,
         const array_1d<double,3>& rLinePoint1,
@@ -340,34 +342,36 @@ public:
         }
 
         // Check if points are inside 
-        if (solution == 0) {
-            array_1d<double,3> local_coordinates;
-            if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
-                noalias(rIntersectionPoint1) = rLinePoint1;
-                solution = 4;
-            }
-            if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
-                if (solution == 0) {
-                    noalias(rIntersectionPoint1) = rLinePoint2;
-                    solution = 4;
-                } else {
-                    noalias(rIntersectionPoint2) = rLinePoint2;
-                    solution = 3;
-                }
-            }
-        } else if (solution == 2) {
-            array_1d<double,3> local_coordinates;
-            if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
-                if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
-                    noalias(rIntersectionPoint2) = rLinePoint1;
+        if constexpr (TConsiderInsidePoints) {
+            if (solution == 0) {
+                array_1d<double,3> local_coordinates;
+                if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
+                    noalias(rIntersectionPoint1) = rLinePoint1;
                     solution = 4;
                 }
-            } 
-            if (solution == 2) {
                 if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
-                    if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
-                        noalias(rIntersectionPoint2) = rLinePoint2;
+                    if (solution == 0) {
+                        noalias(rIntersectionPoint1) = rLinePoint2;
                         solution = 4;
+                    } else {
+                        noalias(rIntersectionPoint2) = rLinePoint2;
+                        solution = 3;
+                    }
+                }
+            } else if (solution == 2) {
+                array_1d<double,3> local_coordinates;
+                if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
+                    if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
+                        noalias(rIntersectionPoint2) = rLinePoint1;
+                        solution = 4;
+                    }
+                } 
+                if (solution == 2) {
+                    if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
+                        if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
+                            noalias(rIntersectionPoint2) = rLinePoint2;
+                            solution = 4;
+                        }
                     }
                 }
             }
