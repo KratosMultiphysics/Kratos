@@ -89,9 +89,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AutomaticDifferentiationTangentU
     /// Geometry definitions
     typedef Geometry<NodeType> GeometryType;
 
-    /// The zero tolerance
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
 
     ///@}
     ///@name  Enum's
