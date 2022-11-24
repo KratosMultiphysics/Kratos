@@ -1,11 +1,10 @@
 ---
-title: Overview
+title: Particle Mechanics Application
 keywords: 
 tags: [Overview.md]
 sidebar: particle_mechanics_application
 summary: 
 ---
-# Particle Mechanics Application
 
 This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanical phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
