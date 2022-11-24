@@ -39,11 +39,12 @@ CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
 so the Particle Mechanics application is compiled along with auxiliary linear solvers required.
 
 ## Examples
-Some use-cases and validation examples are available in the Particle Mechanics section of the [Examples](https://kratosmultiphysics.github.io/Examples/) repository. Also, some unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
+Some use-cases and validation examples are available in the Particle Mechanics section of the [Examples](https://kratosmultiphysics.github.io/Examples/) repository.\
+Also, some unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
 
-### GiD Interface
-A GiD user interface for the MPM application is also available. It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
+**GiD Interface**
 
+A GiD user interface for the MPM application is also available. It is located in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).\
 It requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
 ## Theory
