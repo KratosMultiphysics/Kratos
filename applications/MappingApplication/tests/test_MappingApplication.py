@@ -50,7 +50,10 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BasicTestsVolume]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BladeMapping]))
     
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestNeighbor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestNeighborSimplified2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElementSimplified2D]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
