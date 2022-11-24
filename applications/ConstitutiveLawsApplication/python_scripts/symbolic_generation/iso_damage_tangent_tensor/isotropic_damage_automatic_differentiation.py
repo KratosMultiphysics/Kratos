@@ -13,12 +13,12 @@ def SetUp2DProblem():
     Strain1 = Symbol("r_strain[1]")
     Strain2 = Symbol("r_strain[2]")
 
-    Ct = DefineMatrix('r_Ct', 3, 3)
+    Ct = sympy.zeros(3, 3)
 
     # Stress (effective and integrated and deviatoric)
-    Seff = DefineVector('Seff',3)
-    Stress = DefineVector('Stress', 3)
-    Deviator = DefineVector('Deviator', 3)
+    Seff = sympy.zeros(3)
+    Stress = sympy.zeros(3)
+    Deviator = sympy.zeros(3)
 
     # material parameters
     Young = Symbol("Young")
@@ -37,12 +37,12 @@ def SetUp3DProblem():
     Strain4 = Symbol("r_strain[4]")
     Strain5 = Symbol("r_strain[5]")
 
-    Ct = DefineMatrix('r_Ct', 6, 6)
+    Ct = sympy.zeros(6, 6)
 
     # Stress (effective and integrated and deviatoric)
-    Seff = DefineVector('Seff',6)
-    Stress = DefineVector('Stress', 6)
-    Deviator = DefineVector('Deviator', 6)
+    Seff = sympy.zeros(6)
+    Stress = sympy.zeros(6)
+    Deviator = sympy.zeros(6)
 
     # material parameters
     Young = Symbol("Young")
@@ -120,9 +120,9 @@ def ComputeAParameterExponential(Threshold, Gf, L, Young):
 Here we define the problem in terms of dimension, yield surface and linear/exponential softening
 ---------------------------------------------------------------------------------------------------
 """
-dimension = 3 # 2, 3
+dimension = 2 # 2, 3
 yield_surface = "DruckerPrager" # DruckerPrager, ModifiedMohrCoulomb, Rankine, VonMises
-softening = "Exponential" # Exponential, Linear
+softening = "Linear" # Exponential, Linear
 """
 ---------------------------------------------------------------------------------------------------
 """
