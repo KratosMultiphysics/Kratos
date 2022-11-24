@@ -1,7 +1,7 @@
 ---
 title: Granular Flow 2D Validation Test
 keywords: 
-tags: [Granular_flow_2D.md]
+tags: [Granular_flow_2d.md]
 sidebar: particle_mechanics_application
 summary: 
 ---
