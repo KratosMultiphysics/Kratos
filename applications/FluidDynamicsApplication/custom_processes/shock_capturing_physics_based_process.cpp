@@ -90,7 +90,7 @@ namespace Kratos
             "artificial_bulk_viscosity_constant": 1.5,
             "artificial_conductivity_constant": 1.0,
             "artificial_dynamic_viscosity_constant": 1.0,
-            "far_field_Prandtl": 0.0
+            "far_field_prandtl_number": 0.0
         })");
 
         return default_parameters;
