@@ -336,7 +336,7 @@ private:
                 const double alpha_pr_beta = 2.0;
                 const double mach_threshold = 3.0;
                 double Pr_beta;
-                if (mFarFieldPrandtl == 0.0) {
+                if (mFarFieldPrandtl < std::numeric_limits<double>::epsilon()) {
                     Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
                 } else {
                     Pr_beta = mFarFieldPrandtl;
