@@ -39,6 +39,16 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+/**
+ * @brief Type of meta mapper considered
+ */
+enum class MetaMapperType
+{
+    NEAREST_NEIGHBOR,
+    NEAREST_ELEMENT,
+    BARYCENTRIC
+};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -147,7 +157,16 @@ public:
 
         // Create the base mapper
         const std::string mapper_name = copied_parameters["base_mapper"].GetString();
-        const bool is_geometric_based_mapper = (mapper_name == "nearest_element" || mapper_name == "barycentric") ? true :  false;
+        if (mapper_name == "nearest_neighbor") {
+            mMetaMapperType = MetaMapperType::NEAREST_NEIGHBOR;
+        } else if (mapper_name == "nearest_element") {
+            mMetaMapperType = MetaMapperType::NEAREST_ELEMENT;
+        } else if (mapper_name == "barycentric") {
+            mMetaMapperType = MetaMapperType::BARYCENTRIC;
+        } else {
+            KRATOS_ERROR << "Not defined mapper type " << mapper_name << std::endl;
+        }
+        const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
 
         // Origin model
         auto& r_origin_model = mrUnalteredModelPartOrigin.GetModel();
@@ -261,18 +280,25 @@ public:
         {
             auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : this->GetOriginModelPart();
             auto& r_projected_destination_modelpart = r_destination_model.GetModelPart("projected_destination_modelpart");
-            if (mapper_name == "nearest_neighbor") {
+            if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
                 copied_parameters.RemoveValue("interpolation_type");
                 copied_parameters.RemoveValue("local_coord_tolerance");
                 mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
-            } else if (mapper_name == "nearest_element") {
+                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestNeighborLocalSystem(nullptr), r_projected_destination_modelpart.GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
+            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
                 copied_parameters.RemoveValue("interpolation_type");
                 mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
-            } else if (mapper_name == "barycentric") {
+                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestElementLocalSystem(nullptr), r_projected_destination_modelpart.GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
+            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
                 mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
+                MapperUtilities::CreateMapperLocalSystemsFromNodes(BarycentricLocalSystem(nullptr), r_projected_destination_modelpart.GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
             } else {
                 KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
             }
+            mpBaseMapper->GetComputeLocalSystem() = false;
+            Kratos::Flags dummy_flags = Kratos::Flags();
+            const double dummy_search_radius = -1.0f;
+            mpBaseMapper->UpdateInterface(dummy_flags, dummy_search_radius);
         }
 
         // Calling initialize
@@ -300,6 +326,44 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Updates the mapping-system after the geometry/mesh has changed
+     * After changes in the topology (e.g. remeshing or sliding interfaces)
+     * the relations for the mapping have to be recomputed. This means that
+     * the search has to be conducted again and the mapping-system has to be
+     * rebuilt, hence this is expensive
+     * @param MappingOptions flags used to specify how the update has to be done
+     * @param SearchRadius search radius used for the search
+     */
+    void UpdateInterface(
+        Kratos::Flags MappingOptions,
+        double SearchRadius
+        ) override
+    {
+        KRATOS_TRY;
+        
+        // Recompute the local system
+        {
+            if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
+                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestNeighborLocalSystem(nullptr), mpBaseMapper->GetDestinationModelPart().GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
+            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
+                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestElementLocalSystem(nullptr), mpBaseMapper->GetDestinationModelPart().GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
+            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
+                MapperUtilities::CreateMapperLocalSystemsFromNodes(BarycentricLocalSystem(nullptr), mpBaseMapper->GetDestinationModelPart().GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
+            }
+            mpBaseMapper->GetComputeLocalSystem() = false;
+            mpBaseMapper->UpdateInterface(MappingOptions, SearchRadius);
+        }
+
+        // Calling initialize
+        BaseType::UpdateInterface(MappingOptions, SearchRadius);
+
+        // Now we copy the mapping matrix
+        BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
+
+        KRATOS_CATCH("");
+    }
 
     /**
     * @brief Cloning the Mapper
@@ -423,6 +487,7 @@ private:
     BaseMapperUniquePointerType mpBaseMapper;   /// Pointer to the base mapper
     array_1d<double, 3> mNormalPlane;           /// The normal defining the plane to project
     Point mPointPlane;                          /// The coordinates of the plane to project
+    MetaMapperType mMetaMapperType;             /// Type of metamapper considered
 
     ///@}
     ///@name Private Operations
