@@ -539,7 +539,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     noalias(rStrainVectorMatrix) = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
     if (mIsPrestressed) {
         Vector aux(1);
-        aux[0] = rValues.GetElementGeometry().GetValue(SP_PRESTRESS);
+        aux[0] = rValues.GetElementGeometry().GetValue(SERIAL_PARALLEL_PRESTRESS);
         if (Iteration > 0)
             aux[0] += r_total_parallel_strain_vector[0];
         noalias(rStrainVectorFiber)  = prod(rParallelProjector, aux) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
@@ -1317,7 +1317,7 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
     mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
 
-    if (rElementGeometry.Has(SP_PRESTRESS))
+    if (rElementGeometry.Has(SERIAL_PARALLEL_PRESTRESS))
         mIsPrestressed = true;
 }
 
