@@ -300,7 +300,7 @@ private:
         const Element& rElement,
         const double DeltaTime,
         const double HeatCapacityRatio,
-        const double c_v);
+        const double SpecificHeatCV);
 
     /**
      * @brief Computes entropy max value of residual, density and total velocity over all gauss points.
