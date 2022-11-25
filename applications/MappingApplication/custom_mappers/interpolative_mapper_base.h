@@ -225,42 +225,6 @@ public:
         return *mpMappingMatrix;
     }
 
-    /**
-     * @brief This function returns origin model part
-     * @return The origin model part
-     */
-    ModelPart& GetOriginModelPart()
-    {
-        return mrModelPartOrigin;
-    }
-
-    /**
-     * @brief This function returns destination model part
-     * @return The destination model part
-     */
-    ModelPart& GetDestinationModelPart()
-    {
-        return mrModelPartDestination;
-    }
-
-    /**
-     * @brief This function returns the flag for computing the local system
-     * @return The flag for computing the local system
-     */
-    bool& GetComputeLocalSystem()
-    {
-        return mComputeLocalSystem;
-    }
-
-    /**
-     * @brief This function returns the local system
-     * @return The local system
-     */
-    MapperLocalSystemPointerVector& GetMapperLocalSystemPointerVector()
-    {
-        return mMapperLocalSystems;
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -358,7 +322,7 @@ protected:
     }
 
     /**
-     * @brief This function returns the origin model part (for inverse mapping)
+     * @brief This function origin model part (for inverse mapping)
      * @return The origin model part
      */
     virtual ModelPart& GetOriginModelPartForInverseMapping()
@@ -367,12 +331,34 @@ protected:
     }
 
     /**
-     * @brief This function returns the destination model part (for inverse mapping)
+     * @brief This function destination model part (for inverse mapping)
      * @return The destination model part
      */
     virtual ModelPart& GetDestinationModelPartForInverseMapping()
     {
         return mrModelPartOrigin;
+    }
+
+    ///@}
+    ///@name Protected Access
+    ///@{
+
+    /**
+     * @brief This function origin model part
+     * @return The origin model part
+     */
+    ModelPart& GetOriginModelPart()
+    {
+        return mrModelPartOrigin;
+    }
+
+    /**
+     * @brief This function destination model part
+     * @return The destination model part
+     */
+    ModelPart& GetDestinationModelPart()
+    {
+        return mrModelPartDestination;
     }
 
     ///@}
@@ -393,8 +379,6 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
-    bool mComputeLocalSystem = true;
-
     ///@}
     ///@name Private Operations
     ///@{
@@ -403,10 +387,8 @@ private:
     {
         KRATOS_TRY;
 
-        if (mComputeLocalSystem) {
-            CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
-                                    mMapperLocalSystems);
-        }
+        CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
+                                 mMapperLocalSystems);
 
         const bool use_initial_configuration = mMapperSettings["use_initial_configuration"].GetBool();
 
