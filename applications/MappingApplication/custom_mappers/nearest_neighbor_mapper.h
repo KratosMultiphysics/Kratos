@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
-#define  KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -22,7 +21,6 @@
 
 // Project includes
 #include "interpolative_mapper_base.h"
-
 
 namespace Kratos
 {
@@ -275,5 +273,3 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED  defined
