@@ -196,7 +196,7 @@ private:
     bool mThermalSensor;
     bool mThermallyCoupledFormulation;
     double mArtBulkViscosityConstant = 0.0;
-    double mFarFieldPrandtl = 0.0;
+    double mFarFieldPrandtlNumber = 0.0;
     double mArtConductivityConstant = 0.0;
     double mArtDynViscosityConstant = 0.0;
 
@@ -335,13 +335,13 @@ private:
                 const double Pr_beta_min = 0.9;
                 const double alpha_pr_beta = 2.0;
                 const double mach_threshold = 3.0;
-                double Pr_beta;
-                if (mFarFieldPrandtl < std::numeric_limits<double>::epsilon()) {
-                    Pr_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
+                double ArtPrandtlNumber_beta;
+                if (mFarFieldPrandtlNumber < std::numeric_limits<double>::epsilon()) {
+                    ArtPrandtlNumber_beta = Pr_beta_min * (1.0 + std::exp(-2.0 * alpha_pr_beta * (mach - mach_threshold)));
                 } else {
-                    Pr_beta = mFarFieldPrandtl;
+                    ArtPrandtlNumber_beta = mFarFieldPrandtlNumber;
                 }
-                const double elem_k1_star = (gamma * c_v / Pr_beta) * elem_b_star;
+                const double elem_k1_star = (gamma * c_v / ArtPrandtlNumber_beta) * elem_b_star;
                 rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k1_star;
             }
         }
