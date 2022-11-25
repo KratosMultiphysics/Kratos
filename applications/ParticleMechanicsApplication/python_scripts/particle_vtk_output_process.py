@@ -5,10 +5,10 @@ import numpy as np
 import shutil
 import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
 from time import time
-
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -21,7 +21,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",
-        "output_frequency"                   : 1,
+        "output_interval"                    : 1,
         "file_format"                        : "ascii",
         "output_precision"                   : 7,
         "folder_name"                        : "vtk_output",
@@ -36,6 +36,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
         if param is None:
             param = self.defaults
         else:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
@@ -57,6 +58,16 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
         shutil.rmtree(self.vtk_post_path_directory, ignore_errors=True)
         os.makedirs(str(self.vtk_post_path_directory))
 
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if DeprecationManager.HasDeprecatedVariable(context_string,settings,old_name,new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings,old_name,new_name)
+
 
         # Public Functions
     def ExecuteInitialize(self):
@@ -70,7 +81,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = self.param["output_frequency"].GetDouble()
+        self.output_frequency = self.param["output_interval"].GetDouble()
 
         # Set Variable list to print
         self.variable_name_list = self.param["gauss_point_results"]

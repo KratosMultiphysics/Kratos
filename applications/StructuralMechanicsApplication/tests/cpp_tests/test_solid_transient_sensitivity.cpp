@@ -21,7 +21,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/shared_pointers.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"

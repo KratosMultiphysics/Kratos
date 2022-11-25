@@ -166,3 +166,5 @@ void LineLoadFromDEMCondition2D<TDim>::InterpolateLineLoad(array_1d<double,3>& r
 template class LineLoadFromDEMCondition2D<2>;
 
 } // Namespace Kratos
+
+

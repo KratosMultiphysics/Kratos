@@ -525,7 +525,7 @@ namespace Kratos
             array_1d<double, 3> slave_tangent_eta;
             MathUtils<double>::CrossProduct(slave_tangent_eta, normal, slave_tangent_xi);
             
-            // We define the auxiliar geometry
+            // We define the auxiliary geometry
             std::vector<PointType::Pointer> points_array  (3);
             for (IndexType i_node = 0; i_node < 3; ++i_node)
             {

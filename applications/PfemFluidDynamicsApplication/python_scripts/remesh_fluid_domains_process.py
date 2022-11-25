@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -131,7 +130,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
             # search nodal h
         if self.neighbour_search_performed:
-            domain_utils.SearchNodalH(self.main_model_part, self.echo_level)
+            self.SearchNodalH(self.main_model_part, self.echo_level)
 
         # set the domain labels to nodes
         self.mesher_utils.SetModelPartNameToNodes(self.main_model_part)
@@ -216,6 +215,21 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.close()
 
+    #
+    def SearchNodalH(self, model_part, echo_level):
+        # define search utility
+        nodal_h_search = KratosMultiphysics.FindNodalHProcess(model_part)
+        # execute search:
+        nodal_h_search.Execute()
+
+        # to fix the nodal_h computation of the walls and to avoid setting a small and not representative nodal.H
+        # the previous function takes the minimum length of the neighbor fluid elements, this considers only the rigid ones. This avoids fluid leakage through the walls.
+        nodal_h_search_for_rigid_walls = KratosPfemFluid.FindNodalHForRigidWallsProcess(model_part)
+        # execute search:
+        nodal_h_search_for_rigid_walls.Execute()
+
+        if( echo_level > 0 ):
+            print("::[Remesh_Fluid_Domains_Process]:: Nodal H Search executed ")
 
     def ExecuteBeforeOutputStep(self):
 

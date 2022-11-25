@@ -617,11 +617,11 @@ namespace Kratos
     noalias(invFgrad) = ZeroMatrix(TDim, TDim);
     FJacobian = 1;
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
       MathUtils<double>::InvertMatrix2(Fgrad, invFgrad, FJacobian);
     }
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
       MathUtils<double>::InvertMatrix3(Fgrad, invFgrad, FJacobian);
     }
@@ -724,11 +724,11 @@ namespace Kratos
     noalias(invFgradVel) = ZeroMatrix(TDim, TDim);
     FVelJacobian = 1;
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
       MathUtils<double>::InvertMatrix2(FgradVel, invFgradVel, FVelJacobian);
     }
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
       MathUtils<double>::InvertMatrix3(FgradVel, invFgradVel, FVelJacobian);
     }

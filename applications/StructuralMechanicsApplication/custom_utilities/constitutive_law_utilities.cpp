@@ -103,12 +103,12 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        auxiliar_vector[2] = eigen_vectors_matrix(i, 2);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        auxiliary_vector[2] = eigen_vectors_matrix(i, 2);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -172,11 +172,11 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -292,6 +292,87 @@ void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
     rVoigtOperator(2, 0) = -2.0 * c * s;
     rVoigtOperator(2, 1) = 2.0 * c * s;
     rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    if (rC.size1() != VoigtSize)
+        rC.resize(VoigtSize, VoigtSize, false);
+    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    const double c1 = E / (1.0 - NU * NU);
+    const double c2 = c1 * NU;
+    const double c3 = 0.5 * E / (1.0 + NU);
+
+    rC(0, 0) = c1;
+    rC(0, 1) = c2;
+    rC(1, 0) = c2;
+    rC(1, 1) = c1;
+    rC(2, 2) = c3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    if (rC.size1() != VoigtSize)
+        rC.resize(VoigtSize, VoigtSize, false);
+    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c1 = (1.0 - NU) * c0;
+    const double c2 = c0 * NU;
+    const double c3 = (0.5 - NU) * c0;
+
+    rC(0, 0) = c1;
+    rC(0, 1) = c2;
+    rC(1, 0) = c2;
+    rC(1, 1) = c1;
+    rC(2, 2) = c3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E  = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    if (rC.size1() != VoigtSize)
+        rC.resize(VoigtSize, VoigtSize, false);
+    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c2 = c1 * (1.0 - NU);
+    const double c3 = c1 * NU;
+    const double c4 = c1 * 0.5 * (1.0 - 2.0 * NU);
+
+    rC(0, 0) = c2;
+    rC(0, 1) = c3;
+    rC(0, 2) = c3;
+    rC(1, 0) = c3;
+    rC(1, 1) = c2;
+    rC(1, 2) = c3;
+    rC(2, 0) = c3;
+    rC(2, 1) = c3;
+    rC(2, 2) = c2;
+    rC(3, 3) = c4;
+    rC(4, 4) = c4;
+    rC(5, 5) = c4;
 }
 
 /***********************************************************************************/

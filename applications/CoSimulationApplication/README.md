@@ -238,7 +238,7 @@ The _CoSimulationApplication_ consists of the following main components (taken f
 - **IO**: Responsible for communicating and data exchange with external solvers/codes
 - **DataTransferOperator**: Transfers data from one discretization to another, e.g. by use of mapping techniques
 - **CouplingOperation**: Tool for customizing coupled simulations
-- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simulations by use of relaxation techniques
+- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simulations by use of relaxation or Quasi-Newton techniques
 - **ConvergenceCriteria**: Checks if convergence is achieved in a strongly coupled simulation.
 - **Predictor**: Improves the convergence by using a prediction as initial guess for the coupled solution
 
@@ -409,4 +409,4 @@ If a solver does not support MPI-parallelism then it can only run on one rank. I
 ## References
 
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
-- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
+- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, https://www.scipedia.com/public/Bucher_et_al_2021a

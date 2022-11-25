@@ -13,7 +13,7 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "includes/cfd_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -114,7 +114,7 @@ namespace Kratos
     KRATOS_TRY;
 
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }
