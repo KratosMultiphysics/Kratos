@@ -1027,7 +1027,10 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
+        mFiberVolumetricParticipation = rValue;
     }
+    
 }
 
 /***********************************************************************************/
@@ -1068,7 +1071,11 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
-        return false;
+        if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
