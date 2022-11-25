@@ -273,7 +273,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
             this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix, rValues, rStressMeasure);
         }
         // This method computes the strain vector for the matrix & fiber
-        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rValues);
+        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rValues, iteration);
 
         // This method integrates the stress according to each simple material CL
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector, rStressMeasure);
@@ -524,7 +524,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector& rSerialStrainMatrix,
     Vector& rStrainVectorMatrix,
     Vector& rStrainVectorFiber,
-    ConstitutiveLaw::Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues,
+    const int Iteration
 )
 {
     const double kf = mFiberVolumetricParticipation;
@@ -539,7 +540,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     if (mIsPrestressed) {
         Vector aux(1);
         aux[0] = rValues.GetElementGeometry().GetValue(SP_PRESTRESS);
-        noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector + aux) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
+        if (Iteration > 0)
+            aux[0] += r_total_parallel_strain_vector[0];
+        noalias(rStrainVectorFiber)  = prod(rParallelProjector, aux) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
     } else {
         noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
     }

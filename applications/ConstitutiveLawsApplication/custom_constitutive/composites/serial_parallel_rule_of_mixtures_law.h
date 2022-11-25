@@ -457,7 +457,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         const Vector& rSerialStrainMatrix,
         Vector& rStrainVectorMatrix,
         Vector& rStrainVectorFiber,
-        ConstitutiveLaw::Parameters& rValues);
+        ConstitutiveLaw::Parameters& rValues,
+        const int Iteration = 1);
 
     /**
      * This method computes the initial aproximation of the Newton-Raphson procedure
