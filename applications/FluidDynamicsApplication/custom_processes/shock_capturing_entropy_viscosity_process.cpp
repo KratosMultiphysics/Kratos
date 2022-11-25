@@ -339,8 +339,8 @@ std::tuple<ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, ShockCapt
 ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(
     const Element& rElement,
     const double DeltaTime,
-    const double gamma,
-    const double c_v)
+    const double HeatCapacityRatio,
+    const double SpecificHeatCV)
 {
     KRATOS_TRY
 
