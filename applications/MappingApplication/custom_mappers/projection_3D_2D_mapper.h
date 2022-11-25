@@ -147,6 +147,7 @@ public:
 
         // Create the base mapper
         const std::string mapper_name = copied_parameters["base_mapper"].GetString();
+        const bool is_geometric_based_mapper = (mapper_name == "nearest_element" || mapper_name == "barycentric") ? true :  false;
 
         // Origin model
         auto& r_origin_model = mrUnalteredModelPartOrigin.GetModel();
@@ -157,6 +158,10 @@ public:
         // 2D model parts name if any
         const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
         const bool is_2d_origin = (origin_2d_sub_model_part_name != "") ? true : false;
+
+        KRATOS_ERROR_IF(!is_2d_origin && is_geometric_based_mapper && mrUnalteredModelPartOrigin.IsDistributed()) << "ERROR:: Geometric based mappers (\"nearest_element\"  or \"barycentric\") only work in MPI when passing a 2D model part as origin modelpart, as DelaunatorUtilities work only in serial" << std::endl;
+
+        KRATOS_ERROR_IF(mrUnalteredModelPartOrigin.IsDistributed()) << "ERROR:: Remove this error once you have implemented the mesh node moving" << std::endl;
 
         // We retrieve the values of interest
         if (!is_2d_origin) {
@@ -228,11 +233,12 @@ public:
             array_1d<double, 3> projected_point_coordinates;
             for (auto& r_node : rModelPartOrigin.Nodes()) {
                 noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
+                // TODO: In order to work in MPI we can move the nodes and then move then back
                 r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
             }
 
-            // In case of nearest_element we generate "geometries" to be able to interpolate
-            if (mapper_name == "nearest_element" || mapper_name == "barycentric") {
+            // In case of nearest_element or barycentric we generate "geometries" to be able to interpolate
+            if (is_geometric_based_mapper) {
                 DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
             }
         }
@@ -246,6 +252,7 @@ public:
             array_1d<double, 3> projected_point_coordinates;
             for (auto& r_node : mrUnalteredModelPartDestination.Nodes()) {
                 noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
+                // TODO: In order to work in MPI we can move the nodes and then move then back
                 r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
             }
         }
