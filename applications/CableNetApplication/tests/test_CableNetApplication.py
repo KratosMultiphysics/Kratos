@@ -6,6 +6,7 @@ from cable_net_test_factory import TestCableNetCoSimulationCases
 from cable_net_test_factory import TestCableNetFEMCases
 from test_empirical_spring  import EmpiricalSpringTests
 from test_edge_cable_process  import EdgeCableProcessTests
+from test_planar_movement_restriction import PlanarMovementRestriction
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -26,6 +27,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetFEMCases]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmpiricalSpringTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EdgeCableProcessTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([PlanarMovementRestriction]))
 
 
     ################################################################################
