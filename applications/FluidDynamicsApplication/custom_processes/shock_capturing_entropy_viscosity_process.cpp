@@ -358,7 +358,7 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(
         const auto& velocity = r_node.FastGetSolutionStepValue(VELOCITY);
         const double temperature = r_node.FastGetSolutionStepValue(TEMPERATURE);
 
-        total_velocities[i] = norm_2(velocity) + std::sqrt(gamma * (gamma - 1) * c_v * temperature); 
+        total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * (HeatCapacityRatio - 1) * SpecificHeatCV * temperature); 
 
         entropy_total_derivative.LoadNodalValues(NUMERICAL_ENTROPY, r_node, i, velocity, DeltaTime);
         density_total_derivative.LoadNodalValues(DENSITY, r_node, i, velocity, DeltaTime);
