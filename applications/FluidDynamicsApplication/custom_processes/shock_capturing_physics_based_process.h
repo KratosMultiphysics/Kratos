@@ -274,7 +274,8 @@ private:
         const double eps = 1.0e-7; // Small constant to avoid division by 0
 
         // Calculate the midpoint values
-        double midpoint_rho, formulation_midpoint_temp;
+        double midpoint_rho = 0.0;
+        double formulation_midpoint_temp = 0.0;
         auto& r_midpoint_v = rShockCapturingTLS.MidpointVelocity;
         if (mThermallyCoupledFormulation) {
             // Get required midpoint values
