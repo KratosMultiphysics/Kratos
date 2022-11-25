@@ -87,6 +87,16 @@ ModelPart& GetOriginModelPart(
 ///@name Kratos Classes
 ///@{
 
+// Definition of projection variables
+struct ProjectionVariables
+{
+    ProjectionVariables(array_1d<double, 3>& rNormal, Point& rPoint) : reference_normal(rNormal), reference_point(rPoint) {};
+    array_1d<double, 3> reference_normal;
+    Point reference_point;
+    double distance;
+    array_1d<double, 3> projected_point_coordinates;
+};
+
 /**
  * @ingroup MapingApplication
  * @class Projection3D2DMapper
@@ -132,10 +142,9 @@ public:
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination
         ) : BaseType(rModelPartOrigin, rModelPartDestination),
-            mrUnalteredModelPartOrigin(rModelPartOrigin),
-            mrUnalteredModelPartDestination(rModelPartDestination)
+            mrInputModelPartOrigin(rModelPartOrigin),
+            mrInputModelPartDestination(rModelPartDestination)
     {
-
     }
 
     // Constructor with settings
@@ -144,48 +153,31 @@ public:
         ModelPart& rModelPartDestination,
         Parameters JsonParameters
         ) : BaseType(ModelPartUtility::GetOriginModelPart(rModelPartOrigin, JsonParameters), rModelPartDestination, JsonParameters),
-            mrUnalteredModelPartOrigin(rModelPartOrigin),
-            mrUnalteredModelPartDestination(rModelPartDestination)
+            mrInputModelPartOrigin(rModelPartOrigin),
+            mrInputModelPartDestination(rModelPartDestination)
     {
         KRATOS_TRY;
 
         // Validate input
         this->ValidateInput();
 
-        // We copy the parameters to avoid conflicts in inverse mapping
-        Parameters copied_parameters = JsonParameters.Clone();
+        // Copying parameters
+        mCopiedParameters = JsonParameters.Clone();
 
-        // Create the base mapper
-        const std::string mapper_name = copied_parameters["base_mapper"].GetString();
-        if (mapper_name == "nearest_neighbor") {
-            mMetaMapperType = MetaMapperType::NEAREST_NEIGHBOR;
-        } else if (mapper_name == "nearest_element") {
-            mMetaMapperType = MetaMapperType::NEAREST_ELEMENT;
-        } else if (mapper_name == "barycentric") {
-            mMetaMapperType = MetaMapperType::BARYCENTRIC;
-        } else {
-            KRATOS_ERROR << "Not defined mapper type " << mapper_name << std::endl;
-        }
+        // Type of metamapper considered
+        GetBaseMapperType();
         const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
 
-        // Origin model
-        auto& r_origin_model = mrUnalteredModelPartOrigin.GetModel();
-
-        // Destination model part
-        auto& r_destination_model = mrUnalteredModelPartDestination.GetModel();
-
         // 2D model parts name if any
-        const std::string origin_2d_sub_model_part_name = copied_parameters["origin_2d_sub_model_part_name"].GetString();
-        const bool is_2d_origin = (origin_2d_sub_model_part_name != "") ? true : false;
+        const std::string origin_2d_sub_model_part_name = mCopiedParameters["origin_2d_sub_model_part_name"].GetString();
+        mIs2DOrigin = (origin_2d_sub_model_part_name != "") ? true : false;
 
-        KRATOS_ERROR_IF(!is_2d_origin && is_geometric_based_mapper && mrUnalteredModelPartOrigin.IsDistributed()) << "ERROR:: Geometric based mappers (\"nearest_element\"  or \"barycentric\") only work in MPI when passing a 2D model part as origin modelpart, as DelaunatorUtilities work only in serial" << std::endl;
-
-        KRATOS_ERROR_IF(mrUnalteredModelPartOrigin.IsDistributed()) << "ERROR:: Remove this error once you have implemented the mesh node moving" << std::endl;
+        KRATOS_ERROR_IF(!mIs2DOrigin && is_geometric_based_mapper && mrInputModelPartOrigin.IsDistributed()) << "ERROR:: Geometric based mappers (\"nearest_element\"  or \"barycentric\") only work in MPI when passing a 2D model part as origin modelpart, as DelaunatorUtilities work only in serial" << std::endl;
 
         // We retrieve the values of interest
-        if (!is_2d_origin) {
-            noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
-            noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
+        if (!mIs2DOrigin) {
+            noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
+            noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
         } else {
             const auto& r_origin_sub_model_part = this->GetOriginModelPart();
             GeometryType::Pointer p_geometry = nullptr;
@@ -200,9 +192,9 @@ public:
             }
             // Getting from parameters if not elements or conditions
             if (p_geometry == nullptr) {
-                KRATOS_ERROR_IF_NOT(mapper_name == "nearest_neighbor") << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl;
-                noalias(mNormalPlane) = copied_parameters["normal_plane"].GetVector();
-                noalias(mPointPlane.Coordinates()) = copied_parameters["reference_plane_coordinates"].GetVector();
+                KRATOS_ERROR_IF_NOT(mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl;
+                noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
+                noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
             } else {
                 GeometryType::CoordinatesArrayType aux_coords;
                 noalias(mPointPlane.Coordinates()) = p_geometry->Center();
@@ -237,69 +229,20 @@ public:
         }
 
         // Cleaning the parameters
-        copied_parameters.RemoveValue("normal_plane");
-        copied_parameters.RemoveValue("reference_plane_coordinates");
-        copied_parameters.RemoveValue("base_mapper");
-        copied_parameters.RemoveValue("origin_2d_sub_model_part_name");
-        copied_parameters.RemoveValue("destination_2d_sub_model_part_name");
+        mCopiedParameters.RemoveValue("normal_plane");
+        mCopiedParameters.RemoveValue("reference_plane_coordinates");
+        mCopiedParameters.RemoveValue("base_mapper");
+        mCopiedParameters.RemoveValue("origin_2d_sub_model_part_name");
+        mCopiedParameters.RemoveValue("destination_2d_sub_model_part_name");
 
-        // Projected origin model part. If the origin model part is not 2D we project it
-        if (!is_2d_origin) {
-            auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
-
-            // Iterate over the existing nodes
-            double distance;
-            array_1d<double, 3> projected_point_coordinates;
-            for (auto& r_node : rModelPartOrigin.Nodes()) {
-                noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-                // TODO: In order to work in MPI we can move the nodes and then move then back
-                r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
-            }
-
-            // In case of nearest_element or barycentric we generate "geometries" to be able to interpolate
-            if (is_geometric_based_mapper) {
-                DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
-            }
-        }
-
-        // Projected destination model part
-        {
-            auto& r_projected_destination_modelpart = r_destination_model.CreateModelPart("projected_destination_modelpart");
-
-            // Iterate over the existing nodes
-            double distance;
-            array_1d<double, 3> projected_point_coordinates;
-            for (auto& r_node : mrUnalteredModelPartDestination.Nodes()) {
-                noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-                // TODO: In order to work in MPI we can move the nodes and then move then back
-                r_projected_destination_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
-            }
-        }
+        // Move mesh
+        MoveModelParts();
 
         // Initializing the base mapper
-        {
-            auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : this->GetOriginModelPart();
-            auto& r_projected_destination_modelpart = r_destination_model.GetModelPart("projected_destination_modelpart");
-            if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
-                copied_parameters.RemoveValue("interpolation_type");
-                copied_parameters.RemoveValue("local_coord_tolerance");
-                mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
-                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestNeighborLocalSystem(nullptr), r_projected_destination_modelpart.GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
-            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
-                copied_parameters.RemoveValue("interpolation_type");
-                mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
-                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestElementLocalSystem(nullptr), r_projected_destination_modelpart.GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
-            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
-                mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, copied_parameters);
-                MapperUtilities::CreateMapperLocalSystemsFromNodes(BarycentricLocalSystem(nullptr), r_projected_destination_modelpart.GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
-            } else {
-                KRATOS_ERROR << "ERROR:: Mapper " << mapper_name << " is not available as base mapper for projection" << std::endl;
-            }
-            mpBaseMapper->GetComputeLocalSystem() = false;
-            Kratos::Flags dummy_flags = Kratos::Flags();
-            const double dummy_search_radius = -1.0f;
-            mpBaseMapper->UpdateInterface(dummy_flags, dummy_search_radius);
-        }
+        CreateBaseMapper();
+
+        // Unmove mesh
+        UnMoveModelParts();
 
         // Calling initialize
         this->Initialize();
@@ -307,11 +250,11 @@ public:
         // Now we copy the mapping matrix
         BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
 
-        // Remove the created model parts to not crash in InvertedMap
+        // Remove the created model parts for inverted mapping conflict
+        auto& r_origin_model = mrInputModelPartOrigin.GetModel();
         if (r_origin_model.HasModelPart("projected_origin_modelpart")) {
             r_origin_model.DeleteModelPart("projected_origin_modelpart");
         }
-        r_destination_model.DeleteModelPart("projected_destination_modelpart");
 
         KRATOS_CATCH("");
     }
@@ -343,24 +286,29 @@ public:
     {
         KRATOS_TRY;
         
-        // Recompute the local system
-        {
-            if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
-                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestNeighborLocalSystem(nullptr), mpBaseMapper->GetDestinationModelPart().GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
-            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
-                MapperUtilities::CreateMapperLocalSystemsFromNodes(NearestElementLocalSystem(nullptr), mpBaseMapper->GetDestinationModelPart().GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
-            } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
-                MapperUtilities::CreateMapperLocalSystemsFromNodes(BarycentricLocalSystem(nullptr), mpBaseMapper->GetDestinationModelPart().GetCommunicator(), mpBaseMapper->GetMapperLocalSystemPointerVector());
-            }
-            mpBaseMapper->GetComputeLocalSystem() = false;
-            mpBaseMapper->UpdateInterface(MappingOptions, SearchRadius);
-        }
+        // Move mesh
+        MoveModelParts();
+
+        // Initializing the base mapper
+        CreateBaseMapper();
+
+        // Update interface base mapper
+        mpBaseMapper->UpdateInterface(MappingOptions, SearchRadius);
+
+        // Unmove mesh
+        UnMoveModelParts();
 
         // Calling initialize
         BaseType::UpdateInterface(MappingOptions, SearchRadius);
 
         // Now we copy the mapping matrix
         BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
+
+        // Remove the created model parts for inverted mapping conflict
+        auto& r_origin_model = mrInputModelPartOrigin.GetModel();
+        if (r_origin_model.HasModelPart("projected_origin_modelpart")) {
+            r_origin_model.DeleteModelPart("projected_origin_modelpart");
+        }
 
         KRATOS_CATCH("");
     }
@@ -449,6 +397,8 @@ protected:
      */
     Parameters GetInvertedMappingParameters(Parameters ForwardMappingParameters) override
     {
+        KRATOS_TRY;
+
         // Copy the parameters
         Parameters inverted_parameters = ForwardMappingParameters.Clone();
 
@@ -459,6 +409,8 @@ protected:
         inverted_parameters["destination_2d_sub_model_part_name"].SetString(origin_2d_sub_model_part_name);
         
         return inverted_parameters;
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -482,16 +434,136 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrUnalteredModelPartOrigin;      /// The unaltered origin model part (as it comes from the input)
-    ModelPart& mrUnalteredModelPartDestination; /// The unaltered destination model part (as it comes from the input)
+    ModelPart& mrInputModelPartOrigin;          /// The unaltered origin model part (as it comes from the input)
+    ModelPart& mrInputModelPartDestination;     /// The unaltered destination model part (as it comes from the input)
     BaseMapperUniquePointerType mpBaseMapper;   /// Pointer to the base mapper
     array_1d<double, 3> mNormalPlane;           /// The normal defining the plane to project
     Point mPointPlane;                          /// The coordinates of the plane to project
-    MetaMapperType mMetaMapperType;             /// Type of metamapper considered
+    Parameters mCopiedParameters;               /// The copied parameters. We copy the parameters to avoid conflicts in inverse mapping
+    MetaMapperType mMetaMapperType;             /// The meta mapper type
+    bool mIs2DOrigin;                           /// If the origin model part is 2D
 
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Getting the base mapper type
+     */
+    void GetBaseMapperType()
+    {
+        KRATOS_TRY;
+
+        // Detect the mapper type
+        const std::string mapper_name = mCopiedParameters["base_mapper"].GetString();
+        if (mapper_name == "nearest_neighbor") {
+            mMetaMapperType = MetaMapperType::NEAREST_NEIGHBOR;
+        } else if (mapper_name == "nearest_element") {
+            mMetaMapperType = MetaMapperType::NEAREST_ELEMENT;
+        } else if (mapper_name == "barycentric") {
+            mMetaMapperType = MetaMapperType::BARYCENTRIC;
+        } else {
+            KRATOS_ERROR << "Not defined mapper type " << mapper_name << std::endl;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Create the base mapper
+     */
+    void CreateBaseMapper()
+    {
+        KRATOS_TRY;
+
+        // The origin model         
+        auto& r_origin_model = mrInputModelPartOrigin.GetModel();
+
+        // Getting model parts
+        auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : this->GetOriginModelPart();
+        auto& r_projected_destination_modelpart = mrInputModelPartDestination;
+
+        // Creating the base mapper
+        if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
+            if (mCopiedParameters.Has("interpolation_type")) mCopiedParameters.RemoveValue("interpolation_type");
+            if (mCopiedParameters.Has("local_coord_tolerance")) mCopiedParameters.RemoveValue("local_coord_tolerance");
+            mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, mCopiedParameters);
+        } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
+            if (mCopiedParameters.Has("interpolation_type")) mCopiedParameters.RemoveValue("interpolation_type");
+            mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, mCopiedParameters);
+        } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
+            mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, mCopiedParameters);
+        } else {
+            KRATOS_ERROR << "ERROR:: Mapper " << mCopiedParameters["base_mapper"].GetString() << " is not available as base mapper for projection" << std::endl;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Moves the model parts
+     */
+    void MoveModelParts()
+    {
+        KRATOS_TRY;
+
+        // Projected origin model part. If the origin model part is not 2D we project it
+        if (!mIs2DOrigin) {
+            const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
+            if(is_geometric_based_mapper) {
+                // Origin model
+                auto& r_origin_model = mrInputModelPartOrigin.GetModel();
+
+                auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
+
+                // Iterate over the existing nodes
+                double distance;
+                array_1d<double, 3> projected_point_coordinates;
+                for (auto& r_node : mrInputModelPartOrigin.Nodes()) {
+                    noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
+                    r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
+                }
+
+                // We generate "geometries" to be able to interpolate
+                DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
+            } else { // Move mesh
+                MapperUtilities::SaveCurrentConfiguration(mrInputModelPartOrigin);
+
+                // Iterate over the existing nodes
+                block_for_each(mrInputModelPartOrigin.Nodes(), ProjectionVariables(mNormalPlane, mPointPlane), [&](auto& r_node, ProjectionVariables& p) {
+                    noalias(p.projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(p.reference_point, r_node, p.reference_normal, p.distance).Coordinates();
+                    noalias(r_node.Coordinates()) = p.projected_point_coordinates;
+                });
+            }
+        } 
+
+        // Projected destination model part
+        MapperUtilities::SaveCurrentConfiguration(mrInputModelPartDestination);
+
+        // Iterate over the existing nodes
+        block_for_each(mrInputModelPartDestination.Nodes(), ProjectionVariables(mNormalPlane, mPointPlane), [&](auto& r_node, ProjectionVariables& p) {
+            noalias(p.projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(p.reference_point, r_node, p.reference_normal, p.distance).Coordinates();
+            noalias(r_node.Coordinates()) = p.projected_point_coordinates;
+        });
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Unmoves the model parts
+     */
+    void UnMoveModelParts()
+    {
+        KRATOS_TRY; 
+
+        const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
+        if (!mIs2DOrigin && !is_geometric_based_mapper) {
+            MapperUtilities::RestoreCurrentConfiguration(mrInputModelPartOrigin);
+        }
+        MapperUtilities::RestoreCurrentConfiguration(mrInputModelPartDestination);
+
+        KRATOS_CATCH("");
+    }
 
     /**
      * @brief This function origin model part (for inverse mapping)
@@ -499,7 +571,7 @@ private:
      */
     ModelPart& GetOriginModelPartForInverseMapping() override
     {
-        return mrUnalteredModelPartDestination;
+        return mrInputModelPartDestination;
     }
 
     /**
@@ -508,7 +580,7 @@ private:
      */
     ModelPart& GetDestinationModelPartForInverseMapping() override
     {
-        return mrUnalteredModelPartOrigin;
+        return mrInputModelPartOrigin;
     }
 
     void CreateMapperLocalSystems(
