@@ -36,7 +36,9 @@ KratosCableNetApplication::KratosCableNetApplication():
     mSlidingCableElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
     mRingElement3D4N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(4)))),
     mRingElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-    mEmpiricalSpringElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2))))
+    mEmpiricalSpringElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+
+    mPlanarMovementRestrictionCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
     {}
 
 void KratosCableNetApplication::Register()
@@ -56,6 +58,9 @@ void KratosCableNetApplication::Register()
     KRATOS_REGISTER_ELEMENT("RingElement3D3N", mRingElement3D3N)
     KRATOS_REGISTER_ELEMENT("EmpiricalSpringElement3D2N", mEmpiricalSpringElement3D2N)
 
+    KRATOS_REGISTER_CONDITION("PlanarMovementRestrictionCondition3D1N", mPlanarMovementRestrictionCondition3D1N)
+
     KRATOS_REGISTER_VARIABLE(SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL)
+    KRATOS_REGISTER_VARIABLE(WALL_POSITION)
 }
 }  // namespace Kratos.

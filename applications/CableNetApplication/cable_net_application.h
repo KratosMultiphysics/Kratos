@@ -29,6 +29,8 @@
 #include "custom_elements/weak_coupling_slide.hpp"
 #include "custom_elements/empirical_spring.hpp"
 
+#include "custom_conditions/planar_movement_restriction_condition.h"
+
 
 namespace Kratos {
 
@@ -185,6 +187,8 @@ private:
     const RingElement3D mRingElement3D4N;
     const RingElement3D mRingElement3D3N;
     const EmpiricalSpringElement3D2N mEmpiricalSpringElement3D2N;
+
+    const PlanarMovementRestrictionCondition3D1N mPlanarMovementRestrictionCondition3D1N;
 
     ///@}
     ///@name Private Operators

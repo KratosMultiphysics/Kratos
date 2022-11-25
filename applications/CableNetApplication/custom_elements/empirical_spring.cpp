@@ -56,7 +56,6 @@ EmpiricalSpringElement3D2N::~EmpiricalSpringElement3D2N() {}
 void EmpiricalSpringElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
                                                   const ProcessInfo& rCurrentProcessInfo) const
 {
-
     if (rResult.size() != msLocalSize) {
         rResult.resize(msLocalSize);
     }
