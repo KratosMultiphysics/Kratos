@@ -316,7 +316,7 @@ int PlanarMovementRestrictionCondition3D1N::Check( const ProcessInfo& rCurrentPr
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
     }
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
     KRATOS_ERROR_IF((GetGeometry().WorkingSpaceDimension() != 3) || (GetGeometry().size() != 1))
         << "The planar movement condition works only in 3D and with 1 noded condition" << std::endl;
     
@@ -329,7 +329,7 @@ int PlanarMovementRestrictionCondition3D1N::Check( const ProcessInfo& rCurrentPr
     KRATOS_ERROR_IF(!GetProperties().Has(YOUNG_MODULUS))
         << "No YOUNG_MODULUS given" << std::endl;
 
-    KRATOS_ERROR_IF(CalculateNormalDistance(ZeroVector(3)) <= numerical_limit)
+    KRATOS_ERROR_IF(CalculateNormalDistance(ZeroVector(3)) < 0)
         << "NORMAL_TO_WALL points in wrong direction" << std::endl;
 
     return 0;
