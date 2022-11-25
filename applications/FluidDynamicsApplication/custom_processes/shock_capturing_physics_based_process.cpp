@@ -87,7 +87,7 @@ namespace Kratos
             "shear_sensor" : true,
             "thermal_sensor" : true,
             "thermally_coupled_formulation" : true,
-            "artificial_Bulk_viscosity_constant": 1.5,
+            "artificial_bulk_viscosity_constant": 1.5,
             "artificial_conductivity_constant": 1.0,
             "artificial_dynamic_viscosity_constant": 1.0,
             "far_field_Prandtl": 0.0
