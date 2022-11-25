@@ -27,3 +27,9 @@ entries:
     - title: Post processing
       url: /pages/Applications/Particle_Mechanics_Application/MPM_example_in_GiD/post_processing.html
       output: web
+  - title: Examples
+    output: web
+    folderitems:
+    - title: README
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/remote_README.html
+      output: web
