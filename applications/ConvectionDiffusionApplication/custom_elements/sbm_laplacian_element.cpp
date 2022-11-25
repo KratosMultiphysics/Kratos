@@ -150,7 +150,6 @@ void SBMLaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 void SBMLaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
-    // std::cout << "ciaooooooo222" ;
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
 }

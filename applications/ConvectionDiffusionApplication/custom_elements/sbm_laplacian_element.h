@@ -92,6 +92,10 @@ public:
 
     // void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
+
+
+
+
     // New
     void EquationIdVector(
         EquationIdVectorType& rResult,

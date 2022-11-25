@@ -41,7 +41,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mSBMLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    //   mSBMLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSBMLaplacian2D3N(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
+      mSBMLaplacianCondition(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
       mLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
       mLaplacian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
@@ -122,6 +124,7 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
+    KRATOS_REGISTER_CONDITION("SBMLaplacianCondition", mSBMLaplacianCondition);
 
     KRATOS_REGISTER_CONDITION("AdjointThermalFace2D2N", mAdjointThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("AdjointThermalFace3D3N", mAdjointThermalFace3D3N);

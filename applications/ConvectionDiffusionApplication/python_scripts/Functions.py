@@ -407,3 +407,90 @@ def Compute_error(main_model_part) :
         # print('Errore in norma H1 : ', H1_err_grad)
         file_due.close
         return
+
+
+def Create_boundary_sub_model_part (main_model_part) :
+    boundary_sub_model_part = main_model_part.CreateSubModelPart("boundary_sub_model_part")
+    for node in main_model_part.Nodes :
+        if node.Is(BOUNDARY) :
+            node.Set(BOUNDARY, False)
+    for node in main_model_part.Nodes :
+        if node.Is(VISITED) :
+            boundary_sub_model_part.AddNode(node,0)
+            node.Set(BOUNDARY, True)
+    return boundary_sub_model_part
+
+def Compute_gradint_coefficients (sub_model_part_fluid, model,boundary_sub_model_part) :
+    Parameters = KratosMultiphysics.Parameters("""
+    {
+        "model_part_name" : "ThermalModelPart",
+        "boundary_sub_model_part_name" : "boundary_sub_model_part",
+        "sbm_interface_condition_name" : "LineCondition2D2N",
+        "conforming_basis" : true,
+        "extension_operator_type" : "MLS",
+        "mls_extension_operator_order" : 1,
+        "levelset_variable_name" : "DISTANCE"
+    }
+    """)
+    for elem in sub_model_part_fluid.Elements :
+        if elem.IsNot(ACTIVE) :
+            elem.Set(ACTIVE, True)
+    # CALCOLO DEI COEFFICIENTI PER IL CALCOLO DEL GRADIENTE
+    a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(model,Parameters)
+    result = a.SetSurrogateBoundaryNodalGradientWeights()
+    # print('Number of results : ', len(result))
+    # print('Number of surr nodes : ', len(boundary_sub_model_part.Nodes))
+    return result
+
+def Compute_T_matrix (result, node, projection_surr_nodes, i) :
+    my_result = result[node.Id]
+    T_tilde = [[0 for _ in range(len(my_result))] for _ in range(2)]
+    j = 0
+    for key, value in my_result.items():      
+        T_tilde[0][j] = value[0]
+        T_tilde[1][j] = value[1]     
+        j = j + 1
+    # Get the distance vector using the projections
+    d_vector = [[0 for _ in range(1)] for _ in range(2)]
+    d_vector[0] = projection_surr_nodes[i][0] - node.X
+    d_vector[1] = projection_surr_nodes[i][1] - node.Y
+    # MATRIX MULTIPLICATION
+    T = np.matmul( np.transpose(T_tilde) , d_vector )
+    return T
+
+def Impose_MPC_Globally (main_model_part, surrogate_sub_model_part, result, skin_model_part, closest_element, projection_surr_nodes, T, node, j) :
+    my_result = result[node.Id]
+    DofMasterVector = []
+    CoeffVector = KratosMultiphysics.Vector(len(my_result)-1)
+    ConstantVector = 0.0*KratosMultiphysics.Vector(len(my_result)-1)
+    # Interpolate the value at the projection 
+    dirichlet_projection = Interpolation(skin_model_part, closest_element, projection_surr_nodes, j-1, node)
+    # print(dirichlet_projection)
+    i = 0
+    k = 0
+    for key, value in my_result.items() :
+        # Need to find the "node" term and bring it to the left-hand-side
+        if node.Id != key :
+            node_master = main_model_part.GetNode(key)
+            DofMasterVector.append(node_master.GetDof(KratosMultiphysics.TEMPERATURE))
+            ConstantVector[i] = dirichlet_projection
+            CoeffVector[i] = - T[k]
+            i = i + 1
+            k = k + 1
+        else :
+            Coeff_Slave = - T[k]
+            k = k + 1
+    CoeffVector[:] = CoeffVector[:] / (1-Coeff_Slave)
+    ConstantVector[:] = ConstantVector[:] / (1-Coeff_Slave)
+    if j == 14 :
+        DofMasterVector = DofMasterVector
+        dirichlet_projection = dirichlet_projection
+        CoeffVector = CoeffVector
+        ConstantVector = ConstantVector
+    CoeffMatrix = KratosMultiphysics.Matrix(np.array(CoeffVector).reshape(1,-1))
+    DofSlaveVector = [node.GetDof(KratosMultiphysics.TEMPERATURE)]
+    # Create the constraint
+    if j == 2 or j == 4 :
+        main_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", j, DofMasterVector, DofSlaveVector, CoeffMatrix, ConstantVector)
+        # print(CoeffVector)
+    return 0 
