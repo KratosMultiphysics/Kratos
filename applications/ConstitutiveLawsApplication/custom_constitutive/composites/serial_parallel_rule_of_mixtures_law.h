@@ -457,7 +457,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         const Vector& rSerialStrainMatrix,
         Vector& rStrainVectorMatrix,
         Vector& rStrainVectorFiber,
-        const ConstitutiveLaw::Parameters& rValues);
+        ConstitutiveLaw::Parameters& rValues);
 
     /**
      * This method computes the initial aproximation of the Newton-Raphson procedure
@@ -660,6 +660,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     array_1d<double, 6> mParallelDirections = ZeroVector(6);
     array_1d<double, 6> mPreviousStrainVector = ZeroVector(6);
     Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
+    bool mIsPrestressed = false;
 
     ///@}
     ///@name Private Operators

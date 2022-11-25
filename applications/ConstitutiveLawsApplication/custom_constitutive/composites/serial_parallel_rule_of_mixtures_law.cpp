@@ -524,22 +524,25 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector& rSerialStrainMatrix,
     Vector& rStrainVectorMatrix,
     Vector& rStrainVectorFiber,
-    const ConstitutiveLaw::Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues
 )
 {
     const double kf = mFiberVolumetricParticipation;
     const double km = 1.0 - kf;
 
     const Vector& r_total_parallel_strain_vector = prod(trans(rParallelProjector), rStrainVector);
-    Vector aux(1);
-    aux[0] = 0.00001;
     const Vector& r_total_serial_strain_vector   = prod(rSerialProjector, rStrainVector);
-
 
 
     // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
     noalias(rStrainVectorMatrix) = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
-    noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector + aux) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
+    if (mIsPrestressed) {
+        Vector aux(1);
+        aux[0] = rValues.GetElementGeometry().GetValue(SP_PRESTRESS);
+        noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector + aux) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
+    } else {
+        noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
+    }
 }
 
 /***********************************************************************************/
@@ -1310,6 +1313,9 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     mpFiberConstitutiveLaw  = r_props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
     mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
     mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
+
+    if (rElementGeometry.Has(SP_PRESTRESS))
+        mIsPrestressed = true;
 }
 
 /***********************************************************************************/
