@@ -134,7 +134,7 @@ namespace Kratos
         mThermalSensor = rParameters["thermal_sensor"].GetBool();
         mThermallyCoupledFormulation = rParameters["thermally_coupled_formulation"].GetBool();
         mArtBulkViscosityConstant = rParameters["artificial_bulk_viscosity_constant"].GetDouble();
-        mFarFieldPrandtl = rParameters["far-field_Prandtl"].GetDouble();
+        mFarFieldPrandtl = rParameters["far_field_Prandtl"].GetDouble();
         mArtConductivityConstant = rParameters["artificial_conductivity_constant"].GetDouble();
         mArtDynViscosityConstant = rParameters["artificial_dynamic_viscosity_constant"].GetDouble();
 
