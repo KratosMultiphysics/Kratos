@@ -145,6 +145,7 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
     }
 
