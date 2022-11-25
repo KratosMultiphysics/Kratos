@@ -117,9 +117,10 @@ private:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     double mFilterRadiusFactor;
+    std::string mRadiusFunctionType;
     double mMinimumFilterRadius;
+    double mRadiusFunctionParameter;
     double mCurvatureLimit;
-    double mTolerance;
     IndexType mNumberOfSmoothingIterations;
     IndexType mMaxNumberOfNeighbors;
 
@@ -130,6 +131,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double CurvatureFunction(const double& rCurvature, const double& rElementSize);
 
     void CalculateCurvatureIGL();
 

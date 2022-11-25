@@ -62,11 +62,13 @@ MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::MapperVertexMorph
     : BaseType(rOriginModelPart, rDestinationModelPart, MapperSettings),
         mrOriginModelPart(rOriginModelPart),
         mrDestinationModelPart(rDestinationModelPart),
+        // TODO: delete filter_radius_factor
         mFilterRadiusFactor(MapperSettings["adaptive_filter_settings"]["filter_radius_factor"].GetDouble()),
         mMinimumFilterRadius(MapperSettings["adaptive_filter_settings"]["minimum_filter_radius"].GetDouble()),
         mNumberOfSmoothingIterations(MapperSettings["adaptive_filter_settings"]["filter_radius_smoothing_iterations"].GetInt()),
+        mRadiusFunctionType(MapperSettings["adaptive_filter_settings"]["radius_function"].GetString()),
+        mRadiusFunctionParameter(MapperSettings["adaptive_filter_settings"]["radius_function_parameter"].GetDouble()),
         mCurvatureLimit(MapperSettings["adaptive_filter_settings"]["curvature_limit"].GetDouble()),
-        mTolerance(MapperSettings["adaptive_filter_settings"]["tolerance"].GetDouble()),
         mMaxNumberOfNeighbors(MapperSettings["max_nodes_in_filter_radius"].GetInt())
 {
 }
@@ -201,20 +203,20 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
     double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 
     // TODO: ACTIVATE AGAIN / FIND A WAY TO DEAL WITH EDGE NODES!
-    // // check if node lies on edge
-    // // TODO: for all element types
-    // for (const auto& r_neighbour : r_neighbours) {
-    //     int count = 0;
-    //     for (const auto& r_condition_neighbour : r_condition_neighbours) {
-    //         for (int i = 0; i < r_condition_neighbour->GetGeometry().PointsNumber(); ++i) {
-    //             if (r_condition_neighbour->GetGeometry()[i].Id() == r_neighbour->Id()) count++;
-    //         }
-    //     }
-    //     if (count < 2) {
-    //         r_gaussian_curvature = 0;
-    //         return;
-    //     }
-    // }
+    // check if node lies on edge
+    // TODO: for all element types
+    for (const auto& r_neighbour : r_neighbours) {
+        int count = 0;
+        for (const auto& r_condition_neighbour : r_condition_neighbours) {
+            for (int i = 0; i < r_condition_neighbour->GetGeometry().PointsNumber(); ++i) {
+                if (r_condition_neighbour->GetGeometry()[i].Id() == r_neighbour->Id()) count++;
+            }
+        }
+        if (count < 2) {
+            r_gaussian_curvature = 0;
+            return;
+        }
+    }
 
     r_gaussian_curvature = 2*Globals::Pi;
     double A_mixed = 0.0;
@@ -238,6 +240,43 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
 template <class TBaseVertexMorphingMapper>
 double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Cotan(const double& rAngle) {
     return cos(rAngle) / sin(rAngle);
+}
+
+template <class TBaseVertexMorphingMapper>
+double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CurvatureFunction(const double& rCurvature, const double& rElementSize) {
+
+    // Using the function delta_K = a / (kappa + b)
+    // two equations for parameter a and b:
+    // (I) a / b = delta_K(r_min)
+    // (II) a / (kappa_limit + b) = mRadiusFunctionParameter
+    // This is based on the "analytic" relation (found out by numerical experiment) between curvature change and filter radius: delta_K ~ 4 / r**4
+    // => r = pow(4 / delta_K, 0.25)
+    if (mRadiusFunctionType == "analytic")
+    {
+        double delta_K_max = 4 / pow(mMinimumFilterRadius/rElementSize, 4);
+
+        double b = (mRadiusFunctionParameter * mCurvatureLimit) / (delta_K_max - mRadiusFunctionParameter);
+        double a = b * delta_K_max;
+        double delta_K = a / (abs(rCurvature) + b);
+
+        double filter_radius = (delta_K > 0) ? rElementSize * pow(4/delta_K, 0.25) : mMinimumFilterRadius;
+        return filter_radius;
+    }
+    // Using linear function r = r_min + a * h * kappa
+    else if (mRadiusFunctionType == "linear")
+    {
+        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * abs(rCurvature);
+    }
+    // Using square root function r = r_min + a * h * sqrt(kappa)
+    else if (mRadiusFunctionType == "square_root") {
+        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * sqrt(abs(rCurvature));
+    }
+    // Using fourth root function r = r_min + a * h * kappa**0.25
+    else if (mRadiusFunctionType == "fourth_root") {
+        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * pow(abs(rCurvature), 0.25);
+    } else {
+        KRATOS_ERROR << "ShapeOpt Adaptive Filter: Curvature function type " << mRadiusFunctionType << " not supported for adaptive filter vertex morphing method." << std::endl;
+    }
 }
 
 template <class TBaseVertexMorphingMapper>
@@ -554,31 +593,13 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
             const double distance = norm_2(r_coordinates_origin_node - r_coordinates_neighbour_node);
             max_distance = std::max(max_distance, distance);
         }
-        double delta_K_max = 4*step_size / pow(mMinimumFilterRadius/max_distance, 4);
         CalculateCurvatureAtNode(rNode);
         double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 
-        // Linear delta_K function
-        // double delta_K = delta_K_max - abs(r_gaussian_curvature) * (delta_K_max - mTolerance) / mCurvatureLimit;
-        double factor_b = (mTolerance*mCurvatureLimit) / (delta_K_max - mTolerance);
-        double factor_a = factor_b * delta_K_max;
-        double delta_K = factor_a / (abs(r_gaussian_curvature) + factor_b);
-
-
-        // KRATOS_INFO("ShapeOpt") << "max distance of node id = " << rNode.Id() << " : " << max_distance << std::endl;
         double& vm_radius = rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS);
+        vm_radius = this->CurvatureFunction(r_gaussian_curvature, max_distance);
         double& vm_radius_raw = rNode.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS_RAW);
-        if (delta_K > 0) {
-            vm_radius = max_distance * pow(4*step_size/delta_K, 0.25);
-            vm_radius_raw = max_distance * pow(4*step_size/delta_K, 0.25);
-        } else {
-            vm_radius = mMinimumFilterRadius;
-            vm_radius_raw = mMinimumFilterRadius;
-        }
-
-        // rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor);
-        // rNode.SetValue(VERTEX_MORPHING_RADIUS_RAW, max_distance * mFilterRadiusFactor);
-        // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << rNode.Id() << " : " << max_distance * mFilterRadiusFactor << std::endl;
+        vm_radius_raw = this->CurvatureFunction(r_gaussian_curvature, max_distance);
     });
 
     KRATOS_CATCH("");
