@@ -66,6 +66,7 @@ class Projection3D2DMapperNearestNeighbor(mapper_test_case.MapperTestCase):
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_origin, KM.FORCE)
 
+@KratosUnittest.skipIf(IsDistributedRun(),  "Test designed to be run only in serial")
 class Projection3D2DMapperNearestElement(mapper_test_case.MapperTestCase):
     '''This class contains the tests for 3D-2D projections for the NearestElement mapper
     '''
@@ -91,28 +92,24 @@ class Projection3D2DMapperNearestElement(mapper_test_case.MapperTestCase):
     def _GetFileName(self, file_appendix):
         return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
 
-    @KratosUnittest.skipIf(IsDistributedRun(),  "Test designed to be run only in serial")
     def test_Projection3D2DMapper_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination, KM.TEMPERATURE)
 
-    @KratosUnittest.skipIf(IsDistributedRun(),  "Test designed to be run only in serial")
     def test_Projection3D2DMapper_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_origin, KM.PRESSURE, GetFilePath(self._GetFileName("inverse_map_scalar")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_origin, KM.PRESSURE)
 
-    @KratosUnittest.skipIf(IsDistributedRun(),  "Test designed to be run only in serial")
     def test_Projection3D2DMapper_Map_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.model_part_origin.Nodes, KM.FORCE)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_destination, KM.VELOCITY, GetFilePath(self._GetFileName("map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination, KM.VELOCITY)
 
-    @KratosUnittest.skipIf(IsDistributedRun(),  "Test designed to be run only in serial")
     def test_Projection3D2DMapper_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
