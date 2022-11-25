@@ -30,6 +30,6 @@ entries:
   - title: Examples
     output: web
     folderitems:
-    - title: README
-      url: /pages/Applications/Particle_Mechanics_Application/Examples/remote_README.html
+    - title: Granular Flow
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/Granular_flow_2d.html
       output: web
