@@ -30,6 +30,9 @@ entries:
   - title: Examples
     output: web
     folderitems:
-    - title: README
-      url: /pages/Applications/Particle_Mechanics_Application/Examples/remote_README.html
+    - title: Granular flow 2D
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/Granular_flow_2d.html
+      output: web
+    - title: Cylinder on inclined plane
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/Cylinder_on_inclined_plane.html
       output: web
