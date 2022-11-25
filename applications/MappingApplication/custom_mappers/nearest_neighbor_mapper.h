@@ -133,7 +133,7 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-template<class TSparseSpace, class TDenseSpace, class TMapperBackend, class TLocalSystem = NearestNeighborLocalSystem>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
 class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapper
     : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
@@ -246,7 +246,7 @@ private:
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
         MapperUtilities::CreateMapperLocalSystemsFromNodes(
-            TLocalSystem(nullptr),
+            NearestNeighborLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }

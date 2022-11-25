@@ -105,7 +105,7 @@ private:
 };
 
 /// Barycentric Mapper
-template<class TSparseSpace, class TDenseSpace, class TMapperBackend, class TLocalSystem = BarycentricLocalSystem>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
 class KRATOS_API(MAPPING_APPLICATION) BarycentricMapper
     : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
@@ -226,7 +226,7 @@ private:
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
         MapperUtilities::CreateMapperLocalSystemsFromNodes(
-            TLocalSystem(nullptr),
+            BarycentricLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
