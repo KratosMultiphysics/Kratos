@@ -116,7 +116,7 @@ class Projection3D2DMapperNearestElement(mapper_test_case.MapperTestCase):
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_origin, KM.FORCE)
 
-@KratosUnittest.skipIf(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() > 2,  "Test designed to be run with max. 2 ranks.")
+@KratosUnittest.skipIf(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() > 2,  "Test designed to be run with max. 2 ranks. 2D mesh is too small and is problematic")
 class Projection3D2DMapperNearestNeighborSimplified2D(mapper_test_case.MapperTestCase):
     '''This class contains the tests for 3D-2D projections for the NearestNeighbor mapper (simplified)
     '''
@@ -172,7 +172,7 @@ class Projection3D2DMapperNearestNeighborSimplified2D(mapper_test_case.MapperTes
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_origin, KM.FORCE, GetFilePath(self._GetFileName("inverse_map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_origin, KM.FORCE)
 
-@KratosUnittest.skipIf(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() > 2,  "Test designed to be run with max. 2 ranks.")
+@KratosUnittest.skipIf(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() > 2,  "Test designed to be run with max. 2 ranks. 2D mesh is too small and is problematic")
 class Projection3D2DMapperNearestElementSimplified2D(mapper_test_case.MapperTestCase):
     '''This class contains the tests for 3D-2D projections for the NearestElement mapper (simplified)
     '''
