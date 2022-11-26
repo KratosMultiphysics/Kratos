@@ -45,7 +45,7 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
         std::vector<Kratos::shared_ptr<std::iostream>> streams(mpi_size);
         std::vector<std::stringbuf> stringbufs(mpi_size);
 
-        for(int i = 0; i < mpi_size; i++) {
+        for(int i=0; i<mpi_size; ++i) {
             streams[i] = Kratos::make_shared<std::iostream>(&stringbufs[i]);
         }
 
@@ -70,8 +70,10 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
         }
     }
 
+    // send partitioned streams to other partitions
     const auto recv_buffer = mrDataComm.Scatterv(send_buffer, 0);
 
+    // set up local buffer
     auto p_local_stream(Kratos::make_shared<std::iostream>(new std::stringbuf()));
     p_local_stream->write(recv_buffer.data(), recv_buffer.size());
 
