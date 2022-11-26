@@ -41,7 +41,7 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
 
         ExecutePartitioning(*part_info);
 
-        // Transfer Streams
+        // prepare partitioning streams
         std::vector<Kratos::shared_ptr<std::iostream>> streams(mpi_size);
         std::vector<std::stringbuf> stringbufs(mpi_size);
 
@@ -70,16 +70,15 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
         }
     }
 
-    auto recv_buffer = mrDataComm.Scatterv(send_buffer, 0);
-
+    const auto recv_buffer = mrDataComm.Scatterv(send_buffer, 0);
 
     auto p_local_stream(Kratos::make_shared<std::iostream>(new std::stringbuf()));
     p_local_stream->write(recv_buffer.data(), recv_buffer.size());
 
-    // if (mVerbosity > 1) {
-    //     std::ofstream debug_ofstream("MetisDivideHeterogeneousInputInMemoryProcess_debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
-    //     debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
-    // }
+    if (mVerbosity > 1) {
+        std::ofstream debug_ofstream("MetisDivideHeterogeneousInputInMemoryProcess_debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
+        debug_ofstream << recv_buffer << std::endl;
+    }
 
     // TODO: Try to come up with a better way to change the buffer.
     mrSerialIO.SwapStreamSource(p_local_stream);
