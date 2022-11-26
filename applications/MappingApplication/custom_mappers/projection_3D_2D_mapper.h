@@ -192,7 +192,7 @@ public:
             }
             // Getting from parameters if not elements or conditions
             if (p_geometry == nullptr) {
-                KRATOS_ERROR_IF_NOT(mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl;
+                KRATOS_ERROR_IF(!mrInputModelPartOrigin.IsDistributed() && mMetaMapperType != MetaMapperType::NEAREST_NEIGHBOR) << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl; // NOTE: In the MPI case if the number of elements and conditions is zero also the number of nodes is zero and therefore not projection is needed, so we can proceed even with default values of normals and reference points
                 noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
                 noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
             } else {
