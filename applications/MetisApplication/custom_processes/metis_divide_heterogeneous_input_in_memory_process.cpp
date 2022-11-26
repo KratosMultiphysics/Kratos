@@ -28,31 +28,21 @@ namespace Kratos {
 
 void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
 {
+    KRATOS_TRY
+
     MPI_Comm this_comm = MPIDataCommunicator::GetMPICommunicator(mrDataComm);
 
     int mpi_rank = mrDataComm.Rank();
     int mpi_size = mrDataComm.Size();
 
-    int * msgSendSize = new int[mpi_size];
-    int * msgRecvSize = new int[mpi_size];
+    // const char ** mpi_send_buffer = new const char * [mpi_size];
+    // std::string * str = new std::string[mpi_size];
 
-    const char ** mpi_send_buffer = new const char * [mpi_size];
-    char ** mpi_recv_buffer = new char * [mpi_size];
-    std::string * str = new std::string[mpi_size];
 
-    // Set size
-    for(int i = 0; i < mpi_size; i++) {
-        msgSendSize[i] = 0;
-        msgRecvSize[i] = 0;
-    }
 
-    // Transfer Streams
-    Kratos::shared_ptr<std::iostream> * streams = new Kratos::shared_ptr<std::iostream>[mpi_size];
-    std::stringbuf * stringbufs = new std::stringbuf[mpi_size];
+    using BufferType = std::vector<char>;
 
-    for(auto i = 0; i < mpi_size; i++) {
-        streams[i] = Kratos::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
-    }
+    std::vector<BufferType> send_buffer;
 
     // Main process calculates the partitions and writes the result into temporal streams
     if(mpi_rank == 0) {
@@ -61,9 +51,17 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
 
         ExecutePartitioning(*part_info);
 
+        // Transfer Streams
+        std::vector<Kratos::shared_ptr<std::iostream>> streams(mpi_size);
+        std::vector<std::stringbuf> stringbufs(mpi_size);
+
+        for(int i = 0; i < mpi_size; i++) {
+            streams[i] = Kratos::make_shared<std::iostream>(&stringbufs[i]);
+        }
+
         // Write partitions to streams
         mrIO.DivideInputToPartitions(
-            streams,
+            streams.data(),
             mNumberOfPartitions,
             part_info->Graph,
             part_info->NodesPartitions,
@@ -72,71 +70,90 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
             part_info->NodesAllPartitions,
             part_info->ElementsAllPartitions,
             part_info->ConditionsAllPartitions);
-    }
 
-    // Calculate the message and prepare the buffers
-    if(mpi_rank == 0) {
-        for(auto i = 0; i < mpi_size; i++) {
-            str[i] = stringbufs[i].str();
-            msgSendSize[i] = str[i].size();
-            mpi_send_buffer[i] = str[i].c_str();
+        // prepare buffer to scatter to other partitions
+        send_buffer.resize(mpi_size);
+        for(int i=0; i<mpi_size; ++i) {
+            const std::string str = stringbufs[i].str();
+            send_buffer[i].reserve(str.size());
+            std::copy(str.begin(), str.end(), std::back_inserter(send_buffer[i]));
         }
     }
 
-    // Send the message size to all processes
-    MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,this_comm);
+    KRATOS_WATCH("1111");
 
-    // Calculate the number of events:
-    auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
-    auto NumberOfCommunicationEventsIndex = 0;
+    BufferType recv_buffer = mrDataComm.Scatterv(send_buffer, 0);
+    KRATOS_WATCH("222");
 
-    // Prepare the communication events
-    MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
-    MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
+    // // Calculate the message and prepare the buffers
+    // std::vector<int> send_sizes(mpi_size);
+    // if(mpi_rank == 0) {
+    //     for(auto i = 0; i < mpi_size; i++) {
+    //         str[i] = stringbufs[i].str();
+    //         send_sizes[i] = str[i].size();
+    //         mpi_send_buffer[i] = str[i].c_str();
+    //     }
+    // }
 
-    // Set up all receive and send events
-    if( mpi_rank == 0) {
-        for(auto i = 0; i < mpi_size; i++) {
-            char* aux_char = const_cast<char*>(mpi_send_buffer[i]);
-            MPI_Isend(aux_char,msgSendSize[i],MPI_CHAR,i,0,this_comm,&reqs[NumberOfCommunicationEventsIndex++]);
-        }
-    }
+    // // Send the message size to all processes
+    // std::vector<int> vec_recv_size(1);
+    // mrDataComm.Scatter(send_sizes, vec_recv_size, 0);
+    // const int recv_size = vec_recv_size[0];
 
-    // Recieve the buffers
-    mpi_recv_buffer[mpi_rank] = (char *)malloc(sizeof(char) * msgRecvSize[mpi_rank]);
-    MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,this_comm,&reqs[NumberOfCommunicationEventsIndex++]);
+    // // Calculate the number of events:
+    // auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
+    // auto NumberOfCommunicationEventsIndex = 0;
 
-    // Wait untill all communications finish
-    if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS ) {
-        KRATOS_ERROR << "Error in metis_partition_mem" << std::endl;
-    }
+    // // Prepare the communication events
+    // MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
+    // MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
 
-    mrDataComm.Barrier();
+    // // Set up all receive and send events
+    // if( mpi_rank == 0) {
+    //     for(auto i = 0; i < mpi_size; i++) {
+    //         char* aux_char = const_cast<char*>(mpi_send_buffer[i]);
+    //         MPI_Isend(aux_char,send_sizes[i],MPI_CHAR,i,0,this_comm,&reqs[NumberOfCommunicationEventsIndex++]);
+    //     }
+    // }
 
-    if(mpi_rank != 0) {
-        streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
-    }
+    // // Receive the buffers
+    // std::vector<char> recv_buffer(recv_size);
+    // MPI_Irecv(recv_buffer.data(), recv_size,MPI_CHAR,0,0,this_comm,&reqs[NumberOfCommunicationEventsIndex++]);
 
-    if (mVerbosity > 1) {
-        std::ofstream debug_ofstream("MetisDivideHeterogeneousInputInMemoryProcess_debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
-        debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
-    }
+    // // Wait untill all communications finish
+    // if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS ) {
+    //     KRATOS_ERROR << "Error in metis_partition_mem" << std::endl;
+    // }
+
+    // mrDataComm.Barrier();
+
+    // if(mpi_rank != 0) {
+        // streams[mpi_rank]->write(recv_buffer.data(), recv_buffer.size());
+    // }
+    KRATOS_WATCH("333");
+
+    // if (mVerbosity > 1) {
+    //     std::ofstream debug_ofstream("MetisDivideHeterogeneousInputInMemoryProcess_debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
+    //     debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
+    // }
+    KRATOS_WATCH("444");
+
+    auto p_local_stream(Kratos::make_shared<std::iostream>(new std::stringbuf()));
+    p_local_stream->write(recv_buffer.data(), recv_buffer.size());
 
     // TODO: Try to come up with a better way to change the buffer.
-    mrSerialIO.SwapStreamSource(streams[mpi_rank]);
+    mrSerialIO.SwapStreamSource(p_local_stream);
+    KRATOS_WATCH("555");
 
     // Free buffers
-    free(mpi_recv_buffer[mpi_rank]);
+    // delete [] reqs;
+    // delete [] stats;
 
-    delete [] reqs;
-    delete [] stats;
+    // delete [] mpi_send_buffer;
+    // delete [] str;
+    KRATOS_WATCH("666");
 
-    delete [] mpi_recv_buffer;
-    delete [] mpi_send_buffer;
-    delete [] str;
-
-    delete [] msgSendSize;
-    delete [] msgRecvSize;
+    KRATOS_CATCH("")
 }
 
 } // namespace Kratos
