@@ -135,8 +135,9 @@ double BrooksCoreyLaw::
     const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
     const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
 
-    //double relPerm = pow(effSat, ((2+3*Lambda)/Lambda)); 
-    double relPerm = pow(effSat, 1.7);
+     double relPerm = pow(effSat, ((5/2)-(2/Lambda))); 
+     //double relPerm = pow(effSat, ((2+3*Lambda)/Lambda)); 
+    //double relPerm = pow(effSat, 1.7);
 
     const double &minRelPerm = rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];
 
