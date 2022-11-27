@@ -84,6 +84,12 @@ public:
      */
     void ReadModelPart(ModelPart& rThisModelPart) override;
 
+    /**
+     * @brief This method writes the model part
+     * @param rThisModelPart The model part to be written
+     */
+    void WriteModelPart(ModelPart& rThisModelPart) override;
+
     ///@}
     ///@name Access
     ///@{
