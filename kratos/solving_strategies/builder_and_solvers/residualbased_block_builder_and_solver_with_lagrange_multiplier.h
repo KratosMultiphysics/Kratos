@@ -148,7 +148,7 @@ public:
         : BaseType(pNewLinearSystemSolver)
     {
         // Setting flags
-        BaseType::mScalingDiagonal = BaseType::SCALING_DIAGONAL::NO_SCALING;
+        BaseType::mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, false);
         mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
         mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
@@ -436,8 +436,11 @@ public:
         std::size_t* Arow_indices = rA.index1_data().begin();
         std::size_t* Acol_indices = rA.index2_data().begin();
 
+        // Define  zero value tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         // The diagonal considered
-        BaseType::mScaleFactor = this->GetScaleNorm(rModelPart, rA);
+        BaseType::mScaleFactor = TSparseSpace::GetScaleNorm(rModelPart.GetProcessInfo(), rA, BaseType::mScalingDiagonal);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
@@ -448,7 +451,7 @@ public:
             col_end = Arow_indices[Index + 1];
             empty = true;
             for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(Avalues[j] != 0.0) {
+                if(std::abs(Avalues[j]) > zero_tolerance) {
                     empty = false;
                     break;
                 }
@@ -461,8 +464,8 @@ public:
         });
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-            std::size_t col_begin = Arow_indices[Index];
-            std::size_t col_end = Arow_indices[Index+1];
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
@@ -501,7 +504,7 @@ public:
                 TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
                 BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
                 this->BuildLHS(pScheme, rModelPart, A);
-                const double constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(A) : this->GetDiagonalNorm(A);
+                const double constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetMaxDiagonal(A) : TSparseSpace::GetDiagonalNorm(A);
                 mConstraintFactor = constraint_scale_factor;
             }
 
@@ -615,7 +618,7 @@ public:
             // Definition of the auxiliar values
             const bool has_constraint_scale_factor = mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
             KRATOS_ERROR_IF(has_constraint_scale_factor && !r_current_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "Constraint scale factor not defined at process info" << std::endl;
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_current_process_info.GetValue(CONSTRAINT_SCALE_FACTOR) : mConstraintFactorConsidered == CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetDiagonalNorm(copy_of_A) : TSparseSpace::GetAveragevalueDiagonal(copy_of_A);
             mConstraintFactor = constraint_scale_factor;
 
             /* Fill common blocks */
@@ -641,7 +644,7 @@ public:
                 // Definition of the build scale factor auxiliar value
                 const bool has_auxiliar_constraint_scale_factor = mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR ? true : false;
                 KRATOS_ERROR_IF(has_auxiliar_constraint_scale_factor && !r_current_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR)) << "Auxiliar constraint scale factor not defined at process info" << std::endl;
-                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? this->GetDiagonalNorm(copy_of_A) : this->GetAveragevalueDiagonal(copy_of_A);
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_current_process_info.GetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR) : mAuxiliarConstraintFactorConsidered == AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR ? TSparseSpace::GetDiagonalNorm(copy_of_A) : TSparseSpace::GetAveragevalueDiagonal(copy_of_A);
                 mAuxiliarConstraintFactor = auxiliar_constraint_scale_factor;
 
                 // Create auxiliar identity matrix

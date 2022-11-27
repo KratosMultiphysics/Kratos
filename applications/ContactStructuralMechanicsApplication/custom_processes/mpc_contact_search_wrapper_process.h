@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix
 //
 
-#if !defined(KRATOS_MPC_CONTACT_SEARCH_WRAPPER_H_INCLUDED )
-#define  KRATOS_MPC_CONTACT_SEARCH_WRAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -262,5 +261,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MPC_CONTACT_SEARCH_WRAPPER_H_INCLUDED  defined

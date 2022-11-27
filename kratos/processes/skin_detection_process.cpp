@@ -17,6 +17,7 @@
 // Project includes
 #include "processes/skin_detection_process.h"
 #include "utilities/variable_utils.h"
+#include "includes/key_hash.h"
 
 namespace Kratos
 {
@@ -38,9 +39,17 @@ void SkinDetectionProcess<TDim>::Execute()
 {
     KRATOS_TRY;
 
+    // First assign MPI ids if needed
+    std::unordered_set<IndexType> set_node_ids_interface;
+    this->GenerateSetNodeIdsInterface(set_node_ids_interface);
+
+    // Generate face maps
     HashMapVectorIntType inverse_face_map;
     HashMapVectorIntIdsType properties_face_map;
     this->GenerateFaceMaps(inverse_face_map, properties_face_map);
+
+    // Filter local nodes
+    this->FilterMPIInterfaceNodes(set_node_ids_interface, inverse_face_map);
 
     // Generate skin conditions
     ModelPart& r_work_model_part = this->SetUpAuxiliaryModelPart();
@@ -215,8 +224,10 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
-
     VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
+
+    // In case we are in MPI we syncronize the INTERFACE flag
+     mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(INTERFACE);
 }
 
 /***********************************************************************************/
@@ -239,7 +250,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
     for (auto& r_map : rInverseFaceMap) {
         condition_id += 1;
 
-        const VectorIndexType& nodes_face = r_map.second;
+        const VectorIndexType& r_nodes_face = r_map.second;
 
         Properties::Pointer p_prop = nullptr;
         const IndexType property_id = rPropertiesFaceMap[r_map.first];
@@ -249,11 +260,12 @@ void SkinDetectionProcess<TDim>::CreateConditions(
              p_prop = rMainModelPart.CreateNewProperties(property_id);
          }
 
-        for (auto& r_index : nodes_face)
+        for (auto& r_index : r_nodes_face) {
             rNodesInTheSkin.insert(r_index);
+        }
 
-        const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
+        const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(r_nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
+        auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, r_nodes_face, p_prop);
         rSkinModelPart.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
         p_cond->Initialize(r_process_info);
@@ -331,6 +343,135 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
             }
 
             sub_model_part.AddConditions(conditions_ids);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::GenerateSetNodeIdsInterface(std::unordered_set<IndexType>& rSetNodeIdsInterface)
+{
+    // Only in case we are executing in MPI
+    if (mrModelPart.IsDistributed()) {
+        auto& r_communicator = mrModelPart.GetCommunicator();
+        // const auto rank = r_communicator.GetDataCommunicator().Rank();
+        const auto& r_nodes_interface = r_communicator.InterfaceMesh().Nodes();
+        const std::size_t number_of_interface_nodes = r_nodes_interface.size();
+        const auto it_interface_node_begin = r_nodes_interface.begin();
+        std::vector<IndexType> node_ids_interface(number_of_interface_nodes);
+        IndexPartition<std::size_t>(number_of_interface_nodes).for_each(
+        [&node_ids_interface, it_interface_node_begin](std::size_t i) {
+            auto it_interface_node = it_interface_node_begin + i;
+            node_ids_interface[i] = it_interface_node->Id();
+        });
+        std::copy(node_ids_interface.begin(), node_ids_interface.end(), std::inserter(rSetNodeIdsInterface, rSetNodeIdsInterface.end()));
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
+    const std::unordered_set<IndexType>& rSetNodeIdsInterface,
+    HashMapVectorIntType& rInverseFaceMap
+    )
+{
+    if (rSetNodeIdsInterface.size() > 0) {
+        // First determine with the nodes in the MPI interface wich faces are potentially removable
+        std::vector<VectorIndexType> faces_to_remove;
+        bool to_remove;
+        for (auto& r_map : rInverseFaceMap) {
+            to_remove = true;
+            const VectorIndexType& r_vector_ids = r_map.first;
+            const VectorIndexType& r_nodes_face = r_map.second;
+            for (auto& r_index : r_nodes_face) {
+                if (rSetNodeIdsInterface.find(r_index) == rSetNodeIdsInterface.end()) {
+                    to_remove = false;
+                    continue;
+                }
+            }
+            if (to_remove) {
+                faces_to_remove.push_back(r_vector_ids);
+            }            
+        }
+
+        /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
+        
+        // First we determine the rank and the size of the world
+        const auto& r_communicator = mrModelPart.GetCommunicator();
+        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+        // const auto rank = r_data_communicator.Rank();
+        // const auto world_size = r_data_communicator.Size();
+        const auto& r_neighbour_indices = r_communicator.NeighbourIndices();
+        std::vector<int> neighbour_indices;
+        for (auto& r_index : r_neighbour_indices) {
+            if (r_index >= 0) {
+                neighbour_indices.push_back(r_index);
+            }
+        }
+
+        // We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
+        {
+            // Define the send tag
+            const int tag_send = 1;
+
+            // We generate the hash of the faces to use the communicator to send
+            std::unordered_map<std::size_t, bool> faces_mpi_counter;
+            std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
+            std::vector<std::size_t> faces_to_remove_hash;
+            VectorIndexHasher<std::vector<std::size_t>> vector_hasher;
+            faces_to_remove_hash.reserve(faces_to_remove.size());
+            for (auto& r_face_to_remove : faces_to_remove) {
+                const std::size_t hash_face = vector_hasher(r_face_to_remove);
+                faces_to_remove_hash.push_back(hash_face);
+                faces_mpi_counter.insert({hash_face, false});
+                faces_hash_map.insert({hash_face, r_face_to_remove});
+            }
+
+            // We send the list of the faces to be removed from the current ramk to the neighbour ranks
+            for (auto& r_destination_rank : neighbour_indices) {
+                // We send the faces_to_remove_hash to the other processes
+                r_data_communicator.Send(faces_to_remove_hash, r_destination_rank, tag_send);
+            }
+
+            // Now we receive the faces_to_remove from the rest of the processes
+            for (auto& r_origin_rank : neighbour_indices) {
+                std::vector<std::size_t> rec_faces_to_remove_hash;
+                r_data_communicator.Recv(rec_faces_to_remove_hash, r_origin_rank, tag_send);
+
+                // Update the faces to be removed
+                for (auto& r_hash_hash : rec_faces_to_remove_hash) {
+                    auto it_find_face = faces_mpi_counter.find(r_hash_hash);
+                    if (it_find_face != faces_mpi_counter.end()) {
+                        it_find_face->second = true;
+                    }
+                }
+            }
+
+            // Now we create the vector of ids to be removed
+            std::vector<std::size_t> final_faces_to_remove;
+            for (auto& r_face_pair : faces_mpi_counter) {
+                if (r_face_pair.second) {
+                    final_faces_to_remove.push_back(r_face_pair.first);
+                }
+            }
+
+            // Finally filter the faces to be removed
+            faces_to_remove.clear();
+            for (auto& r_face_to_remove : final_faces_to_remove) {
+                auto it_find_face = faces_hash_map.find(r_face_to_remove);
+                if (it_find_face != faces_hash_map.end()) {
+                    faces_to_remove.push_back(it_find_face->second);
+                }
+            }
+        }
+
+        // Finally we remove the MPi interface faces
+        for (auto& r_face_to_remove : faces_to_remove) {
+            rInverseFaceMap.erase(r_face_to_remove);
         }
     }
 }
