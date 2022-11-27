@@ -69,6 +69,18 @@ void CheckModelPartsAreEqual(
         CheckNodesAreEqual(*(rModelPart1.NodesBegin()+i), *(rModelPart2.NodesBegin()+i));
     }
 
+    KRATOS_CHECK_EQUAL(rModelPart1.NumberOfSubModelParts(), rModelPart2.NumberOfSubModelParts());
+
+    const auto& r_smp1_names = rModelPart1.GetSubModelPartNames();
+    const auto& r_smp2_names = rModelPart2.GetSubModelPartNames();
+
+    for (std::size_t i; i<r_smp1_names; ++i) {
+        const auto& r_smp1_name = r_smp1_names[i]
+        const auto& r_smp1_name = r_smp2_names[i]
+        KRATOS_CHECK_EQUAL(r_smp1_name, r_smp2_name); // not sure if this works bcs names might not be ordered
+        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp1_name), rModelPart1.GetSubModelPart(r_smp2_name));
+    }
+
     KRATOS_CATCH("")
 }
 
