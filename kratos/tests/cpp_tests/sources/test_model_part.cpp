@@ -78,8 +78,9 @@ namespace Kratos {
         KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
 
         const auto& r_const_ref = r_model_part;
-        const auto& r_smp_names = r_const_ref.GetSubModelPartNames();
-        const std::vector<std::string> r_smp_ref_names {"Inlet1", "Inlet2", "Outlet", "AnotherOutlet"};
+        auto r_smp_names = r_const_ref.GetSubModelPartNames();
+        std::sort(r_smp_names.begin(), r_smp_names.end());
+        const std::vector<std::string> r_smp_ref_names {"AnotherOutlet", "Inlet1", "Inlet2", "Outlet"};
 
         for (std::size_t i=0; i<r_smp_names.size(); ++i) {
             KRATOS_CHECK_EQUAL(r_smp_names[i], r_smp_ref_names[i]);
@@ -363,7 +364,7 @@ namespace Kratos {
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Random"),
             "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(c_smp.GetSubModelPart("Random"),
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Random"),
             "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
 
         // Checking SubSubModelPart

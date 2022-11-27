@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_MODEL_PART_H_INCLUDED )
-#define  KRATOS_MODEL_PART_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -2069,5 +2068,3 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 
 
 } // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_H_INCLUDED  defined
