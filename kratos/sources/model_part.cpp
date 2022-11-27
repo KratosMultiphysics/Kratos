@@ -2049,6 +2049,30 @@ ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
     }
 }
 
+const ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName) const
+{
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& sub_model_part_name = SubModelPartName.substr(0, delim_pos);
+
+    const auto i = mSubModelParts.find(sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        std::stringstream err_msg;
+        err_msg << "There is no sub model part with name \"" << SubModelPartName
+                << "\" in model part \"" << FullName() << "\"\n"
+                << "The the following sub model parts are available:";
+        for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+            err_msg << "\n\t" << r_avail_smp_name;
+        }
+        KRATOS_ERROR << err_msg.str() << std::endl;
+    }
+
+    if (delim_pos == std::string::npos) {
+        return *i;
+    } else {
+        return i->GetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
+}
+
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 {
     const auto delim_pos = SubModelPartName.find('.');

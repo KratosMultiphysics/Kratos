@@ -1657,12 +1657,17 @@ public:
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Returns a reference to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    	Throws if it does not exist.
     */
     ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
-    /** Returns a shared pointer to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    /** Returns a reference to the sub_model part with given string name
+    	Throws if it does not exist.
+    */
+    const ModelPart& GetSubModelPart(std::string const& SubModelPartName) const;
+
+    /** Returns a raw pointer to the sub_model part with given string name
+    	Throws if it does not exist.
     */
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
