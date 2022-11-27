@@ -393,9 +393,24 @@ public:
      * @brief This method writes the model part
      * @param rThisModelPart The model part to be written
      */
+    KRATOS_DEPRECATED_MESSAGE("'WriteModelPart' with a non-const ModelPart as input is deprecated. Please use the version of this function that accepts a const ModelPart instead.")
     virtual void WriteModelPart(ModelPart & rThisModelPart)
     {
         KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method writes the model part
+     * @param rThisModelPart The model part to be written
+     */
+    virtual void WriteModelPart(const ModelPart& rThisModelPart)
+    {
+        // legacy for backward compatibility
+        ModelPart& non_const_model_part = const_cast<ModelPart&>(rThisModelPart);
+        this->WriteModelPart(non_const_model_part);
+
+        // activate this error once the legacy code is removed
+        // KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
     }
 
     /**
