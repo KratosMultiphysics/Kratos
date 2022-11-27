@@ -750,6 +750,8 @@ KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic ignored "-Wdeprecated-decla
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(push))\
 __pragma(warning(disable: 4996))
+#else
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 // The following block defines the macro KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING which ends the scope for
@@ -763,6 +765,8 @@ _Pragma("GCC diagnostic pop")
 #elif defined(_MSC_VER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(pop))
+#else
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 
