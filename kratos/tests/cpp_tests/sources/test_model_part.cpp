@@ -66,7 +66,7 @@ namespace Kratos {
         r_model_part.CreateSubModelPart("Outlet");
         r_model_part.CreateSubModelPart("AnotherOutlet");
 
-        KRATOS_CHECK_EQUAL(r_model_part.NumberOfSubModelParts(), 4)
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfSubModelParts(), 4);
 
         std::size_t id = 1;
         for(auto i_SubModelPart = r_model_part.SubModelPartsBegin() ; i_SubModelPart != r_model_part.SubModelPartsEnd() ; i_SubModelPart++){
@@ -79,9 +79,9 @@ namespace Kratos {
 
         const auto& r_const_ref = r_model_part;
         const auto& r_smp_names = r_const_ref.GetSubModelPartNames();
-        const std::vector<std::string> r_smp_ref_names {"Inlet1", "Inlet2", "Outlet", "AnotherOutlet"}
+        const std::vector<std::string> r_smp_ref_names {"Inlet1", "Inlet2", "Outlet", "AnotherOutlet"};
 
-        for (std::size_t i=0; i<r_smp_names.size(), ++i) {
+        for (std::size_t i=0; i<r_smp_names.size(); ++i) {
             KRATOS_CHECK_EQUAL(r_smp_names[i], r_smp_ref_names[i]);
         }
     }
@@ -349,6 +349,7 @@ namespace Kratos {
         Model model;
 
         auto& model_part = model.CreateModelPart("Main");
+        const auto& r_const_model_part = model_part;
 
         // Checking SubModelPart
         model_part.CreateSubModelPart("Inlet1");
@@ -356,7 +357,13 @@ namespace Kratos {
         ModelPart& smp = model_part.GetSubModelPart("Inlet1");
         KRATOS_CHECK_EQUAL("Inlet1", smp.Name());
 
+        const ModelPart& c_smp = r_const_model_part.GetSubModelPart("Inlet1");
+        KRATOS_CHECK_EQUAL("Inlet1", c_smp.Name());
+
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Random"),
+            "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(c_smp.GetSubModelPart("Random"),
             "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
 
         // Checking SubSubModelPart
@@ -364,20 +371,31 @@ namespace Kratos {
 
         KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
         KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+        KRATOS_CHECK(r_const_model_part.HasSubModelPart("Inlet1"));
+        KRATOS_CHECK(r_const_model_part.HasSubModelPart("Inlet1.sub_inlet"));
 
         KRATOS_CHECK_EQUAL("sub_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
+        KRATOS_CHECK_EQUAL("sub_inlet", r_const_model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
+            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe the following sub model parts are available:\n\tsub_inlet");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
             "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe the following sub model parts are available:\n\tsub_inlet");
 
         // Checking SubSubSubModelPart
         ssmp.CreateSubModelPart("tiny_inlet");
 
         KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet.tiny_inlet"));
+        KRATOS_CHECK(r_const_model_part.HasSubModelPart("Inlet1.sub_inlet.tiny_inlet"));
 
         KRATOS_CHECK_EQUAL("tiny_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
+        KRATOS_CHECK_EQUAL("tiny_inlet", r_const_model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
+            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe the following sub model parts are available:\n\ttiny_inlet");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
             "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe the following sub model parts are available:\n\ttiny_inlet");
     }
 
