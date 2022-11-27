@@ -758,7 +758,7 @@ __pragma(warning(disable: 4996))
 // ignoring the warnings of type 'deprecated function'.
 #if defined(__INTEL_COMPILER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING // do nothing
-elif defined(__clang__)
+#elif defined(__clang__)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("clang diagnostic pop")
 #elif defined(__GNUC__) || defined(__GNUG__)
