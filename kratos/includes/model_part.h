@@ -1836,10 +1836,10 @@ public:
     }
 
     /**
-     * @brief This method returns the name list of submodelparts
-     * @return A vector conrtaining the list of submodelparts contained
+     * @brief This method returns the names of submodelparts
+     * @return A vector containing the list of submodelparts names
      */
-    std::vector<std::string> GetSubModelPartNames();
+    std::vector<std::string> GetSubModelPartNames() const;
 
     /**
      * @brief This method sets the suffer size of the model part database
