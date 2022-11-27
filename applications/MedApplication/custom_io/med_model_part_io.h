@@ -88,7 +88,7 @@ public:
      * @brief This method writes the model part
      * @param rThisModelPart The model part to be written
      */
-    void WriteModelPart(ModelPart& rThisModelPart) override;
+    void WriteModelPart(const ModelPart& rThisModelPart) override;
 
     ///@}
     ///@name Access

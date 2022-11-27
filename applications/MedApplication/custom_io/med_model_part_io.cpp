@@ -39,13 +39,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-void MedModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
+void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
-
-    // writing should not modify the original object
-    // hence using a const reference in the following
-    const auto& r_model_part = rThisModelPart;
 
     KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
 
