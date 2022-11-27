@@ -66,6 +66,8 @@ namespace Kratos {
         r_model_part.CreateSubModelPart("Outlet");
         r_model_part.CreateSubModelPart("AnotherOutlet");
 
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfSubModelParts(), 4)
+
         std::size_t id = 1;
         for(auto i_SubModelPart = r_model_part.SubModelPartsBegin() ; i_SubModelPart != r_model_part.SubModelPartsEnd() ; i_SubModelPart++){
             i_SubModelPart->CreateNewNode(id++, 0.00,0.00,0.00);
@@ -74,6 +76,14 @@ namespace Kratos {
         KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), 4);
         KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
         KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
+
+        const auto& r_const_ref = r_model_part;
+        const auto& r_smp_names = r_const_ref.GetSubModelPartNames();
+        const std::vector<std::string> r_smp_ref_names {"Inlet1", "Inlet2", "Outlet", "AnotherOutlet"}
+
+        for (std::size_t i=0; i<r_smp_names.size(), ++i) {
+            KRATOS_CHECK_EQUAL(r_smp_names[i], r_smp_ref_names[i]);
+        }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
