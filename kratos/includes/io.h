@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_IO_H_INCLUDED )
-#define  KRATOS_IO_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -645,5 +644,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_IO_H_INCLUDED  defined
