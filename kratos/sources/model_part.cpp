@@ -2159,9 +2159,10 @@ bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
     }
 }
 
-std::vector<std::string> ModelPart::GetSubModelPartNames()
+std::vector<std::string> ModelPart::GetSubModelPartNames() const
 {
     std::vector<std::string> SubModelPartsNames;
+    SubModelPartsNames.reserve(NumberOfSubModelParts());
 
     for(auto& r_sub_model_part : mSubModelParts) {
         SubModelPartsNames.push_back(r_sub_model_part.Name());
