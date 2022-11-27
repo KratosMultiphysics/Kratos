@@ -407,7 +407,9 @@ public:
     {
         // legacy for backward compatibility
         ModelPart& non_const_model_part = const_cast<ModelPart&>(rThisModelPart);
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
         this->WriteModelPart(non_const_model_part);
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 
         // activate this error once the legacy code is removed
         // KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
