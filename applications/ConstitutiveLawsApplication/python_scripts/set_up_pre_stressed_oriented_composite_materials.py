@@ -21,3 +21,28 @@ class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
     """
+
+    def __init__(self, Model, settings):
+        """The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
+        KratosMultiphysics.Process.__init__(self)
+
+        # The value can be a double or a string (function)
+        default_settings = KratosMultiphysics.Parameters(
+            """
+        {
+            "help" : "This sets the initial conditions in terms of imposed pre-stressing strain, local axes and % participation of fiber",
+            "model_part_name" : "please_specify_model_part_name",
+            "intersection_file_name" : "please_include_directory_and_full_name_with_extension"
+        }
+        """
+        )
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.intersection_file_name = settings["intersection_file_name"].GetString()
+        self.model_part = Model[settings["model_part_name"].GetString()]
