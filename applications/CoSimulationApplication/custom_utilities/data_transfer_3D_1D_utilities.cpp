@@ -80,14 +80,35 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
         // Initialize values
         PointVector points_found(allocation_size);
         IndexType number_points_found = 0;
-        const Point center = rElement.GetGeometry().Center();
+        const auto& r_geometry_tetra = rElement.GetGeometry();
+        const Point center = r_geometry_tetra.Center();
         while (number_points_found == 0) {
             search_radius *= search_increment_factor;
             const PointElement point(center.X(), center.Y(), center.Z());
             number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
         }
 
-        // TODO
+        unsigned int counter = 0;
+        array_1d<double,3> intersection_point1, intersection_point2;
+        for (IndexType i = 0; i < number_points_found; ++i) {
+            auto p_point = points_found[i];
+            auto& r_geometry = p_point->pGetElement()->GetGeometry();
+            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), intersection_point1, intersection_point2);
+            if (intersection == 1) { // Two intersection points
+                // Check position of the nodes in the line
+                // TODO
+                counter += 2;
+            } else if (intersection == 2) { // One intersection point
+                // Check position of the node in the line
+                // TODO
+                counter += 1;
+            }
+            if (counter == 2) {
+                break;
+            } else if (counter > 2) {
+                KRATOS_ERROR << "More than two intersection points found" << std::endl;
+            }
+        }
     });
 }
 
