@@ -168,7 +168,7 @@ public:
     typedef typename BaseType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -265,7 +265,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -521,7 +521,7 @@ public:
 
     /** This method gives you number of all edges of this
     geometry.
-    @return SizeType containes number of this geometry edges.
+    @return SizeType contains number of this geometry edges.
     @see Edges()
     @see Edge()
      */
@@ -533,7 +533,7 @@ public:
 
     /** This method gives you all edges of this geometry.
 
-    @return GeometriesArrayType containes this geometry edges.
+    @return GeometriesArrayType contains this geometry edges.
     @see EdgesNumber()
     @see Edge()
      */
@@ -599,7 +599,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber

@@ -218,7 +218,7 @@ public:
     /** Copy constructor from a geometry with other point type.
      Construct this geometry as a copy of given geometry which
     has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
+    TOtherPointType* must be implicitly convertible to this
     geometry PointType.
 
     @note This copy constructor don't copy the points and new
@@ -305,12 +305,12 @@ public:
     }
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     /**
      * @brief This method gives you number of all edges of this geometry.
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()

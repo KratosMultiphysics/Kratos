@@ -167,7 +167,7 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
+    ///@name Mathematical Information
     ///@{
 
     /// Return polynomial degree of the curve
@@ -332,7 +332,7 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+    /* @brief Makes a check if the provided parameter rPointLocalCoordinates[0]
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection:
@@ -397,7 +397,7 @@ public:
     }
 
     ///@}
-    ///@name Geometrical Informations
+    ///@name Geometrical Information
     ///@{
 
     /// Computes the length of a nurbs curve

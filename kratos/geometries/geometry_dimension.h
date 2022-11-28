@@ -56,7 +56,7 @@ public:
     ///@{
 
     /** This constructor gives a complete set of dimensional
-    arguments neede for geometries.
+    arguments needed for geometries.
 
     @param ThisDimension Dimension of this geometry.
 
@@ -104,7 +104,7 @@ public:
     }
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     /** Dimension of the geometry for example a triangle2d is a 2

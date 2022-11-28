@@ -213,7 +213,7 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
+    ///@name Mathematical Information
     ///@{
 
     /// Return polynomial degree of the volume in direction 0, 1, 2
@@ -640,7 +640,7 @@ public:
      * @brief Computes jacobian matrix at the given coordinates.
      * @param rCoordinates Coordinates to be evaluated.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-     * @todo Refactor such that addional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
+     * @todo Refactor such that additional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
      *       find the correct knotspans and to set the shape_function_member variables 'mFirstNonzeroControlPointU,-V,-W'.
      * @note This function is only required to compute e.g. the volume of the geometry. During an IGA-Analysis the corresponding function
      *       of the base class is called.

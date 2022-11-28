@@ -209,7 +209,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -279,7 +279,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor does not copy the points and new
@@ -726,7 +726,7 @@ public:
      */
     double InradiusToLongestEdgeQuality() const override
     {
-        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+        constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -1277,7 +1277,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -1294,7 +1294,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1326,7 +1326,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -2408,7 +2408,7 @@ private:
      * Check if a plane intersects a box
      * @see TriBoxOverlap
      *
-     * @return bool intersection flagg
+     * @return bool intersection flag
      * @param rNormal the plane normal
      * @param rDist   distance to origin
      * @param rMaxBox box corner from the origin
@@ -2440,7 +2440,7 @@ private:
     /** AxisTestX
      * This method returns true if there is a separating axis
      *
-     * @param rEdgeY, rEdgeZ: i-edge corrdinates
+     * @param rEdgeY, rEdgeZ: i-edge coordinates
      * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
      * @param rVertA: i   vertex
      * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
@@ -2467,7 +2467,7 @@ private:
     /** AxisTestY
      * This method returns true if there is a separating axis
      *
-     * @param rEdgeX, rEdgeZ: i-edge corrdinates
+     * @param rEdgeX, rEdgeZ: i-edge coordinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
      * @param rVertA: i   vertex
      * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
@@ -2494,7 +2494,7 @@ private:
     /** AxisTestZ
      * This method returns true if there is a separating axis
      *
-     * @param rEdgeX, rEdgeY: i-edge corrdinates
+     * @param rEdgeX, rEdgeY: i-edge coordinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
      * @param rVertA: i   vertex
      * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)

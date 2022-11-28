@@ -33,7 +33,7 @@ namespace Kratos
  *        at a single quadrature point.
  *        Shape functions and integration types are precomputed and are set from
  *        from outside.
- *        The parent pointer can provide the adress to the owner of this quadrature point.
+ *        The parent pointer can provide the address to the owner of this quadrature point.
  */
 template<class TPointType,
     int TWorkingSpaceDimension,
@@ -374,7 +374,7 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
+    ///@name Mathematical Information
     ///@{
 
     /// Returns the polynomial degree of the parent geometry

@@ -59,7 +59,7 @@ namespace Kratos
  * functions evaluated in all integrations points.
  *
  * Geometry is a template class with just one template parameter:
- * - TPointType which reperesent the type of the point this geometry
+ * - TPointType which represent the type of the point this geometry
  * type contain and build on.
  *
  * @see Point
@@ -199,7 +199,7 @@ public:
      */
     typedef GeometryData::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
 
-    /** Type of the normal vector used for normal to edges in geomety.
+    /** Type of the normal vector used for normal to edges in geometry.
      */
     typedef DenseVector<double> NormalType;
 
@@ -248,7 +248,7 @@ public:
     /** Complete argument constructor. This constructor gives a
     complete set of arguments to pass all the initial value of
     all the member variables of geometry class. Also it has
-    default value for integration variables to make it usefull
+    default value for integration variables to make it useful
     in the case of constructing new geometry without mapping and
     integrating properties.
 
@@ -353,7 +353,7 @@ public:
     * @brief Copy constructor with TOtherPointType
     *
     *        Copies geometry with a different type of points.
-    *        TOtherPointType* must be implicity convertible
+    *        TOtherPointType* must be implicitly convertible
     *        to TPointType of the original geometry.
     *
     * @note Does not copy the points but shares same points with
@@ -1197,7 +1197,7 @@ public:
             const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
             const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
 
-            // Vector fo jacobians
+            // Vector of jacobians
             Vector detJ_vector(r_integrations_points.size());
             DeterminantOfJacobian(detJ_vector, integration_method);
 
@@ -1225,7 +1225,7 @@ public:
             const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
             const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
 
-            // Vector fo jacobians
+            // Vector of jacobians
             Vector detJ_vector(r_integrations_points.size());
             DeterminantOfJacobian(detJ_vector, integration_method);
 
@@ -1274,7 +1274,7 @@ public:
     }
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     /** Dimension of the geometry for example a triangle2d is a 2
@@ -1316,7 +1316,7 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
+    ///@name Mathematical Information
     ///@{
 
     /// Return polynomial degree of the geometry in a certain direction
@@ -1326,7 +1326,7 @@ public:
     }
 
     ///@}
-    ///@name Geometrical Informations
+    ///@name Geometrical Information
     ///@{
 
     /** This method calculate and return Length or charactereistic
@@ -1648,7 +1648,7 @@ public:
 
     /**
      * @brief It computes the unit normal of the geometry in the given local point
-     * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
      */
     virtual array_1d<double, 3> UnitNormal(
@@ -1714,7 +1714,7 @@ public:
      *
      * @see QualityCriteria
      * @see QualityAspectRatio
-     * @see QualityAverageEdgeLenght
+     * @see QualityAverageEdgeLength
      */
      double Quality(const QualityCriteria qualityCriteria) const {
        double quality = 0.0f;
@@ -1973,7 +1973,7 @@ public:
     ///@name Spans
     ///@{
 
-    /* @brief Provides spans in local paramater coordinates of the geometry
+    /* @brief Provides spans in local parameter coordinates of the geometry
      *        according to its direction from LocalDirectionIndex.
      *        For NurbsSurface this is equivalent to the knot vector per direction,
      *        whereby NurbsCurve also provide its knot vector.
@@ -1998,7 +1998,7 @@ public:
     ///@{
 
     /** This method confirm you if this geometry has a specific
-    integration method or not. This method will be usefull to
+    integration method or not. This method will be useful to
     control the geometry before intagrating using a specific
     method. In Geometry class this method controls if the
     integration points vector respecting to this method is empty
@@ -2047,7 +2047,7 @@ public:
     /**
      * @brief This method gives you all boundaries entities of this geometry.
      * @details This method will gives you all the boundaries entities
-     * @return GeometriesArrayType containes this geometry boundaries entities.
+     * @return GeometriesArrayType contains this geometry boundaries entities.
      * @see GeneratePoints()
      * @see GenerateEdges()
      * @see GenerateFaces()
@@ -2071,7 +2071,7 @@ public:
     /**
      * @brief This method gives you all points of this geometry.
      * @details This method will gives you all the points
-     * @return GeometriesArrayType containes this geometry points.
+     * @return GeometriesArrayType contains this geometry points.
      * @see Points()
      */
     virtual GeometriesArrayType GeneratePoints() const
@@ -2096,7 +2096,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -2113,7 +2113,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @deprecated This is legacy version, move to GenerateFaces
      * @see EdgesNumber()
      * @see Edge()
@@ -2127,7 +2127,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -2172,7 +2172,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @deprecated This is legacy version, move to GenerateFaces
      * @see EdgesNumber
      * @see Edges
@@ -2191,7 +2191,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -2701,7 +2701,7 @@ public:
     *        the geometry given to an arbitrary point in global coordinates.
     *        The basic concept is to first do a projection towards
     *        this geometry and second checking if the projection
-    *        was successfull or if no point on the geometry was found.
+    *        was successful or if no point on the geometry was found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointGlobalCoordinates the location of the
@@ -2731,7 +2731,7 @@ public:
     *        the geometry given to an arbitrary point in global coordinates.
     *        The basic concept is to first do a projection towards
     *        this geometry and second checking if the projection
-    *        was successfull or if no point on the geometry was found.
+    *        was successful or if no point on the geometry was found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointGlobalCoordinates the location of the
@@ -2768,7 +2768,7 @@ public:
     *        the geometry given to an arbitrary point in global coordinates.
     *        The basic concept is to first do a projection towards
     *        this geometry and second checking if the projection
-    *        was successfull or if no point on the geometry was found.
+    *        was successful or if no point on the geometry was found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointLocalCoordinates the location of the
@@ -3668,7 +3668,7 @@ public:
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     *        0 is NOT accessible
-    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @param IntegrationPointIndex the corresponding control point of this geometry
     * @return the shape function derivative matrix.
     *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
@@ -3685,7 +3685,7 @@ public:
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     *        0 is NOT accessible
-    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @param IntegrationPointIndex the corresponding control point of this geometry
     * @return the shape function derivative matrix.
     *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
@@ -4053,8 +4053,8 @@ protected:
       return 0.0;
     }
 
-    /** Calculates the volume to average edge lenght quality metric.
-     * Calculates the volume to average edge lenght quality metric.
+    /** Calculates the volume to average edge length quality metric.
+     * Calculates the volume to average edge length quality metric.
      * This metric is bounded by the interval (-1,1) being:
      *  1 -> Optimal value
      *  0 -> Worst value
@@ -4071,7 +4071,7 @@ protected:
 
     /** Calculates the volume to average edge length quality metric.
      * Calculates the volume to average edge length quality metric.
-     * The average edge lenght is calculated using the RMS.
+     * The average edge length is calculated using the RMS.
      * This metric is bounded by the interval (-1,1) being:
      *  1 -> Optimal value
      *  0 -> Worst value

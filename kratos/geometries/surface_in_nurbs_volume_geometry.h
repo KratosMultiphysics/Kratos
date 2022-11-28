@@ -191,7 +191,7 @@ public:
     }
 
     ///@}
-    ///@name Geometrical Informations
+    ///@name Geometrical Information
     ///@{
 
     /// Provides the center of the underlying surface.
