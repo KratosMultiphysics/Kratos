@@ -6,7 +6,6 @@
 #include "includes/communicator.h"
 #include "custom_utilities/registered_component_lookup.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
-#include "includes/debug_helpers.h"
 
 namespace Kratos
 {
