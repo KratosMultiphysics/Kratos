@@ -128,14 +128,16 @@ double BrooksCoreyLaw::
     CalculateRelativePermeability(Parameters &rParameters)
 {
     KRATOS_TRY;
-
+    const double &p = rParameters.GetFluidPressure();
+    const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
+    const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
     const double effSat = CalculateEffectiveSaturation(rParameters);
 
     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
     const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
 
-     double relPerm = pow(effSat, ((5/2)-(2/Lambda))); 
+     double relPerm = pow(pb/p, ((5/2)-(2/Lambda))); 
      //double relPerm = pow(effSat, ((2+3*Lambda)/Lambda)); 
     //double relPerm = pow(effSat, 1.7);
 
