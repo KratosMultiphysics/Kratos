@@ -941,6 +941,9 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
     } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
+        if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
+            rValue = mFiberVolumetricParticipation;
+        }
         return rValue;
     }
 }
