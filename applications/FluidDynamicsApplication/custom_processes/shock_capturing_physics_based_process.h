@@ -271,22 +271,21 @@ private:
 
         // Set auxiliary constants
         const double k = 1.0; // Polynomial order of the numerical simulation
-        const double eps = 1.0e-7; // Small constant to avoid division by 0
+        const double eps = std::numeric_limits<double>::epsilon(); // Small constant to avoid division by 0
 
         // Calculate the midpoint values
-        double midpoint_rho = 0.0;
-        double formulation_midpoint_temp = 0.0;
+        double midpoint_rho, formulation_midpoint_temp;
         auto& r_midpoint_v = rShockCapturingTLS.MidpointVelocity;
         if (mThermallyCoupledFormulation) {
             // Get required midpoint values
             double midpoint_temp;
-            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_temp, TEMPERATURE));
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY), std::tie(midpoint_temp, TEMPERATURE));
             // If the formulation is thermally coupled, the temperature for the stagnation temperature is the midpoint value
             formulation_midpoint_temp = midpoint_temp;
         } else {
             // Get required midpoint values
             double midpoint_p;
-            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(midpoint_p, PRESSURE), std::tie(midpoint_rho, DENSITY));
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_p, PRESSURE), std::tie(midpoint_rho, DENSITY));
             // If the formulation is not energy coupled, the temperature for the stagnation temperature it's calculated by the state equation with the midpoint values
             formulation_midpoint_temp = midpoint_p / (midpoint_rho * (gamma - 1.0) * c_v);
         }
@@ -322,7 +321,6 @@ private:
             const double s_beta_0 = 0.01;
             const double s_beta_max = 2.0 / std::sqrt(std::pow(gamma, 2) - 1.0);
             const double s_beta = s_omega * s_w;
-            // const double s_beta_hat = LimitingFunction(s_beta, s_beta_0, s_beta_max);
             const double s_beta_hat = SmoothedLimitingFunction(s_beta, s_beta_0, s_beta_max);
             rElement.GetValue(SHOCK_SENSOR) = s_beta_hat;
 
@@ -398,7 +396,6 @@ private:
                 const double s_mu_0 = 1.0;
                 const double s_mu_max = 2.0;
                 const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
-                // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
                 const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
                 rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
 
