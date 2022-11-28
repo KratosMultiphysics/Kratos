@@ -190,11 +190,50 @@ public:
                 p_geometry = first_condition->pGetGeometry();
                 entity = 1;
             }
+
+            // MPI data
+            int aux_partition_entity = -1;
+            const auto& r_communicator = r_origin_sub_model_part.GetCommunicator();
+            const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+            const int mpi_rank = r_data_communicator.Rank();
+            const int mpi_size = r_data_communicator.Size();
+
+            // Get maximum rank
+            if (p_geometry != nullptr) aux_partition_entity = mpi_rank;
+
+            // Define the send tag
+            const int tag_send_index = 1;
+            const int tag_send_normal = 2;
+            const int tag_send_point = 3;
+
+            // Determine root's rank
+            const int root_rank = 0;
+
+            // Getting the partition with entities index
+            int partition_entity = r_data_communicator.Max(aux_partition_entity, root_rank);
+
+            // Transfer to other partitions
+            if (mrInputModelPartOrigin.IsDistributed()) {
+                if (mpi_rank == root_rank) {
+                    for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
+                        r_data_communicator.Send(partition_entity, i_rank, tag_send_index);
+                    }
+                } else {
+                    r_data_communicator.Recv(partition_entity, root_rank, tag_send_index);
+                }
+            }
+ 
             // Getting from parameters if not elements or conditions
-            if (p_geometry == nullptr) {
-                KRATOS_ERROR_IF(!mrInputModelPartOrigin.IsDistributed() && mMetaMapperType != MetaMapperType::NEAREST_NEIGHBOR) << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl; // NOTE: In the MPI case if the number of elements and conditions is zero also the number of nodes is zero and therefore not projection is needed, so we can proceed even with default values of normals and reference points
-                noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
-                noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
+            if (partition_entity != mpi_rank) {
+                if (!mrInputModelPartOrigin.IsDistributed()) {
+                    KRATOS_ERROR_IF_NOT(mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl; // NOTE: In the MPI case if the number of elements and conditions is zero also the number of nodes is zero and therefore not projection is needed, so we can proceed even with default values of normals and reference points
+                    noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
+                    noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
+                } else { // Now transfer the normal plane and the point plane between partitions
+                    // The partitions that receive
+                    r_data_communicator.Recv(mNormalPlane, partition_entity, tag_send_normal);
+                    r_data_communicator.Recv(mPointPlane.Coordinates(), partition_entity, tag_send_point);
+                }
             } else {
                 GeometryType::CoordinatesArrayType aux_coords;
                 noalias(mPointPlane.Coordinates()) = p_geometry->Center();
@@ -225,6 +264,17 @@ public:
                     });
                 }
                 KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
+
+                // The partition that sends
+                if (mrInputModelPartOrigin.IsDistributed()) {
+                    const auto& r_point_coordinates = mPointPlane.Coordinates();
+                    for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
+                        if (i_rank != partition_entity) {
+                            r_data_communicator.Send(mNormalPlane, i_rank, tag_send_normal);
+                            r_data_communicator.Send(r_point_coordinates, i_rank, tag_send_point);
+                        }
+                    }
+                }
             }
         }
 
