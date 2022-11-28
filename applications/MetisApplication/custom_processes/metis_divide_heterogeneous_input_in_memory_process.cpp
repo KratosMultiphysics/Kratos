@@ -20,10 +20,8 @@
 
 
 // Project includes
-#include "processes/graph_coloring_process.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "metis_divide_heterogeneous_input_in_memory_process.h"
-#include "custom_utilities/legacy_partitioning_utilities.h" // TODO remove
 
 
 namespace Kratos {
@@ -58,119 +56,22 @@ void MetisDivideHeterogeneousInputInMemoryProcess::Execute()
 
     // Main process calculates the partitions and writes the result into temporal streams
     if(mpi_rank == 0) {
-        // Read nodal graph from input
 
-        IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
+        auto part_info(Kratos::make_shared<PartitioningInfo>());
 
-        SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
+        ExecutePartitioning(*part_info);
 
-        // Write connectivity data in CSR format
-        idxtype* NodeIndices = 0;
-        idxtype* NodeConnectivities = 0;
-
-        LegacyPartitioningUtilities::ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
-
-        std::vector<idxtype> NodePartition;
-        PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
-
-        // Free some memory we no longer need
-        delete [] NodeIndices;
-        delete [] NodeConnectivities;
-
-        // Partition elements
-        IO::ConnectivitiesContainerType ElementConnectivities;
-        SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
-        if (NumElements != ElementConnectivities.size())
-        {
-            std::stringstream Msg;
-            Msg << std::endl;
-            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-            Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
-            Msg << "Elements are most likely not correlatively numbered." << std::endl;
-
-            KRATOS_ERROR << Msg.str();
-        }
-
-        std::vector<idxtype> ElementPartition;
-
-        if (mSynchronizeConditions)
-            PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
-        else
-            PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
-
-        // Partition conditions
-        IO::ConnectivitiesContainerType ConditionConnectivities;
-        SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
-        if (NumConditions != ConditionConnectivities.size())
-        {
-            std::stringstream Msg;
-            Msg << std::endl;
-            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-            Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
-            Msg << "Conditions are most likely not correlatively numbered." << std::endl;
-
-            KRATOS_ERROR << Msg.str();
-        }
-
-        std::vector<idxtype> ConditionPartition;
-
-        if (mSynchronizeConditions)
-            PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
-        else
-            PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
-
-        // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
-        // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
-        RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
-
-        // Coloring
-        GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
-        LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
-        LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
-
-        int NumColors;
-        GraphType ColoredDomainGraph;
-        GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
-
-        if (mVerbosity > 0) {
-            KRATOS_INFO("NumColors") << NumColors << std::endl;
-        }
-
-        if (mVerbosity > 2) {
-            KRATOS_INFO("ColoredDomainGraph") << ColoredDomainGraph << std::endl;
-        }
-
-        // Write partition info into separate input files
-        IO::PartitionIndicesContainerType nodes_all_partitions;
-        IO::PartitionIndicesContainerType elements_all_partitions;
-        IO::PartitionIndicesContainerType conditions_all_partitions;
-
-        // Create lists containing all nodes/elements/conditions known to each partition
-        LegacyPartitioningUtilities::DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-        LegacyPartitioningUtilities::DividingElements(elements_all_partitions, ElementPartition);
-        LegacyPartitioningUtilities::DividingConditions(conditions_all_partitions, ConditionPartition);
-
-        if (mVerbosity > 1) {
-            std::cout << "Final list of nodes known by each partition" << std::endl;
-            for(SizeType i = 0 ; i < NumNodes ; i++) {
-                std::cout << "Node #" << i+1 << "->";
-                for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++) {
-                    std::cout << *j << ",";
-                }
-                std::cout << std::endl;
-            }
-        }
-
-        IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
-        IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
-        IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
-
-        // Write files
+        // Write partitions to streams
         mrIO.DivideInputToPartitions(
-            streams, mNumberOfPartitions, ColoredDomainGraph,
-            io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-            nodes_all_partitions, elements_all_partitions, conditions_all_partitions
-        );
+            streams,
+            mNumberOfPartitions,
+            part_info->Graph,
+            part_info->NodesPartitions,
+            part_info->ElementsPartitions,
+            part_info->ConditionsPartitions,
+            part_info->NodesAllPartitions,
+            part_info->ElementsAllPartitions,
+            part_info->ConditionsAllPartitions);
     }
 
     // Calculate the message and prepare the buffers

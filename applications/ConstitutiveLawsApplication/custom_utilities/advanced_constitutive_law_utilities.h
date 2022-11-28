@@ -164,9 +164,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         double& rJ2
         )
     {
+        noalias(rDeviator) = rStressVector;
+        const double p_mean = I1 / 3.0;
         if (Dimension == 3) {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
             for (IndexType i = 0; i < Dimension; ++i)
                 rDeviator[i] -= p_mean;
             rJ2 = 0.0;
@@ -175,8 +175,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
             for (IndexType i = Dimension; i < 6; ++i)
                 rJ2 += std::pow(rDeviator[i], 2);
         } else {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
             for (IndexType i = 0; i < Dimension; ++i)
                 rDeviator[i] -= p_mean;
             rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
