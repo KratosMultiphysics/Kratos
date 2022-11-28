@@ -182,6 +182,12 @@ private:
     ///@name Private Operations
     ///@{
 
+    static void GetVariablesList(
+        Parameters ThisParameters,
+        std::vector<const Variable<double>*>& rOriginListVariables,
+        std::vector<const Variable<double>*>& rDestinationListVariables
+        );
+
     static Parameters GetDefaultParameters();
 
     ///@}
