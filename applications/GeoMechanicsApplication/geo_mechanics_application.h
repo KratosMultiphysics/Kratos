@@ -49,6 +49,7 @@
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_elements/transient_thermal_element.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -440,6 +441,18 @@ private:
     const GeoCableElement<3,2> mGeoCableElement3D2N;
 
     const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N;
+
+    // transient one-phase temperature elements:
+    const TransientThermalElement<2,3>  mTransientThermalElement2D3N;
+    const TransientThermalElement<2,4>  mTransientThermalElement2D4N;
+    const TransientThermalElement<3,4>  mTransientThermalElement3D4N;
+    const TransientThermalElement<3,8>  mTransientThermalElement3D8N;
+    const TransientThermalElement<2,6>  mTransientThermalElement2D6N;
+    const TransientThermalElement<2,8>  mTransientThermalElement2D8N;
+    const TransientThermalElement<2,9>  mTransientThermalElement2D9N;
+    const TransientThermalElement<3,10> mTransientThermalElement3D10N;
+    const TransientThermalElement<3,20> mTransientThermalElement3D20N;
+    const TransientThermalElement<3,27> mTransientThermalElement3D27N;
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N;
