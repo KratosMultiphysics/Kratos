@@ -9,7 +9,7 @@
 //
 //  Main authors:    Contri Alessandro
 //
-//  References:    This class is adapted from applications/ParticleMechanicsApplication/custom_constitutive/hyperelastic_3D_law.cpp  
+//  References:    This class is adapted from applications/ParticleMechanicsApplication/custom_constitutive/hyperelastic_3D_law.cpp
 
 
 // System includes
@@ -106,7 +106,7 @@ double& DispNewtonianFluid3DLaw::CalculateValue(Parameters& rParametersValues, c
 //************************************************************************************
 
 double& DispNewtonianFluid3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
-{    
+{
     rValue=0;
     return(rValue);
 }
@@ -330,7 +330,7 @@ void DispNewtonianFluid3DLaw::CalculateDeformationRate(MaterialResponseVariables
     Matrix inv_b;
     double aux_det;
     MathUtils<double>::InvertMatrix(b, inv_b, aux_det);
-    
+
     rViscousVariables.DeformationRate.resize(3, 3, false);
     noalias(rViscousVariables.DeformationRate) = 0.5 / rViscousVariables.DeltaTime * (rViscousVariables.Identity - inv_b);
 

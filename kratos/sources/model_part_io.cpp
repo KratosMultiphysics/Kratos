@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/model_part_io.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/openmp_utils.h"
@@ -992,9 +993,7 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
     KRATOS_TRY
-    ResetInput();
-    std::string word;
-    OutputFilesContainerType output_files;
+
 
     // create folder for partitioned files
     const auto raw_file_name = mBaseFilename.stem();
@@ -1002,6 +1001,9 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
 
     std::filesystem::remove_all(folder_name); // to remove leftovers
     FilesystemExtensions::MPISafeCreateDirectories(folder_name.string());
+
+    OutputFilesContainerType output_files;
+    output_files.reserve(NumberOfPartitions);
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
@@ -1012,46 +1014,22 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
         output_files.push_back(p_ofstream);
     }
 
-    while(true)
-    {
-        ReadWord(word);
-        if(mpStream->eof())
-            break;
-        ReadBlockName(word);
-        if(word == "ModelPartData")
-            DivideModelPartDataBlock(output_files);
-        else if(word == "Table")
-            DivideTableBlock(output_files);
-        else if(word == "Properties")
-            DividePropertiesBlock(output_files);
-        else if(word == "Nodes")
-            DivideNodesBlock(output_files, NodesAllPartitions);
-//         else if(word == "Geometries")
-//             DivideGeometriesBlock(output_files, GeometriesAllPartitions);
-        else if(word == "Elements")
-            DivideElementsBlock(output_files, ElementsAllPartitions);
-        else if(word == "Conditions")
-            DivideConditionsBlock(output_files, ConditionsAllPartitions);
-        else if(word == "NodalData")
-            DivideNodalDataBlock(output_files, NodesAllPartitions);
-        else if(word == "ElementalData")
-            DivideElementalDataBlock(output_files, ElementsAllPartitions);
-        else if(word == "ConditionalData")
-            DivideConditionalDataBlock(output_files, ConditionsAllPartitions);
-        else if (word == "Mesh")
-            DivideMeshBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
-        else if (word == "SubModelPart")
-            DivideSubModelPartBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
-
-    }
-
-    WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
-
-    WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
-    KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
+    DivideInputToPartitionsImpl(
+        output_files,
+        NumberOfPartitions,
+        DomainsColoredGraph,
+        NodesPartitions,
+        // GeometriesPartitions,
+        ElementsPartitions,
+        ConditionsPartitions,
+        NodesAllPartitions,
+        // GeometriesAllPartitions,
+        ElementsAllPartitions,
+        ConditionsAllPartitions);
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
         delete output_files[i];
+
     KRATOS_CATCH("")
 }
 
@@ -1068,14 +1046,52 @@ void ModelPartIO::DivideInputToPartitions(
     PartitionIndicesContainerType const& ConditionsAllPartitions) {
 
     KRATOS_TRY
-    ResetInput();
-    std::string word;
+
     OutputFilesContainerType output_files;
+    output_files.reserve(NumberOfPartitions);
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
         output_files.push_back(static_cast<std::ostream *>(&*Streams[i]));
     }
+
+    DivideInputToPartitionsImpl(
+        output_files,
+        NumberOfPartitions,
+        DomainsColoredGraph,
+        NodesPartitions,
+        // GeometriesPartitions,
+        ElementsPartitions,
+        ConditionsPartitions,
+        NodesAllPartitions,
+        // GeometriesAllPartitions,
+        ElementsAllPartitions,
+        ConditionsAllPartitions);
+
+    // for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+    //     delete output_files[i];
+
+    KRATOS_CATCH("")
+}
+
+
+void ModelPartIO::DivideInputToPartitionsImpl(
+    OutputFilesContainerType& rOutputFiles,
+    SizeType NumberOfPartitions,
+    GraphType const& DomainsColoredGraph,
+    PartitionIndicesType const& NodesPartitions,
+    // PartitionIndicesType const& GeometriesPartitions,
+    PartitionIndicesType const& ElementsPartitions,
+    PartitionIndicesType const& ConditionsPartitions,
+    PartitionIndicesContainerType const& NodesAllPartitions,
+    // PartitionIndicesContainerType const& GeometriesAllPartitions,
+    PartitionIndicesContainerType const& ElementsAllPartitions,
+    PartitionIndicesContainerType const& ConditionsAllPartitions)
+{
+    KRATOS_TRY
+
+    ResetInput();
+    std::string word;
 
     while(true)
     {
@@ -1084,39 +1100,38 @@ void ModelPartIO::DivideInputToPartitions(
             break;
         ReadBlockName(word);
         if(word == "ModelPartData")
-            DivideModelPartDataBlock(output_files);
+            DivideModelPartDataBlock(rOutputFiles);
         else if(word == "Table")
-            DivideTableBlock(output_files);
+            DivideTableBlock(rOutputFiles);
         else if(word == "Properties")
-            DividePropertiesBlock(output_files);
+            DividePropertiesBlock(rOutputFiles);
         else if(word == "Nodes")
-            DivideNodesBlock(output_files, NodesAllPartitions);
-//         else if(word == "Geometries")
-//             DivideElementsBlock(output_files, GeometriesAllPartitions);
+            DivideNodesBlock(rOutputFiles, NodesAllPartitions);
+        // else if(word == "Geometries")
+            // DivideGeometriesBlock(rOutputFiles, GeometriesAllPartitions);
         else if(word == "Elements")
-            DivideElementsBlock(output_files, ElementsAllPartitions);
+            DivideElementsBlock(rOutputFiles, ElementsAllPartitions);
         else if(word == "Conditions")
-            DivideConditionsBlock(output_files, ConditionsAllPartitions);
+            DivideConditionsBlock(rOutputFiles, ConditionsAllPartitions);
         else if(word == "NodalData")
-            DivideNodalDataBlock(output_files, NodesAllPartitions);
+            DivideNodalDataBlock(rOutputFiles, NodesAllPartitions);
         else if(word == "ElementalData")
-            DivideElementalDataBlock(output_files, ElementsAllPartitions);
+            DivideElementalDataBlock(rOutputFiles, ElementsAllPartitions);
         else if(word == "ConditionalData")
-            DivideConditionalDataBlock(output_files, ConditionsAllPartitions);
+            DivideConditionalDataBlock(rOutputFiles, ConditionsAllPartitions);
         else if (word == "Mesh")
-            DivideMeshBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+            DivideMeshBlock(rOutputFiles, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
         else if (word == "SubModelPart")
-            DivideSubModelPartBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+            DivideSubModelPartBlock(rOutputFiles, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
 
     }
 
-    WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
+    WritePartitionIndices(rOutputFiles, NodesPartitions, NodesAllPartitions);
 
-    WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+    WriteCommunicatorData(rOutputFiles, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
 
-    // for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
-    //     delete output_files[i];
     KRATOS_CATCH("")
 }
 

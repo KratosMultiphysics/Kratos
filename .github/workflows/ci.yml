@@ -45,10 +45,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Installing dependencies
-      shell: bash
-      run: |
-        python3 -m pip install parameterized
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Build
       shell: bash
@@ -190,13 +188,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Installing dependencies
-      shell: bash
-      run: |
-        python3.8 -m pip install parameterized
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Build
       run: |
+        export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         cp .github/workflows/centos_configure.sh centos_configure.sh
         bash centos_configure.sh
 
@@ -412,10 +409,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Installing dependencies
-      shell: bash
-      run: |
-        python3 -m pip install parameterized
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: Build
       shell: bash

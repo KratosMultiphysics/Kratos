@@ -367,6 +367,13 @@ protected:
 
     void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
+
+    /**
+     * Calculation of the constitutive coefficient for pressure of the Element
+     */
+    virtual double& CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+
+
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */

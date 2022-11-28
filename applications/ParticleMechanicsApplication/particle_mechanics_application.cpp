@@ -143,7 +143,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition", mMPMParticlePenaltyCouplingInterfaceCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
-        
+
         // deprecated conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D3N", mMPMParticlePenaltyDirichletCondition2D3N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D4N", mMPMParticlePenaltyDirichletCondition2D4N)
@@ -182,6 +182,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_TEMPERATURE)
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
         KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
+        KRATOS_REGISTER_VARIABLE(IS_MIXED_FORMULATION)
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -280,7 +281,6 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrainUP2DLaw", mDispNewtonianFluidPlaneStrainUP2DLaw);
 
-
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
         Serializer::Register("MCStrainSofteningPlasticFlowRule", mMCStrainSofteningPlasticFlowRule);
@@ -313,7 +313,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION)
 
         // Stabilization variables
-        KRATOS_REGISTER_VARIABLE(STABILIZATION_OPTION)
+        KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
         KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
     }
 

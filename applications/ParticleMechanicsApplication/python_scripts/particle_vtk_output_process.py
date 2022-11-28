@@ -62,12 +62,12 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
         context_string = type(self).__name__
-
         old_name = 'output_frequency'
         new_name = 'output_interval'
 
         if DeprecationManager.HasDeprecatedVariable(context_string,settings,old_name,new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings,old_name,new_name)
+
 
         # Public Functions
     def ExecuteInitialize(self):

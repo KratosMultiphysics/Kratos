@@ -81,6 +81,7 @@
 #include "custom_constitutive/displacement_newtonian_fluid_UP_3D_law.hpp"
 #include "custom_constitutive/displacement_newtonian_fluid_plane_strain_UP_2D_law.hpp"
 
+
 //---flow rules
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
@@ -261,7 +262,7 @@ private:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
-    
+
     // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;

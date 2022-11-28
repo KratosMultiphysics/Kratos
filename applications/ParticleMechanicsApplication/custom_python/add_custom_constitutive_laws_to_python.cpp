@@ -219,26 +219,27 @@ namespace Python{
         .def(py::init<>())
         ;
 
-	// Displacement Newtonian Fluid	
-	py::class_< DispNewtonianFluid3DLaw, typename DispNewtonianFluid3DLaw::Pointer, ConstitutiveLaw >
-        (m, "DispNewtonianFluid3DLaw")
-	.def(py::init<>())
+        // Displacement Newtonian Fluid
+        py::class_< DispNewtonianFluid3DLaw, typename DispNewtonianFluid3DLaw::Pointer, ConstitutiveLaw >
+                (m, "DispNewtonianFluid3DLaw")
+        .def(py::init<>())
+                ;
+
+        py::class_< DispNewtonianFluidPlaneStrain2DLaw, typename DispNewtonianFluidPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+                (m, "DispNewtonianFluidPlaneStrain2DLaw")
+        .def(py::init<>())
+                ;
+
+        py::class_< DispNewtonianFluidUP3DLaw, typename DispNewtonianFluidUP3DLaw::Pointer, ConstitutiveLaw >
+                (m, "DispNewtonianFluidUP3DLaw")
+        .def(py::init<>())
+                ;
+
+        py::class_< DispNewtonianFluidPlaneStrainUP2DLaw, typename DispNewtonianFluidPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
+                (m, "DispNewtonianFluidPlaneStrainUP2DLaw")
+        .def(py::init<>())
         ;
 
-	py::class_< DispNewtonianFluidPlaneStrain2DLaw, typename DispNewtonianFluidPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-        (m, "DispNewtonianFluidPlaneStrain2DLaw")
-	.def(py::init<>())
-        ;
-
-	py::class_< DispNewtonianFluidUP3DLaw, typename DispNewtonianFluidUP3DLaw::Pointer, ConstitutiveLaw >
-        (m, "DispNewtonianFluidUP3DLaw")
-	.def(py::init<>())
-        ;
-
-	py::class_< DispNewtonianFluidPlaneStrainUP2DLaw, typename DispNewtonianFluidPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
-        (m, "DispNewtonianFluidPlaneStrainUP2DLaw")
-	.def(py::init<>())
-        ;
     }
 }  // namespace Python.
 }  // namespace Kratos.

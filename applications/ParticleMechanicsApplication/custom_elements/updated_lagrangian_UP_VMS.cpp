@@ -161,8 +161,8 @@ void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVari
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int voigt_dimension = (dimension-1)*(dimension-1)+2;
-    
-    
+
+
     // Initialize stabilization parameters
     rVariables.tau1  = 0;
     rVariables.tau2  = 0;
@@ -240,7 +240,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
         SetSpecificVariables(Variables,rCurrentProcessInfo);
 
         // Compute stabilization parameters
-        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_OPTION),Variables);
+        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_TYPE),Variables);
 
     }
 
@@ -579,14 +579,14 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
 
 
     // Compute Residual if the stabilization is OSGS type
-    if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION)==3)
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==3)
     {
-     Vector volume_force = mMP.volume_acceleration * mMP.mass;   
+     Vector volume_force = mMP.volume_acceleration * mMP.mass;
      ComputeResidual(rVariables,volume_force,rVariables.GPResidualU,rVariables.GPResidualP);
     }
 
     KRATOS_CATCH("")
-} 
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -599,19 +599,19 @@ void UpdatedLagrangianUPVMS::ComputeElementSize(double& ElemSize){
 
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    double Area = r_geometry.GetGeometryParent(0).Area(); 
-   
+    double Area = r_geometry.GetGeometryParent(0).Area();
+
     if (dimension == 2)
     {
-        ElemSize = 1.128379167 * sqrt(Area); 
+        ElemSize = 1.128379167 * sqrt(Area);
     }
     else if (dimension== 3)
     {
         ElemSize = 0.60046878 * pow(Area,0.333333333333333333333);
     }
-        
+
         KRATOS_CATCH("")
-} 
+}
 
 // Calculate stabilization parameters
 
@@ -622,7 +622,7 @@ void UpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
 
     // Add computations for the tau stabilization
 
-    const double constant1=1.0; 
+    const double constant1=1.0;
     const double constant2=1.0;
     double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
@@ -645,7 +645,7 @@ void UpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
 
 void UpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix)
 {
-    
+
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     double voigt_dimension = (dimension - 1)*(dimension - 1)+2;
@@ -688,7 +688,7 @@ double& UpdatedLagrangianUPVMS::TensorIdentityComponent (double& rCabcd, General
     double IdotI = rVariables.Identity(a, b) * rVariables.Identity(c, d);
     double Isym = (rVariables.Identity(a, c) * rVariables.Identity(b, d) +
         rVariables.Identity(a, d) * rVariables.Identity(b, c)) / 2.0;
-    
+
     rCabcd += IdotI;
     rCabcd -= 2 * Isym;
 
@@ -724,7 +724,7 @@ void UpdatedLagrangianUPVMS::ConvertPressureGradientInVoigt(Vector& PressureGrad
         PressureGradientVoigt(5) = 0.5*(PressureGradient(2) + PressureGradient(0));
 
     }
-  
+
     //return PressureGradientVoigt;
 
     KRATOS_CATCH( "" )
@@ -736,7 +736,7 @@ void UpdatedLagrangianUPVMS::ConvertPressureGradientInVoigt(Vector& PressureGrad
 void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     // ONLY FOR NEWMARK APPROACH
- 
+
     KRATOS_TRY
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -755,11 +755,11 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
         array_1d<double, 3 > previous_acceleration = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION)) 
+        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
             previous_acceleration = r_geometry[j].GetSolutionStepValue(ACCELERATION,1);
 
         array_1d<double, 3 > previous_velocity = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(VELOCITY)) 
+        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
             previous_velocity = r_geometry[j].GetSolutionStepValue(VELOCITY,1);
 
         array_1d<double, 3 > previous_displacement = ZeroVector(3);
@@ -791,7 +791,7 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
         rVariables.DynamicRHS[idime] += coeff1 * aux_MP_velocity[idime] + coeff2 * aux_MP_acceleration[idime];
     }
 
-    
+
  KRATOS_CATCH( "" )
 }
 
@@ -800,9 +800,9 @@ void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vecto
 {
     // Only for OSGS stabilization
     KRATOS_TRY
-    
+
     rResidualU = rVolumeForce - rVariables.PressureGradient + mMP.density *mMP.acceleration;
-    rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);  
+    rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
 
     KRATOS_CATCH( "" )
 }
@@ -909,7 +909,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddPressureForces(VectorType& rRightHan
     unsigned int index_p = dimension;
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-    
+
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -944,7 +944,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
     {
         unsigned int index_up = dimension * i + i;
         unsigned int index_u  = dimension * i;
-        
+
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
             rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf1(i) * rIntegrationWeight;
@@ -990,7 +990,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
         //}
 
         rRightHandSideVector[index_p] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
-    
+
         index_p += (dimension + 1);
     }
 
@@ -1218,7 +1218,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         indexpi += (dimension + 1);
     }
 
- 
+
     KRATOS_CATCH( "" )
 }
 
@@ -1236,7 +1236,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    
+
     Vector Kuustab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Kuustab2 = prod( Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
     Vector testf1   = Kuustab1;
@@ -1304,7 +1304,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
                 rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau1 *  rVariables.DynamicCoefficient * r_N(0 , j) * rVariables.DN_DX(i, k) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab1(j) * rVariables.DN_DX(i, k) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab2(indexj) * rVariables.DN_DX(i, k) * rIntegrationWeight;
-                
+
                 rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau2 * (1/rVariables.BulkModulus)* rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
                 indexj++;
             }
@@ -1345,7 +1345,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
             {
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf1(j) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf2(indexj) * rIntegrationWeight;
-                
+
                 indexj++;
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2 * (1.0 / rVariables.BulkModulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
@@ -1388,7 +1388,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
 
 
     KRATOS_CATCH( "" )
-} 
+}
 
 
 

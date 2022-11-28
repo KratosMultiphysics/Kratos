@@ -22,151 +22,150 @@
 // Project includes
 #include "fluid_constitutive_law.h"
 
-namespace Kratos {
-/**
- * Defines a 2D Papanastasiou mu(I) rheology constitutive law
- * This material law is defined by the parameters:
- * 1) STATIC_FRICTION
- * 2) DYNAMIC_FRICTION
- * 3) INERTIAL_NUMBER_ZERO
- * 4) GRAIN_DIAMETER
- * 5) GRAIN_DENSITY
- * 6) REGULARIZATION_COEFFICIENT
- */
-
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheology2DLaw : public PfemFluidConstitutiveLaw {
-   public:
+namespace Kratos
+{
     /**
-     * Type Definitions
-     */
-    typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
-
-    /**
-     * Counted pointer of MuIRheology2DLaw
-     */
-    KRATOS_CLASS_POINTER_DEFINITION(MuIRheology2DLaw);
-
-    /**
-     * Life Cycle
+     * Defines a 2D Papanastasiou mu(I) rheology constitutive law
+     * This material law is defined by the parameters:
+     * 1) STATIC_FRICTION
+     * 2) DYNAMIC_FRICTION
+     * 3) INERTIAL_NUMBER_ZERO
+     * 4) GRAIN_DIAMETER
+     * 5) GRAIN_DENSITY
+     * 6) REGULARIZATION_COEFFICIENT
      */
 
-    /**
-     * Default constructor.
-     */
-    MuIRheology2DLaw();
+    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MuIRheology2DLaw : public PfemFluidConstitutiveLaw
+    {
+    public:
+        /**
+         * Type Definitions
+         */
+        typedef ProcessInfo ProcessInfoType;
+        typedef ConstitutiveLaw BaseType;
+        typedef std::size_t SizeType;
 
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     */
-    ConstitutiveLaw::Pointer Clone() const override;
+        /**
+         * Counted pointer of MuIRheology2DLaw
+         */
+        KRATOS_CLASS_POINTER_DEFINITION(MuIRheology2DLaw);
 
-    /**
-     * Copy constructor.
-     */
-    MuIRheology2DLaw(const MuIRheology2DLaw& rOther);
+        /**
+         * Life Cycle
+         */
 
-    /**
-     * Destructor.
-     */
-    ~MuIRheology2DLaw() override;
+        /**
+         * Default constructor.
+         */
+        MuIRheology2DLaw();
 
-    /**
-     * Operators
-     */
+        /**
+         * Clone function (has to be implemented by any derived class)
+         * @return a pointer to a new instance of this constitutive law
+         */
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Operations needed by the base class:
-     */
+        /**
+         * Copy constructor.
+         */
+        MuIRheology2DLaw(const MuIRheology2DLaw &rOther);
 
-    /**
-     * @return Working space dimension constitutive law
-     */
-    SizeType WorkingSpaceDimension() override;
+        /**
+         * Destructor.
+         */
+        ~MuIRheology2DLaw() override;
 
-    /**
-     * @return Size of the strain vector (in Voigt notation) for the constitutive law
-     */
-    SizeType GetStrainSize() const override;
+        /**
+         * Operators
+         */
 
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+        /**
+         * Operations needed by the base class:
+         */
 
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return
-     */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
+        /**
+         * @return Working space dimension constitutive law
+         */
+        SizeType WorkingSpaceDimension() override;
 
-    /**
-     * Input and output
-     */
+        /**
+         * @return Size of the strain vector (in Voigt notation) for the constitutive law
+         */
+        SizeType GetStrainSize() const override;
 
-    /**
-     * Turn back information as a string.
-     */
-    std::string Info() const override;
+        void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
-   protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    ///@name Protected Operators
-    ///@{
-    ///@}
-    ///@name Protected Operations
-    ///@{
+        /**
+         * This function is designed to be called once to perform all the checks needed
+         * on the input provided. Checks can be "expensive" as the function is designed
+         * to catch user's errors.
+         * @param rMaterialProperties
+         * @param rElementGeometry
+         * @param rCurrentProcessInfo
+         * @return
+         */
+        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
-    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+        /**
+         * Input and output
+         */
 
-    /// Get the effective density for the fluid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
+        /**
+         * Turn back information as a string.
+         */
+        std::string Info() const override;
 
-    ///@}
+    protected:
+        ///@name Protected static Member Variables
+        ///@{
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+        ///@}
+        ///@name Protected Operators
+        ///@{
+        ///@}
+        ///@name Protected Operations
+        ///@{
 
-   private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
+        /// Get the effective density for the fluid.
+        double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+        ///@}
 
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
+    private:
+        ///@name Static Member Variables
+        ///@{
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
+        ///@}
+        ///@name Private Operators
+        ///@{
 
-    ///@}
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
+        ///@}
+        ///@name Private Operations
+        ///@{
+        ///@}
 
-    void save(Serializer& rSerializer) const override;
+        ///@}
+        ///@name Private  Access
+        ///@{
+        ///@}
 
-    void load(Serializer& rSerializer) override;
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
 
-};  // Class MuIRheology2DLaw
+        void save(Serializer &rSerializer) const override;
 
-}  // namespace Kratos.
+        void load(Serializer &rSerializer) override;
 
-#endif  // KRATOS_MU_I_RHEOLOGY_LAW_2D_H_INCLUDED  defined
+    }; // Class MuIRheology2DLaw
+
+} // namespace Kratos.
+
+#endif // KRATOS_MU_I_RHEOLOGY_LAW_2D_H_INCLUDED  defined

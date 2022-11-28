@@ -68,6 +68,9 @@ class BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMec
 class BeamCantileverDynamicConsistentMassTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
 
+class BeamCantileverDynamicHyperelasticUPTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/dynamic_UP_hyperelastic_cantilever_test/dynamic_UP_hyperelastic_test"
+
 ### Cook's Membrane Tests
 class CooksMembraneCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "cooks_membrane_tests/compressible_cook_membrane_2D_test"
