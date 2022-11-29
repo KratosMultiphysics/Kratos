@@ -2032,7 +2032,7 @@ ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 
     SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
     if (i == mSubModelParts.end()) {
-        ErrorGetSubModelPart(sub_model_part_name);
+        ErrorNonExistingSubModelPart(sub_model_part_name);
     }
 
     if (delim_pos == std::string::npos) {
@@ -2049,7 +2049,7 @@ const ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 
     const auto i = mSubModelParts.find(r_sub_model_part_name);
     if (i == mSubModelParts.end()) {
-        ErrorGetSubModelPart(r_sub_model_part_name);
+        ErrorNonExistingSubModelPart(r_sub_model_part_name);
     }
 
     if (delim_pos == std::string::npos) {
@@ -2066,7 +2066,7 @@ ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 
     SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
     if (i == mSubModelParts.end()) {
-        ErrorGetSubModelPart(sub_model_part_name);
+        ErrorNonExistingSubModelPart(sub_model_part_name);
     }
 
     if (delim_pos == std::string::npos) {
@@ -2099,7 +2099,7 @@ void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
         }
     } else {
         if (i == mSubModelParts.end()) {
-            ErrorGetSubModelPart(sub_model_part_name);
+            ErrorNonExistingSubModelPart(sub_model_part_name);
         }
 
         return i->RemoveSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
@@ -2385,7 +2385,7 @@ void ModelPart::load(Serializer& rSerializer)
 }
 
 
-void ModelPart::ErrorGetSubModelPart(const std::string& rSubModelPartName) const
+void ModelPart::ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const
 {
     std::stringstream err_msg;
     err_msg << "There is no sub model part with name \"" << rSubModelPartName

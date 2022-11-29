@@ -2014,7 +2014,7 @@ private:
      * @brief This method issues a proper error message if a SubModelPart does not exist
      * @param rSubModelPartName Name of the SubModelPart that does not exits
      */
-    [[ noreturn ]] void ErrorGetSubModelPart(const std::string& rSubModelPartName) const;
+    [[ noreturn ]] void ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const;
 
     ///@}
     ///@name Serialization
