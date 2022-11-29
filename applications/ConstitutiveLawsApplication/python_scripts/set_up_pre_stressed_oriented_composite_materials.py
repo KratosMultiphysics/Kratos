@@ -79,6 +79,8 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                     if line.find("intersection:") != -1: # a new tendon intersection block starts
                         intersection_block = True
                         tendon_name = split_line[5]
+                        # We create a submodel for each tendon
+                        self.model_part.CreateSubModelPart(tendon_name)
                         phi = float(split_line[8])   # Diameter of the tendon
                         Ep  = float(split_line[11])  # Imposed pre-stressing strain
                         KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of Tendon ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
@@ -88,7 +90,8 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                     if intersection_block and line.find("Begin") == -1:
                         id_elem = int(split_line[0])
                         elem = self.model_part.GetElement(id_elem)
-
+                        self.model_part.GetSubModelPart(tendon_name).AddElement(elem, 0) # We add the element to the tendon submodelpart
+                        
                         # Here we apply the imposed strain
                         elem.Initialize(self.model_part.ProcessInfo) # necessary to initialize the element first...
                         array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
