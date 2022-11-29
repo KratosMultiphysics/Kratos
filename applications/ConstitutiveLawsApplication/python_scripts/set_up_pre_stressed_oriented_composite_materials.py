@@ -110,11 +110,24 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                             kf_vect.append(kf)
                         elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, kf_vect, self.model_part.ProcessInfo)
 
-                        # Here we set the local axes...
-                        axis_1 = KM.Vector(3)
-                        axis_2 = KM.Vector(3)
+                        # Here we set the local axes... (Gram–Schmidt)
+                        axis_1 = self.CalculateIntersectionVectors(split_line)
+                        if self.Norm2(axis_1) > 0.0:
+                            axis_1 = axis_1 / self.Norm2(axis_1)
+                            elem.SetValue(KM.LOCAL_AXIS_1, axis_1)
+                            axis_2 = KM.Vector(3)
 
-                        # elem.SetValue(KM.LOCAL_AXIS_1, ax1)
+                            axis_2[0] = 0.0
+                            axis_2[1] = 1.0
+                            axis_2[2] = 0.0
+
+                            if self.Norm2(axis_2-axis_1) == 0.0:
+                                axis_2[0] = 0.0
+                                axis_2[1] = 0.0
+                                axis_2[2] = 1.0
+                            axis_2 = axis_2 - self.InnerProd(axis_1, axis_2) / self.InnerProd(axis_1, axis_1) * axis_1
+                            axis_2 = axis_2 / self.Norm2(axis_2)
+                            elem.SetValue(KM.LOCAL_AXIS_2, axis_2)
             intersections_file.close()
 
     def CalculateIntersectionVectors(self, Line):
@@ -137,3 +150,6 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
     
     def Norm2(self, Vector):
         return math.sqrt(Vector[0]**2 + Vector[1]**2+ Vector[2]**2)
+    
+    def InnerProd(self, Vector1, Vector2):
+        return Vector1[0]*Vector2[0] + Vector1[1]*Vector2[1] + Vector1[2]*Vector2[2]
