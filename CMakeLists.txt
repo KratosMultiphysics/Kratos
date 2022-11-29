@@ -20,10 +20,15 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
+# Lists
+if(POLICY CMP0057)
+  cmake_policy(SET CMP0057 NEW)
+endif(POLICY CMP0057)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_PATCH_VERSION 2)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -383,6 +388,12 @@ if(Boost_VERSION_STRING VERSION_LESS 1.70)
   message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
 else()
   add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
+# std::atomic_ref is part of C++20, hence using boost::atomic_ref
+# boost::atomic_ref has full support from version 1.74
+if((KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11") AND (CMAKE_CXX_STANDARD LESS 20) AND (Boost_VERSION_STRING VERSION_LESS 1.74))
+  message(FATAL_ERROR "Kratos requires at least boost version 1.74 when using C++11 for shared memory parallelization and compiling with C++17")
 endif ()
 
 ##*****************************

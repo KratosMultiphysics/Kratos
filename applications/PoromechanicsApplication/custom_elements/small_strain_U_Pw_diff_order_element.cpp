@@ -149,7 +149,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
-    
+
     //Imposed Z strain vector initialisation
     if ( mImposedZStrainVector.size() != NumGPoints )
         mImposedZStrainVector.resize( NumGPoints );
@@ -160,7 +160,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
         {
             mConstitutiveLawVector[i] =Prop[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[i]->InitializeMaterial( Prop, rGeom,row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-            
+
             mImposedZStrainVector[i] = 0.0;
         }
     }
@@ -197,7 +197,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     // Initializing the intrinsic permeability matrix from the properties
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    
+
     PoroElementUtilities::CalculatePermeabilityMatrix(mIntrinsicPermeability,Prop,Dim);
 
     KRATOS_CATCH( "" )
@@ -1119,8 +1119,6 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables (ElementalVariable
 
 void SmallStrainUPwDiffOrderElement::InitializeProperties (ElementalVariables& rVariables)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
     rVariables.BiotCoefficient = GetProperties()[BIOT_COEFFICIENT];
     double Porosity = GetProperties()[POROSITY];

@@ -71,20 +71,24 @@
 #include "custom_constitutive/fluid_laws/herschel_bulkley_3D_law.h"
 #include "custom_constitutive/fluid_laws/frictional_viscoplastic_2D_law.h"
 #include "custom_constitutive/fluid_laws/frictional_viscoplastic_3D_law.h"
-#include "custom_constitutive/fluid_laws/bingham_temperature_dependent_2D_law.h"
-#include "custom_constitutive/fluid_laws/bingham_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/bingham_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/bingham_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/frictional_viscoplastic_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/frictional_viscoplastic_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/mu_I_rheology_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/mu_I_rheology_temperature_dependent_3D_law.h"
 #include "custom_constitutive/fluid_laws/newtonian_2D_law.h"
 #include "custom_constitutive/fluid_laws/newtonian_3D_law.h"
-#include "custom_constitutive/fluid_laws/newtonian_temperature_dependent_2D_law.h"
-#include "custom_constitutive/fluid_laws/newtonian_temperature_dependent_3D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/newtonian_temperature_dependent_2D_law.h"
+#include "custom_constitutive/fluid_laws/temperature_dependent/newtonian_temperature_dependent_3D_law.h"
 #include "custom_constitutive/fluid_laws/mu_I_rheology_2D_law.h"
 #include "custom_constitutive/fluid_laws/mu_I_rheology_3D_law.h"
 
 // Solid constitutive laws
 #include "custom_constitutive/solid_laws/hypoelastic_2D_law.h"
 #include "custom_constitutive/solid_laws/hypoelastic_3D_law.h"
-#include "custom_constitutive/solid_laws/hypoelastic_temperature_dependent_2D_law.h"
-#include "custom_constitutive/solid_laws/hypoelastic_temperature_dependent_3D_law.h"
+#include "custom_constitutive/solid_laws/temperature_dependent/hypoelastic_temperature_dependent_2D_law.h"
+#include "custom_constitutive/solid_laws/temperature_dependent/hypoelastic_temperature_dependent_3D_law.h"
 
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -352,18 +356,22 @@ private:
   // Fluid constitutive laws
   const Bingham2DLaw mBingham2DLaw;
   const Bingham3DLaw mBingham3DLaw;
+  const BinghamTemperatureDependent2DLaw mBinghamTemperatureDependent2DLaw;
+  const BinghamTemperatureDependent3DLaw mBinghamTemperatureDependent3DLaw;
   const HerschelBulkley2DLaw mHerschelBulkley2DLaw;
   const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
   const FrictionalViscoplastic2DLaw mFrictionalViscoplastic2DLaw;
   const FrictionalViscoplastic3DLaw mFrictionalViscoplastic3DLaw;
-  const BinghamTemperatureDependent2DLaw mBinghamTemperatureDependent2DLaw;
-  const BinghamTemperatureDependent3DLaw mBinghamTemperatureDependent3DLaw;
+  const FrictionalViscoplasticTemperatureDependent2DLaw mFrictionalViscoplasticTemperatureDependent2DLaw;
+  const FrictionalViscoplasticTemperatureDependent3DLaw mFrictionalViscoplasticTemperatureDependent3DLaw;
   const Newtonian2DLaw mNewtonian2DLaw;
   const Newtonian3DLaw mNewtonian3DLaw;
   const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
   const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
   const MuIRheology2DLaw mMuIRheology2DLaw;
   const MuIRheology3DLaw mMuIRheology3DLaw;
+  const MuIRheologyTemperatureDependent2DLaw mMuIRheologyTemperatureDependent2DLaw;
+  const MuIRheologyTemperatureDependent3DLaw mMuIRheologyTemperatureDependent3DLaw;
 
   // Solid constitutive laws
   const Hypoelastic3DLaw mHypoelastic3DLaw;
