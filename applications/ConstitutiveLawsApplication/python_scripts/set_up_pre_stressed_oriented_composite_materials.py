@@ -60,6 +60,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
 
     def ExecuteInitialize(self):
+    # def ExecuteFinalizeSolutionStep(self):
         """This method is executed in order to initialize the current step
 
         Keyword arguments:
@@ -90,26 +91,36 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                     elem = self.model_part.GetElement(id_elem)
 
                     # Here we apply the imposed strain
+                    elem.Initialize(self.model_part.ProcessInfo) # necessary to initialize the element first...
                     array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
-                    for index in array_bool:
+                    bool_vect = KM.Vector(len(array_bool))
+                    for index in bool_vect:
                         index = True
                     elem.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
-                    elem.SetValuesOnIntegrationPoints(CLApp.IS_PRESTRESSED, array_bool, self.model_part.ProcessInfo)
+                    elem.SetValuesOnIntegrationPoints(CLApp.IS_PRESTRESSED, bool_vect, self.model_part.ProcessInfo)
 
                     # Here we set a proper volumetric participation of the fiber
                     elem_volume = elem.GetGeometry().DomainSize()
                     intersection_vector = self.CalculateIntersectionVectors(split_line)
                     tendon_volume = self.Norm2(intersection_vector) * math.pi * phi**2 / 4
                     kf = tendon_volume / (elem_volume)
-                    array_double = elem.CalculateOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, self.model_part.ProcessInfo)
-                    for index in array_double:
+                    if kf <= 0.0:
+                        kf = 1.0e-7
+                    kf_vect = KM.Vector(len(array_bool))
+                    for index in kf_vect:
                         index = kf
-                    elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, array_double, self.model_part.ProcessInfo)
+                    elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, kf_vect, self.model_part.ProcessInfo)
+
+                    # print(elem.CalculateOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, self.model_part.ProcessInfo)[0])
 
                     # Here we set the local axes...
-
-
+                    # ax1 = KM.Vector(3)
+                    # ax1[0] = 1.0
+                    # elem.SetValue(KM.LOCAL_AXIS_1, ax1)
         intersections_file.close()
+
+    # def Execute(self):
+
 
 
     def CalculateIntersectionVectors(self, Line):
