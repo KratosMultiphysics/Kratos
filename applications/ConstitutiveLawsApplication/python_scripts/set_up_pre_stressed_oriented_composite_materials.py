@@ -56,3 +56,26 @@ class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
 
         self.intersection_file_name = settings["intersection_file_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
+
+    def ExecuteInitializeSolutionStep(self):
+        """This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        KratosMultiphysics.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
+        intersections_file = open(self.intersection_file_name, "r")
+
+
+
+
+
+
+
+
+
+
+
+
+        intersections_file.close()
