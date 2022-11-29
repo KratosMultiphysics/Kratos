@@ -1128,7 +1128,10 @@ bool& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<bool>& rThisVariable,
     bool& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (this->Has(rThisVariable))
+        return this->GetValue(rThisVariable, rValue);
+    else
+        return rValue;
 }
 
 /***********************************************************************************/
@@ -1139,7 +1142,10 @@ int& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<int>& rThisVariable,
     int& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (this->Has(rThisVariable))
+        return this->GetValue(rThisVariable, rValue);
+    else
+        return rValue;
 }
 
 /***********************************************************************************/
@@ -1150,7 +1156,10 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (this->Has(rThisVariable))
+        return this->GetValue(rThisVariable, rValue);
+    else
+        return rValue;
 }
 
 /***********************************************************************************/
