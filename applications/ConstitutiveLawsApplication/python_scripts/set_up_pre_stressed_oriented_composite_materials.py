@@ -66,6 +66,18 @@ class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
 
         KratosMultiphysics.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
         intersections_file = open(self.intersection_file_name, "r")
+        lines = intersections_file.readlines()
+
+        for line in lines:
+            # We loop over the whole file...
+            split_line = line.split()
+            if split_line[4] == "intersection:": # a new tendon intersection block starts
+                tendon_name = split_line[5]
+                phi = float(split_line[8])   # Diameter of the tendon
+                Ep  = float(split_line[11])  # Imposed pre-stressing strain
+            
+
+            aa
 
 
 
