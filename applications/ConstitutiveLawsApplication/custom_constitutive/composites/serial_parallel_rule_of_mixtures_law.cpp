@@ -886,6 +886,9 @@ bool& SerialParallelRuleOfMixturesLaw::GetValue(
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
+        if (rThisVariable == IS_PRESTRESSED) {
+            rValue = mIsPrestressed;
+        }
         return rValue;
     }
 }
