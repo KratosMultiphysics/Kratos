@@ -1,14 +1,15 @@
-import KratosMultiphysics
+import KratosMultiphysics as KM
+import KratosMultiphysics.ConstitutiveLawsApplication as CLApp
 from pathlib import Path
 
 def Factory(settings, Model):
-    if not isinstance(settings, KratosMultiphysics.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
     return SetUpPreStressedOrientedCompositeMaterials(Model, settings["Parameters"])
 
-class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
+class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
 
     """This process sets a proper orientation of the local axes of the elements intersected by line elements (steel tendons). Besides it also computes and sets a volumetric participation of steel within the concrete FE as well as an indicated pre-stressing strain. It also creates a submodelpart for each steel tendon intersected FE.
 
@@ -40,10 +41,10 @@ class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-        KratosMultiphysics.Process.__init__(self)
+        KM.Process.__init__(self)
 
         # The value can be a double or a string (function)
-        default_settings = KratosMultiphysics.Parameters(
+        default_settings = KM.Parameters(
             """
         {
             "help" : "This sets the initial conditions in terms of imposed pre-stressing strain, local axes and % participation of fiber",
@@ -64,31 +65,31 @@ class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        KratosMultiphysics.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
+        KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
         intersections_file = open(self.intersection_file_name, "r")
         lines = intersections_file.readlines()
 
+        phi = 0.0; Ep = 0.0 # Diameter and pre-stressing strain
+        intersection_block = False
         for line in lines:
             # We loop over the whole file...
             split_line = line.split()
-            if split_line[4] == "intersection:": # a new tendon intersection block starts
-                tendon_name = split_line[5]
-                phi = float(split_line[8])   # Diameter of the tendon
-                Ep  = float(split_line[11])  # Imposed pre-stressing strain
+            if len(split_line) > 0: # We skip empty lines
+                # if split_line[4] == "intersection:": # a new tendon intersection block starts
+                if line.find("intersection:") != -1: # a new tendon intersection block starts
+                    intersection_block = True
+                    tendon_name = split_line[5]
+                    phi = float(split_line[8])   # Diameter of the tendon
+                    Ep  = float(split_line[11])  # Imposed pre-stressing strain
+                    KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of Tendon ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
+                elif line.find("End") != -1 and line.find("intersection") != -1:
+                    intersection_block = False
                 
-            
-
-            aa
-
-
-
-
-
-
-
-
-
-
+                if intersection_block and line.find("Begin") == -1:
+                    id_elem = int(split_line[0])
+                    print(id_elem)
+                    # Here we apply the imposed strain
+                    elem = self.model_part.GetElement(id_elem).SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
 
 
         intersections_file.close()
