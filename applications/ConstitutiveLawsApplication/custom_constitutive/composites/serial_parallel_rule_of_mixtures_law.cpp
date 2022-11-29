@@ -996,6 +996,10 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        if (rThisVariable == IS_PRESTRESSED) {
+            mIsPrestressed = rValue;
+        }
     }
 }
 
@@ -1046,6 +1050,9 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
+        if (rThisVariable == IS_PRESTRESSED) {
+            return true;
+        }
         return false;
     }
 }
