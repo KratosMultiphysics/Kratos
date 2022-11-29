@@ -129,7 +129,7 @@ namespace Kratos
     // for geometrical application
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CHARACTERISTIC_GEOMETRY_LENGTH )
 
-    //sheme info :: pass to elements
+    //scheme info :: pass to elements
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_BETA )
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_GAMMA )
     KRATOS_DEFINE_VARIABLE( double, BOSSAK_ALPHA )

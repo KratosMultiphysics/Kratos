@@ -734,7 +734,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
 // The scope ends where KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING is called.
-// NOTE!! this macro is not intented for extensive use, it's just for temporary use in methods exported to Python which
+// NOTE!! this macro is not intended for extensive use, it's just for temporary use in methods exported to Python which
 // are still calling a C++ deprecated function.
 #if defined(__clang__)
 #define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)

@@ -110,7 +110,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Check for supported types of MM file
     if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
     {
-        printf("ReadMatrixMarketMatrix(): unspported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+        printf("ReadMatrixMarketMatrix(): unsupported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
         fclose(f);
         return false;
     }

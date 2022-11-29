@@ -112,7 +112,7 @@ public:
 
     /**
      * ELEMENTS inherited from this class have to implement next
-     * contructors, copy constructors and destructor: MANDATORY
+     * constructors, copy constructors and destructor: MANDATORY
      */
 
     /**
@@ -472,7 +472,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the first derivatives constributions
+     * to calculate the elemental left hand side matrix for the first derivatives contributions
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -486,7 +486,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the first derivatives constributions
+     * to calculate the elemental right hand side vector for the first derivatives contributions
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -529,7 +529,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the second derivatives constributions
+     * to calculate the elemental left hand side matrix for the second derivatives contributions
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -543,7 +543,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the second derivatives constributions
+     * to calculate the elemental right hand side vector for the second derivatives contributions
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */

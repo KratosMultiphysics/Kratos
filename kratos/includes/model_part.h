@@ -229,7 +229,7 @@ public:
 
     /// The Geometry Container.
     /**
-    * Contains all geometries, which can be adressed by specific identifiers.
+    * Contains all geometries, which can be addressed by specific identifiers.
     */
     typedef GeometryContainer<GeometryType> GeometryContainerType;
 
@@ -1270,7 +1270,7 @@ public:
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /// Creates new condtion with pointer to geometry.
+    /// Creates new condition with pointer to geometry.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
@@ -1630,13 +1630,13 @@ public:
     }
 
 
-    /// Get geometry map containe
+    /// Get geometry map container
     GeometriesMapType& Geometries()
     {
         return mGeometries.Geometries();
     }
 
-    /// Get geometry map containe
+    /// Get geometry map container
     const GeometriesMapType& Geometries() const
     {
         return mGeometries.Geometries();

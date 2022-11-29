@@ -79,7 +79,7 @@ namespace Kratos {
 /**
  * @class KratosApplication
  * @brief This class defines the interface with kernel for all applications in Kratos.
- * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole system correctly.
  * @ingroup KratosCore
  * @author Pooyan Dadvand
  * @author Riccardo Rossi

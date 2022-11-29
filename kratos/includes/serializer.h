@@ -1434,7 +1434,7 @@ private:
     /// Sets the pointer of the stream buffer at the begnining
     void SeekBegin();
 
-    /// Sets the pointer of the stream buffer at tht end
+    /// Sets the pointer of the stream buffer at the end
     void SeekEnd();
 
     ///@}

@@ -105,7 +105,7 @@ public:
     ///@{
 
     /** Constructor. This constructor takes all necessary
-    informations to construct a degree of freedom. Also default
+    information to construct a degree of freedom. Also default
     values are used to make it easier to define for simple cases.
 
     @param rThisVariable Variable which this degree of freedom

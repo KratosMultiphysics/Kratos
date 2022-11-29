@@ -97,7 +97,7 @@ public:
 
     /**
      * @brief Function to print DETAILED mesh information
-     * WARNING: to be used for debugging only as many informations are plotted
+     * WARNING: to be used for debugging only as many information are plotted
      */
     void PrintDebugInfo();
 

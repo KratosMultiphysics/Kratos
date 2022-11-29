@@ -262,7 +262,7 @@ namespace Kratos
     /**
      * @brief This is a hasher for indexed objects (pointer)
      * @tparam TpIndexedObject Pointer type to indexed object
-     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
+     * @note Must be tenmplated to take into account the shared, intrusive,etc... pointers
      */
     template<class TpIndexedObject>
     struct IndexedObjectPointerHasher
@@ -281,7 +281,7 @@ namespace Kratos
     /**
      * @brief This is a key comparer between two indexed objects (pointer)
      * @tparam TpIndexedObject Pointer type to indexed object
-     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
+     * @note Must be tenmplated to take into account the shared, intrusive,etc... pointers
      */
     template<class TpIndexedObject>
     struct IndexedObjectPointerComparator

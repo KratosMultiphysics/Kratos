@@ -702,7 +702,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Auxiliar types
+    // Auxiliary types
     typedef BoundedMatrix<int, 1, 1> DummyBoundedMatrixType;
 
     typedef array_1d<double, TNumNodes> GeometryArraySlaveType;
@@ -717,7 +717,7 @@ public:
 
     typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, BoundedMatrix<double, 3, 3>>::type VertexDerivativesMatrixType;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DummySize = 1;
 
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
@@ -835,7 +835,7 @@ public:
     {
         // Derivatives
         if constexpr (TDim == 3) { // Derivative of the cell vertex
-            // Auxiliar zero matrix
+            // Auxiliary zero matrix
             const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
             for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
                 noalias(DeltaCellVertex[i]) = aux_zero;
@@ -851,7 +851,7 @@ public:
      */
     void InitializeDeltaAeComponents()
     {
-        // Auxiliar zero matrix
+        // Auxiliary zero matrix
         const GeometryMatrixType aux_zero = ZeroMatrix(TNumNodes, TNumNodes);
 
         // Ae
@@ -1443,7 +1443,7 @@ public:
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixSlaveType;
     typedef BoundedMatrix<double, TNumNodes, TNumNodesMaster> GeometryMatrixMasterType;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
     static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
 
@@ -1482,7 +1482,7 @@ public:
     {
         BaseClassType::Initialize();
 
-        // Auxiliar zero matrix
+        // Auxiliary zero matrix
         const GeometryMatrixSlaveType aux_zero_slave = ZeroMatrix(TNumNodes, TNumNodes);
         const GeometryMatrixMasterType aux_zero_master = ZeroMatrix(TNumNodes, TNumNodesMaster);
 
@@ -1710,7 +1710,7 @@ public:
 
     virtual ~DualLagrangeMultiplierOperators(){}
 
-    /// The auxiliar operators needed to build the dual LM Ae operator
+    /// The auxiliary operators needed to build the dual LM Ae operator
     GeometryMatrixType Me, De;
 
     ///@}
@@ -1939,10 +1939,10 @@ public:
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
-    // Auxiliar types
+    // Auxiliary types
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
 
     static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);

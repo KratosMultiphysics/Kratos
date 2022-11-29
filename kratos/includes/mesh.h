@@ -263,7 +263,7 @@ public:
     }
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     /** Dimensional space of the mesh geometries
