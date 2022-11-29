@@ -2010,6 +2010,12 @@ private:
         //}
     }
 
+    /**
+     * @brief This method issues a proper error message if a SubModelPart does not exist
+     * @param rSubModelPartName Name of the SubModelPart that does not exits
+     */
+    [[ noreturn ]] void ErrorGetSubModelPart(const std::string& rSubModelPartName) const;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -2069,4 +2075,4 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 
 ///@}
 
-} // namespace Kratos
+} // namespace Kratos.
