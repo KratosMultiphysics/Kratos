@@ -81,6 +81,7 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
         array_1d<double,4> values_origin_interpolated, values_destination;
         BoundedMatrix<double, 4, 4> N_values, inverted_N_values;
         std::array<GeometryType::Pointer, 4> lines;
+        std::array<array_1d<double, 3>, 4> line_points;
         std::array<Vector, 4> N_line;
         double aux_det;
     };
@@ -115,12 +116,15 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
             const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
             if (intersection == 1) { // Two intersection points
                 // Check position of the nodes in the line
+                av.line_points[0] = av.intersection_point1;
+                av.line_points[1] = av.intersection_point2;
+                av.line_points[2] = 2.0/3.0 * av.intersection_point1 + 1.0/3.0 * av.intersection_point2;
+                av.line_points[3] = 1.0/3.0 * av.intersection_point1 + 2.0/3.0 * av.intersection_point2;
                 for (unsigned int i = 0; i < 4; ++i) {
                     av.lines[i] = p_geometry;
-                    
-                    //r_geometry.ShapeFunctionsValues( N, av.aux_coordinates );
+                    r_geometry.PointLocalCoordinates(av.aux_coordinates, av.line_points[i]);
+                    r_geometry.ShapeFunctionsValues( av.N_line[i], av.aux_coordinates );
                 }
-                // TODO
                 counter += 4;
             } else if (intersection == 2) { // One intersection point
                 // Check position of the node in the line
