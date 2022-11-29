@@ -59,69 +59,63 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         self.intersection_file_name = settings["intersection_file_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-    def ExecuteInitialize(self):
-    # def ExecuteFinalizeSolutionStep(self):
+    def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        if self.model_part.ProcessInfo[KM.STEP] == 1:
+            KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
+            intersections_file = open(self.intersection_file_name, "r")
+            lines = intersections_file.readlines()
 
-        KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
-        intersections_file = open(self.intersection_file_name, "r")
-        lines = intersections_file.readlines()
+            phi = 0.0; Ep = 0.0 # Diameter and pre-stressing strain
+            intersection_block = False
+            for line in lines:
+                # We loop over the whole file...
+                split_line = line.split()
+                if len(split_line) > 0: # We skip empty lines
+                    if line.find("intersection:") != -1: # a new tendon intersection block starts
+                        intersection_block = True
+                        tendon_name = split_line[5]
+                        phi = float(split_line[8])   # Diameter of the tendon
+                        Ep  = float(split_line[11])  # Imposed pre-stressing strain
+                        KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of Tendon ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
+                    elif line.find("End") != -1 and line.find("intersection") != -1:
+                        intersection_block = False
+                    
+                    if intersection_block and line.find("Begin") == -1:
+                        id_elem = int(split_line[0])
+                        elem = self.model_part.GetElement(id_elem)
 
-        phi = 0.0; Ep = 0.0 # Diameter and pre-stressing strain
-        intersection_block = False
-        for line in lines:
-            # We loop over the whole file...
-            split_line = line.split()
-            if len(split_line) > 0: # We skip empty lines
-                if line.find("intersection:") != -1: # a new tendon intersection block starts
-                    intersection_block = True
-                    tendon_name = split_line[5]
-                    phi = float(split_line[8])   # Diameter of the tendon
-                    Ep  = float(split_line[11])  # Imposed pre-stressing strain
-                    KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of Tendon ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
-                elif line.find("End") != -1 and line.find("intersection") != -1:
-                    intersection_block = False
-                
-                if intersection_block and line.find("Begin") == -1:
-                    id_elem = int(split_line[0])
-                    elem = self.model_part.GetElement(id_elem)
+                        # Here we apply the imposed strain
+                        elem.Initialize(self.model_part.ProcessInfo) # necessary to initialize the element first...
+                        array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
+                        bool_vect = []
+                        for index in range(len(array_bool)):
+                            bool_vect.append(True)
+                        elem.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
+                        elem.SetValuesOnIntegrationPoints(CLApp.IS_PRESTRESSED, bool_vect, self.model_part.ProcessInfo)
 
-                    # Here we apply the imposed strain
-                    elem.Initialize(self.model_part.ProcessInfo) # necessary to initialize the element first...
-                    array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
-                    bool_vect = KM.Vector(len(array_bool))
-                    for index in bool_vect:
-                        index = True
-                    elem.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
-                    elem.SetValuesOnIntegrationPoints(CLApp.IS_PRESTRESSED, bool_vect, self.model_part.ProcessInfo)
+                        # Here we set a proper volumetric participation of the fiber
+                        elem_volume = elem.GetGeometry().DomainSize()
+                        intersection_vector = self.CalculateIntersectionVectors(split_line)
+                        tendon_volume = self.Norm2(intersection_vector) * math.pi * phi**2 / 4
+                        kf = tendon_volume / (elem_volume)
+                        if kf <= 0.0:
+                            kf = 1.0e-7
+                        kf_vect = [] # HAS to be a python list...
+                        for index in range(len(array_bool)):
+                            kf_vect.append(kf)
+                        elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, kf_vect, self.model_part.ProcessInfo)
 
-                    # Here we set a proper volumetric participation of the fiber
-                    elem_volume = elem.GetGeometry().DomainSize()
-                    intersection_vector = self.CalculateIntersectionVectors(split_line)
-                    tendon_volume = self.Norm2(intersection_vector) * math.pi * phi**2 / 4
-                    kf = tendon_volume / (elem_volume)
-                    if kf <= 0.0:
-                        kf = 1.0e-7
-                    kf_vect = KM.Vector(len(array_bool))
-                    for index in kf_vect:
-                        index = kf
-                    elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, kf_vect, self.model_part.ProcessInfo)
+                        # Here we set the local axes...
+                        axis_1 = KM.Vector(3)
+                        axis_2 = KM.Vector(3)
 
-                    # print(elem.CalculateOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, self.model_part.ProcessInfo)[0])
-
-                    # Here we set the local axes...
-                    # ax1 = KM.Vector(3)
-                    # ax1[0] = 1.0
-                    # elem.SetValue(KM.LOCAL_AXIS_1, ax1)
-        intersections_file.close()
-
-    # def Execute(self):
-
-
+                        # elem.SetValue(KM.LOCAL_AXIS_1, ax1)
+            intersections_file.close()
 
     def CalculateIntersectionVectors(self, Line):
         coords_1 = KM.Vector(3)
