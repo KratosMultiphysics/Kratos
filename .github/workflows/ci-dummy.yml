@@ -11,6 +11,9 @@ on:
       - '**.md'
       - 'documents/**'
       - 'scripts/**'
+      - '.github/workflows/ci-dummy.yml'
+      - '.github/workflows/build_docker_image*.yml'
+      - '.github/workflows/nightly_build.yml'
       - 'kratos/templates/**'
       - 'kratos/python_scripts/application_generator/**'
 
@@ -29,9 +32,7 @@ jobs:
     - run: 'echo "Dummy build, no checks executed ..."'
 
   windows:
-    runs-on: windows-2022
-    env:
-      KRATOS_BUILD_TYPE: Custom
+    runs-on: ubuntu-latest # ubuntu is faster than Win, hence no point using Win here
 
     steps:
     - run: 'echo "Dummy build, no checks executed ..."'

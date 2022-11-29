@@ -97,14 +97,12 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << std::endl;
     rOStream << "Modelers:" << std::endl;
     KratosComponents<Modeler>().PrintData(rOStream);
-
+    rOStream << std::endl;
     rOStream << "Loaded applications:" << std::endl;
-
     auto& application_list = Kernel::GetApplicationsList();
-    rOStream << "number of loaded applications = " << application_list.size()
-             << std::endl;
+    rOStream << "    Number of loaded applications = " << application_list.size() << std::endl;
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
-        rOStream << "  " << *it << std::endl;
+        rOStream << "    " << *it << std::endl;
 }
 
 // To be removed with the new entry points
