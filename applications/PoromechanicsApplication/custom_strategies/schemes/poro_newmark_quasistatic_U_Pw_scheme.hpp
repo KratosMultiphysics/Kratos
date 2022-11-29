@@ -11,8 +11,8 @@
 //  Main authors:    Ignasi de Pouplana
 
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME
+#if !defined(KRATOS_PORO_NEWMARK_QUASISTATIC_U_PW_SCHEME )
+#define  KRATOS_PORO_NEWMARK_QUASISTATIC_U_PW_SCHEME
 
 // Project includes
 #include "includes/define.h"
@@ -28,12 +28,12 @@ namespace Kratos
 
 template<class TSparseSpace, class TDenseSpace>
 
-class NewmarkQuasistaticUPwScheme : public Scheme<TSparseSpace,TDenseSpace>
+class PoroNewmarkQuasistaticUPwScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticUPwScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( PoroNewmarkQuasistaticUPwScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
     typedef typename BaseType::DofsArrayType                 DofsArrayType;
@@ -45,7 +45,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
+    PoroNewmarkQuasistaticUPwScheme(double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
     {
         mBeta = beta;
         mGamma = gamma;
@@ -55,7 +55,7 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    ~NewmarkQuasistaticUPwScheme() override {}
+    ~PoroNewmarkQuasistaticUPwScheme() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -571,7 +571,7 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-}; // Class NewmarkQuasistaticUPwScheme
+}; // Class PoroNewmarkQuasistaticUPwScheme
 }  // namespace Kratos
 
-#endif // KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME defined
+#endif // KRATOS_PORO_NEWMARK_QUASISTATIC_U_PW_SCHEME defined

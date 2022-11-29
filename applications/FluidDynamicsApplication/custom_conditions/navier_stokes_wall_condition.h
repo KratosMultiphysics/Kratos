@@ -78,12 +78,14 @@ public:
     struct ConditionDataStruct
     {
         double wGauss;                                  // Gauss point weight
+        bool OutletInflowPreventionSwitch;              // Outlet inflow (i.e. backflow) prevention switch
         double charVel;                                 // Problem characteristic velocity (used in the outlet inflow prevention)
-        double delta;                                   // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
         array_1d<double, 3> Normal;                     // Condition normal
         array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
         Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
     };
+
+    using Condition::SizeType;
 
     typedef Node < 3 > NodeType;
 
@@ -337,6 +339,14 @@ protected:
 
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
+    /**
+     * @brief Calculates and adds the RHS outlet inflow prevention contribution
+     * This method calculates and adds an extra numerical contribution to the RHS in order
+     * to prevent uncontrolled system energy growth coming from inflow in free-boundaries.
+     * More information can be found in Dong et al. 2014 (https://doi.org/10.1016/j.jcp.2013.12.042).
+     * @param rhs Reference to RHS vector
+     * @param data Condition data container
+     */
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     /**
