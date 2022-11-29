@@ -171,7 +171,6 @@ namespace Testing
         VariableUtils().EraseNonHistoricalVariable(TEMPERATURE, r_test_model_part.Conditions());
 
         // Values are properly allocated
-        const double tolerance = 1.0e-12;
         for (const auto& r_condition : r_test_model_part.Conditions()) {
             KRATOS_CHECK(r_condition.Has(PRESSURE));
             KRATOS_CHECK_IS_FALSE(r_condition.Has(TEMPERATURE));
@@ -199,7 +198,6 @@ namespace Testing
         VariableUtils().ClearNonHistoricalData(r_test_model_part.Conditions());
 
         // Values are properly allocated
-        const double tolerance = 1.0e-12;
         for (const auto& r_condition : r_test_model_part.Conditions()) {
             KRATOS_CHECK_IS_FALSE(r_condition.Has(PRESSURE));
             KRATOS_CHECK_IS_FALSE(r_condition.Has(TEMPERATURE));
