@@ -1,6 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ConstitutiveLawsApplication as CLApp
 from pathlib import Path
+import math
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -58,7 +59,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         self.intersection_file_name = settings["intersection_file_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-    def ExecuteInitializeSolutionStep(self):
+    def ExecuteInitialize(self):
         """This method is executed in order to initialize the current step
 
         Keyword arguments:
@@ -86,13 +87,48 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                 
                 if intersection_block and line.find("Begin") == -1:
                     id_elem = int(split_line[0])
-                    # Here we apply the imposed strain
                     elem = self.model_part.GetElement(id_elem)
+
+                    # Here we apply the imposed strain
                     array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
                     for index in array_bool:
                         index = True
                     elem.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
                     elem.SetValuesOnIntegrationPoints(CLApp.IS_PRESTRESSED, array_bool, self.model_part.ProcessInfo)
 
+                    # Here we set a proper volumetric participation of the fiber
+                    elem_volume = elem.GetGeometry().DomainSize()
+                    intersection_vector = self.CalculateIntersectionVectors(split_line)
+                    tendon_volume = self.Norm2(intersection_vector) * math.pi * phi**2 / 4
+                    kf = tendon_volume / (elem_volume)
+                    array_double = elem.CalculateOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, self.model_part.ProcessInfo)
+                    for index in array_double:
+                        index = kf
+                    elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, array_double, self.model_part.ProcessInfo)
+
+                    # Here we set the local axes...
+
 
         intersections_file.close()
+
+
+    def CalculateIntersectionVectors(self, Line):
+        coords_1 = KM.Vector(3)
+        coords_1[0] = float(Line[1])
+        coords_1[1] = float(Line[2])
+        coords_1[2] = float(Line[3])
+
+        coords_2 = KM.Vector(3)
+        coords_2[0] = float(Line[4])
+        coords_2[1] = float(Line[5])
+        coords_2[2] = float(Line[6])
+
+        intersection_vector = KM.Vector(3)
+        intersection_vector[0] = coords_2[0] - coords_1[0]
+        intersection_vector[1] = coords_2[1] - coords_1[1]
+        intersection_vector[2] = coords_2[2] - coords_1[2]
+
+        return intersection_vector
+    
+    def Norm2(self, Vector):
+        return math.sqrt(Vector[0]**2 + Vector[1]**2+ Vector[2]**2)
