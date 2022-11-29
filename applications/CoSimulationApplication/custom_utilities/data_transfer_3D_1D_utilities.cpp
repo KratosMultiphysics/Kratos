@@ -101,6 +101,14 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
         PointVector points_found(allocation_size);
         IndexType number_points_found = 0;
         auto& r_geometry_tetra = rElement.GetGeometry();
+
+        // Iterate over the nodes of the element
+        const double volume = r_geometry_tetra.Volume();
+        for (unsigned int i_node = 0; i_node < 4; ++i_node) {
+            r_geometry_tetra[i_node].GetValue(NODAL_VOLUME) += volume;
+        }
+
+        // Iterate doing the search
         const Point center = r_geometry_tetra.Center();
         while (number_points_found == 0) {
             search_radius *= search_increment_factor;
@@ -108,12 +116,14 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
             number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
         }
 
+        // Getting the intersection points
         unsigned int counter = 0;
         for (IndexType i = 0; i < number_points_found; ++i) {
             auto p_point = points_found[i];
             auto p_geometry = p_point->pGetElement()->pGetGeometry();
             auto& r_geometry = *p_geometry;
             const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+            // TODO: Actually a better alternative could be to do "a mortar", considering mass matrices between the line and the tetrahedra. This requires some extra work, and I think that the current implementation is enough for the moment
             if (intersection == 1) { // Two intersection points
                 // Check position of the nodes in the line
                 av.line_points[0] = av.intersection_point1;
@@ -151,12 +161,22 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
             }
             noalias(av.values_destination) = prod(av.inverted_N_values, av.values_origin_interpolated);
             for (unsigned int i_node = 0; i_node < 4; ++i_node) {
-                r_geometry_tetra[i_node].FastGetSolutionStepValue(*destination_list_variables[i_var]) = constant * av.values_destination[i_node];
+                r_geometry_tetra[i_node].FastGetSolutionStepValue(*destination_list_variables[i_var]) = constant * av.values_destination[i_node] * volume;
             }
         }
     });
 
-    // Initialize the NODAL_VOLUME
+    // Normalize by the NODAL_VOLUME
+    block_for_each(rModelPart3D.Nodes(), [&](auto& rNode) {
+        const double nodal_volume = rNode.GetValue(NODAL_VOLUME);
+        if (nodal_volume > std::numeric_limits<double>::epsilon()) {
+            for (std::size_t i_var = 0; i_var < destination_list_variables.size(); ++i_var) {
+                rNode.FastGetSolutionStepValue(*destination_list_variables[i_var]) /= nodal_volume;
+            }
+        }
+    });
+
+    // Remove the NODAL_VOLUME
     VariableUtils().EraseNonHistoricalVariable(NODAL_VOLUME, rModelPart3D.Nodes());
 }
 
