@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Laura Moreno
+//  Main authors:    Laura Moreno Martínez
 //
 
 
@@ -35,28 +35,19 @@ namespace Kratos
     const unsigned int UpdatedLagrangianUPVMS::msIndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
     const unsigned int UpdatedLagrangianUPVMS::msIndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
-///**
-//* Flags related to the element computation
-//*/
-//KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_RHS_VECTOR,                 0 );
-//KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX,                 1 );
-//KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-//KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS()
-    : UpdatedLagrangian()
-    , m_mp_pressure(1.0)
+    : UpdatedLagrangianUP()
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::Pointer pGeometry )
-    : UpdatedLagrangian( NewId, pGeometry )
-    , m_mp_pressure(1.0)
+    : UpdatedLagrangianUP( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -65,8 +56,7 @@ UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::P
 //************************************************************************************
 
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : UpdatedLagrangian( NewId, pGeometry, pProperties )
-    , m_mp_pressure(1.0)
+    : UpdatedLagrangianUP( NewId, pGeometry, pProperties )
 {
     mFinalizedStep = true;
 
@@ -76,10 +66,8 @@ UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( IndexType NewId, GeometryType::P
 //************************************************************************************
 
 UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( UpdatedLagrangianUPVMS const& rOther)
-    :UpdatedLagrangian(rOther)
-    , m_mp_pressure(rOther.m_mp_pressure)
-     //,mDeformationGradientF0(rOther.mDeformationGradientF0)
-     //,mDeterminantF0(rOther.mDeterminantF0)
+    :UpdatedLagrangianUP(rOther)
+
 {
 }
 
@@ -88,9 +76,9 @@ UpdatedLagrangianUPVMS::UpdatedLagrangianUPVMS( UpdatedLagrangianUPVMS const& rO
 
 UpdatedLagrangianUPVMS&  UpdatedLagrangianUPVMS::operator=(UpdatedLagrangianUPVMS const& rOther)
 {
-    UpdatedLagrangian::operator=(rOther);
+    UpdatedLagrangianUP::operator=(rOther);
 
-    m_mp_pressure = rOther.m_mp_pressure;
+//     m_mp_pressure = rOther.m_mp_pressure;
 
     return *this;
 }
@@ -131,24 +119,6 @@ UpdatedLagrangianUPVMS::~UpdatedLagrangianUPVMS()
 {
 }
 
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // Initialize parameters
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    mDeterminantF0 = 1;
-    mDeformationGradientF0 = IdentityMatrix(dimension);
-
-    // Initialize constitutive law and materials
-    InitializeMaterial();
-
-    KRATOS_CATCH( "" )
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -272,254 +242,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
     KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
-/**
- * The position of the Gauss points/Material points is updated
- */
 
-void UpdatedLagrangianUPVMS::UpdateGaussPoint( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    array_1d<double,3> delta_xg = ZeroVector(3);
-    array_1d<double,3> MP_acceleration = ZeroVector(3);
-    array_1d<double,3> MP_velocity = ZeroVector(3);
-    double MP_pressure = 0.0;
-    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
-        {
-            auto r_geometry = GetGeometry();
-            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-            if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
-                nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
-
-            const double& nodal_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE, 0);
-            MP_pressure += r_N(0, i) * nodal_pressure;
-
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
-                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
-
-                /* NOTE: The following interpolation techniques have been tried:
-                    MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
-                    MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
-                    MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
-                    MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
-                */
-            }
-        }
-
-    }
-
-    /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
-
-    /* NOTE: The following interpolation techniques have been tried:
-        MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
-        MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
-    */
-
-    // Update the MP Pressure
-    m_mp_pressure = MP_pressure;
-
-    // Update the MP Position
-    mMP.xg += delta_xg ;
-
-    //Update the MP Acceleration
-    mMP.acceleration = MP_acceleration;
-
-    // Update the MP total displacement
-    mMP.displacement += delta_xg;
-
-    KRATOS_CATCH( "" )
-}
-
-//*********************************COMPUTE KINEMATICS*********************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // Define the stress measure
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
-    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    Matrix Jacobian;
-    GetGeometry().Jacobian(Jacobian, 0);
-
-    // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    Matrix InvJ;
-    double detJ;
-    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
-
-    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
-    Matrix jacobian;
-    GetGeometry().Jacobian(jacobian, 0, GetGeometry().GetDefaultIntegrationMethod(), -1.0 * rVariables.CurrentDisp);
-
-    // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
-    Matrix Invj;
-    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
-
-    // Compute cartesian derivatives [dN/dx_n+1]
-    Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position dx
-
-    /* NOTE::
-    Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
-    The increment of total deformation gradient can be evaluated in 2 ways, which are:
-    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
-
-    (NOTICE: Here, we are using method no. 1)
-    */
-
-    // Update Deformation gradient
-    noalias( rVariables.F ) = prod( jacobian, InvJ);
-
-    // Determinant of the previous Deformation Gradient F_n
-    rVariables.detF0 = mDeterminantF0;
-    rVariables.F0    = mDeformationGradientF0;
-
-    // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
-
-    KRATOS_CATCH( "" )
-}
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear(); // Set all components to zero
-
-    if( dimension == 2 )
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 2 * i;
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-        }
-    }
-    else if( dimension == 3 )
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 3 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
-        }
-    }
-    else
-    {
-        KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void UpdatedLagrangianUPVMS::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
-{
-    /* NOTE:
-    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
-    This function is called by the base scheme class.*/
-
-    GeometryType& r_geometry = GetGeometry();
-    unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    GeneralVariables Variables;
-
-    // Calculating shape function
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    mFinalizedStep = false;
-
-    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
-    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
-    array_1d<double,3> nodal_momentum = ZeroVector(3);
-    array_1d<double,3> nodal_inertia = ZeroVector(3);
-    double aux_MP_pressure = 0.0;
-
-    for (unsigned int j=0; j<number_of_nodes; j++)
-    {
-        // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
-            nodal_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
-
-        array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
-            nodal_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
-
-        // These are the values of nodal pressure evaluated in the initialize solution step
-        const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
-
-        aux_MP_pressure += r_N(0, j) * nodal_pressure;
-
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            aux_MP_velocity[k] += r_N(0, j) * nodal_velocity[k];
-            aux_MP_acceleration[k] += r_N(0, j) * nodal_acceleration[k];
-        }
-    }
-
-    // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        double nodal_mpressure = r_N(0, i) * (m_mp_pressure - aux_MP_pressure) * mMP.mass;
-
-        for (unsigned int j = 0; j < dimension; j++)
-        {
-            nodal_momentum[j] = r_N(0, i) * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j]  = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
-        }
-
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0)  += nodal_momentum;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
-
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
-        r_geometry[i].UnSetLock();
-    }
-}
 //************************************************************************************
 //************************************************************************************
 
@@ -547,9 +270,9 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
 
     CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
 
-    const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
-        ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
-        : false;
+//     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
+//         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
+//         : false;
 
     //if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
@@ -943,7 +666,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index_up = dimension * i + i;
-        unsigned int index_u  = dimension * i;
+//         unsigned int index_u  = dimension * i;
 
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
@@ -975,21 +698,22 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
-    Vector aux_vector;
-
-    aux_vector = - rVariables.PressureGradient + rVolumeForce + rVariables.DynamicRHS;
-
-
-    Vector Stab1 = prod(rVariables.DN_DX,aux_vector);
+//     Vector aux_vector;
+//
+//     for ( unsigned int dim = 0; dim < dimension; dim++ )
+//     {
+//        aux_vector(dim) = - rVariables.PressureGradient(dim) + rVolumeForce(dim) + rVariables.DynamicRHS(dim);
+//     }
+//     Vector Stab1 = prod(rVariables.DN_DX,aux_vector);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
-        //for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-        //    rRightHandSideVector[index_p] += rVariables.tau1  *  rVariables.DN_DX(i,idime)*(rVariables.PressureGradient[idime] + rVolumeForce[idime] - mMP.density* rVariables.DynamicRHS[idime]) * rIntegrationWeight;
-        //}
+//         rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
+        for ( unsigned int idime = 0; idime < dimension; idime++ ) {
+           rRightHandSideVector[index_p] += rVariables.tau1  *  rVariables.DN_DX(i,idime)*(rVariables.PressureGradient[idime] + rVolumeForce[idime] - mMP.density* rVariables.DynamicRHS[idime]) * rIntegrationWeight;
+        }
 
-        rRightHandSideVector[index_p] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
+        rRightHandSideVector[index_p] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 /rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
@@ -1195,13 +919,9 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 {
     KRATOS_TRY
 
-        // ATTENTION: class not used in the current implementation!!
-
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    //double delta_coefficient = rVariables.detF0 - 1;
 
     unsigned int indexpi = dimension;
 
@@ -1217,7 +937,6 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 
         indexpi += (dimension + 1);
     }
-
 
     KRATOS_CATCH( "" )
 }
@@ -1385,330 +1104,9 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
         indexpi += (dimension + 1);
     }
 
-
-
     KRATOS_CATCH( "" )
 }
 
-
-
-//************************************CALCULATE VOLUME CHANGE*************************
-//************************************************************************************
-
-double& UpdatedLagrangianUPVMS::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
-{
-    KRATOS_TRY
-
-    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
-
-    return rVolumeChange;
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
-{
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * dimension + number_of_nodes;
-
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        int index = i * dimension + i;
-        rResult[index]     = r_geometry[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = r_geometry[i].GetDof( DISPLACEMENT_Y ).EquationId();
-
-        if( dimension == 3)
-        {
-            rResult[index + 2] = r_geometry[i].GetDof( DISPLACEMENT_Z ).EquationId();
-            rResult[index + 3] = r_geometry[i].GetDof( PRESSURE ).EquationId();
-        }
-        else
-        {
-            rResult[index + 2] = r_geometry[i].GetDof( PRESSURE ).EquationId();
-        }
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
-{
-    rElementalDofList.resize( 0 );
-
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    for ( unsigned int i = 0; i < r_geometry.size(); i++ )
-    {
-        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_X ) );
-        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Y ) );
-
-        if( dimension == 3 )
-            rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
-
-        rElementalDofList.push_back( r_geometry[i].pGetDof( PRESSURE ));
-    }
-}
-
-
-//************************************************************************************
-//****************MASS MATRIX*********************************************************
-
-void UpdatedLagrangianUPVMS::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    // Call the values of the shape function for the single element
-    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-
-    const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
-        ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
-        : true;
-
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType matrix_size = (dimension + 1) * number_of_nodes;
-
-    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
-        rMassMatrix.resize(matrix_size, matrix_size, false);
-    rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
-
-    if (!is_lumped_mass_matrix) {
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            for (IndexType j = 0; j < number_of_nodes; ++j) {
-                for (IndexType k = 0; k < dimension; ++k)
-                {
-                    const IndexType index_i = i * (dimension + 1) + k;
-                    const IndexType index_j = j * (dimension + 1) + k;
-                    rMassMatrix(index_i, index_j) = N[i] * N[j] * mMP.mass;
-                }
-            }
-        }
-    } else {
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            for (IndexType k = 0; k < dimension; ++k)
-            {
-                const IndexType index = i * (dimension + 1) + k;
-                rMassMatrix(index, index) = N[i] * mMP.mass;
-            }
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::GetValuesVector( Vector& values, int Step ) const
-{
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
-
-    if ( values.size() != element_size ) values.resize( element_size, false );
-
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index = i * dimension + i;
-        values[index]     = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
-
-        if ( dimension == 3 )
-        {
-            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
-            values[index + 3] = r_geometry[i].FastGetSolutionStepValue( PRESSURE, Step );
-        }
-        else
-        {
-            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( PRESSURE, Step );
-        }
-
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::GetFirstDerivativesVector( Vector& values, int Step ) const
-{
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
-
-    if ( values.size() != element_size ) values.resize( element_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index = i * dimension + i;
-        values[index]     = r_geometry[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
-        if ( dimension == 3 )
-        {
-            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
-            values[index + 3] = 0;
-        }
-        else
-        {
-            values[index + 2] = 0;
-        }
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::GetSecondDerivativesVector( Vector& values, int Step ) const
-{
-    const GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
-
-    if ( values.size() != element_size ) values.resize( element_size, false );
-
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index = i * dimension + i;
-        values[index]     = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
-
-        if ( dimension == 3 )
-        {
-            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
-            values[index + 3] = 0;
-        }
-        else
-        {
-            values[index + 2] = 0;
-        }
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::GetHistoricalVariables( GeneralVariables& rVariables )
-{
-    //Deformation Gradient F ( set to identity )
-    UpdatedLagrangian::GetHistoricalVariables(rVariables);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::FinalizeStepVariables( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    double voigtsize = 3;
-    if ( dimension == 3)
-        voigtsize = 6;
-
-    UpdatedLagrangian::FinalizeStepVariables( rVariables, rCurrentProcessInfo);
-
-    // Evaluation of the pressure on the material point
-    double nodal_mean_stress = 0.0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-        nodal_mean_stress += r_geometry[i].FastGetSolutionStepValue( PRESSURE ) * r_N(0, i);
-
-    // Evaluation of the mean stress on the material point
-    double mean_stress = 0.0;
-    for (unsigned int i = 0; i < dimension; i++)
-        mean_stress += rVariables.StressVector[i];
-    mean_stress /= dimension;
-
-    Vector stress_vector = ZeroVector(voigtsize);
-    stress_vector = rVariables.StressVector;
-    for (unsigned int i = 0; i < dimension; i++)
-        stress_vector[i] += (nodal_mean_stress - mean_stress);
-
-    mMP.cauchy_stress_vector = stress_vector;
-
-}
-
-void UpdatedLagrangianUPVMS::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == MP_PRESSURE) {
-        rValues[0] = m_mp_pressure;
-    }
-    else {
-        UpdatedLagrangian::CalculateOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
-}
-
-void UpdatedLagrangianUPVMS::SetValuesOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    const std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_ERROR_IF(rValues.size() > 1)
-        << "Only 1 value per integration point allowed! Passed values vector size: "
-        << rValues.size() << std::endl;
-
-    if (rVariable == MP_PRESSURE) {
-        m_mp_pressure = rValues[0];
-    }
-    else {
-        UpdatedLagrangian::SetValuesOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-/**
- * This function provides the place to perform checks on the completeness of the input.
- * It is designed to be called only once (or anyway, not often) typically at the beginning
- * of the calculations, so to verify that nothing is missing from the input
- * or that no common error is found.
- * @param rCurrentProcessInfo
- */
-int UpdatedLagrangianUPVMS::Check( const ProcessInfo& rCurrentProcessInfo ) const
-{
-    KRATOS_TRY
-
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-    ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-    : false;
-    KRATOS_ERROR_IF(is_explicit)
-    << "Explicit time integration not implemented for Updated Lagrangian UP MPM Element";
-
-    int correct = 0;
-    correct = UpdatedLagrangian::Check(rCurrentProcessInfo);
-
-    // Verify compatibility with the constitutive law
-    ConstitutiveLaw::Features LawFeatures;
-    this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
-
-    KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW)) << "Constitutive law is not compatible with the U-P element type: Large Displacements U_P" << std::endl;
-
-    return correct;
-
-    KRATOS_CATCH( "" );
-}
 
 void UpdatedLagrangianUPVMS::save( Serializer& rSerializer ) const
 {
@@ -1721,6 +1119,5 @@ void UpdatedLagrangianUPVMS::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangian )
     rSerializer.load("Pressure",m_mp_pressure);
 }
-
 } // Namespace Kratos
 

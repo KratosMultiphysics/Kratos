@@ -7,9 +7,8 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Laura Moreno
+//  Main authors:    Laura Moreno Martínez
 //
-
 
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_VMS_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_UP_VMS_H_INCLUDED
@@ -19,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian.hpp"
+#include "custom_elements/updated_lagrangian_UP.hpp"
 
 namespace Kratos
 {
@@ -46,7 +45,7 @@ namespace Kratos
  */
 
 class UpdatedLagrangianUPVMS
-    : public UpdatedLagrangian
+    : public UpdatedLagrangianUP
 {
 public:
 
@@ -118,115 +117,6 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-
-    //************* GETTING METHODS
-
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0) const override;
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
-
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    //************* COMPUTING  METHODS
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    //************************************************************************************
-    //************************************************************************************
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetValuesOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        const std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "MPM Element #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "MPM Element #" << Id();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        GetGeometry().PrintData(rOStream);
-    }
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -241,19 +131,10 @@ protected:
     static const unsigned int msIndexVoigt2D4C [4][2];
     static const unsigned int msIndexVoigt2D3C [3][2];
 
-
-
-    SizeType GetNumberOfDofs() override {
-        return GetGeometry().WorkingSpaceDimension() + 1;
-    }
-
     /*
         Compute Element Size
     */
-
-   void ComputeElementSize(double& ElementSize);
-
-   // double ComputeElementSize(BoundedMatrix<double,TNumNodes, TDim>& DN_DX );
+    void ComputeElementSize(double& ElementSize);
 
        /**
      * Calculates the elemental contributions
@@ -271,18 +152,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /*
-     * Calculation of stabilization parameters 
-     */
-
+    // Calculation of stabilization parameters
     void CalculateTaus(const int& stabilization_type, GeneralVariables& rVariables);
 
-     /*
-     * To compute identity tensor 
-     */
 
+     // To compute identity tensor
     void CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix);
 
     double& TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
@@ -291,8 +166,9 @@ protected:
     // To compute vector in voigt notation to multiply
 
     void ConvertPressureGradientInVoigt(Vector& PressureGradient, Vector& PressureGradientVoigt);
+
     /*
-     * Calculation of Specific variables: pressure and gradient pressure 
+     * Calculation of Specific variables: pressure and gradient pressure
      */
 
     void SetSpecificVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
@@ -302,15 +178,12 @@ protected:
      */
 
     void ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-    
-    
+
     /*
      * Compute coefficients for dynamic terms (only for stabilization and for Newmark scheme integration)
      */
 
     void ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP);
-
-
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -331,7 +204,6 @@ protected:
                             const double& rIntegrationWeight,
                             const ProcessInfo& rCurrentProcessInfo) override;
 
-
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
@@ -350,32 +222,30 @@ protected:
     /**
      * Calculation of the Kup matrix
      */
-    virtual void CalculateAndAddKup (MatrixType& rK,
+    void CalculateAndAddKup (MatrixType& rK,
                                      GeneralVariables & rVariables,
                                      const double& rIntegrationWeight
-                                    );
+                                    ) override;
 
     /**
      * Calculation of the Kpu matrix
      */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
+    void CalculateAndAddKpu(MatrixType& rK,
                                     GeneralVariables & rVariables,
                                     const double& rIntegrationWeight
-                                   );
+                                   ) override;
 
     /**
      * Calculation of the Kpp matrix
      */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
+    void CalculateAndAddKpp(MatrixType& rK,
                                     GeneralVariables & rVariables,
                                     const double& rIntegrationWeight
-                                   );
-
+                                   ) override;
 
     /**
      * Calculation of the Kuu Stabilization Term matrix
      */
-
 
     virtual void CalculateAndAddKuuStab(MatrixType& rK,
                                         GeneralVariables & rVariables,
@@ -385,7 +255,6 @@ protected:
     /**
      * Calculation of the Kup Stabilization Term matrix
      */
-
 
     virtual void CalculateAndAddKupStab(MatrixType& rK,
                                         GeneralVariables & rVariables,
@@ -400,15 +269,15 @@ protected:
     virtual void CalculateAndAddKpuStab(MatrixType& rK,
                                         GeneralVariables & rVariables,
                                         const double& rIntegrationWeight
-                                       );                                     
+                                       );
 
     /**
      * Calculation of the Kpp Stabilization Term matrix
      */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
+    void CalculateAndAddKppStab(MatrixType& rK,
                                         GeneralVariables & rVariables,
                                         const double& rIntegrationWeight
-                                       );
+                                       ) override;
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
@@ -427,10 +296,9 @@ protected:
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            const double& rIntegrationWeight
-                                              );
+            const double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
@@ -438,8 +306,7 @@ protected:
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             Vector& rVolumeForce,
-            const double& rIntegrationWeight
-                                                  );
+            const double& rIntegrationWeight);
 
 
     /**
@@ -448,42 +315,12 @@ protected:
     virtual void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             Vector& rVolumeForce,
-            const double& rIntegrationWeight
-                                                  );
-
-
-    /**
-     * Calculate Element Kinematics
-     */
-    void CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+            const double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
     void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
-    /**
-     * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-     */
-
-    void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
-     */
-    void GetHistoricalVariables( GeneralVariables& rVariables) override;
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    using UpdatedLagrangian::CalculateDeformationMatrix;
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX);
-
-    /**
-     * Calculation of the Volume Change of the Element
-     */
-    double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables) override;
 
     ///@}
     ///@name Protected  Access

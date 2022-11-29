@@ -341,16 +341,14 @@ protected:
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            const double& rIntegrationWeight
-                                              );
+            const double& rIntegrationWeight);
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            const double& rIntegrationWeight
-                                                  );
+            const double& rIntegrationWeight);
 
     /**
      * Calculate Element Kinematics
