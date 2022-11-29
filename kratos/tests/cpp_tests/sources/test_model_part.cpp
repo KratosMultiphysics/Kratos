@@ -67,6 +67,9 @@ namespace Kratos {
     
     KRATOS_TEST_CASE_IN_SUITE(ModelPartFlag, KratosCoreFastSuite)
     {
+        Model model;
+        ModelPart& r_model_part = model.CreateModelPart("Main");
+        
         r_model_part.Set(ACTIVE);
         KRATOS_CHECK(r_model_part.Is(ACTIVE));
         KRATOS_CHECK_IS_FALSE(r_model_part.Is(BOUNDARY));
