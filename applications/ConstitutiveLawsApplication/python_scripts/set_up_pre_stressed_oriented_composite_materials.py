@@ -91,7 +91,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                         id_elem = int(split_line[0])
                         elem = self.model_part.GetElement(id_elem)
                         self.model_part.GetSubModelPart(tendon_name).AddElement(elem, 0) # We add the element to the tendon submodelpart
-                        
+
                         # Here we apply the imposed strain
                         elem.Initialize(self.model_part.ProcessInfo) # necessary to initialize the element first...
                         array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
@@ -108,7 +108,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                         kf = tendon_volume / (elem_volume)
                         if kf <= 0.0:
                             kf = 1.0e-7
-                        kf_vect = [] # HAS to be a python list...
+                        kf_vect = []
                         for index in range(len(array_bool)):
                             kf_vect.append(kf)
                         elem.SetValuesOnIntegrationPoints(CLApp.FIBER_VOLUMETRIC_PARTICIPATION, kf_vect, self.model_part.ProcessInfo)
