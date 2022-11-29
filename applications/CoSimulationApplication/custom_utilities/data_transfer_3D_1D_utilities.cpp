@@ -18,6 +18,7 @@
 #include "custom_utilities/data_transfer_3D_1D_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/atomic_utilities.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
@@ -206,9 +207,10 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
                 av.lines[i_line]->ShapeFunctionsValues( av.N_line[i_line], av.aux_coordinates );
             }
 
-            // Iterate over the nodes of the element
+            // Iterate over the nodes of the element and add the contribution of the volume
             for (unsigned int i_node = 0; i_node < 4; ++i_node) {
-                r_geometry_tetra[i_node].GetValue(NODAL_VOLUME) += volume;
+                auto& r_value = r_geometry_tetra[i_node].GetValue(NODAL_VOLUME);
+                AtomicAdd(r_value, volume);
             }
 
             // Calculate values
@@ -222,7 +224,8 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
                 }
                 noalias(av.values_destination) = prod(av.inverted_N_values, av.values_origin_interpolated);
                 for (unsigned int i_node = 0; i_node < 4; ++i_node) {
-                    r_geometry_tetra[i_node].FastGetSolutionStepValue(*destination_list_variables[i_var]) = constant * av.values_destination[i_node] * volume;
+                    auto& r_value = r_geometry_tetra[i_node].FastGetSolutionStepValue(*destination_list_variables[i_var]);
+                    AtomicAdd(r_value, constant * av.values_destination[i_node] * volume);
                 }
             }
         }
