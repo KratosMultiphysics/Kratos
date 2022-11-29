@@ -75,7 +75,6 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
             # We loop over the whole file...
             split_line = line.split()
             if len(split_line) > 0: # We skip empty lines
-                # if split_line[4] == "intersection:": # a new tendon intersection block starts
                 if line.find("intersection:") != -1: # a new tendon intersection block starts
                     intersection_block = True
                     tendon_name = split_line[5]
@@ -87,9 +86,13 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                 
                 if intersection_block and line.find("Begin") == -1:
                     id_elem = int(split_line[0])
-                    print(id_elem)
                     # Here we apply the imposed strain
-                    elem = self.model_part.GetElement(id_elem).SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
+                    elem = self.model_part.GetElement(id_elem)
+                    array_bool = elem.CalculateOnIntegrationPoints(CLApp.IS_PRESTRESSED, self.model_part.ProcessInfo)
+                    for index in array_bool:
+                        index = True
+                    elem.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, Ep)
+                    elem.SetValuesOnIntegrationPoints(CLApp.IS_PRESTRESSED, array_bool, self.model_part.ProcessInfo)
 
 
         intersections_file.close()
