@@ -142,9 +142,9 @@ namespace Kratos
     const auto &r_geometry = this->GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-    //WARNING THIS MUST BE REMOVED ASAP
+    // WARNING THIS MUST BE REMOVED ASAP
     const_cast<TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> *>(this)->mpConstitutiveLaw = const_cast<TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> *>(this)->GetProperties().GetValue(CONSTITUTIVE_LAW);
-    //mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    // mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
@@ -578,6 +578,14 @@ namespace Kratos
       }
     }
 
+    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * 0.5;
+
+    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.SpatialDefRate[2];
+
+    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
+
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
     const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
@@ -653,6 +661,17 @@ namespace Kratos
           this->SetValue(YIELDED, false);
       }
     }
+
+    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) / 3.0;
+
+    double mechanicalDissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[2] * (rElementalVariables.SpatialDefRate[2] - volumetric_strain) +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.SpatialDefRate[3] +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.SpatialDefRate[4] +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.SpatialDefRate[5];
+
+    this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
