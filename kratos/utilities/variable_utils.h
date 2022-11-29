@@ -815,7 +815,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+        block_for_each(rContainer, [&rVariable](auto& rEntity){
                 rEntity.GetData().Erase(rVariable);
         });
 
