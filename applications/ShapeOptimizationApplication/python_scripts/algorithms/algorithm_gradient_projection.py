@@ -140,24 +140,22 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         def ___ComputeHeatmap(norm_type, sens_type):
 
-            relax_coeff = 0.8
+            # relax_coeff = 0.8
             # reciprocal relaxation
-            # relax_coeff = 1 / self.optimization_iteration
+            relax_coeff = 1 / self.optimization_iteration
             heat = []
 
             # read objective gradient
-            if sens_type == "raw":
-                df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
-            elif sens_type == "mapped":
-                df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
+            # if sens_type == "raw":
+            #     df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
+            # elif sens_type == "mapped":
+            df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
 
             # DF1DX individual heatmap
             heatmap_dfdx_name = "HEATMAP_DF1DX"
             if self.optimization_iteration == 1:
                 heat_dfdx_relaxed = df_dx
             else:
-                # if sens_type == "mapped":
-                #     heatmap_dfdx_name += "_" + "MAPPED"
                 prev_heat_dfdx = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
                 heat_dfdx_relaxed = []
@@ -185,10 +183,10 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             for itr, constraint in enumerate(self.constraints):
                 # read constraint gradients
                 con_id = constraint["identifier"].GetString()
-                if sens_type == "raw":
-                    gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
-                elif sens_type == "mapped":
-                    gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
+                # if sens_type == "raw":
+                #     gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
+                # elif sens_type == "mapped":
+                gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
 
                 dci_dx = ReadNodalVariableToList(self.design_surface, gradient_variable)
 
@@ -211,8 +209,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 if self.optimization_iteration == 1:
                     heat_dcidx_relaxed = dci_dx
                 else:
-                    # if sens_type == "mapped":
-                    #     heatmap_dcidx_name += "_" + "MAPPED"
                     prev_heat_dcidx = KM.Vector()
                     self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dcidx, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
                     heat_dcidx_relaxed = []
@@ -236,8 +232,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 heat.append(heat_i)
 
             heat_map_name = "HEATMAP" + "_" + norm_type
-            if sens_type == "mapped":
-                heat_map_name += "_" + "MAPPED"
+            # if sens_type == "mapped":
+            #     heat_map_name += "_" + "MAPPED"
 
             # Heatmap Relaxed
             if self.optimization_iteration == 1:
