@@ -118,12 +118,11 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
                 // Check position of the nodes in the line
                 av.line_points[0] = av.intersection_point1;
                 av.line_points[1] = av.intersection_point2;
+                // Intermediates points
                 av.line_points[2] = 2.0/3.0 * av.intersection_point1 + 1.0/3.0 * av.intersection_point2;
                 av.line_points[3] = 1.0/3.0 * av.intersection_point1 + 2.0/3.0 * av.intersection_point2;
-                for (unsigned int i = 0; i < 4; ++i) {
-                    av.lines[i] = p_geometry;
-                    r_geometry.PointLocalCoordinates(av.aux_coordinates, av.line_points[i]);
-                    r_geometry.ShapeFunctionsValues( av.N_line[i], av.aux_coordinates );
+                for (unsigned int i_line = 0; i_line < 4; ++i_line) {
+                    av.lines[i_line] = p_geometry;
                 }
                 counter += 4;
             } else if (intersection == 2) { // One intersection point
@@ -131,9 +130,14 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
                 // TODO
                 counter += 1;
             }
-            if (counter == 4) {
+            if (counter >= 4) {
                 break;
             }
+        }
+        // Common operation
+        for (unsigned int i_line = 0; i_line < 4; ++i_line) {
+            av.lines[i_line]->PointLocalCoordinates(av.aux_coordinates, av.line_points[i_line]);
+            av.lines[i_line]->ShapeFunctionsValues( av.N_line[i_line], av.aux_coordinates );
         }
 
         // Calculate values
