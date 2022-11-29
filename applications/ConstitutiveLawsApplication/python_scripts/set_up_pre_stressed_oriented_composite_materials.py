@@ -1,18 +1,27 @@
 import KratosMultiphysics
 from pathlib import Path
 
+def Factory(settings, Model):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise Exception(
+            "expected input shall be a Parameters object, encapsulating a json string"
+        )
+    return SetUpPreStressedOrientedCompositeMaterials(Model, settings["Parameters"])
+
 class SetUpPreStressedOrientedCompositeMaterials(KratosMultiphysics.Process):
 
     """This process sets a proper orientation of the local axes of the elements intersected by line elements (steel tendons). Besides it also computes and sets a volumetric participation of steel within the concrete FE as well as an indicated pre-stressing strain. It also creates a submodelpart for each steel tendon intersected FE.
 
     Format of the file:
-    --> Intersection points:
-    Begin Tendon - Hexahedra intersection: Tendon_Inf
-	    4807	        0.01000	        0.05000	        0.01500		        0.02000	        0.05000	        0.01500
+    # Intersection points (D is the diameter of the tendon and Ep the imposed pre-stressing strain):
+
+    Begin Tendon - Hexahedra intersection: Tendon_Inf     D=1.0e-3    Ep=0.00001
+	    4807	0.01000	     0.05000	   0.01500	    0.02000	     0.05000   0.01500
         ...
     End Tendon - Hexahedra intersection
 
-    --> FE inside each tendon:
+    # FE inside each tendon:
+
     Begin Tendon - Hexahedra: Tendon_Inf
         4807    4812    4817    4822    4827    4832    4837    4842    4847    4852   ...
     End Tendon - Hexahedra
