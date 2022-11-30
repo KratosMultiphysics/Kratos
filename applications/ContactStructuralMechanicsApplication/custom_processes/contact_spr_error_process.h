@@ -11,8 +11,7 @@
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_CONTACT_SPR_ERROR_PROCESS)
-#define KRATOS_CONTACT_SPR_ERROR_PROCESS
+#pragma once
 
 // System includes
 
@@ -268,4 +267,3 @@ private:
 };// class ContactSPRErrorProcess
 
 };// namespace Kratos.
-#endif /* KRATOS_CONTACT_SPR_ERROR_PROCESS defined */
