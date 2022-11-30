@@ -1585,11 +1585,14 @@ int SerialParallelRuleOfMixturesLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    mpMatrixConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    mpFiberConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    int aux_out = 0;
+    aux_out += mpMatrixConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    aux_out += mpFiberConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if (mFiberVolumetricParticipation < 0.0 || mFiberVolumetricParticipation > 1.0) {
-        KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0..." << std::endl;
+        KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0... " << std::to_string(mFiberVolumetricParticipation) << std::endl;
+        aux_out += 1;
     }
+    return aux_out;
 }
 
 } // namespace Kratos
