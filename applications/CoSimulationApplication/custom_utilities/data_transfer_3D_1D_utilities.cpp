@@ -177,6 +177,7 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
         std::array<GeometryType::Pointer, 4> lines;
         std::array<array_1d<double, 3>, 4> line_points;
         std::array<Vector, 4> N_line;
+        Vector N_tetra = ZeroVector(4);
         double aux_det;
     };
 
@@ -375,6 +376,15 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
             for (unsigned int i_line = 0; i_line < 4; ++i_line) {
                 av.lines[i_line]->PointLocalCoordinates(av.aux_coordinates, av.line_points[i_line]);
                 av.lines[i_line]->ShapeFunctionsValues( av.N_line[i_line], av.aux_coordinates );
+            }
+
+            // Fill the N matrix
+            for (unsigned int i = 0; i < 4; ++i) {
+                r_geometry_tetra.PointLocalCoordinates(av.aux_coordinates, av.line_points[i]);
+                r_geometry_tetra.ShapeFunctionsValues( av.N_tetra, av.aux_coordinates );
+                for (unsigned int j = 0; j < 4; ++j) {
+                    av.N_values(i, j) = av.N_tetra[j];
+                }
             }
 
             // Calculate values
