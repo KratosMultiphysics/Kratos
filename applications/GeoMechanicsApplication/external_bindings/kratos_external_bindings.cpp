@@ -1,4 +1,3 @@
-#pragma once
 #define EXPORT __declspec(dllexport)
 #include "kratos_external_bindings.h"
 
@@ -20,7 +19,8 @@ extern "C"
                                                double stepCriticalHead,
                                                char *criticalHeadBoundaryModelPartName,
                                                void __stdcall logCallback(char *),
-                                               void __stdcall reportProgress(char *),
+                                               void __stdcall reportProgress(double),
+                                               void __stdcall reportTextualProgress(char *),
                                                bool __stdcall shouldCancel())
     {
         int errorCode = instance->execute_flow_analysis(workingDirectory,
@@ -31,6 +31,7 @@ extern "C"
                                                         criticalHeadBoundaryModelPartName,
                                                         logCallback,
                                                         reportProgress,
+                                                        reportTextualProgress,
                                                         shouldCancel);
         return errorCode;
     }

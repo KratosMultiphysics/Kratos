@@ -156,9 +156,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(GRAIN_DIAMETER);
     KRATOS_REGISTER_VARIABLE(GRAIN_DENSITY);
     KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
-    KRATOS_REGISTER_VARIABLE(INFINITE_FRICTION);
-    KRATOS_REGISTER_VARIABLE(INERTIAL_NUMBER_ONE);
-    KRATOS_REGISTER_VARIABLE(ALPHA_PARAMETER);
 
     KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY);
     KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION);
@@ -266,22 +263,22 @@ namespace Kratos
     //Register Fluid Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham2DLaw", mBingham2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley2DLaw", mHerschelBulkley2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HerschelBulkley3DLaw", mHerschelBulkley3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic2DLaw", mFrictionalViscoplastic2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplastic3DLaw", mFrictionalViscoplastic3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent2DLaw", mBinghamTemperatureDependent2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BinghamTemperatureDependent3DLaw", mBinghamTemperatureDependent3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplasticTemperatureDependent2DLaw", mFrictionalViscoplasticTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("FrictionalViscoplasticTemperatureDependent3DLaw", mFrictionalViscoplasticTemperatureDependent3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian2DLaw", mNewtonian2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent3DLaw", mNewtonianTemperatureDependent3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology2DLaw", mPapanastasiouMuIRheology2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PapanastasiouMuIRheology3DLaw", mPapanastasiouMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("JopMuIRheology3DLaw", mJopMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BarkerMuIRheology3DLaw", mBarkerMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BarkerBercovierMuIRheology3DLaw", mBarkerBercovierMuIRheology3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("BercovierMuIRheology3DLaw", mBercovierMuIRheology3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheology2DLaw", mMuIRheology2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheology3DLaw", mMuIRheology3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheologyTemperatureDependent2DLaw", mMuIRheologyTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("MuIRheologyTemperatureDependent3DLaw", mMuIRheologyTemperatureDependent3DLaw);
 
     //Register Solid Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Hypoelastic2DLaw", mHypoelastic2DLaw);

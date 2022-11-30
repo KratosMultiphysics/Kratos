@@ -290,7 +290,7 @@ protected:
                 ++constraint_id;
             }
 
-            // Auxiliar dofs lists
+            // Auxiliary dofs lists
             DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
             // Contributions to the system
@@ -305,7 +305,7 @@ protected:
                 // Current process info
                 ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-                // A buffer to store auxiliar constraints
+                // A buffer to store auxiliary constraints
                 ConstraintContainerType constraints_buffer;
 
                 // Gets the array of constraints from the modeler
@@ -487,7 +487,7 @@ private:
         std::unordered_map<IndexType, IndexSetType> set_nodes_with_lm_associated;
         if (rModelPart.HasSubModelPart("Contact"))
             set_nodes_with_lm_associated.reserve(rModelPart.GetSubModelPart("Contact").NumberOfNodes());
-        // Allocating auxiliar parameters
+        // Allocating auxiliary parameters
         IndexType node_id;
         // We start the dof loop
         for (auto& i_dof : BaseType::mDofSet) {
@@ -496,7 +496,7 @@ private:
                 set_nodes_with_lm_associated.insert({node_id, IndexSetType({})});
         }
 
-        // Auxiliar keys
+        // Auxiliary keys
         const IndexType key_lm_x = VECTOR_LAGRANGE_MULTIPLIER_X.Key();
         const IndexType key_lm_y = VECTOR_LAGRANGE_MULTIPLIER_Y.Key();
         const IndexType key_lm_z = VECTOR_LAGRANGE_MULTIPLIER_Z.Key();

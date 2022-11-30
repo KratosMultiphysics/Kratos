@@ -30,8 +30,6 @@ KratosFluidDynamicsBiomedicalApplication::KratosFluidDynamicsBiomedicalApplicati
 {}
 
 void KratosFluidDynamicsBiomedicalApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosFluidDynamicsBiomedicalApplication..." << std::endl;
 
     // Wall Shear Stress statistics (WSS)

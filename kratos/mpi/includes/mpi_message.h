@@ -164,7 +164,7 @@ public:
         // be contiguous in memory to perform MPI communication (based on char*) in place.
         // In older C++, this cannot be expected to be always the case, so a copy of the
         // string would be required.
-        return const_cast<char *>(rValue.data());
+        return rValue.data();
     }
 
     static inline const void* Buffer(const std::string& rValue)

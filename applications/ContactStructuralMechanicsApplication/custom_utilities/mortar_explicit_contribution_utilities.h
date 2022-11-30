@@ -299,7 +299,7 @@ public:
 
 }; // class MortarExplicitContributionUtilities
 
-namespace AuxiliarOperationsUtilities
+namespace AuxiliaryOperationsUtilities
 {
     /**
      * @brief This functions computes the integration weight to consider

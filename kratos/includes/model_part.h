@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_MODEL_PART_H_INCLUDED )
-#define  KRATOS_MODEL_PART_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -66,11 +65,15 @@ namespace Kratos
 //forward declaring Model to be avoid cross references
 class Model;
 
-/// ModelPart class.
-
-/** Detail class definition.
- */
-class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
+/**
+* @class ModelPart
+* @ingroup KratosCore
+* @brief This class aims to manage meshes for multi-physics simulations
+* @author Pooyan Dadvand
+* @author Riccardo Rossi
+*/
+class KRATOS_API(KRATOS_CORE) ModelPart final
+    : public DataValueContainer, public Flags
 {
     class GetModelPartName
     {
@@ -2059,10 +2062,6 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
     return rOStream;
 }
 
-
 ///@}
 
-
 } // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_H_INCLUDED  defined

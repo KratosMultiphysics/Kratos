@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -57,7 +58,7 @@ namespace Kratos
  *  which crates a copy in construction and delete it in its destructor
  *  to make the memory management easier.
 */
-class RegistryItem
+class KRATOS_API(KRATOS_CORE) RegistryItem
 {
 public:
     ///@name Type Definitions
@@ -65,6 +66,131 @@ public:
 
     /// Pointer definition of RegistryItem
     KRATOS_CLASS_POINTER_DEFINITION(RegistryItem);
+
+    /// Subregistry item type definition
+    using SubRegistryItemType = std::unordered_map<std::string, Kratos::shared_ptr<RegistryItem>>;
+
+    /// Custom iterator with key as return type to be used in the Python export
+    class KeyReturnConstIterator
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        using BaseIterator      = SubRegistryItemType::const_iterator;
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = BaseIterator::difference_type;
+        using value_type        = SubRegistryItemType::key_type;
+        using const_pointer     = const value_type*;
+        using const_reference   = const value_type&;
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        KeyReturnConstIterator()
+        {}
+
+        KeyReturnConstIterator(const BaseIterator Iterator)
+            : mIterator(Iterator)
+        {}
+
+        KeyReturnConstIterator(const KeyReturnConstIterator& rIterator)
+            : mIterator(rIterator.mIterator)
+        {}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        KeyReturnConstIterator& operator=(const KeyReturnConstIterator& rIterator)
+        {
+            this->mIterator = rIterator.mIterator;
+            return *this;
+        }
+
+        const_reference operator*() const
+        {
+            return mIterator->first;
+        }
+
+        const_pointer operator->() const
+        {
+            return &(mIterator->first);
+        }
+
+        KeyReturnConstIterator& operator++()
+        {
+            ++mIterator;
+            return *this;
+        }
+
+        KeyReturnConstIterator operator++(int)
+        {
+            KeyReturnConstIterator tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+
+        bool operator==(const KeyReturnConstIterator& rIterator) const
+        {
+            return this->mIterator == rIterator.mIterator;
+        }
+
+        bool operator!=(const KeyReturnConstIterator& rIterator) const
+        {
+            return this->mIterator != rIterator.mIterator;
+        }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+
+        ///@}
+        ///@name Access
+        ///@{
+
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        BaseIterator mIterator;
+
+        ///@}
+        ///@name Private Operators
+        ///@{
+
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
+
+        ///@}
+    };
 
     ///@}
     ///@name Life Cycle
@@ -97,17 +223,28 @@ public:
         std::string const& ItemName,
         TArgumentsList&&... Arguments)
     {
-        KRATOS_ERROR_IF(this->HasItem(ItemName)) << "The RegistryItem " << this->Name() << " already has an item with name " << ItemName << std::endl;
+        KRATOS_ERROR_IF(this->HasItem(ItemName)) << "The RegistryItem '" << this->Name() << "' already has an item with name " << ItemName << "." << std::endl;
+        KRATOS_ERROR_IF(this->HasValue()) <<
+            "Trying to add '"<< ItemName << "' item to the RegistryItem '" << this->Name() << "' but this already has value. Items cannot have both value and subitem." << std::endl;
         auto insert_result = mSubRegistryItem.emplace(std::make_pair(ItemName, Kratos::make_unique<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...)));
-        KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting " << ItemName << " in registry item with name " << this->Name() << std::endl;
         return *insert_result.first->second;
     }
-
-
 
     ///@}
     ///@name Access
     ///@{
+
+    SubRegistryItemType::iterator begin();
+
+    SubRegistryItemType::const_iterator cbegin() const;
+
+    SubRegistryItemType::iterator end();
+
+    SubRegistryItemType::const_iterator cend() const;
+
+    KeyReturnConstIterator KeyConstBegin() const;
+
+    KeyReturnConstIterator KeyConstEnd() const;
 
     const std::string& Name() const
     {
@@ -118,11 +255,23 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
+    template<typename TDataType> TDataType const& GetValue() const
+    {
+        KRATOS_ERROR_IF(mpValue == nullptr) << "Item " << Name() << " does not have value to be returned." << std::endl;
+        return *static_cast<const TDataType*>(mpValue);
+    }
+
     void RemoveItem(std::string const& rItemName);
 
     ///@}
     ///@name Inquiry
     ///@{
+
+    std::size_t size()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and size() cannot be retrieved." << std::endl;
+        return mSubRegistryItem.size();
+    }
 
     bool HasValue() const
     {
@@ -167,7 +316,7 @@ protected:
 
     std::string mName;
     const void* mpValue;
-    std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>> mSubRegistryItem;
+    SubRegistryItemType mSubRegistryItem;
 
     ///@}
     ///@name Protected member Variables
