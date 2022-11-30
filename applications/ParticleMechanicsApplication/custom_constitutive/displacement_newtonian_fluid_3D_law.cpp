@@ -318,8 +318,6 @@ void DispNewtonianFluid3DLaw::CalculateDeformationRate(MaterialResponseVariables
     // Computation of a first order extimate of the deformation rate
     // as done in Simo&Hughes, Computational Inelasticity, 1998
 
-    const GeometryType& DomainGeometry = rViscousVariables.GetElementGeometry();
-
     // Incremental deformation rate
     Matrix f = prod(rViscousVariables.DeformationGradientF, mInverseDeformationGradientF0);
 
@@ -378,7 +376,6 @@ Vector& DispNewtonianFluid3DLaw::CalculateVolumetricPressureFactors(const Materi
 
 void DispNewtonianFluid3DLaw::CalculateStress(MaterialResponseVariables& rViscousVariables, StressMeasure rStressMeasure, Vector& rStressVector)
 {
-    const GeometryType& DomainGeometry = rViscousVariables.GetElementGeometry();
 
     rViscousVariables.StressMatrix.resize(3,3,false);
 
