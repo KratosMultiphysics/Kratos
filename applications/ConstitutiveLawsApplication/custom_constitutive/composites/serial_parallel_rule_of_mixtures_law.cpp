@@ -32,6 +32,9 @@ namespace Kratos
 ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
 {
     const double fiber_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
+    if (fiber_volumetric_participation < 0.0 || fiber_volumetric_participation > 1.0) {
+        KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0..." << std::endl;
+    }
     const int voigt_size = 6;
     Vector parallel_directions(voigt_size);
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
@@ -1574,4 +1577,19 @@ void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(
 }
 /***********************************************************************************/
 /***********************************************************************************/
+
+
+int SerialParallelRuleOfMixturesLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    mpMatrixConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    mpFiberConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    if (mFiberVolumetricParticipation < 0.0 || mFiberVolumetricParticipation > 1.0) {
+        KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0..." << std::endl;
+    }
+}
+
 } // namespace Kratos

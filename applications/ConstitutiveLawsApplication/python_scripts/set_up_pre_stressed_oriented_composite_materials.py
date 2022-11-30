@@ -87,7 +87,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                         self.model_part.CreateSubModelPart(tendon_name)
                         phi = float(split_line[8])   # Diameter of the tendon
                         Ep  = float(split_line[11])  # Imposed pre-stressing strain
-                        KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of Tendon ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
+                        KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
                     elif line.find("End") != -1 and line.find("intersection") != -1:
                         intersection_block = False
                     
@@ -135,6 +135,9 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                             axis_2 = axis_2 - self.InnerProd(axis_1, axis_2) / self.InnerProd(axis_1, axis_1) * axis_1
                             axis_2 = axis_2 / self.Norm2(axis_2)
                             elem.SetValue(KM.LOCAL_AXIS_2, axis_2)
+                        else: # we avoid that starting/ending element
+                            self.model_part.GetSubModelPart(tendon_name).RemoveElement(elem, 0)
+
             intersections_file.close()
 
     def CalculateIntersectionVectors(self, Line):

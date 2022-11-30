@@ -559,6 +559,20 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         return true;
     }
 
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return 0 if OK, 1 otherwise
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
     ///@}
     ///@name Access
     ///@{
