@@ -168,5 +168,5 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         if kf <= 0.0:
             kf = self.fiber_participation_threshold
         elif kf > 1.0:
-            kf = 1.0
+            kf = 0.99999999
         return kf
