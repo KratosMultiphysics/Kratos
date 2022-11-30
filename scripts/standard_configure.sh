@@ -47,5 +47,5 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_EIGEN_MKL=OFF                                                 \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

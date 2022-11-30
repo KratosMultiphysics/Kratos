@@ -73,5 +73,5 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DCMAKE_UNITY_BUILD=ON \
 -DINCLUDE_MMG=ON                                    \
 
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2

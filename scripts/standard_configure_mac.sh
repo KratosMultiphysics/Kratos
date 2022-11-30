@@ -49,5 +49,5 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
  -DUSE_EIGEN_MKL=OFF                                                                                        \
  -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
-# Buid
+# Build
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(sysctl -n hw.physicalcpu)
