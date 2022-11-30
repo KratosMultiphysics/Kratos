@@ -36,7 +36,7 @@ class TestModel(KratosUnittest.TestCase):
             current_model["abc"]
 
         #check that a meaningful error is thrown
-        with self.assertRaisesRegex(RuntimeError, "There is no sub model part with name \"aaa\" in model part \"Main.Inlets\"\nThe the following sub model parts are available:"):
+        with self.assertRaisesRegex(RuntimeError, "There is no sub model part with name \"aaa\" in model part \"Main.Inlets\"\nThe following sub model parts are available:"):
             current_model["Main.Inlets.aaa"]
 
         #here i create a model part in the lowest level and i check that the other model parts have it
