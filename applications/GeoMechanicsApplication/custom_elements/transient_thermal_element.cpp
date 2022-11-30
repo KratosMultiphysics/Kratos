@@ -15,7 +15,21 @@
 
 namespace Kratos
 {
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    Element::Pointer TransientThermalElement<TDim, TNumNodes>::Create(IndexType NewId,
+        NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    {
+        return Element::Pointer(new TransientThermalElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    }
 
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    Element::Pointer TransientThermalElement<TDim, TNumNodes>::Create(IndexType NewId,
+        GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+    {
+        return Element::Pointer(new TransientThermalElement(NewId, pGeom, pProperties));
+    }
 
     //----------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
