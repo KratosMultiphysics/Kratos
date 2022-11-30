@@ -111,7 +111,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>());
         
     py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
-    .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters>());
 }
 
 }  // namespace Python.
