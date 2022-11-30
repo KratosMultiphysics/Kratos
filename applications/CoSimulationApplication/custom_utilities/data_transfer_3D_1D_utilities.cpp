@@ -75,7 +75,7 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
     KDTree tree_points(points_vector.begin(), points_vector.end(), bucket_size);
 
     // Swap sign
-    const double swap_sign = ThisParameters["swap_sign"].GetBool();
+    const bool swap_sign = ThisParameters["swap_sign"].GetBool();
     const double constant = swap_sign ? -1.0 : 1.0;
 
     // Iterate over the nodes
@@ -184,6 +184,9 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     // Initialize the NODAL_VOLUME
     VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart3D.Nodes());
 
+    // Debug mode
+    const bool debug_mode = ThisParameters["debug_mode"].GetBool();
+
     // Iterate over the elements (first assign NODAL_VOLUME)
     block_for_each(rModelPart3D.Elements(), AuxValues(), [&](Element& rElement, AuxValues av) {
         double search_radius = search_factor * max_length;
@@ -240,7 +243,9 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
         }
         // At least 3 points are required
         if (counter > 2) {
-            // rElement.Set(VISITED); // NOTE: For debugging purposes
+            // For debugging purposes
+            if (debug_mode) rElement.Set(VISITED); 
+
             // Getting volume
             const double volume = r_geometry_tetra.Volume();
 
@@ -263,7 +268,7 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     });
 
     // Swap sign
-    const double swap_sign = ThisParameters["swap_sign"].GetBool();
+    const bool swap_sign = ThisParameters["swap_sign"].GetBool();
     const double constant = swap_sign ? -1.0 : 1.0;
 
     // Iterate over the elements
@@ -463,6 +468,7 @@ Parameters DataTransfer3D1DUtilities::GetDefaultParameters()
         "origin_variables"         : [],
         "destination_variables"    : [],
         "swap_sign"                : false,
+        "debug_mode"               : false,
         "search_parameters"        :  {
             "allocation_size"         : 100,
             "bucket_size"             : 4,
