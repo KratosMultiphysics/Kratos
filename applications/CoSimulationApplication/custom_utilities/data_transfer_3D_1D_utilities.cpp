@@ -183,6 +183,84 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     // Initialize the NODAL_VOLUME
     VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart3D.Nodes());
 
+    // Iterate over the elements (first assign NODAL_VOLUME)
+    block_for_each(rModelPart3D.Elements(), AuxValues(), [&](Element& rElement, AuxValues av) {
+        double search_radius = search_factor * max_length;
+
+        // Initialize values
+        PointVector points_found(allocation_size);
+        IndexType number_points_found = 0;
+        auto& r_geometry_tetra = rElement.GetGeometry();
+
+        // Iterate doing the search
+        const Point center = r_geometry_tetra.Center();
+        while (number_points_found == 0) {
+            search_radius *= search_increment_factor;
+            const PointElement point(center.X(), center.Y(), center.Z());
+            number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
+        }
+
+        // Getting the intersection points
+        unsigned int counter = 0;
+        for (IndexType i = 0; i < number_points_found; ++i) {
+            auto p_point = points_found[i];
+            auto p_geometry = p_point->pGetElement()->pGetGeometry();
+            auto& r_geometry = *p_geometry;
+            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+            if (intersection == 1) { // Two intersection points
+                counter += 4;
+            } else if (intersection == 4) { // Two points, one inside the tetrahedra and the other outside
+                bool add_point = true;
+                for (unsigned int i_point = 0; i_point < counter; ++i_point) {
+                    if (norm_2(av.line_points[i_point] - av.intersection_point1) < tolerance) {
+                        add_point = false;
+                        break;
+                    }
+                }
+                if (add_point) {
+                    av.line_points[counter] = av.intersection_point2;
+                    counter += 1;
+                }
+                add_point = true;
+                for (unsigned int i_point = 0; i_point < counter; ++i_point) {
+                    if (norm_2(av.line_points[i_point] - av.intersection_point2) < tolerance) {
+                        add_point = false;
+                        break;
+                    }
+                }
+                if (add_point) {
+                    av.line_points[counter] = av.intersection_point2;
+                    counter += 1;
+                }
+            }
+            if (counter == 4) {
+                break;
+            }
+        }
+        // At least 3 points are required
+        if (counter > 2) {
+            // rElement.Set(VISITED); // NOTE: For debugging purposes
+            // Getting volume
+            const double volume = r_geometry_tetra.Volume();
+
+            // Iterate over the nodes of the element and add the contribution of the volume
+            for (unsigned int i_node = 0; i_node < 4; ++i_node) {
+                auto& r_value = r_geometry_tetra[i_node].GetValue(NODAL_VOLUME);
+                AtomicAdd(r_value, volume);
+            }
+        }
+    });
+
+    // Initialize if required
+    block_for_each(rModelPart3D.Nodes(), [&destination_list_variables](auto& rNode) {
+        const double nodal_volume = rNode.GetValue(NODAL_VOLUME);
+        if (nodal_volume > std::numeric_limits<double>::epsilon()) {
+            for (std::size_t i_var = 0; i_var < destination_list_variables.size(); ++i_var) {
+                rNode.FastGetSolutionStepValue(*destination_list_variables[i_var]) = 0.0;
+            }
+        }
+    });
+
     // Swap sign
     const double swap_sign = ThisParameters["swap_sign"].GetBool();
     const double constant = swap_sign ? -1.0 : 1.0;
@@ -299,12 +377,6 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                 av.lines[i_line]->ShapeFunctionsValues( av.N_line[i_line], av.aux_coordinates );
             }
 
-            // Iterate over the nodes of the element and add the contribution of the volume
-            for (unsigned int i_node = 0; i_node < 4; ++i_node) {
-                auto& r_value = r_geometry_tetra[i_node].GetValue(NODAL_VOLUME);
-                AtomicAdd(r_value, volume);
-            }
-
             // Calculate values
             MathUtils<double>::InvertMatrix( av.N_values, av.inverted_N_values, av.aux_det);
             for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
@@ -324,7 +396,7 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     });
 
     // Normalize by the NODAL_VOLUME
-    block_for_each(rModelPart3D.Nodes(), [&](auto& rNode) {
+    block_for_each(rModelPart3D.Nodes(), [&destination_list_variables](auto& rNode) {
         const double nodal_volume = rNode.GetValue(NODAL_VOLUME);
         if (nodal_volume > std::numeric_limits<double>::epsilon()) {
             for (std::size_t i_var = 0; i_var < destination_list_variables.size(); ++i_var) {
