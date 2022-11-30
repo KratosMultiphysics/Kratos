@@ -780,15 +780,15 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     array_1d<double, 3> GlobalElement1AngularVelocity;
     noalias(GlobalElement1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElement1AngularVelocity, LocalElement1AngularVelocity);
-    if (LocalElement1AngularVelocity[0] || LocalElement1AngularVelocity[1] || LocalElement1AngularVelocity[2]){
-        array_1d<double, 3> other_to_me_vect;
-        noalias(other_to_me_vect) = element->GetGeometry()[0].Coordinates() - neighbor->GetGeometry()[0].Coordinates();
-        double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
-        
-        double element1AngularVelocity_modulus = sqrt(LocalElement1AngularVelocity[0] * LocalElement1AngularVelocity[0] + 
+    double element1AngularVelocity_modulus = sqrt(LocalElement1AngularVelocity[0] * LocalElement1AngularVelocity[0] + 
                                                 LocalElement1AngularVelocity[1] * LocalElement1AngularVelocity[1] +
                                                 LocalElement1AngularVelocity[2] * LocalElement1AngularVelocity[2]);
 
+    if (element1AngularVelocity_modulus){
+        array_1d<double, 3> other_to_me_vect;
+        noalias(other_to_me_vect) = element->GetGeometry()[0].Coordinates() - neighbor->GetGeometry()[0].Coordinates();
+        double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
+    
         array_1d<double, 3> element1AngularVelocity_normalise;
         element1AngularVelocity_normalise[0] = LocalElement1AngularVelocity[0] / element1AngularVelocity_modulus;
         element1AngularVelocity_normalise[1] = LocalElement1AngularVelocity[1] / element1AngularVelocity_modulus;
