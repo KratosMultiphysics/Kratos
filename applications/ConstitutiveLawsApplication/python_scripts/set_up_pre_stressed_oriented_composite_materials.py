@@ -52,7 +52,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
             "model_part_name" : "please_specify_model_part_name",
             "intersection_file_name" : "please_include_directory_and_full_name_with_extension",
             "minimum_fiber_participation_threshold" : 1.0e-7,
-            "local_axis_colineal_tolerance" : 1.0e-12
+            "local_axis_colineal_tolerance" : 1.0e-7
         }
         """
         )
