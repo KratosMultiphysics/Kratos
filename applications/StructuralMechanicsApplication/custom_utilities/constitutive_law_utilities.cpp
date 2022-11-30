@@ -103,12 +103,12 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        auxiliar_vector[2] = eigen_vectors_matrix(i, 2);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        auxiliary_vector[2] = eigen_vectors_matrix(i, 2);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -172,11 +172,11 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;

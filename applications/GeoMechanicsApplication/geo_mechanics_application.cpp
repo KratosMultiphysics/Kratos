@@ -7,7 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Vahid Galavi
+//  Main authors:    Vahid Galavi,
+//                   Aron Noordam
 //
 
 
@@ -89,6 +90,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSteadyStatePwInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
     mSteadyStatePwInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mSteadyStatePwInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    mSteadyStatePwPipingElement2D4N(0, Element::GeometryType::Pointer(new QuadrilateralInterface2D4 <NodeType >(Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwPipingElement3D6N(0, Element::GeometryType::Pointer(new PrismInterface3D6 <NodeType >(Element::GeometryType::PointsArrayType(6)))),
+    mSteadyStatePwPipingElement3D8N(0, Element::GeometryType::Pointer(new HexahedraInterface3D8 <NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
 
     // small strain elements
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
@@ -212,6 +218,9 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwNormalFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwNormalFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <NodeType >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwNormalFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+    mPwNormalFluxCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+    mPwNormalFluxCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3 <NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+    mPwNormalFluxCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4 <NodeType >(Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwFaceLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
 
@@ -249,8 +258,6 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     {}
 
 void KratosGeoMechanicsApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
                     << "    //         ___      ___            \n"
@@ -295,6 +302,10 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement2D4N", mSteadyStatePwInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N) 
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
@@ -422,6 +433,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition2D2N", mPwNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N )
 
@@ -588,6 +602,21 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE(CONFINED_STIFFNESS)
     KRATOS_REGISTER_VARIABLE(SHEAR_STIFFNESS)
+    
+    KRATOS_REGISTER_VARIABLE( IS_PIPING_CONVERGED )
+    KRATOS_REGISTER_VARIABLE( PIPE_ETA )
+    KRATOS_REGISTER_VARIABLE( PIPE_THETA )
+    KRATOS_REGISTER_VARIABLE( PIPE_D_70 )
+	KRATOS_REGISTER_VARIABLE( PIPE_START_ELEMENT )
+    KRATOS_REGISTER_VARIABLE( PIPE_ELEMENT_LENGTH )
+    KRATOS_REGISTER_VARIABLE( PIPE_IN_EQUILIBRIUM )
+    KRATOS_REGISTER_VARIABLE( PIPE_MODIFIED_D )
+    KRATOS_REGISTER_VARIABLE( PIPE_MODEL_FACTOR )
+    KRATOS_REGISTER_VARIABLE( PIPE_HEIGHT )
+    KRATOS_REGISTER_VARIABLE( PREV_PIPE_HEIGHT )
+    KRATOS_REGISTER_VARIABLE( DIFF_PIPE_HEIGHT )
+    KRATOS_REGISTER_VARIABLE( PIPE_EROSION )
+    KRATOS_REGISTER_VARIABLE( PIPE_ACTIVE )
 
     // UDSM
     KRATOS_REGISTER_VARIABLE( UDSM_NAME )       // Also for UMAT

@@ -364,7 +364,7 @@ public:
 
     //************************************************************************************************
 
-    void FirstLoop(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord, array_1d<double, 3 > versor, array_1d<double, 3 > Xp,
+    void FirstLoop(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord, const array_1d<double, 3 >& versor, const array_1d<double, 3 >& Xp,
                    int number_of_triangles, DenseVector<int>&  Elems_In_Plane, double tolerance)//
     {
         //Xp is a random point that belongs to the cutting plane
@@ -579,7 +579,7 @@ public:
     void Calculate_Coordinate_And_Insert_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part,
             const DenseVector<array_1d<int, 2 > >& Position_Node,
             const DenseVector<int> &List_New_Nodes,
-            array_1d<double, 3 > versor, array_1d<double, 3 > Xp, double tolerance)//,
+            const array_1d<double, 3 >& versor, const array_1d<double, 3 >& Xp, double tolerance)//,
     {
 
         array_1d<double, 3 > Coord_Node_1;
@@ -656,7 +656,7 @@ public:
     ///**********************************************************************************
 
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, boost::numeric::ublas::compressed_matrix<int>& Coord, array_1d<double, 3 > versor, int plane_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, boost::numeric::ublas::compressed_matrix<int>& Coord, const array_1d<double, 3 >& versor, int plane_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;

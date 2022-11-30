@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.DelaunayMeshingApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

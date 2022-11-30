@@ -26,7 +26,7 @@ from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
 from embedded_couette_flow_test import EmbeddedCouetteFlowTest
-from embedded_couette_imposed_test import EmbeddedCouetteImposedTest
+from embedded_couette_imposed_flow_test import EmbeddedCouetteImposedFlowTest
 from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulationTest
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
@@ -74,14 +74,13 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2D'))
     smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes2DSlip'))
     smallSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D'))
-    smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
+    smallSuite.addTest(EmbeddedCouetteImposedFlowTest('testEmbeddedCouetteImposedFlowEmbeddedWeaklyCompressibleNavierStokes2D'))
     smallSuite.addTest(EmbeddedPistonTest('testEmbeddedPiston2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
-    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))
-    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmbeddedVelocityInletEmulationTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
@@ -106,13 +105,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3D'))
     nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokes3DSlip'))
     nightSuite.addTest(EmbeddedCouetteFlowTest('testEmbeddedCouetteFlowEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D'))
-    nightSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed3D'))
-    nightSuite.addTest(FluidElementTest('testCavityQSASGS'))
-    nightSuite.addTest(FluidElementTest('testCavityQSOSS'))
-    nightSuite.addTest(FluidElementTest('testCavityDASGS'))
-    nightSuite.addTest(FluidElementTest('testCavityDOSS'))
-    nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
-    nightSuite.addTest(FluidElementTest('testSymbolic'))
+    nightSuite.addTest(EmbeddedCouetteImposedFlowTest('testEmbeddedCouetteImposedFlowEmbeddedWeaklyCompressibleNavierStokes3D'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
@@ -125,6 +118,7 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidElementTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))

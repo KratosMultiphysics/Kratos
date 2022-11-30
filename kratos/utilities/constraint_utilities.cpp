@@ -243,10 +243,10 @@ void PreComputeExplicitConstraintConstribution(
 
 void PreComputeExplicitConstraintMassAndInertia(
     ModelPart& rModelPart,
-    const std::string DofDisplacementVariableName,
-    const std::string MassVariableName,
-    const std::string DofRotationVariableName,
-    const std::string InertiaVariableName
+    const std::string& DofDisplacementVariableName,
+    const std::string& MassVariableName,
+    const std::string& DofRotationVariableName,
+    const std::string& InertiaVariableName
     )
 {
     KRATOS_TRY

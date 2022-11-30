@@ -31,7 +31,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 

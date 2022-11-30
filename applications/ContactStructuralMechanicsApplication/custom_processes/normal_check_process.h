@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NORMAL_CHECK_PROCESS_H_INCLUDED )
-#define  KRATOS_NORMAL_CHECK_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -250,5 +249,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NORMAL_CHECK_PROCESS_H_INCLUDED  defined
