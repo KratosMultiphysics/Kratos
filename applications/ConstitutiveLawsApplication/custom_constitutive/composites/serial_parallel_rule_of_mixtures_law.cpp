@@ -1586,8 +1586,11 @@ int SerialParallelRuleOfMixturesLaw::Check(
     ) const
 {
     int aux_out = 0;
-    aux_out += mpMatrixConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    aux_out += mpFiberConstitutiveLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+    aux_out += mpMatrixConstitutiveLaw->Check(r_props_matrix_cl, rElementGeometry, rCurrentProcessInfo);
+    aux_out += mpFiberConstitutiveLaw->Check(r_props_fiber_cl, rElementGeometry, rCurrentProcessInfo);
     if (mFiberVolumetricParticipation < 0.0 || mFiberVolumetricParticipation > 1.0) {
         KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0... " << std::to_string(mFiberVolumetricParticipation) << std::endl;
         aux_out += 1;
