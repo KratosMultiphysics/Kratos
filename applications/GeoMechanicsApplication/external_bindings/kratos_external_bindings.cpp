@@ -1,4 +1,3 @@
-#pragma once
 #define EXPORT __declspec(dllexport)
 #include "kratos_external_bindings.h"
 

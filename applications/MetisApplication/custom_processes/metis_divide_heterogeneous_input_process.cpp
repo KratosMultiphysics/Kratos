@@ -28,7 +28,7 @@
 
 namespace Kratos {
 
-void MetisDivideHeterogeneousInputProcess::Execute()
+void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo& rPartitioningInfo)
 {
     SizeType NumNodes;
     std::vector<idxtype> NodePartition;
@@ -86,8 +86,7 @@ void MetisDivideHeterogeneousInputProcess::Execute()
     LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
     int NumColors;
-    GraphType ColoredDomainGraph;
-    GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,NumColors).Execute();
 
     if (mVerbosity > 0)
     {
@@ -96,21 +95,18 @@ void MetisDivideHeterogeneousInputProcess::Execute()
 
 if (mVerbosity > 2)
 {
-        KRATOS_WATCH(ColoredDomainGraph);
+        KRATOS_WATCH(rPartitioningInfo.Graph);
 }
 
     // Write partition info into separate input files
-    IO::PartitionIndicesContainerType nodes_all_partitions;
-    IO::PartitionIndicesContainerType elements_all_partitions;
-    IO::PartitionIndicesContainerType conditions_all_partitions;
-
     // Create lists containing all nodes/elements/conditions known to each partition
-    LegacyPartitioningUtilities::DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-    LegacyPartitioningUtilities::DividingElements(elements_all_partitions, ElementPartition);
-    LegacyPartitioningUtilities::DividingConditions(conditions_all_partitions, ConditionPartition);
+    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
+    LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, ElementPartition);
+    LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, ConditionPartition);
 
     if (mVerbosity > 1)
     {
+        auto& nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
         std::cout << "Final list of nodes known by each partition" << std::endl;
         for(SizeType i = 0 ; i < NumNodes ; i++)
         {
@@ -121,14 +117,28 @@ if (mVerbosity > 2)
         }
     }
 
-    IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
-    IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
-    IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
+    rPartitioningInfo.NodesPartitions.assign(NodePartition.begin(), NodePartition.end());
+    rPartitioningInfo.ElementsPartitions.assign(ElementPartition.begin(), ElementPartition.end());
+    rPartitioningInfo.ConditionsPartitions.assign(ConditionPartition.begin(), ConditionPartition.end());
+}
+
+void MetisDivideHeterogeneousInputProcess::Execute()
+{
+
+    auto part_info(Kratos::make_shared<PartitioningInfo>());
+
+    ExecutePartitioning(*part_info);
 
     // Write files
-    mrIO.DivideInputToPartitions(mNumberOfPartitions, ColoredDomainGraph,
-                                    io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-                                    nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
+    mrIO.DivideInputToPartitions(
+        mNumberOfPartitions,
+        part_info->Graph,
+        part_info->NodesPartitions,
+        part_info->ElementsPartitions,
+        part_info->ConditionsPartitions,
+        part_info->NodesAllPartitions,
+        part_info->ElementsAllPartitions,
+        part_info->ConditionsAllPartitions);
 }
 
 

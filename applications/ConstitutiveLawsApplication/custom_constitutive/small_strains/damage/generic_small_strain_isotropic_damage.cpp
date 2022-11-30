@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_utilities/automatic_differentiation_tangent_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "generic_small_strain_isotropic_damage.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
@@ -153,7 +154,15 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateTangen
     const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
 
     if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+        const SizeType softening_type = r_material_properties[SOFTENING_TYPE];
+        if (softening_type == static_cast<SizeType>(SofteningType::Linear)) {
+            AutomaticDifferentiationTangentUtilities<typename TConstLawIntegratorType::YieldSurfaceType, 0>::CalculateTangentTensorIsotropicDamage(rValues);
+        } else if (softening_type == static_cast<SizeType>(SofteningType::Exponential)) {
+            AutomaticDifferentiationTangentUtilities<typename TConstLawIntegratorType::YieldSurfaceType, 1>::CalculateTangentTensorIsotropicDamage(rValues);
+        } else {
+            KRATOS_ERROR << "The analytical tangent operator is not implemented for this SOFTENING_TYPE" << std::endl;
+        }
+
     } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (first order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
