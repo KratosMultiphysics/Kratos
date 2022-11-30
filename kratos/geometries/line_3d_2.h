@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_3D_2_H_INCLUDED )
-#define  KRATOS_LINE_3D_2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -26,6 +25,7 @@
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
 #include "utilities/intersection_utilities.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -797,7 +797,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        this->PointLocalCoordinates( rResult, rPoint );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
             return true;
@@ -833,13 +833,24 @@ public:
     {
         rResult.clear();
 
+        // Tolerance
+        const double tolerance = 1e-14;
+
+        // Projection
+        Point point_projected;
+        const Point point_to_project(rPoint);
+        const double distance = GeometricalProjectionUtilities::FastProjectOnLine(*this, point_to_project, point_projected);
+        if (distance > tolerance) {
+            rResult[0] = 2.0; // Out of the line!!!
+            return rResult;
+        }
+
+        // Getting points
         const TPointType& r_first_point  = BaseType::GetPoint(0);
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
         // Project point
-        const double tolerance = 1e-14; // Tolerance
-
-        const double length = Length();
+        const double length = this->Length();
 
         const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
                     + std::pow(rPoint[1] - r_first_point[1], 2) + std::pow(rPoint[2] - r_first_point[2], 2));
@@ -857,7 +868,7 @@ public:
             rResult[0] = 2.0; // Out of the line!!!
         }
 
-        return rResult ;
+        return rResult;
     }
 
     ///@}
@@ -1164,5 +1175,3 @@ const GeometryDimension Line3D2<TPointType>::msGeometryDimension(
     3, 3, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined
