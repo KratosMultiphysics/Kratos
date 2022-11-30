@@ -50,7 +50,9 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         {
             "help" : "This sets the initial conditions in terms of imposed pre-stressing strain, local axes and % participation of fiber",
             "model_part_name" : "please_specify_model_part_name",
-            "intersection_file_name" : "please_include_directory_and_full_name_with_extension"
+            "intersection_file_name" : "please_include_directory_and_full_name_with_extension",
+            "minimum_fiber_participation_threshold" : 1.0e-7,
+            "local_axis_colineal_tolerance" : 1.0e-12
         }
         """
         )
@@ -58,6 +60,8 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
 
         self.intersection_file_name = settings["intersection_file_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.fiber_participation_threshold = settings["minimum_fiber_participation_threshold"].GetDouble()
+        self.local_axis_colineal_tol = settings["local_axis_colineal_tolerance"].GetDouble()
 
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
@@ -107,7 +111,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                         tendon_volume = self.Norm2(intersection_vector) * math.pi * phi**2 / 4
                         kf = tendon_volume / (elem_volume)
                         if kf <= 0.0:
-                            kf = 1.0e-7
+                            self.fiber_participation_threshold
                         kf_vect = []
                         for index in range(len(array_bool)):
                             kf_vect.append(kf)
@@ -124,10 +128,11 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                             axis_2[1] = 1.0
                             axis_2[2] = 0.0
 
-                            if self.Norm2(axis_2-axis_1) == 0.0:
+                            if self.Norm2(axis_2-axis_1) <= self.local_axis_colineal_tol:
                                 axis_2[0] = 0.0
                                 axis_2[1] = 0.0
                                 axis_2[2] = 1.0
+                            # here we apply (Gram–Schmidt)
                             axis_2 = axis_2 - self.InnerProd(axis_1, axis_2) / self.InnerProd(axis_1, axis_1) * axis_1
                             axis_2 = axis_2 / self.Norm2(axis_2)
                             elem.SetValue(KM.LOCAL_AXIS_2, axis_2)
