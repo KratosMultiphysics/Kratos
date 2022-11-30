@@ -379,6 +379,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
     }
     else if(rVariable == STATE_VARIABLE)
     {
+        // NOTE: this variable is not printed, and thus we don't transform the values from Lobatto to Gauss points
+
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
@@ -453,7 +455,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         if(rVariable == FLUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
             //Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -520,7 +521,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         {
             //Defining necessary variables
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -579,7 +579,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         {
             //Defining necessary variables
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -634,7 +633,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         else if(rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
         {
             //Defining necessary variables
-            const GeometryType& Geom = this->GetGeometry();
             const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -659,7 +657,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         else if(rVariable == LOCAL_FLUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
             //Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -755,7 +752,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 
         if(rVariable == PERMEABILITY_MATRIX)
         {
-            const GeometryType& Geom = this->GetGeometry();
             const PropertiesType& Prop = this->GetProperties();
 
             //Defining the shape functions container
@@ -796,7 +792,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         }
         else if(rVariable == LOCAL_PERMEABILITY_MATRIX)
         {
-            const GeometryType& Geom = this->GetGeometry();
             const PropertiesType& Prop = this->GetProperties();
 
             //Defining the shape functions container
@@ -832,6 +827,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 noalias(GPValues[GPoint]) = LocalPermeabilityMatrix;
             }
         }
+        
         //Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )

@@ -650,7 +650,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
@@ -696,11 +696,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number );
+        rOutput.resize( integration_points_number, false );
 
     if ( rVariable == CAUCHY_STRESS_VECTOR ) {
         //Definition of variables
@@ -764,11 +764,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number );
+        rOutput.resize( integration_points_number, false );
 
     if ( rVariable == FLUID_FLUX_VECTOR ) {
         //Definition of variables
@@ -851,13 +851,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number );
+        rOutput.resize( integration_points_number, false );
 
     if ( rVariable == EFFECTIVE_STRESS_TENSOR ) {
         std::vector<Vector> StressVector;
@@ -953,13 +953,14 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
 void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
-    if(rVariable == CONSTITUTIVE_LAW)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for(unsigned int i=0; i<rValues.size(); i++)
-            rValues[i] = mConstitutiveLawVector[i];
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const unsigned int integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (unsigned int point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
     }
 }
 
