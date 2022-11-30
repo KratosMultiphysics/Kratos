@@ -250,7 +250,7 @@ public:
         mData.clear();
     }
 
-    void Merge(const DataValueContainer& rOther, Flags Options);
+    void Merge(const DataValueContainer& rOther, const Flags Options);
 
     ///@}
     ///@name Access

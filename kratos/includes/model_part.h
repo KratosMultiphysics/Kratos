@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_MODEL_PART_H_INCLUDED )
-#define  KRATOS_MODEL_PART_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -66,13 +65,17 @@ namespace Kratos
 //forward declaring Model to be avoid cross references
 class Model;
 
-/// ModelPart class.
-
-/** Detail class definition.
- */
-class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
+/**
+* @class ModelPart
+* @ingroup KratosCore
+* @brief This class aims to manage meshes for multi-physics simulations
+* @author Pooyan Dadvand
+* @author Riccardo Rossi
+*/
+class KRATOS_API(KRATOS_CORE) ModelPart final
+    : public DataValueContainer, public Flags
 {
-    class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
+    class GetModelPartName
     {
     public:
         std::string const& operator()(const ModelPart& rModelPart) const
@@ -109,13 +112,7 @@ public:
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
-//     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
-    typedef PointerVectorSet<DofType,
-                SetIdentityFunction<DofType>,
-                std::less<SetIdentityFunction<DofType>::result_type>,
-                std::equal_to<SetIdentityFunction<DofType>::result_type>,
-                DofType* > DofsArrayType;
-
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -2065,10 +2062,6 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
     return rOStream;
 }
 
-
 ///@}
 
-
 } // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_H_INCLUDED  defined

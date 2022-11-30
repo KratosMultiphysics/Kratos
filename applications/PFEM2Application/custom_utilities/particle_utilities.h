@@ -34,7 +34,6 @@
 #include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
 //#include "utilities/enrichment_utilities.h"
 
@@ -201,7 +200,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -306,7 +305,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -1340,7 +1339,7 @@ namespace Kratos
 
 	double sigma = 0.0;
 
-	if (TDim == 2)
+	if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
 	else
 	  sigma = 1.0 / 3.1415926;
@@ -1494,7 +1493,7 @@ namespace Kratos
             double y3 = geom[3].Y();
 	    double z3 = geom[3].Z();
 	    double area=0.0;
-	    //if(TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
+	    //if constexpr (TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
             //else
 	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 

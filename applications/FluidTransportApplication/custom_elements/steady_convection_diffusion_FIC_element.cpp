@@ -734,12 +734,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     double Domain = rGeom.DomainSize();
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
 
-        if (TNumNodes == 3)
+        if constexpr (TNumNodes == 3)
         {
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
@@ -1188,7 +1188,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
 
     double Domain = rGeom.DomainSize();
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         rVariables.lv = std::sqrt(2.0*Domain);
     }

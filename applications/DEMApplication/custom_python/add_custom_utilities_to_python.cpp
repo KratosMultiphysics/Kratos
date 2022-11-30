@@ -36,6 +36,7 @@
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
+#include "custom_utilities/parallel_bond_utilities.h"
 
 
 namespace Kratos {
@@ -182,6 +183,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
+        .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
+        .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
+        .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
@@ -218,6 +222,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateElasticEnergy", &SphericElementGlobalPhysicsCalculator::CalculateElasticEnergy)
         .def("CalculateInelasticFrictionalEnergy", &SphericElementGlobalPhysicsCalculator::CalculateInelasticFrictionalEnergy)
         .def("CalculateInelasticViscodampingEnergy", &SphericElementGlobalPhysicsCalculator::CalculateInelasticViscodampingEnergy)
+        .def("CalculateInelasticRollingResistanceEnergy", &SphericElementGlobalPhysicsCalculator::CalculateInelasticRollingResistanceEnergy)
         .def("CalculateGravitationalPotentialEnergy", &SphericElementGlobalPhysicsCalculator::CalculateGravitationalPotentialEnergy)
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
@@ -257,7 +262,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
 
-
     py::class_<std::list<int>>(m, "IntList")
         .def(py::init<>())
         //.def("clear", &std::list<int>::clear)
@@ -277,7 +281,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         //return make_iterator(v.begin(), v.end());
         //}
         ;
-
 
     py::class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
         .def(py::init<ModelPart& >())
@@ -324,6 +327,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ComputePoisson", &PostUtilities::ComputePoisson)
         .def("ComputePoisson2D", &PostUtilities::ComputePoisson2D)
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
+        ;
+
+    py::class_<ParallelBondUtilities, ParallelBondUtilities::Pointer>(m, "ParallelBondUtilities")
+        .def(py::init<>())
+        .def("SetCurrentIndentationAsAReferenceInParallelBonds", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBonds)
+        .def("SetCurrentIndentationAsAReferenceInParallelBondsForPBM", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBondsForPBM)
         ;
 
     py::class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
@@ -402,11 +411,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
         .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
-
     }
-
-
-
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
 {

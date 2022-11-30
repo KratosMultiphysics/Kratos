@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 // External includes
 
