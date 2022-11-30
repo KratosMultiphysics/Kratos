@@ -399,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
     std::stringstream str_steam;
     local_sys.PairingInfo(str_steam, 4);
     KRATOS_CHECK_STRING_EQUAL(str_steam.str(),
-        "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5");
+        "NearestElementLocalSystem based on Node #8 at Coordinates 1 | 2.5 | -5");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Line, KratosMappingApplicationSerialTestSuite)

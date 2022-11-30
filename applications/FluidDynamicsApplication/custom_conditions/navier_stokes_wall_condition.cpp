@@ -103,9 +103,11 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
     data.Normal /= A;
 
     // Store the outlet inflow prevention constants in the data structure
-    data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
     const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-    data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+    data.OutletInflowPreventionSwitch = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) ? rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH] : false;
+    if (data.OutletInflowPreventionSwitch) {
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+    }
 
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
@@ -182,9 +184,11 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
     data.Normal /= A;
 
     // Store the outlet inflow prevention constants in the data structure
-    data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
     const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-    data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+    data.OutletInflowPreventionSwitch = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) ? rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH] : false;
+    if (data.OutletInflowPreventionSwitch) {
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+    }
 
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
@@ -391,7 +395,7 @@ const ConditionDataStruct& data)
     this->ComputeRHSNeumannContribution(rhs_gauss, data);
 
     // Gauss pt. outlet inflow prevention contribution
-    if (this->Is(OUTLET)){
+    if (this->Is(OUTLET) && data.OutletInflowPreventionSwitch){
         this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
     }
 
@@ -437,7 +441,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContributi
     array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
     const ConditionDataStruct& data)
 {
-    const unsigned int LocalSize = TDim+1;
+    constexpr SizeType LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
 
     // Get DENSITY from parent element properties
@@ -456,7 +460,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContributi
     const double vGaussSquaredNorm = std::pow(vGauss[0],2) + std::pow(vGauss[1],2) + std::pow(vGauss[2],2);
 
     // Add outlet inflow prevention contribution
-    const double delta = data.delta;
+    const double delta = 1.0e-2;
     const double U_0 = data.charVel;
     const double S_0 = 0.5*(1-tanh(vGaussProj/(U_0*delta)));
 

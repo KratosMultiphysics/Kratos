@@ -33,7 +33,6 @@
 #include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
@@ -235,8 +234,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
-//     py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess") // TODO: Replace when the remainings of NodeEraseProcess have been cleaned up
-    py::class_<NodeEraseProcess, NodeEraseProcess::Pointer, Process>(m,"NodeEraseProcess")
+    py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess")
     .def(py::init<ModelPart&>())
     ;
 

@@ -41,52 +41,6 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
 
-    def test_absorbing_boundary_on_1d_column_tetra(self):
-        """
-        Tests the lysmer absorbing boundary condition on a column made of tetrahedrals. The boundary is a 3d3n triangle.
-
-        :return:
-        """
-        test_name = 'test_lysmer_boundary_column3d_tetra.gid'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
-
-        # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [33,54,81]
-        direction = 2
-
-        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
-
-    def test_absorbing_boundary_on_1d_column_tetra_horizontal(self):
-        """
-        Tests the lysmer absorbing boundary condition on a column made of tetrahedrals. In this case the wave columns
-        moves in a positive y-direction. The boundary is a 3d3n triangle.
-        :return:
-        """
-
-        test_name = 'test_lysmer_boundary_column3d_tetra_hor.gid'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
-
-        # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [33,54,81]
-        direction = 1
-
-        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
-
-    def test_absorbing_boundary_on_1d_column_hexa(self):
-        """
-        Tests the lysmer absorbing boundary condition on a column made of hexahedrals. The boundary is a 3d4n rectangle.
-
-        :return:
-        """
-        test_name = 'test_lysmer_column3d_hexa.gid'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
-
-        # quarter node, middle node, three quarter node
-        node_nbrs_to_assert = [31, 54, 81]
-        direction = 2
-
-        self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
-
     def run_and_assert_1d_column(self, file_path, node_nbrs, direction):
         """
         Runs and asserts a dynamic test on a 1d column. This test checks when a p-wave arrives at a certain coordinate
@@ -101,7 +55,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
         # get name of output file
         _, output_file_name = os.path.split(file_path)
-        output_file_name = os.path.splitext(output_file_name)[0] + "_0.post.res"
+        output_file_name = os.path.splitext(output_file_name)[0] + ".post.res"
         output_file_path = os.path.join(file_path,output_file_name)
 
         # clear old results

@@ -41,100 +41,97 @@
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
+        (m, "ApplyComponentTableProcess", py::module_local())
+        .def(py::init < ModelPart&, Parameters>());
 
-    void  AddCustomProcessesToPython(pybind11::module& m)
-    {
-        using namespace pybind11;
+    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
+        (m, "ApplyDoubleTableProcess", py::module_local())
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
-            (m, "ApplyComponentTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>
+        (m, "ApplyConstantHydrostaticPressureProcess", py::module_local())
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
-            (m, "ApplyDoubleTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyHydrostaticPressureTableProcess, ApplyHydrostaticPressureTableProcess::Pointer, Process>
+        (m, "ApplyHydrostaticPressureTableProcess", py::module_local())
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>
-            (m, "ApplyConstantHydrostaticPressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyBoundaryHydrostaticPressureTableProcess, ApplyBoundaryHydrostaticPressureTableProcess::Pointer, Process>
+        (m, "ApplyBoundaryHydrostaticPressureTableProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyHydrostaticPressureTableProcess, ApplyHydrostaticPressureTableProcess::Pointer, Process>
-            (m, "ApplyHydrostaticPressureTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantBoundaryHydrostaticPressureProcess, ApplyConstantBoundaryHydrostaticPressureProcess::Pointer, Process>
+        (m, "ApplyConstantBoundaryHydrostaticPressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyBoundaryHydrostaticPressureTableProcess, ApplyBoundaryHydrostaticPressureTableProcess::Pointer, Process>
-            (m, "ApplyBoundaryHydrostaticPressureTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantPhreaticLinePressureProcess, ApplyConstantPhreaticLinePressureProcess::Pointer, Process>
+        (m, "ApplyConstantPhreaticLinePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyConstantBoundaryHydrostaticPressureProcess, ApplyConstantBoundaryHydrostaticPressureProcess::Pointer, Process>
-            (m, "ApplyConstantBoundaryHydrostaticPressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantInterpolateLinePressureProcess, ApplyConstantInterpolateLinePressureProcess::Pointer, Process>
+        (m, "ApplyConstantInterpolateLinePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyConstantPhreaticLinePressureProcess, ApplyConstantPhreaticLinePressureProcess::Pointer, Process>
-            (m, "ApplyConstantPhreaticLinePressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyTimeDependentInterpolateLinePressureProcess, ApplyTimeDependentInterpolateLinePressureProcess::Pointer, Process>
+        (m, "ApplyTimeDependentInterpolateLinePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyConstantInterpolateLinePressureProcess, ApplyConstantInterpolateLinePressureProcess::Pointer, Process>
-            (m, "ApplyConstantInterpolateLinePressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyPhreaticLinePressureTableProcess, ApplyPhreaticLinePressureTableProcess::Pointer, Process>
+        (m, "ApplyPhreaticLinePressureTableProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyTimeDependentInterpolateLinePressureProcess, ApplyTimeDependentInterpolateLinePressureProcess::Pointer, Process>
-            (m, "ApplyTimeDependentInterpolateLinePressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyBoundaryPhreaticLinePressureTableProcess, ApplyBoundaryPhreaticLinePressureTableProcess::Pointer, Process>
+        (m, "ApplyBoundaryPhreaticLinePressureTableProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyPhreaticLinePressureTableProcess, ApplyPhreaticLinePressureTableProcess::Pointer, Process>
-            (m, "ApplyPhreaticLinePressureTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantBoundaryPhreaticLinePressureProcess, ApplyConstantBoundaryPhreaticLinePressureProcess::Pointer, Process>
+        (m, "ApplyConstantBoundaryPhreaticLinePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyBoundaryPhreaticLinePressureTableProcess, ApplyBoundaryPhreaticLinePressureTableProcess::Pointer, Process>
-            (m, "ApplyBoundaryPhreaticLinePressureTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantPhreaticSurfacePressureProcess, ApplyConstantPhreaticSurfacePressureProcess::Pointer, Process>
+        (m, "ApplyConstantPhreaticSurfacePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyConstantBoundaryPhreaticLinePressureProcess, ApplyConstantBoundaryPhreaticLinePressureProcess::Pointer, Process>
-            (m, "ApplyConstantBoundaryPhreaticLinePressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyPhreaticSurfacePressureTableProcess, ApplyPhreaticSurfacePressureTableProcess::Pointer, Process>
+        (m, "ApplyPhreaticSurfacePressureTableProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyConstantPhreaticSurfacePressureProcess, ApplyConstantPhreaticSurfacePressureProcess::Pointer, Process>
-            (m, "ApplyConstantPhreaticSurfacePressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyBoundaryPhreaticSurfacePressureTableProcess, ApplyBoundaryPhreaticSurfacePressureTableProcess::Pointer, Process>
+        (m, "ApplyBoundaryPhreaticSurfacePressureTableProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyPhreaticSurfacePressureTableProcess, ApplyPhreaticSurfacePressureTableProcess::Pointer, Process>
-            (m, "ApplyPhreaticSurfacePressureTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyConstantBoundaryPhreaticSurfacePressureProcess, ApplyConstantBoundaryPhreaticSurfacePressureProcess::Pointer, Process>
+        (m, "ApplyConstantBoundaryPhreaticSurfacePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
 
-        class_<ApplyBoundaryPhreaticSurfacePressureTableProcess, ApplyBoundaryPhreaticSurfacePressureTableProcess::Pointer, Process>
-            (m, "ApplyBoundaryPhreaticSurfacePressureTableProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>
+        (m, "ApplyExcavationProcess")
+        .def(py::init < ModelPart&, Parameters&>());
 
-        class_<ApplyConstantBoundaryPhreaticSurfacePressureProcess, ApplyConstantBoundaryPhreaticSurfacePressureProcess::Pointer, Process>
-            (m, "ApplyConstantBoundaryPhreaticSurfacePressureProcess")
-            .def(init < ModelPart&, Parameters>());
+    py::class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
+        (m, "ApplyWriteScalarProcess")
+        .def(py::init < ModelPart&, Parameters&>());
 
-        class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>
-            (m, "ApplyExcavationProcess")
-            .def(init < ModelPart&, Parameters&>());
+    py::class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>
+        (m, "FindNeighbourElementsOfConditionsProcess")
+        .def(py::init < ModelPart&>());
 
-        class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
-            (m, "ApplyWriteScalarProcess")
-            .def(init < ModelPart&, Parameters&>());
+    py::class_<DeactivateConditionsOnInactiveElements, DeactivateConditionsOnInactiveElements::Pointer, Process>
+        (m, "DeactivateConditionsOnInactiveElements")
+        .def(py::init < ModelPart&>());
 
-        class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>
-            (m, "FindNeighbourElementsOfConditionsProcess")
-            .def(init < ModelPart&>());
+    py::class_<SetAbsorbingBoundaryParametersProcess, SetAbsorbingBoundaryParametersProcess::Pointer, Process>
+        (m, "SetAbsorbingBoundaryParametersProcess")
+        .def(py::init < ModelPart&, Parameters&>());
+}
 
-        class_<DeactivateConditionsOnInactiveElements, DeactivateConditionsOnInactiveElements::Pointer, Process>
-            (m, "DeactivateConditionsOnInactiveElements")
-            .def(init < ModelPart&>());
-
-        class_<SetAbsorbingBoundaryParametersProcess, SetAbsorbingBoundaryParametersProcess::Pointer, Process>
-            (m, "SetAbsorbingBoundaryParametersProcess")
-            .def(init < ModelPart&, Parameters&>());
-
-    }
-}  // namespace Python.
+} // Namespace Python.
 } // Namespace Kratos

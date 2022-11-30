@@ -5,9 +5,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Additional imports
 import os
 
+import numpy as np
+
 try:
     from scipy import sparse, io
-    import numpy as np
     missing_scipy = False
 except ImportError as e:
     missing_scipy = True
