@@ -110,8 +110,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                         intersection_vector = self.CalculateIntersectionVectors(split_line)
                         tendon_volume = self.Norm2(intersection_vector) * math.pi * phi**2 / 4
                         kf = tendon_volume / (elem_volume)
-                        if kf <= 0.0:
-                            kf = self.fiber_participation_threshold
+                        kf = self.CheckFiberParticipation(kf)
                         kf_vect = []
                         for index in range(len(array_bool)):
                             kf_vect.append(kf)
@@ -161,3 +160,10 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
     
     def InnerProd(self, Vector1, Vector2):
         return Vector1[0]*Vector2[0] + Vector1[1]*Vector2[1] + Vector1[2]*Vector2[2]
+    
+    def CheckFiberParticipation(self, kf):
+        if kf <= 0.0:
+            kf = self.fiber_participation_threshold
+        elif kf > 1.0:
+            kf = 1.0
+        return kf
