@@ -270,6 +270,21 @@ public:
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
+        // Lambda function to check the inside of a line corrected
+        auto is_inside_projected = [] (auto& rGeometry, const array_1d<double,3>& rPoint) -> bool {
+            // We compute the distance, if it is not in the plane we project
+            const Point point_to_project(rPoint);
+            Point point_projected;
+            const double distance = GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, point_to_project, point_projected);
+
+            // We check if we are on the plane
+            if (std::abs(distance) > 1.0e-6 * rGeometry.Length()) {
+                return false;
+            }
+            array_1d<double, 3> local_coordinates;
+            return rGeometry.IsInside(point_projected, local_coordinates);
+        };
+
         int solution = 0;
         for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
             array_1d<double,3> intersection_point;
@@ -319,11 +334,11 @@ public:
                         const double diff1p = norm_2(diff_coor_1 + vector_line);
                         const double diff2m = norm_2(diff_coor_2 - vector_line);
                         const double diff2p = norm_2(diff_coor_2 + vector_line);
+
+                        // Now we compute the intersection
                         if ((diff1m < Epsilon || diff1p < Epsilon) && (diff2m < Epsilon || diff2p < Epsilon)) {
-                            // Now we compute the intersection
-                            array_1d<double, 3> local_coordinates;
                             // First point
-                            if (r_edge.IsInside(rLinePoint1, local_coordinates)) { // Is inside the line
+                            if (is_inside_projected(r_edge, rLinePoint1)) { // Is inside the line
                                 if (solution == 0) {
                                     noalias(rIntersectionPoint1) = rLinePoint1;
                                     solution = 2;
@@ -349,7 +364,7 @@ public:
                             }
                             // Second point
                             if (solution == 2) {
-                                if (r_edge.IsInside(rLinePoint2, local_coordinates)) { // Is inside the line
+                                if (is_inside_projected(r_edge, rLinePoint2)) { // Is inside the line
                                     if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) { // Must be different from the first one
                                         noalias(rIntersectionPoint2) = rLinePoint2;
                                         solution = 1;
