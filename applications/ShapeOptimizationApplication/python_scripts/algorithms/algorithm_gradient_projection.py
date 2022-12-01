@@ -22,8 +22,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base i
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, WriteListToNodalVariable, ReadNodalVariableToList
-from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sens_heatmap import ComputeSensitivityHeatmap
 
 import math
 
@@ -121,8 +121,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             self.__computeShapeUpdate()
 
-            self.__computeSensitivityHeatmap()
-
             self.__logCurrentOptimizationStep()
 
             KM.Logger.Print("")
@@ -133,131 +131,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 break
             else:
                 self.__determineAbsoluteChanges()
-
-
-    # --------------------------------------------------------------------------
-    def __computeSensitivityHeatmap(self):
-
-        def ___ComputeHeatmap(norm_type, sens_type):
-
-            # relax_coeff = 0.8
-            # reciprocal relaxation
-            relax_coeff = 1 / self.optimization_iteration
-            heat = []
-
-            # read objective gradient
-            # if sens_type == "raw":
-            #     df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX)
-            # elif sens_type == "mapped":
-            df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
-
-            # DF1DX individual heatmap
-            heatmap_dfdx_name = "HEATMAP_DF1DX"
-            if self.optimization_iteration == 1:
-                heat_dfdx_relaxed = df_dx
-            else:
-                prev_heat_dfdx = KM.Vector()
-                self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
-                heat_dfdx_relaxed = []
-                for i in range(len(self.design_surface.Nodes)):
-                    for dim in range(3):
-                        heat_dfdx_relaxed.append(relax_coeff * df_dx[3*i+dim] + (1 - relax_coeff) * prev_heat_dfdx[3*i+dim])
-
-            WriteListToNodalVariable(heat_dfdx_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
-
-            # normalize objective gradient
-            if norm_type == "MAX":
-                df_dx_norm = cm.NormInf3D(df_dx)
-            elif norm_type == "L2":
-                df_dx_norm = cm.Norm2(df_dx)
-            elif norm_type == "VALUE":
-                f = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-                df_dx_norm = abs(f)
-
-            if df_dx_norm != 0.0:
-                df_dx_normalized = cm.ScalarVectorProduct(1/df_dx_norm, df_dx)
-            else:
-                df_dx_normalized = [0] * len(df_dx)
-
-            dc_dx_normalized = {}
-            for itr, constraint in enumerate(self.constraints):
-                # read constraint gradients
-                con_id = constraint["identifier"].GetString()
-                # if sens_type == "raw":
-                #     gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
-                # elif sens_type == "mapped":
-                gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
-
-                dci_dx = ReadNodalVariableToList(self.design_surface, gradient_variable)
-
-                # normalize constraints
-                if norm_type == "MAX":
-                    dci_dx_norm = cm.NormInf3D(dci_dx)
-                elif norm_type == "L2":
-                    dci_dx_norm = cm.Norm2(dci_dx)
-                elif norm_type == "VALUE":
-                    c = self.communicator.getStandardizedValue(con_id)
-                    dci_dx_norm = abs(c)
-
-                if dci_dx_norm != 0.0:
-                    dc_dx_normalized.update({con_id : cm.ScalarVectorProduct(1/dci_dx_norm, dci_dx)})
-                else:
-                    dc_dx_normalized.update({con_id : [0] * len(dci_dx)})
-
-                # DCiDX individual heatmap
-                heatmap_dcidx_name = "HEATMAP_" + "DC" + str(itr+1) + "DX"
-                if self.optimization_iteration == 1:
-                    heat_dcidx_relaxed = dci_dx
-                else:
-                    prev_heat_dcidx = KM.Vector()
-                    self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dcidx, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
-                    heat_dcidx_relaxed = []
-                    for i in range(len(self.design_surface.Nodes)):
-                        for dim in range(3):
-                            heat_dcidx_relaxed.append(relax_coeff * dci_dx[3*i+dim] + (1 - relax_coeff) * prev_heat_dcidx[3*i+dim])
-
-                WriteListToNodalVariable(heat_dcidx_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
-
-            # fill heat map for each node
-            for i in range(len(self.design_surface.Nodes)):
-                df_dx_i = df_dx_normalized[3*i:3*i+3]
-                df_dx_i_norm = cm.Norm2(df_dx_i)
-
-                heat_i = df_dx_i_norm
-                for dc_dx in dc_dx_normalized.values():
-                    dc_dx_i = dc_dx[3*i:3*i+3]
-                    dc_dx_i_norm = cm.Norm2(dc_dx_i)
-                    heat_i = max(heat_i, dc_dx_i_norm)
-
-                heat.append(heat_i)
-
-            heat_map_name = "HEATMAP" + "_" + norm_type
-            # if sens_type == "mapped":
-            #     heat_map_name += "_" + "MAPPED"
-
-            # Heatmap Relaxed
-            if self.optimization_iteration == 1:
-                heat_relaxed = heat
-            else:
-                prev_heat = KM.Vector()
-                self.optimization_utilities.AssembleScalar(self.design_surface, prev_heat, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
-                heat_relaxed = []
-                # self.optimization_utilities.AssembleScalar(self.design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
-                for i in range(len(self.design_surface.Nodes)):
-                    heat_relaxed.append(relax_coeff * heat[i] + (1 - relax_coeff) * prev_heat[i])
-
-            # self.optimization_utilities.AssignScalarToVariable(self.design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"))
-            WriteListToNodalVariable(heat_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heat_map_name + "_RELAXED"), 1)
-            WriteListToNodalVariable(heat, self.design_surface, KM.KratosGlobals.GetVariable(heat_map_name), 1)
-
-        # ___ComputeHeatmap(norm_type="MAX", sens_type="raw")
-        ___ComputeHeatmap(norm_type="MAX", sens_type="mapped")
-
-        # ___ComputeHeatmap(norm_type="L2", sens_type="raw")
-        ___ComputeHeatmap(norm_type="L2", sens_type="mapped")
-
-        # ___ComputeHeatmap(norm_type="VALUE", sens_type="raw")
-        ___ComputeHeatmap(norm_type="VALUE", sens_type="mapped")
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
@@ -413,6 +286,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
+        if self.data_logger.SensitivityHeatmapLogging():
+            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.constraint_gradient_variables, self.optimization_iteration)
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)

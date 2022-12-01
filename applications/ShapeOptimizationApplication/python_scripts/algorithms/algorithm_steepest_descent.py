@@ -21,8 +21,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base i
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, WriteListToNodalVariable, ReadNodalVariableToList
-from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sens_heatmap import ComputeSensitivityHeatmap
 
 # ==============================================================================
 class AlgorithmSteepestDescent(OptimizationAlgorithm):
@@ -121,8 +121,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__computeShapeUpdate()
 
-            self.__computeSensitivityHeatmap()
-
             self.__logCurrentOptimizationStep()
 
             KM.Logger.Print("")
@@ -138,27 +136,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def FinalizeOptimizationLoop(self):
         self.data_logger.FinalizeDataLogging()
         self.analyzer.FinalizeAfterOptimizationLoop()
-
-    # --------------------------------------------------------------------------
-    def __computeSensitivityHeatmap(self):
-        relax_coeff = 0.5
-        # reciprocal relaxation
-        # relax_coeff = 1 / self.optimization_iteration
-        df_dx = ReadNodalVariableToList(self.design_surface, KSO.DF1DX_MAPPED)
-
-        heatmap_dfdx_name = "HEATMAP_DF1DX"
-
-        if self.optimization_iteration == 1:
-            heat_dfdx_relaxed = df_dx
-        else:
-            prev_heat_dfdx = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
-            heat_dfdx_relaxed = []
-            for i in range(len(self.design_surface.Nodes)):
-                for dim in range(3):
-                    heat_dfdx_relaxed.append(relax_coeff * df_dx[3*i+dim] + (1 - relax_coeff) * prev_heat_dfdx[3*i+dim])
-
-        WriteListToNodalVariable(heat_dfdx_relaxed, self.design_surface, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
 
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
@@ -236,6 +213,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
+
+        if self.data_logger.SensitivityHeatmapLogging():
+            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, None, self.optimization_iteration)
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
         self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
 

@@ -12,14 +12,17 @@ def WriteDictionaryDataOnNodalVariable(data, model_part, nodal_variable):
         model_part.Nodes[node_id].SetSolutionStepValue(nodal_variable, 0, tmp_gradient)
 
 # ------------------------------------------------------------------------------
-def ReadNodalVariableToList(model_part, nodal_variable):
-    variable_values_list = [0.0]*model_part.NumberOfNodes()*3
+def ReadNodalVariableToList(model_part, nodal_variable, dimension=3):
+    variable_values_list = [0.0]*model_part.NumberOfNodes()*dimension
 
     for itr, node in enumerate(model_part.Nodes):
         tmp_values = node.GetSolutionStepValue(nodal_variable)
-        variable_values_list[3*itr+0] = tmp_values[0]
-        variable_values_list[3*itr+1] = tmp_values[1]
-        variable_values_list[3*itr+2] = tmp_values[2]
+
+        if dimension == 1:
+            variable_values_list[itr] = tmp_values
+        else:
+            for i in range(dimension):
+                variable_values_list[dimension*itr+i] = tmp_values[i]
 
     return variable_values_list
 

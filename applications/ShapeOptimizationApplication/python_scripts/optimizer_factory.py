@@ -77,54 +77,12 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
         # sensitivity heatmap
-        model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_DESIGN_1D)
-        model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_DESIGN_3D)
-        model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_CONTROL_1D)
-        model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP_CONTROL_3D)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_BB_MAX_RELAXED)
-
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_S)
-
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_RELAXED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_MAPPED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX_MAPPED_RELAXED)
-
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_RELAXED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_MAPPED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_VALUE_MAPPED_RELAXED)
-
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_RELAXED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_MAPPED)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2_MAPPED_RELAXED)
-
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
-        model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX_MAPPED)
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KM.KratosGlobals.GetVariable("HEATMAP_DC"+str(itr)+"DX")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KM.KratosGlobals.GetVariable("HEATMAP_DC"+str(itr)+"DX_MAPPED")
-            model_part.AddNodalSolutionStepVariable(nodal_variable)
-
-        model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_S)
-        model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_DF1DX)
-        model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_DF1DX_MAPPED)
-        model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_DC1DX)
-        model_part.AddNodalSolutionStepVariable(KSO.HESSIAN_DC1DX_MAPPED)
-
-        model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN_S)
-        model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN_DF1DX)
-        model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN_DF1DX_MAPPED)
-        model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN_DC1DX)
-        model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN_DC1DX_MAPPED)
-
-        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_NORMALIZED)
-        model_part.AddNodalSolutionStepVariable(KSO.DC1DX_NORMALIZED)
-        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_MAPPED_NORMALIZED)
-        model_part.AddNodalSolutionStepVariable(KSO.DC1DX_MAPPED_NORMALIZED)
-
 
     def __AddVariablesToBeUsedByDesignVariables(self):
         if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
