@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: kratos/license.txt
+//  License:         BSD License
+//                   license: kratos/license.txt
 //
 //  Main authors:    Luis Antonio Goncalves Junior
 //                   Alejandro Cornejo
@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "custom_processes/set_automated_initial_damage_process.h"
 #include "utilities/parallel_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 
 namespace Kratos
@@ -49,14 +50,12 @@ void SetAutomatedInitialDamageProcess::ExecuteInitializeSolutionStep()
         const array_1d<double, 3> hole_generatrix_point = mThisParameters["hole_generatrix_point"].GetVector();
         auto& process_info = mrThisModelPart.GetProcessInfo();  
 
-        array_1d<double, 3> normalized_generatrix_vector;
-        normalized_generatrix_vector[0] = (hole_generatrix_axis[0] * hole_generatrix_axis[0]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
-        normalized_generatrix_vector[1] = (hole_generatrix_axis[1] * hole_generatrix_axis[1]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
-        normalized_generatrix_vector[2] = (hole_generatrix_axis[2] * hole_generatrix_axis[2]) / std::sqrt(hole_generatrix_axis[0] * hole_generatrix_axis[0] + hole_generatrix_axis[1] * hole_generatrix_axis[1] + hole_generatrix_axis[2] * hole_generatrix_axis[2]);
+        array_1d<double, 3> normalized_generatrix_vector = hole_generatrix_axis;
+        ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(normalized_generatrix_vector);
 
         const double hole_radius_offset = mThisParameters["hole_radius_offset"].GetDouble();
 
-        int table_id = mThisParameters["table_id"].GetInt();
+        const int table_id = mThisParameters["table_id"].GetInt();
 
         block_for_each(mrThisModelPart.Elements(), [&](auto& rElement) {
 
@@ -65,20 +64,18 @@ void SetAutomatedInitialDamageProcess::ExecuteInitializeSolutionStep()
             array_1d<double, 3> relative_position_vector;
             relative_position_vector = r_element_centroid - hole_generatrix_point;
 
-            double vector_scaler = MathUtils<double>::Dot3(relative_position_vector, normalized_generatrix_vector);
+            const double vector_scaler = MathUtils<double>::Dot3(relative_position_vector, normalized_generatrix_vector);
 
             const array_1d<double, 3> intersection_point = hole_generatrix_point + vector_scaler * normalized_generatrix_vector;
 
             const array_1d<double, 3> radial_position_vector = r_element_centroid - intersection_point;
 
-            double centroid_relative_distance = std::sqrt(radial_position_vector[0] * radial_position_vector[0] + radial_position_vector[1] * radial_position_vector[1] + radial_position_vector[2] * radial_position_vector[2]) - hole_radius_offset;
-
+            double centroid_relative_distance = MathUtils<double>::Norm3(radial_position_vector) - hole_radius_offset;
 
             if (centroid_relative_distance < 0.0){
                 if (std::abs(centroid_relative_distance) <= tolerance) {
                     centroid_relative_distance = 0.0;
-                }
-                else {
+                } else {
                     KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
                 }
             }
@@ -92,7 +89,7 @@ void SetAutomatedInitialDamageProcess::ExecuteInitializeSolutionStep()
                 initial_damage_value = 0.999;
             }
 
-            unsigned int number_of_integration_points = rElement.GetGeometry().IntegrationPoints(rElement.GetIntegrationMethod()).size();
+            const unsigned int number_of_integration_points = rElement.GetGeometry().IntegrationPoints(rElement.GetIntegrationMethod()).size();
 
             std::vector<double> r_threshold(number_of_integration_points);           
             std::vector<double> initial_damage(number_of_integration_points);       

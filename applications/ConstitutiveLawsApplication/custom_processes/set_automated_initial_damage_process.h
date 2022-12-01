@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: kratos/license.txt
+//  License:         BSD License
+//                   license: kratos/license.txt
 //
 //  Main authors:    Luis Antonio Goncalves Junior
 //                   Alejandro Cornejo
@@ -113,4 +113,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos.
-
