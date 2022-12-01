@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LINE_2D_2_H_INCLUDED )
-#define  KRATOS_LINE_2D_2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -944,7 +943,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // We compute the distance, if it is not in the pane we
+        // We compute the distance, if it is not in the plane we project
         const Point point_to_project(rPoint);
         Point point_projected;
         const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
@@ -1409,5 +1408,3 @@ const GeometryDimension Line2D2<TPointType>::msGeometryDimension(
     2, 2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined
