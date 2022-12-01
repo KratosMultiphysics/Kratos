@@ -248,10 +248,11 @@ class PFEM2Solver(PythonSolver):
     def InitializeSolutionStep(self):
         #self.step=1
         #section_nodes = [] 
-        print("Inside the InitializeSolutionStep")
+        
         #print(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-        #if(1==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
-        if(1==5):
+        if(1==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
+         print("Inside the InitializeSolutionStep")
+        #if(1==5):
          print(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
          mu=0.001
          rho=1.0
@@ -262,6 +263,10 @@ class PFEM2Solver(PythonSolver):
              node.Free(KratosMultiphysics.VELOCITY_Y)
              node.Free(KratosMultiphysics.VELOCITY_Z)
              node.Free(KratosMultiphysics.PRESSURE)
+             node.Fix(KratosMultiphysics.VELOCITY_X)
+             node.Fix(KratosMultiphysics.VELOCITY_Y)
+             node.Fix(KratosMultiphysics.VELOCITY_Z)
+             node.Fix(KratosMultiphysics.PRESSURE)
              vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)
              vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)    
              vel_z=0.0  
@@ -270,19 +275,19 @@ class PFEM2Solver(PythonSolver):
              node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,vel_y) 
              node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,vel_z) 
              node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,pressure)
-             if(node.X>6.27 or node.Y>6.27 or node.X<0.001 or node.Y<0.001):
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    node.Fix(KratosMultiphysics.PRESSURE)
-                    vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)
-                    vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)
-                    vel_z=0.0
-                    pressure=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*time)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,vel_x)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,vel_y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,vel_z)
-                    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,pressure)
+            #  if(node.X>6.27 or node.Y>6.27 or node.X<0.001 or node.Y<0.001):
+            #         node.Fix(KratosMultiphysics.VELOCITY_X)
+            #         node.Fix(KratosMultiphysics.VELOCITY_Y)
+            #         node.Fix(KratosMultiphysics.VELOCITY_Z)
+            #         node.Fix(KratosMultiphysics.PRESSURE)
+            #         vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)
+            #         vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)
+            #         vel_z=0.0
+            #         pressure=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*time)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,vel_x)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,vel_y)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,vel_z)
+            #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,pressure)
 
         self.fluid_solver.InitializeSolutionStep()
 
@@ -294,35 +299,45 @@ class PFEM2Solver(PythonSolver):
          print(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
          print("Initial Conditions are being applied")
          section_nodes = [] 
+         timestep=self.timestep
          mu=0.001
          rho=1.0
          time=0.0
+         old_time=-timestep
          for node in self.fluid_solver.main_model_part.Nodes:
              node.Free(KratosMultiphysics.VELOCITY_X)
              node.Free(KratosMultiphysics.VELOCITY_Y)
              node.Free(KratosMultiphysics.VELOCITY_Z)
              node.Free(KratosMultiphysics.PRESSURE)
              vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)
+             vel_old_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*old_time)
              vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)    
+             vel_old_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*old_time)  
              vel_z=0.0  
+             vel_old_z=0.0 
              pressure=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*time) 
+             pressure_old=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*old_time) 
              node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,vel_x)   
+            #  node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,-1,vel_old_x) 
              node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,vel_y) 
+            #  node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,-1,vel_old_y) 
              node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,vel_z) 
+            #  node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,-1,vel_old_z) 
              node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,pressure)
-             if(node.X>6.27 or node.Y>6.27 or node.X<0.001 or node.Y<0.001):
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
-                    node.Fix(KratosMultiphysics.PRESSURE)
-                    vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)
-                    vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)
-                    vel_z=0.0
-                    pressure=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*time)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,vel_x)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,vel_y)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,vel_z)
-                    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,pressure)
+            #  node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,-1,pressure_old)
+            #  if(node.X>6.27 or node.Y>6.27 or node.X<0.001 or node.Y<0.001):
+            #         node.Fix(KratosMultiphysics.VELOCITY_X)
+            #         node.Fix(KratosMultiphysics.VELOCITY_Y)
+            #         node.Fix(KratosMultiphysics.VELOCITY_Z)
+            #         node.Fix(KratosMultiphysics.PRESSURE)
+            #         vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)
+            #         vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)
+            #         vel_z=0.0
+            #         pressure=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*time)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,vel_x)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,vel_y)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,vel_z)
+            #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,pressure)
          self.section_nodes= section_nodes     
         
         
@@ -408,7 +423,8 @@ class PFEM2Solver(PythonSolver):
         #   self.CalculateTheError() 
         #   #return (fluid_is_converged)
         #  else: 
-         self.ApplyBCs()  
+         if(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]>1):
+          self.ApplyBCs()  
          fluid_is_converged = self.fluid_solver.SolveSolutionStep()
          self.CalculateTheError()
          return (fluid_is_converged)
