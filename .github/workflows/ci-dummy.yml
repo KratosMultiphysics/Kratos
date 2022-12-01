@@ -11,6 +11,7 @@ on:
       - '**.md'
       - 'documents/**'
       - 'scripts/**'
+      - '.github/workflows/ci-dummy.yml'
       - '.github/workflows/build_docker_image*.yml'
       - '.github/workflows/nightly_build.yml'
       - 'kratos/templates/**'
