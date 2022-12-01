@@ -651,7 +651,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number, false );
@@ -697,7 +697,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number, false );
@@ -765,7 +765,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number, false );
@@ -852,7 +852,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
 

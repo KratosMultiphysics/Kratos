@@ -569,7 +569,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int& NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != NumGPoints )
         rOutput.resize( NumGPoints, false );
@@ -634,7 +634,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int& NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != NumGPoints )
         rOutput.resize( NumGPoints, false );
@@ -709,7 +709,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int& NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != NumGPoints )
         rOutput.resize( NumGPoints, false );

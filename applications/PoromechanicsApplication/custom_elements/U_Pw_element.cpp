@@ -556,7 +556,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<do
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number, false );
@@ -575,7 +575,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<arr
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number, false );
@@ -594,7 +594,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Mat
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number, false );
