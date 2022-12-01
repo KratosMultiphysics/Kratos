@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_IO_H_INCLUDED )
-#define  KRATOS_IO_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -393,9 +392,26 @@ public:
      * @brief This method writes the model part
      * @param rThisModelPart The model part to be written
      */
+    KRATOS_DEPRECATED_MESSAGE("'WriteModelPart' with a non-const ModelPart as input is deprecated. Please use the version of this function that accepts a const ModelPart instead.")
     virtual void WriteModelPart(ModelPart & rThisModelPart)
     {
         KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method writes the model part
+     * @param rThisModelPart The model part to be written
+     */
+    virtual void WriteModelPart(const ModelPart& rThisModelPart)
+    {
+        // legacy for backward compatibility
+        ModelPart& non_const_model_part = const_cast<ModelPart&>(rThisModelPart);
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+        this->WriteModelPart(non_const_model_part);
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
+        // activate this error once the legacy code is removed
+        // KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -628,5 +644,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_IO_H_INCLUDED  defined
