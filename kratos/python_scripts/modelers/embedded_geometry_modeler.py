@@ -53,5 +53,6 @@ class EmbeddedGeometryModeler(KM.Modeler):
         }''')
         return default_settings
 
+#TODO: Remove this once the modelers use the new model-parameters factory
 def Factory(model, settings):
     return EmbeddedGeometryModeler(model, settings)
