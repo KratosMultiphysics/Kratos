@@ -476,7 +476,6 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     )
 {
     // We set the value in all layers
-
     for (auto& p_law : mConstitutiveLaws) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -492,12 +491,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -513,10 +509,8 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -532,10 +526,8 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -549,12 +541,9 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -570,10 +559,8 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
 {
     // We set the propotional value in all layers
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
