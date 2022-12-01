@@ -1660,12 +1660,17 @@ public:
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Returns a reference to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    	Throws if it does not exist.
     */
     ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
-    /** Returns a shared pointer to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    /** Returns a reference to the sub_model part with given string name
+    	Throws if it does not exist.
+    */
+    const ModelPart& GetSubModelPart(std::string const& SubModelPartName) const;
+
+    /** Returns a raw pointer to the sub_model part with given string name
+    	Throws if it does not exist.
     */
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
@@ -1839,10 +1844,10 @@ public:
     }
 
     /**
-     * @brief This method returns the name list of submodelparts
-     * @return A vector conrtaining the list of submodelparts contained
+     * @brief This method returns the names of submodelparts
+     * @return A vector containing the list of submodelparts names
      */
-    std::vector<std::string> GetSubModelPartNames();
+    std::vector<std::string> GetSubModelPartNames() const;
 
     /**
      * @brief This method sets the suffer size of the model part database
@@ -2004,6 +2009,12 @@ private:
         //	if(Options->Is())
         //}
     }
+
+    /**
+     * @brief This method issues a proper error message if a SubModelPart does not exist
+     * @param rSubModelPartName Name of the SubModelPart that does not exits
+     */
+    [[ noreturn ]] void ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const;
 
     ///@}
     ///@name Serialization
