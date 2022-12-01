@@ -797,7 +797,20 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        this->PointLocalCoordinates( rResult, rPoint );
+        // We compute the distance, if it is not in the plane we project
+        const Point point_to_project(rPoint);
+        Point point_projected;
+        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
+
+        // We check if we are on the plane
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING_FIRST_N("Line3D2", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1]  << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
+                return false;
+            }
+        }
+
+        PointLocalCoordinates( rResult, point_projected );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
             return true;
@@ -833,24 +846,13 @@ public:
     {
         rResult.clear();
 
-        // Tolerance
-        const double tolerance = 1e-14;
-
-        // Projection
-        Point point_projected;
-        const Point point_to_project(rPoint);
-        const double distance = GeometricalProjectionUtilities::FastProjectOnLine(*this, point_to_project, point_projected);
-        if (distance > tolerance) {
-            rResult[0] = 2.0; // Out of the line!!!
-            return rResult;
-        }
-
-        // Getting points
         const TPointType& r_first_point  = BaseType::GetPoint(0);
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
-        // Project point
-        const double length = this->Length();
+        // Tolerance
+        const double tolerance = 1e-14; 
+
+        const double length = Length();
 
         const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
                     + std::pow(rPoint[1] - r_first_point[1], 2) + std::pow(rPoint[2] - r_first_point[2], 2));
