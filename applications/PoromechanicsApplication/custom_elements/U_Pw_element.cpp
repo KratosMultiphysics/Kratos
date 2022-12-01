@@ -578,7 +578,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<arr
     const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number, false );
+        rValues.resize( integration_points_number );
     
     for ( unsigned int i = 0;  i < integration_points_number; i++ )
     {
@@ -597,7 +597,7 @@ void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Mat
     const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number, false );
+        rValues.resize( integration_points_number );
 
     for ( unsigned int i = 0;  i < integration_points_number; i++ )
     {

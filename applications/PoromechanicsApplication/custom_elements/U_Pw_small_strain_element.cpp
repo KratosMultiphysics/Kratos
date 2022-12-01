@@ -637,7 +637,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != NumGPoints )
-        rOutput.resize( NumGPoints, false );
+        rOutput.resize( NumGPoints );
 
     if(rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
@@ -712,7 +712,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != NumGPoints )
-        rOutput.resize( NumGPoints, false );
+        rOutput.resize( NumGPoints );
 
     if(rVariable == EFFECTIVE_STRESS_TENSOR)
     {

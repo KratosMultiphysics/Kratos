@@ -700,7 +700,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number, false );
+        rOutput.resize( integration_points_number );
 
     if ( rVariable == CAUCHY_STRESS_VECTOR ) {
         //Definition of variables
@@ -768,7 +768,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number, false );
+        rOutput.resize( integration_points_number );
 
     if ( rVariable == FLUID_FLUX_VECTOR ) {
         //Definition of variables
@@ -857,7 +857,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number, false );
+        rOutput.resize( integration_points_number );
 
     if ( rVariable == EFFECTIVE_STRESS_TENSOR ) {
         std::vector<Vector> StressVector;
