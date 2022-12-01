@@ -102,13 +102,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
     const double A = norm_2(data.Normal);
     data.Normal /= A;
 
-    // Store the outlet inflow prevention constants in the data structure
-    const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-    data.OutletInflowPreventionSwitch = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) ? rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH] : false;
-    if (data.OutletInflowPreventionSwitch) {
-        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
-    }
-
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
@@ -130,8 +123,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
         data.N = row(Ncontainer, igauss);
         const double J = GaussPtsJDet[igauss];
         data.wGauss = J * IntegrationPoints[igauss].Weight();
-        ComputeGaussPointRHSContribution(rhs_gauss, data);
-        ComputeGaussPointLHSContribution(lhs_gauss, data);
+        ComputeGaussPointRHSContribution(rhs_gauss, data, rCurrentProcessInfo);
+        ComputeGaussPointLHSContribution(lhs_gauss, data, rCurrentProcessInfo);
         noalias(rLeftHandSideMatrix) += lhs_gauss;
         noalias(rRightHandSideVector) += rhs_gauss;
     }
@@ -183,13 +176,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
     const double A = norm_2(data.Normal);
     data.Normal /= A;
 
-    // Store the outlet inflow prevention constants in the data structure
-    const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-    data.OutletInflowPreventionSwitch = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) ? rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH] : false;
-    if (data.OutletInflowPreventionSwitch) {
-        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
-    }
-
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
@@ -216,7 +202,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
         data.N = row(Ncontainer, igauss);
         const double J = GaussPtsJDet[igauss];
         data.wGauss = J * IntegrationPoints[igauss].Weight();
-        ComputeGaussPointRHSContribution(rhs_gauss, data);
+        ComputeGaussPointRHSContribution(rhs_gauss, data, rCurrentProcessInfo);
         noalias(rRightHandSideVector) += rhs_gauss;
     }
 
@@ -364,28 +350,35 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
-const ConditionDataStruct& data)
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
+    const ConditionDataStruct& data,
+    const ProcessInfo& rProcessInfo)
 {
     const unsigned int LocalSize = TDim+1;
     lhs_gauss = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
+    if (this->Is(SLIP)){
+        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
+    }
+
     // contribution to avoid tangential components in the residual (BEHR2004)
     // Adding the BEHR2004 contribution if a slip BC is detected
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
-    if (this->Is(SLIP)){
-
-        ComputeGaussPointBehrSlipLHSContribution( lhs_gauss, data );
-
-        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
+    if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
+        if (this->Is(SLIP) && rProcessInfo.GetValue(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
+            CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
+        }
     }
 }
 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
-const ConditionDataStruct& data)
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution(
+    array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
+    const ConditionDataStruct& data,
+    const ProcessInfo& rProcessInfo)
 {
     // Initialize the local RHS
     const unsigned int LocalSize = TDim+1;
@@ -395,19 +388,25 @@ const ConditionDataStruct& data)
     this->ComputeRHSNeumannContribution(rhs_gauss, data);
 
     // Gauss pt. outlet inflow prevention contribution
-    if (this->Is(OUTLET) && data.OutletInflowPreventionSwitch){
-        this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
+    if (rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH)) {
+        if (this->Is(OUTLET) && rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH]){
+            this->ComputeRHSOutletInflowContribution(rhs_gauss, data, rProcessInfo);
+        }
+    }
+
+    if (this->Is(SLIP)){
+        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
     }
 
     // contribution to avoid tangential components in the residual (BEHR2004)
     // Adding the BEHR2004 contribution if a slip BC is detected
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
-    if (this->Is(SLIP)){
-
-        ComputeGaussPointBehrSlipRHSContribution( rhs_gauss, data );
-
-        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
+    if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
+        if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
+            CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
+        }
     }
+
 }
 
 
@@ -439,7 +438,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannContribution(ar
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContribution(
     array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
-    const ConditionDataStruct& data)
+    const ConditionDataStruct& data,
+    const ProcessInfo& rProcessInfo)
 {
     constexpr SizeType LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
@@ -461,7 +461,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContributi
 
     // Add outlet inflow prevention contribution
     const double delta = 1.0e-2;
-    const double U_0 = data.charVel;
+    const double U_0 = rProcessInfo[CHARACTERISTIC_VELOCITY];
     const double S_0 = 0.5*(1-tanh(vGaussProj/(U_0*delta)));
 
     for (unsigned int i=0; i<TNumNodes; ++i)
@@ -536,8 +536,9 @@ void NavierStokesWallCondition<3,3>::ProjectViscousStress(
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSContribution(  BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-                                                                                           const ConditionDataStruct& rDataStruct )
+void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentialCorrectionLHSContribution(
+    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+    const ConditionDataStruct& rDataStruct)
 {
     KRATOS_TRY
 
@@ -599,8 +600,9 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSCont
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSContribution(   array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
-                                                                                            const ConditionDataStruct& rDataStruct )
+void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentialCorrectionRHSContribution(
+    array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+    const ConditionDataStruct& rDataStruct)
 {
     KRATOS_TRY
     const unsigned int voigtSize = 3 * (TDim-1);

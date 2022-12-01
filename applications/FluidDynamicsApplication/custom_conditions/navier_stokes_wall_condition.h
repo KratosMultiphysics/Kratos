@@ -78,8 +78,6 @@ public:
     struct ConditionDataStruct
     {
         double wGauss;                                  // Gauss point weight
-        bool OutletInflowPreventionSwitch;              // Outlet inflow (i.e. backflow) prevention switch
-        double charVel;                                 // Problem characteristic velocity (used in the outlet inflow prevention)
         array_1d<double, 3> Normal;                     // Condition normal
         array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
         Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
@@ -333,9 +331,15 @@ protected:
 
     void CalculateNormal(array_1d<double,3>& An);
 
-    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
+    void ComputeGaussPointLHSContribution(
+        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo);
 
-    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    void ComputeGaussPointRHSContribution(
+        array_1d<double,TNumNodes*(TDim+1)>& rRHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo);
 
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
@@ -344,10 +348,14 @@ protected:
      * This method calculates and adds an extra numerical contribution to the RHS in order
      * to prevent uncontrolled system energy growth coming from inflow in free-boundaries.
      * More information can be found in Dong et al. 2014 (https://doi.org/10.1016/j.jcp.2013.12.042).
-     * @param rhs Reference to RHS vector
-     * @param data Condition data container
+     * @param rRHS Reference to RHS vector
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
      */
-    void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    void ComputeRHSOutletInflowContribution(
+        array_1d<double,TNumNodes*(TDim+1)>& rRHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo);
 
     /**
      * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
@@ -428,27 +436,28 @@ private:
     ///@{
 
     /**
-     * @brief Computes the left-hand side contribution for the BEHR2004 slip condition
+     * @brief Computes the left-hand side contribution for the slip tangential correction
      * This specific implementation of the slip condition avoids spurious velocities
      * at points were the normal directions of the adjacent boundary geometries do not
-     * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * coincide (Reference Behr (2004): https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointBehrSlipLHSContribution(  BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-                                                    const ConditionDataStruct& rDataStruct );
-
+    void CalculateGaussPointSlipTangentialCorrectionLHSContribution(
+        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+        const ConditionDataStruct& rDataStruct);
 
     /**
-     * @brief Computes the right-hand side contribution for the BEHR2004 slip condition
+     * @brief Computes the right-hand side contribution for the slip tangential correction
      * This specific implementation of the slip condition avoids spurious velocities
      * at points were the normal directions of the adjacent boundary geometries do not
-     * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * coincide (Reference Behr (2004): https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rRightHandSideVector reference to the RHS vector
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
-                                                    const ConditionDataStruct& rDataStruct );
+    void CalculateGaussPointSlipTangentialCorrectionRHSContribution(
+        array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+        const ConditionDataStruct& rDataStruct);
 
     /**
      * @brief Project the viscous stress
