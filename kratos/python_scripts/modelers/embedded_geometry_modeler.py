@@ -13,8 +13,9 @@ class EmbeddedGeometryModeler(KM.Modeler):
         self.settings = settings
 
         # Get the model parts
-        self.volume_model_part = model.CreateModelPart(settings["volume_model_part_name"].GetString())
-        self.embedded_model_part = model.CreateModelPart(settings["embedded_model_part_name"].GetString())
+        self.model_part = model.CreateModelPart(settings["model_part_name"].GetString())
+        self.skin_model_part = model.CreateModelPart(settings["skin_model_part_name"].GetString())
+
 
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
