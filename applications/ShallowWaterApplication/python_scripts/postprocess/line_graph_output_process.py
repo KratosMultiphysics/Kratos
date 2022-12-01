@@ -133,7 +133,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
         dummy_extension = ".z" #NOTE: the dummy extension will be replaced by the file utility. It is used to keep the decimals.
-        self.file_settings["file_name"].SetString(self.file_name + '-' + self.time_format.format(time) + dummy_extension)
+        self.file_settings["file_name"].SetString(self.file_name + '_' + self.time_format.format(time) + dummy_extension)
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.file_settings, self._GetHeader()).file
         for point, entity, area_coords in zip(self.found_positions, self.entities, self.area_coords):
             file.write(self._GetPointData(point, entity, area_coords))
@@ -189,28 +189,32 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
 
     def _GetHeader(self):
-        start = list(self.found_positions[0])
-        end = list(self.found_positions[-1])
+        if len(self.found_positions) > 1:
+            start = list(self.found_positions[0])
+            end = list(self.found_positions[-1])
+        else:
+            start = "'NOT FOUND'"
+            end = "'NOT FOUND'"
         time = self.model_part.ProcessInfo[KM.TIME]
-        header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
+        header = "# Results for '{}s' over line {}-{} at time {}\n#".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]
         for c in coordinates:
-            header += c + "\t\t"
+            header += " " + c
         for var in self.variables:
-            header += var.Name() + "\t"
+            header += " " + var.Name()
         for var in self.nonhistorical_variables:
-            header += var.Name() + "\t"
+            header += " " + var.Name()
         return header + "\n"
 
 
     def _GetPointData(self, node, entity, area_coords):
         data = self.print_format.format(node.X)
-        data += "\t" + self.print_format.format(node.Y)
-        data += "\t" + self.print_format.format(node.Z)
+        data += " " + self.print_format.format(node.Y)
+        data += " " + self.print_format.format(node.Z)
         for var in self.variables:
-            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=True))
+            data += " " + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=True))
         for var in self.nonhistorical_variables:
-            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=False))
+            data += " " + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=False))
         return data + "\n"
 
 

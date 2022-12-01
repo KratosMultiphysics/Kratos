@@ -514,7 +514,7 @@ void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
 {
     if (rVariable == CONSTITUTIVE_LAW) {
         rValues.clear();
-        for (auto p_sec : mSections) {
+        for (const auto& p_sec : mSections) {
             auto vec_integration_points = p_sec->GetConstitutiveLawsVector(GetProperties());
             rValues.reserve(rValues.size() + vec_integration_points.size());
             for (std::size_t i=0; i<vec_integration_points.size(); ++i) {

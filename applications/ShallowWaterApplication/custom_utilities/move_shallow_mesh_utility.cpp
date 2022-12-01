@@ -121,7 +121,7 @@ bool MoveShallowMeshUtility::MoveNode(
     const array_1d<double,3>& vel = rNode.FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& acc = rNode.FastGetSolutionStepValue(ACCELERATION);
     r_pos += vel * Dt + 0.5 * acc * Dt * Dt;
-    rNode.FastGetSolutionStepValue(DISPLACEMENT) = r_pos;
+    rNode.FastGetSolutionStepValue(DISPLACEMENT) = r_pos - rNode.GetInitialPosition();
     bool is_found = mEulerianSearchStructure.FindPointOnMesh(r_pos, rN, pElement, rResultBegin, mMaxResults);
     return is_found;
 }

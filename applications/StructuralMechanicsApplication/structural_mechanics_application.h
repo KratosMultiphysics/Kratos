@@ -7,7 +7,7 @@
 //                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Co-authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
@@ -77,6 +77,8 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
@@ -325,6 +327,16 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
+    const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
+
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D10N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D8N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D20N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;

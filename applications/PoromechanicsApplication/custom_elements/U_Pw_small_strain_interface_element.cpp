@@ -389,7 +389,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
-
+        const PropertiesType& Prop = this->GetProperties();
+        const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         std::vector<array_1d<double,3>> GPAuxValues(NumGPoints);
         this->CalculateOnIntegrationPoints(LOCAL_RELATIVE_DISPLACEMENT_VECTOR, GPAuxValues, rCurrentProcessInfo);
@@ -399,6 +400,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         for(unsigned int i=0; i < NumGPoints; i++)
         {
             GPValues[i] = mInitialGap[i] + GPAuxValues[i][TDim-1];
+
+            if(GPValues[i] < MinimumJointWidth)
+            {
+                GPValues[i] = MinimumJointWidth;
+            }
         }
 
         //Printed on standard GiD Gauss points
@@ -428,7 +434,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                     std::vector<array_1d<double,3>>& rValues,const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rVariable == FLUID_FLUX_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR)
+    if(rVariable == FLUID_FLUX_VECTOR || rVariable == CONTACT_STRESS_VECTOR || rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR || rVariable == LOCAL_FLUID_FLUX_VECTOR)
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
@@ -498,6 +504,65 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
 
                 PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],FluidFlux);
+            }
+        }
+        else if(rVariable == CONTACT_STRESS_VECTOR)
+        {
+            //Defining necessary variables
+            const PropertiesType& Prop = this->GetProperties();
+            const GeometryType& Geom = this->GetGeometry();
+            const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+            array_1d<double,TNumNodes*TDim> DisplacementVector;
+            PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+            BoundedMatrix<double,TDim, TDim> RotationMatrix;
+            this->CalculateRotationMatrix(RotationMatrix,Geom);
+            BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+            array_1d<double,TDim> RelDispVector;
+            const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+            double JointWidth;
+            array_1d<double,TDim> LocalStressVector;
+            array_1d<double,TDim> ContactStressVector;
+
+            //Create constitutive law parameters:
+            Vector StrainVector(TDim);
+            Vector StressVectorDynamic(TDim);
+            Matrix ConstitutiveMatrix(TDim,TDim);
+            Vector Np(TNumNodes);
+            Matrix GradNpT(TNumNodes,TDim);
+            Matrix F = identity_matrix<double>(TDim);
+            double detF = 1.0;
+            ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+            ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+            ConstitutiveParameters.SetStressVector(StressVectorDynamic);
+            ConstitutiveParameters.SetStrainVector(StrainVector);
+            ConstitutiveParameters.SetShapeFunctionsValues(Np);
+            ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+            ConstitutiveParameters.SetDeterminantF(detF);
+            ConstitutiveParameters.SetDeformationGradientF(F);
+
+            //Loop over integration points
+            for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
+            {
+                InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
+
+                noalias(RelDispVector) = prod(Nu,DisplacementVector);
+
+                noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
+
+                this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+
+                noalias(Np) = row(NContainer,GPoint);
+
+                //compute constitutive tensor and/or stresses
+                mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+                noalias(LocalStressVector) = StressVectorDynamic;
+
+                noalias(ContactStressVector) = prod(trans(RotationMatrix),LocalStressVector);
+
+                PoroElementUtilities::FillArray1dOutput(GPValues[GPoint],ContactStressVector);
             }
         }
         else if(rVariable == LOCAL_STRESS_VECTOR)
@@ -1163,35 +1228,13 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
 
-    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
+    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
+    // ordered clockwise (GiD does so), the rotation matrix is build like follows:
+    rRotationMatrix(1,0) = Vx[1];
+    rRotationMatrix(1,1) = -Vx[0];
 
-    // Unitary vector in local x direction (3D)
-    array_1d<double, 3> Vx3D;
-    Vx3D[0] = Vx[0];
-    Vx3D[1] = Vx[1];
-    Vx3D[2] = 0.0;
-
-    // Unitary vector in local y direction (first option)
-    array_1d<double, 3> Vy3D;
-    Vy3D[0] = -Vx[1];
-    Vy3D[1] = Vx[0];
-    Vy3D[2] = 0.0;
-
-    // Vector in global z direction (first option)
-    array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
-
-    // Vz must have the same sign as vector (0,0,1)
-    if(Vz[2] > 0.0)
-    {
-        rRotationMatrix(1,0) = -Vx[1];
-        rRotationMatrix(1,1) = Vx[0];
-    }
-    else
-    {
-        rRotationMatrix(1,0) = Vx[1];
-        rRotationMatrix(1,1) = -Vx[0];
-    }
+    // NOTE. In zero-thickness quadrilateral_interface_2d_4 elements we are not able to know
+    // whether the nodes are ordered clockwise or counter-clockwise.
 
     KRATOS_CATCH( "" )
 }
@@ -1324,7 +1367,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
 
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // No contact between interfaces
 
-    // Initally open joint
+    // Initially open joint
     if(mIsOpen[GPoint]==true)
     {
         if(rJointWidth < MinimumJointWidth)
@@ -1334,7 +1377,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
             rJointWidth = MinimumJointWidth;
         }
     }
-    // Initally closed joint
+    // Initially closed joint
     else
     {
         if(rJointWidth < 0.0)

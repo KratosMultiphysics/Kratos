@@ -57,8 +57,7 @@ void SplitInternalInterfacesProcess::ExecuteInitialize()
     }
 
     if(property_ids.size()) {
-        std::size_t domain_size = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); //TODO: this may not be a very good solution.
-        FindElementalNeighboursProcess(mrModelPart, domain_size).Execute();
+        GenericFindElementalNeighboursProcess(mrModelPart).Execute();
         for (auto it=property_ids.begin(); it!=(--property_ids.end()); ++it) {
             std::size_t id = *it;
             KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
@@ -86,7 +85,7 @@ void SplitInternalInterfacesProcess::SplitBoundary(
 
         for(unsigned int i=0; i<rElem.GetGeometry().size(); ++i) {
 
-            if(rElem.GetProperties().Id() == PropertyIdBeingProcessed && neighb[i].GetProperties().Id() > PropertyIdBeingProcessed) {
+            if(rElem.GetProperties().Id() == PropertyIdBeingProcessed && neighb(i).get()!=nullptr && neighb[i].GetProperties().Id() > PropertyIdBeingProcessed) {
                 auto boundary_entities = rElem.GetGeometry().GenerateBoundariesEntities();
                 interface_faces.push_back(boundary_entities[i]);
                 neighbouring_elements.push_back( std::make_pair(rElem.pGetGeometry(), neighb[i].pGetGeometry()) );

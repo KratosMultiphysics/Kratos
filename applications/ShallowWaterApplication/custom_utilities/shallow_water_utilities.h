@@ -243,7 +243,7 @@ public:
         KRATOS_ERROR_IF_NOT(rProcessInfo.Has(GRAVITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : GRAVITY is not defined in the ProcessInfo" << std::endl;
         if (rContainer.size() > 0) {
             const auto& r_prop = rContainer.begin()->GetProperties();
-            KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the ProcessInfo" << std::endl;
+            KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the Properties" << std::endl;
         }
 
         array_1d<double,3> forces = ZeroVector(3);

@@ -226,7 +226,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     // resize mStressVector:
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     if ( mStressVector.size() != IntegrationPoints.size() ) {
        mStressVector.resize(IntegrationPoints.size());
        for (unsigned int i=0; i < mStressVector.size(); ++i) {
@@ -1292,6 +1292,7 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& IntegrationPointsNumber = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
 
     if ( rOutput.size() != IntegrationPointsNumber )
         rOutput.resize( IntegrationPointsNumber );
@@ -1363,8 +1364,8 @@ void SmallStrainUPwDiffOrderElement::
 
         const SizeType VoigtSize = mStressVector[0].size();
         Vector VoigtVector = ZeroVector(VoigtSize);
-
-        for (unsigned int i=0; i < rGeom.WorkingSpaceDimension(); ++i) VoigtVector[i] = 1.0;
+        const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+        for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
 
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
@@ -2134,11 +2135,12 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     Vector VoigtVector = ZeroVector(VoigtSize);
 
-    for (unsigned int i=0; i < Dim; ++i) VoigtVector[i] = 1.0;
+    for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
 
     Matrix CouplingMatrix =   PORE_PRESSURE_SIGN_FACTOR
                             * rVariables.BiotCoefficient
@@ -2367,10 +2369,11 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     Vector VoigtVector = ZeroVector(VoigtSize);
-    for (SizeType idim=0; idim < Dim; ++idim)  VoigtVector[idim] = 1.0;
+    for (SizeType idim=0; idim < StressTensorSize; ++idim)  VoigtVector[idim] = 1.0;
 
     Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR
                             * rVariables.BiotCoefficient

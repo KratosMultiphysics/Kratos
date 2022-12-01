@@ -96,7 +96,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             }
 
             hashmap::iterator itFace = FacesMap.find(FaceIds);
-
             if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 3) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;

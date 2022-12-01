@@ -30,12 +30,12 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
 
     // Check if variables are available
     KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "No nodes in the model part" << std::endl;
-    if (THistorical) {
+    if constexpr (THistorical) {
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_AREA )) << "Variable NODAL_AREA not in the model part!" << std::endl;
     }
 
     // Set to zero the nodal area
-    if (THistorical) {
+    if constexpr (THistorical) {
         VariableUtils().SetVariable(NODAL_AREA, 0.0, mrModelPart.Nodes());
     } else {
         VariableUtils().SetNonHistoricalVariable(NODAL_AREA, 0.0, mrModelPart.Nodes());
@@ -86,7 +86,7 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
     });
 
     // Synchronize data
-    if (THistorical) {
+    if constexpr (THistorical) {
         mrModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
     } else {
         mrModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);

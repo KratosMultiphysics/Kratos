@@ -88,6 +88,9 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def(py::init<const DistributedSparseGraph<IndexType>&>())
         .def(py::init<DistributedSystemVector<double,IndexType>&>())
         .def(py::init<const DistributedNumbering<IndexType>&>())
+        .def("copy", [](const DistributedSystemVector<double,IndexType>& self){
+            return Kratos::make_shared<DistributedSystemVector<double,IndexType>>(self);
+        })
         .def("GetComm", &DistributedSystemVector<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("LocalSize", [](const DistributedSystemVector<double,IndexType>& self)
             {return self.LocalSize();})
@@ -149,6 +152,10 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
 
     py::class_<DistributedCsrMatrix<double,IndexType>, DistributedCsrMatrix<double,IndexType>::Pointer>(m,"DistributedCsrMatrix")
         .def(py::init<const DistributedSparseGraph<IndexType>&>())
+        .def(py::init<const DistributedCsrMatrix<double,IndexType>&>())
+        .def("copy", [](const DistributedCsrMatrix<double,IndexType>& self){
+            return Kratos::make_shared<DistributedCsrMatrix<double,IndexType>>(self);
+        })
         .def("GetComm", &DistributedCsrMatrix<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
         .def("GetRowNumbering", &DistributedCsrMatrix<double,IndexType>::GetRowNumbering, py::return_value_policy::reference_internal)
         .def("GetColNumbering", &DistributedCsrMatrix<double,IndexType>::GetColNumbering, py::return_value_policy::reference_internal)
