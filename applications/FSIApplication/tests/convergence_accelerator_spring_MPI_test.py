@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
@@ -103,7 +102,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
         # So far, the MPI convergence accelerator tests must be run with 2 processes
         if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
-            raise Exception("The MPI convergence accelerator tests must be run with 2 processes.")
+            self.skipTest("The MPI convergence accelerator tests must be run with 2 processes.")
 
         self.print_gid_output = False
         self.accelerator_tolerance = 1e-10

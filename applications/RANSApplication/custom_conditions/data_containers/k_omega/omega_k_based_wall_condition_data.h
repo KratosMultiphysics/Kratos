@@ -50,24 +50,27 @@ public:
     static const std::string GetName() {return "KOmegaOmegaKBasedConditionData";}
 
     OmegaKBasedWallConditionData(
-        const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+    : BaseType(rGeometry, rProperties, rProcessInfo)
     {
     }
 
     void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
-    bool IsWallFluxComputable() const override;
+    bool IsWallFluxComputable() const;
 
     double CalculateWallFlux(
-        const Vector& rShapeFunctions) const override;
+        const Vector& rShapeFunctions);
 
 protected:
     double mOmegaSigma;
     double mKappa;
     double mYPlus;
     double mCmu25;
+    double mDensity;
 };
 
 ///@}

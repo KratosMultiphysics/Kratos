@@ -8,7 +8,7 @@ class MonolithicVelocityPressureFormulationTest(flow_solver_test_case.FlowSolver
     def setUpClass(cls):
         super(MonolithicVelocityPressureFormulationTest, cls).setUpCase(
             "BackwardFacingStepTest",
-            "backward_facing_step_monolithic_velocity_pressure_parameters.json",
+            "backward_facing_step_mon_up_parameters.json",
             False)
         cls.transient_scheme_type = "bossak"
 

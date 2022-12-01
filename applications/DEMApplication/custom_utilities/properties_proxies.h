@@ -10,13 +10,8 @@
 #include <string>
 #include <iostream>
 
-// External includes
 // Project includes
 #include "includes/model_part.h"
-
-//#include "../kratos/includes/define.h"
-//#include "../custom_elements/discrete_element.h"
-//#include "../DEM_application_variables.h"
 
 namespace Kratos {
 
@@ -39,30 +34,6 @@ namespace Kratos {
         double* pGetPoisson();
         void    SetPoissonFromProperties(double* poisson);
 
-        double  GetRollingFriction();
-        double* pGetRollingFriction();
-        void    SetRollingFrictionFromProperties(double* rolling_friction);
-
-        double  GetRollingFrictionWithWalls();
-        double* pGetRollingFrictionWithWalls();
-        void    SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
-
-        double  GetTgOfStaticFrictionAngle();
-        double* pGetTgOfStaticFrictionAngle();
-        void    SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
-
-        double  GetTgOfDynamicFrictionAngle();
-        double* pGetTgOfDynamicFrictionAngle();
-        void    SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle);
-
-        double  GetCoefficientOfRestitution();
-        double* pGetCoefficientOfRestitution();
-        void    SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution);
-
-        double  GetLnOfRestitCoeff();
-        double* pGetLnOfRestitCoeff();
-        void    SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff);
-
         double  GetDensity();
         double* pGetDensity();
         void    SetDensityFromProperties(double* density);
@@ -71,50 +42,6 @@ namespace Kratos {
         int*    pGetParticleMaterial();
         void    SetParticleMaterialFromProperties(int* particle_material);
 
-        double  GetParticleCohesion();
-        double* pGetParticleCohesion();
-        void    SetParticleCohesionFromProperties(double* particle_cohesion);
-
-        double  GetParticleInitialCohesion();
-        double* pGetParticleInitialCohesion();
-        void    SetParticleInitialCohesionFromProperties(double* particle_initial_cohesion);
-
-        double  GetAmountOfCohesionFromStress();
-        double* pGetAmountOfCohesionFromStress();
-        void    SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress);
-
-        double  GetParticleKNormal();
-        double* pGetParticleKNormal();
-        void    SetParticleKNormalFromProperties(double* particle_k_normal);
-
-        double  GetParticleKTangential();
-        double* pGetParticleKTangential();
-        void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
-
-        double  GetParticleConicalDamageContactRadius();
-        double* pGetParticleConicalDamageContactRadius();
-        void    SetParticleConicalDamageContactRadiusFromProperties(double* particle_conical_damage_contact_radius);
-
-        double  GetParticleConicalDamageMaxStress();
-        double* pGetParticleConicalDamageMaxStress();
-        void    SetParticleConicalDamageMaxStressFromProperties(double* particle_conical_damage_max_stress);
-
-        double  GetParticleConicalDamageGamma();
-        double* pGetParticleConicalDamageGamma();
-        void    SetParticleConicalDamageGammaFromProperties(double* particle_conical_damage_gamma);
-
-        double  GetLevelOfFouling();
-        double* pGetLevelOfFouling();
-        void    SetLevelOfFoulingFromProperties(double* level_of_fouling);
-
-        double  GetContactTauZero();
-        double* pGetContactTauZero();
-        void    SetContactTauZeroFromProperties(double* contact_tau_zero);
-
-        double  GetContactInternalFricc();
-        double* pGetContactInternalFricc();
-        void    SetContactInternalFriccFromProperties(double* contact_internal_fricc);
-
         PropertiesProxy operator= (PropertiesProxy props);
 
     private:
@@ -122,26 +49,8 @@ namespace Kratos {
         unsigned int mId;
         double* mYoung;
         double* mPoisson;
-        double* mRollingFriction;
-        double* mRollingFrictionWithWalls;
-        double* mTgOfStaticFrictionAngle;
-        double* mTgOfDynamicFrictionAngle;
-        double* mCoefficientOfRestitution;
-        double* mLnOfRestitCoeff;
         double* mDensity;
         int*    mParticleMaterial;
-        double* mParticleCohesion;
-        double* mParticleInitialCohesion;
-        double* mAmountOfCohesionFromStress;
-        double* mParticleKNormal;
-        double* mParticleKTangential;
-        double* mParticleConicalDamageContactRadius;
-        double* mParticleConicalDamageMaxStress;
-        double* mParticleConicalDamageGamma;
-        double* mLevelOfFouling;
-        double* mContactSigmaMin;
-        double* mContactTauZero;
-        double* mContactInternalFricc;
 
         friend class Serializer;
 

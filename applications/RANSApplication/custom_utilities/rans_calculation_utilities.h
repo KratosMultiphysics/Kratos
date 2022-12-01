@@ -79,57 +79,6 @@ void CalculateGeometryParameterDerivativesShapeSensitivity(
     const Matrix& rDnDe,
     const Matrix& rDeDx);
 
-template<class TDataType>
-void UpdateValue(TDataType& rOutput, const TDataType& rInput);
-
-template <class... TRefVariableValuePairArgs>
-void EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Vector& rShapeFunction,
-    const int Step,
-    const TRefVariableValuePairArgs&... rValueVariablePairs)
-{
-    KRATOS_TRY
-
-    const int number_of_nodes = rGeometry.PointsNumber();
-
-    const auto& r_node = rGeometry[0];
-    const double shape_function_value = rShapeFunction[0];
-
-    int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-        std::get<0>(rValueVariablePairs) =
-            r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
-        0)...};
-
-    // this can be removed with fold expressions in c++17
-    *dummy = 0;
-
-    for (int c = 1; c < number_of_nodes; ++c) {
-        const auto& r_node = rGeometry[c];
-        const double shape_function_value = rShapeFunction[c];
-
-        int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
-            UpdateValue<typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type>(
-                std::get<0>(rValueVariablePairs),
-                r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value),
-            0)...};
-
-        // this can be removed with fold expressions in c++17
-        *dummy = 0;
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <class... TRefVariableValuePairArgs>
-void inline EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Vector& rShapeFunction,
-    const TRefVariableValuePairArgs&... rValueVariablePairs)
-{
-    EvaluateInPoint<TRefVariableValuePairArgs...>(rGeometry, rShapeFunction, 0, rValueVariablePairs...);
-}
-
 template <unsigned int TDim>
 double CalculateMatrixTrace(
     const BoundedMatrix<double, TDim, TDim>& rMatrix);

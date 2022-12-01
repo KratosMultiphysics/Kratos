@@ -20,6 +20,8 @@
 
 #include "processes/process.h"
 
+#include "geometries/coupling_geometry.h"
+
 namespace Kratos
 {
 

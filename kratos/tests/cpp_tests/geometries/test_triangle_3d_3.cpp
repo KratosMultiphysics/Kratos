@@ -8,6 +8,7 @@
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -93,7 +94,7 @@ namespace Testing
         auto p_geom = GenerateRightTriangle3D3<NodeType>();
 
         const auto& r_edges = p_geom->GenerateEdges();
-        
+
         KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
         KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
         KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
@@ -214,6 +215,37 @@ namespace Testing
         KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
     }
 
+    /** Checks the ProjectionPoint test for a given point respect to the triangle
+    * Checks the ProjectionPoint test for a given point respect to the triangle
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ProjectionPoint, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightTriangle3D3<NodeType>();
+
+        Point point(0.5 * std::cos(Globals::Pi/4), 0.55, 0.5 * std::sin(Globals::Pi/4));
+
+        Geometry<Point>::CoordinatesArrayType global_coords;
+        Geometry<Point>::CoordinatesArrayType local_coords;
+
+        geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
+        geom->GlobalCoordinates(global_coords, local_coords);
+
+        // Manually project
+        const auto center = geom->Center();
+        const array_1d<double, 3> normal = geom->UnitNormal(center);
+        const Point point_to_project(point);
+        double distance;
+        Geometry<Point>::CoordinatesArrayType point_projected;
+        point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
+
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], point_projected[0], 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], point_projected[1], 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], point_projected[2], 1.0e-4);
+
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.55, 1.0e-4);
+        KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
+    }
+
     /** Checks the inside test for a given point respect to the triangle
     * Checks the inside test for a given point respect to the triangle
     * It performs 4 tests:
@@ -268,7 +300,7 @@ namespace Testing
         const double ExpectedJacobian = 1.0;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_1 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
         {
@@ -284,7 +316,7 @@ namespace Testing
         const double ExpectedJacobian = 1.0;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_2 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
         {
@@ -300,7 +332,7 @@ namespace Testing
         const double ExpectedJacobian = 1.0;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_3 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
         {
@@ -316,7 +348,7 @@ namespace Testing
         const double ExpectedJacobian = 1.0;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_4 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
         {
@@ -332,7 +364,7 @@ namespace Testing
         const double ExpectedJacobian = 1.0;
 
         Vector JacobianDeterminants;
-        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::GI_GAUSS_5 );
+        geom->DeterminantOfJacobian( JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 
         for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
         {
@@ -347,7 +379,7 @@ namespace Testing
         auto geom = GenerateRightTriangle3D3<NodeType>();
         const double ExpectedJacobian = 1.0;
 
-        double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_1 );
+        double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -359,10 +391,10 @@ namespace Testing
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 1.0;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_2 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_2 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_2 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -374,13 +406,13 @@ namespace Testing
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 1.0;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_3 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_3 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_3 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -392,16 +424,16 @@ namespace Testing
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 1.0;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_4 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_4 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -413,19 +445,19 @@ namespace Testing
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 1.0;
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 
-        JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::GI_GAUSS_5 );
+        JacobianDeterminant = geom->DeterminantOfJacobian( 5, GeometryData::IntegrationMethod::GI_GAUSS_5 );
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
@@ -520,6 +552,48 @@ namespace Testing
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3LineIntersection, KratosCoreGeometriesFastSuite) {
+        Triangle3D3<Point> triangle(
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
+            );
+        Line3D2<Point> line(
+            std::make_shared<Point>(1.0, 0.0, 0.0),
+            std::make_shared<Point>(-1.0, 3.0, 1.0)
+            );
+
+        KRATOS_CHECK(triangle.HasIntersection(line));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarLineNoIntersection, KratosCoreGeometriesFastSuite) {
+        Triangle3D3<Point> triangle(
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
+            );
+        Line3D2<Point> line(
+            std::make_shared<Point>(0.0, 2.0, 1.0),
+            std::make_shared<Point>(0.0, 6.0, 1.0)
+            );
+
+        KRATOS_CHECK_IS_FALSE(triangle.HasIntersection(line));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelLineNoIntersection, KratosCoreGeometriesFastSuite) {
+        Triangle3D3<Point> triangle(
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
+            );
+        Line3D2<Point> line(
+            std::make_shared<Point>(1.0, 0.0, 0.0),
+            std::make_shared<Point>(1.0, 3.0, 1.0)
+            );
+
+        KRATOS_CHECK_IS_FALSE(triangle.HasIntersection(line));
     }
 
     /**

@@ -68,7 +68,7 @@ public:
 
 protected:
 
-    typedef struct
+    struct PlaneVariables
     {
 
       PointType  Point;      // plane point
@@ -85,7 +85,7 @@ protected:
 
       }
 
-    } PlaneVariables;
+    };
 
 
 public:

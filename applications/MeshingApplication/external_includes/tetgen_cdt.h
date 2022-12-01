@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/timer.hpp>
 
 
@@ -31,7 +31,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 
@@ -542,7 +542,7 @@ namespace Kratos
                     //generating the dofs
                     for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                     {
-                        Node<3>::DofType& rDof = *iii;
+                        Node<3>::DofType &rDof = **iii;
                         Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                         (p_new_dof)->FreeDof();

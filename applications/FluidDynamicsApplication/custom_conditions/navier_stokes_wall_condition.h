@@ -78,12 +78,14 @@ public:
     struct ConditionDataStruct
     {
         double wGauss;                                  // Gauss point weight
+        bool OutletInflowPreventionSwitch;              // Outlet inflow (i.e. backflow) prevention switch
         double charVel;                                 // Problem characteristic velocity (used in the outlet inflow prevention)
-        double delta;                                   // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
         array_1d<double, 3> Normal;                     // Condition normal
         array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
         Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
     };
+
+    using Condition::SizeType;
 
     typedef Node < 3 > NodeType;
 
@@ -221,7 +223,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Calculates the RHS condition contributions
@@ -231,7 +233,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Calculates the RHS condition contributions
@@ -241,7 +243,7 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                        const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -249,7 +251,7 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Provides the global indices for each one of this element's local rows.
@@ -257,14 +259,19 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
+
+    void Calculate(
+        const Variable< array_1d<double,3> >& rVariable,
+        array_1d<double,3>& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -332,6 +339,14 @@ protected:
 
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
+    /**
+     * @brief Calculates and adds the RHS outlet inflow prevention contribution
+     * This method calculates and adds an extra numerical contribution to the RHS in order
+     * to prevent uncontrolled system energy growth coming from inflow in free-boundaries.
+     * More information can be found in Dong et al. 2014 (https://doi.org/10.1016/j.jcp.2013.12.042).
+     * @param rhs Reference to RHS vector
+     * @param data Condition data container
+     */
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     /**
@@ -434,6 +449,19 @@ private:
      */
     void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
+
+    /**
+     * @brief Project the viscous stress
+     * Provided a viscous stress tensor (in Voigt notation) and a unit normal vector,
+     * this method calculates and returns the projection of the shear stress onto the normal
+     * @param rViscousStress The viscous stress in Voigt notation
+     * @param rNormal The unit normal vector to project onto
+     * @param rProjectedViscousStress The projected viscous stress
+     */
+    void ProjectViscousStress(
+        const Vector& rViscousStress,
+        const array_1d<double,3> rNormal,
+        array_1d<double,3>& rProjectedViscousStress);
 
     ///@}
     ///@name Private  Access

@@ -109,7 +109,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -168,7 +168,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         ) override;
@@ -178,12 +178,18 @@ protected:
      */
     double GetPointLoadIntegrationWeight() override;
 
+    virtual void MPMShapeFunctionPointValuesKinematic(Vector& rResult) const;
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * Calculation of the Nodal Force
@@ -217,6 +223,7 @@ private:
     ///@{
 
     array_1d<double, 3> m_point_load;
+    array_1d<double, 3> m_delta_xg;
 
     ///@}
     ///@name Private Operators
@@ -246,6 +253,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
         rSerializer.save("point_load", m_point_load);
+        rSerializer.save("delta_xg", m_delta_xg);
 
     }
 
@@ -253,6 +261,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
         rSerializer.load("point_load", m_point_load);
+        rSerializer.load("delta_xg", m_delta_xg);
     }
 
 

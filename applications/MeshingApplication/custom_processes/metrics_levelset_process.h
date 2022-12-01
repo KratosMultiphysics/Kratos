@@ -82,7 +82,7 @@ public:
     /**
      * @brief This enums allows to differentiate the interpolation types
      */
-    enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2};
+    enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2, PIECEWISE_LINEAR = 3};
 
     ///@}
     ///@name Life Cycle
@@ -202,18 +202,19 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                            /// The model part to compute
-    const Variable<array_1d<double,3>> mVariableGradient; /// The gradient variable
-    std::string mRatioReferenceVariable = "DISTANCE";     /// Variable used to compute the anisotropic ratio
-    std::string mSizeReferenceVariable = "DISTANCE";      /// Variable used to compute the element size
-    double mMinSize;                                      /// The minimal size of the elements
-    double mMaxSize;                                      /// The maximal size of the elements
-    bool mEnforceCurrent;                                 /// With this we choose if we inforce the current nodal size (NODAL_H)
-    double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
-    double mSizeBoundLayer;                               /// The boundary layer limit Distance for the element size
-    Interpolation mInterpolation;                         /// The interpolation type for the anisotropic ratio
-    Interpolation mSizeInterpolation;                     /// The interpolation type for the element size
+    ModelPart& mThisModelPart;                             /// The model part to compute
+    const Variable<array_1d<double,3>>& mVariableGradient; /// The gradient variable
+    std::string mRatioReferenceVariable = "DISTANCE";      /// Variable used to compute the anisotropic ratio
+    std::string mSizeReferenceVariable = "DISTANCE";       /// Variable used to compute the element size
+    double mMinSize;                                       /// The minimal size of the elements
+    double mMaxSize;                                       /// The maximal size of the elements
+    bool mEnforceCurrent;                                  /// With this we choose if we inforce the current nodal size (NODAL_H)
+    double mAnisotropicRatio;                              /// The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;                                    /// The boundary layer limit Distance for the anisotropic ratio
+    double mSizeBoundLayer;                                /// The boundary layer limit Distance for the element size
+    Table<double> mSizeDistributionTable;                  /// Table containing the [DISTANCE, SIZE] for the piecewise linear interpolation
+    Interpolation mInterpolation;                          /// The interpolation type for the anisotropic ratio
+    Interpolation mSizeInterpolation;                      /// The interpolation type for the element size
 
     ///@}
     ///@name Private Operators
@@ -250,6 +251,8 @@ private:
             return Interpolation::LINEAR;
         else if(Str == "Exponential" || Str == "EXPONENTIAL"  || Str == "exponential")
             return Interpolation::EXPONENTIAL;
+        else if(Str == "piecewise_linear" || Str == "PIECEWISE_LINEAR")
+            return Interpolation::PIECEWISE_LINEAR;
         else
             return Interpolation::LINEAR;
     }

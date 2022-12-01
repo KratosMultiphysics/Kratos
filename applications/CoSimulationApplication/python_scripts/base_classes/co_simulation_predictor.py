@@ -42,7 +42,7 @@ class CoSimulationPredictor:
         cs_tools.cs_print_info("Predictor", colors.bold(self._ClassName()))
 
     def Check(self):
-        print("The predictors do not yet implement Check!")
+        cs_tools.cs_print_warning("Predictor", "The predictors do not yet implement Check!")
 
     def _UpdateData(self, updated_data):
         self.interface_data.SetData(updated_data)

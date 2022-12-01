@@ -142,7 +142,7 @@ public:
 
         array_1d<double, n_nodes> exact_distance = rDistances;
         array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
-        double sub_volumes_sum = 0.00;
+        //double sub_volumes_sum = 0.00;
 
         //compute edge lenghts and max_lenght
         double max_lenght = 0.0;
@@ -275,7 +275,7 @@ public:
         if (number_of_splitted_edges == 0) // no splitting
         {
             rVolumes[0] = volume;
-            sub_volumes_sum = volume;
+            //sub_volumes_sum = volume;
 
             //take the sign from the node with min distance
             double min_distance = 1e9;
@@ -349,18 +349,17 @@ public:
 
                 rVolumes[i] = sub_volume;
 
-                sub_volumes_sum += sub_volume;
+                //sub_volumes_sum += sub_volume;
 
                 array_1d<double, 4 > N;
                 ComputeElementCoordinates(N, center_position, rPoints, volume);
 
                 double dist = 0.0;
-                double abs_dist = 0.0;
-                for (int j = 0; j < 4; j++)
-                {
+                //double abs_dist = 0.0;
+                for (int j = 0; j < 4; j++) {
                     rShapeFunctionValues(i, j) = N[j];
                     dist += rShapeFunctionValues(i, j) * exact_distance[j];
-                    abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
+                    //abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
                 }
 
                 if (dist < 0.0)

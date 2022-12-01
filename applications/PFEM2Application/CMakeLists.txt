@@ -37,6 +37,11 @@ pybind11_add_module(KratosPFEM2Application MODULE THIN_LTO ${KRATOS_QUIET_WATER_
 target_link_libraries(KratosPFEM2Application PUBLIC KratosCore )
 set_target_properties(KratosPFEM2Application PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosPFEM2Application PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosPFEM2Application PROPERTIES SUFFIX .pyd)
@@ -46,11 +51,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPFEM2Application PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosPFEM2Application)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/PFEM2Application.py KratosMultiphysics/PFEM2Application/__init__.py )
@@ -73,3 +73,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosPFEM2Application DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosPFEM2Application" PARENT_SCOPE)

@@ -75,7 +75,7 @@ HenckyMCPlastic3DLaw::~HenckyMCPlastic3DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlastic3DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

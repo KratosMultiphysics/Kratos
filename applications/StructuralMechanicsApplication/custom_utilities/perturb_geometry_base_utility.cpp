@@ -31,7 +31,7 @@ PerturbGeometryBaseUtility::PerturbGeometryBaseUtility( ModelPart& rInitialModel
         mMaximalDisplacement(Settings["max_displacement"].GetDouble())
     {
         KRATOS_TRY
-        NormalCalculationUtils().CalculateUnitNormals<Element>(mrInitialModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(mrInitialModelPart, true);
         mpPerturbationMatrix = TDenseSpaceType::CreateEmptyMatrixPointer();
         KRATOS_CATCH("")
     }

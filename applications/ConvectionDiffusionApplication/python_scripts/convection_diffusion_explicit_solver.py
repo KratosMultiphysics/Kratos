@@ -5,17 +5,17 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver
 
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionExplicitSolver(model, custom_settings)
 
 
-class ConvectionDiffusionExplicitSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionExplicitSolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """
     The explicit class for convection-diffusion solvers.
-    See convection_diffusion_base_solver.py for more information.
+    See convection_diffusion_solver.py for more information.
     """
 
     def __init__(self, model, custom_settings):
@@ -55,6 +55,7 @@ class ConvectionDiffusionExplicitSolver(convection_diffusion_base_solver.Convect
         default_settings = KratosMultiphysics.Parameters(
         """
         {
+            "time_integration_method" : "explicit",
             "use_orthogonal_subscales" : false,
             "dynamic_tau": 1.0
         }
@@ -70,17 +71,17 @@ class ConvectionDiffusionExplicitSolver(convection_diffusion_base_solver.Convect
 
     #### Private functions ####
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         builder_and_solver = KratosMultiphysics.ExplicitBuilder()
         return builder_and_solver
 
-    def _create_convection_diffusion_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         convection_diffusion_solution_strategy = self._create_runge_kutta_4_strategy()
         return convection_diffusion_solution_strategy
 
     def _create_runge_kutta_4_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        explicit_builder_and_solver = self.get_builder_and_solver()
+        explicit_builder_and_solver = self._GetBuilderAndSolver()
         rebuild_level = 0
         return ConvectionDiffusionApplication.ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion(
             computing_model_part,

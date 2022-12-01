@@ -133,6 +133,7 @@ private:
 
     const ModelPart& mrModelPart;
     bool mEstimateDt;
+    bool mAdaptiveDt;
     double mConstantDt;
     double mCourant;
     double mMinDt;

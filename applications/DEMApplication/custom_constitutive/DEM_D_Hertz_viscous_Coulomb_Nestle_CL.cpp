@@ -11,10 +11,8 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Hertz_viscous_Coulomb_Nestle::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-
-        if (verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_viscous_Coulomb_Nestle to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Hertz_viscous_Coulomb_Nestle::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Hertz_viscous_Coulomb_Nestle>();
     }
 
     void DEM_D_Hertz_viscous_Coulomb_Nestle::CalculateViscoDampingForce(double LocalRelVel[3],
@@ -27,11 +25,10 @@ namespace Kratos {
 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
 
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn);
         const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal / 0.55;
 
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
@@ -45,8 +42,11 @@ namespace Kratos {
                                                                 Condition* const wall) {
 
         const double my_mass    = element->GetMass();
-        const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
         const double tangential_damping_coefficient = normal_damping_coefficient / 0.55;
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];

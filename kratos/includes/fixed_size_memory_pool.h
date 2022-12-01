@@ -42,9 +42,7 @@ namespace Kratos
 	  ///@name Type Definitions
 	  ///@{
 
-		using DataType = Chunk::DataType;
-
-		using SizeType = DataType;
+		using SizeType = Chunk::SizeType;
 
 	  ///@}
 
@@ -86,25 +84,20 @@ namespace Kratos
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  mThreadsPool[OpenMPUtils::ThisThread()].SetLock();
 		  void* p_result = mThreadsPool[OpenMPUtils::ThisThread()].Allocate();
-		  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
 		  return p_result;
 	  }
 
 	  void Deallocate(void* pPointrerToRelease) {
 
-		  mThreadsPool[OpenMPUtils::ThisThread()].SetLock();
 		  if (mThreadsPool[OpenMPUtils::ThisThread()].Deallocate(pPointrerToRelease))
 		  {
-			  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
 			  return;
 		  }
 
 		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 			  if (i_thread != OpenMPUtils::ThisThread())
 				  if (mThreadsPool[i_thread].Deallocate(pPointrerToRelease)) {
-					  mThreadsPool[i_thread].UnSetLock();
 					  return;
 				  }
 

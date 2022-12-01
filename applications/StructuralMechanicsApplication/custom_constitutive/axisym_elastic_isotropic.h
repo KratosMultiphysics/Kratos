@@ -93,7 +93,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 4;
     }
@@ -154,7 +154,15 @@ private:
      * @param E: The Young Modulus
      * @param NU: The poisson coefficient
      */
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * It calculates the pk2 stress vector
+     * @param rStrainVector: The strain vector
+     * @param rStressVector: The stress vector
+     * @param rValues: The rvalues of the CL
+     */
+    void CalculatePK2Stress(const Vector &rStrainVector, ConstitutiveLaw::StressVectorType &rStressVector, ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * It calculates the strain vector
@@ -163,7 +171,7 @@ private:
      */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
     ) override;
 
     ///@}

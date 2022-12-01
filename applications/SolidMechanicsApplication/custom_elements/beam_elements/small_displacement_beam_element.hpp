@@ -90,7 +90,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
     ///@}
     ///@name Access
     ///@{
@@ -271,4 +271,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED defined
-

@@ -23,6 +23,7 @@
 #include "includes/variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos {
@@ -346,11 +347,6 @@ int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
         KRATOS_ERROR << "The element works only in 3D and with 3 nodes" << std::endl;
     }
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -392,8 +388,7 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
             size_t index = msDimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j];
+                AtomicAdd(r_force_residual[j], rRHSVector[index + j]);
             }
         }
     }

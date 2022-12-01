@@ -334,6 +334,54 @@ void UPwCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVecto
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwCondition<TDim,TNumNodes>::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
+
+    GeometryType& rGeom = GetGeometry();
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL ) {
+        // CD, VV
+
+        for(SizeType i=0; i< TNumNodes; ++i) {
+
+            SizeType index = (TDim + 1) * i;
+            array_1d<double, 3 >& r_external_force = rGeom[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+
+            for(SizeType j=0; j<TDim; ++j) {
+                #pragma omp atomic
+                r_external_force[j] += rRHSVector[index + j];
+            }
+        }
+    } else if(rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == REACTION ) {
+        // Residual/Reactions
+
+        for(SizeType i=0; i< TNumNodes; ++i) {
+            SizeType index = (TDim + 1) * i;
+            array_1d<double, 3 >& r_force_residual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            double& r_flux_residual = rGeom[i].FastGetSolutionStepValue(FLUX_RESIDUAL);
+
+            for(SizeType j=0; j<TDim; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j];
+            }
+
+            #pragma omp atomic
+            r_flux_residual += rRHSVector[index + TDim];
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 template class UPwCondition<2,1>;
 template class UPwCondition<2,2>;
 template class UPwCondition<3,1>;

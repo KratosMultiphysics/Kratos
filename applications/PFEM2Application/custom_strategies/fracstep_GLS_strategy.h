@@ -32,7 +32,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -105,7 +105,7 @@ namespace Kratos
     class TLinearSolver
     >
     class FracStepStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
       /**@name Type Definitions */
@@ -114,7 +114,7 @@ namespace Kratos
       /** Counted pointer of ClassName */
       KRATOS_CLASS_POINTER_DEFINITION(  FracStepStrategy );
 
-      typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+      typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
       typedef typename BaseType::TDataType TDataType;
 
@@ -137,6 +137,7 @@ namespace Kratos
       /**@name Life Cycle
        */
       /*@{ */
+      
 
       /**
        * Constructor of the FracStepStrategy. Implements the solutions strategy for a Navier Stokes solver
@@ -166,7 +167,7 @@ namespace Kratos
 		      unsigned int domain_size = 2,
 		      bool predictor_corrector = false
 		      )
-      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)//, msolver_config(solver_config)
+      : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)//, msolver_config(solver_config)
 	{
 	  KRATOS_TRY
 
@@ -191,23 +192,25 @@ namespace Kratos
 	  //3 dimensional case
 	  //typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
 	  typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-	  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+	  typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
 	  //initializing fractional velocity solution step
 	  typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
 	  typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
-	  BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewVelocityLinearSolver));
+	  // BuilderSolverTypePointer pVelocityBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewVelocityLinearSolver));
+    BuilderSolverTypePointer pVelocityBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewVelocityLinearSolver));
 
-
-	  this->mpfracvel_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme, pNewVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+    this->mpfracvel_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme, pVelocityBuildAndSolver, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
 
 	  this->mpfracvel_strategy->SetEchoLevel(1);
 
 
-	  BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pNewPressureLinearSolver, PRESSURE));
+	  // BuilderSolverTypePointer pPressureBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewVelocityLinearSolver));
+    BuilderSolverTypePointer pPressureBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewPressureLinearSolver));
 
-	  this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme,pNewPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+	  // this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme,pNewPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+    this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme,pPressureBuildAndSolver, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
 	  this->mppressurestep->SetEchoLevel(2);
 
 	  this->m_step = 1;

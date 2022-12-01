@@ -22,6 +22,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/geometry_utilities.h"
 
 #include "includes/cfd_variables.h"
@@ -103,7 +104,7 @@ public:
         }
 
         // Count the number of patches in the model (in parallel)
-        const int NumThreads = OpenMPUtils::GetNumThreads();
+        const int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(mCoarseMesh.size(),NumThreads,ElementPartition);
 
@@ -146,7 +147,7 @@ public:
         this->SetCoarseVel();
 
         // Partitioning
-        const int NumThreads = OpenMPUtils::GetNumThreads();
+        const int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector CoarseElementPartition,FineElementPartition;
         OpenMPUtils::DivideInPartitions(mCoarseMesh.size(),NumThreads,CoarseElementPartition);
         OpenMPUtils::DivideInPartitions(mrModelPart.Elements().size(),NumThreads,FineElementPartition);
@@ -305,7 +306,7 @@ public:
     void CorrectFlagValues(Variable<double>& rThisVariable = FLAG_VARIABLE)
     {
         // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
-        const int NumThreads = OpenMPUtils::GetNumThreads();
+        const int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfNodes(),NumThreads,NodePartition);
 
@@ -581,8 +582,9 @@ private:
                            Matrix& rMassMatrix, ///@todo This matrix and the next vector should be transformed to static members once we find a threadsafe way to do so
                            Vector& rAuxVector,
                            Vector& rResidual,
-                           ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo)
     {
+        const auto& r_const_elem_ref = rElement;
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Dynamic stabilization terms
@@ -590,7 +592,7 @@ private:
 
         // Dynamic Terms
         rElement.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
-        rElement.GetSecondDerivativesVector(rAuxVector,0);
+        r_const_elem_ref.GetSecondDerivativesVector(rAuxVector,0);
 
         noalias(rResidual) -= prod(rMassMatrix,rAuxVector);
 

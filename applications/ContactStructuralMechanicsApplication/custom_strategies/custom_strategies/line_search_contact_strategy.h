@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -21,10 +22,11 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -34,7 +36,7 @@
 
 // TODO: Extend the descriptions
 
-namespace Kratos 
+namespace Kratos
 {
 
 ///@name Kratos Globals
@@ -55,33 +57,36 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /** \brief  Short class definition.
-This class 
+This class
 */
 
 template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-         
 class LineSearchContactStrategy :
     public LineSearchStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
-    
+
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( LineSearchContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              StrategyBaseType;
-    
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                          SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>      StrategyBaseType;
+
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> NRBaseType;
-    
+
     typedef LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
-    
+
+    typedef LineSearchContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>           ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
- 
+
     typedef typename BaseType::TDataType                                                  TDataType;
 
     typedef TSparseSpace                                                            SparseSpaceType;
@@ -99,17 +104,37 @@ public:
     typedef typename BaseType::LocalSystemMatrixType                          LocalSystemMatrixType;
 
     typedef typename BaseType::TSystemMatrixPointerType                    TSystemMatrixPointerType;
-    
+
     typedef typename BaseType::TSystemVectorPointerType                    TSystemVectorPointerType;
-    
+
     typedef ModelPart::NodesContainerType                                            NodesArrayType;
-    
+
     typedef ModelPart::ConditionsContainerType                                  ConditionsArrayType;
-    
+
     typedef std::size_t                                                                   IndexType;
-    
+
     /**
-     * Default constructor 
+     * @brief Default constructor
+     */
+    explicit LineSearchContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit LineSearchContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, BaseType::GetDefaultParameters())
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
+     * Default constructor
      * @param rModelPart: The model part of the problem
      * @param pScheme: The integration scheme
      * @param pNewLinearSolver: The linear solver employed
@@ -119,7 +144,6 @@ public:
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
      */
-    
     LineSearchContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
@@ -131,21 +155,19 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
     )
-        : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY;
 
-        Parameters DefaultParameters = Parameters(R"(
-        {
-        })" );
+        Parameters default_parameters = this->GetDefaultParameters();
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
 
     /**
-     * Default constructor 
+     * Default constructor
      * @param rModelPart: The model part of the problem
      * @param pScheme: The integration scheme
      * @param pNewLinearSolver: The linear solver employed
@@ -155,7 +177,7 @@ public:
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
      */
-    
+
     LineSearchContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
@@ -168,30 +190,75 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
     )
-        : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
     {
         KRATOS_TRY;
 
-        Parameters DefaultParameters = Parameters(R"(
-        {
-        })" );
+        Parameters default_parameters = this->GetDefaultParameters();
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
 
-    /** 
+    /**
      * Destructor.
      */
-    
+
     ~LineSearchContactStrategy() override
     = default;
-        
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename SolvingStrategyType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "line_search_contact_strategy"
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "line_search_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -199,6 +266,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "LineSearchContactStrategy";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -212,30 +297,32 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     bool mRecalculateFactor;         // To check if we recalculate or not the scale factor
 
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
     /**
-     * Performs all the required operations that should be done (for each step) 
+     * Performs all the required operations that should be done (for each step)
      * before solving the solution step.
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
-        
     void InitializeSolutionStep() override
     {
         BaseType::InitializeSolutionStep();
-        
+
         // TODO: Add something if necessary
     }
-    
+
     /**
      * Here the database is updated
      */
-     
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -249,17 +336,17 @@ protected:
         TSystemVectorType aux(b.size()); //TODO: do it by using the space
         TSparseSpace::Assign(aux, 0.5, Dx);
 
-        TSystemVectorType DxDisp(b.size()); 
-        TSystemVectorType DxLM(b.size()); 
+        TSystemVectorType DxDisp(b.size());
+        TSystemVectorType DxLM(b.size());
         ComputeSplitDx(Dx, DxDisp, DxLM);
-        
+
         // Compute residual without update
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
         double roDisp;
         double roLM;
         ComputeMixedResidual(b, roDisp, roLM);
-        
+
         // Compute half step residual
         NRBaseType::UpdateDatabase(A,aux,b,MoveMesh);
         TSparseSpace::SetToZero(b);
@@ -276,15 +363,15 @@ protected:
         double rfLM;
         ComputeMixedResidual(b, rfDisp, rfLM);
 
-        // We compute the parabola        
+        // We compute the parabola
         double XminDisp = 1e-3;
         double XmaxDisp = 1.0;
         double XminLM = 1e-3;
         double XmaxLM = 1.0;
-        
+
         ComputeParabola(XminDisp, XmaxDisp, rfDisp, roDisp, rhDisp);
         ComputeParabola(XminLM, XmaxLM, rfLM, roLM, rhLM);
-        
+
         // Perform final update
         TSparseSpace::Assign(aux,-(1.0 - XmaxDisp), DxDisp);
         TSparseSpace::UnaliasedAdd(aux,-(1.0 - XmaxLM), DxLM);
@@ -297,85 +384,61 @@ protected:
      * @param DxDisp The increment of displacements
      * @param DxLM The increment of LM
      */
-        
     void ComputeSplitDx(
         TSystemVectorType& Dx,
         TSystemVectorType& DxDisp,
         TSystemVectorType& DxLM
         )
-    {        
+    {
         // Now we iterate over all the nodes
-        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size()); 
-        
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
-            auto it_node = nodes_array.begin() + i;
-    
-            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
-            {
+        NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+            for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
-                
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {          
+
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z)) {
                     DxDisp[j] = Dx[j];
                     DxLM[j] = 0.0;
-                }
-                else // Corresponding with contact
-                {
+                } else { // Corresponding with contact
                     DxDisp[j] = 0.0;
                     DxLM[j] = Dx[j];
                 }
             }
-        }
+        });
     }
-    
+
     /**
      * This method calculates the norm considering one norm for the displacement and other norm for the LM
      * @param b The residual vector
      * @param normDisp normDisp: The norm of the displacement
      * @param normLM The norm of the LM
      */
-        
     void ComputeMixedResidual(
         TSystemVectorType& b,
-        double& normDisp, 
+        double& normDisp,
         double& normLM
         )
-    {        
+    {
         // Now we iterate over all the nodes
-        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size()); 
-        
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
-            auto it_node = nodes_array.begin() + i;
-    
-            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
-            {
+        NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+            for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
-                
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {          
-                    #pragma omp atomic
-                    normDisp += b[j] * b[j];
-                }
-                else // Corresponding with contact
-                {
-                    #pragma omp atomic
-                    normLM += b[j] * b[j];
+
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z)) {
+                    AtomicAdd(normDisp, b[j] * b[j]);
+                } else { // Corresponding with contact
+                    AtomicAdd(normLM, b[j] * b[j]);
                 }
             }
-        }
-        
+        });
+
         normDisp = std::sqrt(normDisp);
         normLM = std::sqrt(normLM);
     }
-    
+
     /**
      * This method computes the parabola necessary for the line search
      * @param Xmax The maximal abscissa
@@ -384,7 +447,6 @@ protected:
      * @param ro The residual norm without step
      * @param rh The residual norm of the half step
      */
-        
     void ComputeParabola(
         double& Xmax,
         double& Xmin,
@@ -392,7 +454,7 @@ protected:
         const double ro,
         const double rh
         )
-    {   
+    {
         // Compute optimal (limited to the range 0-1)
         // Parabola is y = a*x^2 + b*x + c -> min/max for
         // x=0   --> r=ro
@@ -400,10 +462,10 @@ protected:
         // x=1   --> r =
         // c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
         // max found if a>0 at the position  Xmax = (rf/4 - rh)/(rf - 2*rh);
-        
+
         const double parabole_a = 2 * rf + 2 * ro - 4 * rh;
         const double parabole_b = 4 * rh - rf - 3 * ro;
-        
+
         if( parabole_a > 0.0) //  If parabola has a local minima
         {
             Xmax = -0.5 * parabole_b/parabole_a; // -b / 2a
@@ -420,10 +482,15 @@ protected:
                 Xmax = Xmin; // Should be zero, but otherwise it will stagnate
         }
     }
-    
-    ///@}
-    ///@name Protected Operations
-    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
 
     ///@}
     ///@name Protected  Access
@@ -438,10 +505,10 @@ protected:
     ///@{
     ///@{
 
-    /** 
+    /**
      * Copy constructor.
      */
-    
+
     LineSearchContactStrategy(const LineSearchContactStrategy& Other)
     {
     };
@@ -450,7 +517,7 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -458,7 +525,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{

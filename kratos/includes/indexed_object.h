@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {

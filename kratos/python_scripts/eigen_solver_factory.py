@@ -18,6 +18,15 @@ def ConstructSolver(settings):
         else:
             raise Exception("LinearSolversApplication not available")
 
+    if solver_type == "spectra_sym_g_eigs_shift":
+        if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
+            from KratosMultiphysics import LinearSolversApplication
+            eigen_solver = LinearSolversApplication.SpectraSymGEigsShiftSolver(settings)
+            return eigen_solver
+        else:
+            raise Exception("LinearSolversApplication not available")
+
+
     elif solver_type == "dense_eigensolver":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
             from KratosMultiphysics import LinearSolversApplication

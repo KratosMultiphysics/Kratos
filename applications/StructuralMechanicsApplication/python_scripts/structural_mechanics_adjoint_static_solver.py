@@ -146,7 +146,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
                 node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             if self.settings["compute_reactions"].GetBool():
@@ -160,5 +160,5 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_solution_strategy
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)

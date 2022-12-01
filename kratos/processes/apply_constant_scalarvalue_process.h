@@ -29,6 +29,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -121,7 +122,7 @@ public:
                               const Variable<double>& rVariable,
                               const double double_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -145,7 +146,7 @@ public:
                               const Variable< int >& rVariable,
                               const int int_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -173,7 +174,7 @@ public:
                               const Variable< bool >& rVariable,
                               const bool bool_value,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
@@ -354,21 +355,13 @@ private:
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
                 if(to_be_fixed)
                 {
-                    it->Fix(rVar);
+                    rNode.Fix(rVar);
                 }
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+                rNode.FastGetSolutionStepValue(rVar) = value;
+            });
         }
     }
 
@@ -379,16 +372,7 @@ private:
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
-
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+            VariableUtils().SetVariable(rVar, value, mr_model_part.GetMesh(mmesh_id).Nodes());
         }
     }
 

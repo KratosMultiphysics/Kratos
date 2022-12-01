@@ -34,7 +34,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainFICElement : public UP
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwSmallStrainFICElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainFICElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -70,7 +70,7 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

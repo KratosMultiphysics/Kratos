@@ -72,7 +72,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "processes/node_erase_process.h"
 ///
 
 #include "utilities/geometry_utilities.h"
@@ -290,7 +289,8 @@ namespace Kratos
 
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -298,6 +298,7 @@ namespace Kratos
 					pelement=Element::Pointer(((neighb_elems(i))));
 					return true;
 				}
+			}
 		}
 
 
@@ -306,29 +307,29 @@ namespace Kratos
 		//KRATOS_WATCH(results_found)
 
 		if(results_found>0){
-		//loop over the candidate elements and check if the particle falls within
-		for(SizeType i = 0; i< results_found; i++)
-		{
-			//std::cout<< "KIIIIIIIIIIIIII" << std::endl;
-			//KRATOS_WATCH((*(result_begin+i))->Id());
-			Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
-
-
-			//find local position
-			bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-
-			//KRATOS_WATCH("ln243");
-			//KRATOS_WATCH(N);
-
-			if(is_found == true)
+			//loop over the candidate elements and check if the particle falls within
+			for(SizeType i = 0; i< results_found; i++)
 			{
-				//pelement.clear();
-				//pelement.push_back( Element::WeakPointer((*(result_begin+i).base())));
-				pelement=Element::Pointer((*(result_begin+i).base()));
-				return true;
+				//std::cout<< "KIIIIIIIIIIIIII" << std::endl;
+				//KRATOS_WATCH((*(result_begin+i))->Id());
+				Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+
+
+				//find local position
+				bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+
+				//KRATOS_WATCH("ln243");
+				//KRATOS_WATCH(N);
+
+				if(is_found == true)
+				{
+					//pelement.clear();
+					//pelement.push_back( Element::WeakPointer((*(result_begin+i).base())));
+					pelement=Element::Pointer((*(result_begin+i).base()));
+					return true;
+				}
 			}
 		}
-	}
 
 		//not found case
 		return false;

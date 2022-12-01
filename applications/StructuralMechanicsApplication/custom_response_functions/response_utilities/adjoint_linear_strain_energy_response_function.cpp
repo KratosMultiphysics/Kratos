@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "utilities/entities_utilities.h"
 #include "adjoint_linear_strain_energy_response_function.h"
 
 namespace Kratos
@@ -34,21 +35,7 @@ namespace Kratos
         BaseType::Initialize();
 
         // It is necessary to initialize the elements/conditions since no adjoint problem is solved for this response type.
-
-        const auto& r_process_info = mrModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
-        {
-            auto it = mrModelPart.ElementsBegin() + i;
-            it->Initialize(r_process_info);
-        }
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(mrModelPart.Conditions().size()); ++i)
-        {
-            auto it = mrModelPart.ConditionsBegin() + i;
-            it->Initialize(r_process_info);
-        }
+        EntitiesUtilities::InitializeAllEntities(mrModelPart);
 
         KRATOS_CATCH("");
     }
@@ -90,7 +77,8 @@ namespace Kratos
         // Assuming that the conditions don't have K, the remaining content of rSensitivityMatrix \frac{\partial F}{\partial s}
 
         Vector adjoint_variables;
-        rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
+        const auto& r_const_adjoint_condition_ref = rAdjointCondition;
+        r_const_adjoint_condition_ref.GetValuesVector(adjoint_variables); // = 0.5*u
 
         KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
              << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
@@ -140,7 +128,8 @@ namespace Kratos
         // Assuming that the conditions don't have K, the remaining content of rSensitivityMatrix \frac{\partial F}{\partial s}
 
         Vector adjoint_variables;
-        rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
+        const auto& r_const_adjoint_condition_ref = rAdjointCondition;
+        r_const_adjoint_condition_ref.GetValuesVector(adjoint_variables); // = 0.5*u
 
         KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
             << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
@@ -171,7 +160,8 @@ namespace Kratos
 
         for (auto& elem_i : rModelPart.Elements())
         {
-            elem_i.GetValuesVector(disp,0);
+            const auto& r_const_elem_ref = elem_i;
+            r_const_elem_ref.GetValuesVector(disp,0);
 
             elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
@@ -200,5 +190,4 @@ namespace Kratos
     }
 
 } // namespace Kratos.
-
 

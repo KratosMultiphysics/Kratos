@@ -23,7 +23,7 @@
 #include "custom_includes/kratos_internals.h"
 #include "utilities/variable_utils.h"
 #include "utilities/read_materials_utility.h"
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 //#define SKIN_SUBMODEL_PART_NAME "skin_model_part"
 
@@ -135,7 +135,7 @@ void KratosInternals::initProperties() {
 
     // We will hardcode the CL
     if (r_materials_filename == "") {
-        Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::HyperElasticIsotropicNeoHookean3D>();
+        Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::ElasticIsotropic3D>();
         r_model_part.GetProperties(0).SetValue(Kratos::CONSTITUTIVE_LAW, pCl);
     } else { // We read the materials json
         Kratos::Parameters material_settings = Kratos::Parameters(R"({"Parameters": {"materials_filename": ""}})" );

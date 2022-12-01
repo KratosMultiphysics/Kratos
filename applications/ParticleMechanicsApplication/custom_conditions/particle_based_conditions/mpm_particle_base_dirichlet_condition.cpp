@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -35,7 +35,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
     // Prepare variables
     GeneralVariables Variables;
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    MPMShapeFunctionPointValues(Variables.N);
 
     // Get NODAL_AREA from MPC_Area
     GeometryType& r_geometry = GetGeometry();
@@ -54,7 +54,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
 }
 
-void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // Update the MPC Position
     m_xg += m_imposed_displacement;
@@ -82,9 +82,6 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         rValues[0] = m_imposed_acceleration;
     }
-    else if (rVariable == MPC_DISPLACEMENT) {
-        rValues[0] = m_displacement;
-    }
     else {
         MPMParticleBaseCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
@@ -93,7 +90,7 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
 
 void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -109,20 +106,17 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         m_imposed_acceleration = rValues[0];
     }
-    else if (rVariable == MPC_DISPLACEMENT) {
-        m_displacement = rValues[0];
-    }
     else {
         MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
-Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
 {
     KRATOS_TRY
 
-    rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+    MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -138,8 +132,6 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     }
 
     rResult = rResult / denominator;
-
-    return rResult;
 
     KRATOS_CATCH( "" )
 }

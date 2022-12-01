@@ -7,6 +7,13 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
+set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "")
+set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "")
+if (${USE_MPI})
+    set(CO_SIM_IO_BUILD_MPI_COMMUNICATION ON CACHE BOOL "")
+endif()
+add_subdirectory(custom_external_libraries/CoSimIO)
+
 ## CoSimulation Core sources
 file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application.cpp
@@ -29,14 +36,20 @@ set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/te
 
 
 add_library(KratosCoSimulationCore SHARED ${KRATOS_CO_SIMULATION_APPLICATION_CORE} ${KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore)
+target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore co_sim_io)
 set_target_properties(KratosCoSimulationCore PROPERTIES COMPILE_DEFINITIONS "CO_SIMULATION_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SIMULATION_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore)
+target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore )
 set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCoSimulationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosCoSimulationApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Making the cpp_test_solver_one and cpp_test_solver_two executables
 add_executable(ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
@@ -51,12 +64,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosCoSimulationApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosCoSimulationCore)
-    cotire(KratosCoSimulationApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py KratosMultiphysics/CoSimulationApplication/__init__.py )
@@ -80,3 +87,13 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCoSimulationCore DESTINATION libs )
 install(TARGETS KratosCoSimulationApplication DESTINATION libs )
+
+## If MPI is used, then enable the MPIExtension
+if(${USE_MPI})
+  message("Enabling mpi extension for CoSimulationApplication")
+  add_subdirectory(mpi_extension)
+endif(${USE_MPI})
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCoSimulationCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCoSimulationApplication" PARENT_SCOPE)

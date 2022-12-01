@@ -217,64 +217,61 @@ namespace Kratos {
         LHS and to the RHS
           of the system
          */
-        void CalculateSystemContributions(Element::Pointer rCurrentElement,
+        void CalculateSystemContributions(Element& rCurrentElement,
                                           LocalSystemMatrixType& LHS_Contribution,
                                           LocalSystemVectorType& RHS_Contribution,
                                           Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo) override
+                                          const ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
 
             //Initializing the non linear iteration for the current element
-            //(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
             //KRATOS_WATCH(LHS_Contribution);
             //basic operations for the element considered
-            (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-            (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+            rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
 
             KRATOS_CATCH("")
         }
 
-        void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
+        void CalculateRHSContribution(Element& rCurrentElement,
                                         LocalSystemVectorType& RHS_Contribution,
                                         Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo) override
+                                        const ProcessInfo& CurrentProcessInfo) override
         {
 
             //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
-            (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-            (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+            rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            mRotationTool.Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
-            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+            mRotationTool.Rotate(RHS_Contribution,rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
         }
 
         /** functions totally analogous to the precedent but applied to
         the "condition" objects
          */
-        virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+        virtual void CalculateSystemContributions(Condition& rCurrentCondition,
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo) override
+                                                            const ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
 
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+            rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             //mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -283,27 +280,26 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+        virtual void CalculateRHSContribution(Condition& rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo) override
+                                                          const ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
 
 
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             //Initializing the non linear iteration for the current condition
-            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
-            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+            rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
-            (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
+            rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
 
             // Rotate contributions (to match coordinates for slip conditions)
-            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
 
             KRATOS_CATCH("");
         }
@@ -315,7 +311,7 @@ namespace Kratos {
                                             TSystemVectorType& Dx,
                                             TSystemVectorType& b) override
         {
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
@@ -407,7 +403,6 @@ namespace Kratos {
 
             for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
             {
-                (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
                 //KRATOS_WATCH(LHS_Contribution);
                 //basic operations for the element considered
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);

@@ -371,47 +371,6 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::CalculateRightHandSide(
-    std::vector< VectorType >& rRightHandSideVectors,
-    const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    /* Create local system components */
-    LocalSystemComponents local_system;
-
-    /* Calculation flags */
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR);
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType left_hand_side_matrix = Matrix();
-
-    /* Initialize sizes for the system components: */
-    if( rRHSVariables.size() != rRightHandSideVectors.size() ) {
-        rRightHandSideVectors.resize(rRHSVariables.size());
-    }
-
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
-        this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
-    }
-
-    /* Set general_variables to Local system components */
-    local_system.SetLeftHandSideMatrix(left_hand_side_matrix);
-    local_system.SetRightHandSideVectors(rRightHandSideVectors);
-
-    local_system.SetRightHandSideVariables(rRHSVariables);
-
-    /* Calculate elemental system */
-    CalculateElementalSystem( local_system, rCurrentProcessInfo );
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SolidShellElementSprism3D6N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
@@ -1298,7 +1257,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1310,7 +1269,7 @@ void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1322,7 +1281,7 @@ void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1334,7 +1293,7 @@ void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1358,22 +1317,6 @@ int SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) c
     }
 
     const int check = BaseType::Check(rCurrentProcessInfo);
-
-    // Verify that nodal variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VON_MISES_STRESS)
-    KRATOS_CHECK_VARIABLE_KEY(NORM_ISOCHORIC_STRESS)
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(HENCKY_STRAIN_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(HENCKY_STRAIN_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_MATRIX)
-    KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT)
 
     /* Verify compatibility with the constitutive law */
     ConstitutiveLaw::Features law_features;
@@ -1609,94 +1552,97 @@ void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessI
 {
     KRATOS_TRY;
 
-    mFinalizedStep = true; // the creation is out of the time step, it must be true
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mFinalizedStep = true; // the creation is out of the time step, it must be true
 
-    // Getting properties
-    const Properties& r_properties = GetProperties();
+        // Getting properties
+        const Properties& r_properties = GetProperties();
 
-    // Checking integration order
-    if( r_properties.Has(INTEGRATION_ORDER) ) {
-        const SizeType integration_order = r_properties.GetValue(INTEGRATION_ORDER);
-        switch ( integration_order )
-        {
-        case 1:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
-            break;
-        case 2:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
-            break;
-        case 3:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
-            break;
-        case 4:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
-            break;
-        case 5:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
-            break;
-        default:
-            KRATOS_WARNING("SolidShellElementSprism3D6N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+        // Checking integration order
+        if( r_properties.Has(INTEGRATION_ORDER) ) {
+            const SizeType integration_order = r_properties.GetValue(INTEGRATION_ORDER);
+            switch ( integration_order )
+            {
+            case 1:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+                break;
+            case 2:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2;
+                break;
+            case 3:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3;
+                break;
+            case 4:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4;
+                break;
+            case 5:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5;
+                break;
+            default:
+                KRATOS_WARNING("SolidShellElementSprism3D6N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+            }
+        } else {
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
         }
-    } else {
-        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+        /* Constitutive Law initialisation */
+        if ( mConstitutiveLawVector.size() != integration_points.size() )
+            mConstitutiveLawVector.resize( integration_points.size() );
+
+        /* Implicit or explicit EAS update */
+        if( r_properties.Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, r_properties.GetValue(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, true);
+
+        /* Total or updated lagrangian */
+        if( r_properties.Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, r_properties.GetValue(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
+
+        /* Quadratic or linear element */
+        if( r_properties.Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, r_properties.GetValue(CONSIDER_QUADRATIC_SPRISM_ELEMENT));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, true);
+
+        /* Explicit RHS computation */
+        if( r_properties.Has(PURE_EXPLICIT_RHS_COMPUTATION) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, r_properties.GetValue(PURE_EXPLICIT_RHS_COMPUTATION));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, false);
+
+        // Resizing the containers
+        mAuxContainer.resize( integration_points.size() );
+
+        if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) { // Jacobian inverses
+            // Compute jacobian inverses and set the domain initial size:
+            GeometryType::JacobiansType J0;
+            J0 = GetGeometry().Jacobian(J0, this->GetIntegrationMethod());
+
+            /* Calculating the inverse J0 */
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+                // Calculating and storing inverse of the jacobian and the parameters needed
+                double aux_detJ;
+                MathUtils<double>::InvertMatrix( J0[point_number], mAuxContainer[point_number], aux_detJ );
+            }
+        } else { // Historic deformation gradient
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+                mAuxContainer[point_number] = IdentityMatrix(3);
+            }
+        }
+
+        /* Initialize AlphaEAS */
+        this->SetValue(ALPHA_EAS, 0.0);
+
+        /* Material initialisation */
+        InitializeMaterial();
     }
-
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-
-    /* Constitutive Law initialisation */
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
-        mConstitutiveLawVector.resize( integration_points.size() );
-
-    /* Implicit or explicit EAS update */
-    if( r_properties.Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, r_properties.GetValue(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, true);
-
-    /* Total or updated lagrangian */
-    if( r_properties.Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, r_properties.GetValue(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
-
-    /* Quadratic or linear element */
-    if( r_properties.Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, r_properties.GetValue(CONSIDER_QUADRATIC_SPRISM_ELEMENT));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, true);
-
-    /* Explicit RHS computation */
-    if( r_properties.Has(PURE_EXPLICIT_RHS_COMPUTATION) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, r_properties.GetValue(PURE_EXPLICIT_RHS_COMPUTATION));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, false);
-
-    // Resizing the containers
-    mAuxContainer.resize( integration_points.size() );
-
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) { // Jacobian inverses
-        // Compute jacobian inverses and set the domain initial size:
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian(J0, this->GetIntegrationMethod());
-
-        /* Calculating the inverse J0 */
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            // Calculating and storing inverse of the jacobian and the parameters needed
-            double aux_detJ;
-            MathUtils<double>::InvertMatrix( J0[point_number], mAuxContainer[point_number], aux_detJ );
-        }
-    } else { // Historic deformation gradient
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            mAuxContainer[point_number] = IdentityMatrix(3);
-        }
-    }
-
-    /* Initialize AlphaEAS */
-    this->SetValue(ALPHA_EAS, 0.0);
-
-    /* Material initialisation */
-    InitializeMaterial();
 
     KRATOS_CATCH("");
 }
@@ -2264,7 +2210,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
         const double cosa = std::cos(ThisAngle);
         const double sina = std::sin(ThisAngle);
         // Rotate local system ThisOrthogonalBase.Vxi-ThisOrthogonalBase.Veta to best fit L1-L2
-        ThisOrthogonalBase.Vzeta = ThisOrthogonalBase.Vxi; // Reusing as auxiliar value
+        ThisOrthogonalBase.Vzeta = ThisOrthogonalBase.Vxi; // Reusing as auxiliary value
         ThisOrthogonalBase.Vxi =   cosa * ThisOrthogonalBase.Vxi + sina * ThisOrthogonalBase.Veta;
         ThisOrthogonalBase.Veta = - sina * ThisOrthogonalBase.Vzeta  + cosa * ThisOrthogonalBase.Veta;
     }
@@ -2437,7 +2383,7 @@ void SolidShellElementSprism3D6N::CalculateJacobian(
     const array_1d<double, 3>& rLocalCoordinates
     )
 {
-    /* Auxiliar coordinates of the nodes */
+    /* Auxiliary coordinates of the nodes */
     BoundedMatrix<double, 3, 6 > nodes_coord_aux;
 
     for (IndexType i = 0; i < 6; ++i)
@@ -2575,7 +2521,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
     BoundedMatrix<double, 4, 2 > local_derivative_patch;
     ComputeLocalDerivativesQuadratic(local_derivative_patch,NodeGauss);
 
-    /* Auxiliar coordinates of the nodes */
+    /* Auxiliary coordinates of the nodes */
     BoundedMatrix<double, 3, 4 > nodes_coord_aux;
 
     for (IndexType i = 0; i < 3; ++i) {
@@ -2682,13 +2628,13 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
     else if (Part == GeometricLevel::UPPER)
         local_coordinates[2] =   1.0;
 
-    /* Auxiliar coordinates of the nodes */
+    /* Auxiliary coordinates of the nodes */
     BoundedMatrix<double, 3, 6 > nodes_coord_aux;
     for (IndexType i = 0; i < 6; ++i)
         for (IndexType j = 0; j < 3; ++j)
             nodes_coord_aux(j, i) = NodesCoord(i, j);
 
-    /* Auxiliar components to calculate the Jacobian and his inverse */
+    /* Auxiliary components to calculate the Jacobian and his inverse */
     BoundedMatrix<double, 3, 3 > J, Jinv;
 
     if (Part == GeometricLevel::CENTER) {
@@ -2741,7 +2687,7 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
     const GeometricLevel Part
     )
 {
-    /* Auxiliar operators */
+    /* Auxiliary operators */
     const IndexType index = Part == GeometricLevel::UPPER ? 3 : 0;
     BoundedMatrix<double, 3, 3 > nodes_coord_aux;
     BoundedMatrix<double, 3, 2 > in_plane_cartesian_derivatives_gauss_aux;
@@ -2828,7 +2774,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
     }
 
     /* Calculate de componets of Cauchy tensor */
-    // In plane auxiliar components
+    // In plane auxiliary components
     array_1d<double, 3 > aux_deformation_gradient_F1, aux_deformation_gradient_F2;
 
     for (IndexType i = 0; i < 3; ++i) {
@@ -2852,7 +2798,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
     )
 {
     const IndexType index = static_cast<IndexType>(Part);
-    const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
+    const IndexType auxiliary_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     BoundedMatrix<double, 6, 6 > H = ZeroMatrix(6, 6);
 
@@ -2862,28 +2808,28 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
             // Gauss 1
             ii = i;
             jj = j;
-            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, j)
-                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, j)
-                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, j)
-                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, j));
+            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, j)
+                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, j)
+                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, j)
+                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 0](0, j));
 
             // Gauss 2
             ii = (i ==  3) ? 4 : i;
             jj = (j ==  3) ? 4 : j;
 
-            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, j)
-                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, j)
-                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, j)
-                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, j));
+            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, j)
+                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, j)
+                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, j)
+                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 1](0, j));
 
             // Gauss 3
             ii = (i ==  3) ? 5 : i;
             jj = (j ==  3) ? 5 : j;
 
-            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, j)
-                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, j)
-                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, j)
-                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, j));
+            H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, j)
+                       + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, j)
+                       + SMembrane[2] * (rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, j)
+                                       + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliary_index + 2](0, j));
         }
     }
 
@@ -2918,7 +2864,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     )
 {
     const IndexType index = static_cast<IndexType>(Part);
-    const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
+    const IndexType auxiliary_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     const BoundedMatrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
 
@@ -2939,9 +2885,9 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     for (IndexType i = 0; i < 6; ++i) {
         IndexType base = i * 3;
         for (IndexType j = 0; j < 3; ++j) {
-            aux_b_shear(0, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 0](i, 0) * rTransverseGradientIsoParametric.Ft[j];
-            aux_b_shear(1, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 1](i, 0) * rTransverseGradientIsoParametric.Fxi[j];
-            aux_b_shear(2, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 2](i, 0) * rTransverseGradientIsoParametric.Feta[j];
+            aux_b_shear(0, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliary_index + 0](i, 0) * rTransverseGradientIsoParametric.Ft[j];
+            aux_b_shear(1, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliary_index + 1](i, 0) * rTransverseGradientIsoParametric.Fxi[j];
+            aux_b_shear(2, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliary_index + 2](i, 0) * rTransverseGradientIsoParametric.Feta[j];
         }
     }
 
@@ -2983,7 +2929,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
     )
 {
 //     const IndexType index = static_cast<IndexType>(Part);
-    const IndexType auxiliar_index = Part == GeometricLevel::UPPER ? 3 : 0;
+    const IndexType auxiliary_index = Part == GeometricLevel::UPPER ? 3 : 0;
 
     const BoundedMatrix<double, 2, 2 >& JInvPlane = Part == GeometricLevel::UPPER ? rCartesianDerivatives.JInvPlaneUpper : rCartesianDerivatives.JInvPlaneLower;
 
@@ -3003,15 +2949,15 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
 
 //    for (IndexType i = 0; i < 3; ++i) { // For each DOF
 //        /* First assembling */
-//        Kgeometricshear(i + index + 3, i + index + 3) -= q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](1 + delta, 0);
-//        Kgeometricshear(i + index + 6, i + index + 6) += q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](2 + delta, 0);
+//        Kgeometricshear(i + index + 3, i + index + 3) -= q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliary_index](1 + delta, 0);
+//        Kgeometricshear(i + index + 6, i + index + 6) += q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliary_index](2 + delta, 0);
 
 //        /* Second assembling */
-//        Kgeometricshear(i + index, i + index)         += q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliar_index](0 + delta, 0);
-//        Kgeometricshear(i + index + 6, i + index + 6) -= q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliar_index](2 + delta, 0);
+//        Kgeometricshear(i + index, i + index)         += q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliary_index](0 + delta, 0);
+//        Kgeometricshear(i + index + 6, i + index + 6) -= q[1] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliary_index](2 + delta, 0);
 //        /* Third assembling */
-//        Kgeometricshear(i + index, i + index)         -= q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](0 + delta, 0);
-//        Kgeometricshear(i + index + 3, i + index + 3) += q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](1 + delta, 0);
+//        Kgeometricshear(i + index, i + index)         -= q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliary_index](0 + delta, 0);
+//        Kgeometricshear(i + index + 3, i + index + 3) += q[2] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliary_index](1 + delta, 0);
 //    }
 
     array_1d<double, 3 > n1; // Side node with + contribution (previous DOF position)
@@ -3059,11 +3005,11 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
         IndexType l = 0; // Initializes DOF associated to N_3
         for (IndexType i = 0; i < 6; ++i) { //  For each node
             if (k == 0)
-                value = (-Q1 + Q2) *  rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](i, 0);
+                value = (-Q1 + Q2) *  rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliary_index](i, 0);
             else if (k == 1)
-                value = -(Q1 + 2.0 * Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliar_index](i, 0);
+                value = -(Q1 + 2.0 * Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[1 + auxiliary_index](i, 0);
             else if (k == 2)
-                value = (2.0 * Q1 + Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](i, 0);
+                value = (2.0 * Q1 + Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliary_index](i, 0);
 
             for (IndexType j = 0; j < 3; ++j) { // For each DOF (diagonal only)
                 Kgeometricshear(n1[k] + j, l + j) += value;
@@ -3286,7 +3232,7 @@ void SolidShellElementSprism3D6N::IntegrateEASInZeta(
     // Calculate EAS residual
     rEAS.mRHSAlpha += IntegrationWeight * ZetaGauss * rVariables.StressVector[2] * rVariables.C[2];
 
-    // Auxiliar values
+    // Auxiliary values
     BoundedMatrix<double, 1, 36 > B3;
     BoundedMatrix<double, 1,  6 > D3;
 
@@ -3528,7 +3474,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuug(
 
     /* The stress is already integrated, we just calculate it once */
 
-    /* Auxiliar stiffness matrix */
+    /* Auxiliary stiffness matrix */
     BoundedMatrix<double, 36, 36 > K = ZeroMatrix(36, 36); // Stiffness matrix
 
     /* COMPUTATION OF GEOMETRIC STIFFNESS MATRIX */
@@ -3807,7 +3753,7 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
         // Jacobian Determinant for the isoparametric and numerical integration
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(GetGeometry(), rIntegrationPoints[rPointNumber], J0);
-        rVariables.detJ = MathUtils<double>::DetMat(J0);
+        rVariables.detJ = MathUtils<double>::Det(J0);
     } else {
         // Cauchy stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
@@ -3859,19 +3805,12 @@ void SolidShellElementSprism3D6N::CbartoFbar(
 
     /* We perform a polar decomposition of the CBar and F(regular) to obtain F_bar */
 
-    /* Decompose C_bar */
-    BoundedMatrix<double, 3, 3> eigen_vector_matrix,  eigen_values_matrix;
-
     // Assemble matrix C_bar
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
 
-    // Decompose matrix C_bar
-    MathUtils<double>::GaussSeidelEigenSystem(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
-
-    for (IndexType i = 0; i < 3; ++i)
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-
-    const Matrix U_bar = prod( eigen_values_matrix, trans(eigen_vector_matrix));
+    // Decompose matrix C_bar, get U_bar
+    Matrix U_bar;
+    MathUtils<double>::MatrixSquareRoot(C_bar, U_bar, 1e-24, 100);
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);

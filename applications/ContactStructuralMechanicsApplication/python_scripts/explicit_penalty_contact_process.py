@@ -58,6 +58,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -226,7 +227,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         super().ExecuteFinalize()
 
     def _compute_search(self):
-        """ This method return if the serach must be computed
+        """ This method return if the search must be computed
 
         Keyword arguments:
         self -- It signifies an instance of a class.

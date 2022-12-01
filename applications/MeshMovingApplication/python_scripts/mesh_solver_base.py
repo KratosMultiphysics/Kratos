@@ -11,7 +11,7 @@ class MeshSolverBase(PythonSolver):
 
     This class defines the user interface to mesh motion solvers.
 
-    Derived classes must override the function _create_mesh_motion_solving_strategy()
+    Derived classes must override the function _CreateSolutionStrategy()
     to customize the mesh motion algorithm. The mesh motion solving strategy and linear
     solver should always be retrieved using the getter functions. Only the
     member variables listed below should be accessed directly.
@@ -53,6 +53,8 @@ class MeshSolverBase(PythonSolver):
             self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
             self.__CreateTimeIntegratorHelper()
 
+        self.reinitialize_model_part_each_step = self.settings["reinitialize_model_part_each_step"].GetBool()
+
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
     @classmethod
@@ -88,7 +90,8 @@ class MeshSolverBase(PythonSolver):
             "calculate_mesh_velocity"   : true,
             "mesh_velocity_calculation" : { },
             "superimpose_mesh_disp_with": [],
-            "superimpose_mesh_velocity_with": []
+            "superimpose_mesh_velocity_with": [],
+            "reinitialize_model_part_each_step": false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -124,23 +127,23 @@ class MeshSolverBase(PythonSolver):
         return new_time
 
     def Initialize(self):
-        self.get_mesh_motion_solving_strategy().Initialize()
+        self._GetSolutionStrategy().Initialize()
         #self.neighbour_search.Execute()
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):
-        self.get_mesh_motion_solving_strategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.get_mesh_motion_solving_strategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def Predict(self):
-        self.get_mesh_motion_solving_strategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
         # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
         # explicit bool conversion is only needed bcs "Solve" returns a double
-        is_converged = bool(self.get_mesh_motion_solving_strategy().Solve())
+        is_converged = bool(self._GetSolutionStrategy().Solve())
         self.MoveMesh()
 
         # Superimpose the user-defined mesh displacement
@@ -154,13 +157,13 @@ class MeshSolverBase(PythonSolver):
         return is_converged
 
     def SetEchoLevel(self, level):
-        self.get_mesh_motion_solving_strategy().SetEchoLevel(level)
+        self._GetSolutionStrategy().SetEchoLevel(level)
 
     def GetEchoLevel(self):
-        self.get_mesh_motion_solving_strategy().GetEchoLevel()
+        self._GetSolutionStrategy().GetEchoLevel()
 
     def Clear(self):
-        self.get_mesh_motion_solving_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def GetMinimumBufferSize(self):
         buffer_size = max(self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
@@ -190,23 +193,23 @@ class MeshSolverBase(PythonSolver):
 
     #### Specific internal functions ####
 
-    def get_linear_solver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
-    def get_mesh_motion_solving_strategy(self):
+    def _GetSolutionStrategy(self):
         if not hasattr(self, '_mesh_motion_solving_strategy'):
-            self._mesh_motion_solving_strategy = self._create_mesh_motion_solving_strategy()
+            self._mesh_motion_solving_strategy = self._CreateSolutionStrategy()
         return self._mesh_motion_solving_strategy
 
     #### Private functions ####
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
         return ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _create_mesh_motion_solving_strategy(self):
+    def _CreateSolutionStrategy(self):
         """Create the mesh motion solving strategy.
 
         The mesh motion solving strategy must provide the functions defined in SolutionStrategy.

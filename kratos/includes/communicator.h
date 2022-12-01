@@ -187,7 +187,7 @@ public:
 
     virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const;
 
-    virtual Communicator::Pointer Create() const;
+    Communicator::Pointer Create() const;
 
     ///@}
     ///@name Operators
@@ -325,6 +325,8 @@ public:
 
     virtual bool SynchronizeVariable(Variable<Matrix> const& rThisVariable);
 
+    virtual bool SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable);
+
     virtual bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable);
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable);
@@ -343,15 +345,55 @@ public:
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable);
 
-    /// Synchronize variable in nodal solution step data to the minimum value across all processes.
-    /** @param ThisVariable The variable to be synchronized.
+    virtual bool SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal data to the maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the absolute maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal data to the absolute maximum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the minimum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable);
 
-    /// Synchronize variable in nodal data to the minimum value across all processes.
-    /** @param ThisVariable The variable to be synchronized.
+    /**
+     * @brief Synchronize variable in nodal data to the minimum value across all processes. 
+     * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable);
+
+    /** 
+     * @brief Synchronize variable in nodal solution step data to the absolute minimum value across all processes.
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable);
+
+    /**
+     * @brief Synchronize variable in nodal data to the absolute minimum value across all processes. 
+     * @param ThisVariable The variable to be synchronized.
+     */
+    virtual bool SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable);
 
     virtual bool SynchronizeElementalFlags();
 
@@ -568,5 +610,3 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 } // namespace Kratos.
 
 #endif // KRATOS_COMMUNICATOR_H_INCLUDED  defined
-
-

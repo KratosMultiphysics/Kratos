@@ -16,9 +16,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if "PostSkinSphere" in DEM_parameters.keys():
             self.print_skin_sphere = DEM_parameters["PostSkinSphere"].GetBool()
 
-        if (self.delta_option > 0):
-            self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
-
         if "DontSearchUntilFailure" in DEM_parameters.keys(): #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
             if DEM_parameters["DontSearchUntilFailure"].GetBool():
                 print ("Search is not active until a bond is broken.")
@@ -96,11 +93,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(SKIN_FACTOR_RADIUS, self.skin_factor_radius)
 
         for properties in self.spheres_model_part.Properties:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            if ContinuumConstitutiveLaw.CheckRequirementsOfStressTensor():
-                self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
-                break
+            for subproperties in properties.GetSubProperties():
+                if subproperties.Has(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME):
+                    continuum_constitutive_law_name = subproperties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+                    continuum_constitutive_law_instance = globals().get(continuum_constitutive_law_name)()
+                    if continuum_constitutive_law_instance.CheckRequirementsOfStressTensor():
+                        self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
+                        break
 
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
@@ -109,23 +108,30 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                   self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
 
+    def BeforeInitialize(self):
+        self.CreateCPlusPlusStrategy()
+        self.RebuildListOfDiscontinuumSphericParticles()
+        self.RebuildListOfContinuumSphericParticles()
+        self.SetNormalRadiiOnAllParticles()
+        self.SetSearchRadiiOnAllParticles()
+
     def Initialize(self):
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
 
     def SetContinuumType(self):
         self.continuum_type = True
 
-    def Initial_Critical_Time(self):        # Calls deprecated function
-        (self.cplusplus_strategy).InitialTimeStepCalculation()
+
+
+
+
 
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
-    def ModifyProperties(self, properties, param = 0):
-        BaseExplicitStrategy.ModifyProperties(self, properties, param)
+    def RebuildListOfContinuumSphericParticles(self):
+        self.cplusplus_strategy.RebuildListOfContinuumSphericParticles()
 
-        if not param:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+
+

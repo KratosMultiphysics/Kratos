@@ -92,30 +92,31 @@ namespace Testing
         }
 
         // Set expected solution
-        std::vector<double> expected_RHS = {1.66667, 1.66667, 1.66667};
+        std::vector<double> expected_RHS = {5.0/3.0, 5.0/3.0, 5.0/3.0};
         Matrix expected_LHS(3, 3);
-        expected_LHS(0, 0) = 1.33333;
-        expected_LHS(0, 1) = 0.166667;
-        expected_LHS(0, 2) = 0.166667;
-        expected_LHS(1, 0) = 0.166667;
-        expected_LHS(1, 1) = 1.08333;
-        expected_LHS(1, 2) = 0.416667;
-        expected_LHS(2, 0) = 0.166667;
-        expected_LHS(2, 1) = 0.416667;
-        expected_LHS(2, 2) = 1.08333;
+        expected_LHS(0, 0) = 1.333333333333;
+        expected_LHS(0, 1) = 5.0/30.0;
+        expected_LHS(0, 2) = 5.0/30.0;
+        expected_LHS(1, 0) = 5.0/30.0;
+        expected_LHS(1, 1) = 1.083333333333;
+        expected_LHS(1, 2) = 0.416666666666;
+        expected_LHS(2, 0) = 5.0/30.0;
+        expected_LHS(2, 1) = 0.416666666666;
+        expected_LHS(2, 2) = 1.083333333333;
 
         // Test CalculateLocalSystem
         auto p_element = r_test_model_part.pGetElement(1);
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-12)
 
         // Test CalculateRightHandSide
-        const auto& r_process_info = r_test_model_part.GetProcessInfo();
         p_element->CalculateRightHandSide(RHS, r_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianDiff3D4N, KratosConvectionDiffusionFastSuite)
@@ -144,37 +145,37 @@ namespace Testing
         }
 
         // Set expected solution
-        std::vector<double> expected_RHS = {0.416667, 0.416667, 0.416667, 0.416667};
+        std::vector<double> expected_RHS = {0.416666666666, 0.416666666666, 0.416666666666, 0.416666666666};
         Matrix expected_LHS(4, 4);
-        expected_LHS(0, 0) = 0.416667;
+        expected_LHS(0, 0) = 0.416666666666;
         expected_LHS(0, 1) = -4.19267e-10;
         expected_LHS(0, 2) = -4.19267e-10;
         expected_LHS(0, 3) = -4.19267e-10;
         expected_LHS(1, 0) = -4.19267e-10;
         expected_LHS(1, 1) = 0.25;
-        expected_LHS(1, 2) = 0.0833333;
-        expected_LHS(1, 3) = 0.0833333;
+        expected_LHS(1, 2) = 0.083333333333;
+        expected_LHS(1, 3) = 0.083333333333;
         expected_LHS(2, 0) = -4.19267e-10;
-        expected_LHS(2, 1) = 0.0833333;
+        expected_LHS(2, 1) = 0.083333333333;
         expected_LHS(2, 2) = 0.25;
-        expected_LHS(2, 3) = 0.0833333;
+        expected_LHS(2, 3) = 0.083333333333;
         expected_LHS(3, 0) = -4.19267e-10;
-        expected_LHS(3, 1) = 0.0833333;
-        expected_LHS(3, 2) = 0.0833333;
+        expected_LHS(3, 1) = 0.083333333333;
+        expected_LHS(3, 2) = 0.083333333333;
         expected_LHS(3, 3) = 0.25;
 
         // Test CalculateLocalSystem
         auto p_element = r_test_model_part.pGetElement(1);
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+        const auto& r_process_info = r_test_model_part.GetProcessInfo();
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-8)
 
         // Test CalculateRightHandSide
-        const auto& r_process_info = r_test_model_part.GetProcessInfo();
         p_element->CalculateRightHandSide(RHS, r_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
     }
 
 } // namespace Testing

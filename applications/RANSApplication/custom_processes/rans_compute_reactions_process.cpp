@@ -136,10 +136,6 @@ int RansComputeReactionsProcess::Check()
         << "REACTION is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(DENSITY))
-        << "DENSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(PRESSURE))
         << "PRESSURE is not found in nodal solution step variables list of "
         << mModelPartName << ".";
@@ -175,10 +171,10 @@ void RansComputeReactionsProcess::CalculateReactionValues(
 
     if (u_tau > 0.0) {
         auto& r_geometry = rCondition.GetGeometry();
+        const double rho = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties().GetValue(DENSITY);
         const IndexType number_of_nodes = r_geometry.PointsNumber();
         for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
             auto& r_node = r_geometry[i_node];
-            const double rho = r_node.FastGetSolutionStepValue(DENSITY);
 
             const double shear_force = rho * std::pow(u_tau, 2) *
                                        r_geometry.DomainSize() /

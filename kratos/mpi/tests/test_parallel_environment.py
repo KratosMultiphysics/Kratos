@@ -21,6 +21,25 @@ class TestParallelEnvironment(UnitTest.TestCase):
         # if we imported mpi, default should be "World" (wrapping MPI_COMM_WORLD)
         self.assertTrue(default_comm.IsDistributed())
 
+    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
+    def testCommunicatorCreationWithStringFromParallelEnvironment(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("MainModelPart")
+        communicator = Kratos.ParallelEnvironment.CreateCommunicatorFromGlobalParallelism(model_part, "World")
+
+        # if we imported mpi, default should be "MPICommunicator"
+        self.assertTrue(communicator.GetDataCommunicator().IsDistributed())
+
+    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
+    def testCommunicatorCreationWithPointerFromParallelEnvironment(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("MainModelPart")
+        default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
+        communicator = Kratos.ParallelEnvironment.CreateCommunicatorFromGlobalParallelism(model_part, default_comm)
+
+        # if we imported mpi, default should be "MPICommunicator"
+        self.assertTrue(communicator.GetDataCommunicator().IsDistributed())
+
     def testDefaultRankAndSize(self):
         default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
         original_default_name = Kratos.ParallelEnvironment.GetDefaultDataCommunicatorName()

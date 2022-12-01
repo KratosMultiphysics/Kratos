@@ -86,6 +86,12 @@ namespace Kratos
         mMPMGridSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMGridSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
         // Particle Conditions
+        /// Conditions, using QuadraturePointGeometries:
+        mMPMParticlePenaltyDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+        mMPMParticlePenaltyCouplingInterfaceCondition( 0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+        mMPMParticlePointLoadCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+
+        /// Deprecated Conditions
         mMPMParticlePenaltyDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -134,6 +140,11 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D3N", mMPMGridSurfaceLoadCondition3D3N)
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
         // Particle Conditions
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition", mMPMParticlePenaltyCouplingInterfaceCondition)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
+
+        // deprecated conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D3N", mMPMParticlePenaltyDirichletCondition2D3N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D4N", mMPMParticlePenaltyDirichletCondition2D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D4N", mMPMParticlePenaltyDirichletCondition3D4N)
@@ -171,6 +182,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_TEMPERATURE)
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
         KRATOS_REGISTER_VARIABLE(IS_COMPRESSIBLE)
+        KRATOS_REGISTER_VARIABLE(IS_MIXED_FORMULATION)
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -219,6 +231,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MPC_AREA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_NORMAL )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_DISPLACEMENT )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_DELTA_DISPLACEMENT )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_IMPOSED_DISPLACEMENT )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_IMPOSED_VELOCITY )

@@ -8,23 +8,23 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
-#define  KRATOS_MODEL_PART_IO_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
+#include <filesystem>
 #include <fstream>
-#include <set>
-#include <typeinfo>
+#include <string>
+#include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
-#include "utilities/timer.h"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -81,9 +81,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filenames.
+    /// Constructor with filename.
     ModelPartIO(
-        std::string const& Filename,
+        std::filesystem::path const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Constructor with stream.
@@ -155,6 +155,39 @@ public:
     void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
     /**
+     * @brief This method reads one geometry
+     * @param rThisNodes The nodes constituying the geometry
+     * @param pThisGeometries The pointer to the geometry
+     */
+    void ReadGeometry(
+        NodesContainerType& rThisNodes,
+        GeometryType::Pointer& pThisGeometry
+        ) override;
+
+    /**
+     * @brief This method reads an array of geometries
+     * @param rThisNodes The nodes constituying the geometry
+     * @param rThisGeometry The array of geometries
+     */
+    void ReadGeometries(
+        NodesContainerType& rThisNodes,
+        GeometryContainerType& rThisGeometries
+        ) override;
+
+    /**
+     * @brief This method reads the geometries connectivities
+     * @param rGeometriesConnectivities The geometries connectivities
+     * @return The number of geometries
+     */
+    std::size_t ReadGeometriesConnectivities(ConnectivitiesContainerType& rGeometriesConnectivities) override;
+
+    /**
+     * @brief This method writes an array of geometries
+     * @param rThisGeometries The array of geometries to be written
+     */
+    void WriteGeometries(GeometryContainerType const& rThisGeometries) override;
+
+    /**
      * @brief This method reads one element
      * @param rThisNodes The nodes constituying the element
      * @param rThisProperties The Properties of the element
@@ -222,8 +255,6 @@ public:
      */
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
     /**
      * @brief This method reads the mesh
      * @param rThisMesh The mesh to be read
@@ -276,9 +307,11 @@ public:
     void DivideInputToPartitions(SizeType NumberOfPartitions,
                                 GraphType const& rDomainsColoredGraph,
                                 PartitionIndicesType const& rNodesPartitions,
+//                                 PartitionIndicesType const& rGeometriessPartitions,
                                 PartitionIndicesType const& rElementsPartitions,
                                 PartitionIndicesType const& rConditionsPartitions,
                                 PartitionIndicesContainerType const& rNodesAllPartitions,
+//                                 PartitionIndicesContainerType const& rGeometriessAllPartitions,
                                 PartitionIndicesContainerType const& rElementsAllPartitions,
                                 PartitionIndicesContainerType const& rConditionsAllPartitions
                                 ) override;
@@ -299,14 +332,26 @@ public:
                                 SizeType NumberOfPartitions,
                                 GraphType const& rDomainsColoredGraph,
                                 PartitionIndicesType const& rNodesPartitions,
+//                                 PartitionIndicesType const& rGeometriesPartitions,
                                 PartitionIndicesType const& rElementsPartitions,
                                 PartitionIndicesType const& rConditionsPartitions,
                                 PartitionIndicesContainerType const& rNodesAllPartitions,
+//                                 PartitionIndicesContainerType const& rGeometriesAllPartitions,
                                 PartitionIndicesContainerType const& rElementsAllPartitions,
                                 PartitionIndicesContainerType const& rConditionsAllPartitions
                                 ) override;
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
+
+    void ReadSubModelPartElementsAndConditionsIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds) override;
+
+    std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds) override;
 
 
     ///@}
@@ -367,6 +412,7 @@ protected:
     ///@{
 
   	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
+  	virtual ModelPartIO::SizeType ReorderedGeometryId(ModelPartIO::SizeType GeometryId);
   	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
   	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
 
@@ -398,8 +444,7 @@ private:
 
     SizeType mNumberOfLines;
 
-    std::string mBaseFilename;
-    std::string mFilename;
+    std::filesystem::path mBaseFilename;
     Flags mOptions;
 
     Kratos::shared_ptr<std::iostream> mpStream;
@@ -441,6 +486,10 @@ private:
     std::size_t CountNodesInBlock();
 
     void ReadPropertiesBlock(PropertiesContainerType& rThisProperties);
+
+    void ReadGeometriesBlock(ModelPart& rModelPart);
+
+    void ReadGeometriesBlock(NodesContainerType& rThisNodes, GeometryContainerType& rThisGeometries);
 
     void ReadElementsBlock(ModelPart& rModelPart);
 
@@ -491,16 +540,29 @@ private:
     template<class TVariableType, class TDataType>
     void ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy);
 
+    SizeType ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
     SizeType ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
-
     SizeType ReadConditionsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
+
+    void FillNodalConnectivitiesFromGeometryBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
     void FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
     void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    void FillNodalConnectivitiesFromGeometryBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType>& rGeometriesIds);
+
+    void FillNodalConnectivitiesFromElementBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType>& rElementsIds);
+
+    void FillNodalConnectivitiesFromConditionBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType>& rConditionsIds);
 
     void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
@@ -541,6 +603,19 @@ private:
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    void DivideInputToPartitionsImpl(
+        OutputFilesContainerType& rOutputFiles,
+        SizeType NumberOfPartitions,
+        GraphType const& rDomainsColoredGraph,
+        PartitionIndicesType const& rNodesPartitions,
+        // PartitionIndicesType const& rGeometriesPartitions,
+        PartitionIndicesType const& rElementsPartitions,
+        PartitionIndicesType const& rConditionsPartitions,
+        PartitionIndicesContainerType const& rNodesAllPartitions,
+        // PartitionIndicesContainerType const& rGeometriesAllPartitions,
+        PartitionIndicesContainerType const& rElementsAllPartitions,
+        PartitionIndicesContainerType const& rConditionsAllPartitions);
+
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
     void DivideTableBlock(OutputFilesContainerType& OutputFiles);
@@ -549,6 +624,9 @@ private:
 
     void DivideNodesBlock(OutputFilesContainerType& OutputFiles,
                           PartitionIndicesContainerType const& NodesAllPartitions);
+
+    void DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
+                             PartitionIndicesContainerType const& GeometriesAllPartitions);
 
     void DivideElementsBlock(OutputFilesContainerType& OutputFiles,
                              PartitionIndicesContainerType const& ElementsAllPartitions);
@@ -562,9 +640,13 @@ private:
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                               PartitionIndicesContainerType const& NodesAllPartitions);
 
+    void DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
+                               PartitionIndicesContainerType const& NodesAllPartitions);
+
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
 
+    template<class TValueType>
     void DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                      PartitionIndicesContainerType const& EntitiesPartitions,
                                      std::string BlockName);
@@ -694,13 +776,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    ModelPartIO& operator=(ModelPartIO const& rOther);
-
-    /// Copy constructor.
-    ModelPartIO(ModelPartIO const& rOther);
-
-
     ///@}
 
 }; // Class ModelPartIO
@@ -734,5 +809,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_IO_H_INCLUDED  defined

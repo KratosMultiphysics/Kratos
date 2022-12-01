@@ -613,7 +613,7 @@ void HenckyElasticPlastic3DLaw::GetLawFeatures(Features& rFeatures)
 
 int HenckyElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
                                      const GeometryType& rElementGeometry,
-                                     const ProcessInfo& rCurrentProcessInfo)
+                                     const ProcessInfo& rCurrentProcessInfo) const
 {
 
     // Verify Positive Density

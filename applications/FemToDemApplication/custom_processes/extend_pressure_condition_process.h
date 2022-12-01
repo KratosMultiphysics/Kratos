@@ -26,16 +26,16 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 
-/** 
+/**
  * @class ExtendPressureConditionProcess
- * @ingroup FemToDemApplication 
+ * @ingroup FemToDemApplication
  * @brief Creates the new presure line loads after removing some elements
  * @details when several elements are removed this methods generates the line loads
  * in order to adapt to the new geometry
  * @author Alejandro Cornejo
  */
 template <SizeType TDim = 2>
-class ExtendPressureConditionProcess : public Process 
+class ExtendPressureConditionProcess : public Process
 {
 
 public:
@@ -56,7 +56,7 @@ public:
     void Execute() override;
 
     /**
-     * @brief This erases all the line loads 
+     * @brief This erases all the line loads
      */
     void RemovePreviousLineLoads();
 
@@ -102,7 +102,7 @@ public:
         ModelPart::ElementsContainerType::ptr_iterator itElem);
 
     /**
-     * @brief Creates surface loads 
+     * @brief Creates surface loads
      * @param Id1 The node 1 Id
      * @param Id2 The node 2 Id
      * @param Id1 The node 3 Id
@@ -122,7 +122,7 @@ public:
         int& rMaximumConditionId);
 
     /**
-     * @brief Creates surface loads 
+     * @brief Creates surface loads
      * @param Id1 The node 1 Id
      * @param Id2 The node 2 Id
      * @param itElem the element analysed
@@ -170,11 +170,6 @@ public:
      * @brief calculates the number of elements that share a node
      */
     void CalculateNumberOfElementsOnNodes();
-
-    /**
-     * @brief checks if has a condition with a certain Id
-     */
-    bool CheckIfHasConditionId(const IndexType Id);
 
     /**
      * @brief Sets the Flag on all the elements to the next step

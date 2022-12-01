@@ -102,14 +102,6 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
     const auto &r_geom = this->GetGeometry();
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
@@ -124,7 +116,7 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -150,13 +142,13 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
         }
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -183,39 +175,73 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
+
+template<class TElementData>
+const Parameters QSVMS<TElementData>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["SUBSCALE_VELOCITY","SUBSCALE_PRESSURE","VORTICITY","Q_VALUE","VORTICITY_MAGNITUDE"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : [],
+            "entity"                 : ["ADVPROJ"]
+        },
+        "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","IS_STRUCTURE","DISPLACEMENT","BODY_FORCE","NODAL_AREA","NODAL_H","ADVPROJ","DIVPROJ","REACTION","REACTION_WATER_PRESSURE","EXTERNAL_PRESSURE","NORMAL","Y_WALL","Q_VALUE"]
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Tetrahedra3D4","Hexahedra3D8"],
+        "element_integrates_in_time" : false,
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This implements a Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization."
+    })");
+
+    if (Dim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
 
 template< class TElementData >
 std::string QSVMS<TElementData>::Info() const

@@ -21,6 +21,8 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -113,6 +115,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
+    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     inline SizeType Dimension() const
     {
         return mDimension;
@@ -163,7 +166,6 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mDimension << std::endl;
         rOStream << "    Working space dimension : " << mWorkingSpaceDimension << std::endl;
         rOStream << "    Local space dimension   : " << mLocalSpaceDimension;
     }
@@ -233,5 +235,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_DIMENSION_H_INCLUDED  defined
-
-

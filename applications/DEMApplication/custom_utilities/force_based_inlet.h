@@ -18,7 +18,7 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Force_Based_Inlet);
 
         /// Constructor:
-        DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force);
+        DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Force_Based_Inlet(){}

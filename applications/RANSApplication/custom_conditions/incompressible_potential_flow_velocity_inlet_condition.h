@@ -180,9 +180,9 @@ public:
         return p_new_condition;
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
@@ -201,7 +201,7 @@ public:
         VectorType& rValues,
         int Step = 0) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,

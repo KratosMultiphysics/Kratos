@@ -4,13 +4,13 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
 #include "containers/flags.h"
 
-#include "../custom_utilities/GeometryFunctions.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_elements/Particle_Contact_Element.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_elements/Particle_Contact_Element.h"
 #include "containers/array_1d.h"
 
 
@@ -31,68 +31,35 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
 
-        virtual void Initialize(const ProcessInfo& r_process_info);
-
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
         virtual void Check(Properties::Pointer pProp) const;
-
-        virtual std::string GetTypeOfLaw();
 
         virtual ~DEMDiscontinuumConstitutiveLaw();
 
         virtual DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
-        virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area);
+        virtual std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique();
 
-        virtual void CalculateElasticConstants(double &kn_el,
-                double &kt_el,
-                double initial_dist,
-                double equiv_young,
-                double equiv_poisson,
-                double calculation_area,
-                SphericParticle* element1,
-                SphericParticle* element2);
-
-
-        virtual void CalculateElasticEnergy(double& normal_elastic_energy,
-                                                                double indentation,
-                                                                double& cohesive_force,
-                                                                SphericParticle* element1,
-                                                                SphericParticle* element2);
-
-
-        virtual void CalculateViscoDamping(double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3],
-                double indentation,
-                double equiv_visco_damp_coeff_normal,
-                double equiv_visco_damp_coeff_tangential,
-                bool sliding);
-
-        virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                double kn_el,
-                double kt_el);
+        virtual std::string GetTypeOfLaw();
 
         virtual void InitializeContact(SphericParticle * const element1, SphericParticle * const element2, const double ini_delta = 0.0);
+
         virtual void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0);
 
-        virtual void GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt);
-
         virtual void CalculateForces(const ProcessInfo& r_process_info,
-                                                        const double OldLocalContactForce[3],
-                                                        double LocalElasticContactForce[3],
-                                                        double LocalDeltDisp[3],
-                                                        double LocalRelVel[3],
-                                                        double indentation,
-                                                        double previous_indentation,
-                                                        double ViscoDampingLocalContactForce[3],
-                                                        double& cohesive_force,
-                                                        SphericParticle* element1,
-                                                        SphericParticle* element2,
-                                                        bool& sliding, double LocalCoordSystem[3][3]);
+                                     const double OldLocalContactForce[3],
+                                     double LocalElasticContactForce[3],
+                                     double LocalDeltDisp[3],
+                                     double LocalRelVel[3],
+                                     double indentation,
+                                     double previous_indentation,
+                                     double ViscoDampingLocalContactForce[3],
+                                     double& cohesive_force,
+                                     SphericParticle* element1,
+                                     SphericParticle* element2,
+                                     bool& sliding,
+                                     double LocalCoordSystem[3][3]);
 
         virtual void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                             const double OldLocalContactForce[3],
@@ -110,10 +77,9 @@ namespace Kratos {
         virtual double CalculateNormalForce(const double indentation);
         virtual double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]);
         virtual double CalculateNormalForce(SphericParticle* const element, Condition* const wall, const double indentation);
+
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
         virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation);
-        virtual double LocalPeriod(const int i, SphericParticle* element1,SphericParticle* element2);
-
 
     private:
 
@@ -122,7 +88,6 @@ namespace Kratos {
         virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags)
                     //rSerializer.save("MyMemberName",myMember);
-
         }
 
         virtual void load(Serializer& rSerializer) override {

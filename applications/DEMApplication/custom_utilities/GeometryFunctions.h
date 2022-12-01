@@ -1079,7 +1079,7 @@ namespace Kratos {
     }//FastFacetCheck
 
     static inline bool FacetCheck(const GeometryType&  Coord, const array_1d <double,3>& Particle_Coord, double rad,
-                                  double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index)
+                                  double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index, bool& inside)
     {
         int facet_size = Coord.size();
         //Calculate Normal
@@ -1121,8 +1121,7 @@ namespace Kratos {
             DistPToB += N[i]*PC[i];
         }
 
-        if (DistPToB < rad )
-        {
+        // Check if particle is inside Finite Element (even if contact is not possible, i.e. DistPToB >= rad)
             array_1d <double,3> IntersectionCoord;
 
             for (unsigned int i = 0; i<3; i++)
@@ -1143,15 +1142,19 @@ namespace Kratos {
                                   this_area) == false)
                 {
                     current_edge_index = i;
+                    inside = false;
                     return false;
                 }
                 else
                 {
+                    inside = true;
                     Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
                 }
 
             }//for every vertex
 
+        if (DistPToB < rad)
+        {
             double auxiliar_unit_vector[3];
             CrossProduct( N,A,auxiliar_unit_vector );
             normalize( auxiliar_unit_vector );
@@ -1271,10 +1274,10 @@ namespace Kratos {
 
         normalize( normal_unit_vector, DistParticleToEdge);
 
+        eta = projection_on_edge / module_edge_vector;
+
         if (DistParticleToEdge < Radius)
         {
-            eta = projection_on_edge/module_edge_vector;
-
             if ((eta>=0.0) && (eta<=1.0))
             {
                 double dummy_length = 0.0;
@@ -1314,6 +1317,20 @@ namespace Kratos {
         }
         return false;
     }//VertexCheck
+
+
+    static inline bool FastVertexCheck(const array_1d<double,3>& Coord, const array_1d<double,3>& Particle_Coord, double Radius)
+    {
+        double dist_sq = 0.0;
+        array_1d<double, 3> normal_v;
+        for (unsigned int j = 0; j < 3; j++)
+        {
+            normal_v[j] = Particle_Coord[j] - Coord[j];
+            dist_sq += normal_v[j] * normal_v[j];
+        }
+        if (dist_sq <= Radius * Radius) return true;
+        return false;
+    }//FastVertexCheck
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////******The four Functions BELOW are used to calculate the weight coefficient for quadrilateral*******///////////

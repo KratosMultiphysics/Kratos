@@ -264,7 +264,7 @@ static void createModelPartFromReceivedMesh(const int numNodes, const int numEle
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
     const std::unordered_map<int, std::string> element_name_map = {
-        // {1 , "Element3D1N"}, // does not yet exist
+        {1 , "Element3D1N"},
         {2 , "Element3D2N"},
         {3 , "Element3D3N"},
         {4 , "Element3D4N"}

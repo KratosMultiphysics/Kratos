@@ -10,12 +10,12 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_IO_H_INCLUDED )
-#define  KRATOS_IO_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_set>
 
 // External includes
 
@@ -74,14 +74,19 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( IGNORE_VARIABLES_ERROR );
     KRATOS_DEFINE_LOCAL_FLAG( SKIP_TIMER );
     KRATOS_DEFINE_LOCAL_FLAG( MESH_ONLY );
+    KRATOS_DEFINE_LOCAL_FLAG( SCIENTIFIC_PRECISION );
 
     typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 
     typedef MeshType::NodesContainerType NodesContainerType;
 
     typedef MeshType::PropertiesContainerType PropertiesContainerType;
+
+    typedef ModelPart::GeometryContainerType GeometryContainerType;
 
     typedef MeshType::ElementsContainerType ElementsContainerType;
 
@@ -102,16 +107,20 @@ public:
     ///@{
 
     /// Default constructor.
-    IO() {}
+    IO() = default;
 
     /// Destructor.
-    virtual ~IO() {}
+    virtual ~IO() = default;
 
+    /// Copy constructor.
+    IO(IO const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    IO& operator=(IO const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -187,6 +196,51 @@ public:
     virtual void WriteProperties(PropertiesContainerType const& rThisProperties)
     {
         KRATOS_ERROR << "Calling base class method (WriteProperties). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads one geometry
+     * @param rThisNodes The nodes constituting the geometry
+     * @param pThisGeometries The pointer to the geometry
+     */
+    virtual void ReadGeometry(
+        NodesContainerType& rThisNodes,
+        GeometryType::Pointer& pThisGeometry
+        )
+    {
+        KRATOS_ERROR << "Calling base class method (ReadGeometry). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads an array of geometries
+     * @param rThisNodes The nodes constituting the geometry
+     * @param rThisGeometry The array of geometries
+     */
+    virtual void ReadGeometries(
+        NodesContainerType& rThisNodes,
+        GeometryContainerType& rThisGeometries
+        )
+    {
+        KRATOS_ERROR << "Calling base class method (ReadGeometries). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads the geometries connectivities
+     * @param rGeometriesConnectivities The geometries connectivities
+     * @return The number of geometries
+     */
+    virtual std::size_t ReadGeometriesConnectivities(ConnectivitiesContainerType& rGeometriesConnectivities)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadGeometriesConnectivities). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method writes an array of geometries
+     * @param rThisGeometries The array of geometries to be written
+     */
+    virtual void WriteGeometries(GeometryContainerType const& rThisGeometries)
+    {
+        KRATOS_ERROR << "Calling base class method (WriteGeometries). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -307,8 +361,6 @@ public:
         KRATOS_ERROR << "Calling base class method (ReadInitialValues). Please check the definition of derived class" << std::endl;
     }
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
     /**
      * @brief This method reads the mesh
      * @param rThisMesh The mesh to be read
@@ -340,9 +392,26 @@ public:
      * @brief This method writes the model part
      * @param rThisModelPart The model part to be written
      */
+    KRATOS_DEPRECATED_MESSAGE("'WriteModelPart' with a non-const ModelPart as input is deprecated. Please use the version of this function that accepts a const ModelPart instead.")
     virtual void WriteModelPart(ModelPart & rThisModelPart)
     {
         KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method writes the model part
+     * @param rThisModelPart The model part to be written
+     */
+    virtual void WriteModelPart(const ModelPart& rThisModelPart)
+    {
+        // legacy for backward compatibility
+        ModelPart& non_const_model_part = const_cast<ModelPart&>(rThisModelPart);
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+        this->WriteModelPart(non_const_model_part);
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
+        // activate this error once the legacy code is removed
+        // KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -417,6 +486,22 @@ public:
                                          PartitionIndicesContainerType const& rConditionsAllPartitions)
     {
         KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void ReadSubModelPartElementsAndConditionsIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadSubModelPartElementsAndConditionsIds). Please check the definition of derived class" << std::endl;
+    }
+
+    virtual std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadNodalGraphFromEntitiesList). Please check the definition of derived class" << std::endl;
     }
 
     ///@}
@@ -527,13 +612,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    IO& operator=(IO const& rOther);
-
-    /// Copy constructor.
-    IO(IO const& rOther);
-
-
     ///@}
 
 }; // Class IO
@@ -566,5 +644,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_IO_H_INCLUDED  defined

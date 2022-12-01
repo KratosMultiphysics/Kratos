@@ -4,8 +4,8 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 # Import the mechanical solver base class
 import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(main_model_part, custom_settings, DEMStrategy = None):
+    return StaticMechanicalSolver(main_model_part, custom_settings, DEMStrategy)
 
 class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
 
@@ -14,7 +14,7 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
     Public member variables:
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, main_model_part, custom_settings, DEMStrategy = None):
 
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
@@ -37,6 +37,10 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
         print("::[Static_Mechanical_Solver]:: Constructed")
+
+        self.DEMStrategy = None
+        if DEMStrategy != None:
+            self.DEMStrategy = DEMStrategy
 
     #### Solver internal methods ####
 
@@ -151,12 +155,10 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
-        linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                      mechanical_scheme,
-                                                                     linear_solver,
                                                                      mechanical_convergence_criterion,
                                                                      builder_and_solver,
                                                                      self.settings["max_iteration"].GetInt(),
@@ -164,20 +166,35 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
 
-    def _create_newton_raphson_hexaedrons_strategy(self):
+    # def _create_newton_raphson_hexaedrons_strategy(self):
+    #     computing_model_part = self.GetComputingModelPart()
+    #     mechanical_scheme = self._get_solution_scheme()
+    #     linear_solver = self._get_linear_solver()
+    #     mechanical_convergence_criterion = self._get_convergence_criterion()
+    #     builder_and_solver = self._get_builder_and_solver()
+    #     return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part,
+    #                                                                  mechanical_scheme,
+    #                                                                  linear_solver,
+    #                                                                  mechanical_convergence_criterion,
+    #                                                                  self.settings["max_iteration"].GetInt(),
+    #                                                                  self.settings["compute_reactions"].GetBool(),
+    #                                                                  self.settings["reform_dofs_at_each_step"].GetBool(),
+    #                                                                  self.settings["move_mesh_flag"].GetBool())
+
+    def _create_DEM_coupled_newton_raphson_strategy(self, DEM_strategy):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
-        linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part,
-                                                                     mechanical_scheme,
-                                                                     linear_solver,
-                                                                     mechanical_convergence_criterion,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())
+        return KratosFemDem.ResidualBasedDEMCoupledNewtonRaphsonStrategy(computing_model_part,
+                                                                         DEM_strategy,
+                                                                         mechanical_scheme,
+                                                                         mechanical_convergence_criterion,
+                                                                         builder_and_solver,
+                                                                         self.settings["max_iteration"].GetInt(),
+                                                                         self.settings["compute_reactions"].GetBool(),
+                                                                         self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                         self.settings["move_mesh_flag"].GetBool())
 
     def _create_ramm_arc_length_strategy(self):
         # Create list of sub sub model parts (it is a copy of the standard lists with a different name)

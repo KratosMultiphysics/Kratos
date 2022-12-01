@@ -3,6 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosCFD
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
@@ -14,67 +15,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
-    @classmethod
-    def GetDefaultParameters(cls):
-        # default settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "trilinos_adjoint_vmsmonolithic_solver",
-            "scheme_settings" : {
-                "scheme_type": "bossak"
-            },
-            "response_function_settings" : {
-                "response_type" : "drag"
-            },
-            "sensitivity_settings" : {},
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "linear_solver_settings" : {
-                "solver_type" : "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "dynamic_tau": 0.0,
-            "oss_switch": 0,
-            "echo_level": 0,
-            "time_stepping"               : {
-                "automatic_time_step" : false,
-                "time_step"           : -0.1
-            },
-            "domain_size": -1,
-            "model_part_name": "",
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "time_step"           : -0.1
-            },
-            "consider_periodic_conditions": false,
-            "assign_neighbour_elements_to_conditions": true
-        }""")
-
-        default_settings.AddMissingParameters(super(AdjointVMSMonolithicMPISolver, cls).GetDefaultParameters())
-        return default_settings
-
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
-
-        self.element_name = "VMSAdjointElement"
-        if self.settings["domain_size"].GetInt() == 2:
-            self.condition_name = "LineCondition"
-        elif self.settings["domain_size"].GetInt() == 3:
-            self.condition_name = "SurfaceCondition"
-        self.min_buffer_size = 2
-        self.element_has_nodal_properties = True
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicMPISolver finished.")
+        super().__init__(model, custom_settings)
 
     def AddVariables(self):
         ## Add variables from the base class
@@ -100,18 +42,17 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = TrilinosApplication.CreateCommunicator()
+            self._epetra_communicator = TrilinosApplication.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
         return self._epetra_communicator
 
     def _CreateScheme(self):
         response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if scheme_type == "bossak":
-            scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
-                self.settings["scheme_settings"],
-                response_function)
+            scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme(self.settings["scheme_settings"], response_function, domain_size, domain_size + 1)
         elif scheme_type == "steady":
-            scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
+            scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme(response_function, domain_size, domain_size + 1)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme

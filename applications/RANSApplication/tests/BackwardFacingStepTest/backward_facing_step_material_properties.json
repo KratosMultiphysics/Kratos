@@ -4,11 +4,22 @@
             "model_part_name": "FluidModelPart.Parts_fluid",
             "properties_id": 2,
             "Material": {
+                "constitutive_law" : {
+                    "name" : "RansNewtonian2DLaw"
+                },
                 "Variables": {
                     "DENSITY": 1.0,
                     "DYNAMIC_VISCOSITY": 100.0
-                },
-                "Tables": {}
+                }
+            }
+        },
+        {
+            "model_part_name": "FluidModelPart.Slip2D",
+            "properties_id": 3,
+            "Material": {
+                "Variables": {
+                    "WALL_SMOOTHNESS_BETA": 5.2
+                }
             }
         }
     ]

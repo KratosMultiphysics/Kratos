@@ -6,7 +6,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 //#include "custom_elements/fractional_step.h"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -51,7 +51,7 @@ template<class TSparseSpace,
 class TDenseSpace,
 class TLinearSolver
 >
-class PFEM2MonolithicSlipStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+class PFEM2MonolithicSlipStrategy : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -60,7 +60,7 @@ public:
     /// Counted pointer of FSStrategy
     typedef boost::shared_ptr< FSStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -76,7 +76,7 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -148,7 +148,7 @@ MoveMeshFlag)
         // Additional Typedefs
         typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+        typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
         //initializing fractional velocity solution step
         typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
@@ -165,16 +165,18 @@ MoveMeshFlag)
         }
 
         //CONSTRUCTION OF VELOCITY
-        BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
+        // BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
 //        BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverSlip<TSparseSpace, TDenseSpace, TLinearSolver, VarComponent > (pNewVelocityLinearSolver, this->mDomainSize, VELOCITY_X, VELOCITY_Y, VELOCITY_Z));
-        this->mpMomentumStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        // this->mpMomentumStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        this->mpMomentumStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
-        BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(
-                    //new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pPressureLinearSolver));
-                new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
+        // BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(
+        //             //new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pPressureLinearSolver));
+        //         new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
 
-        this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        // this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
         if (mUseSlipConditions)
@@ -343,7 +345,6 @@ MoveMeshFlag)
             for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
 
-                //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
 
                 // Build local system
                 itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);

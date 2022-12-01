@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
+from test_utilities import RunParametricTestCase
 
 
 class FlowSolverTestCase(UnitTest.TestCase):
@@ -15,11 +15,13 @@ class FlowSolverTestCase(UnitTest.TestCase):
 
     def testSteady(self):
         self.parameters["<TIME_SCHEME_TYPE>"] = "steady"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "vms"
 
         self._runTest()
 
     def testBossak(self):
         self.parameters["<TIME_SCHEME_TYPE>"] = self.transient_scheme_type
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "vms"
 
         self._runTest()
 

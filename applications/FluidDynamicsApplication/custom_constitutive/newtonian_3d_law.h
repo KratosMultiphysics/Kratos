@@ -80,7 +80,7 @@ public:
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
 
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
@@ -95,7 +95,10 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
@@ -119,10 +122,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
-    
+
     ///@}
 private:
 
@@ -159,4 +162,4 @@ private:
 
 }; // Class Newtonian3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED  defined

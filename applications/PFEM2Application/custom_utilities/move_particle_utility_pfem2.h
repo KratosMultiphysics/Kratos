@@ -75,7 +75,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "processes/node_erase_process.h"
 ///
 
 #include "utilities/geometry_utilities.h"
@@ -234,7 +233,7 @@ namespace Kratos
 					ielem->SetValue(MEAN_SIZE, elem_size);
 
 					//and the matrix column for the enrichments in the pressure.
-					if (TDim==3)
+					if constexpr (TDim==3)
                         ielem->SetValue(ENRICH_LHS_ROW_3D, ZeroVector(4));
 					// {
 					// 	Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
@@ -684,7 +683,7 @@ namespace Kratos
 							{
 								inode->FastGetSolutionStepValue(VELOCITY_Y)=inode->GetSolutionStepValue(VELOCITY_Y,1);
 							}
-							if (TDim==3)
+							if constexpr (TDim==3)
 								if (inode->IsFixed(VELOCITY_Z))
 								{
 									inode->FastGetSolutionStepValue(VELOCITY_Z)=inode->GetSolutionStepValue(VELOCITY_Z,1);
@@ -736,7 +735,7 @@ namespace Kratos
 							{
 								velocity[1] = original_velocity[1] - normal_velocity[1];
 							}
-							if (TDim==3)
+							if constexpr (TDim==3)
 								if (inode->IsFixed(VELOCITY_Z))
 								{
 									velocity[2] = original_velocity[2] - normal_velocity[2];
@@ -1396,7 +1395,7 @@ namespace Kratos
 
 					//now we invert the matrix
 					BoundedMatrix<double, TDim+1 , TDim+1  > inverse_mass_matrix=ZeroMatrix(TDim+1 , TDim+1);
-					if(TDim==3)
+					if constexpr (TDim==3)
 						InvertMatrix( mass_matrix,  inverse_mass_matrix);
 					else
 						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);
@@ -2737,7 +2736,8 @@ namespace Kratos
 		//we check all the neighbour elements
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -2745,6 +2745,7 @@ namespace Kratos
 					pelement = neighb_elems[i].shared_from_this();
 					return true;
 				}
+			}
 		}
 
 	    //if checking all the neighbour elements did not work, we have to use the bins
@@ -2753,20 +2754,20 @@ namespace Kratos
 
 		if(results_found>0){
 		//loop over the candidate elements and check if the particle falls within
-		for(SizeType i = 0; i< results_found; i++)
-		{
-			Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
-
-			//find local position
-			bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-
-			if(is_found == true)
+			for(SizeType i = 0; i< results_found; i++)
 			{
-				pelement=Element::Pointer((*(result_begin+i)));
-				return true;
+				Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+
+				//find local position
+				bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+
+				if(is_found == true)
+				{
+					pelement=Element::Pointer((*(result_begin+i)));
+					return true;
+				}
 			}
 		}
-	}
 		//if nothing worked, then:
 		//not found case
 		return false;
@@ -2836,7 +2837,8 @@ namespace Kratos
 		//we check all the neighbour elements
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -2850,6 +2852,7 @@ namespace Kratos
 					}
 					return true;
 				}
+			}
 		}
 
 
@@ -2915,7 +2918,8 @@ namespace Kratos
 		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
-
+			if(neighb_elems(i).get()!=nullptr)
+			{
 				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
@@ -2923,6 +2927,7 @@ namespace Kratos
 					pelement = neighb_elems[i].shared_from_this();
 					return true;
 				}
+			}
 		}
 
 

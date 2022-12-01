@@ -3,14 +3,21 @@
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
 #include "custom_utilities/registered_component_lookup.h"
+#include "custom_utilities/vertex.h"
 #include "includes/communicator.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+// Local aliases
+using Vertex = Detail::Vertex;
+using VertexContainerType = Detail::VertexContainerType;
+
 namespace
 {
 template <typename TContainerItemType, typename TDataType>
@@ -288,6 +295,24 @@ class ReadNodeComponent
 {
 };
 
+template <class TComponent>
+class WriteVertexComponent
+    : public ContainerItemComponentIO<Vertex>::WriteComponentFunctor<TComponent, void>
+{
+};
+
+// Reading into a Vertex is not (yet) supported
+template <class TComponent>
+class ReadVertexComponent
+{
+public:
+    template <class ...TArguments>
+    void operator()(TArguments&&... rArguments)
+    {
+        KRATOS_ERROR << "Reading Vertex data from HDF5 is not implemented";
+    }
+};
+
 void GetContainerItemReferences(std::vector<ElementType*>& rLocalElements,
                                 ElementsContainerType const& rElements)
 {
@@ -318,6 +343,20 @@ void GetContainerItemReferences(std::vector<NodeType*>& rLocalNodes,
                                 NodesContainerType const& rNodes)
 {
     GetLocalNodes(rNodes, rLocalNodes);
+}
+
+void GetContainerItemReferences(std::vector<Vertex*>& rLocalVertices,
+                                const VertexContainerType& rVertices)
+{
+    rLocalVertices.resize(rVertices.size());
+
+    IndexPartition<std::size_t>(rVertices.size()).for_each([&rVertices,&rLocalVertices](std::size_t i_vertex){
+        // Why is this even allowed in PointerVectorSet?
+        // The const qualifier from rElements is just discarded
+        // without warning when copying to rLocalElements! If this is
+        // intentional, a comment should explain why it is necessary.
+        rLocalVertices[i_vertex] = &*(rVertices.begin() + i_vertex);
+    });
 }
 
 } // unnamed namespace
@@ -506,6 +545,54 @@ void ContainerComponentIO<NodesContainerType,
         .Execute<ReadNodeComponent>(args...);
 }
 
+template <>
+template <class ...TArguments>
+void ContainerComponentIO<VertexContainerType, Vertex, Flags>::WriteRegisteredComponent(
+    const std::string& rComponentName, TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteVertexComponent>(rArguments...);
+}
+
+template <>
+template <class ...TArguments>
+void ContainerComponentIO<VertexContainerType,
+                          Vertex,
+                          Variable<array_1d<double, 3>>,
+                          Variable<double>,
+                          Variable<int>,
+                          Variable<Vector<double>>,
+                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
+                                                                              TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
+        .Execute<WriteVertexComponent>(rArguments...);
+}
+
+template <>
+template <typename... TArguments>
+void ContainerComponentIO<VertexContainerType, Vertex, Flags>::ReadRegisteredComponent(
+    const std::string& rComponentName, TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadVertexComponent>(rArguments...);
+}
+
+template <>
+template <typename... TArguments>
+void ContainerComponentIO<VertexContainerType,
+                          Vertex,
+                          Variable<array_1d<double, 3>>,
+                          Variable<double>,
+                          Variable<int>,
+                          Variable<Vector<double>>,
+                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
+                                                                             TArguments&... rArguments)
+{
+    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
+        .Execute<ReadVertexComponent>(rArguments...);
+}
+
 template <typename TContainerType, typename TContainerItemType, typename... TComponents>
 void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::WriteContainerComponents(
     TContainerType const& rContainer)
@@ -539,13 +626,28 @@ void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::R
     if (mComponentNames.size() == 0)
         return;
 
+    std::vector<std::string> current_components_list(mComponentNames.size());
+    std::copy(mComponentNames.begin(), mComponentNames.end(), current_components_list.begin());
+
+    if (mComponentNames.size() == 1 && mComponentNames[0] == "ALL_VARIABLES_FROM_FILE") {
+        if (mpFile->HasPath(mComponentPath)) {
+            current_components_list = mpFile->GetDataSetNames(mComponentPath);
+        } else {
+            KRATOS_WARNING("ContainerComponentIO")
+                << "ALL_VARIABLES_FROM_FILE are specified to be read, but no variable "
+                   "data is found at "
+                << mComponentPath << " in " << mpFile->GetFileName() << ".\n";
+            return;
+        }
+    }
+
     std::vector<TContainerItemType*> local_items;
     GetContainerItemReferences(local_items, rContainer);
     std::size_t start_index, block_size;
     std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mComponentPath);
 
     // Read local data for each variable.
-    for (const std::string& r_component_name : mComponentNames)
+    for (const std::string& r_component_name : current_components_list)
         ReadRegisteredComponent(r_component_name, local_items, rCommunicator, *mpFile,
                                 mComponentPath, start_index, block_size, r_component_name);
 
@@ -644,7 +746,10 @@ void SetItemDataValues(Variable<TDataType> const& rVariable,
     KRATOS_TRY;
 
     KRATOS_ERROR_IF(rContainerItems.size() != rData.size())
-        << "Number of items does not equal data set dimension\n";
+        << "Number of items does not equal data set dimension\n"
+        << "[ rVariable = " << rVariable.Name() << ", rContainer.size() = "
+        << rContainerItems.size() << ", ReadData.size() = "
+        << rData.size() << " ].\n";
     for (std::size_t i = 0; i < rContainerItems.size(); ++i)
         rContainerItems[i]->GetValue(rVariable) = rData[i];
 
@@ -659,9 +764,13 @@ void SetItemDataValues(Flags const& rVariable,
     KRATOS_TRY;
 
     KRATOS_ERROR_IF(rContainerItems.size() != rData.size())
-        << "Number of items does not equal data set dimension\n";
-    for (std::size_t i = 0; i < rContainerItems.size(); ++i)
+        << "Number of items does not equal data set dimension\n"
+        << "[ rVariable = " << rVariable << ", rContainer.size() = "
+        << rContainerItems.size() << ", ReadData.size() = "
+        << rData.size() << " ].\n";
+    for (std::size_t i = 0; i < rContainerItems.size(); ++i) {
         rContainerItems[i]->Set(rVariable, static_cast<bool>(rData[i]));
+    }
 
     KRATOS_CATCH("");
 }
@@ -674,7 +783,10 @@ void SetItemDataValues(Variable<Vector<double>> const& rVariable,
     KRATOS_TRY;
 
     KRATOS_ERROR_IF(rContainerItems.size() != rData.size1())
-        << "Number of items does not equal data set dimension\n";
+        << "Number of items does not equal data set dimension\n"
+        << "[ rVariable = " << rVariable.Name() << ", rContainer.size() = "
+        << rContainerItems.size() << ", ReadData.size() = "
+        << rData.size1() << " ].\n";
     for (std::size_t i = 0; i < rContainerItems.size(); ++i)
     {
         Vector<double>& r_vec = rContainerItems[i]->GetValue(rVariable);
@@ -696,7 +808,10 @@ void SetItemDataValues(Variable<Matrix<double>> const& rVariable,
     KRATOS_TRY;
 
     KRATOS_ERROR_IF(rContainerItems.size() != rData.size1())
-        << "Number of items does not equal data set dimension\n";
+        << "Number of items does not equal data set dimension\n"
+        << "[ rVariable = " << rVariable.Name() << ", rContainer.size() = "
+        << rContainerItems.size() << ", ReadData.size() = "
+        << rData.size1() << " ].\n";
     for (std::size_t k = 0; k < rContainerItems.size(); ++k)
     {
         Matrix<double>& r_mat = rContainerItems[k]->GetValue(rVariable);
@@ -733,6 +848,13 @@ template class ContainerComponentIO<ConditionsContainerType,
 template class ContainerComponentIO<NodesContainerType, NodeType, Flags>;
 template class ContainerComponentIO<NodesContainerType,
                                     NodeType,
+                                    Variable<array_1d<double, 3>>,
+                                    Variable<double>,
+                                    Variable<int>,
+                                    Variable<Vector<double>>,
+                                    Variable<Matrix<double>>>;
+template class ContainerComponentIO<VertexContainerType,
+                                    Vertex,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
                                     Variable<int>,

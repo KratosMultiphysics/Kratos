@@ -10,8 +10,13 @@ include(pybind11Tools)
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
-  set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
+  # Compiling the triangle library
+  if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    set(INCLUDE_TRIANGLE ON)
+    set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
+  else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    message(FATAL_ERROR "INCLUDE_TRIANGLE not defined, neither USE_TRIANGLE_NONFREE_TPL=ON is defined. The application DelaunayMeshingApplication will not compile")
+  endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
@@ -24,7 +29,6 @@ if(${INCLUDE_TRIANGLE} MATCHES ON)
   include_directories(${TRIANGLE_DIR})
   list(APPEND MESHER_LIBRARIES triangle)
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
-
 
 if(${INCLUDE_TETGEN} MATCHES ON)
   set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
@@ -92,6 +96,12 @@ pybind11_add_module(KratosDelaunayMeshingApplication MODULE ${KRATOS_DELAUNAY_ME
 target_link_libraries(KratosDelaunayMeshingApplication PRIVATE KratosDelaunayMeshingCore)
 set_target_properties(KratosDelaunayMeshingApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosDelaunayMeshingCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosDelaunayMeshingApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
@@ -104,12 +114,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDelaunayMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosDelaunayMeshingCore)
-    cotire(KratosDelaunayMeshingApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DelaunayMeshingApplication.py KratosMultiphysics/DelaunayMeshingApplication/__init__.py )
@@ -133,3 +137,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosDelaunayMeshingCore DESTINATION libs )
 install(TARGETS KratosDelaunayMeshingApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDelaunayMeshingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosDelaunayMeshingApplication" PARENT_SCOPE)
