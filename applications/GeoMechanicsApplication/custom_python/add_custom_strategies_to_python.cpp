@@ -33,6 +33,7 @@
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_T_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -62,7 +63,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
     typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
     typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
-    
+    typedef BackwardEulerQuasistaticTScheme< SparseSpaceType, LocalSpaceType >    BackwardEulerQuasistaticTSchemeType;
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
@@ -92,6 +93,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     class_< BackwardEulerQuasistaticPwSchemeType, typename BackwardEulerQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "BackwardEulerQuasistaticPwScheme")
+    .def(init< >());
+	
+	class_< BackwardEulerQuasistaticTSchemeType, typename BackwardEulerQuasistaticTSchemeType::Pointer, BaseSchemeType >
+    (m, "BackwardEulerQuasistaticTScheme")
     .def(init< >());
 
     class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
