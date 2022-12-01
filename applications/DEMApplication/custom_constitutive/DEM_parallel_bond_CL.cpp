@@ -396,7 +396,12 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
     if (!failure_type){ //if the bond is not broken
         BondedLocalElasticContactForce2 = kn_el * bonded_indentation;
     } else { //else the bond is broken
-        BondedLocalElasticContactForce2 = 0.0;
+        //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force
+        if (bonded_indentation > 0.0){
+            BondedLocalElasticContactForce2 = kn_el * bonded_indentation;
+        } else {
+            BondedLocalElasticContactForce2 = 0.0;
+        }
     }
 
     if (indentation > 0.0) {
@@ -529,6 +534,7 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         BondedLocalElasticContactForce[0] -= kt_el * mAccumulatedBondedTangentialLocalDisplacement[0]; // 0: first tangential
         BondedLocalElasticContactForce[1] -= kt_el * mAccumulatedBondedTangentialLocalDisplacement[1]; // 1: second tangential
     } else {
+        //TODO: maybe a friction force due to the break bond should be added here
         BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
         BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
     }
@@ -880,13 +886,13 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             failure_type = 2; // failure in shear
             contact_sigma = 0.0;
             contact_tau = 0.0;
-            //TODO: after bond break, the normal force should still be there like before
+            //If bond break in shear, the normal compressive force should still be there like before
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
             LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
-            LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
+            //LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
             ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
             ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;
@@ -901,7 +907,6 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             failure_type = 4; // failure in tension
             contact_sigma = 0.0;
             contact_tau = 0.0;
-            //TODO: after bond break, the normal force should still be there like before
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
             LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
             LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
