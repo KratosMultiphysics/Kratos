@@ -247,11 +247,15 @@ public:
      * @return rIntersectionPoint1 The first intersection point coordinates
      * @return rIntersectionPoint2 The second intersection point coordinates
      * @return The intersection type index:
-     * 0 (disjoint - no intersection)
-     * 1 (intersect in two points)
-     * 2 (intersect in one point)
-     * 3 (intersect in two points inside the tetrahedra)
-     * 4 (intersect in two points, one inside the tetrahedra)
+     *         0 (disjoint - no intersection)
+     *         1 (intersect in two points)
+     *         2 (intersect in one point)
+     *         3 (intersect in two points inside the tetrahedra)
+     *         4 (intersect in two points, one inside the tetrahedra)
+     *         5 (intersect in the first corner of the tetrahedra)
+     *         6 (intersect in the second corner of the tetrahedra)
+     *         7 (intersect in the thid corner of the tetrahedra)
+     *         8 (intersect in the fourth corner of the tetrahedra)
      */
     template <class TGeometryType, bool TConsiderInsidePoints = true>
     static int ComputeTetrahedraLineIntersection(
@@ -263,6 +267,9 @@ public:
         const double Epsilon = 1e-12
         ) 
     {
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
         int solution = 0;
         for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
             array_1d<double,3> intersection_point;
@@ -272,68 +279,104 @@ public:
                     noalias(rIntersectionPoint1) = intersection_point;
                     solution = 2;
                 } else {
-                    noalias(rIntersectionPoint2) = intersection_point;
-                    solution = 1;
-                    break;
+                    if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                        noalias(rIntersectionPoint2) = intersection_point;
+                        solution = 1;
+                        break;
+                    }
                 }
             } else if (face_solution == 2) { // The line is coincident with the face
                 // Compute intersection with the edges
-                array_1d<double,3> vector_line = rLinePoint2 - rLinePoint1;
-                vector_line /= norm_2(vector_line);
-                // Compute two points of the face
                 for (auto& r_edge : r_face.GenerateEdges()) {
-                    const auto edge_point_1 = r_edge[0].Coordinates();
-                    const auto edge_point_2 = r_edge[1].Coordinates();
-                    array_1d<double,3> vector_edge = edge_point_2 - edge_point_1;
-                    vector_edge /= norm_2(vector_edge);
-                    const double residual = norm_2(vector_line - vector_edge);
-                    if (residual < Epsilon || residual > (2 - Epsilon)) { // Aligned
-                        array_1d<double,3> local_coordinates;
-                        // First point
-                        if (r_edge.IsInside(rLinePoint1, local_coordinates)) { // Is inside the line
-                            if (solution == 0) {
-                                noalias(rIntersectionPoint1) = rLinePoint1;
-                                solution = 2;
-                            } else {
-                                noalias(rIntersectionPoint2) = rLinePoint1;
-                                solution = 1;
-                                break;
-                            }
-                        } else { // Is in the border of the line
-                            if (solution == 0) {
-                                noalias(rIntersectionPoint1) = norm_2(edge_point_1 - rLinePoint1) <  norm_2(edge_point_2 - rLinePoint1) ? edge_point_1 : edge_point_2;
-                                solution = 2;
-                            } else {
-                                noalias(rIntersectionPoint2) = norm_2(edge_point_1 - rLinePoint1) <  norm_2(edge_point_2 - rLinePoint1) ? edge_point_1 : edge_point_2;
-                                solution = 1;
-                                break;
-                            }
+                    const auto& r_edge_point_1 = r_edge[0].Coordinates();
+                    const auto& r_edge_point_2 = r_edge[1].Coordinates();
+                    array_1d<double, 3> intersection_point_1, intersection_point_2;
+                    const auto check_1 = ComputeLineLineIntersection(rLinePoint1, rLinePoint2, r_edge_point_1, r_edge_point_2, intersection_point_1, Epsilon);
+                    const auto check_2 = ComputeLineLineIntersection(r_edge_point_1, r_edge_point_2, rLinePoint1, rLinePoint2, intersection_point_2, Epsilon);
+                    if (check_1 == 0 && check_2 == 0) continue; // No intersection
+                    array_1d<double, 3> intersection_point = check_1 != 0 ? intersection_point_1 : intersection_point_2;
+                    if (check_1 == 2 || check_2 == 2) { // Aligned
+                        // Check actually are aligned
+                        array_1d<double, 3> vector_line = r_edge_point_2 - r_edge_point_1;
+                        vector_line /= norm_2(vector_line);
+                        array_1d<double, 3> diff_coor_1 = rLinePoint1 - r_edge_point_1;
+                        const double diff_coor_1_norm = norm_2(diff_coor_1);
+                        if (diff_coor_1_norm > zero_tolerance) {
+                            diff_coor_1 /= diff_coor_1_norm;
+                        } else {
+                            diff_coor_1 = rLinePoint1 - r_edge_point_2;
+                            diff_coor_1 /= norm_2(diff_coor_1);
                         }
-                        // Second point
-                        if (solution == 2) {
-                            if (r_edge.IsInside(rLinePoint2, local_coordinates)) { // Is inside the line
-                                noalias(rIntersectionPoint2) = rLinePoint2;
-                                solution = 1;
-                                break;
+                        array_1d<double, 3> diff_coor_2 = rLinePoint2 - r_edge_point_1;
+                        const double diff_coor_2_norm = norm_2(diff_coor_2);
+                        if (diff_coor_2_norm > zero_tolerance) {
+                            diff_coor_2 /= diff_coor_2_norm;
+                        } else {
+                            diff_coor_2 = rLinePoint2 - r_edge_point_2;
+                            diff_coor_2 /= norm_2(diff_coor_2);
+                        }
+                        const double diff1m = norm_2(diff_coor_1 - vector_line);
+                        const double diff1p = norm_2(diff_coor_1 + vector_line);
+                        const double diff2m = norm_2(diff_coor_2 - vector_line);
+                        const double diff2p = norm_2(diff_coor_2 + vector_line);
+                        if ((diff1m < Epsilon || diff1p < Epsilon) && (diff2m < Epsilon || diff2p < Epsilon)) {
+                            // Now we compute the intersection
+                            array_1d<double, 3> local_coordinates;
+                            // First point
+                            if (r_edge.IsInside(rLinePoint1, local_coordinates)) { // Is inside the line
+                                if (solution == 0) {
+                                    noalias(rIntersectionPoint1) = rLinePoint1;
+                                    solution = 2;
+                                } else {
+                                    if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
+                                        noalias(rIntersectionPoint2) = rLinePoint1;
+                                        solution = 1;
+                                        break;
+                                    }
+                                }
                             } else { // Is in the border of the line
-                                noalias(rIntersectionPoint2) = norm_2(edge_point_1 - rLinePoint2) <  norm_2(edge_point_2 - rLinePoint2) ? edge_point_1 : edge_point_2;
-                                solution = 1;
+                                if (solution == 0) {
+                                    noalias(rIntersectionPoint1) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
+                                    solution = 2;
+                                } else {
+                                    noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
+                                    if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                                        noalias(rIntersectionPoint2) = intersection_point;
+                                        solution = 1;
+                                        break;
+                                    }
+                                }
+                            }
+                            // Second point
+                            if (solution == 2) {
+                                if (r_edge.IsInside(rLinePoint2, local_coordinates)) { // Is inside the line
+                                    if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) { // Must be different from the first one
+                                        noalias(rIntersectionPoint2) = rLinePoint2;
+                                        solution = 1;
+                                        break;
+                                    }
+                                } else { // Is in the border of the line
+                                    noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint2) <  norm_2(r_edge_point_2 - rLinePoint2) ? r_edge_point_1 : r_edge_point_2;
+                                    if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                                        noalias(rIntersectionPoint2) = intersection_point;
+                                        solution = 1;
+                                        break;
+                                    }
+                                }
+                            } else { // We are done
                                 break;
                             }
-                        } else { // We are done
-                            break;
                         }
                     } else { // Direct intersection
-                        array_1d<double, 3> intersection_point;
-                        const auto check = ComputeLineLineIntersection(rIntersectionPoint1, rIntersectionPoint2, edge_point_1, edge_point_2, intersection_point, Epsilon);
-                        if (check == 0 || check == 2) continue; // No intersection or overlapping
                         if (solution == 0) {
                             noalias(rIntersectionPoint1) = intersection_point;
                             solution = 2;
                         } else {
-                            noalias(rIntersectionPoint2) = intersection_point;
-                            solution = 1;
-                            break;
+                            if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                                noalias(rIntersectionPoint2) = intersection_point;
+                                solution = 1;
+                                break;
+                            }
                         }
                     }
                 }
@@ -374,6 +417,22 @@ public:
                         }
                     }
                 }
+            }
+        }
+
+        // Checking if any node of the tetrahedra
+        if (solution == 2) {
+            // Detect the node of the tetrahedra and directly assign
+            int index_node = -1;
+            for (int i_node = 0; i_node < 4; ++i_node) {
+                if (norm_2(rTetrahedraGeometry[i_node].Coordinates() - rIntersectionPoint1) < Epsilon) {
+                    index_node = i_node;
+                    break;
+                }
+            }
+            // Return index
+            if (index_node > -1) {
+                return index_node + 5;
             }
         }
 
