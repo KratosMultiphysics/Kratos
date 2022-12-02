@@ -84,14 +84,158 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     // Validate deafult parameters
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
+    // Getting variables
+    std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
+    GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
+
     // Checking if we extrapolate or interpolate
     const bool extrapolate_values = ThisParameters["extrapolate_values"].GetBool();
 
-    // We extrapolate the values
-    if (extrapolate_values) {
-        ExtrapolateFrom1Dto3D(rModelPart3D, rModelPart1D, ThisParameters);
-    } else { // We interpolate the values
-        InterpolateFrom1Dto3D(rModelPart3D, rModelPart1D, ThisParameters);
+    // We generate auxiliary 3D model part
+    {
+        auto& r_aux_model_part_3D = rModelPart3D.CreateSubModelPart("IntersectedElements3D");
+
+        // Max length of the elements considered
+        const double max_length = GetMaxLength(rModelPart1D);
+
+        // The elements array
+        auto& r_elements_array = rModelPart1D.Elements();
+        const auto it_elem_begin = r_elements_array.begin();
+
+        /// KDtree definitions
+        KRATOS_KDTREE_POINTELEMENT_DEFINITION
+
+        // Some auxiliary values
+        const double tolerance = 1.0e-16;
+        const IndexType allocation_size = ThisParameters["search_parameters"]["allocation_size"].GetInt();                 // Allocation size for the vectors and max number of potential results
+        const double search_factor = ThisParameters["search_parameters"]["search_factor"].GetDouble();                     // The search factor to be considered
+        const double search_increment_factor = ThisParameters["search_parameters"]["search_increment_factor"].GetDouble(); // The search increment factor to be considered
+        IndexType bucket_size = ThisParameters["search_parameters"]["bucket_size"].GetInt();                               // Bucket size for kd-tree
+
+        PointVector points_vector;
+        points_vector.reserve(r_elements_array.size());
+        for (std::size_t i = 0; i < r_elements_array.size(); ++i) {
+            auto it_elem = it_elem_begin + i;
+            points_vector.push_back(PointTypePointer(new PointType(*(it_elem.base()))));
+        }
+        KDTree tree_points(points_vector.begin(), points_vector.end(), bucket_size);
+
+        // Auxiliary values
+        struct AuxValues {
+            array_1d<double,3> intersection_point1, intersection_point2;
+            array_1d<double,3> first_point;
+            array_1d<double,3> aux_coordinates;
+            Vector N_line;
+            array_1d<double,2> values_origin;
+        };
+
+        // Iterate over the elements (first assign NODAL_VOLUME)
+        const std::size_t aux_elem_number = block_for_each<SumReduction<std::size_t>>(rModelPart3D.Elements(), AuxValues(), [&](Element& rElement, AuxValues av) {
+            double search_radius = search_factor * max_length;
+
+            // Initialize values
+            PointVector points_found(allocation_size);
+            IndexType number_points_found = 0;
+            auto& r_geometry_tetra = rElement.GetGeometry();
+
+            // Iterate doing the search
+            const Point center = r_geometry_tetra.Center();
+            while (number_points_found == 0) {
+                search_radius *= search_increment_factor;
+                const PointElement point(center.X(), center.Y(), center.Z());
+                number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
+            }
+
+            // Getting the intersection points
+            unsigned int counter = 0;
+            for (IndexType i = 0; i < number_points_found; ++i) {
+                auto p_point = points_found[i];
+                auto p_geometry = p_point->pGetElement()->pGetGeometry();
+                auto& r_geometry = *p_geometry;
+                const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+                if (intersection == 1) { // Two intersection points
+                    counter += 2;
+                } else if (intersection == 2) { // Two points, one inside the tetrahedra and the other outside
+                    bool add_point = true;
+                    for (unsigned int i_point = 0; i_point < counter; ++i_point) {
+                        if (norm_2(av.first_point - av.intersection_point1) < tolerance) {
+                            add_point = false;
+                            break;
+                        }
+                    }
+                    if (add_point) {
+                        av.first_point = av.intersection_point1;
+                        counter += 1;
+                    }
+                } else if (intersection > 4) { // One intersection point in a corner
+                    // Detect the node of the tetrahedra and directly assign
+                    const int index_node = intersection - 5;
+                    // Assign value
+                    auto& r_node = r_geometry_tetra[index_node];
+                    p_geometry->PointLocalCoordinates(av.aux_coordinates, av.intersection_point1);
+                    p_geometry->ShapeFunctionsValues( av.N_line, av.aux_coordinates );
+                    for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+                        av.values_origin[0] = r_geometry[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
+                        av.values_origin[1] = r_geometry[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
+                        #pragma omp critical
+                        {
+                            r_node.FastGetSolutionStepValue(*destination_list_variables[i_var]) = MathUtils<double>::Dot(av.N_line, av.values_origin);
+                        }
+                    }
+                    break;
+                } 
+                if (counter > 1) {
+                    break;
+                }
+            }
+            // 1 point at least is  required
+            if (counter > 0) {
+                rElement.Set(VISITED);
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        // We add the elements to the auxiliary model part
+        std::vector<std::size_t> elements_id;
+        elements_id.reserve(aux_elem_number);
+        for (auto& r_elem : rModelPart3D.Elements()) {
+            if (r_elem.Is(VISITED)) {
+                elements_id.push_back(r_elem.Id());
+            }
+        }
+        r_aux_model_part_3D.AddElements(elements_id);
+
+        // We add the nodes to the model part
+        for (auto& r_elem : r_aux_model_part_3D.Elements()) {
+            auto& r_geometry = r_elem.GetGeometry();
+            for (auto& r_node : r_geometry) {
+                if (!r_aux_model_part_3D.HasNode(r_node.Id())) {
+                    r_aux_model_part_3D.AddNode(&r_node);
+                }
+            }
+        }
+        
+        // Clear VISITED flag
+        block_for_each(r_aux_model_part_3D.Elements(), [](Element& rElement){
+            rElement.Reset(VISITED);
+        });
+
+        // We extrapolate the values
+        if (extrapolate_values) {
+            ExtrapolateFrom1Dto3D(r_aux_model_part_3D, rModelPart1D, ThisParameters);
+        } else { // We interpolate the values
+            InterpolateFrom1Dto3D(r_aux_model_part_3D, rModelPart1D, ThisParameters);
+        }
+    }
+
+    // Debug mode
+    const bool debug_mode = ThisParameters["debug_mode"].GetBool();
+
+    // We remove the auxiliary model part
+    if (!debug_mode) {
+        rModelPart3D.RemoveSubModelPart("IntersectedElements3D");
     }
 }
 
@@ -203,6 +347,30 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
     std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
     
+    // Initialize the NODAL_VOLUME
+    VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart3D.Nodes());
+
+    // Iterate over the elements (first assign NODAL_VOLUME)
+    block_for_each(rModelPart3D.Elements(), [&](Element& rElement) {
+        auto& r_geometry_tetra = rElement.GetGeometry();
+
+        // Getting volume
+        const double volume = r_geometry_tetra.Volume();
+
+        // Iterate over the nodes of the element and add the contribution of the volume
+        for (unsigned int i_node = 0; i_node < 4; ++i_node) {
+            auto& r_value = r_geometry_tetra[i_node].GetValue(NODAL_VOLUME);
+            AtomicAdd(r_value, volume);
+        }
+    });
+
+    // Initialize if required
+    block_for_each(rModelPart3D.Nodes(), [&destination_list_variables](auto& rNode) {
+        for (std::size_t i_var = 0; i_var < destination_list_variables.size(); ++i_var) {
+            rNode.FastGetSolutionStepValue(*destination_list_variables[i_var]) = 0.0;
+        }
+    });
+
     // Max length of the elements considered
     const double max_length = GetMaxLength(rModelPart1D);
 
@@ -238,84 +406,10 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
         BoundedMatrix<double, 4, 2> inverted_N_values;
         std::array<GeometryType::Pointer, 2> lines;
         std::array<array_1d<double, 3>, 2> line_points;
-        std::array<Vector, 4> N_line;
+        std::array<Vector, 2> N_line;
         Vector N_tetra = ZeroVector(4);
         double aux_det;
     };
-
-    // Initialize the NODAL_VOLUME
-    VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart3D.Nodes());
-
-    // Debug mode
-    const bool debug_mode = ThisParameters["debug_mode"].GetBool();
-
-    // Iterate over the elements (first assign NODAL_VOLUME)
-    block_for_each(rModelPart3D.Elements(), AuxValues(), [&](Element& rElement, AuxValues av) {
-        double search_radius = search_factor * max_length;
-
-        // Initialize values
-        PointVector points_found(allocation_size);
-        IndexType number_points_found = 0;
-        auto& r_geometry_tetra = rElement.GetGeometry();
-
-        // Iterate doing the search
-        const Point center = r_geometry_tetra.Center();
-        while (number_points_found == 0) {
-            search_radius *= search_increment_factor;
-            const PointElement point(center.X(), center.Y(), center.Z());
-            number_points_found = tree_points.SearchInRadius(point, search_radius, points_found.begin(), allocation_size);
-        }
-
-        // Getting the intersection points
-        unsigned int counter = 0;
-        for (IndexType i = 0; i < number_points_found; ++i) {
-            auto p_point = points_found[i];
-            auto p_geometry = p_point->pGetElement()->pGetGeometry();
-            auto& r_geometry = *p_geometry;
-            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
-            if (intersection == 1) { // Two intersection points
-                counter += 2;
-            } else if (intersection == 2) { // Two points, one inside the tetrahedra and the other outside
-                bool add_point = true;
-                for (unsigned int i_point = 0; i_point < counter; ++i_point) {
-                    if (norm_2(av.line_points[i_point] - av.intersection_point1) < tolerance) {
-                        add_point = false;
-                        break;
-                    }
-                }
-                if (add_point) {
-                    counter += 1;
-                }
-            }
-            if (counter > 1) {
-                break;
-            }
-        }
-        // 2 points are required
-        if (counter > 1) {
-            // For debugging purposes
-            if (debug_mode) rElement.Set(VISITED); 
-
-            // Getting volume
-            const double volume = r_geometry_tetra.Volume();
-
-            // Iterate over the nodes of the element and add the contribution of the volume
-            for (unsigned int i_node = 0; i_node < 4; ++i_node) {
-                auto& r_value = r_geometry_tetra[i_node].GetValue(NODAL_VOLUME);
-                AtomicAdd(r_value, volume);
-            }
-        }
-    });
-
-    // Initialize if required
-    block_for_each(rModelPart3D.Nodes(), [&destination_list_variables](auto& rNode) {
-        const double nodal_volume = rNode.GetValue(NODAL_VOLUME);
-        if (nodal_volume > std::numeric_limits<double>::epsilon()) {
-            for (std::size_t i_var = 0; i_var < destination_list_variables.size(); ++i_var) {
-                rNode.FastGetSolutionStepValue(*destination_list_variables[i_var]) = 0.0;
-            }
-        }
-    });
 
     // Swap sign
     const bool swap_sign = ThisParameters["swap_sign"].GetBool();
@@ -369,20 +463,7 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
                     av.line_points[counter] = av.intersection_point1;
                     counter += 1;
                 }
-            } else if (intersection > 4) { // One intersection point in a corner
-                // Detect the node of the tetrahedra and directly assign
-                const int index_node = intersection - 5;
-                // Assign value
-                auto& r_node = r_geometry_tetra[index_node];
-                p_geometry->PointLocalCoordinates(av.aux_coordinates, av.intersection_point1);
-                p_geometry->ShapeFunctionsValues( av.N_line[0], av.aux_coordinates );
-                for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
-                    av.values_origin[0] = r_geometry[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
-                    av.values_origin[1] = r_geometry[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
-                    r_node.FastGetSolutionStepValue(*destination_list_variables[i_var]) = MathUtils<double>::Dot(av.N_line[0], av.values_origin);
-                }
-                break;
-            } 
+            }
             if (counter > 1) {
                 break;
             }
