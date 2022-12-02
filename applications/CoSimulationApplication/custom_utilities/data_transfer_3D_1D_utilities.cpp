@@ -23,7 +23,10 @@
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 #include "spaces/ublas_space.h"
-#include "factories/mapper_factory.h" // The mappers
+
+/* The mappers */
+#include "mappers/mapper_flags.h"
+#include "factories/mapper_factory.h" 
 
 namespace Kratos
 {
@@ -49,6 +52,9 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
     Parameters ThisParameters
     )
 {
+    // Throwing and error if MPI is used
+    KRATOS_ERROR_IF(rModelPart3D.IsDistributed()) << "This implementation is not available for MPI model parts" << std::endl;
+
     // Validate deafult parameters
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
@@ -385,9 +391,11 @@ void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
     auto p_mapper = MapperFactoryType::CreateMapper(rModelPart3D, rModelPart1D, interpolate_parameters);
 
     // Interpolate
-    Kratos::Flags dummy_flags = Kratos::Flags(); // TODO: Add flags
+    Kratos::Flags mapper_flags = Kratos::Flags();
+    const bool swap_sign = ThisParameters["swap_sign"].GetBool();
+    if (swap_sign) mapper_flags.Set(MapperFlags::SWAP_SIGN);
     for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
-        p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], dummy_flags);
+        p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
     }
     
 }
