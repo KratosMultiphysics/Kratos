@@ -65,16 +65,26 @@ public:
     ///@name Template Type Definitions
     ///@{
 
-    using Residual = CalculationDataContainers<
+    /**
+     * @brief This holds static helper functions such as Check and GetIntegrationMethod for the equations.
+     */
+    using EquationAuxiliaries = TResidualsDerivatives;
+
+    /**
+     * @brief This holds the container traits for primal residual computation which is required for analytical sensitivity computation.
+     */
+    using Residual = CalculationContainerTraits<
                         std::tuple<
                             Data>,
                         std::tuple<
                             SubAssembly<ResidualsContributions, ElementDataContainerIndex, 0, ResidualColumnOffset>>
                         >;
-
-    using ResidualStateVariableFirstDerivatives = typename std::conditional<
+    /**
+     * @brief This holds the container traits for analytical first derivative computations
+     */
+    using ResidualStateVariableFirstDerivatives = std::conditional_t<
                                                         TDim == 2,
-                                                        CalculationDataContainers<
+                                                        CalculationContainerTraits<
                                                             std::tuple<
                                                                 Data>,
                                                             std::tuple<
@@ -82,7 +92,7 @@ public:
                                                                 SubAssembly<VelocityDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
                                                                 SubAssembly<PressureDerivativeContributions,    ElementDataContainerIndex, 2, ResidualColumnOffset>>
                                                             >,
-                                                        CalculationDataContainers<
+                                                        CalculationContainerTraits<
                                                             std::tuple<
                                                                 Data>,
                                                             std::tuple<
@@ -91,11 +101,13 @@ public:
                                                                 SubAssembly<VelocityDerivativeContributions<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>,
                                                                 SubAssembly<PressureDerivativeContributions,    ElementDataContainerIndex, 3, ResidualColumnOffset>>
                                                             >
-                                                        >::type;
-
-    using ResidualStateVariableSecondDerivatives = typename std::conditional<
+                                                        >;
+    /**
+     * @brief This holds the traits for the analytical second derivative computations
+     */
+    using ResidualStateVariableSecondDerivatives = std::conditional_t<
                                                         TDim == 2,
-                                                        CalculationDataContainers<
+                                                        CalculationContainerTraits<
                                                             std::tuple<
                                                                 Data>,
                                                             std::tuple<
@@ -103,7 +115,7 @@ public:
                                                                 SubAssembly<AccelerationDerivativeContributions<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
                                                                 SubAssembly<ZeroDerivatives<TNumNodes, 3>,          ElementDataContainerIndex, 2, ResidualColumnOffset>>
                                                             >,
-                                                        CalculationDataContainers<
+                                                        CalculationContainerTraits<
                                                             std::tuple<
                                                                 Data>,
                                                             std::tuple<
@@ -112,18 +124,21 @@ public:
                                                                 SubAssembly<AccelerationDerivativeContributions<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>,
                                                                 SubAssembly<ZeroDerivatives<TNumNodes, 4>,          ElementDataContainerIndex, 3, ResidualColumnOffset>>
                                                             >
-                                                        >::type;
+                                                        >;
 
-    using ResidualShapeDerivatives = typename std::conditional<
+    /**
+     * @brief This holds the traits for the analytical shape derivative computations
+     */
+    using ResidualShapeDerivatives = std::conditional_t<
                                             TDim == 2,
-                                            CalculationDataContainers<
+                                            CalculationContainerTraits<
                                                 std::tuple<
                                                     Data>,
                                                 std::tuple<
                                                     SubAssembly<ShapeDerivatives<0>, ElementDataContainerIndex, 0, ResidualColumnOffset>,
                                                     SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>>
                                                 >,
-                                            CalculationDataContainers<
+                                            CalculationContainerTraits<
                                                 std::tuple<
                                                     Data>,
                                                 std::tuple<
@@ -131,19 +146,7 @@ public:
                                                     SubAssembly<ShapeDerivatives<1>, ElementDataContainerIndex, 1, ResidualColumnOffset>,
                                                     SubAssembly<ShapeDerivatives<2>, ElementDataContainerIndex, 2, ResidualColumnOffset>>
                                                 >
-                                            >::type;
-
-    ///@}
-    ///@name Static Operations
-    ///@{
-
-    static void Check(
-        const Element& rElement,
-        const ProcessInfo& rProcessInfo);
-
-    static std::vector<const Variable<double>*> GetDofVariablesList();
-
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
+                                            >;
 
     ///@}
 };

@@ -159,7 +159,7 @@ template <
     class TCombinedElementDataContainer,
     class TCombinedCalculationContainers
 >
-class CalculationDataContainers
+class CalculationContainerTraits
 {
 public:
     ///@name Derivative type definitions
