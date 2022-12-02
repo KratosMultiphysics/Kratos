@@ -447,7 +447,7 @@ public:
         ConstitutiveLaw* mpConstitutiveLaw;
 
         // Primal data
-        int mOSS_SWITCH;
+        int mOSSSwitch;
         double mDensity;
         double mConvectiveVelocityNorm;
         double mEffectiveViscosity;

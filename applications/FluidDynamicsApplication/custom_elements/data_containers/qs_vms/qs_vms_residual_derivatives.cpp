@@ -205,8 +205,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::Initialize(
 
     // get values from process info
     mDynamicTau = rProcessInfo[DYNAMIC_TAU];
-    mOSS_SWITCH = rProcessInfo[OSS_SWITCH];
-    KRATOS_ERROR_IF(mOSS_SWITCH == 1)
+    mOSSSwitch = rProcessInfo[OSS_SWITCH];
+    KRATOS_ERROR_IF(mOSSSwitch == 1)
         << "OSS Projection adjoints are not yet supported.\n";
 
     mDeltaTime = rProcessInfo[DELTA_TIME];
