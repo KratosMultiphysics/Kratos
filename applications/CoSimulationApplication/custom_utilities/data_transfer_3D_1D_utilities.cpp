@@ -118,7 +118,8 @@ void DataTransfer3D1DUtilities::GetVariablesList(
             rOriginListVariables.push_back(&KratosComponents<Variable<double>>::Get(origin_variables_names[i_var]));
             rDestinationListVariables.push_back(&KratosComponents<Variable<double>>::Get(destination_variables_names[i_var]));
         } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(origin_variables_names[i_var])) {
-            //KRATOS_ERROR_IF_NOT(KratosComponents<Variable<array_1d<double, 3>>>::Has(destination_variables_names[i_var])) << "Destination variable is not an array of 3 components" << std::endl;
+            const bool check_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(destination_variables_names[i_var]);
+            KRATOS_ERROR_IF_NOT(check_variable) << "Destination variable is not an array of 3 components" << std::endl;
             const auto& r_origin_var_name = origin_variables_names[i_var];
             const auto& r_destination_var_name = destination_variables_names[i_var];
             for (unsigned int i_comp = 0; i_comp < 3; ++i_comp) {
