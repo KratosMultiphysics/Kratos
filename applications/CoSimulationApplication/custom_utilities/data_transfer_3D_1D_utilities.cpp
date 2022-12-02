@@ -27,6 +27,16 @@
 namespace Kratos
 {
 
+#define KRATOS_KDTREE_POINTELEMENT_DEFINITION                                                              \
+using PointType = PointElement;                                                                            \
+using PointTypePointer = PointType::Pointer;                                                               \
+using PointVector = std::vector<PointTypePointer>;                                                         \
+using PointIterator = PointVector::iterator;                                                               \
+using DistanceVector = std::vector<double>;                                                                \
+using DistanceIterator = DistanceVector::iterator;                                                         \
+using BucketType = Bucket<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>; \
+using KDTree = Tree<KDTreePartition<BucketType>>;                                                          
+
 void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
@@ -48,17 +58,8 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
     auto& r_elements_array = rModelPart3D.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
-    /// Type definitions for the tree
-    using PointType = PointElement;
-    using PointTypePointer = PointType::Pointer;
-    using PointVector = std::vector<PointTypePointer>;
-    using PointIterator = PointVector::iterator;
-    using DistanceVector = std::vector<double>;
-    using DistanceIterator = DistanceVector::iterator;
-
     /// KDtree definitions
-    using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator >;
-    using KDTree = Tree< KDTreePartition<BucketType> >;
+    KRATOS_KDTREE_POINTELEMENT_DEFINITION
 
     // Some auxiliary values
     const IndexType allocation_size = ThisParameters["search_parameters"]["allocation_size"].GetInt();                 // Allocation size for the vectors and max number of potential results
@@ -138,17 +139,8 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     auto& r_elements_array = rModelPart1D.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
-    /// Type definitions for the tree
-    using PointType = PointElement;
-    using PointTypePointer = PointType::Pointer;
-    using PointVector = std::vector<PointTypePointer>;
-    using PointIterator = PointVector::iterator;
-    using DistanceVector = std::vector<double>;
-    using DistanceIterator = DistanceVector::iterator;
-
     /// KDtree definitions
-    using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator >;
-    using KDTree = Tree< KDTreePartition<BucketType> >;
+    KRATOS_KDTREE_POINTELEMENT_DEFINITION
 
     // Some auxiliary values
     const double tolerance = 1.0e-16;
