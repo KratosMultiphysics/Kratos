@@ -22,6 +22,7 @@
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
+#include "factories/mapper_factory.h" // The mappers
 
 namespace Kratos
 {
@@ -32,6 +33,7 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
     Parameters ThisParameters
     )
 {
+
     // Validate deafult parameters
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
@@ -40,13 +42,11 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
     
     // Max length of the elements considered
+    const double max_length = GetMaxLength(rModelPart3D);
+
+    // The elements array
     auto& r_elements_array = rModelPart3D.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    KRATOS_ERROR_IF(r_elements_array.size() == 0) << "Empty 3D model part" << std::endl;
-    double max_length = 0.0;
-    max_length = block_for_each<MaxReduction<double>>(r_elements_array, [&](Element& rElement) {
-        return rElement.GetGeometry().Length();
-    });
 
     /// Type definitions for the tree
     using PointType = PointElement;
@@ -132,13 +132,11 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
     
     // Max length of the elements considered
+    const double max_length = GetMaxLength(rModelPart1D);
+
+    // The elements array
     auto& r_elements_array = rModelPart1D.Elements();
     const auto it_elem_begin = r_elements_array.begin();
-    KRATOS_ERROR_IF(r_elements_array.size() == 0) << "Empty 1D model part" << std::endl;
-    double max_length = 0.0;
-    max_length = block_for_each<MaxReduction<double>>(r_elements_array, [&](Element& rElement) {
-        return rElement.GetGeometry().Length();
-    });
 
     /// Type definitions for the tree
     using PointType = PointElement;
@@ -412,6 +410,66 @@ void DataTransfer3D1DUtilities::GetVariablesList(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::ExtrapolateFrom3Dto1D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double DataTransfer3D1DUtilities::GetMaxLength(ModelPart& rModelPart)
+{
+    auto& r_elements_array = rModelPart.Elements();
+    KRATOS_ERROR_IF(r_elements_array.size() == 0) << "Empty model part" << std::endl;
+    return block_for_each<MaxReduction<double>>(r_elements_array, [&](Element& rElement) {
+        return rElement.GetGeometry().Length();
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters DataTransfer3D1DUtilities::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
@@ -420,6 +478,7 @@ Parameters DataTransfer3D1DUtilities::GetDefaultParameters()
         "destination_variables"    : [],
         "swap_sign"                : false,
         "debug_mode"               : false,
+        "extrapolate_values"       : false,
         "search_parameters"        :  {
             "allocation_size"         : 100,
             "bucket_size"             : 4,

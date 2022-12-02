@@ -155,9 +155,10 @@ public:
     ///@{
 
     /**
-     * @brief This method copies from the 3D to the 1D
+     * @brief This method transfer data from the 3D to the 1D
      * @param rModelPart3D The 3D model part
      * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
      */
     static void From3Dto1DDataTransfer(
         ModelPart& rModelPart3D,
@@ -166,9 +167,10 @@ public:
         );
 
     /**
-     * @brief This method copies from the 1D to the 3D
+     * @brief This method transfer data from the 1D to the 3D
      * @param rModelPart3D The 3D model part
      * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
      */
     static void From1Dto3DDataTransfer(
         ModelPart& rModelPart3D,
@@ -182,12 +184,77 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method interpolates from the 1D to the 3D
+     * @param rModelPart3D The 3D model part
+     * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
+     */
+    void InterpolateFrom1Dto3D(
+        ModelPart& rModelPart3D,
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters
+        );
+
+    /**
+     * @brief This method interpolates from the 3D to the 1D
+     * @param rModelPart3D The 3D model part
+     * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
+     */
+    void InterpolateFrom3Dto1D(
+        ModelPart& rModelPart3D,
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters
+        );
+
+    /**
+     * @brief This method extrapolates from the 1D to the 3D
+     * @param rModelPart3D The 3D model part
+     * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
+     */
+    void ExtrapolateFrom1Dto3D(
+        ModelPart& rModelPart3D,
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters
+        );
+
+    /**
+     * @brief This method extrapolates from the 3D to the 1D
+     * @param rModelPart3D The 3D model part
+     * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
+     */
+    void ExtrapolateFrom3Dto1D(
+        ModelPart& rModelPart3D,
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters
+        );
+
+    /**
+     * @brief This method computes the list of variables to interpolate/extrapolate
+     * @param ThisParameters The parameters containing the list of variables
+     * @param rOriginListVariables The list of origin variables to interpolate/extrapolate
+     * @param rDestinationListVariables The list of destination variables to interpolate/extrapolate
+     */
     static void GetVariablesList(
         Parameters ThisParameters,
         std::vector<const Variable<double>*>& rOriginListVariables,
         std::vector<const Variable<double>*>& rDestinationListVariables
         );
 
+    /**
+     * @brief This method computes maximum length of the elements
+     * @param rModelPart The model part to compute
+     * @return The maximum length
+     */
+    static double GetMaxLength(ModelPart& rModelPart);
+
+    /**
+     * @brief This method returns the default parameters
+     * @return The default parameters
+     */
     static Parameters GetDefaultParameters();
 
     ///@}
