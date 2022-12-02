@@ -305,7 +305,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         if ( rOutput.size() != OutputGPoints )
             rOutput.resize( OutputGPoints );
 
-        this->InterpolateOutputValues< array_1d<double,3> >(rOutput,GPValues);
+        this->template InterpolateOutputValues< array_1d<double,3> >(rOutput,GPValues);
     }
     else
     {
@@ -421,7 +421,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         for(unsigned int GPoint=0; GPoint<OutputGPoints; GPoint++)
             rOutput[GPoint].resize(TDim,TDim,false);
 
-        this->InterpolateOutputValues< Matrix >(rOutput,GPValues);
+        this->template InterpolateOutputValues< Matrix >(rOutput,GPValues);
     }
     else
     {
