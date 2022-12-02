@@ -110,7 +110,7 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
             "consider_periodic_conditions": false,
             "assign_neighbour_elements_to_conditions": true,
             "formulation": {
-                "element_type": "vms"
+                "element_type": "qsvms"
             }
         }""")
 
