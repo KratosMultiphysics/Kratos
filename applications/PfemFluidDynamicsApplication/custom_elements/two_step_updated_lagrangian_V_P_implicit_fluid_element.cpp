@@ -586,6 +586,29 @@ namespace Kratos
 
     this->SetValue(MECHANICAL_DISSIPATION, mechanicalDissipation);
 
+    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
+    {
+      if (this->GetGeometry()[i].SolutionStepsDataHas(HEAT_FLUX))
+      {
+        ElementWeakPtrVectorType &neighb_elems = this->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+        // double numberOfNeighElems = double(neighb_elems.size());
+        double numberOfNeighElems = 0;
+        for (ElementWeakPtrVectorType::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie)
+        {
+          if (ie->GetGeometry().size() == 3)
+          {
+            numberOfNeighElems += 1.0;
+          }
+        }
+
+        this->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) += mechanicalDissipation / numberOfNeighElems;
+      }
+      else
+      {
+        std::cout << "NO HEAT FLUX  IN NODE " << this->GetGeometry()[i].Y() << std::endl;
+      }
+    }
+
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
     const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
     const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
