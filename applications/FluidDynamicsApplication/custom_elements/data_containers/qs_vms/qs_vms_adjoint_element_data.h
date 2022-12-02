@@ -40,7 +40,7 @@ private:
 
     using TResidualsDerivatives = QSVMSResidualDerivatives<TDim, TNumNodes>;
 
-    using Data = typename TResidualsDerivatives::Data;
+    using Data = typename TResidualsDerivatives::QSVMSResidualData;
 
     using ResidualsContributions = typename TResidualsDerivatives::ResidualsContributions;
 

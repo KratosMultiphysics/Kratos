@@ -85,7 +85,7 @@ public:
     ///@name Class Declarations
     ///@{
 
-    class Data;
+    class QSVMSResidualData;
 
     ///@}
     ///@name Classes
@@ -107,7 +107,7 @@ public:
 
         void AddGaussPointResidualsContributions(
             VectorF& rResidual,
-            Data& rData,
+            QSVMSResidualData& rData,
             const double W,
             const Vector& rN,
             const Matrix& rdNdX) const;
@@ -119,7 +119,7 @@ public:
         ///@{
 
         void static AddViscousTerms(
-            Data& rData,
+            QSVMSResidualData& rData,
             VectorF& rResidual,
             const double W);
 
@@ -147,7 +147,7 @@ public:
 
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
-            Data& rData,
+            QSVMSResidualData& rData,
             const int NodeIndex,
             const double W,
             const Vector& rN,
@@ -363,7 +363,7 @@ public:
         ///@{
 
         void static AddViscousDerivative(
-            Data& rData,
+            QSVMSResidualData& rData,
             VectorF& rResidualDerivative,
             const int NodeIndex,
             const double W,
@@ -403,7 +403,7 @@ public:
 
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
-            Data& rData,
+            QSVMSResidualData& rData,
             const int NodeIndex,
             const double W,
             const Vector& rN,
@@ -412,7 +412,7 @@ public:
         ///@}
     };
 
-    class Data
+    class QSVMSResidualData
     {
     public:
         ///@name Type definitions
