@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: kratos/license.txt
 //
 //  Main authors:    Luis Antonio Goncalves Junior
 //                   Alejandro Cornejo
@@ -23,13 +23,13 @@ namespace Kratos
 {
 
 /**
- * @class SetAutomatedInitialVariableProcess
- * @ingroup StructuralMechanicsApplication
- * @brief This class automotes the creation of the variables INITIAL_STRAIN_VECTOR and INITIAL_STRESS_VECTOR using tables imported from csv files
+ * @class SetAutomatedInitialDamageProcess
+ * @ingroup ConstitutiveLawsApplication
+ * @brief This class automotes the creation of the DAMAGE variable using tables imported from csv files
  * @author Luis Antonio Goncalves Junior
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariableProcess
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SetAutomatedInitialDamageProcess
     : public Process
 {
 
@@ -38,24 +38,24 @@ public:
     static constexpr double tolerance         = 1.0e-6;
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialVariableProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialDamageProcess);
 
 
     /// Constructor
-    SetAutomatedInitialVariableProcess(
+    SetAutomatedInitialDamageProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
 
     /// Destructor
-    ~SetAutomatedInitialVariableProcess() override = default;
+    ~SetAutomatedInitialDamageProcess() override = default;
 
     /**
      * @brief This function is designed for being called at the beginning of the computations
      * right after reading the model and the groups
      */
-    void ExecuteInitialize() override;
+    void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -65,13 +65,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SetAutomatedInitialVariableProcess";
+        return "SetAutomatedInitialDamageProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SetAutomatedInitialVariableProcess";
+        rOStream << "SetAutomatedInitialDamageProcess";
     }
 
     /// Print object's data.
@@ -90,20 +90,20 @@ protected:
 private:
 
     /// Assignment operator.
-    SetAutomatedInitialVariableProcess& operator=(SetAutomatedInitialVariableProcess const& rOther);
+    SetAutomatedInitialDamageProcess& operator=(SetAutomatedInitialDamageProcess const& rOther);
 
     /// Copy constructor.
-    //SetAutomatedInitialVariableProcess(SetAutomatedInitialVariableProcess const& rOther);
+    //SetAutomatedInitialDamageProcess(SetAutomatedInitialDamageProcess const& rOther);
 
-}; // Class SetAutomatedInitialVariableProcess
+}; // Class SetAutomatedInitialDamageProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  SetAutomatedInitialVariableProcess& rThis);
+                                  SetAutomatedInitialDamageProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const SetAutomatedInitialVariableProcess& rThis)
+                                  const SetAutomatedInitialDamageProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -113,4 +113,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos.
-
