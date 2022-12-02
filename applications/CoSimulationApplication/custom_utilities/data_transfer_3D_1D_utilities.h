@@ -185,36 +185,24 @@ private:
     ///@{
 
     /**
-     * @brief This method interpolates from the 1D to the 3D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
-     */
-    void InterpolateFrom1Dto3D(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters
-        );
-
-    /**
      * @brief This method interpolates from the 3D to the 1D
      * @param rModelPart3D The 3D model part
      * @param rModelPart1D The 1D model part
      * @param ThisParameters The parameters containing the configuration
      */
-    void InterpolateFrom3Dto1D(
+    static void InterpolateFrom3Dto1D(
         ModelPart& rModelPart3D,
         ModelPart& rModelPart1D,
         Parameters ThisParameters
         );
 
     /**
-     * @brief This method extrapolates from the 1D to the 3D
+     * @brief This method interpolates from the 1D to the 3D
      * @param rModelPart3D The 3D model part
      * @param rModelPart1D The 1D model part
      * @param ThisParameters The parameters containing the configuration
      */
-    void ExtrapolateFrom1Dto3D(
+    static void InterpolateFrom1Dto3D(
         ModelPart& rModelPart3D,
         ModelPart& rModelPart1D,
         Parameters ThisParameters
@@ -226,7 +214,19 @@ private:
      * @param rModelPart1D The 1D model part
      * @param ThisParameters The parameters containing the configuration
      */
-    void ExtrapolateFrom3Dto1D(
+    static void ExtrapolateFrom3Dto1D(
+        ModelPart& rModelPart3D,
+        ModelPart& rModelPart1D,
+        Parameters ThisParameters
+        );
+
+    /**
+     * @brief This method extrapolates from the 1D to the 3D
+     * @param rModelPart3D The 3D model part
+     * @param rModelPart1D The 1D model part
+     * @param ThisParameters The parameters containing the configuration
+     */
+    static void ExtrapolateFrom1Dto3D(
         ModelPart& rModelPart3D,
         ModelPart& rModelPart1D,
         Parameters ThisParameters
