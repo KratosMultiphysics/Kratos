@@ -171,11 +171,12 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     struct AuxValues {
         array_1d<double, 3> aux_coordinates;
         array_1d<double,3> intersection_point1, intersection_point2;
-        array_1d<double,2> values_origin;
-        array_1d<double,4> values_origin_interpolated, values_destination;
-        BoundedMatrix<double, 4, 4> N_values, inverted_N_values;
-        std::array<GeometryType::Pointer, 4> lines;
-        std::array<array_1d<double, 3>, 4> line_points;
+        array_1d<double,2> values_origin, values_origin_interpolated;
+        array_1d<double,4> values_destination;
+        BoundedMatrix<double, 2, 4> N_values;
+        BoundedMatrix<double, 4, 2> inverted_N_values;
+        std::array<GeometryType::Pointer, 2> lines;
+        std::array<array_1d<double, 3>, 2> line_points;
         std::array<Vector, 4> N_line;
         Vector N_tetra = ZeroVector(4);
         double aux_det;
@@ -210,10 +211,10 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
             auto p_point = points_found[i];
             auto p_geometry = p_point->pGetElement()->pGetGeometry();
             auto& r_geometry = *p_geometry;
-            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
             if (intersection == 1) { // Two intersection points
-                counter += 4;
-            } else if (intersection == 4) { // Two points, one inside the tetrahedra and the other outside
+                counter += 2;
+            } else if (intersection == 2) { // Two points, one inside the tetrahedra and the other outside
                 bool add_point = true;
                 for (unsigned int i_point = 0; i_point < counter; ++i_point) {
                     if (norm_2(av.line_points[i_point] - av.intersection_point1) < tolerance) {
@@ -222,27 +223,15 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                     }
                 }
                 if (add_point) {
-                    av.line_points[counter] = av.intersection_point2;
-                    counter += 1;
-                }
-                add_point = true;
-                for (unsigned int i_point = 0; i_point < counter; ++i_point) {
-                    if (norm_2(av.line_points[i_point] - av.intersection_point2) < tolerance) {
-                        add_point = false;
-                        break;
-                    }
-                }
-                if (add_point) {
-                    av.line_points[counter] = av.intersection_point2;
                     counter += 1;
                 }
             }
-            if (counter == 4) {
+            if (counter > 1) {
                 break;
             }
         }
-        // At least 3 points are required
-        if (counter > 2) {
+        // 2 points are required
+        if (counter > 1) {
             // For debugging purposes
             if (debug_mode) rElement.Set(VISITED); 
 
@@ -297,43 +286,19 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
             auto p_point = points_found[i];
             auto p_geometry = p_point->pGetElement()->pGetGeometry();
             auto& r_geometry = *p_geometry;
-            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
             // TODO: Actually a better alternative could be to do "a mortar", considering mass matrices between the line and the tetrahedra. This requires some extra work, and I think that the current implementation is enough for the moment
             if (intersection == 1) { // Two intersection points
                 av.line_points[0] = av.intersection_point1;
                 av.line_points[1] = av.intersection_point2;
-                // Intermediates points
-                av.line_points[2] = 2.0/3.0 * av.intersection_point1 + 1.0/3.0 * av.intersection_point2;
-                av.line_points[3] = 1.0/3.0 * av.intersection_point1 + 2.0/3.0 * av.intersection_point2;
-                for (unsigned int i_line = 0; i_line < 4; ++i_line) {
+                for (unsigned int i_line = 0; i_line < 2; ++i_line) {
                     av.lines[i_line] = p_geometry;
                 }
-                counter += 4;
+                counter += 2;
             } else if (intersection == 2) { // One intersection point
-                // Detect the node of the tetrahedra and directly assign
-                int index_node = -1;
-                for (int i_node = 0; i_node < 4; ++i_node) {
-                    if (norm_2(r_geometry_tetra[i_node].Coordinates() - av.intersection_point1) < tolerance) {
-                        index_node = i_node;
-                        break;
-                    }
-                }
-                // Assign value
-                if (index_node > 0) {
-                    auto& r_node = r_geometry_tetra[index_node];
-                    p_geometry->PointLocalCoordinates(av.aux_coordinates, av.intersection_point1);
-                    p_geometry->ShapeFunctionsValues( av.N_line[0], av.aux_coordinates );
-                    for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
-                        av.values_origin[0] = r_geometry[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
-                        av.values_origin[1] = r_geometry[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
-                        r_node.FastGetSolutionStepValue(*destination_list_variables[i_var]) = MathUtils<double>::Dot(av.N_line[0], av.values_origin);
-                    }
-                    break;
-                }
-            } else if (intersection == 4) { // Two points, one inside the tetrahedra and the other outside
                 bool add_point = true;
-                for (unsigned int i_point = 0; i_point < counter; ++i_point) {
-                    if (norm_2(av.line_points[i_point] - av.intersection_point1) < tolerance) {
+                if (counter == 1) {
+                    if (norm_2(av.line_points[0] - av.intersection_point1) < tolerance) {
                         add_point = false;
                         break;
                     }
@@ -343,48 +308,34 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                     av.line_points[counter] = av.intersection_point1;
                     counter += 1;
                 }
-                add_point = true;
-                for (unsigned int i_point = 0; i_point < counter; ++i_point) {
-                    if (norm_2(av.line_points[i_point] - av.intersection_point2) < tolerance) {
-                        add_point = false;
-                        break;
-                    }
+            } else if (intersection > 4) { // One intersection point in a corner
+                // Detect the node of the tetrahedra and directly assign
+                const int index_node = intersection - 5;
+                // Assign value
+                auto& r_node = r_geometry_tetra[index_node];
+                p_geometry->PointLocalCoordinates(av.aux_coordinates, av.intersection_point1);
+                p_geometry->ShapeFunctionsValues( av.N_line[0], av.aux_coordinates );
+                for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+                    av.values_origin[0] = r_geometry[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
+                    av.values_origin[1] = r_geometry[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
+                    r_node.FastGetSolutionStepValue(*destination_list_variables[i_var]) = MathUtils<double>::Dot(av.N_line[0], av.values_origin);
                 }
-                if (add_point) {
-                    av.lines[counter] = p_geometry;
-                    av.line_points[counter] = av.intersection_point2;
-                    counter += 1;
-                }
-            }
-            if (counter == 4) {
+                break;
+            } 
+            if (counter > 1) {
                 break;
             }
         }
-        // At least 3 points are required
-        if (counter > 2) {
-            // Interpolate missing point
-            if (counter == 3) {
-                if (av.lines[0] == av.lines[1]) {
-                    av.line_points[3] = 0.5 * av.line_points[0] + 0.5 * av.line_points[1];
-                    av.lines[3] = av.lines[0];
-                } else if (av.lines[1] == av.lines[2]) {
-                    av.line_points[3] = 0.5 * av.line_points[1] + 0.5 * av.line_points[2];
-                    av.lines[3] = av.lines[1];
-                } else if (av.lines[0] == av.lines[2]) {
-                    av.line_points[3] = 0.5 * av.line_points[0] + 0.5 * av.line_points[2];
-                    av.lines[3] = av.lines[0];
-                } else {
-                    KRATOS_ERROR << "Something went wrong. We are suppposed to be able to find a couple with the defined formulation" << std::endl;
-                }
-            }
+        // 2 points are required
+        if (counter > 1) {
             // Common operation
-            for (unsigned int i_line = 0; i_line < 4; ++i_line) {
+            for (unsigned int i_line = 0; i_line < 2; ++i_line) {
                 av.lines[i_line]->PointLocalCoordinates(av.aux_coordinates, av.line_points[i_line]);
                 av.lines[i_line]->ShapeFunctionsValues( av.N_line[i_line], av.aux_coordinates );
             }
 
             // Fill the N matrix
-            for (unsigned int i = 0; i < 4; ++i) {
+            for (unsigned int i = 0; i < 2; ++i) {
                 r_geometry_tetra.PointLocalCoordinates(av.aux_coordinates, av.line_points[i]);
                 r_geometry_tetra.ShapeFunctionsValues( av.N_tetra, av.aux_coordinates );
                 for (unsigned int j = 0; j < 4; ++j) {
@@ -393,9 +344,9 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
             }
 
             // Calculate values
-            MathUtils<double>::InvertMatrix( av.N_values, av.inverted_N_values, av.aux_det);
+            MathUtils<double>::GeneralizedInvertMatrix( av.N_values, av.inverted_N_values, av.aux_det);
             for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
-                for (unsigned int i_line = 0; i_line < 4; ++i_line) {
+                for (unsigned int i_line = 0; i_line < 2; ++i_line) {
                     auto& r_line = *av.lines[i_line];
                     av.values_origin[0] = r_line[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
                     av.values_origin[1] = r_line[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
