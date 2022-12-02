@@ -358,13 +358,12 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution
     const unsigned int LocalSize = TDim+1;
     lhs_gauss = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
-    if (this->Is(SLIP)){
-        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
-    }
+    //TODO: Add a proper switch to activate this
+    // if (this->Is(SLIP)){
+    //     ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
+    // }
 
-    // contribution to avoid tangential components in the residual (BEHR2004)
-    // Adding the BEHR2004 contribution if a slip BC is detected
-    // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
+    // Contribution to avoid spurious tangential components in the pure-slip residual
     if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
         if (this->Is(SLIP) && rProcessInfo.GetValue(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
             CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
@@ -394,13 +393,12 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
         }
     }
 
-    if (this->Is(SLIP)){
-        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
-    }
+    //TODO: Add a proper switch to activate this
+    // if (this->Is(SLIP)){
+    //     ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
+    // }
 
-    // contribution to avoid tangential components in the residual (BEHR2004)
-    // Adding the BEHR2004 contribution if a slip BC is detected
-    // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
+    // Contribution to avoid spurious tangential components in the pure-slip residual
     if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
         if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
             CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
@@ -591,6 +589,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentia
             }
         }
     }
+    KRATOS_WATCH(ProjectionLHSMatrix)
+    KRATOS_WATCH(BaseLHSMatrix)
     rLeftHandSideMatrix += prod( ProjectionLHSMatrix, BaseLHSMatrix );
 
     KRATOS_CATCH("");
@@ -605,96 +605,61 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentia
     const ConditionDataStruct& rDataStruct)
 {
     KRATOS_TRY
-    const unsigned int voigtSize = 3 * (TDim-1);
 
-    const GeometryType& rGeom = this->GetGeometry();
+    // Get element data
+    const auto& r_geom = this->GetGeometry();
+    const std::size_t n_nodes = r_geom.PointsNumber();
+    const auto& r_N = rDataStruct.N;
+    const auto& r_cond_normal = rDataStruct.Normal;
+    const auto& r_viscous_stress = rDataStruct.ViscousStress;
 
-    // Retrieve the nodal consistent normal vectors, normalize, and store them for each node
-    std::vector<array_1d<double,3>> NodalNormals(TNumNodes);
-	for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
+    // Allocate auxiliary arrays
+    array_1d<double,3> i_node_unit_normal;
+    array_1d<double,VoigtSize> voigt_stress;
+    array_1d<double,TDim> cauchy_traction_vect;
+    BoundedMatrix<double,TDim,TDim> tang_proj_mat;
+    array_1d<double,TDim> cauchy_traction_tang_proj;
 
-        NodalNormals[nnode] = rGeom[nnode].FastGetSolutionStepValue(NORMAL);
-        double sumOfSquares = 0.0;
-        for (unsigned int j = 0; j < 3; j++){
-            sumOfSquares += NodalNormals[nnode][j] * NodalNormals[nnode][j];
-        }
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        // Set the nodal tangential projection matrix
+        noalias(i_node_unit_normal) = r_geom[i_node].FastGetSolutionStepValue(NORMAL);
+        i_node_unit_normal /= norm_2(i_node_unit_normal);
+        this->SetTangentialProjectionMatrix(i_node_unit_normal, tang_proj_mat);
 
-        NodalNormals[nnode] = ( 1.0 / sqrt(sumOfSquares) ) *  NodalNormals[nnode];
-	}
-
-    // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
-    std::vector< BoundedMatrix<double, TNumNodes, TNumNodes> > NodalProjectionMatrix(TNumNodes);
-    for(unsigned int node = 0; node < TNumNodes; node++){
-        FluidElementUtilities<3>::SetTangentialProjectionMatrix( NodalNormals[node], NodalProjectionMatrix[node] );
-    }
-
-    // Computation of a matrix to replace [S] n by [A(n)] [Svoigt]
-    BoundedMatrix<double, TNumNodes, voigtSize> conditionNormalForVoigt = ZeroMatrix( TNumNodes, voigtSize );
-    FluidElementUtilities<3>::VoigtTransformForProduct( rDataStruct.Normal, conditionNormalForVoigt );
-
-
-    // Computing the full stress for the nodes (still in Voigt notation)
-    Vector ShearStressOfElement( voigtSize, 0.0);
-
-    // step 1: Retrieving viscous pressure from the element (constant in element assumed)
-    ShearStressOfElement = rDataStruct.ViscousStress;
-
-
-    // step 2: adding pressure (different at nodes) to the viscous shear stresses
-    std::vector< array_1d< double, voigtSize > > CompleteNodalSigma(TNumNodes);
-
-    if ( TNumNodes == 2 ){
-        for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-            CompleteNodalSigma[nnode] = ZeroVector( voigtSize );
-            CompleteNodalSigma[nnode][0] = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode][1] = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode][2] = ShearStressOfElement[2]; // no pressure in shear component
-#ifdef KRATOS_DEBUG
-            if ( std::abs( ShearStressOfElement[0] ) > 0.001 || std::abs( ShearStressOfElement[1] ) > 0.001 ){
-                KRATOS_WARNING("Behr Contribution in SLIP condition") << "The normal components of the viscous stress are still present" << std::endl;
+        // Set the current Gauss point Cauchy traction vector with the condition normal
+        // Note that we add the corresponding nodal pressure to the constant viscous traction
+        cauchy_traction_vect = ZeroVector(TDim);
+        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+            if constexpr (VoigtSize == 3) {
+                // Voigt stress
+                voigt_stress[0] = r_viscous_stress[0] - r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                voigt_stress[1] = r_viscous_stress[1] - r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                voigt_stress[2] = r_viscous_stress[2]; // no pressure in shear component
+                // Projection along the condition normal
+                cauchy_traction_vect[0] = r_N[j_node]*(voigt_stress[0]*r_cond_normal[0] + voigt_stress[2]*r_cond_normal[1]);
+                cauchy_traction_vect[1] = r_N[j_node]*(voigt_stress[2]*r_cond_normal[0] + voigt_stress[1]*r_cond_normal[1]);
+            } else if constexpr (VoigtSize == 6) {
+                // Voigt stress
+                voigt_stress[0] = r_viscous_stress[0] - r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                voigt_stress[1] = r_viscous_stress[1] - r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                voigt_stress[2] = r_viscous_stress[2] - r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                voigt_stress[3] = r_viscous_stress[3]; // no pressure in shear component
+                voigt_stress[4] = r_viscous_stress[4]; // no pressure in shear component
+                voigt_stress[5] = r_viscous_stress[5]; // no pressure in shear component
+                // Projection along the condition normal
+                cauchy_traction_vect[0] = r_N[j_node]*(voigt_stress[0]*r_cond_normal[0] + voigt_stress[3]*r_cond_normal[1] * voigt_stress[5]*r_cond_normal[2]);
+                cauchy_traction_vect[1] = r_N[j_node]*(voigt_stress[3]*r_cond_normal[0] + voigt_stress[1]*r_cond_normal[1] * voigt_stress[4]*r_cond_normal[2]);
+                cauchy_traction_vect[2] = r_N[j_node]*(voigt_stress[5]*r_cond_normal[0] + voigt_stress[4]*r_cond_normal[1] * voigt_stress[2]*r_cond_normal[2]);
             }
-#endif
-        }
-    } else if ( TNumNodes == 3 ){
-        for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-            CompleteNodalSigma[nnode] = ZeroVector( voigtSize );
-            CompleteNodalSigma[nnode][0] = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode][1] = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode][2] = ShearStressOfElement[2] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode][3] = ShearStressOfElement[3];  // no pressure in shear component
-            CompleteNodalSigma[nnode][4] = ShearStressOfElement[4];  // no pressure in shear component
-            CompleteNodalSigma[nnode][5] = ShearStressOfElement[5];  // no pressure in shear component
-#ifdef KRATOS_DEBUG
-            if ( std::abs( ShearStressOfElement[0] ) > 0.001 || std::abs( ShearStressOfElement[1] ) > 0.001 || std::abs( ShearStressOfElement[2] ) > 0.001 ){
-                KRATOS_WARNING("Behr Contribution in SLIP condition") << "The normal components of the viscous stress are still present" << std::endl;
-            }
-#endif
-        }
-    }
-
-    Vector CompleteSigmaInterpolated = ZeroVector(TNumNodes);
-
-    std::vector<array_1d<double,TNumNodes>> NodalEntriesRHS(TNumNodes);
-
-    // Loop all nodal contributions
-    for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-
-        NodalEntriesRHS[nnode] = ZeroVector(TNumNodes);
-        const array_1d<double, TNumNodes> N = rDataStruct.N;
-        const double wGauss = rDataStruct.wGauss;
-
-        CompleteSigmaInterpolated = ZeroVector(TNumNodes);
-        for( unsigned int comp = 0; comp < TNumNodes; comp++){
-
-            CompleteSigmaInterpolated += N[comp] * prod( conditionNormalForVoigt, CompleteNodalSigma[comp] );
         }
 
-        NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], ( wGauss * N(nnode) * CompleteSigmaInterpolated ) );
-    }
+        // Get the spurious tangential component of the traction vector
+        // Note that in here we are projecting with the nodal tangential operator
+        noalias(cauchy_traction_tang_proj) = prod(tang_proj_mat, cauchy_traction_vect);
 
-    for (unsigned int node = 0; node < TNumNodes; node++){
-        for (unsigned int entry = 0; entry < TNumNodes; entry++){
-            rRightHandSideVector( node*(TNumNodes+1) + entry ) += NodalEntriesRHS[node][entry];
+        // Assemble the RHS contribution
+        for (std::size_t d = 0; d < TDim; ++d) {
+            rRightHandSideVector[i_node*BlockSize + d] += rDataStruct.wGauss * r_N[i_node] * cauchy_traction_tang_proj[d];
         }
     }
 

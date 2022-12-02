@@ -83,6 +83,9 @@ public:
         Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
     };
 
+    static constexpr std::size_t VoigtSize = 3 * (TDim-1);
+    static constexpr std::size_t BlockSize = TNumNodes + 1;
+
     using Condition::SizeType;
 
     typedef Node < 3 > NodeType;
@@ -471,6 +474,24 @@ private:
         const Vector& rViscousStress,
         const array_1d<double,3> rNormal,
         array_1d<double,3>& rProjectedViscousStress);
+
+    /**
+     * @brief Set the Tangential Projection Matrix
+     * For the given unit normal, this method sets the corresponding tangential projection matrix
+     * @param rUnitNormal Reference to the unit normal
+     * @param rTangProjMat Reference to the output tangential projection matrix
+     */
+    void SetTangentialProjectionMatrix(
+        const array_1d<double,3>& rUnitNormal,
+        BoundedMatrix<double,TDim,TDim>& rTangProjMat)
+    {
+        noalias(rTangProjMat) = IdentityMatrix(TDim,TDim);
+        for (std::size_t d1 = 0; d1 < TDim; ++d1) {
+            for (std::size_t d2 = 0; d2 < TDim; ++d2) {
+                rTangProjMat(d1,d2) -= rUnitNormal[d1]*rUnitNormal[d2];
+            }
+        }
+    }
 
     ///@}
     ///@name Private  Access

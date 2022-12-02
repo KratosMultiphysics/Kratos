@@ -28,9 +28,13 @@ namespace
     auto CreateTestingNavierStokesWallCondition(ModelPart& rModelPart)
     {
         // Add required nodal variables
+        rModelPart.AddNodalSolutionStepVariable(DIVPROJ);
+        rModelPart.AddNodalSolutionStepVariable(ADVPROJ);
         rModelPart.AddNodalSolutionStepVariable(NORMAL);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
+        rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
         // Set the required properties
@@ -38,12 +42,16 @@ namespace
         auto p_properties_0 = rModelPart.CreateNewProperties(0);
         auto p_properties_1 = rModelPart.CreateNewProperties(1);
         p_properties_1->SetValue(DENSITY, 1000.0);
+        p_properties_1->SetValue(DYNAMIC_VISCOSITY, 1.0);
+        ConstitutiveLaw::Pointer p_cons_law(new Newtonian2DLaw());
+        p_properties_1->SetValue(CONSTITUTIVE_LAW, p_cons_law);
 
         // Create a fake element to serve as parent of current testing condition
         rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
         rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
         rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
-        auto p_element = rModelPart.CreateNewElement("Element2D3N", 1, {1,2,3}, p_properties_1);
+        auto p_element = rModelPart.CreateNewElement("QSVMS2D3N", 1, {1,2,3}, p_properties_1);
+        p_element->Initialize(rModelPart.GetProcessInfo()); // Initialize constitutive law
 
         // Create the testing condition
         auto p_test_condition = rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, {{3,1}}, p_properties_0);
@@ -128,6 +136,43 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D3NOutletInflow, FluidDynami
     Vector RHS;
     Matrix LHS;
     p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+    // Check results
+    std::vector<double> rhs_out = {-7083.333333333,0,0,-3750.0,0,0};
+    KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_CHECK_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D3NSlipTangentialCorrection, FluidDynamicsApplicationFastSuite)
+{
+    // Create the test model part
+    Model model;
+    std::size_t buffer_size = 2;
+    auto& r_model_part = model.CreateModelPart("TestModelPart",buffer_size);
+
+    // Create the testing condition
+    auto p_test_condition = CreateTestingNavierStokesWallCondition(r_model_part);
+
+    // Set the testing nodal values
+    array_1d<double,3> aux_v = ZeroVector(3);
+    for (auto& r_node: r_model_part.Nodes()) {
+        aux_v[0] = r_node.Id();
+        aux_v[1] = 2.0*r_node.Id();
+        r_node.FastGetSolutionStepValue(VELOCITY) = aux_v;
+    }
+
+    // Activate the outlet inflow contribution and set required values
+    p_test_condition->Set(SLIP, true);
+    r_model_part.GetProcessInfo().SetValue(SLIP_TANGENTIAL_CORRECTION_SWITCH, true);
+
+    // Calculate the RHS and LHS
+    // Note that in this case it must have zero contribution
+    Vector RHS;
+    Matrix LHS;
+    p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+    KRATOS_WATCH(RHS)
+    KRATOS_WATCH(LHS)
+
 
     // Check results
     std::vector<double> rhs_out = {-7083.333333333,0,0,-3750.0,0,0};
