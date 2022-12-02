@@ -250,6 +250,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage2DRankineMohrCoulomb", mSmallStrainIsotropicDamage2DRankineMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage2DSimoJuMohrCoulomb", mSmallStrainIsotropicDamage2DSimoJuMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NonLocalElasticIsotropicDamage", mNonLocalElasticIsotropicDamage);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticAnisotropicDamage", mElasticAnisotropicDamage);
 
     // HCF (High Cycle Fatigue)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawVonMisesVonMises", mSmallStrainHighCycleFatigue3DLawVonMisesVonMises);
@@ -481,6 +482,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(STRESS_DAMAGE_CURVE)
     KRATOS_REGISTER_VARIABLE(EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
+    KRATOS_REGISTER_VARIABLE(DAMAGE_VECTOR)
 
     // Some variables related with SP
     KRATOS_REGISTER_VARIABLE(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE)
