@@ -114,7 +114,7 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
             }
         }""")
 
-        default_settings.AddMissingParameters(super(AdjointMonolithicSolver, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
