@@ -621,7 +621,7 @@ Parameters DataTransfer3D1DUtilities::GetDefaultParameters()
         "destination_variables"    : [],
         "debug_mode"               : false,
         "extrapolate_values"       : false,
-        "swap_sign"                : false
+        "swap_sign"                : false,
         "interpolate_parameters"   : {
             "mapper_type" : "nearest_element",
             "echo_level"  : 0
