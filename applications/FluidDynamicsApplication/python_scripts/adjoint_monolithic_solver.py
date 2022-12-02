@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -30,6 +31,7 @@ class StabilizedAdjointFormulation(object):
             model_part.ProcessInfo[variable] = value
 
     def _SetUpClassicAdjointVMS(self,settings):
+        IssueDeprecationWarning('StabilizedAdjointFormulation', 'Please use the "qsvms" formulation instead of "vms" formulation')
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "vms",
             "use_orthogonal_subscales": false,
