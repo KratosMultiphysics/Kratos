@@ -84,6 +84,120 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
     // Validate deafult parameters
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
+    // Checking if we extrapolate or interpolate
+    const bool extrapolate_values = ThisParameters["extrapolate_values"].GetBool();
+
+    // We extrapolate the values
+    if (extrapolate_values) {
+        ExtrapolateFrom1Dto3D(rModelPart3D, rModelPart1D, ThisParameters);
+    } else { // We interpolate the values
+        InterpolateFrom1Dto3D(rModelPart3D, rModelPart1D, ThisParameters);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::GetVariablesList(
+    Parameters ThisParameters,
+    std::vector<const Variable<double>*>& rOriginListVariables,
+    std::vector<const Variable<double>*>& rDestinationListVariables
+    )
+{
+    // The components as an array of strings
+    const std::array<std::string, 3> direction_string({"X", "Y", "Z"});
+
+    // Getting variables
+    const std::vector<std::string> origin_variables_names = ThisParameters["origin_variables"].GetStringArray();
+    const std::vector<std::string> destination_variables_names = ThisParameters["destination_variables"].GetStringArray();
+    KRATOS_ERROR_IF(origin_variables_names.size() == 0) << "No variables defined" << std::endl;
+    KRATOS_ERROR_IF(origin_variables_names.size() != destination_variables_names.size()) << "Origin and destination variables do not coincide in size" << std::endl;
+    for (IndexType i_var = 0; i_var < origin_variables_names.size(); ++i_var) {
+        if (KratosComponents<Variable<double>>::Has(origin_variables_names[i_var])) {
+            KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(destination_variables_names[i_var])) << "Destination variable is not a scalar" << std::endl;
+            rOriginListVariables.push_back(&KratosComponents<Variable<double>>::Get(origin_variables_names[i_var]));
+            rDestinationListVariables.push_back(&KratosComponents<Variable<double>>::Get(destination_variables_names[i_var]));
+        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(origin_variables_names[i_var])) {
+            //KRATOS_ERROR_IF_NOT(KratosComponents<Variable<array_1d<double, 3>>>::Has(destination_variables_names[i_var])) << "Destination variable is not an array of 3 components" << std::endl;
+            const auto& r_origin_var_name = origin_variables_names[i_var];
+            const auto& r_destination_var_name = destination_variables_names[i_var];
+            for (unsigned int i_comp = 0; i_comp < 3; ++i_comp) {
+                rOriginListVariables.push_back(&KratosComponents<Variable<double>>::Get(r_origin_var_name + "_" + direction_string[i_comp]));
+                rDestinationListVariables.push_back(&KratosComponents<Variable<double>>::Get(r_destination_var_name + "_" + direction_string[i_comp]));
+            }
+        } else {
+            KRATOS_ERROR << "Variable " << origin_variables_names[i_var] << " not available in KratosComponents as double or 3 components array" << std::endl;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
+    // Define mapper factory
+    DEFINE_MAPPER_FACTORY_SERIAL
+
+    // Getting variables
+    std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
+    GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
+
+    // Generate the mapper
+    Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
+    auto p_mapper = MapperFactoryType::CreateMapper(rModelPart1D, rModelPart3D, interpolate_parameters);
+
+    // Interpolate
+    Kratos::Flags mapper_flags = Kratos::Flags();
+    const bool swap_sign = ThisParameters["swap_sign"].GetBool();
+    if (swap_sign) mapper_flags.Set(MapperFlags::SWAP_SIGN);
+    for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+        p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
+    // Define mapper factory
+    DEFINE_MAPPER_FACTORY_SERIAL
+
+    // Getting variables
+    std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
+    GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
+
+    // Generate the mapper
+    Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
+    auto p_mapper = MapperFactoryType::CreateMapper(rModelPart3D, rModelPart1D, interpolate_parameters);
+
+    // Interpolate
+    Kratos::Flags mapper_flags = Kratos::Flags();
+    const bool swap_sign = ThisParameters["swap_sign"].GetBool();
+    if (swap_sign) mapper_flags.Set(MapperFlags::SWAP_SIGN);
+    for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+        p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
+    ModelPart& rModelPart3D,
+    ModelPart& rModelPart1D,
+    Parameters ThisParameters
+    )
+{
     // Getting variables
     std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
@@ -319,97 +433,6 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
 
     // Remove the NODAL_VOLUME
     VariableUtils().EraseNonHistoricalVariable(NODAL_VOLUME, rModelPart3D.Nodes());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DataTransfer3D1DUtilities::GetVariablesList(
-    Parameters ThisParameters,
-    std::vector<const Variable<double>*>& rOriginListVariables,
-    std::vector<const Variable<double>*>& rDestinationListVariables
-    )
-{
-    // The components as an array of strings
-    const std::array<std::string, 3> direction_string({"X", "Y", "Z"});
-
-    // Getting variables
-    const std::vector<std::string> origin_variables_names = ThisParameters["origin_variables"].GetStringArray();
-    const std::vector<std::string> destination_variables_names = ThisParameters["destination_variables"].GetStringArray();
-    KRATOS_ERROR_IF(origin_variables_names.size() == 0) << "No variables defined" << std::endl;
-    KRATOS_ERROR_IF(origin_variables_names.size() != destination_variables_names.size()) << "Origin and destination variables do not coincide in size" << std::endl;
-    for (IndexType i_var = 0; i_var < origin_variables_names.size(); ++i_var) {
-        if (KratosComponents<Variable<double>>::Has(origin_variables_names[i_var])) {
-            KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(destination_variables_names[i_var])) << "Destination variable is not a scalar" << std::endl;
-            rOriginListVariables.push_back(&KratosComponents<Variable<double>>::Get(origin_variables_names[i_var]));
-            rDestinationListVariables.push_back(&KratosComponents<Variable<double>>::Get(destination_variables_names[i_var]));
-        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(origin_variables_names[i_var])) {
-            //KRATOS_ERROR_IF_NOT(KratosComponents<Variable<array_1d<double, 3>>>::Has(destination_variables_names[i_var])) << "Destination variable is not an array of 3 components" << std::endl;
-            const auto& r_origin_var_name = origin_variables_names[i_var];
-            const auto& r_destination_var_name = destination_variables_names[i_var];
-            for (unsigned int i_comp = 0; i_comp < 3; ++i_comp) {
-                rOriginListVariables.push_back(&KratosComponents<Variable<double>>::Get(r_origin_var_name + "_" + direction_string[i_comp]));
-                rDestinationListVariables.push_back(&KratosComponents<Variable<double>>::Get(r_destination_var_name + "_" + direction_string[i_comp]));
-            }
-        } else {
-            KRATOS_ERROR << "Variable " << origin_variables_names[i_var] << " not available in KratosComponents as double or 3 components array" << std::endl;
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
-    ModelPart& rModelPart3D,
-    ModelPart& rModelPart1D,
-    Parameters ThisParameters
-    )
-{
-    // Define mapper factory
-    DEFINE_MAPPER_FACTORY_SERIAL
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
-    ModelPart& rModelPart3D,
-    ModelPart& rModelPart1D,
-    Parameters ThisParameters
-    )
-{
-    // Define mapper factory
-    DEFINE_MAPPER_FACTORY_SERIAL
-
-    // Getting variables
-    std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
-    GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
-
-    // Generate the mapper
-    Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
-    auto p_mapper = MapperFactoryType::CreateMapper(rModelPart3D, rModelPart1D, interpolate_parameters);
-
-    // Interpolate
-    Kratos::Flags mapper_flags = Kratos::Flags();
-    const bool swap_sign = ThisParameters["swap_sign"].GetBool();
-    if (swap_sign) mapper_flags.Set(MapperFlags::SWAP_SIGN);
-    for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
-        p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
-    }
-    
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
-    ModelPart& rModelPart3D,
-    ModelPart& rModelPart1D,
-    Parameters ThisParameters
-    )
-{
-    
 }
 
 /***********************************************************************************/
