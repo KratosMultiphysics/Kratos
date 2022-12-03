@@ -11,21 +11,25 @@
 //
 
 // System includes
-#include <algorithm>
+
 
 // External includes
 
+
 // Project includes
-#include "med_io_testing_utilities.h"
+#include "includes/checks.h"
+#include "med_testing_utilities.h"
 
 
-namespace Kratos::Testing {
+namespace Kratos {
 
 namespace { // helpers namespace
 
+using NodeType = MedTestingUtilities::NodeType;
+
 void CheckEntitiesAreEqual(
-    const Kratos::Node<3>& rNode1,
-    const Kratos::Node<3>& rNode2)
+    const NodeType& rNode1,
+    const NodeType& rNode2)
 {
     KRATOS_TRY
 
@@ -53,9 +57,9 @@ bool contains(
 
 } // helpers namespace
 
-void CheckNodesAreEqual(
-    const Kratos::Node<3>& rNode1,
-    const Kratos::Node<3>& rNode2)
+void MedTestingUtilities::CheckNodesAreEqual(
+    const NodeType& rNode1,
+    const NodeType& rNode2)
 {
     KRATOS_TRY
 
@@ -64,9 +68,9 @@ void CheckNodesAreEqual(
     KRATOS_CATCH("")
 }
 
-void CheckModelPartsAreEqual(
-    const Kratos::ModelPart& rModelPart1,
-    const Kratos::ModelPart& rModelPart2)
+void MedTestingUtilities::CheckModelPartsAreEqual(
+    const ModelPart& rModelPart1,
+    const ModelPart& rModelPart2)
 {
     KRATOS_TRY
 
@@ -84,10 +88,10 @@ void CheckModelPartsAreEqual(
 
     for (const auto& r_smp_name : rModelPart1.GetSubModelPartNames()) {
         KRATOS_CHECK(contains(r_smp2_names, r_smp_name));
-        // CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart1.GetSubModelPart(r_smp_name)); // TODO requires const version of "GetSubModelPart"
+        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart1.GetSubModelPart(r_smp_name));
     }
 
     KRATOS_CATCH("")
 }
 
-} // namespace Kratos::Testing
+} // namespace Kratos

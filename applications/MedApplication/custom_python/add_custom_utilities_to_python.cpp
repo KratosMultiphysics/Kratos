@@ -15,17 +15,20 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "testing/testing.h"
+#include "includes/define_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/med_testing_utilities.h"
 
-namespace Kratos::Testing {
 
-void CheckNodesAreEqual(
-    const Kratos::Node<3>& rNode1,
-    const Kratos::Node<3>& rNode2);
+namespace Kratos::Python {
 
-void CheckModelPartsAreEqual(
-    const Kratos::ModelPart& rModelPart1,
-    const Kratos::ModelPart& rModelPart2);
+void AddCustomUtilitiesToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
 
-} // namespace Kratos::Testing
+    py::class_<MedTestingUtilities>(m,"MedTestingUtilities")
+        .def_static("CheckModelPartsAreEqual", &MedTestingUtilities::CheckModelPartsAreEqual)
+        ;
+}
+
+} // namespace Kratos::Python

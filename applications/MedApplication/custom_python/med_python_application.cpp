@@ -18,6 +18,7 @@
 #include "includes/define_python.h"
 #include "med_application.h"
 #include "custom_python/add_custom_io_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 
 namespace Kratos::Python {
@@ -33,6 +34,7 @@ PYBIND11_MODULE(KratosMedApplication,m)
         ;
 
     AddCustomIOToPython(m);
+    AddCustomUtilitiesToPython(m);
 }
 
 } // namespace Kratos::Python

@@ -21,6 +21,6 @@
 
 namespace Kratos::Python {
 
-void  AddCustomIOToPython(pybind11::module& m);
+void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 } // namespace Kratos::Python

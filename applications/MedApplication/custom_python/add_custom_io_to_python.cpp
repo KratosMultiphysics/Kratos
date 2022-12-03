@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/define_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_io/med_model_part_io.h"
 

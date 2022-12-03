@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <utility> // std::as_const
 
 // External includes
 
@@ -18,7 +19,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "custom_io/med_model_part_io.h"
-#include "med_io_testing_utilities.h"
+#include "custom_utilities/med_testing_utilities.h"
 
 namespace Kratos::Testing {
 
@@ -36,7 +37,7 @@ void MedWriteReadModelPart(
 
     { // encapsulating to ensure memory (aka file handle) is freed
         MedModelPartIO io_write(rFileName);
-        io_write.WriteModelPart(test_model_part_write);
+        io_write.WriteModelPart(std::as_const(test_model_part_write));
     }
     { // encapsulating to ensure memory (aka file handle) is freed
         MedModelPartIO io_read(rFileName);
@@ -48,7 +49,7 @@ void MedWriteReadModelPart(
         std::filesystem::remove(rFileName);
     }
 
-    CheckModelPartsAreEqual(test_model_part_write, test_model_part_read);
+    MedTestingUtilities::CheckModelPartsAreEqual(test_model_part_write, test_model_part_read);
 }
 
 } // helpers namespace
