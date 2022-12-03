@@ -752,6 +752,25 @@ public:
             AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
         });
     }
+    
+    /**
+     * @brief Set the Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the nodal historical database
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rNodes Nodes container to be initialized to zero
+     * @param Step Step of the solution step data which needs to be set to zero
+     * @param rVariableArgs Variables to be set to zero
+     */
+    template<class... TVariableArgs>
+    static void SetHistoricalVariablesToZero(
+        NodesContainerType& rNodes,
+        const int Step,
+        const TVariableArgs&... rVariableArgs)
+    {
+        block_for_each(rNodes, [&](NodeType& rNode){(
+            AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode, Step), ...);
+        });
+    }
 
     /**
      * @brief Sets the container value of any type of non historical variable
@@ -1703,10 +1722,18 @@ private:
     const TContainerType& GetContainer(const ModelPart& rModelPart);
 
     template<class TDataType>
-    static void AuxiliaryHistoricalValueSetter(
+    static void inline AuxiliaryHistoricalValueSetter(
         const Variable<TDataType>& rVariable,
         const TDataType& rValue,
-        NodeType& rNode);
+        NodeType& rNode,
+        const int Step = 0)
+    {
+        if constexpr(std::is_integral_v<TDataType> || std::is_floating_point_v<TDataType>) {
+            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
+        } else {
+            noalias(rNode.FastGetSolutionStepValue(rVariable, Step)) = rValue;
+        }
+    }
 
     template <class TContainerType, class TSetterFunction, class TGetterFunction>
     void CopyModelPartFlaggedVariable(
