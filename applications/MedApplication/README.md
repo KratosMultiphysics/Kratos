@@ -2,7 +2,9 @@
 
 The Med Application is used to interact with med files
 
-sudo apt-get install libmedc-dev
+sudo apt-get install libmedc-dev => is compiled with MPI support, hence we cannot use it and have to manually install it ourselves
+
+use `MED_ROOT` to sepcify the path to the med installation
 
 # Overview
 
