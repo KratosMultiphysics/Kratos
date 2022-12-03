@@ -84,7 +84,6 @@ namespace Kratos {
 
             p_coupling_geometry->SetId(1);
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
 
@@ -94,7 +93,7 @@ namespace Kratos {
             // Check if master geometry can be found.
             KRATOS_CHECK_NEAR(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node<3>>::Master).DomainSize(), 1.375, TOLERANCE);
             // Check if geometry 2 can be found.
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node<3>>::Slave).Dimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node<3>>::Slave).LocalSpaceDimension(), 2);
 
             KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(
                 p_coupling_geometry->GetGeometryPart(2),
@@ -150,7 +149,6 @@ namespace Kratos {
             // Checking it works
             auto& r_coupling_geometry = p_element->GetGeometry();
 
-            KRATOS_CHECK_EQUAL(r_coupling_geometry.Dimension(), 2);
             KRATOS_CHECK_EQUAL(r_coupling_geometry.WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(r_coupling_geometry.LocalSpaceDimension(), 2);
 
@@ -160,7 +158,7 @@ namespace Kratos {
             // Check if master geometry can be found.
             KRATOS_CHECK_NEAR(r_coupling_geometry.GetGeometryPart(0).DomainSize(), 1.375, TOLERANCE);
             // Check if geometry 2 can be found.
-            KRATOS_CHECK_EQUAL(r_coupling_geometry.GetGeometryPart(1).Dimension(), 2);
+            KRATOS_CHECK_EQUAL(r_coupling_geometry.GetGeometryPart(1).LocalSpaceDimension(), 2);
 
             // Check the nodes are preserved
             auto& r_geometry_master = *p_triangle_master;
@@ -204,13 +202,11 @@ namespace Kratos {
             auto p_coupling_geometry = CouplingGeometry<Point>::Pointer(
                 new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
 
             p_coupling_geometry->SetGeometryPart(CouplingGeometry<Point>::Master, p_triangle_master_2);
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 3);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
         }

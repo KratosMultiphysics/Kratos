@@ -2032,14 +2032,24 @@ ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 
     SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
     if (i == mSubModelParts.end()) {
-        std::stringstream err_msg;
-        err_msg << "There is no sub model part with name \"" << SubModelPartName
-                << "\" in model part \"" << FullName() << "\"\n"
-                << "The the following sub model parts are available:";
-        for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
-            err_msg << "\n\t" << r_avail_smp_name;
-        }
-        KRATOS_ERROR << err_msg.str() << std::endl;
+        ErrorNonExistingSubModelPart(sub_model_part_name);
+    }
+
+    if (delim_pos == std::string::npos) {
+        return *i;
+    } else {
+        return i->GetSubModelPart(SubModelPartName.substr(delim_pos + 1));
+    }
+}
+
+const ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName) const
+{
+    const auto delim_pos = SubModelPartName.find('.');
+    const std::string& r_sub_model_part_name = SubModelPartName.substr(0, delim_pos);
+
+    const auto i = mSubModelParts.find(r_sub_model_part_name);
+    if (i == mSubModelParts.end()) {
+        ErrorNonExistingSubModelPart(r_sub_model_part_name);
     }
 
     if (delim_pos == std::string::npos) {
@@ -2056,14 +2066,7 @@ ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
 
     SubModelPartIterator i = mSubModelParts.find(sub_model_part_name);
     if (i == mSubModelParts.end()) {
-        std::stringstream err_msg;
-        err_msg << "There is no sub model part with name \"" << SubModelPartName
-                << "\" in model part \"" << FullName() << "\"\n"
-                << "The the following sub model parts are available:";
-        for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
-            err_msg << "\n\t" << r_avail_smp_name;
-        }
-        KRATOS_ERROR << err_msg.str() << std::endl;
+        ErrorNonExistingSubModelPart(sub_model_part_name);
     }
 
     if (delim_pos == std::string::npos) {
@@ -2096,14 +2099,7 @@ void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
         }
     } else {
         if (i == mSubModelParts.end()) {
-            std::stringstream err_msg;
-            err_msg << "There is no sub model part with name \"" << sub_model_part_name
-                    << "\" in model part \"" << FullName() << "\"\n"
-                    << "The the following sub model parts are available:";
-            for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
-                err_msg << "\n\t" << r_avail_smp_name;
-            }
-            KRATOS_ERROR << err_msg.str() << std::endl;
+            ErrorNonExistingSubModelPart(sub_model_part_name);
         }
 
         return i->RemoveSubModelPart(ThisSubModelPartName.substr(delim_pos + 1));
@@ -2386,6 +2382,19 @@ void ModelPart::load(Serializer& rSerializer)
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->SetParentModelPart(this);
+}
+
+
+void ModelPart::ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const
+{
+    std::stringstream err_msg;
+    err_msg << "There is no sub model part with name \"" << rSubModelPartName
+            << "\" in model part \"" << FullName() << "\"\n"
+            << "The following sub model parts are available:";
+    for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+        err_msg << "\n\t" << r_avail_smp_name;
+    }
+    KRATOS_ERROR << err_msg.str() << std::endl;
 }
 
 }  // namespace Kratos.

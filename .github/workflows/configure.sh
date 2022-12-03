@@ -50,6 +50,8 @@ add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/DamApplication;
+add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 
 # Clean
 clear
