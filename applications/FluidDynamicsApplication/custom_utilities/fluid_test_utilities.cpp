@@ -29,26 +29,6 @@
 
 namespace Kratos
 {
-namespace FluidTestUtilitiesHelper
-{
-template <class TContainerType, class TDataType>
-void RandomFillContainerNonHistoricalVariable(
-    TContainerType& rContainer,
-    const Variable<TDataType>& rVariable,
-    const IndexType DomainSize,
-    const double MinValue,
-    const double MaxValue)
-{
-    for (auto& item : rContainer) {
-        std::stringstream seed;
-        seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
-        TDataType value = rVariable.Zero();
-        FluidTestUtilities::AssignRandomValues(value, seed.str(), DomainSize, MinValue, MaxValue);
-        item.SetValue(rVariable, value);
-    }
-}
-} // namespace FluidTestUtilitiesHelper
-
 //// Static Operations ///////////////////////////////////////////////////////////////////
 
 template <>
@@ -138,13 +118,14 @@ template<class TDataType>
 void FluidTestUtilities::RandomFillHistoricalVariable(
     ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
+    const std::string& rSeedExtension,
     const double MinValue,
     const double MaxValue,
     const int Step)
 {
     for (auto& node : rModelPart.Nodes()) {
         std::stringstream seed;
-        seed << node.Id() << "_HistoricalV_" << rVariable.Name();
+        seed << node.Id() << "_HistoricalV_" << rSeedExtension;
         TDataType& value = node.FastGetSolutionStepValue(rVariable, Step);
         AssignRandomValues(value, seed.str(), rModelPart.GetProcessInfo()[DOMAIN_SIZE], MinValue, MaxValue);
     }
@@ -154,13 +135,14 @@ template<class TContainerType, class TDataType>
 void FluidTestUtilities::RandomFillNonHistoricalVariable(
     TContainerType& rContainer,
     const Variable<TDataType>& rVariable,
+    const std::string& rSeedExtension,
     const IndexType DomainSize,
     const double MinValue,
     const double MaxValue)
 {
     for (auto& item : rContainer) {
         std::stringstream seed;
-        seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
+        seed << item.Id() << "_NonHistoricalV_" << rSeedExtension;
         TDataType value = rVariable.Zero();
         FluidTestUtilities::AssignRandomValues(value, seed.str(), DomainSize, MinValue, MaxValue);
         item.SetValue(rVariable, value);
