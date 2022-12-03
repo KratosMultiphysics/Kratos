@@ -110,11 +110,11 @@ void CheckGeometriesAreEqual(
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfGeometries(), rModelPart2.NumberOfGeometries());
 
     auto geom_1_iter = rModelPart1.GeometriesBegin();
-    auto geom_2_iter = rModelPart1.GeometriesBegin();
+    auto geom_2_iter = rModelPart2.GeometriesBegin();
 
     // check entities
     for (std::size_t i=0; i<rModelPart1.NumberOfGeometries(); ++i) {
-        CheckGeometriesAreEqual(*(rModelPart1.GeometriesBegin()+i)), *(rModelPart2.GeometriesBegin()+i));
+        CheckGeometriesAreEqual(*geom_1_iter, *geom_2_iter);
         geom_1_iter++;
         geom_2_iter++;
     }
