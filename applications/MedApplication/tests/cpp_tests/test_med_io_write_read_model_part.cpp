@@ -33,20 +33,25 @@ void MedWriteReadModelPart(
     auto& test_model_part_write = model.CreateModelPart("test_write");
     auto& test_model_part_read = model.CreateModelPart("test_read");
 
+    auto full_name = rFileName;
+    full_name.replace_extension(".hdf");
+
     rPopulateFunction(test_model_part_write);
 
     { // encapsulating to ensure memory (aka file handle) is freed
-        MedModelPartIO io_write(rFileName);
-        io_write.WriteModelPart(std::as_const(test_model_part_write));
+        MedModelPartIO io_write(full_name);
+        const auto& rconstMP = test_model_part_write;
+        io_write.WriteModelPart(rconstMP);
+        // io_write.WriteModelPart(std::as_const(test_model_part_write));
     }
     { // encapsulating to ensure memory (aka file handle) is freed
-        MedModelPartIO io_read(rFileName);
+        MedModelPartIO io_read(full_name);
         io_read.ReadModelPart(test_model_part_read);
     }
 
     // remove before checking ModelParts, as would be left over if comparison fails
-    if (std::filesystem::exists(rFileName)) {
-        std::filesystem::remove(rFileName);
+    if (std::filesystem::exists(full_name)) {
+        std::filesystem::remove(full_name);
     }
 
     MedTestingUtilities::CheckModelPartsAreEqual(test_model_part_write, test_model_part_read);
@@ -54,9 +59,9 @@ void MedWriteReadModelPart(
 
 } // helpers namespace
 
-KRATOS_TEST_CASE(WriteReadMedNodes)
+KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
 {
-    MedWriteReadModelPart("med_nodes_only.hdf", [](ModelPart& rModelPart){
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
         for (int i=0; i<200; ++i) {
             rModelPart.CreateNewNode(i+1, i*1.15, i-i*1.45, i+153);
         }
