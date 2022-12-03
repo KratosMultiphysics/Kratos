@@ -56,8 +56,6 @@ public:
     /// Pointer definition of MedTestingUtilities
     KRATOS_CLASS_POINTER_DEFINITION(MedTestingUtilities);
 
-    using NodeType = ModelPart::NodeType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -78,10 +76,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    static void CheckNodesAreEqual(
-        const NodeType& rNode1,
-        const NodeType& rNode2);
 
     static void CheckModelPartsAreEqual(
         const ModelPart& rModelPart1,

@@ -25,7 +25,17 @@ namespace Kratos {
 
 namespace { // helpers namespace
 
-using NodeType = MedTestingUtilities::NodeType;
+using NodeType = ModelPart::NodeType;
+using GeometryType = ModelPart::GeometryType;
+using GeometryContainerType = ModelPart::GeometryContainerType;
+
+template<class T>
+bool contains(
+    const std::vector<T> rVec,
+    const T& rValue)
+{
+    return std::find(rVec.begin(), rVec.end(), rValue) != rVec.end();
+}
 
 void CheckEntitiesAreEqual(
     const NodeType& rNode1,
@@ -47,26 +57,72 @@ void CheckEntitiesAreEqual(
     KRATOS_CATCH("")
 }
 
-template<class T>
-bool contains(
-    const std::vector<T> rVec,
-    const T& rValue)
-{
-    return std::find(rVec.begin(), rVec.end(), rValue) != rVec.end();
-}
-
-} // helpers namespace
-
-void MedTestingUtilities::CheckNodesAreEqual(
-    const NodeType& rNode1,
-    const NodeType& rNode2)
+void CheckGeometriesAreEqual(
+    const GeometryType& rGeom1,
+    const GeometryType& rGeom2)
 {
     KRATOS_TRY
 
-    CheckEntitiesAreEqual(rNode1, rNode2);
+    KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id());
+
+    KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
+
+    KRATOS_CHECK(GeometryType::IsSame(rGeom1, rGeom2));
+
+
+    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X(),  rNode2.X());
+    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X0(), rNode2.X0());
+
+    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Y(),  rNode2.Y());
+    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Y0(), rNode2.Y0());
+
+    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Z(),  rNode2.Z());
+    // KRATOS_CHECK_DOUBLE_EQUAL(rNode1.Z0(), rNode2.Z0());
 
     KRATOS_CATCH("")
 }
+
+template<class TContainerType>
+void CheckEntitiesAreEqual(
+    const TContainerType& rEntities1,
+    const TContainerType& rEntities2)
+{
+    KRATOS_TRY
+
+    // basic checks
+    KRATOS_CHECK_EQUAL(rEntities1.size(), rEntities2.size());
+
+    // check entities
+    for (std::size_t i=0; i<rEntities1.size(); ++i) {
+        CheckEntitiesAreEqual(*(rEntities1.begin()+i), *(rEntities2.begin()+i+i));
+    }
+
+    KRATOS_CATCH("")
+}
+
+void CheckGeometriesAreEqual(
+    const ModelPart& rModelPart1,
+    const ModelPart& rModelPart2)
+{
+    KRATOS_TRY
+
+    // basic checks
+    KRATOS_CHECK_EQUAL(rModelPart1.NumberOfGeometries(), rModelPart2.NumberOfGeometries());
+
+    auto geom_1_iter = rModelPart1.GeometriesBegin();
+    auto geom_2_iter = rModelPart1.GeometriesBegin();
+
+    // check entities
+    for (std::size_t i=0; i<rModelPart1.NumberOfGeometries(); ++i) {
+        CheckGeometriesAreEqual(*(rModelPart1.GeometriesBegin()+i)), *(rModelPart2.GeometriesBegin()+i));
+        geom_1_iter++;
+        geom_2_iter++;
+    }
+
+    KRATOS_CATCH("")
+}
+
+} // helpers namespace
 
 void MedTestingUtilities::CheckModelPartsAreEqual(
     const ModelPart& rModelPart1,
@@ -74,13 +130,11 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
 {
     KRATOS_TRY
 
-    // basic checks
-    KRATOS_CHECK_EQUAL(rModelPart1.NumberOfNodes(), rModelPart2.NumberOfNodes());
-
     // check nodes
-    for (std::size_t i=0; i<rModelPart1.NumberOfNodes(); ++i) {
-        CheckNodesAreEqual(*(rModelPart1.NodesBegin()+i), *(rModelPart2.NodesBegin()+i));
-    }
+    CheckEntitiesAreEqual(rModelPart1.Nodes(), rModelPart2.Nodes());
+
+    // check geometries
+    CheckGeometriesAreEqual(rModelPart1, rModelPart2);
 
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfSubModelParts(), rModelPart2.NumberOfSubModelParts());
 
