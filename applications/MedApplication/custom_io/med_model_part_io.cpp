@@ -13,7 +13,7 @@
 // System includes
 
 // External includes
-// #include "med.h"
+#include "med.h"
 
 // Project includes
 #include "med_model_part_io.h"
@@ -26,15 +26,26 @@ MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName)
 {
     KRATOS_TRY
 
+    mFileHandle = MEDfileOpen("test1.med", MED_ACC_RDWR);
+    if (mFileHandle < 0) {
+        KRATOS_WATCH("Erreur à la creation du fichier");
+    }
+
 
     KRATOS_CATCH("")
+}
+
+MedModelPartIO::~MedModelPartIO()
+{
+    if (MEDfileClose(mFileHandle) < 0)
+    ret = -1;
 }
 
 void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "Calling base class method (ReadModelPart). Please check the definition of derived class" << std::endl;
+    KRATOS_ERROR << "ReadModelPart is not yet implemented ..." << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -43,7 +54,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "Calling base class method (WriteModelPart). Please check the definition of derived class" << std::endl;
+    KRATOS_ERROR << "WriteModelPart is not yet implemented ..." << std::endl;
 
     KRATOS_CATCH("")
 }

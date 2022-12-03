@@ -67,6 +67,9 @@ public:
     /// Copy constructor.
     MedModelPartIO(MedModelPartIO const& rOther) = delete;
 
+    /// Destructor (closes the file).
+    ~MedModelPartIO() override;
+
     ///@}
     ///@name Operators
     ///@{
@@ -175,6 +178,8 @@ private:
     ///@{
 
     std::filesystem::path mFileName;
+
+    int mFileHandle;
 
     ///@}
     ///@name Private Operators
