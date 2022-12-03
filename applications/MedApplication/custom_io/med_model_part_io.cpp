@@ -38,7 +38,7 @@ MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName)
 MedModelPartIO::~MedModelPartIO()
 {
     if (MEDfileClose(mFileHandle) < 0)
-    ret = -1;
+    std::cout << "Closing failed ...";
 }
 
 void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
