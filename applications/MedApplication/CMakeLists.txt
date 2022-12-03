@@ -5,6 +5,17 @@ message("**** configuring KratosMedApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+find_package(MED REQUIRED)
+
+# MED uses HDF
+# TODO check interoperability with the HDFapp, both in serial and parallel
+if (NOT HDF5_FOUND)
+    find_package(HDF5 REQUIRED COMPONENTS C)
+endif()
+
+include_directories(${MED_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS})
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Med Core sources
@@ -23,8 +34,10 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_MED_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosMedCore SHARED ${KRATOS_MED_APPLICATION_CORE} ${KRATOS_MED_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMedCore PUBLIC KratosCore)
+target_link_libraries(KratosMedCore PUBLIC KratosCore ${MED_LIBRARIES} ${HDF5_C_LIBRARIES})
 set_target_properties(KratosMedCore PROPERTIES COMPILE_DEFINITIONS "MED_APPLICATION=EXPORT,API")
+target_include_directories(KratosMedCore SYSTEM PRIVATE hdf5::hdf5)
+
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
