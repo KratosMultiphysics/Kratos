@@ -161,6 +161,12 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D3NSlipTangentialCorrection,
         r_node.FastGetSolutionStepValue(VELOCITY) = aux_v;
     }
 
+    // Modify the nodal normal in one node to make it different to the condition one in order to get a LHS contribution
+    array_1d<double,3> aux_normal = ZeroVector(3);
+    aux_normal[0] = -1.0;
+    aux_normal[1] = 1.0;
+    r_model_part.GetNode(1).FastGetSolutionStepValue(NORMAL) = aux_normal;
+
     // Activate the outlet inflow contribution and set required values
     p_test_condition->Set(SLIP, true);
     r_model_part.GetProcessInfo().SetValue(SLIP_TANGENTIAL_CORRECTION_SWITCH, true);
@@ -170,14 +176,12 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D3NSlipTangentialCorrection,
     Vector RHS;
     Matrix LHS;
     p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
-    KRATOS_WATCH(RHS)
-    KRATOS_WATCH(LHS)
-
 
     // Check results
-    std::vector<double> rhs_out = {-7083.333333333,0,0,-3750.0,0,0};
+    std::vector<double> rhs_out = {0,-2.0,0,-2.0/3.0,-2.0/3.0,0};
+    std::vector<double> lhs_row_3_out = {0,0,-1.0/12.0,0,0,-1.0/6.0};
     KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
+    KRATOS_CHECK_VECTOR_NEAR(row(LHS,3), lhs_row_3_out, 1.0e-8)
 }
 
 }  // namespace Kratos::Testing

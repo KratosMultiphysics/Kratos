@@ -85,6 +85,7 @@ public:
 
     static constexpr std::size_t VoigtSize = 3 * (TDim-1);
     static constexpr std::size_t BlockSize = TNumNodes + 1;
+    static constexpr std::size_t LocalSize = TNumNodes*BlockSize;
 
     using Condition::SizeType;
 
@@ -447,7 +448,7 @@ private:
      * @param rDataStruct reference to a struct to hand over data
      */
     void CalculateGaussPointSlipTangentialCorrectionLHSContribution(
-        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLeftHandSideMatrix,
         const ConditionDataStruct& rDataStruct);
 
     /**
@@ -459,7 +460,7 @@ private:
      * @param rDataStruct reference to a struct to hand over data
      */
     void CalculateGaussPointSlipTangentialCorrectionRHSContribution(
-        array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+        array_1d<double,LocalSize>& rRightHandSideVector,
         const ConditionDataStruct& rDataStruct);
 
     /**
