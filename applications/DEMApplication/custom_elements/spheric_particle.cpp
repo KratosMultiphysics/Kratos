@@ -1193,6 +1193,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             // HIERARCHICAL MULTISCALE RVE
             //==========================================================================================================================================
             if (mRVESolve && indentation > 0.0) {
+              mInner = false;
               mCoordNum++;
               mNumContacts++;
               const int dim = r_process_info[DOMAIN_SIZE];

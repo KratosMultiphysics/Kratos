@@ -284,21 +284,23 @@ namespace Kratos {
         //==========================================================================================================================================
 
         // Properties
-        bool   mRVE_Solve;            // Flag for evaluating RVE in current step
-        bool   mRVE_Compress;         // Flag for evaluating RVE in current step
-        int    mRVE_FreqWrite = 1;    // Frequency for writing results as a multiplication factor of the evaluating frequency
-        int    mRVE_Dimension;        // RVE dimension: 2D or 3D
-        int    mRVE_NumContacts;      // Total number of contacts in RVE
-        double mRVE_AvgCoordNum;      // Average coordination number per particle
-        double mRVE_VolSolid;         // Volume of solid (particles) in RVE discounting overlaps
-        double mRVE_VolTotal;         // RVE total volume
-        double mRVE_Porosity;         // RVE porosity (discounting overlaps)
-        double mRVE_VoidRatio;        // RVE void ratio (discounting overlaps)
-        double mRVE_Anisotropy;       // Fabric anisotropy
-        double mRVE_EffectStress;     // Mean effective stress
-        double mRVE_DevStress;        // Deviatoric stress
-        double mRVE_WallForces;       // Total force applied by walls (normal only)
-        double mRVE_WallStress;       // Total stress applied by walls (normal only)
+        bool   mRVE_Solve;              // Flag for evaluating RVE in current step
+        bool   mRVE_Compress;           // Flag for evaluating RVE in current step
+        int    mRVE_FreqWrite = 1;      // Frequency for writing results as a multiplication factor of the evaluating frequency
+        int    mRVE_Dimension;          // RVE dimension: 2D or 3D
+        int    mRVE_NumContacts;        // Total number of contacts in RVE
+        int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
+        double mRVE_AvgCoordNum;        // Average coordination number per particle
+        double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
+        double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
+        double mRVE_VolTotal;           // RVE total volume
+        double mRVE_Porosity;           // RVE porosity (discounting overlaps)
+        double mRVE_VoidRatio;          // RVE void ratio (discounting overlaps)
+        double mRVE_Anisotropy;         // Fabric anisotropy
+        double mRVE_EffectStress;       // Mean effective stress
+        double mRVE_DevStress;          // Deviatoric stress
+        double mRVE_WallForces;         // Total force applied by walls (normal only)
+        double mRVE_WallStress;         // Total stress applied by walls (normal only)
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction
@@ -309,6 +311,7 @@ namespace Kratos {
 
         std::vector<double> mRVE_ForceChain; // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
         Matrix mRVE_RoseDiagram;             // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
+        Matrix mRVE_RoseDiagramInner;        // Rose diagram of contacts for inner particles (not in contact with walls)
         Matrix mRVE_FabricTensor;            // Fabric tensor
         Matrix mRVE_CauchyTensor;            // Cauchy stress tensor
         Matrix mRVE_TangentTensor;           // Tangent operator tensor

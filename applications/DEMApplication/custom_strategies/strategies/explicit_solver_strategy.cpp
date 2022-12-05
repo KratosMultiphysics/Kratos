@@ -1836,14 +1836,17 @@ namespace Kratos {
         const int dim  = mRVE_Dimension;
         const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
-        mRVE_NumContacts   = 0;
-        mRVE_AvgCoordNum   = 0.0;
-        mRVE_VolSolid      = 0.0;
-        mRVE_WallForces    = 0.0;
-        mRVE_RoseDiagram   = ZeroMatrix(2,40);
-        mRVE_FabricTensor  = ZeroMatrix(dim,dim);
-        mRVE_CauchyTensor  = ZeroMatrix(dim,dim);
-        mRVE_TangentTensor = ZeroMatrix(dim2,dim2);
+        mRVE_NumContacts       = 0;
+        mRVE_NumParticlesInner = 0;
+        mRVE_AvgCoordNum       = 0.0;
+        mRVE_AvgCoordNumInner  = 0.0;
+        mRVE_VolSolid          = 0.0;
+        mRVE_WallForces        = 0.0;
+        mRVE_RoseDiagram       = ZeroMatrix(2,40);
+        mRVE_RoseDiagramInner  = ZeroMatrix(2,40);
+        mRVE_FabricTensor      = ZeroMatrix(dim,dim);
+        mRVE_CauchyTensor      = ZeroMatrix(dim,dim);
+        mRVE_TangentTensor     = ZeroMatrix(dim2,dim2);
         mRVE_ForceChain.clear();
       }
     }
@@ -1857,11 +1860,12 @@ namespace Kratos {
       const int dim  = mRVE_Dimension;
       const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
+      p_particle->mInner         = true;
       p_particle->mCoordNum      = 0;
       p_particle->mNumContacts   = 0;
       p_particle->mVolOverlap    = 0.0;
       p_particle->mWallForces    = 0.0;
-      p_particle->mRoseDiagram   = ZeroMatrix(2, 40);
+      p_particle->mRoseDiagram   = ZeroMatrix(2,40);
       p_particle->mFabricTensor  = ZeroMatrix(dim,dim);
       p_particle->mCauchyTensor  = ZeroMatrix(dim,dim);
       p_particle->mTangentTensor = ZeroMatrix(dim2,dim2);
@@ -1881,6 +1885,12 @@ namespace Kratos {
       mRVE_CauchyTensor  += p_particle->mCauchyTensor;
       mRVE_TangentTensor += p_particle->mTangentTensor;
       mRVE_ForceChain.insert(mRVE_ForceChain.end(), p_particle->mForceChain.begin(), p_particle->mForceChain.end());
+
+      if (p_particle->mInner) {
+        mRVE_NumParticlesInner++;
+        mRVE_AvgCoordNumInner += p_particle->mCoordNum;
+        mRVE_RoseDiagramInner += p_particle->mRoseDiagram;
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -1889,6 +1899,7 @@ namespace Kratos {
 
       // Average coordination number
       mRVE_AvgCoordNum /= mListOfSphericParticles.size();
+      mRVE_AvgCoordNumInner /= mRVE_NumParticlesInner;
 
       // Compute porosity and void ratio
       mRVE_VolTotal = RVEComputeTotalVolume();
@@ -2200,7 +2211,8 @@ namespace Kratos {
         mRVE_FileCoordNumber << time_step        << " "
                              << time             << " "
                              << mRVE_NumContacts << " "
-                             << mRVE_AvgCoordNum
+                             << mRVE_AvgCoordNum << " "
+                             << mRVE_AvgCoordNumInner
                              << std::endl;
 
       if (mRVE_FileForceChain.is_open()) {
@@ -2218,6 +2230,14 @@ namespace Kratos {
 
         mRVE_FileRoseDiagram << "[ ";
         for (unsigned int i = 0; i < mRVE_RoseDiagram.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagram(1,i) << " ";
+        mRVE_FileRoseDiagram << "]";
+
+        mRVE_FileRoseDiagram << "[ ";
+        for (unsigned int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagramInner(0, i) << " ";
+        mRVE_FileRoseDiagram << "] ";
+
+        mRVE_FileRoseDiagram << "[ ";
+        for (unsigned int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) mRVE_FileRoseDiagram << mRVE_RoseDiagramInner(1, i) << " ";
         mRVE_FileRoseDiagram << "]";
 
         mRVE_FileRoseDiagram << std::endl;
@@ -2315,7 +2335,8 @@ namespace Kratos {
       mRVE_FileCoordNumber << "1 - STEP | ";
       mRVE_FileCoordNumber << "2 - TIME | ";
       mRVE_FileCoordNumber << "3 - NUMBER OF UNIQUE CONTACTS | ";
-      mRVE_FileCoordNumber << "4 - AVG COORDINATION NUMBER";
+      mRVE_FileCoordNumber << "4 - AVG COORDINATION NUMBER | ";
+      mRVE_FileCoordNumber << "5 - AVG COORDINATION NUMBER OF INNER PARTICLES";
       mRVE_FileCoordNumber << std::endl;
 
       mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
@@ -2331,6 +2352,8 @@ namespace Kratos {
       mRVE_FileRoseDiagram << "2 - TIME | ";
       mRVE_FileRoseDiagram << "3 - [ARRAY OF ANGLES IN XY PLANE] | ";
       mRVE_FileRoseDiagram << "4 - [ARRAY OF AZIMUTH ANGLES]";
+      mRVE_FileRoseDiagram << "5 - [ARRAY OF ANGLES IN XY PLANE - INNER PARTICLES] | ";
+      mRVE_FileRoseDiagram << "6 - [ARRAY OF AZIMUTH ANGLES - INNER PARTICLES]";
       mRVE_FileRoseDiagram << std::endl;
 
       mRVE_FileAnisotropy.open("rve_anisotropy.txt", std::ios::out);
