@@ -88,10 +88,7 @@ NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Poin
     Settings.ValidateAndAssignDefaults(default_params);
 
     mPrefix = Settings["prefix"].GetString();
-
-    mVariableNames.resize(Settings["list_of_variables"].size());
-    for (unsigned i = 0; i < mVariableNames.size(); ++i)
-        mVariableNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
+    mVariableNames = Settings["list_of_variables"].GetStringArray();
 
     // Sort variable names to make sure they're in the same order on each rank.
     // The basic assumption is that the set of variables is identical on every

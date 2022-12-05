@@ -377,14 +377,7 @@ ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::Contai
     Settings.ValidateAndAssignDefaults(default_params);
 
     mComponentPath = Settings["prefix"].GetString() + rComponentPath;
-
-    const std::size_t num_components = Settings["list_of_variables"].size();
-
-    if (mComponentNames.size() != num_components)
-        mComponentNames.resize(num_components);
-
-    for (std::size_t i = 0; i < num_components; ++i)
-        mComponentNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
+    mComponentNames = Settings["list_of_variables"].GetStringArray();
 
     // Sort component names to make sure they're in the same order on each rank.
     // The basic assumption is that the set of components is identical on every
