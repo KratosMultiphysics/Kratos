@@ -96,7 +96,9 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
         auto& r_aux_model_part_3D = rModelPart3D.CreateSubModelPart("IntersectedElements3D");
 
         // Max length of the elements considered
-        const double max_length = GetMaxLength(rModelPart1D);
+        const double max_length_1d = GetMaxLength(rModelPart1D);
+        const double max_length_3d = GetMaxLength(rModelPart3D);
+        const double max_length = std::max(max_length_1d, max_length_3d);
 
         // The elements array
         auto& r_elements_array = rModelPart1D.Elements();
@@ -153,9 +155,9 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                 auto p_geometry = p_point->pGetElement()->pGetGeometry();
                 auto& r_geometry = *p_geometry;
                 const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
-                if (intersection == 1) { // Two intersection points
+                if (intersection == 1 || intersection == 3) { // Two intersection points
                     counter += 2;
-                } else if (intersection == 2) { // Two points, one inside the tetrahedra and the other outside
+                } else if (intersection == 2 || intersection == 4) { // Two points, one inside the tetrahedra and the other outside
                     bool add_point = true;
                     for (unsigned int i_point = 0; i_point < counter; ++i_point) {
                         if (norm_2(av.first_point - av.intersection_point1) < tolerance) {
@@ -372,7 +374,9 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
     });
 
     // Max length of the elements considered
-    const double max_length = GetMaxLength(rModelPart1D);
+    const double max_length_1d = GetMaxLength(rModelPart1D);
+    const double max_length_3d = GetMaxLength(rModelPart3D);
+    const double max_length = std::max(max_length_1d, max_length_3d);
 
     // The elements array
     auto& r_elements_array = rModelPart1D.Elements();
@@ -534,7 +538,9 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom3Dto1D(
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
 
     // Max length of the elements considered
-    const double max_length = GetMaxLength(rModelPart3D);
+    const double max_length_1d = GetMaxLength(rModelPart1D);
+    const double max_length_3d = GetMaxLength(rModelPart3D);
+    const double max_length = std::max(max_length_1d, max_length_3d);
 
     // The elements array
     auto& r_elements_array = rModelPart3D.Elements();
