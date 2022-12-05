@@ -413,6 +413,77 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInn
     }
 }
 
+/**
+ * The node ordering corresponds with:
+ *          2
+ *          |`\
+ *          |  `\
+ *          5    `4
+ *          |      `\
+ *          |        `\
+ *          0-----3----1
+ */
+template <class TBaseVertexMorphingMapper>
+double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCurvatureOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement) {
+
+    Kratos::Point::CoordinatesArrayType rLocalPoint;
+
+    if (pElement->GetGeometry()[0].Id() == rNode.Id()) {
+        rLocalPoint[0] = 0.0;
+        rLocalPoint[1] = 0.0;
+    } else if (pElement->GetGeometry()[1].Id() == rNode.Id()) {
+        rLocalPoint[0] = 1.0;
+        rLocalPoint[1] = 0.0;
+    } else if (pElement->GetGeometry()[2].Id() == rNode.Id()) {
+        rLocalPoint[0] = 0.0;
+        rLocalPoint[1] = 1.0;
+    } else if (pElement->GetGeometry()[3].Id() == rNode.Id()) {
+        rLocalPoint[0] = 0.5;
+        rLocalPoint[1] = 0.0;
+    } else if (pElement->GetGeometry()[4].Id() == rNode.Id()) {
+        rLocalPoint[0] = 0.5;
+        rLocalPoint[1] = 0.5;
+    } else if (pElement->GetGeometry()[5].Id() == rNode.Id()) {
+        rLocalPoint[0] = 0.0;
+        rLocalPoint[1] = 0.5;
+    }
+
+    matrix<double>& r_first_derivative;
+    pElement->GetGeometry().ShapeFunctionsLocalGradients(r_first_derivative, rLocalPoint);
+    matrix<double>& r_second_derivative;
+    pElement->GetGeometry().ShapeFunctionsSecondDerivatives(r_second_derivative, rLocalPoint);
+    matrix<double>& df;
+    Kratos::ZeroVector g_1;
+    Kratos::ZeroVector g_2;
+    Kratos::ZeroVector dg_1_du;
+    Kratos::ZeroVector dg_1_dv;
+    Kratos::ZeroVector dg_2_du;
+    Kratos::ZeroVector dg_2_dv;
+    df.resize(3, 2, true);
+    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+        g_1 += r_first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates();
+        g_2 += r_first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates();
+        for (int dim = 0; dim < 3; ++dim) {
+            df(dim, 0) += r_first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates()[dim];
+            df(dim, 1) += r_first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates()[dim];
+        }
+        dg_1_du += r_second_derivative[i](0,0) * pElement->GetGeometry()[i].Coordinates();
+        dg_1_dv += r_second_derivative[i](0,1) * pElement->GetGeometry()[i].Coordinates();
+        dg_2_du += r_second_derivative[i](1,0) * pElement->GetGeometry()[i].Coordinates();
+        dg_2_dv += r_second_derivative[i](1,1) * pElement->GetGeometry()[i].Coordinates();
+    }
+
+    Kratos::ZeroVector dn_du;
+    Kratos::ZeroVector dn_dv;
+    dn_du = MathUtils<double>::CrossProduct(dg_1_du, g_2) + MathUtils<double>::CrossProduct(g_1, dg_2_du);
+    dn_dv = MathUtils<double>::CrossProduct(dg_1_dv, g_2) + MathUtils<double>::CrossProduct(g_1, dg_2_dv);
+
+    // TODO: solve least square problem df * S = dn
+    // => shape operator S [2x2] matrix
+    // => principal curvatures kappa_1 and kappa_2 are eigenvalues of S
+    // gaussian curvature = kappa_1 * kappa_2
+}
+
 template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateInnerAngleAndMixedAreaOf4Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
 

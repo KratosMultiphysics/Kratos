@@ -171,6 +171,8 @@ private:
 
     void CalculateInnerAngleAndMixedAreaOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
 
+    double CalculateCurvatureOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
+
     void CalculateInnerAngleAndMixedAreaOf4Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
 
     void CalculateInnerAngleAndMixedAreaOf8Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
