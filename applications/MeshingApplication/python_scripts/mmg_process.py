@@ -134,17 +134,26 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "advanced_parameters"                  :
             {
-                "force_hausdorff_value"               : false,
-                "hausdorff_value"                     : 0.0001,
-                "no_move_mesh"                        : false,
-                "no_surf_mesh"                        : false,
-                "no_insert_mesh"                      : false,
-                "no_swap_mesh"                        : false,
-                "mesh_optimization_only"              : false,
-                "deactivate_detect_angle"             : false,
-                "force_gradation_value"               : false,
-                "gradation_value"                     : 1.3
+                "force_hausdorff_value"            : false,
+                "hausdorff_value"                  : 0.0001,
+                "no_move_mesh"                     : false,
+                "no_surf_mesh"                     : false,
+                "no_insert_mesh"                   : false,
+                "no_swap_mesh"                     : false,
+                "normal_regularization_mesh"       : false,
+                "deactivate_detect_angle"          : false,
+                "force_angle_detection_value"      : false,
+                "angle_detection_value"            : 45.0,
+                "force_gradation_value"            : false,
+                "mesh_optimization_only"           : false,
+                "gradation_value"                  : 1.3,
+                "local_entity_parameters_list"     : []
             },
+            "mapping_parameters"                   :
+            {
+                "mapper_type"                      : "nearest_element",
+                "echo_level"                       : 0
+            }, 
             "anisotropy_remeshing"                 : true,
             "enforce_anisotropy_relative_variable" : false,
             "anisotropy_parameters":{

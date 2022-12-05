@@ -29,6 +29,10 @@
 #include "includes/gid_io.h"
 #include "includes/model_part_io.h"
 
+/* The mappers includes */
+#include "spaces/ublas_space.h"
+#include "mappers/mapper_flags.h"
+#include "factories/mapper_factory.h" 
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -54,6 +58,11 @@
 
 namespace Kratos
 {
+
+#define DEFINE_MAPPER_FACTORY_SERIAL                                                                                             \
+using SparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>; \
+using DenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;                                                 \
+using MapperFactoryType = MapperFactory<SparseSpace, DenseSpace>;
 
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
@@ -481,10 +490,10 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     const bool collapse_prisms_elements = mThisParameters["collapse_prisms_elements"].GetBool();
     if (collapse_prisms_elements) {
-        ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+        ModelPart& r_auxiliary_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
         ModelPart& r_old_auxiliar_model_part = r_old_model_part.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-        r_old_auxiliar_model_part.AddNodes( r_auxiliar_model_part.NodesBegin(), r_auxiliar_model_part.NodesEnd() );
-        r_old_auxiliar_model_part.AddElements( r_auxiliar_model_part.ElementsBegin(), r_auxiliar_model_part.ElementsEnd() );
+        r_old_auxiliar_model_part.AddNodes( r_auxiliary_model_part.NodesBegin(), r_auxiliary_model_part.NodesEnd() );
+        r_old_auxiliar_model_part.AddElements( r_auxiliary_model_part.ElementsBegin(), r_auxiliary_model_part.ElementsEnd() );
     }
 
     // Apply local entity parameters if there are any
@@ -578,22 +587,34 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
         if (mThisParameters["interpolate_nodal_values"].GetBool()) {
             /* We interpolate all the values */
-            Parameters interpolate_parameters = Parameters(R"({})" );
-            interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
-            interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
-            interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
-            interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
-            interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
-            interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
-            interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
-            interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
-            interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-            interpolate_parameters["surface_elements"].SetBool(true);
-
             ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-            ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-            NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
-            interpolate_nodal_values_process.Execute();
+            ModelPart& r_auxiliary_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+
+            // Define mapper factory
+            DEFINE_MAPPER_FACTORY_SERIAL
+            if (MapperFactoryType::HasMapper("nearest_element")) { // TODO: Detect variables to map
+                Parameters mapping_parameters = mThisParameters["mapping_parameters"];
+                auto p_mapper = MapperFactoryType::CreateMapper(r_old_auxiliar_model_part, r_auxiliary_model_part, mapping_parameters);
+                Kratos::Flags mapper_flags = Kratos::Flags();
+                // for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+                //     p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
+                // }
+            } else {
+                Parameters interpolate_parameters = Parameters(R"({})" );
+                interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+                interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+                interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+                interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+                interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+                interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+                interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+                interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+                interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+                interpolate_parameters["surface_elements"].SetBool(true);
+
+                NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliary_model_part, interpolate_parameters);
+                interpolate_nodal_values_process.Execute();
+            }
         }
 
 
@@ -632,19 +653,30 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     if (mThisParameters["interpolate_nodal_values"].GetBool()) {
         /* We interpolate all the values */
-        Parameters interpolate_parameters = Parameters(R"({})" );
-        interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
-        interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
-        interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
-        interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
-        interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
-        interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
-        interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
-        interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
-        interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-        if constexpr (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
-        NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
-        interpolate_nodal_values_process.Execute();
+        // Define mapper factory
+        DEFINE_MAPPER_FACTORY_SERIAL
+        if (MapperFactoryType::HasMapper("nearest_element")) { // TODO: Detect variables to map
+            Parameters mapping_parameters = mThisParameters["mapping_parameters"];
+            auto p_mapper = MapperFactoryType::CreateMapper(r_old_model_part, mrThisModelPart, mapping_parameters);
+            Kratos::Flags mapper_flags = Kratos::Flags();
+            // for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+            //     p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
+            // }
+        } else {
+            Parameters interpolate_parameters = Parameters(R"({})" );
+            interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+            interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+            interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+            interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+            interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+            interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+            interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+            interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+            interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+            if constexpr (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
+            NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
+            interpolate_nodal_values_process.Execute();
+        }
     }
 
     /* We initialize elements and conditions */
@@ -891,7 +923,7 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
     // Now that the connectivity has been constructed
     array_1d<double, 3> average_coordinates;
     double distance;
-    ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    ModelPart& r_auxiliary_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
     for (auto& r_pair : thickness_connectivity_map) {
         auto pnode1 = mrThisModelPart.pGetNode(r_pair.first);
         auto pnode2 = mrThisModelPart.pGetNode(r_pair.second);
@@ -900,7 +932,7 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
         noalias(average_coordinates) = 0.5 * (r_coordinates_1 + r_coordinates_2);
         distance = norm_2(r_coordinates_1 - r_coordinates_2);
 
-        auto p_new_node = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + r_pair.first, average_coordinates[0], average_coordinates[1], average_coordinates[2]);
+        auto p_new_node = r_auxiliary_model_part.CreateNewNode(total_number_of_nodes + r_pair.first, average_coordinates[0], average_coordinates[1], average_coordinates[2]);
         p_new_node->SetValue(THICKNESS, distance);
         // In case of considering metric tensor
         if (pnode1->Has(METRIC_TENSOR_3D)) {
@@ -911,9 +943,9 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
     }
 
     // Create the new elements
-    auto r_prop = r_auxiliar_model_part.pGetProperties(0);
+    auto r_prop = r_auxiliary_model_part.pGetProperties(0);
     for (auto& r_pair : transversal_connectivity_map) {
-        r_auxiliar_model_part.CreateNewElement("Element3D3N", r_pair.first, r_pair.second, r_prop);
+        r_auxiliary_model_part.CreateNewElement("Element3D3N", r_pair.first, r_pair.second, r_prop);
     }
 
     KRATOS_CATCH("");
@@ -956,13 +988,13 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     const SizeType total_number_of_elements = mrThisModelPart.GetRootModelPart().NumberOfElements(); // Elements must be ordered
 
     // Now we iterate over the elements to create a connectivity map
-    ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-    ElementsArrayType& r_elements_array = r_auxiliar_model_part.Elements();
+    ModelPart& r_auxiliary_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    ElementsArrayType& r_elements_array = r_auxiliary_model_part.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
     /* Compute normal */
     // We iterate over nodes
-    auto& r_nodes_array = r_auxiliar_model_part.Nodes();
+    auto& r_nodes_array = r_auxiliary_model_part.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
     // Reset NORMAL
@@ -1137,20 +1169,20 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     KRATOS_TRY;
 
     Model& r_owner_model = mrThisModelPart.GetModel();
-    ModelPart& r_auxiliar_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
+    ModelPart& r_auxiliary_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
     ModelPart& r_copy_old_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 
-    Properties::Pointer p_prop_1 = r_auxiliar_model_part.pGetProperties(1);
-    Properties::Pointer p_prop_2 = r_auxiliar_model_part.pGetProperties(2);
+    Properties::Pointer p_prop_1 = r_auxiliary_model_part.pGetProperties(1);
+    Properties::Pointer p_prop_2 = r_auxiliary_model_part.pGetProperties(2);
 
     // We just transfer nodes and elements
     // Current model part
-    FastTransferBetweenModelPartsProcess transfer_process_current = FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    FastTransferBetweenModelPartsProcess transfer_process_current = FastTransferBetweenModelPartsProcess(r_auxiliary_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_current.Set(MODIFIED); // We replicate, not transfer
     transfer_process_current.Execute();
 
     // Iterate over first elements
-    auto& r_elements_array_1 = r_auxiliar_model_part.Elements();
+    auto& r_elements_array_1 = r_auxiliary_model_part.Elements();
 
     block_for_each(r_elements_array_1,
         [&p_prop_1](Element& rElement) {
@@ -1170,7 +1202,7 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     });
 
     // Reorder ids to ensure be consecuent
-    auto& r_auxiliar_nodes_array = r_auxiliar_model_part.Nodes();
+    auto& r_auxiliar_nodes_array = r_auxiliary_model_part.Nodes();
     const SizeType auxiliar_number_of_nodes = (r_auxiliar_nodes_array.end() - 1)->Id();
     auto& r_copy_old_nodes_array = r_copy_old_model_part.Nodes();
 
@@ -1180,7 +1212,7 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     }
 
     // Last transfer
-    FastTransferBetweenModelPartsProcess transfer_process_last = FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, r_copy_old_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    FastTransferBetweenModelPartsProcess transfer_process_last = FastTransferBetweenModelPartsProcess(r_auxiliary_model_part, r_copy_old_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_last.Set(MODIFIED);
     transfer_process_last.Execute();
 
@@ -1189,9 +1221,9 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     GidIO<> gid_io("BEFORE_AND_AFTER_MMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
 
     gid_io.InitializeMesh(label);
-    gid_io.WriteMesh(r_auxiliar_model_part.GetMesh());
+    gid_io.WriteMesh(r_auxiliary_model_part.GetMesh());
     gid_io.FinalizeMesh();
-    gid_io.InitializeResults(label, r_auxiliar_model_part.GetMesh());
+    gid_io.InitializeResults(label, r_auxiliary_model_part.GetMesh());
 
     // Remove auxiliar model parts
     r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
@@ -1373,6 +1405,11 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "gradation_value"                     : 1.3,
             "local_entity_parameters_list"        : []
         },
+        "mapping_parameters"                   :
+        {
+            "mapper_type"                      : "nearest_element",
+            "echo_level"                       : 0
+        }, 
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,
         "save_colors_files"                    : false,
