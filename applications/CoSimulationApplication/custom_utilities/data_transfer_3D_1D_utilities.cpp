@@ -22,9 +22,9 @@
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
-#include "spaces/ublas_space.h"
 
-/* The mappers */
+/* The mappers includes */
+#include "spaces/ublas_space.h"
 #include "mappers/mapper_flags.h"
 #include "factories/mapper_factory.h" 
 
