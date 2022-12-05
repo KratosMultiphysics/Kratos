@@ -623,9 +623,9 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentia
                 voigt_stress[4] = r_viscous_stress[4]; // no pressure in shear component
                 voigt_stress[5] = r_viscous_stress[5]; // no pressure in shear component
                 // Projection along the condition normal
-                cauchy_traction_vect[0] += r_N[j_node]*(voigt_stress[0]*r_cond_normal[0] + voigt_stress[3]*r_cond_normal[1] * voigt_stress[5]*r_cond_normal[2]);
-                cauchy_traction_vect[1] += r_N[j_node]*(voigt_stress[3]*r_cond_normal[0] + voigt_stress[1]*r_cond_normal[1] * voigt_stress[4]*r_cond_normal[2]);
-                cauchy_traction_vect[2] += r_N[j_node]*(voigt_stress[5]*r_cond_normal[0] + voigt_stress[4]*r_cond_normal[1] * voigt_stress[2]*r_cond_normal[2]);
+                cauchy_traction_vect[0] += r_N[j_node]*(voigt_stress[0]*r_cond_normal[0] + voigt_stress[3]*r_cond_normal[1] + voigt_stress[5]*r_cond_normal[2]);
+                cauchy_traction_vect[1] += r_N[j_node]*(voigt_stress[3]*r_cond_normal[0] + voigt_stress[1]*r_cond_normal[1] + voigt_stress[4]*r_cond_normal[2]);
+                cauchy_traction_vect[2] += r_N[j_node]*(voigt_stress[5]*r_cond_normal[0] + voigt_stress[4]*r_cond_normal[1] + voigt_stress[2]*r_cond_normal[2]);
             }
         }
 
