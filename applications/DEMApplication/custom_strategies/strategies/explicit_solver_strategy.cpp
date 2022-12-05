@@ -1839,7 +1839,8 @@ namespace Kratos {
         mRVE_NumContacts   = 0;
         mRVE_AvgCoordNum   = 0.0;
         mRVE_VolSolid      = 0.0;
-        mRVE_RoseDiagram   = ZeroMatrix(2, 40);
+        mRVE_WallForces    = 0.0;
+        mRVE_RoseDiagram   = ZeroMatrix(2,40);
         mRVE_FabricTensor  = ZeroMatrix(dim,dim);
         mRVE_CauchyTensor  = ZeroMatrix(dim,dim);
         mRVE_TangentTensor = ZeroMatrix(dim2,dim2);
@@ -1859,6 +1860,7 @@ namespace Kratos {
       p_particle->mCoordNum      = 0;
       p_particle->mNumContacts   = 0;
       p_particle->mVolOverlap    = 0.0;
+      p_particle->mWallForces    = 0.0;
       p_particle->mRoseDiagram   = ZeroMatrix(2, 40);
       p_particle->mFabricTensor  = ZeroMatrix(dim,dim);
       p_particle->mCauchyTensor  = ZeroMatrix(dim,dim);
@@ -1873,6 +1875,7 @@ namespace Kratos {
       mRVE_NumContacts   += p_particle->mNumContacts;
       mRVE_AvgCoordNum   += p_particle->mCoordNum;
       mRVE_VolSolid      += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
+      mRVE_WallForces    += p_particle->mWallForces;
       mRVE_RoseDiagram   += p_particle->mRoseDiagram;
       mRVE_FabricTensor  += p_particle->mFabricTensor;
       mRVE_CauchyTensor  += p_particle->mCauchyTensor;
@@ -1890,6 +1893,10 @@ namespace Kratos {
       // Compute porosity and void ratio
       mRVE_VolTotal = RVEComputeTotalVolume();
       RVEComputePorosity();
+
+      // Compute stress applied by walls
+      double surf = RVEComputeTotalSurface();
+      mRVE_WallStress = mRVE_WallForces / surf;
 
       // Compute fabric anisotropy and stresses
       if (mRVE_NumContacts == 0.0) {
@@ -2089,6 +2096,25 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    double ExplicitSolverStrategy::RVEComputeTotalSurface(void) {
+      double surface = 0.0;
+
+      if (mRVE_Dimension == 2) { // Perimeter
+        double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+        double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+        surface   = 2.0 * (dX + dY);
+      }
+      else if (mRVE_Dimension == 3) {
+        double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+        double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+        double dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+        surface   = 2.0 * (dX*dY + dX*dZ + dY*dZ);
+      }
+
+      return surface;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
     double ExplicitSolverStrategy::RVEComputeTotalVolume(void) {
       double dX = 1.0;
       double dY = 1.0;
@@ -2220,6 +2246,7 @@ namespace Kratos {
       if (mRVE_FileStress.is_open())
         mRVE_FileStress << time_step         << " "
                         << time              << " "
+                        << mRVE_WallStress   << " "
                         << mRVE_EffectStress << " "
                         << mRVE_DevStress
                         << std::endl;
@@ -2326,8 +2353,9 @@ namespace Kratos {
       KRATOS_ERROR_IF_NOT(mRVE_FileStress) << "Could not open file rve_stresses.txt!" << std::endl;
       mRVE_FileStress << "1 - STEP | ";
       mRVE_FileStress << "2 - TIME | ";
-      mRVE_FileStress << "3 - MEAN EFFECTIVE STRESS | ";
-      mRVE_FileStress << "4 - DEVIATORIC STRESS";
+      mRVE_FileStress << "3 - WALL STRESS | ";
+      mRVE_FileStress << "4 - MEAN EFFECTIVE STRESS | ";
+      mRVE_FileStress << "5 - DEVIATORIC STRESS";
       mRVE_FileStress << std::endl;
 
       mRVE_FileCauchyTensor.open("rve_cauchy_tensor.txt", std::ios::out);
