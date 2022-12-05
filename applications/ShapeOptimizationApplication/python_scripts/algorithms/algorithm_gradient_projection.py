@@ -62,8 +62,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         for itr, constraint in enumerate(self.constraints):
             self.constraint_gradient_variables.update({
                 constraint["identifier"].GetString() : {
-                    "gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
-                    "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                    "gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX"),
+                    "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
                 }
             })
         self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()

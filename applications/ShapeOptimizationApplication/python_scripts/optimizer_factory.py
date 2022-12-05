@@ -57,9 +57,9 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
-            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX_MAPPED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_UPDATE)

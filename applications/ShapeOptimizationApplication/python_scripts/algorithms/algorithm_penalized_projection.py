@@ -197,7 +197,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
             constraint_gradient_variable = {}
             constraint_gradient_variable.update({
                     self.constraints[0]["identifier"].GetString() : {
-                        "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(1)+"DX_MAPPED")
+                        "mapped_gradient": KM.KratosGlobals.GetVariable("DC1DX_MAPPED")
                     }
             })
             ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, constraint_gradient_variable, self.optimization_iteration)

@@ -229,7 +229,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.model_part_controller.DampNodalSensitivityVariableIfSpecified(nodal_variable)
 
             # Mapping
-            nodal_variable_mapped = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+            nodal_variable_mapped = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
             self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
             self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
@@ -262,8 +262,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             con = self.constraints[itr]
             con_id = con["identifier"].GetString()
 
-            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
-            nodal_variable_mapped = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX")
+            nodal_variable_mapped = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
 
             value = self.communicator.getStandardizedValue(con_id)
             gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
@@ -409,7 +409,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             for itr, constraint in enumerate(self.constraints):
                 constraint_gradient_variables.update({
                     constraint["identifier"].GetString() : {
-                        "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                        "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
                     }
                 })
             ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, constraint_gradient_variables, self.opt_iteration)

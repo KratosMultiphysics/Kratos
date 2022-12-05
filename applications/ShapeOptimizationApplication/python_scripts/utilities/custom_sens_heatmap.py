@@ -8,9 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
@@ -31,11 +28,11 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
         # reciprocal relaxation
         relax_coeff = 1 / optimization_iteration
 
-        objective_gradient_name = "DF1D"+ design_variable_name + "_MAPPED"
+        objective_gradient_name = f"DF1D{design_variable_name}_MAPPED"
         df_dx = ReadNodalVariableToList(design_surface, KM.KratosGlobals.GetVariable(objective_gradient_name), dimension=design_variable_dimension)
 
         # DF1DX individual heatmap
-        heatmap_dfdx_name = "HEATMAP_DF1D" + design_variable_name
+        heatmap_dfdx_name = f"HEATMAP_DF1D{design_variable_name}"
         if optimization_iteration == 1:
             heat_dfdx_relaxed = df_dx
         else:
@@ -75,7 +72,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
                     # read constraint gradients
                     con_id = constraint["identifier"].GetString()
                     # gradient_variable = constraint_gradient_variables[con_id]["mapped_gradient"]
-                    constraint_gradient_name = "DC"+str(itr+1)+"D" + design_variable_name + "_MAPPED"
+                    constraint_gradient_name = f"DC{(itr+1)}D{design_variable_name}_MAPPED"
 
                     dci_dx = ReadNodalVariableToList(design_surface, KM.KratosGlobals.GetVariable(constraint_gradient_name), dimension=design_variable_dimension)
 
@@ -91,7 +88,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
                         dc_dx_normalized.update({con_id : [0] * len(dci_dx)})
 
                     # DCiDX individual heatmap
-                    heatmap_dcidx_name = "HEATMAP_" + "DC" + str(itr+1) + "D" + design_variable_name
+                    heatmap_dcidx_name = f"HEATMAP_DC{itr+1}D{design_variable_name}"
                     if optimization_iteration == 1:
                         heat_dcidx_relaxed = dci_dx
                     else:
@@ -120,7 +117,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
 
                     heat.append(heat_i)
 
-                heat_map_name = "HEATMAP" + "_" + norm_type
+                heat_map_name = f"HEATMAP_{norm_type}"
 
 
                 # Heatmap Relaxed
