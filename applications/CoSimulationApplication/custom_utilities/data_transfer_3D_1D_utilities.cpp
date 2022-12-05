@@ -296,6 +296,7 @@ void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
 
     // Generate the mapper
     Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
+    KRATOS_ERROR_IF_NOT(MapperFactoryType::HasMapper("nearest_element")) << "Mapper \"nearest_element\" not available. Please import MappingApplication" << std::endl;
     auto p_mapper = MapperFactoryType::CreateMapper(rModelPart1D, rModelPart3D, interpolate_parameters);
 
     // Interpolate
@@ -325,6 +326,7 @@ void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
 
     // Generate the mapper
     Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
+    KRATOS_ERROR_IF_NOT(MapperFactoryType::HasMapper("nearest_element")) << "Mapper \"nearest_element\" not available. Please import MappingApplication" << std::endl;
     auto p_mapper = MapperFactoryType::CreateMapper(rModelPart3D, rModelPart1D, interpolate_parameters);
 
     // Interpolate
