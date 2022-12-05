@@ -61,7 +61,7 @@ namespace NodalInterpolationFunctions
      * @param rModelPart The model part to extract the non-historical variables
      * @param rVariableList The list of non-historical variables
      */
-    static void KRATOS_API(MESHING_APPLICATION) GetListNonHistoricalVariables(
+    void KRATOS_API(MESHING_APPLICATION) GetListNonHistoricalVariables(
         const ModelPart& rModelPart,
         std::unordered_set<std::string>& rVariableList
         );

@@ -599,6 +599,28 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 // for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
                 //     p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
                 // }
+                // Interpolate non-historical variables
+                if (mThisParameters["interpolate_non_historical"].GetBool()) {
+                    mapper_flags.Set(MapperFlags::FROM_NON_HISTORICAL);
+                    mapper_flags.Set(MapperFlags::TO_NON_HISTORICAL);
+                    std::unordered_set<std::string> non_historical_variables;
+                    NodalInterpolationFunctions::GetListNonHistoricalVariables(r_old_auxiliar_model_part, non_historical_variables);
+                    for (auto& r_variable_name : non_historical_variables) {
+                        if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+                            const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+                            p_mapper->Map(r_variable, r_variable, mapper_flags);
+                        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
+                            const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
+                            p_mapper->Map(r_variable, r_variable, mapper_flags);
+                        // } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) { // TODO: Add to mapper
+                        //     const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
+                        //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                        // } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) { // TODO: Add to mapper
+                        //     const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
+                        //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                        }
+                    }
+                }
             } else {
                 Parameters interpolate_parameters = Parameters(R"({})" );
                 interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
@@ -662,6 +684,28 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             // for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
             //     p_mapper->Map(*origin_list_variables[i_var], *destination_list_variables[i_var], mapper_flags);
             // }
+            // Interpolate non-historical variables
+            if (mThisParameters["interpolate_non_historical"].GetBool()) {
+                mapper_flags.Set(MapperFlags::FROM_NON_HISTORICAL);
+                mapper_flags.Set(MapperFlags::TO_NON_HISTORICAL);
+                std::unordered_set<std::string> non_historical_variables;
+                NodalInterpolationFunctions::GetListNonHistoricalVariables(r_old_model_part, non_historical_variables);
+                for (auto& r_variable_name : non_historical_variables) {
+                    if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+                        const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+                        p_mapper->Map(r_variable, r_variable, mapper_flags);
+                    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
+                        const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
+                        p_mapper->Map(r_variable, r_variable, mapper_flags);
+                    // } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) { // TODO: Add to mapper
+                    //     const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
+                    //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                    // } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) { // TODO: Add to mapper
+                    //     const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
+                    //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                    }
+                }
+            }
         } else {
             Parameters interpolate_parameters = Parameters(R"({})" );
             interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
