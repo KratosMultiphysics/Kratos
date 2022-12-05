@@ -132,12 +132,13 @@ class DataLogger():
 
     # --------------------------------------------------------------------------
     def SensitivityHeatmapLogging( self ):
-        for nodal_result in self.DesignLogger.output_settings["nodal_results"]:
-            if nodal_result.GetString() in ["HEATMAP_MAX", "HEATMAP_L2", "HEATMAP_DF1DX", "HEATMAP_DF1DALPHA",
-                                            "HEATMAP_DC1DX", "HEATMAP_DC2DX", "HEATMAP_DC3DX", "HEATMAP_DC4DX",
-                                            "HEATMAP_DC5DX", "HEATMAP_DC6DX", "HEATMAP_DC7DX", "HEATMAP_DC8DX",
-                                            "HEATMAP_DC9DX"]:
-                return True
+        if self.DesignLogger:
+            for nodal_result in self.DesignLogger.output_settings["nodal_results"]:
+                if nodal_result.GetString() in ["HEATMAP_MAX", "HEATMAP_L2", "HEATMAP_DF1DX", "HEATMAP_DF1DALPHA",
+                                                "HEATMAP_DC1DX", "HEATMAP_DC2DX", "HEATMAP_DC3DX", "HEATMAP_DC4DX",
+                                                "HEATMAP_DC5DX", "HEATMAP_DC6DX", "HEATMAP_DC7DX", "HEATMAP_DC8DX",
+                                                "HEATMAP_DC9DX"]:
+                    return True
         return False
 
     # --------------------------------------------------------------------------
