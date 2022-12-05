@@ -155,9 +155,9 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                 auto p_geometry = p_point->pGetElement()->pGetGeometry();
                 auto& r_geometry = *p_geometry;
                 const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
-                if (intersection == 1 || intersection == 3) { // Two intersection points
+                if (intersection == 1 || intersection == 3 || intersection == 4) { // Two intersection points
                     counter += 2;
-                } else if (intersection == 2 || intersection == 4) { // Two points, one inside the tetrahedra and the other outside
+                } else if (intersection == 2) { // One point
                     bool add_point = true;
                     for (unsigned int i_point = 0; i_point < counter; ++i_point) {
                         if (norm_2(av.first_point - av.intersection_point1) < tolerance) {
