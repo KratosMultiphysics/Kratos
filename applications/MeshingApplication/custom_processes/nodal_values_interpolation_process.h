@@ -4,14 +4,13 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS )
-#define  KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_set>
@@ -317,39 +316,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -578,5 +544,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS  defined
