@@ -152,7 +152,7 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                 auto p_point = points_found[i];
                 auto p_geometry = p_point->pGetElement()->pGetGeometry();
                 auto& r_geometry = *p_geometry;
-                const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+                const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
                 if (intersection == 1) { // Two intersection points
                     counter += 2;
                 } else if (intersection == 2) { // Two points, one inside the tetrahedra and the other outside
