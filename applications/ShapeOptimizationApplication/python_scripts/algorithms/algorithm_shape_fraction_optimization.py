@@ -11,8 +11,6 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-from sympy import false
-
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
@@ -46,8 +44,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
                 "tolerance"     : 0.1,
                 "inner_tolerance": 0.01,
                 "max_inner_steps": 10,
-                "start_penalty": 0.1,
-                "sens_type": "analytic"
+                "start_penalty": 0.1
             },
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
@@ -92,8 +89,8 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DP1DX)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DPF1DX)
 
+        # shape fracton related settings
         self.penalty_method = self.algorithm_settings["shape_fraction"]["penalty_method"].GetString()
-        self.sens_type = self.algorithm_settings["shape_fraction"]["sens_type"].GetString()
         self.max_shape_fraction = self.algorithm_settings["shape_fraction"]["max_fraction"].GetDouble()
         self.frac_tolerance = self.algorithm_settings["shape_fraction"]["tolerance"].GetDouble()
         self.inner_tolerance = self.algorithm_settings["shape_fraction"]["inner_tolerance"].GetDouble()
@@ -108,8 +105,6 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     def CheckApplicability(self):
         if self.objectives.size() > 1:
             raise RuntimeError("Gradient projection algorithm only supports one objective function!")
-        # if self.constraints.size() == 0:
-        #     raise RuntimeError("Gradient projection algorithm requires definition of at least one constraint!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
@@ -191,7 +186,6 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         if surface_normals_required:
             self.model_part_controller.ComputeUnitSurfaceNormals()
 
-        # Compute pseudo objective
         # objective value
         objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
 
@@ -204,13 +198,14 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         # response value g of penalty method
         response_value = self.__computeResponseValue()
+        KM.Logger.PrintInfo("ShapeFractionOptimization", "Response value: {}".format(response_value))
         # penalty value
         # exterior:             p = max(0, g)**2
         # extended interior:    p = -1/g                            if g =< epsilon (interior penalty)
         #                       p = - 2*epsilon - g / epsilon**2    if g > epsilon  (exterior penalty)
         self.penalty_value = self.__computePenaltyValue(response_value)
 
-        # start penalty factor
+        # set up initial penalty factor
         if self.penalty_factor == 0.0:
             if self.penalty_method == "exterior":
                 # compute penalty gradients for start penalty factor
@@ -231,21 +226,21 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         elif self.penalty_method == "extended_interior":
             self.inner_step += 1
 
-        # use pseudo objective for inner convergence check
+        # pseudo objective value
         if self.penalty_method == "exterior":
             pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
         elif self.penalty_method == "extended_interior":
             pseudo_objective_value = objective_value + self.penalty_factor * self.penalty_value
 
+        # check inner convergence
         inner_converged = self.__checkInnerConvergence(pseudo_objective_value)
 
-        # use only objective for inner convergence check
-        # inner_converged = self.__checkInnerConvergence(objective_value)
-
+        # update penalty factor if inner loop converged
         if inner_converged:
             KM.Logger.PrintInfo("ShapeFractionOptimization", "Updating penalty factor:")
             self.__updatePenaltyFactor()
 
+        # update pseudo objective value
         if self.penalty_method == "exterior":
             self.pseudo_objective_value = objective_value + self.penalty_factor * max(0, self.penalty_value)**2
         elif self.penalty_method == "extended_interior":
@@ -255,12 +250,12 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         # exterior:             p = 2 * g * dg/dx
         # extended interior:    p = -1/g                            if g =< epsilon (interior penalty)
         #                       p = - 2*epsilon - g / epsilon**2    if g > epsilon  (exterior penalty)
-
         penaltyGradientDict = self.__computePenaltyGradient(response_value)
         WriteDictionaryDataOnNodalVariable(penaltyGradientDict, self.optimization_model_part, KSO.DP1DX)
         penalty_gradient = KM.Vector()
         self.optimization_utilities.AssembleVector(self.optimization_model_part, penalty_gradient, KSO.DP1DX)
 
+        # pseudo objective gradient
         pseudo_objective_gradient = objective_gradient + self.penalty_factor * penalty_gradient
 
         self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, pseudo_objective_gradient, KSO.DPF1DX)
@@ -350,6 +345,8 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
             total_integral += g_i
 
+        KM.Logger.PrintInfo("ShapeFractionOptimization", "total integral: {}".format(total_integral))
+        KM.Logger.PrintInfo("ShapeFractionOptimization", "frac tolerance: {}".format(self.frac_tolerance))
         if self.penalty_method == "extended_interior":
             g = total_integral - integral_tol
 
@@ -364,7 +361,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computePenaltyGradient(self, penalty_value):
 
-        def __calculateNodalGradientAnalyticExterior(self, node, quantile):
+        def __calculateNodalGradient(self, node, quantile):
             shape_change = node.GetSolutionStepValue(KSO.SHAPE_CHANGE)
             norm = cm.Norm2(shape_change)
 
@@ -377,35 +374,6 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
                         shape_change[1] / norm,
                         shape_change[2] / norm
                     ]
-            else:
-                return [0.0, 0.0, 0.0]
-
-        def __calculateNodalGradientAnalyticExtendedInterior(self, node, quantile):
-            shape_change = node.GetSolutionStepValue(KSO.SHAPE_CHANGE)
-            norm = cm.Norm2(shape_change)
-
-            if norm > 1e-8:
-                if norm > quantile:
-                    return [0.0, 0.0, 0.0]
-                else:
-                    return [
-                        shape_change[0] / norm,
-                        shape_change[1] / norm,
-                        shape_change[2] / norm
-                    ]
-            else:
-                return [0.0, 0.0, 0.0]
-
-        def __calculateNodalGradientHeuristic(self, node):
-            shape_change = node.GetSolutionStepValue(KSO.SHAPE_CHANGE)
-            norm = cm.Norm2(shape_change)
-
-            if norm > self.frac_tolerance:
-                return [
-                    shape_change[0] / norm**2,
-                    shape_change[1] / norm**2,
-                    shape_change[2] / norm**2,
-                ]
             else:
                 return [0.0, 0.0, 0.0]
 
@@ -419,27 +387,17 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         for node in model_part.Nodes:
             if self.penalty_method == "exterior":
                 if penalty_value > 0.0:
-                    if self.sens_type == "analytic":
-                        gradient_i = __calculateNodalGradientAnalyticExterior(self, node, quantile)
-                    elif self.sens_type == "heuristic":
-                        gradient_i = __calculateNodalGradientHeuristic(self, node)
+                    gradient_i = __calculateNodalGradient(self, node, quantile)
                 else:
                     gradient_i = [0.0, 0.0, 0.0]
 
             elif self.penalty_method == "extended_interior":
+                gradient_i = __calculateNodalGradient(self, node, quantile)
                 if penalty_value > self.epsilon:
-                    if self.sens_type == "analytic":
-                        gradient_i = __calculateNodalGradientAnalyticExterior(self, node, quantile)
-                    elif self.sens_type == "heuristic":
-                        gradient_i = __calculateNodalGradientHeuristic(self, node)
                     gradient_i[0] /= self.epsilon**2
                     gradient_i[1] /= self.epsilon**2
                     gradient_i[2] /= self.epsilon**2
                 else:
-                    if self.sens_type == "analytic":
-                        gradient_i = __calculateNodalGradientAnalyticExterior(self, node, quantile)
-                    elif self.sens_type == "heuristic":
-                        gradient_i = __calculateNodalGradientHeuristic(self, node)
                     gradient_i[0] /= penalty_value**2
                     gradient_i[1] /= penalty_value**2
                     gradient_i[2] /= penalty_value**2
@@ -458,7 +416,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         shape_change_norm = []
 
         for i in range(int(len(shape_change)/3)):
-            shape_change_norm.append(cm.Norm2(shape_change[3*i:3*i+2]))
+            shape_change_norm.append(cm.Norm2(shape_change[3*i:3*i+3]))
 
         shape_change_norm.sort()
 
@@ -466,23 +424,19 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
 
         quantile = shape_change_norm[index]
 
-        KM.Logger.PrintInfo("ShapeChange Quantile {}: {}".format((1-self.max_shape_fraction), quantile))
+        KM.Logger.PrintInfo("ShapeFractionOptimization: Shape change quantile {}: {}".format((1-self.max_shape_fraction), quantile))
 
         return quantile
 
-    def __ComputeShapeFraction(self):
+    def __computeShapeFraction(self):
 
         n_active = 0
         for node in self.design_surface.Nodes:
             shape_change = node.GetSolutionStepValue(KSO.SHAPE_CHANGE)
             norm = cm.Norm2(shape_change)
 
-            # if self.penalty_method == "exterior":
             if norm > self.frac_tolerance:
                 n_active += 1
-            # elif self.penalty_method == "extended_interior":
-            #     if norm > 1e-8:
-            #         n_active += 1
 
         total_nodes = len(self.design_surface.Nodes)
 
@@ -493,7 +447,6 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __checkInnerConvergence(self, objective_value):
 
-        # tolerance = 1e-3
         tolerance = self.inner_tolerance
 
         is_converged = False
@@ -505,14 +458,10 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
             self.previous_objective_value = objective_value
             is_converged = True
         else:
-            # if self.previous_objective_value != 0:
             self.relative_change = (objective_value - self.previous_objective_value) / self.reference_objective_value
             KM.Logger.PrintInfo("ShapeFractionOptimization", "relative_change: {}".format(self.relative_change))
             if abs(self.relative_change) < tolerance:
                 is_converged = True
-            # else:
-            #     if objective_value < tolerance:
-            #         is_converged = True
 
             self.previous_objective_value = objective_value
 
@@ -637,9 +586,9 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         additional_values_to_log = {}
         additional_values_to_log["penalty_value"] = self.penalty_value
         additional_values_to_log["penalty_factor"] = self.penalty_factor
-        additional_values_to_log["df_p"] = self.pseudo_objective_value
+        additional_values_to_log["f_p"] = self.pseudo_objective_value
         additional_values_to_log["df_rel_p"] = self.relative_change
-        additional_values_to_log["shape_fraction"] = self.__ComputeShapeFraction()
+        additional_values_to_log["shape_fraction"] = self.__computeShapeFraction()
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
