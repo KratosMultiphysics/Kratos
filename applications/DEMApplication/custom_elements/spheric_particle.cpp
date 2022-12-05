@@ -1248,8 +1248,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_1[0] + branch[0], coordinates_1[1] + branch[1], coordinates_1[2] + branch[2], force };
               mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
 
-              // Applied force
-              mWallForces += force;
+              // Applied force (normal component)
+              const double force_n = DEM_INNER_PRODUCT_3(GlobalContactForce, normal);
+              mWallForces += force_n;
 
               // Stiffness
               const double kn = mDiscontinuumConstitutiveLaw->mKn;

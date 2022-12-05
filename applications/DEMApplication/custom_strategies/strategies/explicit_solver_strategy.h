@@ -297,8 +297,8 @@ namespace Kratos {
         double mRVE_Anisotropy;       // Fabric anisotropy
         double mRVE_EffectStress;     // Mean effective stress
         double mRVE_DevStress;        // Deviatoric stress
-        double mRVE_WallForces;       // Total force applied by walls
-        double mRVE_WallStress;       // Total stress applied by walls
+        double mRVE_WallForces;       // Total force applied by walls (normal only)
+        double mRVE_WallStress;       // Total stress applied by walls (normal only)
 
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction

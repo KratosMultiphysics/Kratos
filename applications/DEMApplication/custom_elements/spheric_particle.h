@@ -291,7 +291,7 @@ bool   mRVESolve;                 // Flag for evaluating RVE in current step
 int    mCoordNum;                 // Number of total contacts (coordination number)
 int    mNumContacts;              // Number of unique contacts (with neighbors with higher ID)
 double mVolOverlap;               // Volume of overlap with unique contacts
-double mWallForces;               // Force applied by walls
+double mWallForces;               // Force applied by walls (normal only)
 std::vector<double> mForceChain;  // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
 Matrix mRoseDiagram;              // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
 Matrix mFabricTensor;             // Fabric tensor with unique contacts
