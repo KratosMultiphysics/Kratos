@@ -48,19 +48,8 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsBiomedicalApplicationFastSuite")
+    # KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsBiomedicalApplicationFastSuite")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-        p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_FluidDynamicsBiomedicalApplication_mpi.py"],
-            stdout=subprocess.PIPE,
-            cwd=os.path.dirname(os.path.abspath(__file__)))
-        p.wait()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    else:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

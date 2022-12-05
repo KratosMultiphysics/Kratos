@@ -48,10 +48,10 @@ class LineEnvelopeOutputProcess(LineGraphOutputProcess):
 
     def _DataToString(self, node, values):
         data = self.print_format.format(node.X)
-        data += "\t" + self.print_format.format(node.Y)
-        data += "\t" + self.print_format.format(node.Z)
+        data += " " + self.print_format.format(node.Y)
+        data += " " + self.print_format.format(node.Z)
         for value in values:
-            data += "\t" + self.print_format.format(value)
+            data += " " + self.print_format.format(value)
         return data + "\n"
 
 

@@ -30,10 +30,9 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
@@ -175,18 +174,29 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursForConditionsProcess::GetNeighbourIds)
     ;
 
-    py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>
-        (m,"FindGlobalNodalElementalNeighboursProcess")
-    .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
-        KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
-        return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcess>(rModelPart);
-    }))
-    .def(py::init([](ModelPart& rModelPart) {
-        return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcess>(rModelPart);
-    }))
-    .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
-    .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
-    ;
+    using FindGlobalNodalElementalNeighboursProcessType = FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
+    py::class_<FindGlobalNodalElementalNeighboursProcessType, typename FindGlobalNodalElementalNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalElementalNeighboursProcess")
+        .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
+            KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
+            return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcessType>(rModelPart);
+        }))
+        .def(py::init<ModelPart&>())
+        .def(py::init<Model&, Parameters>())
+        .def("ClearNeighbours", [](FindGlobalNodalElementalNeighboursProcessType& rSelf){
+            KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated ClearNeighbours method. please use Clear().";
+            rSelf.Clear();})
+        .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcessType::GetNeighbourIds)
+        ;
+
+    using FindGlobalNodalConditionalNeighboursProcessType = FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
+    py::class_<FindGlobalNodalConditionalNeighboursProcessType, typename FindGlobalNodalConditionalNeighboursProcessType::Pointer, Process>(m,"FindGlobalNodalConditionNeighboursProcess")
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&>())
+        .def("ClearNeighbours", [](FindGlobalNodalConditionalNeighboursProcessType& rSelf){
+            KRATOS_WARNING("FindGlobalNodalConditionNeighboursProcess") << "Using deprecated ClearNeighbours method. please use Clear().";
+            rSelf.Clear();})
+        .def("GetNeighbourIds",&FindGlobalNodalConditionalNeighboursProcessType::GetNeighbourIds)
+        ;
 
     py::class_<FindIntersectedGeometricalObjectsProcess, FindIntersectedGeometricalObjectsProcess::Pointer, Process>
         (m, "FindIntersectedGeometricalObjectsProcess")
@@ -224,8 +234,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
-//     py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess") // TODO: Replace when the remainings of NodeEraseProcess have been cleaned up
-    py::class_<NodeEraseProcess, NodeEraseProcess::Pointer, Process>(m,"NodeEraseProcess")
+    py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess")
     .def(py::init<ModelPart&>())
     ;
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LINE_2D_2_H_INCLUDED )
-#define  KRATOS_LINE_2D_2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -944,7 +943,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // We compute the distance, if it is not in the pane we
+        // We compute the distance, if it is not in the plane we project
         const Point point_to_project(rPoint);
         Point point_projected;
         const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
@@ -1077,12 +1076,12 @@ public:
 
         if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
             rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-        } else if (length_1 > (length + tolerance)) {
-            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
-        } else if (length_2 > (length + tolerance)) {
-            rResult[0] = 1.0 - 2.0 * length_2/(length + tolerance);
         } else {
-            rResult[0] = 2.0; // Out of the line!!!
+            if (length_1 > length_2) {
+                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+            } else {
+                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
+            }
         }
 
         return rResult ;
@@ -1409,5 +1408,3 @@ const GeometryDimension Line2D2<TPointType>::msGeometryDimension(
     2, 2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined

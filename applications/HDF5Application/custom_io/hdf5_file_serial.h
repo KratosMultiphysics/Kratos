@@ -36,7 +36,7 @@ namespace HDF5
  * This class is responsible for reading and writing data sets from a single
  * process.
  */
-class FileSerial : public File
+class KRATOS_API(HDF5_APPLICATION) FileSerial : public File
 {
 public:
     ///@name Type Definitions

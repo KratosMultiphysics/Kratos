@@ -75,7 +75,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "processes/node_erase_process.h"
 ///
 
 #include "utilities/geometry_utilities.h"
@@ -234,7 +233,7 @@ namespace Kratos
 					ielem->SetValue(MEAN_SIZE, elem_size);
 
 					//and the matrix column for the enrichments in the pressure.
-					if (TDim==3)
+					if constexpr (TDim==3)
                         ielem->SetValue(ENRICH_LHS_ROW_3D, ZeroVector(4));
 					// {
 					// 	Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
@@ -684,7 +683,7 @@ namespace Kratos
 							{
 								inode->FastGetSolutionStepValue(VELOCITY_Y)=inode->GetSolutionStepValue(VELOCITY_Y,1);
 							}
-							if (TDim==3)
+							if constexpr (TDim==3)
 								if (inode->IsFixed(VELOCITY_Z))
 								{
 									inode->FastGetSolutionStepValue(VELOCITY_Z)=inode->GetSolutionStepValue(VELOCITY_Z,1);
@@ -736,7 +735,7 @@ namespace Kratos
 							{
 								velocity[1] = original_velocity[1] - normal_velocity[1];
 							}
-							if (TDim==3)
+							if constexpr (TDim==3)
 								if (inode->IsFixed(VELOCITY_Z))
 								{
 									velocity[2] = original_velocity[2] - normal_velocity[2];
@@ -1396,7 +1395,7 @@ namespace Kratos
 
 					//now we invert the matrix
 					BoundedMatrix<double, TDim+1 , TDim+1  > inverse_mass_matrix=ZeroMatrix(TDim+1 , TDim+1);
-					if(TDim==3)
+					if constexpr (TDim==3)
 						InvertMatrix( mass_matrix,  inverse_mass_matrix);
 					else
 						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);
