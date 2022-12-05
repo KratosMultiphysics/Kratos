@@ -52,6 +52,7 @@ from compute_pressure_coefficient_process_test import ComputePressureCoefficient
 from compute_drag_process_test import ComputeDragProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
+from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -89,6 +90,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
