@@ -52,13 +52,13 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
 }
 
 
-std::vector<int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<int> arr)
+ std::vector<int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<int> IndicesVector)
 {
     // Insert all array elements in hash
     // table
     std::unordered_map<int, int> mp;
-    for (int i = 0; i < arr.size(); i++)
-        mp[arr[i]]++;
+    for (int i = 0; i < IndicesVector.size(); i++)
+        mp[IndicesVector[i]]++;
 
     // Traverse through map only and
     std::vector<int> non_repeating_indices;
@@ -205,51 +205,41 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
     return sorted_conditions;
 }
 
-
-void SetMovingLoadProcess::ExecuteInitialize()
+std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {
-    KRATOS_TRY
-    mLoad = mParameters["load"].GetVector();
-
-    const vector<int> direction = mParameters["direction"].GetVector();
-    mLoadVelocity = mParameters["velocity"].GetDouble();
-    const array_1d<double,3> origin_point = mParameters["origin"].GetVector();
-    mCurrentDistance = 0;
-
     std::vector<int> node_id_vector;
-    std::vector<int> node_id_vector2;
+    const array_1d<double, 3> origin_point = mParameters["origin"].GetVector();
 
     // get all end node ids ( not the middle nodes, in case of line3 conditions)
     // simultaneously check if origin point is on line
     bool condition_is_on_line = false;
     for (auto& r_cond : mrModelPart.Conditions()) {
 
+        auto& r_geom = r_cond.GetGeometry();
         Point local_point;
-        if (r_cond.GetGeometry().IsInside(origin_point, local_point))
+        if (r_geom.IsInside(origin_point, local_point))
         {
             condition_is_on_line = true;
         }
-        auto geom = r_cond.GetGeometry();
-        node_id_vector.push_back(geom[0].Id());
-        node_id_vector.push_back(geom[1].Id());
+
+        node_id_vector.push_back(r_geom[0].Id());
+        node_id_vector.push_back(r_geom[1].Id());
     }
 
     // error if origin point is not on line
     KRATOS_ERROR_IF_NOT(condition_is_on_line) << "Origin point of moving load is not on line" << std::endl;
 
-
     // find non repeating node ids
     const std::vector<int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
 
     // error if model part does not have 1 end and 1 beginning
-    KRATOS_ERROR_IF_NOT(non_repeating_node_ids.size() ==2) << "Moving load condition model part needs to be connected with a beginning and end" << std::endl;
+    KRATOS_ERROR_IF_NOT(non_repeating_node_ids.size() == 2) << "Moving load condition model part needs to be connected with a beginning and end" << std::endl;
 
     // find conditions at both ends of model part
     std::vector<Condition> end_conditions;
     for (Condition& r_cond : mrModelPart.Conditions()) {
 
         auto& r_geom = r_cond.GetGeometry();
-
         for (int i = 0; i < r_geom.size(); i++)
         {
             for (int j = 0; j < non_repeating_node_ids.size(); j++)
@@ -258,22 +248,15 @@ void SetMovingLoadProcess::ExecuteInitialize()
                 {
                     end_conditions.push_back(r_cond);
                 }
-            }    
+            }
         }
     }
+    return end_conditions;
+}
 
-    // find start condition 
-    const Point center_1 = end_conditions[0].GetGeometry().Center();
-    const Point center_2 = end_conditions[1].GetGeometry().Center();
 
-    Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
-
-	// Initialise vector which indicates if nodes in condition are in direction of movement
-    mIsCondReversedVector.clear();
-    mIsCondReversedVector.push_back(SortConditionPoints(r_first_cond, direction));
-
-    mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
-
+void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
+{
     double global_distance = 0;
     for (unsigned int i = 0; i < mSortedConditions.size(); ++i)
     {
@@ -282,9 +265,10 @@ void SetMovingLoadProcess::ExecuteInitialize()
         const double element_length = r_geom.Length();
 
         Point local_point;
+        const array_1d<double, 3> origin_point = mParameters["origin"].GetVector();
         if (r_geom.IsInside(origin_point, local_point))
         {
-	        const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
+            const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
 
             if (mIsCondReversedVector[i])
             {
@@ -294,12 +278,36 @@ void SetMovingLoadProcess::ExecuteInitialize()
             {
                 mCurrentDistance = global_distance + local_to_global_distance;
             }
-            
+
         }
-
         global_distance += element_length;
-
     }
+}
+
+void SetMovingLoadProcess::ExecuteInitialize()
+{
+    KRATOS_TRY
+
+    // retrieve values from parameters
+    mLoad = mParameters["load"].GetVector();
+    mLoadVelocity = mParameters["velocity"].GetDouble();
+
+    const vector<int> direction = mParameters["direction"].GetVector();
+
+    // get the two line condition elements at both sides of the model part
+    std::vector<Condition> end_conditions = FindEndConditions();
+
+    // find start condition 
+    const Point center_1 = end_conditions[0].GetGeometry().Center();
+    const Point center_2 = end_conditions[1].GetGeometry().Center();
+    Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
+
+	// Initialise vector which indicates if nodes in condition are in direction of movement
+    mIsCondReversedVector.clear();
+    mIsCondReversedVector.push_back(SortConditionPoints(r_first_cond, direction));
+    mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
+
+    InitializeDistanceLoadInSortedVector();
    
     KRATOS_CATCH("")
 }
@@ -307,7 +315,6 @@ void SetMovingLoadProcess::ExecuteInitialize()
 void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 {
     double distance_cond = 0;
-
 
     // bool to check if load is already added, such that a load is not added twice if the load is exactly at a shared node.
     bool is_moving_load_added = false;
@@ -322,7 +329,6 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added)
         {
             double local_distance;
-
             if (mIsCondReversedVector[i])
             {
                 local_distance = distance_cond + element_length - mCurrentDistance;
@@ -341,6 +347,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         else
         {
             r_cond.SetValue(POINT_LOAD, ZeroVector(3));
+            r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, 0);
         }
         distance_cond += element_length;
     }
@@ -348,6 +355,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 
 void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 {
+    // move the load
     mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * mLoadVelocity;
 }
 

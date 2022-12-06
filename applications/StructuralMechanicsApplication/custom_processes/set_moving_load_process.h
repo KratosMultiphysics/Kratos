@@ -95,23 +95,29 @@ private:
     std::vector<Condition> mSortedConditions;
     std::vector<bool> mIsCondReversedVector;
     array_1d<double,3> mLoad;
+    array_1d<double, 3> mOriginPoint;
+    array_1d<int,3> mDirection;
     double mLoadVelocity;
     double mCurrentDistance;
 
     ///@}
     ///@name Private Operations
     ///@{
-    std::vector<int> FindNonRepeatingIndices(std::vector<int> arr);
+    static std::vector<int> FindNonRepeatingIndices(std::vector<int> arr);
+
+    std::vector<Condition> FindEndConditions();
 
     std::vector<Condition> SortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition);
 
-    bool SortConditionPoints(Condition& rCondition, vector<int> direction);
+    static bool SortConditionPoints(Condition& rCondition, vector<int> direction);
 
-    Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions);
+    static Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions);
 
-    Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions);
+    static Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions);
 
-    bool SwapPoints(double first_coord, double second_coord, int direction);
+    static bool SwapPoints(double first_coord, double second_coord, int direction);
+
+    void InitializeDistanceLoadInSortedVector();
     ///@}
 
 }; // Class SetMovingLoadProcess

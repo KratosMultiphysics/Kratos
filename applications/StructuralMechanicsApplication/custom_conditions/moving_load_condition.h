@@ -124,7 +124,7 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    bool HasRotDof() const override;
+    //bool HasRotDof() const override;
 
     ///@}
     ///@name Access
