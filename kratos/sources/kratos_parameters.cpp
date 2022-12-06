@@ -1093,7 +1093,7 @@ void Parameters::CopyValuesFromExistingParameters(
     std::vector<std::string>& rListParametersToCopy
     )
 {
-    for (auto& r_value_name : rListParametersToCopy) {
+    for (const auto& r_value_name : rListParametersToCopy) {
         this->AddValue(r_value_name, OriginParameters[r_value_name]);
     }
 }
