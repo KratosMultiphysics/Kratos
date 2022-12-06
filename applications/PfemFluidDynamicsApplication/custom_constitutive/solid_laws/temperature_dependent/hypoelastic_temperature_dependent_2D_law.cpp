@@ -49,7 +49,7 @@ namespace Kratos
                                                     const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
+        KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] < 0.0)
             << "Incorrect or missing YOUNG_MODULUS provided in process info for HypoelasticTemperatureDependent2DLaw: "
             << rMaterialProperties[YOUNG_MODULUS] << std::endl;
 

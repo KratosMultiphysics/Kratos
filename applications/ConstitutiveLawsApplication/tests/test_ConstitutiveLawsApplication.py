@@ -23,6 +23,7 @@ from test_factory import SmallDeformationPlasticityTest
 from test_factory import SimpleJ2PlasticityTest
 from test_factory import TensileTestStructuralTest
 from test_factory import HighCycleFatigueTest
+from test_factory import AutomatedInitialDamageTest
 
 
 def AssembleTestSuites():
@@ -55,6 +56,8 @@ def AssembleTestSuites():
     smallSuite.addTest(InitialStateInelasticity2Test('test_execution'))
     smallSuite.addTest(SimpleJ2PlasticityTest('test_execution'))
     smallSuite.addTest(HighCycleFatigueTest('test_execution'))
+    smallSuite.addTest(AutomatedInitialDamageTest('test_execution'))
+
 
     # Create a test suit with the selected tests (Nightly tests):
     nightSuite = suites['nightly']
