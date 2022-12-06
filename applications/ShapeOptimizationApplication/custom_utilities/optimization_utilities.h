@@ -119,15 +119,8 @@ public:
     /**
      * Assemble the values of the scalar variable into a vector
      */
-    static void AssembleScalar( ModelPart& rModelPart,
-        Vector& rScalar,
-        const Variable<double> &rVariable);
-
-    /**
-     * Assigns the values of a scalar vector to the nodal scalar variables
-     */
-    static void AssignScalarToVariable(ModelPart& rModelPart,
-        const Vector& rScalar,
+    static void AssembleVector( ModelPart& rModelPart,
+        Vector& rVector,
         const Variable<double> &rVariable);
 
     /**

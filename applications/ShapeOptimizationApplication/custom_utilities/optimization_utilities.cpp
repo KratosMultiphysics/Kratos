@@ -20,6 +20,7 @@
 #include "optimization_utilities.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "linear_solvers/linear_solver.h"
@@ -225,55 +226,35 @@ double OptimizationUtilities::ComputeCorrectionFactor(ModelPart& rModelPart, con
     return CorrectionScaling * norm_search_direction / norm_correction_term;
 }
 
-void OptimizationUtilities::AssembleScalar( ModelPart& rModelPart,
-    Vector& rScalar,
+void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
+    Vector& rVector,
     const Variable<double> &rVariable)
 {
-    if (rScalar.size() != rModelPart.NumberOfNodes()){
-        rScalar.resize(rModelPart.NumberOfNodes());
-    }
 
-    int i=0;
-    for (auto & node_i : rModelPart.Nodes())
+    std::vector<double> data;
+    AuxiliarModelPartUtilities(rModelPart).GetScalarData<double>(rVariable, DataLocation::NodeHistorical, data);
+    if (rVector.size() != rModelPart.NumberOfNodes()){
+        rVector.resize(rModelPart.NumberOfNodes());
+    }
+    for (unsigned i = 0; i < data.size(); ++i)
     {
-        rScalar[i] = node_i.FastGetSolutionStepValue(rVariable);
-        ++i;
+        rVector[i] = data[i];
     }
 }
-
-void OptimizationUtilities::AssignScalarToVariable(ModelPart& rModelPart,
-    const Vector& rScalar,
-    const Variable<double> &rVariable)
-{
-    KRATOS_ERROR_IF(rScalar.size() != rModelPart.NumberOfNodes())
-        << "AssignScalarToVariable: Scalar size does not mach number of Nodes!" << std::endl;
-
-    int i=0;
-    for (auto & node_i : rModelPart.Nodes())
-    {
-        double& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
-        variable_vector= rScalar[i];
-        ++i;
-    }
-}
-
 
 void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
+    std::vector<double> data;
+    AuxiliarModelPartUtilities(rModelPart).GetVectorData<array_3d>(rVariable, DataLocation::NodeHistorical, data);
+
     if (rVector.size() != rModelPart.NumberOfNodes()*3){
         rVector.resize(rModelPart.NumberOfNodes()*3);
     }
-
-    int i=0;
-    for (auto & node_i : rModelPart.Nodes())
+    for (unsigned i = 0; i < data.size(); ++i)
     {
-        array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
-        rVector[i*3+0] = variable_vector[0];
-        rVector[i*3+1] = variable_vector[1];
-        rVector[i*3+2] = variable_vector[2];
-        ++i;
+        rVector[i] = data[i];
     }
 }
 

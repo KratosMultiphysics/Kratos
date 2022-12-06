@@ -37,11 +37,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
             heat_dfdx_relaxed = df_dx
         else:
             prev_heat_dfdx = KM.Vector()
-            if design_variable_dimension == 1:
-                optimization_utilities.AssembleScalar(design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
-            elif design_variable_dimension == 3:
-                optimization_utilities.AssembleVector(design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
-
+            optimization_utilities.AssembleVector(design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dfdx_name))
             heat_dfdx_relaxed = []
             for i in range(len(design_surface.Nodes)):
                 for dim in range(design_variable_dimension):
@@ -71,7 +67,6 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
                 for itr, constraint in enumerate(constraints):
                     # read constraint gradients
                     con_id = constraint["identifier"].GetString()
-                    # gradient_variable = constraint_gradient_variables[con_id]["mapped_gradient"]
                     constraint_gradient_name = f"DC{(itr+1)}D{design_variable_name}_MAPPED"
 
                     dci_dx = ReadNodalVariableToList(design_surface, KM.KratosGlobals.GetVariable(constraint_gradient_name), dimension=design_variable_dimension)
@@ -93,10 +88,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
                         heat_dcidx_relaxed = dci_dx
                     else:
                         prev_heat_dcidx = KM.Vector()
-                        if design_variable_dimension == 1:
-                            optimization_utilities.AssembleScalar(design_surface, prev_heat_dcidx, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
-                        elif design_variable_dimension == 3:
-                            optimization_utilities.AssembleVector(design_surface, prev_heat_dcidx, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
+                        optimization_utilities.AssembleVector(design_surface, prev_heat_dcidx, KM.KratosGlobals.GetVariable(heatmap_dcidx_name))
                         heat_dcidx_relaxed = []
                         for i in range(len(design_surface.Nodes)):
                             for dim in range(design_variable_dimension):
@@ -125,7 +117,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints, constrai
                     heat_relaxed = heat
                 else:
                     prev_heat = KM.Vector()
-                    optimization_utilities.AssembleScalar(design_surface, prev_heat, KM.KratosGlobals.GetVariable(heat_map_name))
+                    optimization_utilities.AssembleVector(design_surface, prev_heat, KM.KratosGlobals.GetVariable(heat_map_name))
                     heat_relaxed = []
                     for i in range(len(design_surface.Nodes)):
                         heat_relaxed.append(relax_coeff * heat[i] + (1 - relax_coeff) * prev_heat[i])

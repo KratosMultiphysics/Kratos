@@ -177,9 +177,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ComputeMaxNormOfNodalVariable", [](ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable){
                                                         return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, rVariable);
                                                         })
-        .def_static("AssembleScalar", &OptimizationUtilities::AssembleScalar)
-        .def_static("AssignScalarToVariable", &OptimizationUtilities::AssignScalarToVariable)
-        .def_static("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def_static("AssembleVector", [](ModelPart& rModelPart, Vector& rVector, const Variable< double >& rVariable){
+                                         OptimizationUtilities::AssembleVector(rModelPart, rVector, rVariable);
+                                         })
+        .def_static("AssembleVector", [](ModelPart& rModelPart, Vector& rVector, const Variable< array_1d<double, 3> >& rVariable){
+                                         OptimizationUtilities::AssembleVector(rModelPart, rVector, rVariable);
+                                         })
         .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
         .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
                                             std::size_t list_length = pybind11::len(rVariables);
