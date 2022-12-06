@@ -498,7 +498,6 @@ ENDFOREACH(APPLICATION_MPI ${LIST_OF_MPI_SPECIFIC_APPS})
 
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
-  message(STATUS "Compiling with MPI support")
   find_package(MPI REQUIRED)
   find_package(TRILINOS QUIET)
   add_definitions( -DKRATOS_USING_MPI )
