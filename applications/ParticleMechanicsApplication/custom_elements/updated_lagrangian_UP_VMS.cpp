@@ -270,9 +270,9 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
 
     CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
 
-//     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
-//         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
-//         : false;
+    const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
+        ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
+        : false;
 
     //if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
@@ -632,8 +632,6 @@ void UpdatedLagrangianUPVMS::CalculateAndAddPressureForces(VectorType& rRightHan
     unsigned int index_p = dimension;
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 
@@ -698,22 +696,21 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
-//     Vector aux_vector;
-//
-//     for ( unsigned int dim = 0; dim < dimension; dim++ )
-//     {
-//        aux_vector(dim) = - rVariables.PressureGradient(dim) + rVolumeForce(dim) + rVariables.DynamicRHS(dim);
-//     }
+    Vector aux_vector;
+
+//     aux_vector = - rVariables.PressureGradient + rVolumeForce + rVariables.DynamicRHS;
+
+
 //     Vector Stab1 = prod(rVariables.DN_DX,aux_vector);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 //         rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
         for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-           rRightHandSideVector[index_p] += rVariables.tau1  *  rVariables.DN_DX(i,idime)*(rVariables.PressureGradient[idime] + rVolumeForce[idime] - mMP.density* rVariables.DynamicRHS[idime]) * rIntegrationWeight;
+           rRightHandSideVector[index_p] -= rVariables.tau1  *  rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] + rVolumeForce[idime] +rVariables.DynamicRHS[idime]) * rIntegrationWeight;
         }
 
-        rRightHandSideVector[index_p] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 /rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
+        rRightHandSideVector[index_p] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)+(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
