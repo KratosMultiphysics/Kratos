@@ -6,6 +6,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 # CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
@@ -17,8 +18,8 @@ def Create(*args):
     return Kratos3D1DDataTransferOperator(*args)
 
 class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
-    """DataTransferOperator that maps values from one interface (ModelPart) to another.
-    The mappers of the Kratos-MappingApplication are used
+    """DataTransferOperator that transfers values from one 3D interface (ModelPart) to another 1D interface (ModelPart).
+    The data_transfer_3d_1ds of the Kratos-MappingApplication are used
     """
 
     # initializing the static members necessary for MPI
@@ -28,65 +29,75 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
     __rank_zero_model_part = None
 
     def __init__(self, settings, parent_coupled_solver_data_communicator):
-        if not settings.Has("mapper_settings"):
-            raise Exception('No "mapper_settings" provided!')
+        if not settings.Has("3d_1d_data_transfer_settings"):
+            raise Exception('No "3d_1d_data_transfer_settings" provided!')
         super().__init__(settings, parent_coupled_solver_data_communicator)
-        self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
-        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
         model_part_destination_name = to_solver_data.model_part_name
         variable_destination        = to_solver_data.variable
-        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
-        mapper_flags = self.__GetMapperFlags(transfer_options, from_solver_data, to_solver_data)
+        model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
+        model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
 
-        identifier_tuple         = (identifier_origin, identifier_destination)
-        inverse_identifier_tuple = (identifier_destination, identifier_origin)
+        if self.echo_level > 0:
+            info_msg  = "Creating 3D-1D data transfer:\n"
+            info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
+            info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
 
-        if identifier_tuple in self.__mappers:
-            self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
-        elif inverse_identifier_tuple in self.__mappers:
-            self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
+            cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
+
+        parameters = KM.Parameters(self.settings["3d_1d_data_transfer_settings"].WriteJsonString())
+        parameters["origin_variables"].Append(variable_origin.Name())
+        parameters["destination_variables"].Append(variable_destination.Name())
+        if self.__check_model_part_3D(model_part_origin):
+            KratosCoSim.DataTransfer3D1DUtilities.From3Dto1DDataTransfer(model_part_origin, model_part_destination, parameters)
         else:
-            model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
-            model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
-
-            if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
-                mapper_create_fct = python_mapper_factory.CreateMPIMapper
-            else:
-                mapper_create_fct = python_mapper_factory.CreateMapper
-
-            if self.echo_level > 0:
-                info_msg  = "Creating Mapper:\n"
-                info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
-                info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
-
-                cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
-
-            mapper_creation_start_time = time()
-            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
-
-            if self.echo_level > 2:
-                cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
-            self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
+            KratosCoSim.DataTransfer3D1DUtilities.From1Dto3DDataTransfer(model_part_origin, model_part_destination, parameters)
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
             if "node" not in data_to_check.location:
-                raise Exception('Mapping only supports nodal values!"{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
+                raise Exception('Transfer only supports nodal values!"{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
 
         CheckData(from_solver_data)
         CheckData(to_solver_data)
 
+    def __check_model_part_3D(self, model_part):
+        is_1d = False
+        for elem in model_part.Elements:
+            geom = elem.GetGeometry()
+            if geom.LocalSpaceDimension() == 1:
+                is_1d = True
+            break
+        return not is_1d
+
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "mapper_settings" : {
-                "mapper_type" : "UNSPECIFIED"
+            "3d_1d_data_transfer_settings" : {
+                "origin_variables"         : [],
+                "destination_variables"    : [],
+                "debug_mode"               : false,
+                "extrapolate_values"       : false,
+                "swap_sign"                : false,
+                "interpolate_parameters"   : {
+                    "data_transfer_3d_1d_type" : "nearest_element",
+                    "echo_level"  : 0,
+                    "search_settings" : {
+                        "max_num_search_iterations"     : 8,
+                        "echo_level"                    : 0
+                    }
+                },
+                "search_parameters"        :  {
+                    "allocation_size"         : 100,
+                    "bucket_size"             : 4,
+                    "search_factor"           : 2.0,
+                    "search_increment_factor" : 1.5
+                }
             }
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
