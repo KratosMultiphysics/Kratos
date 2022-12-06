@@ -75,7 +75,7 @@ void QSVMS<TElementData>::Calculate(
     double& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TElementData>
@@ -86,7 +86,7 @@ void QSVMS<TElementData>::Calculate(
     if (rVariable == ADVPROJ) {
         this->CalculateProjections(rCurrentProcessInfo);
     } else {
-        FluidElement<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
@@ -96,7 +96,7 @@ void QSVMS<TElementData>::Calculate(
     Vector& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TElementData>
@@ -105,7 +105,7 @@ void QSVMS<TElementData>::Calculate(
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
