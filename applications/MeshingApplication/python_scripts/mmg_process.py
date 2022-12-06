@@ -152,7 +152,11 @@ class MmgProcess(KratosMultiphysics.Process):
             "mapping_parameters"                   :
             {
                 "mapper_type"                      : "nearest_element",
-                "echo_level"                       : 0
+                "echo_level"                       : 0,
+                "search_settings" : {
+                    "max_num_search_iterations"     : 6,
+                    "echo_level"                    : 0
+                }
             }, 
             "anisotropy_remeshing"                 : true,
             "enforce_anisotropy_relative_variable" : false,
