@@ -592,7 +592,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
             // Define mapper factory
             DEFINE_MAPPER_FACTORY_SERIAL
-            if (MapperFactoryType::HasMapper("nearest_element")) { // TODO: Detect variables to map
+            if (MapperFactoryType::HasMapper("nearest_element")) {
+                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using MappingApplication to interpolate values" << std::endl;
                 Parameters mapping_parameters = mThisParameters["mapping_parameters"];
                 auto p_mapper = MapperFactoryType::CreateMapper(r_old_auxiliar_model_part, r_auxiliary_model_part, mapping_parameters);
                 Kratos::Flags mapper_flags = Kratos::Flags();
@@ -636,6 +637,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                     }
                 }
             } else {
+                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using NodalValuesInterpolationProcess to interpolate values" << std::endl;
                 Parameters interpolate_parameters = Parameters(R"({})" );
                 interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
                 interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
@@ -691,7 +693,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         /* We interpolate all the values */
         // Define mapper factory
         DEFINE_MAPPER_FACTORY_SERIAL
-        if (MapperFactoryType::HasMapper("nearest_element")) { // TODO: Detect variables to map
+        if (MapperFactoryType::HasMapper("nearest_element")) {
+            KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using MappingApplication to interpolate values" << std::endl;
             Parameters mapping_parameters = mThisParameters["mapping_parameters"];
             auto p_mapper = MapperFactoryType::CreateMapper(r_old_model_part, mrThisModelPart, mapping_parameters);
             Kratos::Flags mapper_flags = Kratos::Flags();
@@ -735,6 +738,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
         } else {
+            KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using NodalValuesInterpolationProcess to interpolate values" << std::endl;
             Parameters interpolate_parameters = Parameters(R"({})" );
             interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
             interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
