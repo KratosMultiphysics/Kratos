@@ -53,6 +53,9 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
         parameters = KM.Parameters(self.settings["3d_1d_data_transfer_settings"].WriteJsonString())
         parameters["origin_variables"].Append(variable_origin.Name())
         parameters["destination_variables"].Append(variable_destination.Name())
+        for transfer_option in transfer_options.GetStringArray():
+            if transfer_option == "swap_sign":
+                parameters["swap_sign"].SetBool(True)
         if self.__check_model_part_3D(model_part_origin):
             KratosCoSim.DataTransfer3D1DUtilities.From3Dto1DDataTransfer(model_part_origin, model_part_destination, parameters)
         else:
