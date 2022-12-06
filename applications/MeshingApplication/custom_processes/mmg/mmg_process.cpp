@@ -1494,7 +1494,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "mapper_type"                      : "nearest_element",
             "echo_level"                       : 0,
             "search_settings" : {
-                "max_num_search_iterations"     : 6,
+                "max_num_search_iterations"     : 8,
                 "echo_level"                    : 0
             }
         }, 
