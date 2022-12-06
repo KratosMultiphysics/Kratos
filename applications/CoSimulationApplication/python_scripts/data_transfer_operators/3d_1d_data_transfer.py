@@ -10,10 +10,6 @@ import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-# other imports
-from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
-from time import time
-
 def Create(*args):
     return Kratos3D1DDataTransferOperator(*args)
 
@@ -22,13 +18,9 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
     The data_transfer_3d_1ds of the Kratos-MappingApplication are used
     """
 
-    # initializing the static members necessary for MPI
-    # initializing on the fly does not work and leads to memory problems
-    # as the members are not proberly saved and randomly destucted!
-    __dummy_model = None
-    __rank_zero_model_part = None
-
     def __init__(self, settings, parent_coupled_solver_data_communicator):
+        if KM.IsDistributedRun():
+            raise Exception("This function can only be called when Kratos is running in MPI!")
         if not settings.Has("3d_1d_data_transfer_settings"):
             raise Exception('No "3d_1d_data_transfer_settings" provided!')
         super().__init__(settings, parent_coupled_solver_data_communicator)
@@ -109,15 +101,4 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
     @classmethod
     def _GetListAvailableTransferOptions(cls):
         return ["swap_sign"]
-
-    @staticmethod
-    def __GetModelPartFromInterfaceData(interface_data):
-        """If the solver does not exist on this rank, then pass a
-        dummy ModelPart to the Mapper that has a DataCommunicator
-        that is not defined on this rank
-        """
-        if interface_data.IsDefinedOnThisRank():
-            return interface_data.GetModelPart()
-        else:
-            if KM.IsDistributedRun():
-                raise Exception("This function can only be called when Kratos is running in MPI!")
+            
