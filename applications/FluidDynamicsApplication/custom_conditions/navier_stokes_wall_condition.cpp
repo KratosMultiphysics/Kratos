@@ -545,6 +545,15 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentia
     const auto& r_N = rDataStruct.N;
     const auto& r_cond_normal = rDataStruct.Normal;
 
+    // Set auxiliary condition normal to match array sizes
+    array_1d<double, TDim> aux_cond_normal;
+    if constexpr (TDim == 2) {
+        aux_cond_normal[0] = r_cond_normal[0];
+        aux_cond_normal[1] = r_cond_normal[1];
+    } else {
+        noalias(aux_cond_normal) = r_cond_normal;
+    }
+
     // Allocate auxiliary arrays
     array_1d<double, 3> i_node_unit_normal;
     BoundedMatrix<double,TDim,TDim> tang_proj_mat;
@@ -558,7 +567,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateGaussPointSlipTangentia
 
         // Get the spurious tangential component of the traction vector
         // Note that in here we are projecting with the nodal tangential operator
-        noalias(cauchy_traction_tang_proj) = prod(tang_proj_mat, r_cond_normal);
+        noalias(cauchy_traction_tang_proj) = prod(tang_proj_mat, aux_cond_normal);
 
         // Assemble the LHS contribution
         // Note that only the pressure stress contribution is included in the linearisation
