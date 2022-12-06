@@ -149,49 +149,36 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
             }
 
             // Getting the intersection points
-            unsigned int counter = 0;
+            bool intersected = false;
             for (IndexType i = 0; i < number_points_found; ++i) {
                 auto p_point = points_found[i];
                 auto p_geometry = p_point->pGetElement()->pGetGeometry();
                 auto& r_geometry = *p_geometry;
                 const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
-                if (intersection == 1 || intersection == 3 || intersection == 4) { // Two intersection points
-                    counter += 2;
-                } else if (intersection == 2) { // One point
-                    bool add_point = true;
-                    for (unsigned int i_point = 0; i_point < counter; ++i_point) {
-                        if (norm_2(av.first_point - av.intersection_point1) < tolerance) {
-                            add_point = false;
-                            break;
+                if (intersection > 0) {
+                    if (intersection < 5) {
+                        intersected = true;
+                    } else {
+                        // Detect the node of the tetrahedra and directly assign
+                        const int index_node = intersection - 5;
+                        // Assign value
+                        auto& r_node = r_geometry_tetra[index_node];
+                        p_geometry->PointLocalCoordinates(av.aux_coordinates, av.intersection_point1);
+                        p_geometry->ShapeFunctionsValues( av.N_line, av.aux_coordinates );
+                        for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
+                            av.values_origin[0] = r_geometry[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
+                            av.values_origin[1] = r_geometry[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
+                            #pragma omp critical
+                            {
+                                r_node.FastGetSolutionStepValue(*destination_list_variables[i_var]) = MathUtils<double>::Dot(av.N_line, av.values_origin);
+                            }
                         }
                     }
-                    if (add_point) {
-                        av.first_point = av.intersection_point1;
-                        counter += 1;
-                    }
-                } else if (intersection > 4) { // One intersection point in a corner
-                    // Detect the node of the tetrahedra and directly assign
-                    const int index_node = intersection - 5;
-                    // Assign value
-                    auto& r_node = r_geometry_tetra[index_node];
-                    p_geometry->PointLocalCoordinates(av.aux_coordinates, av.intersection_point1);
-                    p_geometry->ShapeFunctionsValues( av.N_line, av.aux_coordinates );
-                    for (std::size_t i_var = 0; i_var < origin_list_variables.size(); ++i_var) {
-                        av.values_origin[0] = r_geometry[0].FastGetSolutionStepValue(*origin_list_variables[i_var]);
-                        av.values_origin[1] = r_geometry[1].FastGetSolutionStepValue(*origin_list_variables[i_var]);
-                        #pragma omp critical
-                        {
-                            r_node.FastGetSolutionStepValue(*destination_list_variables[i_var]) = MathUtils<double>::Dot(av.N_line, av.values_origin);
-                        }
-                    }
-                    break;
-                } 
-                if (counter > 1) {
                     break;
                 }
             }
-            // 1 point at least is  required
-            if (counter > 0) {
+            // 1 point at least is required
+            if (intersected) {
                 rElement.Set(VISITED);
                 return 1;
             } else {
