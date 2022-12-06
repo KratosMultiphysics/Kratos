@@ -612,6 +612,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                     // } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) { // TODO: Add to mapper
                     //     const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
                     //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                    } else {
+                        KRATOS_WARNING("MmgProcess") << r_variable_name << " is a not compatible variable with Mapper class" << std::endl;
                     }
                 }
                 // Interpolate non-historical variables
@@ -633,6 +635,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                         // } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) { // TODO: Add to mapper
                         //     const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
                         //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                        } else {
+                            KRATOS_WARNING("MmgProcess") << r_variable_name << " is a not compatible variable with Mapper class" << std::endl;
                         }
                     }
                 }
@@ -713,6 +717,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 // } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) { // TODO: Add to mapper
                 //     const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
                 //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                } else {
+                    KRATOS_WARNING("MmgProcess") << r_variable_name << " is a not compatible variable with Mapper class" << std::endl;
                 }
             }
             // Interpolate non-historical variables
@@ -734,6 +740,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                     // } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) { // TODO: Add to mapper
                     //     const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
                     //     p_mapper->Map(r_variable, r_variable, mapper_flags);
+                    } else {
+                        KRATOS_WARNING("MmgProcess") << r_variable_name << " is a not compatible variable with Mapper class" << std::endl;
                     }
                 }
             }
