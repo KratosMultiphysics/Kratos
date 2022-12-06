@@ -1094,7 +1094,15 @@ void Parameters::CopyValuesFromExistingParameters(
     )
 {
     for (const auto& r_value_name : rListParametersToCopy) {
-        this->AddValue(r_value_name, OriginParameters[r_value_name]);
+        if (OriginParameters.Has(r_value_name)) {
+            if (this->Has(r_value_name)) {
+                KRATOS_ERROR << r_value_name << " already defined in destination (check keyword is not duplicated in the list) Parameters:\n\n" << this->PrettyPrintJsonString() << std::endl;
+            } else {
+                this->AddValue(r_value_name, OriginParameters[r_value_name]);
+            }
+        } else {
+            KRATOS_ERROR << r_value_name << " not defined in origin Parameters:\n\n" << OriginParameters << std::endl;
+        }
     }
 }
 
