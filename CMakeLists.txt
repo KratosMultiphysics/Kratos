@@ -599,6 +599,7 @@ message("***********************************************************************
 message("")
 
 message("List of upcoming API-breaking and behavior changes:")
+message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
