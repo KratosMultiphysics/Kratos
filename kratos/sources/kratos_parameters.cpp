@@ -1101,7 +1101,7 @@ void Parameters::CopyValuesFromExistingParameters(
                 this->AddValue(r_value_name, OriginParameters[r_value_name]);
             }
         } else {
-            KRATOS_ERROR << r_value_name << " not defined in origin Parameters:\n\n" << OriginParameters << std::endl;
+            KRATOS_ERROR << r_value_name << " not defined in origin Parameters:\n\n" << OriginParameters.PrettyPrintJsonString() << std::endl;
         }
     }
 }
