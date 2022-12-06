@@ -590,9 +590,9 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
             ModelPart& r_auxiliary_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
 
-            // Define mapper factory
+            // Define mapper factory 
             DEFINE_MAPPER_FACTORY_SERIAL
-            if (MapperFactoryType::HasMapper("nearest_element")) {
+            if (MapperFactoryType::HasMapper("nearest_element") && mThisParameters["use_mapper_if_available"].GetBool()) {
                 KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using MappingApplication to interpolate values" << std::endl;
                 Parameters mapping_parameters = mThisParameters["mapping_parameters"];
                 auto p_mapper = MapperFactoryType::CreateMapper(r_old_auxiliar_model_part, r_auxiliary_model_part, mapping_parameters);
@@ -697,7 +697,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         /* We interpolate all the values */
         // Define mapper factory
         DEFINE_MAPPER_FACTORY_SERIAL
-        if (MapperFactoryType::HasMapper("nearest_element")) {
+        if (MapperFactoryType::HasMapper("nearest_element") && mThisParameters["use_mapper_if_available"].GetBool()) {
             KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using MappingApplication to interpolate values" << std::endl;
             Parameters mapping_parameters = mThisParameters["mapping_parameters"];
             auto p_mapper = MapperFactoryType::CreateMapper(r_old_model_part, mrThisModelPart, mapping_parameters);
@@ -1448,8 +1448,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
     {
         "filename"                             : "out",
         "discretization_type"                  : "Standard",
-        "isosurface_parameters"                :
-        {
+        "isosurface_parameters"                : {
             "isosurface_variable"              : "DISTANCE",
             "invert_value"                     : false,
             "nonhistorical_variable"           : false,
@@ -1457,23 +1456,20 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",
-        "internal_variables_parameters"        :
-        {
+        "internal_variables_parameters"        : {
             "allocation_size"                      : 1000,
             "bucket_size"                          : 4,
             "search_factor"                        : 2,
             "interpolation_type"                   : "LST",
             "internal_variable_interpolation_list" :[]
         },
-        "force_sizes"                          :
-        {
+        "force_sizes"                             : {
             "force_min"                           : false,
             "minimal_size"                        : 0.1,
             "force_max"                           : false,
             "maximal_size"                        : 10.0
         },
-        "advanced_parameters"                  :
-        {
+        "advanced_parameters"                     : {
             "force_hausdorff_value"               : false,
             "hausdorff_value"                     : 0.0001,
             "no_move_mesh"                        : false,
@@ -1489,15 +1485,6 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "gradation_value"                     : 1.3,
             "local_entity_parameters_list"        : []
         },
-        "mapping_parameters"                   :
-        {
-            "mapper_type"                      : "nearest_element",
-            "echo_level"                       : 0,
-            "search_settings" : {
-                "max_num_search_iterations"     : 8,
-                "echo_level"                    : 0
-            }
-        }, 
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,
         "save_colors_files"                    : false,
@@ -1506,6 +1493,15 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         "preserve_flags"                       : true,
         "interpolate_nodal_values"             : true,
         "interpolate_non_historical"           : true,
+        "use_mapper_if_available"              : false,
+        "mapping_parameters"                   : {
+            "mapper_type"                      : "nearest_element",
+            "echo_level"                       : 0,
+            "search_settings" : {
+                "max_num_search_iterations"     : 8,
+                "echo_level"                    : 0
+            }
+        }, 
         "extrapolate_contour_values"           : true,
         "surface_elements"                     : false,
         "search_parameters"                    : {

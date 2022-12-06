@@ -50,24 +50,22 @@ class MmgProcess(KratosMultiphysics.Process):
             "filename"                         : "out",
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "blocking_threshold_size"          : false,
-            "threshold_sizes" : {
+            "threshold_sizes"                  : {
                 "minimal_size"                     : 0.1,
                 "maximal_size"                     : 10.0
             },
             "strategy"                         : "levelset",
-            "level_set_strategy_parameters"              :{
+            "level_set_strategy_parameters"    : {
                 "scalar_variable"                  : "DISTANCE",
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
-            "error_strategy_parameters"              :{
-                "compute_error_extra_parameters":
-                {
+            "error_strategy_parameters"        : {
+                "compute_error_extra_parameters"     : {
                     "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
                     "penalty_normal"                      : 1.0e4,
                     "penalty_tangential"                  : 1.0e4
                 },
-                "error_metric_parameters"                 :
-                {
+                "error_metric_parameters"            : {
                     "error_threshold"                       : 1.0e-4,
                     "interpolation_error"                   : 0.04
                 },
@@ -76,8 +74,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "perform_nodal_h_averaging"           : false
             },
             "discretization_type"                  : "Standard",
-            "isosurface_parameters"                :
-            {
+            "isosurface_parameters"                : {
                 "isosurface_variable"              : "DISTANCE",
                 "invert_value"                     : false,
                 "nonhistorical_variable"           : false,
@@ -85,8 +82,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "remove_internal_regions"          : false
             },
             "framework"                            : "Eulerian",
-            "internal_variables_parameters"        :
-            {
+            "internal_variables_parameters"        : {
                 "allocation_size"                      : 1000,
                 "bucket_size"                          : 4,
                 "search_factor"                        : 2,
@@ -110,7 +106,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "interval"                         : [0.0, 1e30],
             "time_stepping"                    : {},
             "automatic_remesh"                 : true,
-            "automatic_remesh_parameters"      :{
+            "automatic_remesh_parameters"      : {
                 "automatic_remesh_type"            : "Ratio",
                 "min_size_ratio"                   : 1.0,
                 "max_size_ratio"                   : 3.0,
@@ -126,14 +122,12 @@ class MmgProcess(KratosMultiphysics.Process):
             "minimal_size"                     : 0.1,
             "force_max"                        : false,
             "maximal_size"                     : 10.0,
-            "sizing_parameters":
-            {
+            "sizing_parameters"                : {
                 "reference_variable_name"          : "DISTANCE",
                 "boundary_layer_max_distance"      : 1.0,
                 "interpolation"                    : "constant"
             },
-            "advanced_parameters"                  :
-            {
+            "advanced_parameters"                  : {
                 "force_hausdorff_value"            : false,
                 "hausdorff_value"                  : 0.0001,
                 "no_move_mesh"                     : false,
@@ -149,15 +143,6 @@ class MmgProcess(KratosMultiphysics.Process):
                 "gradation_value"                  : 1.3,
                 "local_entity_parameters_list"     : []
             },
-            "mapping_parameters"                   :
-            {
-                "mapper_type"                      : "nearest_element",
-                "echo_level"                       : 0,
-                "search_settings" : {
-                    "max_num_search_iterations"     : 8,
-                    "echo_level"                    : 0
-                }
-            }, 
             "anisotropy_remeshing"                 : true,
             "enforce_anisotropy_relative_variable" : false,
             "anisotropy_parameters":{
@@ -179,6 +164,15 @@ class MmgProcess(KratosMultiphysics.Process):
             "preserve_flags"                   : true,
             "interpolate_nodal_values"         : true,
             "interpolate_non_historical"       : true,
+            "use_mapper_if_available"          : false,
+            "mapping_parameters"               : {
+                "mapper_type"                      : "nearest_element",
+                "echo_level"                       : 0,
+                "search_settings" : {
+                    "max_num_search_iterations"    : 8,
+                    "echo_level"                   : 0
+                }
+            }, 
             "extrapolate_contour_values"       : true,
             "surface_elements"                 : false,
             "search_parameters"                : {
