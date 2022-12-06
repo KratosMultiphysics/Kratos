@@ -125,7 +125,6 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
         // Auxiliary values
         struct AuxValues {
             array_1d<double,3> intersection_point1, intersection_point2;
-            array_1d<double,3> first_point;
             array_1d<double,3> aux_coordinates;
             Vector N_line;
             array_1d<double,2> values_origin;
@@ -277,13 +276,15 @@ void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
     // Define mapper factory
     DEFINE_MAPPER_FACTORY_SERIAL
 
+    // Check mapper exists
+    KRATOS_ERROR_IF_NOT(MapperFactoryType::HasMapper("nearest_element")) << "Mapper \"nearest_element\" not available. Please import MappingApplication" << std::endl;
+
     // Getting variables
     std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
 
     // Generate the mapper
     Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
-    KRATOS_ERROR_IF_NOT(MapperFactoryType::HasMapper("nearest_element")) << "Mapper \"nearest_element\" not available. Please import MappingApplication" << std::endl;
     auto p_mapper = MapperFactoryType::CreateMapper(rModelPart1D, rModelPart3D, interpolate_parameters);
 
     // Interpolate
@@ -307,13 +308,15 @@ void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
     // Define mapper factory
     DEFINE_MAPPER_FACTORY_SERIAL
 
+    // Check mapper exists
+    KRATOS_ERROR_IF_NOT(MapperFactoryType::HasMapper("nearest_element")) << "Mapper \"nearest_element\" not available. Please import MappingApplication" << std::endl;
+
     // Getting variables
     std::vector<const Variable<double>*> origin_list_variables, destination_list_variables;
     GetVariablesList(ThisParameters, origin_list_variables, destination_list_variables);
 
     // Generate the mapper
     Parameters interpolate_parameters = ThisParameters["interpolate_parameters"];
-    KRATOS_ERROR_IF_NOT(MapperFactoryType::HasMapper("nearest_element")) << "Mapper \"nearest_element\" not available. Please import MappingApplication" << std::endl;
     auto p_mapper = MapperFactoryType::CreateMapper(rModelPart3D, rModelPart1D, interpolate_parameters);
 
     // Interpolate
@@ -619,7 +622,11 @@ Parameters DataTransfer3D1DUtilities::GetDefaultParameters()
         "swap_sign"                : false,
         "interpolate_parameters"   : {
             "mapper_type" : "nearest_element",
-            "echo_level"  : 0
+            "echo_level"  : 0,
+            "search_settings" : {
+                "max_num_search_iterations"     : 6,
+                "echo_level"                    : 0
+            }
         },
         "search_parameters"        :  {
             "allocation_size"         : 100,
