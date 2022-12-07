@@ -931,23 +931,6 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         mpMatrixConstitutiveLaw->GetValue(DAMAGE, damage_matrix);
         rValue = std::max(damage_fiber, damage_matrix);
         return rValue;
-    }
-    if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
-        if (mpFiberConstitutiveLaw->Has(rThisVariable))
-            return mpFiberConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-        else
-            return mpFiberConstitutiveLaw->CalculateValue(UNIAXIAL_STRESS, rValue);
-    } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
-        if (mpMatrixConstitutiveLaw->Has(rThisVariable))
-            return mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-        else
-            return mpMatrixConstitutiveLaw->CalculateValue(UNIAXIAL_STRESS, rValue);
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        double uniaxial_stress_fiber, uniaxial_stress_matrix;
-        mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_fiber);
-        mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_matrix);
-        rValue = mFiberVolumetricParticipation * uniaxial_stress_fiber + (1.0 - mFiberVolumetricParticipation) * uniaxial_stress_matrix;
-        return rValue;
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
@@ -1168,9 +1151,15 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    if (this->Has(rThisVariable))
+    if (this->Has(rThisVariable)) {
         return this->GetValue(rThisVariable, rValue);
-    else
+    } else {
+        if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
+            return mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
+            return mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        }
+    }
         return rValue;
 }
 
