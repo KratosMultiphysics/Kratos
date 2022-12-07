@@ -66,7 +66,7 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
         if self.interval.IsInInterval(current_time):
             current_load_factor = self.load_factor_function.CallFunction(0,0,0,current_time,0,0,0)
             if self.echo > 0:
-                KM.Logger.PrintInfo("ApplyPreStressingImposedStrainProcess", " Applying a load factor of " + str(current_load_factor))
+                KM.Logger.PrintInfo("ApplyPreStressingImposedStrainProcess", "Applying a load factor of " + str(current_load_factor) + ".")
             for element in self.model_part.Elements:
                 if element.Has(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN): # With previous imposed strain
                     current_strain = element.GetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN)
