@@ -933,9 +933,15 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         return rValue;
     }
     if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
-        return mpFiberConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+        if (mpFiberConstitutiveLaw->Has(rThisVariable))
+            return mpFiberConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+        else
+            return mpFiberConstitutiveLaw->CalculateValue(UNIAXIAL_STRESS, rValue);
     } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
-        return mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+        if (mpMatrixConstitutiveLaw->Has(rThisVariable))
+            return mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+        else
+            return mpMatrixConstitutiveLaw->CalculateValue(UNIAXIAL_STRESS, rValue);
     } else if (rThisVariable == UNIAXIAL_STRESS) {
         double uniaxial_stress_fiber, uniaxial_stress_matrix;
         mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_fiber);
@@ -1089,7 +1095,7 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
     } else {
         if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
             return true;
-        } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX || UNIAXIAL_STRESS_FIBER || DAMAGE_MATRIX || DAMAGE_FIBER) {
+        } else if (rThisVariable == DAMAGE_MATRIX || DAMAGE_FIBER) {
             return true;
         } else {
             return false;
