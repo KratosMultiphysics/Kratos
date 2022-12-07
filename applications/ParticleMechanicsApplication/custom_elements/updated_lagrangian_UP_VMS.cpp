@@ -353,11 +353,11 @@ void UpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
     rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
 
-    if ( stabilization_type == 1)
-     {
-         rVariables.tau1 = 0;
-         rVariables.tau2 = 0;
-     }
+//     if ( stabilization_type == 1)
+//      {
+         //rVariables.tau1 = 0;
+//          rVariables.tau2 = 0;
+//      }
 
     KRATOS_CATCH( "" )
 }
@@ -671,8 +671,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
             rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf1(i) * rIntegrationWeight;
             rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * (-(1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
-            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT) ) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             indexi++;
         }
     }
@@ -707,10 +706,10 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     {
 //         rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
         for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-           rRightHandSideVector[index_p] -= rVariables.tau1  *  rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] + rVolumeForce[idime] +rVariables.DynamicRHS[idime]) * rIntegrationWeight;
+           rRightHandSideVector[index_p] -= rVariables.tau1  *  rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] +rVariables.DynamicRHS[idime]) * rIntegrationWeight;
         }
 
-        rRightHandSideVector[index_p] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)+(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
+        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
@@ -927,7 +926,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi, indexpj) -= (1.0 / rVariables.BulkModulus) * r_N(0, i) * r_N(0, j) * rIntegrationWeight; // / (delta_coefficient * (rVariables.detF0 / rVariables.detF))
+            rLeftHandSideMatrix(indexpi, indexpj) -= (1.0 / rVariables.BulkModulus) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);
         }
@@ -1063,7 +1062,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf2(indexj) * rIntegrationWeight;
 
                 indexj++;
-                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2 * (1.0 / rVariables.BulkModulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau2 * (1.0 / rVariables.BulkModulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
         index_p += (dimension + 1);
