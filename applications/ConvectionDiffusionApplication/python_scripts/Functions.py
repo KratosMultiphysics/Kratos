@@ -63,7 +63,7 @@ def Import_Structural_model_part(name_structural_mpda):
 #     KratosMultiphysics.ModelPartIO(name_structural_mpda).ReadModelPart(skin_model_part)
 #     return skin_model_part, model_part
 
-def Find_surrogate_nodes(model_part,iter):
+def FindSurrogateNodes(model_part,iter):
     start_time = time.time()
     # General methods for find the surrogate nodes
     name_surrogate_sub_model_part = "surrogate_sub_model_part" + "_" + str(iter)
@@ -85,38 +85,41 @@ def Find_surrogate_nodes(model_part,iter):
                 count_neg = count_neg + 1
         # When count_neg*count_pos != 0 --> the element is cut
         if count_neg * count_pos != 0 :
+            # The element is cut
             for node in elem.GetGeometry() :
                 if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0 :
-                    node.Set(VISITED, True)
+                    node.Set(BOUNDARY, True)
         if count_pos == 3 :
             # The element is a fluid element completely ouside the surrogate boundary
             elem.Set(MARKER,True)
-            surrogate_sub_model_part.AddElement(elem,0)
-            for node in elem.GetGeometry() :
-                node.Set(MARKER, True)
+            elem.Set(ACTIVE,True)
             count2 = count2 + 1
         # if count_neg > 0 :
-        #     model_part.RemoveElement(elem)
+            # elem.Set(ACTIVE,False)
+            # print('ciao!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! PERCHE\' NON POSSO DE-ACTIVATE?')
+            # model_part.RemoveElement(elem)
     print('Total number of "Fluid" element : ', count2)
     # Count the number of surrogate nodes
     tot_sur_nodes = 0
     for node in model_part.Nodes :
-        if node.Is(VISITED):
+        if node.Is(BOUNDARY):
             surrogate_sub_model_part.AddNode(node,0)
             tot_sur_nodes = tot_sur_nodes +1 
     print('Number of surrogate nodes: ',tot_sur_nodes)
     # Discretize if an element is "boundary" so if it has at least one node that is surrogate
-    for elem in surrogate_sub_model_part.Elements :
-        for node in elem.GetGeometry() :
-            if node.Is(VISITED) :
-                elem.Set(BOUNDARY, True)
-                break
+    for elem in model_part.Elements :
+        if elem.Is(MARKER) :
+            for node in elem.GetGeometry() :
+                if node.Is(BOUNDARY) :
+                    elem.Set(BOUNDARY, True)
+                    break
     print("--> %s seconds for Find_surrogate_nodes" % (time.time() - start_time))
+    print('ciao!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! PERCHE\' NON POSSO DE-ACTIVATE?')
     return surrogate_sub_model_part,tot_sur_nodes
 
 
 
-def Find_closest_skin_element(model_part,skin_model_part,tot_sur_nodes,tot_skin_el) :
+def FindClosestSkinElement(model_part,skin_model_part,tot_sur_nodes,tot_skin_el) :
     start_time = time.time()
     # if we are interested in the closest skin ELEMENT
     # file_due = open("closest_skin_element.txt", "w")
@@ -125,24 +128,21 @@ def Find_closest_skin_element(model_part,skin_model_part,tot_sur_nodes,tot_skin_
                                             # the skin is the same in this case
     i = 0
     for node in model_part.Nodes :
-        if node.Is(VISITED):
-            surr_node = node.Id
+        if node.Is(BOUNDARY):
             # Inizializzo array equation_el
             equation_el = [0] * tot_skin_el
             for j in range(tot_skin_el) :  # Run over the skin ELEMENTS
                 node1 = skin_model_part.Conditions[j+1].GetNodes()[0]
                 node2 = skin_model_part.Conditions[j+1].GetNodes()[1]
-                equation_el[j] = (node1.X-model_part.Nodes[surr_node].X)**2  + \
-                                (node1.Y-model_part.Nodes[surr_node].Y)**2 + \
-                                (node2.X-model_part.Nodes[surr_node].X)**2 + \
-                                (node2.Y-model_part.Nodes[surr_node].Y)**2
+                # Distance squared from the element
+                equation_el[j] = (node1.X-node.X)**2  + (node1.Y-node.Y)**2 + (node2.X-node.X)**2 + (node2.Y-node.Y)**2
             index_min = np.argmin(equation_el) # j-esimo nodo
             closest_element[i] = skin_model_part.Conditions[index_min+1].Id
             # file_due.write(str(closest_element[i]))
             # file_due.write('\n')
             i = i + 1
     # file_due.close()
-    print("--> %s seconds for Find_closest_skin_element" % (time.time() - start_time))
+    print("--> %s seconds for FindClosestSkinElement" % (time.time() - start_time))
     return closest_element
 
 
@@ -152,17 +152,17 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closes
     # Find the PROJECTION for each of the surrogate nodes on the closest skin element
     # 1.0.1 Initialize a matrix with the coordinates of the projections
     projection_surr_nodes = [[0 for _ in range(2)] for _ in range(tot_sur_nodes)]
-    # file_tre = open("projection_surr_nodes.txt", "w")
+    file_tre = open("projection_surr_nodes.txt", "w")
     # 1.1 Run over each surrogate node take the closest skin element
     i = 0
     for node in model_part.Nodes :
-        if node.Is(VISITED) :
+        if node.Is(BOUNDARY) :
             # 1.2 take the closest skin element --> closest_element[i]
             # 1.3 Get the two nodes
             node1 = skin_model_part.Conditions[closest_element[i]].GetNodes()[0]
             node2 = skin_model_part.Conditions[closest_element[i]].GetNodes()[1]
             # 1.4 Compute m and q 
-            if (node1.X - node2.X)!=0 :
+            if (node1.X - node2.X) != 0 :
                 m = (node1.Y - node2.Y) / (node1.X - node2.X)
                 q = node1.Y - m * node1.X
                 # 1.5 Compute Q
@@ -175,6 +175,7 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closes
                 projection_surr_nodes[i][1] = m * projection_surr_nodes[i][0] + q
             else :
                 # La retta per i nodi 1 e 2 è verticale -> Trovo subito le proiezioni
+                print('Attenzione, skin element VERTICALE \n\n\n\n\n')
                 projection_surr_nodes[i][0] = node1.X
                 projection_surr_nodes[i][1] = node.Y
             # 1.7 Need to check if the point actually lies on the closest elements: compute the distance from
@@ -202,7 +203,7 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closes
                 node1 = skin_model_part.Conditions[elem.Id].GetNodes()[0]
                 node2 = skin_model_part.Conditions[elem.Id].GetNodes()[1]
                 # 1.4 Compute m and q 
-                if (node1.X - node2.X)!=0 :
+                if (node1.X - node2.X) != 0 :
                     m = (node1.Y - node2.Y) / (node1.X - node2.X)
                     q = node1.Y - m * node1.X
                     # 1.5 Compute Q
@@ -231,24 +232,22 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closes
                 else :
                     # We have found the correct projection
                     print('Trovata proiezione nel secondo elemento più vicino del nodo : ', node.Id)
-            # file_tre.write(str(projection_surr_nodes[i][0]))
-            # file_tre.write('  ')
-            # file_tre.write(str(projection_surr_nodes[i][1]))
-            # file_tre.write('\n')
+            file_tre.write(str(projection_surr_nodes[i][0]))
+            file_tre.write('  ')
+            file_tre.write(str(projection_surr_nodes[i][1]))
+            file_tre.write('\n')
             i = i + 1
-    # file_tre.close()
+    file_tre.close()
     print("--> %s seconds for Find_projections" % (time.time() - start_time))
     return projection_surr_nodes
 
 
 
 def Dirichlet_BC (model_part,skin_model_part,tot_sur_nodes,closest_element,projection_surr_nodes) :
-    # Compute the value of the velocity_x on the surrogate boundary using the grandient and the distance
     surr_BC = [0] * tot_sur_nodes
     i = 0
     for node in model_part.Nodes :
-        if node.Is(VISITED) :
-            # Need the distance vector : x - x_tilde
+        if node.Is(BOUNDARY) :
             # 1.1 Initialize a Kratos vector
             d_vector = KratosMultiphysics.Array3()
             # 1.2 Compute the vector x - x_tilde
@@ -258,29 +257,27 @@ def Dirichlet_BC (model_part,skin_model_part,tot_sur_nodes,closest_element,proje
             # 1.3 Take the gradient of the generic scalar vector field
             grad = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)
             # 1.4 Compute the scalar product
-            scalar_product = 0
+            correction = 0
             for j in range(2) :
-                scalar_product = scalar_product +  d_vector[j] * grad[j]
-            correction = scalar_product
+                correction = correction +  d_vector[j] * grad[j]
             # 1.5 Obtain the value of the scalar field at the projection with an INTERPOLATION
-            # for node in skin_model_part.Nodes :
-            #     print(node.X, node.Y)
             node1 = skin_model_part.Conditions[closest_element[i]].GetNodes()[0]
             node2 = skin_model_part.Conditions[closest_element[i]].GetNodes()[1]
             d_star = math.sqrt((node1.X-projection_surr_nodes[i][0])**2 + (node1.Y-projection_surr_nodes[i][1])**2)
             d = math.sqrt((node1.X-node2.X)**2 + (node1.Y-node2.Y)**2)
-            velocity = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - d_star / d * (node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+            # 1.5.0.1 Compute the dirichlet value at the projection
+            dir_value_projection = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - d_star / d * (node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
             # 1.5.1 Additional check for the node with "second correction"
             if node.Is(INTERFACE) :
                 if projection_surr_nodes[i][0] == node1.X and projection_surr_nodes[i][1] == node1.Y:
-                    velocity = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                    dir_value_projection = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
                     # print('node 1')
                 else :
                     # print(projection_surr_nodes[i][0], node2.X)
-                    velocity = node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                    dir_value_projection = node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
                     # print('node 2')
             # 1.6 Compute the approximated Dirichlet BC at the surrogate boundary
-            surr_BC[i] = velocity - correction
+            surr_BC[i] = dir_value_projection - correction
             # print('errore = ', abs(velocity - correction - node.X-node.Y))
             # print('\n')
             i = i+1
@@ -292,14 +289,14 @@ def Interpolation(skin_model_part,closest_element,projection_surr_nodes, i, node
     node2 = skin_model_part.Conditions[closest_element[i]].GetNodes()[1]
     d_star = math.sqrt((node1.X-projection_surr_nodes[i][0])**2 + (node1.Y-projection_surr_nodes[i][1])**2)
     d = math.sqrt((node1.X-node2.X)**2 + (node1.Y-node2.Y)**2)
-    velocity = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - d_star / d * (node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+    dir_value_projection = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - d_star / d * (node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
     # 1.5.1 Additional check for the node with "second correction"
     if node.Is(INTERFACE) :
         if projection_surr_nodes[i][0] == node1.X and projection_surr_nodes[i][1] == node1.Y:
-            velocity = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            dir_value_projection = node1.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
         else :
-            velocity = node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-    return velocity
+            dir_value_projection = node2.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+    return dir_value_projection
 
 
 
@@ -309,7 +306,7 @@ def Dirichlet_BC_CFD (model_part,skin_model_part,tot_sur_nodes,closest_element,p
     surr_BC_y = [0] * tot_sur_nodes
     i = 0
     for node in model_part.Nodes :
-        if node.Is(VISITED) :
+        if node.Is(BOUNDARY) :
             # Need the distance vector : x - x_tilde
             # 1.1 Initialize a Kratos vector
             d_vector = KratosMultiphysics.Array3()
@@ -370,61 +367,104 @@ def Create_sub_model_part_fluid(main_model_part,iter) :
 
 
 
-def Compute_error(main_model_part) :
+def Compute_error(main_model_part, sub_model_part_fluid) :
         file_due = open("error.txt", "w")
         L2_err = 0
-        H1_err_grad = 0
+        L2_err_area = 0
+        L2_grad_err = 0
+        L2_grad_err_area = 0
         KratosMultiphysics.ComputeNodalGradientProcess(
-        main_model_part,
+        sub_model_part_fluid,
         KratosMultiphysics.TEMPERATURE,
         KratosMultiphysics.TEMPERATURE_GRADIENT,
         KratosMultiphysics.NODAL_AREA).Execute()
+        
+        # for node in main_model_part.Nodes : 
+        #     if node.Id == 198 :
+        #         print(node.GetValue(NODAL_AREA))
+        #     if node.Is(BOUNDARY) :
+        #         node.SetValue(NODAL_AREA, 0)
+        #     if node.Id == 198 :
+        #         print(node.GetValue(NODAL_AREA))
+        # for elem in main_model_part.Elements :
+        #     if elem.Is(ACTIVE) :
+        #         for node in elem.GetGeometry() :
+        #             node.SetValue(NODAL_AREA, node.GetValue(NODAL_AREA) + elem.GetGeometry().Area() / 3)
         total_number_fluid_nodes = 0
+        total_area = 0
         for node in main_model_part.Nodes :
-            exact = node.X + node.Y    # --> Tutto lineare
+            exact_grad = KratosMultiphysics.Array3()
+            # exact = node.X + node.Y    # --> Tutto lineare
+            # exact_grad[0] = 1.0   # --> Tutto lineare
+            # exact_grad[1] = 1.0   # --> Tutto lineare
             # exact = 0.25*(4 - ((node.X)**2 + (node.Y)**2) )  # --> Paraboloide
+            # exact_grad[0] = 0.25*(-2*node.X)   # --> Paraboloide
+            # exact_grad[1] = 0.25*(-2*node.Y)  # --> Paraboloide
             # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
-            # exact_grad = KratosMultiphysics.Array3()
-            # exact_grad[0] = 0.25 * (-2*node.X + 2*node.X / (node.X**2 + node.Y**2)**2)  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
-            # exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2)**2)  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
-            if node.IsNot(MARKER) :
-                exact = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-                # exact_grad[0] = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[0]
-                # exact_grad[1] = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[1]
-            else :
+            # exact_grad[0] = 0.25 * (-2*node.X + 2*node.X / (node.X**2 + node.Y**2))  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
+            # exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2))  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
+            ## Senza Logaritmo
+            exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
+            exact_grad[0] = 0.25 * (-2*node.X)  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
+            exact_grad[1] = 0.25 * (-2*node.Y)  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
+            ## Solo Logaritmo
+            # exact = math.log(node.X**2+node.Y**2)
+            # exact_grad[0] = 2*node.X / (node.X**2 + node.Y**2)
+            # exact_grad[1] = 2*node.Y / (node.X**2 + node.Y**2)
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0 :
                 total_number_fluid_nodes = total_number_fluid_nodes + 1
-            # L2_err = L2_err + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)**2
-            # H1_err_grad = H1_err_grad + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)**2 + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[0]-exact_grad[0])**2 + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[1]-exact_grad[1])**2
-            file_due.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)))
+                nodal_area = node.GetValue(NODAL_AREA)
+                # if node.Is(BOUNDARY) :
+                #     print('Boundary NODE-----------------------------------')
+                # print(nodal_area)
+                L2_err = L2_err + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)**2
+                L2_err_area = L2_err_area + nodal_area * (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)**2
+                L2_grad_err = L2_grad_err + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[0]-exact_grad[0])**2 + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[1]-exact_grad[1])**2 
+                L2_grad_err_area = L2_grad_err_area + nodal_area * ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[0]-exact_grad[0])**2 + (node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[1]-exact_grad[1])**2 )
+                total_area = total_area + nodal_area
+                file_due.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-exact)))
+                file_due.write('       ')
+                file_due.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[0]-exact_grad[0])))
+                file_due.write('       ')
+                file_due.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[1]-exact_grad[1])))
+                file_due.write('       ')
+                file_due.write(str(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[0]))
+                file_due.write('       ')
+                file_due.write(str(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT)[1]))
+            else :
+                file_due.write('0.0')
+                file_due.write('     ')
+                file_due.write('0.0')
+                file_due.write('     ')
+                file_due.write('0.0')
+                file_due.write('     ')
+                file_due.write('0.0')
+                file_due.write('     ')
+                file_due.write('0.0')
             file_due.write('\n')
-        print('Total number of fluid nodes : ', total_number_fluid_nodes)
+            
         if total_number_fluid_nodes == 0 :
-            total_number_fluid_nodes = len(main_model_part.Nodes)
-        L2_err = math.sqrt(L2_err) / total_number_fluid_nodes
-        H1_err_grad = math.sqrt(H1_err_grad) / total_number_fluid_nodes
-        file_due.write(str(L2_err))
-        # print('Errore in norma L2 : ', L2_err)
-        # print('Errore in norma H1 : ', H1_err_grad)
+            total_number_fluid_nodes = len(sub_model_part_fluid.Nodes)
+            print('!!!!!!!!!')
+        L2_err = math.sqrt(L2_err  / total_number_fluid_nodes )
+        # L2_err_area = math.sqrt(L2_err_area / total_area) 
+        H1_err = L2_err +  math.sqrt( L2_grad_err  / total_number_fluid_nodes )
+        # H1_err_area = L2_err_area + math.sqrt(L2_grad_err_area / total_area ) 
+        # file_due.write(str(L2_err))
+        print('Errore in norma L2 : ', L2_err)
+        # print('Errore in norma L2 (equal areas): ', L2_err_area)
+        print('Errore in norma H1 : ', H1_err)
+        # print('Errore in norma H1 (equal areas): ', H1_err_area)
         file_due.close
         return
 
 
-def Create_boundary_sub_model_part (main_model_part) :
-    boundary_sub_model_part = main_model_part.CreateSubModelPart("boundary_sub_model_part")
-    for node in main_model_part.Nodes :
-        if node.Is(BOUNDARY) :
-            node.Set(BOUNDARY, False)
-    for node in main_model_part.Nodes :
-        if node.Is(VISITED) :
-            boundary_sub_model_part.AddNode(node,0)
-            node.Set(BOUNDARY, True)
-    return boundary_sub_model_part
 
-def Compute_gradint_coefficients (sub_model_part_fluid, model,boundary_sub_model_part) :
+def ComputeGradientCoefficients (sub_model_part_fluid, model,surrogate_sub_model_part) :
     Parameters = KratosMultiphysics.Parameters("""
     {
         "model_part_name" : "ThermalModelPart",
-        "boundary_sub_model_part_name" : "boundary_sub_model_part",
+        "boundary_sub_model_part_name" : "surrogate_sub_model_part",
         "sbm_interface_condition_name" : "LineCondition2D2N",
         "conforming_basis" : true,
         "extension_operator_type" : "MLS",
@@ -432,21 +472,35 @@ def Compute_gradint_coefficients (sub_model_part_fluid, model,boundary_sub_model
         "levelset_variable_name" : "DISTANCE"
     }
     """)
-    for elem in sub_model_part_fluid.Elements :
-        if elem.IsNot(ACTIVE) :
-            elem.Set(ACTIVE, True)
+
     # CALCOLO DEI COEFFICIENTI PER IL CALCOLO DEL GRADIENTE
-    a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(model,Parameters)
+    a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtilityCopy(model,Parameters)
+    # a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(model,Parameters)
     result = a.SetSurrogateBoundaryNodalGradientWeights()
-    # print('Number of results : ', len(result))
-    # print('Number of surr nodes : ', len(boundary_sub_model_part.Nodes))
-    return result
+    result2 = a.NodalGradientWeightsForLonelyNodes()
+
+    # CHECK IF THE ARE VERY_PROBLEMATIC ELEMENTS
+    number_very_problematic = 0
+    for elem in sub_model_part_fluid.Elements :
+        if elem.Is(BOUNDARY) :
+            count = 0
+            for node in elem.GetGeometry() :
+                if node.Is(BOUNDARY) :
+                    count = count + 1
+            if count == 3 :
+                number_very_problematic = number_very_problematic + 1
+                    
+
+    print('Number of surr nodes : ', len(surrogate_sub_model_part.Nodes))
+    print('Number of result2 : ', len(result2)- number_very_problematic)
+    print('Number of VERY_PROBLEMATIC nodes : ', number_very_problematic)
+    return result, result2
 
 def Compute_T_matrix (result, node, projection_surr_nodes, i) :
     my_result = result[node.Id]
     T_tilde = [[0 for _ in range(len(my_result))] for _ in range(2)]
     j = 0
-    for key, value in my_result.items():      
+    for key, value in my_result.items():
         T_tilde[0][j] = value[0]
         T_tilde[1][j] = value[1]     
         j = j + 1
@@ -458,39 +512,42 @@ def Compute_T_matrix (result, node, projection_surr_nodes, i) :
     T = np.matmul( np.transpose(T_tilde) , d_vector )
     return T
 
-def Impose_MPC_Globally (main_model_part, surrogate_sub_model_part, result, skin_model_part, closest_element, projection_surr_nodes, T, node, j) :
+def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_element, projection_surr_nodes, T, node, j) :
     my_result = result[node.Id]
     DofMasterVector = []
-    CoeffVector = KratosMultiphysics.Vector(len(my_result)-1)
-    ConstantVector = 0.0*KratosMultiphysics.Vector(len(my_result)-1)
+    if node.IsNot(SLAVE) :
+        CoeffVector = KratosMultiphysics.Vector(len(my_result)-1)
+        ConstantVector = 0.0*KratosMultiphysics.Vector(len(my_result)-1)
+    else :
+        CoeffVector = KratosMultiphysics.Vector(len(my_result))
+        ConstantVector = 0.0*KratosMultiphysics.Vector(len(my_result))
     # Interpolate the value at the projection 
     dirichlet_projection = Interpolation(skin_model_part, closest_element, projection_surr_nodes, j-1, node)
-    # print(dirichlet_projection)
     i = 0
     k = 0
+    Coeff_Slave = 0
     for key, value in my_result.items() :
-        # Need to find the "node" term and bring it to the left-hand-side
-        if node.Id != key :
-            node_master = main_model_part.GetNode(key)
+        node_master = main_model_part.GetNode(key)
+        if node.IsNot(SLAVE) :
+            # Need to find the "node" term and bring it to the left-hand-side
+            if node.Id != key :
+                DofMasterVector.append(node_master.GetDof(KratosMultiphysics.TEMPERATURE))
+                ConstantVector[i] = dirichlet_projection
+                CoeffVector[i] = - T[k]
+                i = i + 1
+                k = k + 1
+            else :
+                Coeff_Slave = - T[k]
+                k = k + 1
+        else :
             DofMasterVector.append(node_master.GetDof(KratosMultiphysics.TEMPERATURE))
             ConstantVector[i] = dirichlet_projection
-            CoeffVector[i] = - T[k]
+            CoeffVector[i] = - T[i]
             i = i + 1
-            k = k + 1
-        else :
-            Coeff_Slave = - T[k]
-            k = k + 1
-    CoeffVector[:] = CoeffVector[:] / (1-Coeff_Slave)
-    ConstantVector[:] = ConstantVector[:] / (1-Coeff_Slave)
-    if j == 14 :
-        DofMasterVector = DofMasterVector
-        dirichlet_projection = dirichlet_projection
-        CoeffVector = CoeffVector
-        ConstantVector = ConstantVector
+    CoeffVector = CoeffVector / (1-Coeff_Slave)
+    ConstantVector = ConstantVector / (1-Coeff_Slave)
     CoeffMatrix = KratosMultiphysics.Matrix(np.array(CoeffVector).reshape(1,-1))
     DofSlaveVector = [node.GetDof(KratosMultiphysics.TEMPERATURE)]
     # Create the constraint
-    if j == 2 or j == 4 :
-        main_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", j, DofMasterVector, DofSlaveVector, CoeffMatrix, ConstantVector)
-        # print(CoeffVector)
+    main_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", j, DofMasterVector, DofSlaveVector, CoeffMatrix, ConstantVector)
     return 0 

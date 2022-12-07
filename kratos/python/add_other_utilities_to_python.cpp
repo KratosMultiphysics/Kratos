@@ -66,6 +66,7 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
+#include "utilities/shifted_boundary_meshless_interface_utility_copy.h"
 #include "utilities/particles_utilities.h"
 
 namespace Kratos {
@@ -788,6 +789,13 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
         .def("SetSurrogateBoundaryNodalGradientWeights", &ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights)
+    ;
+
+    py::class_<ShiftedBoundaryMeshlessInterfaceUtilityCopy, ShiftedBoundaryMeshlessInterfaceUtilityCopy::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtilityCopy")
+        .def(py::init<Model&, Parameters>())
+        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateExtensionOperator)
+        .def("SetSurrogateBoundaryNodalGradientWeights", &ShiftedBoundaryMeshlessInterfaceUtilityCopy::SetSurrogateBoundaryNodalGradientWeights)
+        .def("NodalGradientWeightsForLonelyNodes", &ShiftedBoundaryMeshlessInterfaceUtilityCopy::NodalGradientWeightsForLonelyNodes)
     ;
 }
 

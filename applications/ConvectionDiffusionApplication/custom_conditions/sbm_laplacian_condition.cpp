@@ -9,6 +9,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
+#include<iostream>
 
 #include "sbm_laplacian_condition.h"
 #include "utilities/integration_utilities.h"
@@ -81,18 +82,26 @@ void SBMLaplacianCondition::EquationIdVector(
     auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
     const auto& r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
 
+    // KRATOS_WATCH(r_conv_diff_settings)
+    // KRATOS_WATCH(r_unknown_var)
+
     // Resize the equation ids. vector
     const auto &r_geometry = this->GetGeometry();
+    // KRATOS_WATCH(r_geometry) // contains the nodes as entities
+    // KRATOS_WATCH("New Conditions")
+    // KRATOS_WATCH(rResult)  // list of Id of the nodes involved
     const std::size_t n_nodes = r_geometry.PointsNumber();
     if (rResult.size() != n_nodes) {
         rResult.resize(n_nodes, false);
     }
-
+    // KRATOS_WATCH(rResult)
+    // KRATOS_WATCH(rResult.size())
+    
     // Fill the equation ids. vector from the condition DOFs
     for (std::size_t i = 0; i < n_nodes; ++i){
         rResult[i] = r_geometry[i].GetDof(r_unknown_var).EquationId();
     }
-
+    // KRATOS_WATCH(rResult)
     KRATOS_CATCH("")
 }
 
@@ -101,6 +110,7 @@ void SBMLaplacianCondition::GetDofList(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
+    // KRATOS_WATCH("\n\n GetDofList viene chiamata____________")
 
     // Get unknown variable from convection diffusion settings
     auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
@@ -116,8 +126,9 @@ void SBMLaplacianCondition::GetDofList(
     // Fill the DOFs vector from the condition nodes
     for (std::size_t i = 0; i < n_nodes; ++i){
         rConditionalDofList[i] = r_geometry[i].pGetDof(r_unknown_var);
+        // KRATOS_WATCH(rConditionalDofList[i])
     }
-
+    // KRATOS_WATCH(rConditionalDofList)
     KRATOS_CATCH("")
 }
 
@@ -127,6 +138,12 @@ void SBMLaplacianCondition::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    KRATOS_WATCH("_______4.5")
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+    // KRATOS_WATCH(rRightHandSideVector)
+    // KRATOS_WATCH(rCurrentProcessInfo)
+
+    // exit(0);
 
     // Get unknown variable from convection diffusion settings
     auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
@@ -135,6 +152,7 @@ void SBMLaplacianCondition::CalculateLocalSystem(
     const auto& r_diffusivity_var = r_conv_diff_settings.GetDiffusionVariable();
 
     // Check (and resize) LHS and RHS matrix
+    // KRATOS_WATCH(rRightHandSideVector.size())
     const auto &r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     if (rRightHandSideVector.size() != n_nodes) {
@@ -143,7 +161,7 @@ void SBMLaplacianCondition::CalculateLocalSystem(
     if (rLeftHandSideMatrix.size1() != n_nodes || rLeftHandSideMatrix.size2() != n_nodes) {
         rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
     }
-
+    // KRATOS_WATCH(rRightHandSideVector.size())
     // Set LHS and RHS to zero
     noalias(rRightHandSideVector) = ZeroVector(n_nodes);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(n_nodes,n_nodes);

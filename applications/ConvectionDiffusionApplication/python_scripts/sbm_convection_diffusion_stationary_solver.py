@@ -3,6 +3,7 @@ import KratosMultiphysics
 import math
 import numpy as np
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import pdb
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
@@ -27,7 +28,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
     print('ci siamo')
-    skin_model_part = Import_Structural_model_part('Structural')
+    skin_model_part = Import_Structural_model_part('Structural_huge')
 
     def __init__(self, main_model_part, custom_settings):
         super().__init__(main_model_part, custom_settings)
@@ -45,18 +46,19 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         super().Initialize()
         iter = 0
         main_model_part = self.GetComputingModelPart()
-        # main_model_part, skin_model_part = Import_Structural_SUB_model_part(main_model_part, 'Structural')
+        for node in main_model_part.Nodes :
+            if node.Is(BOUNDARY) :
+                node.Set(BOUNDARY, False)
         skin_model_part = self.skin_model_part
-        # print(self.skin_model_part)
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
         # Find the surrogate boundary nodes
-        surrogate_sub_model_part, tot_sur_nodes = Find_surrogate_nodes(main_model_part,iter)
+        surrogate_sub_model_part, tot_sur_nodes = FindSurrogateNodes(main_model_part,iter)
         self.surrogate_sub_model_part = surrogate_sub_model_part
         # Total number of skin elements
         tot_skin_el = len(self.skin_model_part.Conditions)
         print('Number of skin elements: ', tot_skin_el)
         # Find the closest skin element for each surr node
-        closest_element = Find_closest_skin_element(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
+        closest_element = FindClosestSkinElement(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
         # Find the projection onto the skin elements for each surr node
         projection_surr_nodes = Find_projections(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closest_element)
         # Then we create a sub_model part with just the elements & the nodes "outside" the surrogate boundary
@@ -69,116 +71,71 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
         # Set the BC at the skin mesh________________________________________________________________________________________________
         for node in skin_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X + node.Y)
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X + node.Y)
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(4 - ((node.X)**2 + (node.Y)**2) ) ) # --> Paraboloide
+            # ## Senza Logaritmo
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
+            ## Solo Logaritmo
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.log(node.X**2+node.Y**2))
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
-        # Create boundary_sub_model_part and fix the BOUNDARY flag nodes
-        boundary_sub_model_part = Create_boundary_sub_model_part (main_model_part)
+
         
         # Calculate the required neighbours
-        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(main_model_part)
+        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(sub_model_part_fluid)
         nodal_neighbours_process.Execute()
-        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
+
+
+
+        ## Find the so called "INTERFACE" elements
+        for elem in sub_model_part_fluid.Elements :
+            if elem.Is(BOUNDARY) :
+                count_surr = 0
+                # Let's count how many surrogate nodes the element has
+                for node in elem.GetNodes() :
+                    if node.Is(BOUNDARY) :
+                        count_surr = count_surr + 1
+                if count_surr > 1 :  # two or three nodes are surrogate nodes
+                    elem.Set(INTERFACE, True) # FUNDAMENTAL
+       
+
+
+
+        # elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
+        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(sub_model_part_fluid)
         elemental_neighbours_process.Execute()
 
-        # Compute the gradint coefficients for each of the surrogate node
-        self.result = Compute_gradint_coefficients (sub_model_part_fluid, self.model,boundary_sub_model_part)
+
+        # # Compute the gradint coefficients for each of the surrogate node
+        self.result, self.result2 = ComputeGradientCoefficients (sub_model_part_fluid, self.model, surrogate_sub_model_part)
+
+
+        for node in surrogate_sub_model_part.Nodes :
+            my_result = self.result[node.Id]
+            if len(my_result) == 0 :
+                # Sostitute the results of the "Problematic" & "Very_Problematic" surrogate nodes 
+                self.result[node.Id] = self.result2[node.Id]
+                node.Set(SLAVE, True)
+        
 
         # Compute the T matrix for imposition of sbm condition
         i = 0
-        for node in boundary_sub_model_part.Nodes :
+        for node in surrogate_sub_model_part.Nodes :
             # Create the T matrices: 0 , 1 , ... , len(boundary_sub_model_part.Nodes)-1
             nameT = "T_" + str(i)
             globals()[nameT] = Compute_T_matrix (self.result, node, projection_surr_nodes, i)
             i = i + 1
 
-
+        
         # Sebastian -> Create CreateNewMasterSlaveConstraint
         j = 1
         for node in self.surrogate_sub_model_part.Nodes :
             name = "T_" + str(j-1)
             T = globals()[name]
-            Impose_MPC_Globally (main_model_part, self.surrogate_sub_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
+            # Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
             j = j + 1
-
-
-        # CHECK
-        # Discretize if an element is boundary or not: an element is boundary if one of its node is a surrogate boundary node
-        # new_elem_name = "LaplacianElement2D3N"
-        # new_cond_name = "ThermalFace2D2N"
-        # ## Set the element and condition names in the Json parameters
-        # self.settings.AddValue("element_replace_settings", KratosMultiphysics.Parameters("""{}"""))
-        # self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
-        # self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
-        # ## Call the replace elements and conditions process
-        # KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-        # element_name = "SBMLaplacianElement2D3N"
-        element_name = "LaplacianElement2D3N"
-        condition_name = "SBMLaplacianCondition"
-        # element_name = "WeaklyCompressibleNavierStokes2D3N"
-        number_of_conditions = len(main_model_part.Conditions)
-        count_id_condition = 0
-        for elem in main_model_part.Elements :
-            if elem.Is(BOUNDARY) :
-                count_id_condition = count_id_condition + 1
-                # Remove the element
-                main_model_part.RemoveElement(elem)
-                # print(' \n elemento : ', elem.Id)
-                # Initialize the list containing the nodes involved
-                list_nodes_involved = []
-                count_surr = 0
-                # Let's count how many surrogate nodes the element has
-                list_surr_nodes = []
-                for node in elem.GetNodes() :
-                    # list_nodes_involved.append(node.Id)
-                    if node.Is(VISITED) :
-                        list_surr_nodes.append(node.Id)
-                        count_surr = count_surr + 1
-                # print('Number of surrogate nodes : ',count_surr)
-                my_result = self.result[list_surr_nodes[0]]
-                for key, value in my_result.items() :
-                    list_nodes_involved.append(key)
-                if count_surr > 1 :  # two or three nodes are surrogate nodes
-                    # Need to add some additional nodes
-                    my_result = self.result[list_surr_nodes[1]]
-                    for key, value in my_result.items() :
-                        different = 0
-                        for i in range(len(list_nodes_involved)) : 
-                            if key != list_nodes_involved[i] :
-                                different = different + 1
-                            else :
-                                break
-                        if different == len(list_nodes_involved) :
-                            list_nodes_involved.append(key)
-                    if count_surr == 3 :
-                        print('Warning!! --> There are elements with 3 nodes that are surrogate nodes')
-                        exit()
-                # Create a new element
-                main_model_part.CreateNewElement(  element_name, elem.Id, [elem.GetNodes()[0].Id, \
-                    elem.GetNodes()[1].Id, elem.GetNodes()[2].Id], surrogate_sub_model_part.GetProperties()[1])
-                # main_model_part.CreateNewElement(  element_name, elem.Id, list_nodes_involved, surrogate_sub_model_part.GetProperties()[1])
-                # main_model_part.CreateNewCondition(  condition_name, number_of_conditions + count_id_condition, list_nodes_involved, surrogate_sub_model_part.GetProperties()[1])
-                # print(main_model_part.GetElements()[elem.Id])
-                # print(list_nodes_involved)
-                # exit()
-        # for cond in main_model_part.Conditions :
-        #     print(dir(cond.GetValue))
-        #     exit()
-        #     print(cond.GetValue())
-        #     exit()
-        # exit()
-
-
-
-
-        # # Set the VELOCITY VECTOR FIELD_______________________________________________________________________________________________
-        # for node in main_model_part.Nodes:
-        #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [1.0, 0.0, 0.0])
-        #     node.Fix(KratosMultiphysics.VELOCITY_X)
-        #     node.Fix(KratosMultiphysics.VELOCITY_Y)
-        #     node.Fix(KratosMultiphysics.VELOCITY_Z)
 
 
 
@@ -187,18 +144,20 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
     def InitializeSolutionStep(self):
         
         main_model_part = self.GetComputingModelPart()
-        ## Compute the gradient with the function ComputeNodalGradientProcess using the sub_model_part_fluid
-        # KratosMultiphysics.ComputeNodalGradientProcess(
-        # self.sub_model_part_fluid,
-        # KratosMultiphysics.TEMPERATURE,
-        # KratosMultiphysics.TEMPERATURE_GRADIENT,
-        # KratosMultiphysics.NODAL_AREA).Execute()
+        # Compute the gradient with the function ComputeNodalGradientProcess using the sub_model_part_fluid
+        KratosMultiphysics.ComputeNodalGradientProcess(
+        self.sub_model_part_fluid,
+        KratosMultiphysics.TEMPERATURE,
+        KratosMultiphysics.TEMPERATURE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA).Execute()
 
         ## Compute the Dirichlet BC at the surrogate nodes
-        # surr_BC = Dirichlet_BC (main_model_part,self.skin_model_part,self.tot_sur_nodes,self.closest_element,self.projection_surr_nodes)
+        surr_BC = Dirichlet_BC (main_model_part,self.skin_model_part,self.tot_sur_nodes,self.closest_element,self.projection_surr_nodes)
+        
         super().InitializeSolutionStep()
         
-        ## Create the embedded BC con matrxi T
+        
+        ## Create the embedded BC con matrix T
         embedded_BC = [0 for _ in range(len(self.surrogate_sub_model_part.Nodes))]
         i = 0
         for node in self.surrogate_sub_model_part.Nodes:
@@ -213,22 +172,29 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
                 T = globals()[name]
                 scalar_product = scalar_product + contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) * T[j]
                 j = j +1 
-                ## Check the gradient
+                # Check the gradient
                 # gradient2[0] = gradient2[0] + value[0] * contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
                 # gradient2[1] = gradient2[1] + value[1] * contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            # print(gradient2)
+            # if node.Is(SLAVE) :
+            #     print('SLAVE^')
             # Get the Dirichlet value at the projection point  
-            velocity = Interpolation(self.skin_model_part,self.closest_element,self.projection_surr_nodes, i, node)
+            dirichlet_projection = Interpolation(self.skin_model_part,self.closest_element,self.projection_surr_nodes, i, node)
             # Get the BC at the surrogate node
-            embedded_BC[i] = velocity-scalar_product
+            embedded_BC[i] = dirichlet_projection - scalar_product
             i = i+1
         
         ## Impose the embedded BC
         i = 0 
         for node in self.surrogate_sub_model_part.Nodes:
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,embedded_BC[i])
-            # node.Fix(KratosMultiphysics.TEMPERATURE)
+            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
+            # exact = node.X+node.Y
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,surr_BC[i])
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,exact)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,embedded_BC[i])
+            node.Fix(KratosMultiphysics.TEMPERATURE)
+            # print(embedded_BC[i], surr_BC[i])
             i = i + 1
-        self.embedded_BC = embedded_BC
     
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -237,13 +203,18 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         ## Sebastian check for MPC
         self.CheckIfMPCsAreAppliedCorrectly()
 
-        ## Check solutions of the MPC
+        # # Check solutions of the MPC
         # i = 0 
         # for node in self.surrogate_sub_model_part.Nodes:
-        #     if node.Id == 1457 :
-        #         print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), self.embedded_BC[i])
-        #         i = i + 1
-        # # exit()
+        #     print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), self.embedded_BC[i], node.X + node.Y)
+        #     if node.Is(SLAVE) :
+        #         print('SLAVE ^')
+        #     i = i + 1
+        # exit()
+
+  
+
+            
 
 
     def Finalize(self):
@@ -259,17 +230,38 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         main_model_part = self.GetComputingModelPart()
         
         # Check the error if the exact solution is known
-        Compute_error(main_model_part)
+        Compute_error(main_model_part, self.sub_model_part_fluid)
+
+        file_tre1 = open("Surr_B1.txt", "w")
+        for node in self.surrogate_sub_model_part.Nodes :
+            if node.Is(SLAVE) :
+                file_tre1.write(str(node.X))
+                file_tre1.write('  ')
+                file_tre1.write(str(node.Y))
+                file_tre1.write('  ')
+                file_tre1.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node.X-node.Y)))
+                file_tre1.write('\n')
+        file_tre1.close()
+
+
+
+   
+
+
+        # # Sebastian -> Create CreateNewMasterSlaveConstraint
+        # j = 1
+        # for node in self.surrogate_sub_model_part.Nodes :
+        #     name = "T_" + str(j-1)
+        #     T = globals()[name]
+        #     Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
+        #     j = j + 1
 
 
 
 
 
-
-
-
-
-
+        ## Sebastian check for MPC
+        self.CheckIfMPCsAreAppliedCorrectly()
 
 
 
@@ -321,7 +313,7 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             slave_dof_solution = slave_dof.GetSolutionStepValue()
             try:
                 relative_error = 100*abs(master_solution-slave_dof_solution)/abs(slave_dof_solution)
-                if relative_error>1e-4:
+                if relative_error>1e-8:
                     print("----------------")
                     print(slave_dof.Id())
                     print(T)
@@ -379,36 +371,67 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
 
 
-    #____________________________________________________________________________________________________________________________
-    #____________________________________________________________________________________________________________________________
-    # @classmethod
-    # def __GetContinuousDistanceModificationDefaultSettings(cls):
-    #     return KratosMultiphysics.Parameters(r'''{
-    #         "model_part_name": "",
-    #         "distance_threshold": 1e-3,
-    #         "continuous_distance": true,
-    #         "check_at_each_time_step": true,
-    #         "avoid_almost_empty_elements": true,
-    #         "deactivate_full_negative_elements": true
-    #     }''')
 
-    # def __CreateDistanceModificationProcess(self):
-    #     # Set the distance modification settings according to the level set type
-    #     # Note that the distance modification process is applied to the volume model part
-    #     distance_modification_settings = self.settings["distance_modification_settings"]
-    #     distance_modification_settings.ValidateAndAssignDefaults(self.__GetContinuousDistanceModificationDefaultSettings(self.level_set_type))
-    #     aux_full_volume_part_name = self.settings["model_part_name"].GetString() + "." + self.settings["volume_model_part_name"].GetString()
-    #     distance_modification_settings["model_part_name"].SetString(aux_full_volume_part_name)
-    #     return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
-    
-    # def GetDistanceModificationProcess(self):
-    #     if not hasattr(self, '_distance_modification_process'):
-    #         self._distance_modification_process = self.__CreateDistanceModificationProcess()
-    #     return self._distance_modification_process
-    
 
 
     #### Private functions ####
     def _Prova_Function(self):
         print('Prova function')
         return
+
+
+
+
+
+
+
+
+# # CHECK
+        # # Discretize if an element is boundary or not: an element is boundary if one of its node is a surrogate boundary node
+        # # element_name = "SBMLaplacianElement2D3N"
+        # element_name = "LaplacianElement2D3N"
+        # condition_name = "SBMLaplacianCondition"
+        # number_of_conditions = len(main_model_part.Conditions)
+        # count_id_condition = 0
+        # for elem in main_model_part.Elements :
+        #     if elem.Is(BOUNDARY) :
+        #         count_id_condition = count_id_condition + 1
+        #         ## Remove the element
+        #         # main_model_part.RemoveElement(elem)
+        #         # Initialize the list containing the nodes involved
+        #         list_nodes_involved = []
+        #         count_surr = 0
+        #         # Let's count how many surrogate nodes the element has
+        #         list_surr_nodes = []
+        #         for node in elem.GetNodes() :
+        #             if node.Is(BOUNDARY) :
+        #                 list_surr_nodes.append(node.Id)
+        #                 count_surr = count_surr + 1
+        #         my_result = self.result[list_surr_nodes[0]]
+        #         for key, value in my_result.items() :
+        #             list_nodes_involved.append(key)
+        #         if count_surr > 1 :  # two or three nodes are surrogate nodes
+        #             # Need to add some additional nodes
+        #             my_result = self.result[list_surr_nodes[1]]
+        #             for key, value in my_result.items() :
+        #                 different = 0
+        #                 for i in range(len(list_nodes_involved)) : 
+        #                     if key != list_nodes_involved[i] :
+        #                         different = different + 1
+        #                     else :
+        #                         break
+        #                 if different == len(list_nodes_involved) :
+        #                     list_nodes_involved.append(key)
+        #             if count_surr == 3 :
+        #                 print('Warning!! --> There are elements with 3 nodes that are surrogate nodes')
+        #                 exit()
+        #         # Create a new element
+        #         # main_model_part.CreateNewElement(  element_name, elem.Id, [elem.GetNodes()[0].Id, \
+        #         #     elem.GetNodes()[1].Id, elem.GetNodes()[2].Id], surrogate_sub_model_part.GetProperties()[1])
+        #         # main_model_part.CreateNewElement(  element_name, elem.Id, list_nodes_involved, surrogate_sub_model_part.GetProperties()[1])
+        #         main_model_part.CreateNewCondition(  condition_name, number_of_conditions + count_id_condition, list_nodes_involved, surrogate_sub_model_part.GetProperties()[1])
+        #         # print(list_nodes_involved)
+
+
+
+        # pdb.set_trace()
