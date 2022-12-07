@@ -487,14 +487,14 @@ public:
     // TODO: Code activated in June 2023
     // /**
     //  * @brief This method calculates and returns the volume of this geometry.
-    //  * @return Zero, the volume of a 2D geometry is 0
+    //  * @return Error, the volume of a 2D geometry is not defined
     //  * @see Length()
     //  * @see Area()
     //  * @see Volume()
     //  */
     // double Volume() const override
     // {
-    //     KRATOS_WARNING("Triangle2D6") << "Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     KRATOS_ERROR << "Triangle2D6:: Method not well defined. Replace with DomainSize() instead" << std::endl;
     //     return 0.0;
     // }
 
