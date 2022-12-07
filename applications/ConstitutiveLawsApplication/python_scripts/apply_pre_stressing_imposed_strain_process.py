@@ -49,9 +49,7 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.interval = KM.IntervalUtility(settings)
-
-
-        self.strain_function = 
+        self.load_factor = self.CreateFunction(settings["load_factor"])
 
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
@@ -59,3 +57,19 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval.IsInInterval(current_time):
+            print("Inside Interval!!")
+            print(self.load_factor.CallFunction(0,0,0,current_time,0,0,0))
+
+
+
+    def CreateFunction(self, value):
+        function_string = ""
+        if value.IsNumber():
+            function_string = str(value.GetDouble())
+        elif value.IsString():
+            function_string = value.GetString()
+        function = KM.GenericFunctionUtility(function_string)
+        return function
