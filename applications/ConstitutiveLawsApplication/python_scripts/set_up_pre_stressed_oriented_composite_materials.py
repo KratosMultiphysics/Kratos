@@ -17,7 +17,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
     Format of the file:
     # Intersection points (D is the diameter of the tendon and Ep the imposed pre-stressing strain):
 
-    Begin Tendon - Hexahedra intersection: Tendon_Inf     D=1.0e-3    Ep=0.00001
+    Begin Tendon - Hexahedra intersection: Tendon_Inf     D = 1.0e-3    Ep = 0.00001
 	    4807	0.01000	     0.05000	   0.01500	    0.02000	     0.05000   0.01500
         ...
     End Tendon - Hexahedra intersection

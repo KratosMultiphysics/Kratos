@@ -1089,10 +1089,13 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
     } else {
         if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
             return true;
+        } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX || UNIAXIAL_STRESS_FIBER || DAMAGE_MATRIX || DAMAGE_FIBER) {
+            return true;
         } else {
             return false;
         }
     }
+
 }
 
 /***********************************************************************************/
