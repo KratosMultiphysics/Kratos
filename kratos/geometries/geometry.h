@@ -1381,10 +1381,10 @@ public:
      * @see Volume()
      */
     virtual double DomainSize() const {
-        const SizeType dimension = this->Dimension();
-        if (dimension == 1) { // 1D geometry
+        const SizeType local_dimension = this->LocalSpaceDimension();
+        if (local_dimension == 1) { // 1D geometry
             return this->Length();
-        } else if (dimension == 2) { // 2D geometry
+        } else if (local_dimension == 2) { // 2D geometry
             return this->Area();
         } else { // 3D geometry
             return this->Volume();
