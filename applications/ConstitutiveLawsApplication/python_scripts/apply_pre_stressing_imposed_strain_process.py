@@ -52,7 +52,7 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
         self.interval = KM.IntervalUtility(settings)
         self.load_factor_function = self.CreateFunction(settings["load_factor"])
         self.echo = settings["echo_level"].GetInt()
-        self.old_load_factor = 1e30
+        self.old_load_factor = 1.0e30
 
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
@@ -69,9 +69,9 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
                 if element.Has(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN): # With previous imposed strain
                     current_strain = element.GetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN)
                     if step == 1:
-                        element.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, current_strain*current_load_factor)
+                        element.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, current_strain * current_load_factor)
                     else:
-                        element.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, current_strain*current_load_factor/self.old_load_factor)
+                        element.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, current_strain * current_load_factor / self.old_load_factor)
             self.old_load_factor = current_load_factor
 
 
