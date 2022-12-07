@@ -508,6 +508,23 @@ double& UpdatedLagrangianUP::CalculatePUCoefficient(double& rCoefficient, Genera
 //************************************************************************************
 //************************************************************************************
 
+double& UpdatedLagrangianUP::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, GeneralVariables & rVariables)
+{
+
+    KRATOS_TRY
+
+    // TODO: Check what is the meaning of this function
+    rDeltaCoefficient = 1.0;
+
+    return rDeltaCoefficient;
+
+    KRATOS_CATCH( "" )
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
         const double& rIntegrationWeight)
@@ -528,6 +545,9 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     if (bulk_modulus != bulk_modulus)
         bulk_modulus = 1.e16;
 
+    double delta_coefficient = 0;
+    delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
+
     double coefficient = 0;
     coefficient = this->CalculatePUCoefficient( coefficient, rVariables );
 
@@ -537,10 +557,10 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
         {
             const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
 
-            rRightHandSideVector[index_p] += (1.0/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
+            rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
         }
 
-        rRightHandSideVector[index_p] -=  coefficient* r_N(0, i) * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+        rRightHandSideVector[index_p] -=  coefficient/delta_coefficient * r_N(0, i) * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
         index_p += (dimension + 1);
     }
