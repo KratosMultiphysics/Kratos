@@ -1090,7 +1090,7 @@ void Parameters::Append(const Parameters& rValue)
 
 void Parameters::CopyValuesFromExistingParameters(
     const Parameters OriginParameters,
-    std::vector<std::string>& rListParametersToCopy
+    const std::vector<std::string>& rListParametersToCopy
     )
 {
     for (const auto& r_value_name : rListParametersToCopy) {
