@@ -167,7 +167,10 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle3D3<NodeType>();
         
-        KRATOS_CHECK_NEAR(geom->Volume(), 0.0, TOLERANCE);
+        // TODO: Code activated in June 2023
+        // KRATOS_CHECK_NEAR(geom->Volume(), 0.0, TOLERANCE);
+        // TODO: Remove code in June 2023
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
     }
 
     /** Checks if the minimum edge length is calculated correctly.

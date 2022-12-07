@@ -74,7 +74,10 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D6();
-        KRATOS_CHECK_NEAR(geom->Volume(), 0.0, ZERO_TOLERANCE);
+        // TODO: Code activated in June 2023
+        // KRATOS_CHECK_NEAR(geom->Volume(), 0.0, ZERO_TOLERANCE);
+        // TODO: Remove code in June 2023
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MinEdgeLength, KratosCoreGeometriesFastSuite) {

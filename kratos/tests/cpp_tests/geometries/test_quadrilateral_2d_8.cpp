@@ -59,6 +59,12 @@ namespace {
         KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
     }
 
+    // TODO: Remove code in June 2023
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D8Volume, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateReferenceQuadrilateral2D8();
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D8MinEdgeLength, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceQuadrilateral2D8();
         KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");

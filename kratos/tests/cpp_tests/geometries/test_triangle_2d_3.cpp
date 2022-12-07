@@ -174,6 +174,17 @@ namespace Testing {
 		KRATOS_CHECK_NEAR(Area, 0.5, TOLERANCE);
 	}
 
+  // TODO: Remove code in June 2023
+  /** Checks if the volume of the triangle is calculated correctly.
+   * Checks if the volume of the triangle is calculated correctly.
+   * For triangle 2D3 'volume()' call defaults to 'area()'
+   */
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreGeometriesFastSuite) {
+    auto geom = GeneratePointsRightTriangle2D3();
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+	}
+
   /** Checks if the minimum edge length is calculated correctly.
    * Checks if the minimum edge length is calculated correctly.
    */
