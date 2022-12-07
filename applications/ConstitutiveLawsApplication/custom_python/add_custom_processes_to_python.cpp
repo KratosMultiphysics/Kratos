@@ -23,6 +23,7 @@
 
 //Processes
 #include "custom_processes/advance_in_time_high_cycle_fatigue_process.h"
+#include "custom_processes/set_automated_initial_damage_process.h"
 
 namespace Kratos {
     namespace Python {
@@ -32,8 +33,10 @@ namespace Kratos {
 
             /// Processes
             py::class_<AdvanceInTimeHighCycleFatigueProcess, AdvanceInTimeHighCycleFatigueProcess::Pointer, Process>(m, "AdvanceInTimeHighCycleFatigueProcess")
-                .def(py::init< ModelPart&, Parameters >())
-                ;
+                .def(py::init< ModelPart&, Parameters >());
+
+            py::class_<SetAutomatedInitialDamageProcess, SetAutomatedInitialDamageProcess::Pointer, Process>(m, "SetAutomatedInitialDamageProcess")
+                .def(py::init<ModelPart&, Parameters>());
         }
     } // namespace Python.
 } // Namespace Kratos
