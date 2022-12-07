@@ -52,7 +52,8 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
             "model_part_name" : "please_specify_model_part_name",
             "intersection_file_name" : "please_include_directory_and_full_name_with_extension",
             "minimum_fiber_participation_threshold" : 1.0e-7,
-            "local_axis_colineal_tolerance" : 1.0e-7
+            "local_axis_colineal_tolerance" : 1.0e-7,
+            "echo_level" : 0
         }
         """
         )
@@ -62,6 +63,7 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.fiber_participation_threshold = settings["minimum_fiber_participation_threshold"].GetDouble()
         self.local_axis_colineal_tol = settings["local_axis_colineal_tolerance"].GetDouble()
+        self.echo = settings["echo_level"].GetInt()
 
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
@@ -70,7 +72,8 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
         self -- It signifies an instance of a class.
         """
         if self.model_part.ProcessInfo[KM.STEP] == 1:
-            KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
+            if self.echo > 0:
+                KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials ", "Reading intersections file " + self.intersection_file_name + "...")
             intersections_file = open(self.intersection_file_name, "r")
             lines = intersections_file.readlines()
 
@@ -87,7 +90,8 @@ class SetUpPreStressedOrientedCompositeMaterials(KM.Process):
                         self.model_part.CreateSubModelPart(tendon_name)
                         phi = float(split_line[8])   # Diameter of the tendon
                         Ep  = float(split_line[11])  # Imposed pre-stressing strain
-                        KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
+                        if self.echo > 0:
+                            KM.Logger.PrintInfo("SetUpPreStressedOrientedCompositeMaterials", "Reading block of ", tendon_name + " with and imposed strain of " + str(Ep) + " and a diameter of " + str(phi))
                     elif line.find("End") != -1 and line.find("intersection") != -1:
                         intersection_block = False
                     
