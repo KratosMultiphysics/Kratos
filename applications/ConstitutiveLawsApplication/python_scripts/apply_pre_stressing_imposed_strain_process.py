@@ -8,7 +8,7 @@ def Factory(settings, Model):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
-    return SetUpPreStressedOrientedCompositeMaterials(Model, settings["Parameters"])
+    return ApplyPreStressingImposedStrainProcess(Model, settings["Parameters"])
 
 class ApplyPreStressingImposedStrainProcess(KM.Process):
 
@@ -36,9 +36,9 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
             """
         {
             "help" : "This sets the initial conditions in terms of imposed pre-stressing strain, local axes and % participation of fiber",
-            "model_part_name" : "please_specify_model_part_name",
-            "interval"             : [0.0, 1e30],
-            "load_factor"                : 0.001
+            "model_part_name"   : "please_specify_model_part_name",
+            "interval"          : [0.0, 1e30],
+            "load_factor"       : "0.001"
         }
         """
         )
@@ -57,7 +57,7 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        current_time = self.model_part.ProcessInfo[KM.TIME]
 
         if self.interval.IsInInterval(current_time):
             print("Inside Interval!!")
