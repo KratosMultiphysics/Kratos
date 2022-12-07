@@ -38,7 +38,8 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
             "help" : "This sets the initial conditions in terms of imposed pre-stressing strain, local axes and % participation of fiber",
             "model_part_name"   : "please_specify_model_part_name",
             "interval"          : [0.0, 1e30],
-            "load_factor"       : "0.001"
+            "load_factor"       : "0.001",
+            "echo_level"        : 0
         }
         """
         )
@@ -49,7 +50,9 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.interval = KM.IntervalUtility(settings)
-        self.load_factor = self.CreateFunction(settings["load_factor"])
+        self.load_factor_function = self.CreateFunction(settings["load_factor"])
+        self.echo = settings["echo_level"].GetInt()
+        self.old_load_factor = 1e30
 
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
@@ -58,11 +61,18 @@ class ApplyPreStressingImposedStrainProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KM.TIME]
+        step = self.model_part.ProcessInfo[KM.STEP]
 
         if self.interval.IsInInterval(current_time):
-            print("Inside Interval!!")
-            print(self.load_factor.CallFunction(0,0,0,current_time,0,0,0))
-
+            current_load_factor = self.load_factor_function.CallFunction(0,0,0,current_time,0,0,0)
+            for element in self.model_part.Elements:
+                if element.Has(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN): # With previous imposed strain
+                    current_strain = element.GetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN)
+                    if step == 1:
+                        element.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, current_strain*current_load_factor)
+                    else:
+                        element.SetValue(CLApp.SERIAL_PARALLEL_IMPOSED_STRAIN, current_strain*current_load_factor/self.old_load_factor)
+            self.old_load_factor = current_load_factor
 
 
     def CreateFunction(self, value):
