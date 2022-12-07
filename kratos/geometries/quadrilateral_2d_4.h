@@ -470,8 +470,9 @@ public:
      */
     double Volume() const override
     {
-        KRATOS_WARNING("Quadrilateral2D4") << "Method not well defined. Replace with DomainSize() instead" << std::endl;
-        return 0.0;
+        KRATOS_WARNING("Quadrilateral2D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning zero instead)" << std::endl;
+        // return 0.0; // TODO: Replace in June 2023
+        return Area();
     }
 
     /** 

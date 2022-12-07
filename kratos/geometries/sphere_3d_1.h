@@ -385,7 +385,7 @@ public:
     double Area() const override
     {
         KRATOS_WARNING("Sphere3D1") << "This method (Area) has no meaning for this type of geometry (Sphere)." << std::endl;
-        return 0.00;
+        return 0.0;
     }
 
 
