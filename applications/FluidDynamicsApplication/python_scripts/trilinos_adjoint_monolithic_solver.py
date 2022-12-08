@@ -1,31 +1,30 @@
 ## Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosCFD
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosCFD
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_monolithic_solver import AdjointMonolithicSolver
 
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(main_model_part, custom_settings):
-    return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)
+    return AdjointMonolithicMPISolver(main_model_part, custom_settings)
 
-class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
+class AdjointMonolithicMPISolver(AdjointMonolithicSolver):
 
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(self.__class__, self).AddVariables()
+        super().AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointMonolithicMPISolver added correctly in each processor.")
 
     def ImportModelPart(self):
         ## Construct the distributed import model part utility
@@ -36,7 +35,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "MPI model reading finished.")
 
     def PrepareModelPart(self):
-        super(self.__class__,self).PrepareModelPart()
+        super().PrepareModelPart()
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
@@ -76,7 +75,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver,
-                KratosFluid.PATCH_INDEX)
+                KratosCFD.PATCH_INDEX)
         else:
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(
                 epetra_communicator,
