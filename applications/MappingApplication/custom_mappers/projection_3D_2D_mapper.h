@@ -22,8 +22,6 @@
 #include "custom_mappers/nearest_element_mapper.h"
 #include "custom_mappers/barycentric_mapper.h"
 #include "utilities/geometrical_projection_utilities.h"
-#include "utilities/tessellation_utilities/delaunator_utilities.h"
-#include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -49,53 +47,199 @@ enum class MetaMapperType
     BARYCENTRIC
 };
 
+/**
+ * @brief Entity type mesh considered
+ */
+enum class EntityTypeMesh
+{
+    NONE,
+    CONDITIONS,
+    ELEMENTS
+};
+
 ///@}
 ///@name  Functions
 ///@{
 
-namespace ModelPartUtility
-{
 /**
- * @brief This function returns the corresponding model part considering the parameters
- * @param rOriginModelPart The model part to be considered
- * @param ThisParameters The configuration parameters
-*/
-ModelPart& GetOriginModelPart(
-    ModelPart& rOriginModelPart,
-    Parameters ThisParameters = Parameters(R"({})")
-    )
+ * @brief This method determines the partition where the model part has at least one entity
+ * @param rModelPart The input model part where determine the partition with at least one entity
+ * @return A partition with at least one partition
+ */
+int DeterminePartitionWithEntities(const ModelPart& rModelPart)
 {
-    // We get the model part name
-    const std::string origin_2d_sub_model_part_name = ThisParameters.Has("origin_2d_sub_model_part_name") ? ThisParameters["origin_2d_sub_model_part_name"].GetString() : "";
+    const bool is_distributed = rModelPart.IsDistributed();
+    Geometry<Node<3>>::Pointer p_geometry = rModelPart.NumberOfElements() > 0 ? rModelPart.ElementsBegin()->pGetGeometry() : rModelPart.NumberOfConditions() > 0 ? rModelPart.ConditionsBegin()->pGetGeometry() : nullptr;
 
-    // We check if the submodelpart exists
-    if (origin_2d_sub_model_part_name != "") {
-        // We check if the submodelpart is the modelpart
-        if (rOriginModelPart.Name() == origin_2d_sub_model_part_name) {
-            return rOriginModelPart;
-        } else { // We retrieve the orginal modelpart if not
-            KRATOS_ERROR_IF_NOT(rOriginModelPart.HasSubModelPart(origin_2d_sub_model_part_name)) << "Submodelpart " << rOriginModelPart.FullName() << "." << origin_2d_sub_model_part_name << " does not exist" << std::endl;
-            return rOriginModelPart.GetSubModelPart(origin_2d_sub_model_part_name);
+    // MPI data
+    int aux_partition_entity = -1;
+    const auto& r_communicator = rModelPart.GetCommunicator();
+    const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+    const int mpi_rank = r_data_communicator.Rank();
+    const int mpi_size = r_data_communicator.Size();
+
+    // Get maximum rank
+    if (p_geometry != nullptr) aux_partition_entity = mpi_rank;
+
+    // Determine root's rank
+    const int root_rank = 0;
+
+    // Getting the partition with entities index
+    int partition_entity = r_data_communicator.Max(aux_partition_entity, root_rank);
+
+    // Define the send tag
+    const int tag_send_index = 1;
+
+    // Transfer to other partitions
+    if (is_distributed) {
+        if (mpi_rank == root_rank) {
+            for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
+                r_data_communicator.Send(partition_entity, i_rank, tag_send_index);
+            }
+        } else {
+            r_data_communicator.Recv(partition_entity, root_rank, tag_send_index);
         }
-    } else { // We return the origin model part if not defined
-        return rOriginModelPart;
+    }
+
+    return partition_entity;
+}
+
+/**
+ * @brief This method determines the 2D model part
+ * @param rFirstModelPart The first ModelPart
+ * @param rSecondModelPart The second ModelPart
+ * @return The 2D model part 
+ */
+ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+{
+    // In MPI could be a bit troublesome
+    if (rFirstModelPart.IsDistributed()) { 
+        const auto& r_communicator = rFirstModelPart.GetCommunicator();
+        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+        const int mpi_rank = r_data_communicator.Rank();
+        const int mpi_size = r_data_communicator.Size();
+
+        const int partition_entity_1 = DeterminePartitionWithEntities(rFirstModelPart);
+        const int partition_entity_2 = DeterminePartitionWithEntities(rSecondModelPart);
+        KRATOS_ERROR_IF(partition_entity_1 == -1 && partition_entity_2 == -1) << "ERROR:: Both model parts are empty (no elements or not conditions)" << std::endl;
+
+        // Determine root's rank
+        const int root_rank = 0;
+
+        // Define the send tag
+        const int tag_send_index = 1;
+
+        // Checking model parts
+        int model_part_index = 0;
+
+        // First model part
+        if (partition_entity_1 > -1) {
+            if (mpi_rank == partition_entity_1) {
+                if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
+                    if (rFirstModelPart.NumberOfElements() > 0) {
+                        if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                            model_part_index = 1;
+                        }
+                    } else {
+                        if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                            model_part_index = 1;
+                        }
+                    }
+                }
+                for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
+                    if (mpi_rank != i_rank) {
+                        r_data_communicator.Send(model_part_index, i_rank, tag_send_index);
+                    }
+                }
+            } else {
+                r_data_communicator.Recv(model_part_index, partition_entity_1, tag_send_index);
+            }
+            if (model_part_index > 0) {
+                return rFirstModelPart;
+            }
+        }
+       
+        // Second model part
+        if (partition_entity_2 > -1) {
+            if (mpi_rank == partition_entity_2) {
+                if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
+                    if (rSecondModelPart.NumberOfElements() > 0) {
+                        if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                            model_part_index = 1;
+                        }
+                    } else {
+                        if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                            model_part_index = 1;
+                        }
+                    }
+                }
+                for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
+                    if (mpi_rank != i_rank) {
+                        r_data_communicator.Send(model_part_index, i_rank, tag_send_index);
+                    }
+                }
+            } else {
+                r_data_communicator.Recv(model_part_index, partition_entity_1, tag_send_index);
+            }
+            if (model_part_index > 0) {
+                return rSecondModelPart;
+            }
+        }
+    } else { // In serial we just check model part has 2D entities (local space)
+        // Determine if the modelparts have entities
+
+        // First model part
+        if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
+            if (rFirstModelPart.NumberOfElements() > 0) {
+                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                    return rFirstModelPart;
+                }
+            } else {
+                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                    return rFirstModelPart;
+                }
+            }
+        }
+        
+        // Second model part
+        if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
+            if (rSecondModelPart.NumberOfElements() > 0) {
+                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                    return rSecondModelPart;
+                }
+            } else {
+                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                    return rSecondModelPart;
+                }
+            }
+        }
+    }
+
+    KRATOS_ERROR << "Impossible to detect 2D model part" << std::endl;
+    return rFirstModelPart;
+}
+
+/**
+ * @brief This method determines the 3D model part
+ * @details The counter part of the previous method
+ * @param rFirstModelPart The first ModelPart
+ * @param rSecondModelPart The second ModelPart
+ * @return The 3D model part 
+ */
+ModelPart& Determine3DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+{
+    // It is the counter part of the previous method
+    ModelPart* p_2d_model_part = &Determine2DModelPart(rFirstModelPart, rSecondModelPart);
+    if (p_2d_model_part == &rFirstModelPart) {
+        return rSecondModelPart;
+    } else {
+        return rFirstModelPart;
     }
 }
-} // namespace Utility
 
 ///@}
 ///@name Kratos Classes
 ///@{
-
-// Definition of projection variables
-struct ProjectionVariables
-{
-    ProjectionVariables(array_1d<double, 3>& rNormal, Point& rPoint) : reference_normal(rNormal), reference_point(rPoint) {};
-    array_1d<double, 3> reference_normal;
-    Point reference_point;
-    double distance;
-    array_1d<double, 3> projected_point_coordinates;
-};
 
 /**
  * @ingroup MapingApplication
@@ -142,8 +286,9 @@ public:
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination
         ) : BaseType(rModelPartOrigin, rModelPartDestination),
-            mrInputModelPartOrigin(rModelPartOrigin),
-            mrInputModelPartDestination(rModelPartDestination)
+            // NOTE: TO AVOID ERROR AT REGISTER
+            mr2DModelPart(rModelPartOrigin),
+            mr3DModelPart(rModelPartDestination)
     {
     }
 
@@ -152,9 +297,9 @@ public:
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
         Parameters JsonParameters
-        ) : BaseType(ModelPartUtility::GetOriginModelPart(rModelPartOrigin, JsonParameters), rModelPartDestination, JsonParameters),
-            mrInputModelPartOrigin(rModelPartOrigin),
-            mrInputModelPartDestination(rModelPartDestination)
+        ) : BaseType(rModelPartOrigin, rModelPartDestination, JsonParameters),
+            mr2DModelPart(Determine2DModelPart(rModelPartOrigin, rModelPartDestination)),
+            mr3DModelPart(Determine3DModelPart(rModelPartOrigin, rModelPartDestination))
     {
         KRATOS_TRY;
 
@@ -164,147 +309,41 @@ public:
         // Copying parameters
         mCopiedParameters = JsonParameters.Clone();
 
+        // Checking if the 2D modelpart is the origin model part
+        CheckOriginIs2D();
+
         // Type of metamapper considered
         GetBaseMapperType();
-        const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
 
-        // 2D model parts name if any
-        const std::string origin_2d_sub_model_part_name = mCopiedParameters["origin_2d_sub_model_part_name"].GetString();
-        mIs2DOrigin = (origin_2d_sub_model_part_name != "") ? true : false;
+        // Pre mapper creation operations when model part of origin is 2D
+        if (mOriginIs2D) {
+            // Type of mesh entity considered
+            GetEntityMeshType();
 
-        KRATOS_ERROR_IF(!mIs2DOrigin && is_geometric_based_mapper && mrInputModelPartOrigin.IsDistributed()) << "ERROR:: Geometric based mappers (\"nearest_element\"  or \"barycentric\") only work in MPI when passing a 2D model part as origin modelpart, as DelaunatorUtilities work only in serial" << std::endl;
+            // Getting the normal and reference plane 
+            GetNormalAndReferencePlane();
 
-        // We retrieve the values of interest
-        if (!mIs2DOrigin) {
-            noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
-            noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
-        } else {
-            const auto& r_origin_sub_model_part = this->GetOriginModelPart();
-            GeometryType::Pointer p_geometry = nullptr;
-            int entity = 0;
-            if (r_origin_sub_model_part.NumberOfElements() > 0) {
-                const auto first_element = r_origin_sub_model_part.ElementsBegin();
-                p_geometry = first_element->pGetGeometry();
-            } else if (r_origin_sub_model_part.NumberOfConditions() > 0) {
-                const auto first_condition = r_origin_sub_model_part.ConditionsBegin();
-                p_geometry = first_condition->pGetGeometry();
-                entity = 1;
-            }
-
-            // MPI data
-            int aux_partition_entity = -1;
-            const auto& r_communicator = r_origin_sub_model_part.GetCommunicator();
-            const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-            const int mpi_rank = r_data_communicator.Rank();
-            const int mpi_size = r_data_communicator.Size();
-
-            // Get maximum rank
-            if (p_geometry != nullptr) aux_partition_entity = mpi_rank;
-
-            // Define the send tag
-            const int tag_send_index = 1;
-            const int tag_send_normal = 2;
-            const int tag_send_point = 3;
-
-            // Determine root's rank
-            const int root_rank = 0;
-
-            // Getting the partition with entities index
-            int partition_entity = r_data_communicator.Max(aux_partition_entity, root_rank);
-
-            // Transfer to other partitions
-            if (mrInputModelPartOrigin.IsDistributed()) {
-                if (mpi_rank == root_rank) {
-                    for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
-                        r_data_communicator.Send(partition_entity, i_rank, tag_send_index);
-                    }
-                } else {
-                    r_data_communicator.Recv(partition_entity, root_rank, tag_send_index);
-                }
-            }
- 
-            // Getting from parameters if not elements or conditions
-            if (partition_entity != mpi_rank) {
-                if (!mrInputModelPartOrigin.IsDistributed()) {
-                    KRATOS_ERROR_IF_NOT(mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) << "The mapper \"nearest_element\"  or \"barycentric\" cannot be used without elements or conditions" << std::endl; // NOTE: In the MPI case if the number of elements and conditions is zero also the number of nodes is zero and therefore not projection is needed, so we can proceed even with default values of normals and reference points
-                    noalias(mNormalPlane) = mCopiedParameters["normal_plane"].GetVector();
-                    noalias(mPointPlane.Coordinates()) = mCopiedParameters["reference_plane_coordinates"].GetVector();
-                } else { // Now transfer the normal plane and the point plane between partitions
-                    // The partitions that receive
-                    r_data_communicator.Recv(mNormalPlane, partition_entity, tag_send_normal);
-                    r_data_communicator.Recv(mPointPlane.Coordinates(), partition_entity, tag_send_point);
-                }
-            } else {
-                GeometryType::CoordinatesArrayType aux_coords;
-                noalias(mPointPlane.Coordinates()) = p_geometry->Center();
-                p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
-                noalias(mNormalPlane) = p_geometry->UnitNormal(aux_coords);
-
-                // Doing a check that all normals are aligned
-                std::size_t check_normal;
-                const double numerical_limit = std::numeric_limits<double>::epsilon() * 1.0e4;
-                struct normal_check {
-                    normal_check(array_1d<double, 3>& rNormal) : reference_normal(rNormal) {};
-                    array_1d<double, 3> reference_normal;
-                    GeometryType::CoordinatesArrayType aux_coords;
-                };
-                if (entity == 0) {
-                    check_normal = block_for_each<SumReduction<std::size_t>>(r_origin_sub_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
-                        auto& r_geom = r_elem.GetGeometry();
-                        r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
-                        const auto normal = r_geom.UnitNormal(nc.aux_coords);
-                        if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
-                    });
-                } else {
-                    check_normal = block_for_each<SumReduction<std::size_t>>(r_origin_sub_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
-                        auto& r_geom = r_cond.GetGeometry();
-                        r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
-                        const auto normal = r_geom.UnitNormal(nc.aux_coords);
-                        if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
-                    });
-                }
-                KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
-
-                // The partition that sends
-                if (mrInputModelPartOrigin.IsDistributed()) {
-                    const auto& r_point_coordinates = mPointPlane.Coordinates();
-                    for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
-                        if (i_rank != partition_entity) {
-                            r_data_communicator.Send(mNormalPlane, i_rank, tag_send_normal);
-                            r_data_communicator.Send(r_point_coordinates, i_rank, tag_send_point);
-                        }
-                    }
-                }
-            }
+            // Move mesh
+            MoveModelParts();
         }
 
         // Cleaning the parameters
-        mCopiedParameters.RemoveValue("normal_plane");
-        mCopiedParameters.RemoveValue("reference_plane_coordinates");
         mCopiedParameters.RemoveValue("base_mapper");
-        mCopiedParameters.RemoveValue("origin_2d_sub_model_part_name");
-        mCopiedParameters.RemoveValue("destination_2d_sub_model_part_name");
-
-        // Move mesh
-        MoveModelParts();
 
         // Initializing the base mapper
         CreateBaseMapper();
 
-        // Unmove mesh
-        UnMoveModelParts();
+        // Post mapper creation operations when model part of origin is 2D
+        if (mOriginIs2D) {
+            // Unmove mesh
+            UnMoveModelParts();
+        }
 
         // Calling initialize
         this->Initialize();
 
         // Now we copy the mapping matrix
         BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
-
-        // Remove the created model parts for inverted mapping conflict
-        auto& r_origin_model = mrInputModelPartOrigin.GetModel();
-        if (r_origin_model.HasModelPart("projected_origin_modelpart")) {
-            r_origin_model.DeleteModelPart("projected_origin_modelpart");
-        }
 
         KRATOS_CATCH("");
     }
@@ -336,8 +375,11 @@ public:
     {
         KRATOS_TRY;
         
-        // Move mesh
-        MoveModelParts();
+        // Pre mapper creation operations when model part of origin is 2D
+        if (mOriginIs2D) {
+            // Move mesh
+            MoveModelParts();
+        }
 
         // Initializing the base mapper
         CreateBaseMapper();
@@ -345,20 +387,17 @@ public:
         // Update interface base mapper
         mpBaseMapper->UpdateInterface(MappingOptions, SearchRadius);
 
-        // Unmove mesh
-        UnMoveModelParts();
+        // Post mapper creation operations when model part of origin is 2D
+        if (mOriginIs2D) {
+            // Unmove mesh
+            UnMoveModelParts();
+        }
 
         // Calling initialize
         BaseType::UpdateInterface(MappingOptions, SearchRadius);
 
         // Now we copy the mapping matrix
         BaseType::mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(mpBaseMapper->GetMappingMatrix());
-
-        // Remove the created model parts for inverted mapping conflict
-        auto& r_origin_model = mrInputModelPartOrigin.GetModel();
-        if (r_origin_model.HasModelPart("projected_origin_modelpart")) {
-            r_origin_model.DeleteModelPart("projected_origin_modelpart");
-        }
 
         KRATOS_CATCH("");
     }
@@ -386,6 +425,24 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief This method returns the 2D model part
+     * @return The 2D model part 
+     */
+    ModelPart& Get2DModelPart()
+    {
+        return mr2DModelPart;
+    }
+
+    /**
+     * @brief This method returns the 3D model part
+     * @return The 3D model part 
+     */
+    ModelPart& Get3DModelPart()
+    {
+        return mr3DModelPart;
+    }
 
     ///@}
     ///@name Friends
@@ -423,59 +480,6 @@ public:
         BaseType::PrintData(rOStream);
     }
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    /**
-     * @brief This function creates the inverted mapping parameters if they are required to be differemt from the forward mapping parameters
-     * @details This function has to be implemented in the derived classes in case the inverted mapping parameters are required to be different from the forward mapping parameters
-     * @return The inverted mapping parameters
-     */
-    Parameters GetInvertedMappingParameters(Parameters ForwardMappingParameters) override
-    {
-        KRATOS_TRY;
-
-        // Copy the parameters
-        Parameters inverted_parameters = ForwardMappingParameters.Clone();
-
-        // Invserse 2D submodelparts mapping parameters
-        const std::string origin_2d_sub_model_part_name = inverted_parameters["origin_2d_sub_model_part_name"].GetString();
-        const std::string destination_2d_sub_model_part_name = inverted_parameters["destination_2d_sub_model_part_name"].GetString();
-        inverted_parameters["origin_2d_sub_model_part_name"].SetString(destination_2d_sub_model_part_name);
-        inverted_parameters["destination_2d_sub_model_part_name"].SetString(origin_2d_sub_model_part_name);
-        
-        return inverted_parameters;
-
-        KRATOS_CATCH("");
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -484,18 +488,33 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrInputModelPartOrigin;          /// The unaltered origin model part (as it comes from the input)
-    ModelPart& mrInputModelPartDestination;     /// The unaltered destination model part (as it comes from the input)
+    ModelPart& mr2DModelPart;                   /// The 2D model part
+    ModelPart& mr3DModelPart;                   /// The 3D model part
     BaseMapperUniquePointerType mpBaseMapper;   /// Pointer to the base mapper
     array_1d<double, 3> mNormalPlane;           /// The normal defining the plane to project
     Point mPointPlane;                          /// The coordinates of the plane to project
     Parameters mCopiedParameters;               /// The copied parameters. We copy the parameters to avoid conflicts in inverse mapping
     MetaMapperType mMetaMapperType;             /// The meta mapper type
-    bool mIs2DOrigin;                           /// If the origin model part is 2D
+    EntityTypeMesh mEntityTypeMesh;             /// The type of mesh considered
+    bool mOriginIs2D;                           /// If the 2D modelpart is the origin model part
 
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Checking if the 2D modelpart is the origin model part
+     */
+    void CheckOriginIs2D()
+    {
+        KRATOS_TRY;
+
+        const auto* p_origin_model_part = &(this->GetOriginModelPart());
+        const auto* p_2d_model_part = &(this->Get2DModelPart());
+        mOriginIs2D = p_origin_model_part == p_2d_model_part ? true : false;
+
+        KRATOS_CATCH("");
+    }
 
     /**
      * @brief Getting the base mapper type
@@ -520,29 +539,125 @@ private:
     }
 
     /**
+     * @brief Getting the mesh entity type considered
+     */
+    void GetEntityMeshType()
+    {
+        KRATOS_TRY;
+
+        // A priori in the constructor we have already checked that the 2D is not empty
+        const auto& r_2d_model_part = this->Get2DModelPart();
+        if (r_2d_model_part.NumberOfElements() > 0) {
+            mEntityTypeMesh = EntityTypeMesh::ELEMENTS;
+        } else if (r_2d_model_part.NumberOfConditions() > 0) {
+            mEntityTypeMesh = EntityTypeMesh::CONDITIONS;
+        } else {
+            mEntityTypeMesh = EntityTypeMesh::NONE; // Enum is zero, will be used to check if not elements/conditions in MPI
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Getting normal and reference plane
+     */
+    void GetNormalAndReferencePlane()
+    {
+        KRATOS_TRY;
+
+        // We retrieve the values of interest
+        const auto& r_2d_model_part = this->Get2DModelPart();
+        const bool is_distributed = r_2d_model_part.IsDistributed();
+        GeometryType::Pointer p_geometry = mEntityTypeMesh == EntityTypeMesh::NONE ? nullptr : mEntityTypeMesh == EntityTypeMesh::ELEMENTS ? r_2d_model_part.ElementsBegin()->pGetGeometry() : r_2d_model_part.ConditionsBegin()->pGetGeometry();
+
+        // MPI data
+        const auto& r_communicator = r_2d_model_part.GetCommunicator();
+        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+        const int mpi_rank = r_data_communicator.Rank();
+        const int mpi_size = r_data_communicator.Size();
+
+        // Getting the partition with entities index
+        const int partition_entity = DeterminePartitionWithEntities(r_2d_model_part);
+
+        // Define the send tag
+        const int tag_send_normal = 1;
+        const int tag_send_point = 2;
+
+        // Getting from parameters if not elements or conditions
+        if (partition_entity != mpi_rank) {
+            // Now transfer the normal plane and the point plane between partitions
+            if (is_distributed) {
+                // The partitions that receive
+                r_data_communicator.Recv(mNormalPlane, partition_entity, tag_send_normal);
+                r_data_communicator.Recv(mPointPlane.Coordinates(), partition_entity, tag_send_point);
+            }
+        } else {
+            GeometryType::CoordinatesArrayType aux_coords;
+            noalias(mPointPlane.Coordinates()) = p_geometry->Center();
+            p_geometry->PointLocalCoordinates(aux_coords, mPointPlane);
+            noalias(mNormalPlane) = p_geometry->UnitNormal(aux_coords);
+
+            // Doing a check that all normals are aligned
+            std::size_t check_normal;
+            const double numerical_limit = std::numeric_limits<double>::epsilon() * 1.0e4;
+            struct normal_check {
+                normal_check(array_1d<double, 3>& rNormal) : reference_normal(rNormal) {};
+                array_1d<double, 3> reference_normal;
+                GeometryType::CoordinatesArrayType aux_coords;
+            };
+            if (mEntityTypeMesh == EntityTypeMesh::ELEMENTS) {
+                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
+                    auto& r_geom = r_elem.GetGeometry();
+                    r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
+                    const auto normal = r_geom.UnitNormal(nc.aux_coords);
+                    if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
+                });
+            } else {
+                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
+                    auto& r_geom = r_cond.GetGeometry();
+                    r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
+                    const auto normal = r_geom.UnitNormal(nc.aux_coords);
+                    if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
+                });
+            }
+            KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
+
+            // The partition that sends
+            if (is_distributed) {
+                const auto& r_point_coordinates = mPointPlane.Coordinates();
+                for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
+                    if (i_rank != partition_entity) {
+                        r_data_communicator.Send(mNormalPlane, i_rank, tag_send_normal);
+                        r_data_communicator.Send(r_point_coordinates, i_rank, tag_send_point);
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /**
      * @brief Create the base mapper
      */
     void CreateBaseMapper()
     {
         KRATOS_TRY;
 
-        // The origin model         
-        auto& r_origin_model = mrInputModelPartOrigin.GetModel();
-
-        // Getting model parts
-        auto& r_projected_origin_modelpart = r_origin_model.HasModelPart("projected_origin_modelpart") ? r_origin_model.GetModelPart("projected_origin_modelpart") : this->GetOriginModelPart();
-        auto& r_projected_destination_modelpart = mrInputModelPartDestination;
+        // Model parts
+        auto& r_origin_model_part = this->GetOriginModelPart();
+        auto& r_destination_model_part = this->GetDestinationModelPart();
 
         // Creating the base mapper
         if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
             if (mCopiedParameters.Has("interpolation_type")) mCopiedParameters.RemoveValue("interpolation_type");
             if (mCopiedParameters.Has("local_coord_tolerance")) mCopiedParameters.RemoveValue("local_coord_tolerance");
-            mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, mCopiedParameters);
+            mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
         } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
             if (mCopiedParameters.Has("interpolation_type")) mCopiedParameters.RemoveValue("interpolation_type");
-            mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, mCopiedParameters);
-        } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
-            mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_projected_origin_modelpart, r_projected_destination_modelpart, mCopiedParameters);
+            mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
+        } else if (mMetaMapperType == MetaMapperType::BARYCENTRIC) {
+            mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
         } else {
             KRATOS_ERROR << "ERROR:: Mapper " << mCopiedParameters["base_mapper"].GetString() << " is not available as base mapper for projection" << std::endl;
         }
@@ -552,46 +667,30 @@ private:
 
     /**
      * @brief Moves the model parts
+     * @details The 3D model part is projected to the 2D plane
      */
     void MoveModelParts()
     {
         KRATOS_TRY;
 
-        // Projected origin model part. If the origin model part is not 2D we project it
-        if (!mIs2DOrigin) {
-            const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
-            if(is_geometric_based_mapper) {
-                // Origin model
-                auto& r_origin_model = mrInputModelPartOrigin.GetModel();
+        // The 3D model part
+        auto& r_3d_model_part = this->Get3DModelPart();
 
-                auto& r_projected_origin_modelpart = r_origin_model.CreateModelPart("projected_origin_modelpart");
+        // Save current configuration
+        MapperUtilities::SaveCurrentConfiguration(r_3d_model_part);
 
-                // Iterate over the existing nodes
-                double distance;
-                array_1d<double, 3> projected_point_coordinates;
-                for (auto& r_node : mrInputModelPartOrigin.Nodes()) {
-                    noalias(projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(mPointPlane, r_node, mNormalPlane, distance).Coordinates();
-                    r_projected_origin_modelpart.CreateNewNode(r_node.Id(), projected_point_coordinates[0], projected_point_coordinates[1], projected_point_coordinates[2]);
-                }
-
-                // We generate "geometries" to be able to interpolate
-                DelaunatorUtilities::CreateTriangleMeshFromNodes(r_projected_origin_modelpart);
-            } else { // Move mesh
-                MapperUtilities::SaveCurrentConfiguration(mrInputModelPartOrigin);
-
-                // Iterate over the existing nodes
-                block_for_each(mrInputModelPartOrigin.Nodes(), ProjectionVariables(mNormalPlane, mPointPlane), [&](auto& r_node, ProjectionVariables& p) {
-                    noalias(p.projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(p.reference_point, r_node, p.reference_normal, p.distance).Coordinates();
-                    noalias(r_node.Coordinates()) = p.projected_point_coordinates;
-                });
-            }
-        } 
-
-        // Projected destination model part
-        MapperUtilities::SaveCurrentConfiguration(mrInputModelPartDestination);
+        // Definition of projection variables
+        struct ProjectionVariables
+        {
+            ProjectionVariables(array_1d<double, 3>& rNormal, Point& rPoint) : reference_normal(rNormal), reference_point(rPoint) {};
+            array_1d<double, 3> reference_normal;
+            Point reference_point;
+            double distance;
+            array_1d<double, 3> projected_point_coordinates;
+        };
 
         // Iterate over the existing nodes
-        block_for_each(mrInputModelPartDestination.Nodes(), ProjectionVariables(mNormalPlane, mPointPlane), [&](auto& r_node, ProjectionVariables& p) {
+        block_for_each(r_3d_model_part.Nodes(), ProjectionVariables(mNormalPlane, mPointPlane), [&](auto& r_node, ProjectionVariables& p) {
             noalias(p.projected_point_coordinates) = GeometricalProjectionUtilities::FastProject(p.reference_point, r_node, p.reference_normal, p.distance).Coordinates();
             noalias(r_node.Coordinates()) = p.projected_point_coordinates;
         });
@@ -606,33 +705,16 @@ private:
     {
         KRATOS_TRY; 
 
-        const bool is_geometric_based_mapper = (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT || mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) ? true :  false;
-        if (!mIs2DOrigin && !is_geometric_based_mapper) {
-            MapperUtilities::RestoreCurrentConfiguration(mrInputModelPartOrigin);
-        }
-        MapperUtilities::RestoreCurrentConfiguration(mrInputModelPartDestination);
+        // The 3D model part
+        auto& r_3d_model_part = this->Get3DModelPart();
+
+        // Restore configuration
+        MapperUtilities::RestoreCurrentConfiguration(r_3d_model_part);
 
         KRATOS_CATCH("");
     }
 
-    /**
-     * @brief This function origin model part (for inverse mapping)
-     * @return The origin model part
-     */
-    ModelPart& GetOriginModelPartForInverseMapping() override
-    {
-        return mrInputModelPartDestination;
-    }
-
-    /**
-     * @brief This function destination model part (for inverse mapping)
-     * @return The destination model part
-     */
-    ModelPart& GetDestinationModelPartForInverseMapping() override
-    {
-        return mrInputModelPartOrigin;
-    }
-
+    // Functions for customizing the behavior of this Mapper
     void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems
@@ -653,15 +735,11 @@ private:
             "search_settings"                    : {},
             "echo_level"                         : 0,
             "interpolation_type"                 : "unspecified",
-            "origin_2d_sub_model_part_name"      : "",
-            "destination_2d_sub_model_part_name" : "",
             "local_coord_tolerance"              : 0.25,
             "use_initial_configuration"          : false,
             "print_pairing_status_to_file"       : false,
             "pairing_status_file_path"           : "",
-            "base_mapper"                        : "nearest_neighbor",
-            "normal_plane"                       : [0.0,0.0,1.0],
-            "reference_plane_coordinates"        : [0.0,0.0,0.0]
+            "base_mapper"                        : "nearest_neighbor"
         })");
     }
 
