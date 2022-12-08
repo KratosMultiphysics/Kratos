@@ -33,9 +33,9 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Process to create the animated Eigenvectors
-/** This process distributes a load on surface load conditions belonging to a modelpart.
- *  The load is distributed according to the surface area.
+/// Process to set the moving load 
+/** This process sorts the moving load conditions, it calculates the value and velocity of the moving load. And it places the load on the right position per
+ *solution step.
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetMovingLoadProcess : public Process
 {
@@ -136,8 +136,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    static std::vector<int> FindNonRepeatingIndices(std::vector<int> arr);
+
+    /**
+	 * \brief Finds indices of the nodes within the conditions model part, which do not share are condition within the model part.
+	 * \param IndicesVector vector of all the node indices, which are found in the condition elements.
+	 * \return vector of non repeating node indices within the model part
+	 */
+    static std::vector<int> FindNonRepeatingIndices(std::vector<int> IndicesVector);
 
     /**
 	 * \brief Finds condition elements which are at the spatial ends of the conditions vector. This function checks which condition's points are not repeated

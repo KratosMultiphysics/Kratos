@@ -74,7 +74,7 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
 }
 
 
- std::vector<int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<int> IndicesVector)
+std::vector<int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<int> IndicesVector)
 {
     // Insert all array elements in hash
     // table
