@@ -92,19 +92,21 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
           
 }
 
-bool SetMovingLoadProcess::SwapPoints(double first_coord, double second_coord, int direction)
+
+ bool SetMovingLoadProcess::IsSwapPoints(double first_coord, double second_coord, int direction)
 {
     // swap points if points are sorted in opposite order compared to direction
     if ((first_coord < second_coord) && (direction < 0))
     {
         return true;
     }
-    if ((first_coord > second_coord) && (direction >0))
+    if ((first_coord > second_coord) && (direction > 0))
     {
         return true;
     }
     return false;
 }
+
 
 Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions)
 {
@@ -137,25 +139,26 @@ Condition& SetMovingLoadProcess::GetFirstCondition(Point first_point, Point seco
 }
 
 
-bool SetMovingLoadProcess::SortConditionPoints(Condition& rCondition, vector<int> direction)
+
+bool SetMovingLoadProcess::IsConditionReversed(Condition& rCondition, vector<int> direction)
 {
     auto& rPoints = rCondition.GetGeometry().Points();
     if (abs(rPoints[0].X0() - rPoints[1].X0()) > DBL_EPSILON)
     {
-        return SwapPoints(rPoints[0].X0(), rPoints[1].X0(), direction[0]);
+        return IsSwapPoints(rPoints[0].X0(), rPoints[1].X0(), direction[0]);
     }
     if (abs(rPoints[0].Y0() - rPoints[1].Y0()) > DBL_EPSILON)
     {
-        return SwapPoints(rPoints[0].Y0(), rPoints[1].Y0(), direction[1]);
+        return IsSwapPoints(rPoints[0].Y0(), rPoints[1].Y0(), direction[1]);
     }
-    return SwapPoints(rPoints[0].Z0(), rPoints[1].Z0(), direction[2]);
+    return IsSwapPoints(rPoints[0].Z0(), rPoints[1].Z0(), direction[2]);
 }
 
 
 
 std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition)
 {
-    //ModelPart::ConditionsContainerType& sorted_conditions = unsorted_conditions;
+
     std::vector<Condition> unsorted_conditions_v(unsorted_conditions.begin(), unsorted_conditions.end());
 
     std::vector<Condition> sorted_conditions;
@@ -227,6 +230,11 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
     return sorted_conditions;
 }
 
+/**
+ * \brief Finds condition elements which are at the spatial ends of the conditions vector. This function checks which condition's points are not repeated
+ * in this conditions model part. If nodes are not repeated, it means that the condition is at one of the spatial ends. 
+ * \return Vector of the two end conditions.
+ */
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {
     std::vector<int> node_id_vector;
@@ -280,6 +288,7 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 {
     double global_distance = 0;
+    // loop over sorted conditions
     for (unsigned int i = 0; i < mSortedConditions.size(); ++i)
     {
         auto& r_cond = mSortedConditions[i];
@@ -287,7 +296,11 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
         const double element_length = r_geom.Length();
 
         Point local_point;
+
+        // read origin point
         const array_1d<double, 3> origin_point = mParameters["origin"].GetVector();
+
+        // if origin point is within the current condition, set the global distance of the load, else continue the loop
         if (r_geom.IsInside(origin_point, local_point))
         {
             const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
@@ -300,20 +313,20 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
             {
                 mCurrentDistance = global_distance + local_to_global_distance;
             }
-
         }
+
+        // add element length of current condition to the global distance
         global_distance += element_length;
     }
 }
+
 
 void SetMovingLoadProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-
+    // clear load functions vector
     mLoadFunctions.clear();
-
-    const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
 	// check if load input is a function or numeric and add load to member variable
     if (mParameters["load"][0].IsString())
@@ -323,30 +336,21 @@ void SetMovingLoadProcess::ExecuteInitialize()
         {
             BasicGenericFunctionUtility load_function = BasicGenericFunctionUtility(mParameters["load"][i].GetString());
             mLoadFunctions.push_back(load_function);
-
-            mLoad[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
         }
     }
     else
     {
         mUseLoadFunction = false;
-        mLoad = mParameters["load"].GetVector();
     }
-
-
 
     // check if velocity input is a function or numeric and add velocity to member variable
     if (mParameters["velocity"].IsString())
     {
         mUseVelocityFunction = true;
-
-        BasicGenericFunctionUtility velocity_function = BasicGenericFunctionUtility(mParameters["velocity"].GetString());
-        mLoadVelocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
     }
     else
     {
         mUseVelocityFunction = false;
-        mLoadVelocity = mParameters["velocity"].GetDouble();
     }
     
     const vector<int> direction = mParameters["direction"].GetVector();
@@ -361,7 +365,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
 
 	// Initialise vector which indicates if nodes in condition are in direction of movement
     mIsCondReversedVector.clear();
-    mIsCondReversedVector.push_back(SortConditionPoints(r_first_cond, direction));
+    mIsCondReversedVector.push_back(IsConditionReversed(r_first_cond, direction));
     mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
 
     InitializeDistanceLoadInSortedVector();
@@ -369,8 +373,12 @@ void SetMovingLoadProcess::ExecuteInitialize()
     KRATOS_CATCH("")
 }
 
+
 void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 {
+
+    array_1d<double, 3> load_vector;
+
 	// retrieve load from load function if given
     if (mUseLoadFunction)
     {
@@ -379,16 +387,20 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 
         for (unsigned int i =0; i< mLoadFunctions.size();++i)
         {
-            mLoad[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
+            load_vector[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
         }
     }
-
+    else
+    {
+	    load_vector = mParameters["load"].GetVector();
+    }
     
     double distance_cond = 0;
 
     // bool to check if load is already added, such that a load is not added twice if the load is exactly at a shared node.
     bool is_moving_load_added = false;
 
+    // loop over sorted conditions vector
     for (unsigned int i = 0; i < mSortedConditions.size(); ++i) 
     {
         auto& r_cond = mSortedConditions[i];
@@ -408,7 +420,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
                 local_distance = mCurrentDistance - distance_cond;
             }
             
-            r_cond.SetValue(POINT_LOAD, mLoad);
+            r_cond.SetValue(POINT_LOAD, load_vector);
 
             // distance is correct assuming nodes in condition are correctly sorted, the sorting is done while initializing this process
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, local_distance);
@@ -423,8 +435,11 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     }
 }
 
+
+
 void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 {
+    double load_velocity;
     // retrieve load velocity from velocity function if given
     if (mUseVelocityFunction)
     {
@@ -433,14 +448,16 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 
         BasicGenericFunctionUtility velocity_function = BasicGenericFunctionUtility(mParameters["velocity"].GetString());
 
-
 		// update velocity value
-        mLoadVelocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
+        load_velocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
+    }
+    else
+    {
+        load_velocity = mParameters["velocity"].GetDouble();
     }
 
-
     // move the load
-    mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * mLoadVelocity;
+    mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * load_velocity;
 }
 
 }  // namespace Kratos.
