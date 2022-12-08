@@ -179,7 +179,7 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
                     }
                 }
             } else {
-                r_data_communicator.Recv(model_part_index, partition_entity_1, tag_send_index);
+                r_data_communicator.Recv(model_part_index, partition_entity_2, tag_send_index);
             }
             if (model_part_index > 0) {
                 return rSecondModelPart;
