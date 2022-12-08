@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_QS_VMS_DERIVATIVE_UTILITIES_H)
-#define KRATOS_QS_VMS_DERIVATIVE_UTILITIES_H
+#pragma once
 
 // System includes
 #include <array>
@@ -294,5 +293,3 @@ private:
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_QS_VMS_DERIVATIVE_UTILITIES_H

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_DERIVATIVES_H)
-#define KRATOS_DERIVATIVES_H
+#pragma once
 
 // System includes
 #include <tuple>
@@ -172,5 +171,3 @@ public:
     ///@}
 };
 }
-
-#endif // KRATOS_DERIVATIVES_H

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_ADJOINT_ELEMENT_H)
-#define KRATOS_FLUID_ADJOINT_ELEMENT_H
+#pragma once
 
 // System includes
 
@@ -300,5 +299,3 @@ protected:
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_ADJOINT_ELEMENT_H

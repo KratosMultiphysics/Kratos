@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_QS_VMS_RESIDUAL_FIRST_DERIVATIVES_H)
-#define KRATOS_QS_VMS_RESIDUAL_FIRST_DERIVATIVES_H
+#pragma once
 
 // System includes
 
@@ -558,5 +557,3 @@ public:
 };
 
 } // namespace Kratos
-
-#endif // KRATOS_QS_VMS_RESIDUAL_ADJOINT_DERIVATIVES_H

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_QS_VMS_ADJOINT_ELEMENT_DATA_H)
-#define KRATOS_QS_VMS_ADJOINT_ELEMENT_DATA_H
+#pragma once
 
 // System includes
 
@@ -151,4 +150,3 @@ public:
     ///@}
 };
 } // namespace Kratos
-#endif // KRATOS_QS_VMS_ADJOINT_ELEMENT_DATA_H
