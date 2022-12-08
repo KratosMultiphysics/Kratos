@@ -123,9 +123,6 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
         const int partition_entity_2 = DeterminePartitionWithEntities(rSecondModelPart);
         KRATOS_ERROR_IF(partition_entity_1 == -1 && partition_entity_2 == -1) << "ERROR:: Both model parts are empty (no elements or not conditions)" << std::endl;
 
-        // Determine root's rank
-        const int root_rank = 0;
-
         // Define the send tag
         const int tag_send_index = 1;
 
