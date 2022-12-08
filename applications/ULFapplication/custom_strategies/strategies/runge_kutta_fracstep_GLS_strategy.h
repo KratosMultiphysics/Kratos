@@ -35,7 +35,7 @@
 
 
 #include <stdio.h>      /* printf */
-#include <math.h>       /* cos */
+#include <cmath>       /* cos */
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 

@@ -408,7 +408,7 @@ private:
     ///@name Access
     ///@{
     Vector GetStressVector() {return mStressVector;}
-    void SetStressVector(const Vector toStressVector) {mStressVector = toStressVector;}
+    void SetStressVector(const Vector& toStressVector) {mStressVector = toStressVector;}
     ///@}
     ///@name Member Variables
     ///@{

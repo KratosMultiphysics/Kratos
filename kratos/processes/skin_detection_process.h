@@ -156,11 +156,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -188,7 +186,6 @@ public:
     ///@{
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -242,7 +239,8 @@ protected:
         HashMapVectorIntType& rInverseFaceMap,
         HashMapVectorIntIdsType& rPropertiesFaceMap,
         std::unordered_set<IndexType>& rNodesInTheSkin,
-        const std::string& rConditionName) const;
+        const std::string& rConditionName
+        ) const;
 
     /** @brief Assing new conditions to additional ModelParts (if requested by user).
      *  @param[in] rAuxiliaryModelPart ModelPart containing the new conditions.
@@ -279,7 +277,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -295,16 +292,29 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method generates a set with the ids of the nodes of the interface
+     * @param[in/out]  rSetNodeIdsInterface The set of ids of the nodes of the interface
+     */
+    void GenerateSetNodeIdsInterface(std::unordered_set<IndexType>& rSetNodeIdsInterface);
+
+    /**
+     * @brief This method filters the nodes of the MPI interface from the 
+     * @param[in] rSetNodeIdsInterface The set of ids of the nodes of the interface
+     * @param[in/out] rInverseFaceMap auxiliary data structure describing the outer faces of the domain.
+     */
+    void FilterMPIInterfaceNodes(
+        const std::unordered_set<IndexType>& rSetNodeIdsInterface,
+        HashMapVectorIntType& rInverseFaceMap
+        );
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods

@@ -50,6 +50,8 @@ add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/DamApplication;
+add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 
 # Clean
 clear
@@ -63,7 +65,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=ON \
--DPYBIND11_PYTHON_VERSION="3.8" \
+-DPYTHON_EXECUTABLE="/usr/bin/python3.10" \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \

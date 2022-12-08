@@ -15,9 +15,7 @@
 
 #if !defined(KRATOS_LOCAL_REFINE_GEOMETRY_MESH)
 #define  KRATOS_LOCAL_REFINE_GEOMETRY_MESH
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+
 
 // NOTE: Before compute the remeshing it is necessary to compute the neighbours
 
@@ -26,14 +24,11 @@
 // Extrenal includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
+#include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
-#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "processes/node_erase_process.h"
 
 namespace Kratos
 {
@@ -243,7 +238,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+        ModelPart& mModelPart;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -272,8 +267,6 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-
-    ModelPart& mModelPart;
 
     ///@}
     ///@name Private Operators

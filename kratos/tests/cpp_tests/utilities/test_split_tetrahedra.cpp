@@ -57,7 +57,7 @@ void SearchExternalFaces(
 void PrintEdgesAndExternalFaces(
     const unsigned int Permutation,
     const std::vector<int> &rEdgeIntVect,
-    const std::vector<Geometry<Node<3>>> rSubTetrasExtFaces)
+    const std::vector<Geometry<Node<3>>>& rSubTetrasExtFaces)
 {
     std::cout << "(("
         << rEdgeIntVect[0] << ","

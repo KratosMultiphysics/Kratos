@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"

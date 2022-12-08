@@ -4,20 +4,19 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MPC_CONTACT_CRITERIA_H)
-#define  KRATOS_MPC_CONTACT_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
 #include "utilities/variable_utils.h"
@@ -156,7 +155,7 @@ public:
     {
         BaseType::PreCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Auxiliar zero array
+        // Auxiliary zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // We initailize the contact force
@@ -239,7 +238,7 @@ public:
             // Checking just after first iteration
             // We get the YOUNG_MODULUS
             const double young_modulus = p_properties->Has(YOUNG_MODULUS) ? p_properties->GetValue(YOUNG_MODULUS) : 0.0;
-            const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
+            const double auxiliary_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
 
             // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
             auto& r_nodes_array = r_contact_model_part.Nodes();
@@ -257,7 +256,7 @@ public:
                         const double contact_force = inner_prod(r_total_force, r_normal);
                         const double contact_pressure = contact_force/rNode.GetValue(NODAL_MAUX);
 
-                        if (contact_pressure < auxiliar_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
+                        if (contact_pressure < auxiliary_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
                             // We save the contact force
                             rNode.SetValue(CONTACT_FORCE, contact_force/rNode.GetValue(NODAL_PAUX) * r_normal);
                             rNode.SetValue(NORMAL_CONTACT_STRESS, contact_pressure);
@@ -278,7 +277,7 @@ public:
                 using TwoReduction = CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>;
                 std::tie(is_active_set_converged, is_slip_converged) = block_for_each<TwoReduction>(r_nodes_array, [&](NodeType& rNode) {
                     if (rNode.Is(SLAVE)) {
-                        const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
+                        const double auxiliary_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
                         // The contact force corresponds with the reaction in the normal direction
                         const array_1d<double, 3>& r_total_force = rNode.FastGetSolutionStepValue(REACTION);
 
@@ -288,7 +287,7 @@ public:
                         const double contact_force = inner_prod(r_total_force, r_normal);
                         const double normal_contact_pressure = contact_force/rNode.GetValue(NODAL_MAUX);
 
-                        if (normal_contact_pressure < auxiliar_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
+                        if (normal_contact_pressure < auxiliary_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
                             // We save the contact force
                             rNode.SetValue(CONTACT_FORCE, r_total_force/rNode.GetValue(NODAL_PAUX));
                             rNode.SetValue(NORMAL_CONTACT_STRESS, normal_contact_pressure);
@@ -566,6 +565,4 @@ private:
 ///@{
 
 }  // namespace Kratos
-
-#endif /* KRATOS_MPC_CONTACT_CRITERIA_H  defined */
 

@@ -188,14 +188,14 @@ class ContactRemeshMmgProcess(MmgProcess):
                     index_to_remove = i
 
             # Copying
-            auxiliar_parameters = KratosMultiphysics.Parameters("""{"metric_variable" : [], "non_historical_metric_variable" : [], "normalization_factor" : [], "normalization_alpha" : [], "normalization_method" : []}""")
+            auxiliary_parameters = KratosMultiphysics.Parameters("""{"metric_variable" : [], "non_historical_metric_variable" : [], "normalization_factor" : [], "normalization_alpha" : [], "normalization_method" : []}""")
             for i in range(number_of_metric_variable):
                 if not i == index_to_remove:
-                    auxiliar_parameters["metric_variable"].Append(settings["hessian_strategy_parameters"]["metric_variable"][i])
-                    auxiliar_parameters["non_historical_metric_variable"].Append(settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i])
-                    auxiliar_parameters["normalization_factor"].Append(settings["hessian_strategy_parameters"]["normalization_factor"][i])
-                    auxiliar_parameters["normalization_alpha"].Append(settings["hessian_strategy_parameters"]["normalization_alpha"][i])
-                    auxiliar_parameters["normalization_method"].Append(settings["hessian_strategy_parameters"]["normalization_method"][i])
+                    auxiliary_parameters["metric_variable"].Append(settings["hessian_strategy_parameters"]["metric_variable"][i])
+                    auxiliary_parameters["non_historical_metric_variable"].Append(settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i])
+                    auxiliary_parameters["normalization_factor"].Append(settings["hessian_strategy_parameters"]["normalization_factor"][i])
+                    auxiliary_parameters["normalization_alpha"].Append(settings["hessian_strategy_parameters"]["normalization_alpha"][i])
+                    auxiliary_parameters["normalization_method"].Append(settings["hessian_strategy_parameters"]["normalization_method"][i])
 
             # Removing old
             settings["hessian_strategy_parameters"].RemoveValue("metric_variable")
@@ -205,13 +205,13 @@ class ContactRemeshMmgProcess(MmgProcess):
             settings["hessian_strategy_parameters"].RemoveValue("normalization_method")
 
             # Adding new
-            settings["hessian_strategy_parameters"].AddValue("metric_variable", auxiliar_parameters["metric_variable"])
-            settings["hessian_strategy_parameters"].AddValue("non_historical_metric_variable", auxiliar_parameters["non_historical_metric_variable"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_factor", auxiliar_parameters["normalization_factor"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_alpha", auxiliar_parameters["normalization_alpha"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_method", auxiliar_parameters["normalization_method"])
+            settings["hessian_strategy_parameters"].AddValue("metric_variable", auxiliary_parameters["metric_variable"])
+            settings["hessian_strategy_parameters"].AddValue("non_historical_metric_variable", auxiliary_parameters["non_historical_metric_variable"])
+            settings["hessian_strategy_parameters"].AddValue("normalization_factor", auxiliary_parameters["normalization_factor"])
+            settings["hessian_strategy_parameters"].AddValue("normalization_alpha", auxiliary_parameters["normalization_alpha"])
+            settings["hessian_strategy_parameters"].AddValue("normalization_method", auxiliary_parameters["normalization_method"])
 
-        # Auxiliar dictionary with the variables and index
+        # Auxiliary dictionary with the variables and index
         self.variables_dict = {}
         number_of_metric_variable = settings["hessian_strategy_parameters"]["metric_variable"].size()
         for i in range(number_of_metric_variable):
@@ -369,7 +369,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         # We call to the base process
         super().ExecuteFinalize()
 
-    def _AuxiliarCallsBeforeRemesh(self):
+    def _AuxiliaryCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh
 
         Keyword arguments:
@@ -399,7 +399,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         # We create the contact submodelparts
         self.main_model_part.CreateSubModelPart("Contact")
 
-    def _AuxiliarCallsAfterRemesh(self):
+    def _AuxiliaryCallsAfterRemesh(self):
         """ This method is executed right after execute the remesh
 
         Keyword arguments:

@@ -168,20 +168,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -470,7 +456,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         const Matrix& rSerialProjector,
         const Vector& rSerialStrainMatrix,
         Vector& rStrainVectorMatrix,
-        Vector& rStrainVectorFiber);
+        Vector& rStrainVectorFiber,
+        ConstitutiveLaw::Parameters& rValues,
+        const int Iteration = 1);
 
     /**
      * This method computes the initial aproximation of the Newton-Raphson procedure
@@ -505,8 +493,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
     void IntegrateStressesOfFiberAndMatrix(
         ConstitutiveLaw::Parameters& rValues,
-        Vector rMatrixStrainVector,
-        Vector rFiberStrainVector,
+        Vector& rMatrixStrainVector,
+        Vector& rFiberStrainVector,
         Vector& rMatrixStressVector,
         Vector& rFiberStressVector,
         const ConstitutiveLaw::StressMeasure& rStressMeasure);
@@ -670,9 +658,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
     ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
     double mFiberVolumetricParticipation;
-    Vector mParallelDirections = ZeroVector(6);
-    Vector mPreviousStrainVector = ZeroVector(6);
+    array_1d<double, 6> mParallelDirections = ZeroVector(6);
+    array_1d<double, 6> mPreviousStrainVector = ZeroVector(6);
     Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
+    bool mIsPrestressed = false;
 
     ///@}
     ///@name Private Operators
@@ -681,15 +670,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor
-     * @param rMaterialProperties The material properties
-     */
-    void CalculateElasticMatrix(
-        Matrix& rElasticityTensor,
-        const Properties& rMaterialProperties);
 
     ///@}
     ///@name Private  Access

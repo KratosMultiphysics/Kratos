@@ -971,9 +971,9 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-        // Auxiliar stress vector
+        // Auxiliary stress vector
         const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
+        Vector auxiliary_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -994,13 +994,13 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(auxiliary_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
-        noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+        noalias(rValues.GetStressVector()) = auxiliary_stress_vector;
 
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
@@ -1053,9 +1053,9 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-        // Auxiliar stress vector
+        // Auxiliary stress vector
         const auto it_prop_begin            = r_material_properties.GetSubProperties().begin();
-        Vector auxiliar_stress_vector       = ZeroVector(VoigtSize);
+        Vector auxiliary_stress_vector       = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1076,14 +1076,14 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(auxiliary_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
         Vector &r_stress_vector = rValues.GetStressVector();
-        noalias(r_stress_vector) = auxiliar_stress_vector;
+        noalias(r_stress_vector) = auxiliary_stress_vector;
 
         if (rValues.IsSetDeterminantF()) {
             // we push forward the stress
@@ -1451,7 +1451,7 @@ int ParallelRuleOfMixturesLaw<TDim>::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // The auxiliar output
+    // The auxiliary output
     int aux_out = 0;
 
     KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No constitutive laws defined" << std::endl;
@@ -1532,7 +1532,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateTangentTensor(ConstitutiveLaw::Pa
 template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -1551,7 +1551,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
+    // Some auxiliary values
     const SizeType dimension = WorkingSpaceDimension();
     Vector& r_strain_vector = rValues.GetStrainVector();
 

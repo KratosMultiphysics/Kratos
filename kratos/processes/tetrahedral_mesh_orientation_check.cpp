@@ -136,7 +136,7 @@ void TetrahedralMeshOrientationCheck::Execute()
                 if(it_face != faces_map.end()) { // It was actually found!!
                     // Mark the condition as visited. This will be useful for a check at the endif
                     std::vector<Condition::Pointer>& list_conditions = it_face->second;
-                    for (Condition::Pointer p_cond : list_conditions) {
+                    for (const Condition::Pointer& p_cond : list_conditions) {
                         p_cond->Set(VISITED,true);
                     }
 
@@ -144,7 +144,7 @@ void TetrahedralMeshOrientationCheck::Execute()
                         GlobalPointersVector< Element > vector_of_neighbours;
                         vector_of_neighbours.resize(1);
                         vector_of_neighbours(0) = Element::WeakPointer( *it_elem.base() );
-                        for (Condition::Pointer p_cond : list_conditions) {
+                        for (const Condition::Pointer& p_cond : list_conditions) {
                             p_cond->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
                         }
                     }
@@ -179,7 +179,7 @@ void TetrahedralMeshOrientationCheck::Execute()
                         }
                     }
                     if(mrOptions.Is(COMPUTE_CONDITION_NORMALS)) {
-                        for (Condition::Pointer p_cond : list_conditions) {
+                        for (const Condition::Pointer& p_cond : list_conditions) {
                             p_cond->SetValue(NORMAL, face_normal );
                         }
                     }
