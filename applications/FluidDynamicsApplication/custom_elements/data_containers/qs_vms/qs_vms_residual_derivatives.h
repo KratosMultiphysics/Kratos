@@ -36,6 +36,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Computes the QSVMS residual derivatives
+ *
+ * This class holds sub-classes which are required to compute QSVMS residual derivatives
+ * with respect to given variables.
+ *
+ * @tparam TDim
+ * @tparam TNumNodes
+ */
 template <unsigned int TDim, unsigned int TNumNodes>
 class QSVMSResidualDerivatives
 {
@@ -84,12 +93,26 @@ public:
     ///@name Class Declarations
     ///@{
 
+    /**
+     * @brief The data container for the QSVMS residuals
+     *
+     * This data container is used for all the derivative computations. So, this
+     * is used to store common data which are required for derivative computations
+     * between different variables.
+     *
+     */
     class QSVMSResidualData;
 
     ///@}
     ///@name Classes
     ///@{
 
+    /**
+     * @brief Computes residual contributions
+     *
+     * This class is used to compute the gauss point residuals.
+     *
+     */
     class ResidualsContributions
     {
     public:
@@ -125,6 +148,14 @@ public:
         ///@}
     };
 
+    /**
+     * @brief Computes QS VMS residual derivative residuals for given variable
+     *
+     * This class is capable of computing QS VMS redisual derivative with respect to
+     * given derivative variable (information is provided via TDerivativesType)
+     *
+     * @tparam TDerivativesType     Derivative computation class which holds information on how to compute coefficient derivatives
+     */
     template<class TDerivativesType>
     class VariableDerivatives
     {
@@ -385,6 +416,13 @@ public:
         ///@}
     };
 
+    /**
+     * @brief Computes second derivatives of the QS VMS residual
+     *
+     * This class computes second derivatives with respect to given state variables
+     *
+     * @tparam TComponentIndex
+     */
     template<unsigned int TComponentIndex>
     class SecondDerivatives
     {
