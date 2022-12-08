@@ -27,6 +27,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
+#include "utilities/dense_householder_qr_decomposition.h"
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -205,29 +206,39 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
     // TODO: ACTIVATE AGAIN / FIND A WAY TO DEAL WITH EDGE NODES!
     // check if node lies on edge
     // TODO: for all element types
-    for (const auto& r_neighbour : r_neighbours) {
-        int count = 0;
-        for (const auto& r_condition_neighbour : r_condition_neighbours) {
-            for (int i = 0; i < r_condition_neighbour->GetGeometry().PointsNumber(); ++i) {
-                if (r_condition_neighbour->GetGeometry()[i].Id() == r_neighbour->Id()) count++;
-            }
-        }
-        if (count < 2) {
-            r_gaussian_curvature = 0;
-            return;
-        }
-    }
+    // for (const auto& r_neighbour : r_neighbours) {
+    //     int count = 0;
+    //     for (const auto& r_condition_neighbour : r_condition_neighbours) {
+    //         for (int i = 0; i < r_condition_neighbour->GetGeometry().PointsNumber(); ++i) {
+    //             if (r_condition_neighbour->GetGeometry()[i].Id() == r_neighbour->Id()) count++;
+    //         }
+    //     }
+    //     if (count < 2) {
+    //         r_gaussian_curvature = 0;
+    //         return;
+    //     }
+    // }
 
-    r_gaussian_curvature = 2*Globals::Pi;
+    // r_gaussian_curvature = 2*Globals::Pi;
+    r_gaussian_curvature = 0;
     double A_mixed = 0.0;
 
     for (const auto& r_condition_neighbour : r_condition_neighbours) {
-        double element_angle = 0;
-        double element_a_mixed = 0;
-        this->CalculateInnerAngleAndMixedAreaOfElementAtNode(rNode, r_condition_neighbour, element_angle, element_a_mixed);
+        // TODO: find way of dealing with quadratic/bi-quadratic elements
+        // KRATOS_INFO("ShapeOpt") << "KratosGeometryType = " << r_condition_neighbour->GetGeometry().GetGeometryType() << std::endl;
+        if (r_condition_neighbour->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6) {
+            r_gaussian_curvature += this->CalculateCurvatureOf6Node3DTriangletAtNode(rNode, r_condition_neighbour);// * r_condition_neighbour->GetGeometry().Area();
+            // A_mixed += r_condition_neighbour->GetGeometry().Area();
+            ++A_mixed;
+            // KRATOS_INFO("ShapeOpt") << "r_gaussian_curvature at node id = " << rNode.Id() << " : " << r_gaussian_curvature << std::endl;
+        } else {
+            double element_angle = 0;
+            double element_a_mixed = 0;
+            this->CalculateInnerAngleAndMixedAreaOfElementAtNode(rNode, r_condition_neighbour, element_angle, element_a_mixed);
 
-        r_gaussian_curvature -= element_angle;
-        A_mixed += element_a_mixed;
+            r_gaussian_curvature -= element_angle;
+            A_mixed += element_a_mixed;
+        }
     }
 
     // KRATOS_INFO("ShapeOpt") << "Final 2pi-inner angle at node id = " << rNode.Id() << " : " << r_gaussian_curvature << std::endl;
@@ -448,40 +459,119 @@ double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateC
         rLocalPoint[1] = 0.5;
     }
 
-    matrix<double>& r_first_derivative;
-    pElement->GetGeometry().ShapeFunctionsLocalGradients(r_first_derivative, rLocalPoint);
-    matrix<double>& r_second_derivative;
-    pElement->GetGeometry().ShapeFunctionsSecondDerivatives(r_second_derivative, rLocalPoint);
-    matrix<double>& df;
-    Kratos::ZeroVector g_1;
-    Kratos::ZeroVector g_2;
-    Kratos::ZeroVector dg_1_du;
-    Kratos::ZeroVector dg_1_dv;
-    Kratos::ZeroVector dg_2_du;
-    Kratos::ZeroVector dg_2_dv;
+    matrix<double> first_derivative;
+    pElement->GetGeometry().ShapeFunctionsLocalGradients(first_derivative, rLocalPoint);
+    GeometryData::ShapeFunctionsSecondDerivativesType second_derivative;
+    pElement->GetGeometry().ShapeFunctionsSecondDerivatives(second_derivative, rLocalPoint);
+    matrix<double> df;
+    Vector g_1(3);
+    Vector g_2(3);
+    Vector n(3);
+    Vector n_tilde(3);
+    double n_hat;
+    Vector dn_tilde_du(3);
+    Vector dn_tilde_dv(3);
+
+    Vector dg_1_du(3);
+    Vector dg_1_dv(3);
+    Vector dg_2_du(3);
+    Vector dg_2_dv(3);
     df.resize(3, 2, true);
     for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
-        g_1 += r_first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates();
-        g_2 += r_first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates();
+        g_1 += first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates();
+        g_2 += first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates();
         for (int dim = 0; dim < 3; ++dim) {
-            df(dim, 0) += r_first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates()[dim];
-            df(dim, 1) += r_first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates()[dim];
+            df(dim, 0) += first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates()[dim];
+            df(dim, 1) += first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates()[dim];
         }
-        dg_1_du += r_second_derivative[i](0,0) * pElement->GetGeometry()[i].Coordinates();
-        dg_1_dv += r_second_derivative[i](0,1) * pElement->GetGeometry()[i].Coordinates();
-        dg_2_du += r_second_derivative[i](1,0) * pElement->GetGeometry()[i].Coordinates();
-        dg_2_dv += r_second_derivative[i](1,1) * pElement->GetGeometry()[i].Coordinates();
+        dg_1_du += second_derivative[i](0,0) * pElement->GetGeometry()[i].Coordinates();
+        dg_1_dv += second_derivative[i](0,1) * pElement->GetGeometry()[i].Coordinates();
+        dg_2_du += second_derivative[i](1,0) * pElement->GetGeometry()[i].Coordinates();
+        dg_2_dv += second_derivative[i](1,1) * pElement->GetGeometry()[i].Coordinates();
+    }
+    n_tilde = MathUtils<double>::CrossProduct(g_1, g_2);
+    n_hat = MathUtils<double>::Norm3(n_tilde);
+    n = n_tilde / n_hat;
+    // g_1 /= MathUtils<double>::Norm3(g_1);
+    // g_2 /= MathUtils<double>::Norm3(g_2);
+
+    Vector dn_du = MathUtils<double>::CrossProduct(dg_1_du, g_2) + MathUtils<double>::CrossProduct(g_1, dg_2_du);
+    Vector dn_dv = MathUtils<double>::CrossProduct(dg_1_dv, g_2) + MathUtils<double>::CrossProduct(g_1, dg_2_dv);
+
+    Matrix dn(3, 2);
+    for (int i = 0; i < 3; ++i) {
+        dn(i, 0) = dn_du(i);
+        dn(i, 1) = dn_dv(i);
+    }
+    // solve least square problem df * S = dn for shape operator S [2x2] matrix
+    // with direct QR solver
+    DenseHouseholderQRDecomposition<UblasSpace<double, Matrix, Vector>> qr_decomposition;
+    qr_decomposition.Compute(df);
+    Matrix S(2, 2);
+    qr_decomposition.Solve(dn, S);
+    // eigenvalues of S => principal curvatures kappa_1 and kappa_2
+    double m = (S(0,0) + S(1,1)) / 2;
+    double p = S(0,0) * S(1,1) - S(0,1) * S(1,0);
+    double lambda_1 = m + sqrt(m*m - p);
+    double lambda_2 = m - sqrt(m*m - p);
+
+    // curvature tensor coefficients (see Klingbeil)
+    Matrix b(2,2);
+    b(0, 0) = MathUtils<double>::Dot3(dg_1_du, n);
+    b(1, 0) = MathUtils<double>::Dot3(dg_2_du, n);
+    b(0, 1) = MathUtils<double>::Dot3(dg_1_dv, n);
+    b(1, 1) = MathUtils<double>::Dot3(dg_2_dv, n);
+
+    // transform curvature tensor coefficients to standardbasis
+    Vector contra_g_1(3);
+    Vector contra_g_2(3);
+    Matrix covariant_metric(2,2);
+    covariant_metric(0,0) = MathUtils<double>::Dot3(g_1, g_1);
+    covariant_metric(1,0) = MathUtils<double>::Dot3(g_2, g_1);
+    covariant_metric(0,1) = MathUtils<double>::Dot3(g_1, g_2);
+    covariant_metric(1,1) = MathUtils<double>::Dot3(g_2, g_2);
+    Matrix contravariant_metric = MathUtils<double>::InvertMatrix2(covariant_metric);
+    contra_g_1 = contravariant_metric(0,0) * g_1 + contravariant_metric(0,1) * g_2;
+    contra_g_2 = contravariant_metric(1,0) * g_1 + contravariant_metric(1,1) * g_2;
+    Vector e_1(1, 0, 0);
+    Vector e_2(0, 1, 0);
+    Matrix b_e(2,2);
+    b_e(0,0) = b(0, 0) * MathUtils<double>::Dot3(e_1, contra_g_1) * MathUtils<double>::Dot3(contra_g_1, e_1);
+    b_e(0,0) += b(1, 0) * MathUtils<double>::Dot3(e_1, contra_g_2) * MathUtils<double>::Dot3(contra_g_1, e_1);
+    b_e(0,0) += b(0, 1) * MathUtils<double>::Dot3(e_1, contra_g_1) * MathUtils<double>::Dot3(contra_g_2, e_1);
+    b_e(0,0) += b(1, 1) * MathUtils<double>::Dot3(e_1, contra_g_2) * MathUtils<double>::Dot3(contra_g_2, e_1);
+
+    b_e(1,0) = b(0, 0) * MathUtils<double>::Dot3(e_2, contra_g_1) * MathUtils<double>::Dot3(contra_g_1, e_1);
+    b_e(1,0) += b(1, 0) * MathUtils<double>::Dot3(e_2, contra_g_2) * MathUtils<double>::Dot3(contra_g_1, e_1);
+    b_e(1,0) += b(0, 1) * MathUtils<double>::Dot3(e_2, contra_g_1) * MathUtils<double>::Dot3(contra_g_2, e_1);
+    b_e(1,0) += b(1, 1) * MathUtils<double>::Dot3(e_2, contra_g_2) * MathUtils<double>::Dot3(contra_g_2, e_1);
+
+    b_e(0,1) = b(0, 0) * MathUtils<double>::Dot3(e_1, contra_g_1) * MathUtils<double>::Dot3(contra_g_1, e_2);
+    b_e(0,1) += b(1, 0) * MathUtils<double>::Dot3(e_1, contra_g_2) * MathUtils<double>::Dot3(contra_g_1, e_2);
+    b_e(0,1) += b(0, 1) * MathUtils<double>::Dot3(e_1, contra_g_1) * MathUtils<double>::Dot3(contra_g_2, e_2);
+    b_e(0,1) += b(1, 1) * MathUtils<double>::Dot3(e_1, contra_g_2) * MathUtils<double>::Dot3(contra_g_2, e_2);
+
+    b_e(1,1) = b(0, 0) * MathUtils<double>::Dot3(e_2, contra_g_1) * MathUtils<double>::Dot3(contra_g_1, e_2);
+    b_e(1,1) += b(1, 0) * MathUtils<double>::Dot3(e_2, contra_g_2) * MathUtils<double>::Dot3(contra_g_1, e_2);
+    b_e(1,1) += b(0, 1) * MathUtils<double>::Dot3(e_2, contra_g_1) * MathUtils<double>::Dot3(contra_g_2, e_2);
+    b_e(1,1) += b(1, 1) * MathUtils<double>::Dot3(e_2, contra_g_2) * MathUtils<double>::Dot3(contra_g_2, e_2);
+
+    double gaussian_curvature = MathUtils<double>::Det2(b_e);
+
+    if (rNode.Id() == 1) {
+        KRATOS_INFO("ShapeOpt") << "Node id = " << rNode.Id() << " || Element id = " << pElement->GetId() << " : " << std::endl;
+        KRATOS_INFO("") << "g_1 = " << g_1 << " || g_2 = " << g_2 << std::endl;
+        // KRATOS_INFO("") << "df = " << df <<  std::endl;
+        // KRATOS_INFO("") << "dn = " << dn <<  std::endl;
+        // KRATOS_INFO("") << "S = " << S <<  std::endl;
+        // KRATOS_INFO("") << "m = " << m << " || p = " << p << std::endl;
+        // KRATOS_INFO("") << "lambda_1 = " << lambda_1 << " || lambda_2 = " << lambda_2 << std::endl;
+        KRATOS_INFO("") << "normal n = " << b << std::endl;
+        KRATOS_INFO("") << "curvature tensor b = " << b << std::endl;
+        KRATOS_INFO("") << "gaussian curvature = " << gaussian_curvature << std::endl;
     }
 
-    Kratos::ZeroVector dn_du;
-    Kratos::ZeroVector dn_dv;
-    dn_du = MathUtils<double>::CrossProduct(dg_1_du, g_2) + MathUtils<double>::CrossProduct(g_1, dg_2_du);
-    dn_dv = MathUtils<double>::CrossProduct(dg_1_dv, g_2) + MathUtils<double>::CrossProduct(g_1, dg_2_dv);
-
-    // TODO: solve least square problem df * S = dn
-    // => shape operator S [2x2] matrix
-    // => principal curvatures kappa_1 and kappa_2 are eigenvalues of S
-    // gaussian curvature = kappa_1 * kappa_2
+    return gaussian_curvature;
 }
 
 template <class TBaseVertexMorphingMapper>
