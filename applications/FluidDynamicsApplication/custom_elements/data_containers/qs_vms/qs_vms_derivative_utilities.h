@@ -35,6 +35,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief These are helper classes to define derivatives of coefficients of Navier-Stokes.
+ *
+ * This class defines CalculationContainerHelper classes which can be used to compute
+ * analytical Navier-Stokes coefficient derivatives.
+ *
+ * Coefficients being:
+ *      EffectiveVelocity
+ *      ElementLength
+ *      StrainRate
+ *
+ * @tparam TDim
+ */
 template <unsigned int TDim>
 class QSVMSDerivativeUtilities
 {
@@ -76,6 +89,13 @@ public:
     ///@name Classes
     ///@{
 
+    /**
+     * @brief Base class for Derivatives
+     *
+     * This implements some checks which are required for all the derivatives
+     *
+     * @tparam TComponentIndex
+     */
     template<unsigned int TComponentIndex = 0>
     class Derivative
     {
@@ -123,6 +143,15 @@ public:
         ///@}
     };
 
+    /**
+     * @brief Velocity derivative computation container
+     *
+     * This class is used to compute derivatives of effective velocity, length
+     * and strain rate with respect velocity TComponentIndex component.
+     *
+     * @tparam TNumNodes        Number of nodes in the element.
+     * @tparam TComponentIndex  Component index of the velocity.
+     */
     template<unsigned int TNumNodes, unsigned int TComponentIndex>
     class VelocityDerivative : public Derivative<TComponentIndex>
     {
@@ -174,6 +203,14 @@ public:
         ///@}
     };
 
+    /**
+     * @brief Pressure derivative computation container
+     *
+     * This class is used to compute derivatives of effective velocity, length
+     * and strain rate with respect pressure.
+     *
+     * @tparam TNumNodes        Number of nodes in the element.
+     */
     template<unsigned int TNumNodes>
     class PressureDerivative : public Derivative<0>
     {
@@ -225,6 +262,15 @@ public:
         ///@}
     };
 
+    /**
+     * @brief Shape derivative computation container
+     *
+     * This class is used to compute derivatives of effective velocity, length
+     * and strain rate with respect shape TComponentIndex component.
+     *
+     * @tparam TNumNodes        Number of nodes in the element.
+     * @tparam TComponentIndex  Component index of the shape variable (nodal coordinates component).
+     */
     template<unsigned int TNumNodes, unsigned int TComponentIndex>
     class ShapeDerivative : public Derivative<TComponentIndex>
     {
