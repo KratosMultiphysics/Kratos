@@ -519,6 +519,8 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
 
+	KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw", mGeoThermalDispersion2DLaw)
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
