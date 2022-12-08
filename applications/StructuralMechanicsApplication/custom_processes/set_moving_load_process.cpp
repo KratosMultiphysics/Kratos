@@ -17,6 +17,7 @@
 // Project includes
 #include "set_moving_load_process.h"
 
+#include <utilities/function_parser_utility.h>
 #include <utilities/mortar_utilities.h>
 
 #include "utilities/interval_utility.h"
@@ -35,7 +36,7 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
         {
             "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
             "model_part_name" : "please_specify_model_part_name",
-            "variable_name"   : "MOVING_LOAD",
+            "variable_name"   : "POINT_LOAD",
 			"is_rotation"     : true,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
@@ -47,8 +48,29 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     //IntervalUtility interval_utility(mParameters);
 
     mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    KRATOS_ERROR_IF(mParameters["load"].GetVector().size() != 3) <<
-        "'load' has to be a vector of doubles with size 3!" << std::endl;
+
+
+	// check if load parameter has size 3
+    KRATOS_ERROR_IF(mParameters["load"].size() != 3) <<
+        "'load' has to have size 3!" << std::endl;
+
+    // check if all elements in load parameter are either string or a number
+    bool is_all_string = true;
+    bool is_all_number = true;
+    for (unsigned int i = 0; i < mParameters["load"].size(); i++)
+    {
+        if (!mParameters["load"][i].IsString())
+        {
+            is_all_string = false;
+        }
+        if(!mParameters["load"][i].IsNumber())
+        {
+            is_all_number = false;
+        }
+    }
+
+    KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
+
 }
 
 
@@ -288,10 +310,45 @@ void SetMovingLoadProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-    // retrieve values from parameters
-    mLoad = mParameters["load"].GetVector();
-    mLoadVelocity = mParameters["velocity"].GetDouble();
 
+    mLoadFunctions.clear();
+
+    const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
+
+	// check if load input is a function or numeric and add load to member variable
+    if (mParameters["load"][0].IsString())
+    {
+        mUseLoadFunction = true;
+        for (unsigned int i = 0; i < mParameters["load"].size(); ++i)
+        {
+            BasicGenericFunctionUtility load_function = BasicGenericFunctionUtility(mParameters["load"][i].GetString());
+            mLoadFunctions.push_back(load_function);
+
+            mLoad[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
+        }
+    }
+    else
+    {
+        mUseLoadFunction = false;
+        mLoad = mParameters["load"].GetVector();
+    }
+
+
+
+    // check if velocity input is a function or numeric and add velocity to member variable
+    if (mParameters["velocity"].IsString())
+    {
+        mUseVelocityFunction = true;
+
+        BasicGenericFunctionUtility velocity_function = BasicGenericFunctionUtility(mParameters["velocity"].GetString());
+        mLoadVelocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
+    }
+    else
+    {
+        mUseVelocityFunction = false;
+        mLoadVelocity = mParameters["velocity"].GetDouble();
+    }
+    
     const vector<int> direction = mParameters["direction"].GetVector();
 
     // get the two line condition elements at both sides of the model part
@@ -314,6 +371,19 @@ void SetMovingLoadProcess::ExecuteInitialize()
 
 void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 {
+	// retrieve load from load function if given
+    if (mUseLoadFunction)
+    {
+        // get current time
+        const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
+
+        for (unsigned int i =0; i< mLoadFunctions.size();++i)
+        {
+            mLoad[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
+        }
+    }
+
+    
     double distance_cond = 0;
 
     // bool to check if load is already added, such that a load is not added twice if the load is exactly at a shared node.
@@ -355,6 +425,20 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 
 void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 {
+    // retrieve load velocity from velocity function if given
+    if (mUseVelocityFunction)
+    {
+        // get current time
+        const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
+
+        BasicGenericFunctionUtility velocity_function = BasicGenericFunctionUtility(mParameters["velocity"].GetString());
+
+
+		// update velocity value
+        mLoadVelocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
+    }
+
+
     // move the load
     mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * mLoadVelocity;
 }

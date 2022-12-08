@@ -516,6 +516,150 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         self.assertAlmostEqual(all_rhs[1][2], 0)
         self.assertAlmostEqual(all_rhs[1][3], 0)
 
+    def _TestSetMovingLoadWithLoadFunction(self):
+        """
+       Tests a moving load on a condition element, where the load is a function of time
+       Returns
+       -------
+
+       """
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+
+        # create nodes
+        second_coord = [1, 0, 0.0]
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
+
+        # create condition
+        cond = mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
+
+        parameters = KratosMultiphysics.Parameters("""
+                {
+                    "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
+                    "model_part_name" : "please_specify_model_part_name",
+                    "variable_name"   : "POINT_LOAD",
+                    "load"            : ["0.0", "-2.0*t", "0.0"],
+                    "direction"       : [1,1,1],
+                    "velocity"        : 1,
+                    "origin"          : [0.5,0,0]
+                }
+                """
+                                                         )
+        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
+
+        process = SMA.SetMovingLoadProcess(mp, parameters)
+
+        # initialise and set load
+        process.ExecuteInitialize()
+        process.ExecuteInitializeSolutionStep()
+
+        # initialise matrices
+        lhs = KratosMultiphysics.Matrix(0, 0)
+        rhs = KratosMultiphysics.Vector(0)
+
+        # set load on node
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        self.assertAlmostEqual(rhs[0], 0)
+        self.assertAlmostEqual(rhs[1], 0)
+        self.assertAlmostEqual(rhs[2], 0)
+        self.assertAlmostEqual(rhs[3], 0)
+
+        # change time and recalculate load
+        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
+        process.ExecuteInitializeSolutionStep()
+
+        # check if interpolation is done correctly
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        self.assertAlmostEqual(rhs[0], 0)
+        self.assertAlmostEqual(rhs[1], -0.5)
+        self.assertAlmostEqual(rhs[2], 0)
+        self.assertAlmostEqual(rhs[3], -0.5)
+
+
+    def _TestSetMovingLoadWithVelocityFunction(self):
+        """
+       Tests a moving load on a condition element, where the load velocity is a function of time.
+
+       Returns
+       -------
+
+       """
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+
+        # create nodes
+        second_coord = [1, 0, 0.0]
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
+
+        # create condition
+        cond = mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
+
+        parameters = KratosMultiphysics.Parameters("""
+                {
+                    "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
+                    "model_part_name" : "please_specify_model_part_name",
+                    "variable_name"   : "POINT_LOAD",
+                    "load"            : [0.0, -2.0, 0.0],
+                    "direction"       : [1,1,1],
+                    "velocity"        : "2.0*t",
+                    "origin"          : [0.0,0,0]
+                }
+                """
+                                                         )
+        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
+
+        process = SMA.SetMovingLoadProcess(mp, parameters)
+
+        # initialise and set load
+        process.ExecuteInitialize()
+        process.ExecuteInitializeSolutionStep()
+
+        # initialise matrices
+        lhs = KratosMultiphysics.Matrix(0, 0)
+        rhs = KratosMultiphysics.Vector(0)
+
+        # set load on node
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        self.assertAlmostEqual(rhs[0], 0)
+        self.assertAlmostEqual(rhs[1], -2)
+        self.assertAlmostEqual(rhs[2], 0)
+        self.assertAlmostEqual(rhs[3], 0)
+
+        # change time and recalculate load
+        process.ExecuteFinalizeSolutionStep()
+        process.ExecuteInitializeSolutionStep()
+
+        # check if interpolation is done correctly
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        self.assertAlmostEqual(rhs[0], 0)
+        self.assertAlmostEqual(rhs[1], -2)
+        self.assertAlmostEqual(rhs[2], 0)
+        self.assertAlmostEqual(rhs[3], 0)
+
+        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
+
+        process.ExecuteFinalizeSolutionStep()
+        process.ExecuteInitializeSolutionStep()
+
+        # check if interpolation is done correctly
+        cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
+        self.assertAlmostEqual(rhs[0], 0)
+        self.assertAlmostEqual(rhs[1], -1.5)
+        self.assertAlmostEqual(rhs[2], 0)
+        self.assertAlmostEqual(rhs[3], -0.5)
+
+
     def test_SetMovingLoad(self):
         self._TestSetMovingLoad()
 
@@ -534,6 +678,11 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
     def test_SetMovingLoadMultipleConditionsDifferentOriginReversed(self):
         self._TestSetMovingLoadMultipleConditionsDifferentOriginReversed()
 
+    def test_SetMovingLoadWithLoadFunction(self):
+        self._TestSetMovingLoadWithLoadFunction()
+
+    def test_SetMovingLoadWithVelocityFunction(self):
+        self._TestSetMovingLoadWithVelocityFunction()
 
 
 if __name__ == '__main__':

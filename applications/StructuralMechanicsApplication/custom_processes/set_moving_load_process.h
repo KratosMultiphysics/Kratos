@@ -23,6 +23,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
+#include "utilities/function_parser_utility.h"
+#include "utilities/mortar_utilities.h"
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -99,6 +101,11 @@ private:
     array_1d<int,3> mDirection;
     double mLoadVelocity;
     double mCurrentDistance;
+
+    bool mUseLoadFunction;
+    bool mUseVelocityFunction;
+
+    std::vector<BasicGenericFunctionUtility> mLoadFunctions;
 
     ///@}
     ///@name Private Operations
