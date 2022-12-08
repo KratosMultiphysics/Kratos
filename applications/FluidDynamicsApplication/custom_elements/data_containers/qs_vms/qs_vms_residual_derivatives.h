@@ -175,6 +175,23 @@ public:
         ///@name Operations
         ///@{
 
+        /**
+         * @brief Computes gauss point residual derivatives for given NodeIndex
+         *
+         * This method computes gauss point QS VMS residual derivatives w.r.t. the variable information in TDerivativesType
+         * for the NodeIndex.
+         *
+         * @param rResidualDerivative           Output derivatives vector of the Residual
+         * @param rData                         Data holder, which holds all the intermediate values computed from the primal solution which are common to all the derivatives
+         * @param NodeIndex                     Index of the node in the geometry for which the derivatives are computed for.
+         * @param W                             Gauss point weight
+         * @param rN                            Gauss point shape function values vector
+         * @param rdNdX                         Gauss point shape gradient matrix. (rows -> nodes, columns -> coordinates index)
+         * @param WDerivative                   Gauss point weight derivative w.r.t. chosen variable from TDerivativesType
+         * @param DetJDerivative                Jacobian determinant derivative w.r.t. chosen variable from TDerivativesType
+         * @param rdNdXDerivative               Gauss point shape gradient's derivatives w.r.t. chosen variable from TDerivativesType
+         * @param MassTermsDerivativesWeight    This decides whether Mass term derivativs needs to be computed or not (either 1.0 or 0.0)
+         */
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
             QSVMSResidualData& rData,
@@ -392,6 +409,19 @@ public:
         ///@name Private Operations
         ///@{
 
+        /**
+         * @brief Adds the viscous term derivative of the residual
+         *
+         * @param rData                         Data holder, which holds all the intermediate values computed from the primal solution which are common to all the derivatives
+         * @param rResidualDerivative           Output derivatives vector of the Residual
+         * @param NodeIndex                     Index of the node in the geometry for which the derivatives are computed for.
+         * @param W                             Gauss point weight
+         * @param rN                            Gauss point shape function values vector
+         * @param rdNdX                         Gauss point shape gradient matrix. (rows -> nodes, columns -> coordinates index)
+         * @param WDerivative                   Gauss point weight derivative w.r.t. chosen variable from TDerivativesType
+         * @param DetJDerivative                Jacobian determinant derivative w.r.t. chosen variable from TDerivativesType
+         * @param rdNdXDerivative               auss point shape gradient's derivatives w.r.t. chosen variable from TDerivativesType
+         */
         void static AddViscousDerivative(
             QSVMSResidualData& rData,
             VectorF& rResidualDerivative,
