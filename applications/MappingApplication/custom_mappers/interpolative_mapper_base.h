@@ -311,34 +311,6 @@ protected:
         }
     }
 
-    /**
-     * @brief This function creates the inverted mapping parameters if they are required to be differemt from the forward mapping parameters
-     * @details This function has to be implemented in the derived classes in case the inverted mapping parameters are required to be different from the forward mapping parameters
-     * @return The inverted mapping parameters
-     */
-    virtual Parameters GetInvertedMappingParameters(Parameters ForwardMappingParameters)
-    {
-        return ForwardMappingParameters.Clone();
-    }
-
-    /**
-     * @brief This function origin model part (for inverse mapping)
-     * @return The origin model part
-     */
-    virtual ModelPart& GetOriginModelPartForInverseMapping()
-    {
-        return mrModelPartDestination;
-    }
-
-    /**
-     * @brief This function destination model part (for inverse mapping)
-     * @return The destination model part
-     */
-    virtual ModelPart& GetDestinationModelPartForInverseMapping()
-    {
-        return mrModelPartOrigin;
-    }
-
     ///@}
     ///@name Protected Access
     ///@{
@@ -626,9 +598,9 @@ private:
     {
         KRATOS_TRY;
 
-        mpInverseMapper = this->Clone(GetOriginModelPartForInverseMapping(),
-                                      GetDestinationModelPartForInverseMapping(),
-                                      GetInvertedMappingParameters(mMapperSettings));
+        mpInverseMapper = this->Clone(mrModelPartDestination,
+                                      mrModelPartOrigin,
+                                      mMapperSettings);
 
         KRATOS_CATCH("");
     }
