@@ -28,6 +28,29 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Traits class to hold QSVMS adjoint element data
+ *
+ * This class provides following type information about element data
+ *      EquationAuxiliaries: Needs to provide following auxiliary static methods
+ *                              static void Check(Element&, const ProcessInfo&) method -> Checks whether required data is there
+ *                              static GeometryData::IntegrationMethod GetIntegrationMethod() -> Provides the integration method
+ *
+ *      Residual: Provides CalculationContainerTraits with the data containers and calculation containers
+ *                to compute the residuals.
+ *
+ *      ResidualStateVariableFirstDerivatives: Provides CalculationContainerTraits with data containers and calculation
+ *                                             containers to compute the residual state first derivatives.
+ *
+ *      ResidualStateVariableSecondDerivatives: Provides CalculationContainerTraits with data containers and calculation
+ *                                              containers to compute the residual state second derivatives.
+ *
+ *      ResidualShapeDerivatives: Provides CalculationContainerTraits with data containers and calculation
+ *                                containers to compute the residual shape derivatives.
+ *
+ * @tparam TDim             Dimensionality of the element.
+ * @tparam TNumNodes        Number of nodes in the element.
+ */
 template <unsigned int TDim, unsigned int TNumNodes>
 class QSVMSAdjointElementData
 {
