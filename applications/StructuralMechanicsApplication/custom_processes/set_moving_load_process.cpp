@@ -74,16 +74,16 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
 }
 
 
-std::vector<int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<int> IndicesVector)
+std::vector<unsigned int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<unsigned int> IndicesVector)
 {
     // Insert all array elements in hash
     // table
-    std::unordered_map<int, int> mp;
-    for (int i = 0; i < IndicesVector.size(); i++)
+    std::unordered_map<unsigned int, int> mp;
+    for (unsigned int i = 0; i < IndicesVector.size(); i++)
         mp[IndicesVector[i]]++;
 
     // Traverse through map only and
-    std::vector<int> non_repeating_indices;
+    std::vector<unsigned int> non_repeating_indices;
     for (auto x : mp)
         if (x.second == 1)
             non_repeating_indices.push_back(x.first);
@@ -126,12 +126,14 @@ Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(double first_coord, 
 
 Condition& SetMovingLoadProcess::GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions)
 {
+    constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     // sort on x-coord, if x coords are equal, sort on y coord, if y coord is equal sort on z-coord
-    if (abs(first_point[0] - second_point[0]) > DBL_EPSILON)
+    if (std::abs(first_point[0] - second_point[0]) > tolerance)
     {
         return GetFirstConditionFromCoord(first_point[0], second_point[0], direction[0], end_conditions);
     }
-    if (abs(first_point[1] - second_point[1]) > DBL_EPSILON)
+    if (std::abs(first_point[1] - second_point[1]) > tolerance)
     {
         return GetFirstConditionFromCoord(first_point[1], second_point[1], direction[1], end_conditions);
     }
@@ -142,12 +144,14 @@ Condition& SetMovingLoadProcess::GetFirstCondition(Point first_point, Point seco
 
 bool SetMovingLoadProcess::IsConditionReversed(Condition& rCondition, vector<int> direction)
 {
+    constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     auto& rPoints = rCondition.GetGeometry().Points();
-    if (abs(rPoints[0].X0() - rPoints[1].X0()) > DBL_EPSILON)
+    if (abs(rPoints[0].X0() - rPoints[1].X0()) > tolerance)
     {
         return IsSwapPoints(rPoints[0].X0(), rPoints[1].X0(), direction[0]);
     }
-    if (abs(rPoints[0].Y0() - rPoints[1].Y0()) > DBL_EPSILON)
+    if (abs(rPoints[0].Y0() - rPoints[1].Y0()) > tolerance)
     {
         return IsSwapPoints(rPoints[0].Y0(), rPoints[1].Y0(), direction[1]);
     }
@@ -169,7 +173,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
     bool is_cond_reversed = mIsCondReversedVector[0];
     while (visited_indices.size() != unsorted_conditions_v.size())
     {
-        for (int i =0; i< unsorted_conditions_v.size(); i++)
+        for (unsigned int i =0; i< unsorted_conditions_v.size(); i++)
         {
             Condition& r_cond = unsorted_conditions_v[i];
             GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
@@ -237,7 +241,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
  */
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {
-    std::vector<int> node_id_vector;
+    std::vector<unsigned int> node_id_vector;
     const array_1d<double, 3> origin_point = mParameters["origin"].GetVector();
 
     // get all end node ids ( not the middle nodes, in case of line3 conditions)
@@ -260,7 +264,7 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
     KRATOS_ERROR_IF_NOT(condition_is_on_line) << "Origin point of moving load is not on line" << std::endl;
 
     // find non repeating node ids
-    const std::vector<int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
+    const std::vector<unsigned int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
 
     // error if model part does not have 1 end and 1 beginning
     KRATOS_ERROR_IF_NOT(non_repeating_node_ids.size() == 2) << "Moving load condition model part needs to be connected with a beginning and end" << std::endl;
@@ -270,9 +274,9 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
     for (Condition& r_cond : mrModelPart.Conditions()) {
 
         auto& r_geom = r_cond.GetGeometry();
-        for (int i = 0; i < r_geom.size(); i++)
+        for (unsigned int i = 0; i < r_geom.size(); i++)
         {
-            for (int j = 0; j < non_repeating_node_ids.size(); j++)
+            for (unsigned int j = 0; j < non_repeating_node_ids.size(); j++)
             {
                 if (r_geom[i].Id() == non_repeating_node_ids[j])
                 {
