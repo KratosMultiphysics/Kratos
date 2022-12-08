@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -140,6 +140,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("Append", Append<Matrix>) // created due to ambiguous overload int/bool...
     .def("Append", Append<std::string>) // created due to ambiguous overload int/bool...
     .def("Append", Append<Parameters>) // created due to ambiguous overload int/bool...
+    .def("CopyValuesFromExistingParameters", &Parameters::CopyValuesFromExistingParameters)
     ;
 }
 
