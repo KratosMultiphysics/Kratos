@@ -33,7 +33,9 @@ namespace Kratos
 
 		CodeLocation();
 
-		CodeLocation(CodeLocation const & Other);
+        CodeLocation(CodeLocation&& rOther) noexcept = default;
+
+		CodeLocation(CodeLocation const & Other) = default;
 
 		CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber);
 
