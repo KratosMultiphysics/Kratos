@@ -622,7 +622,7 @@ public:
                 }
             }
         } else {
-            KRATOS_ERROR << " 'GetIntersectionPoints ' method not implemented in Line3D2 with geometry " << rThisGeometry.Info() << std::endl;
+            KRATOS_ERROR << " 'GetIntersectionPoints ' method not implemented in Triangle2D3 with geometry " << rThisGeometry.Info() << std::endl;
         }
         return intersection_points;
     }
