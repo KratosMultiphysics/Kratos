@@ -444,17 +444,12 @@ class SearchBaseProcess(KM.Process):
 
         # Create main parameters
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
-        search_parameters.AddValue("simple_search", self.settings["search_parameters"]["simple_search"])
-        search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
-        search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
+        
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
-        search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
-        search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
-        search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
-        search_parameters.AddValue("static_check_movement", self.settings["search_parameters"]["static_check_movement"])
-        search_parameters.AddValue("consider_gap_threshold", self.settings["search_parameters"]["consider_gap_threshold"])
-        search_parameters.AddValue("normal_orientation_threshold", self.settings["search_parameters"]["normal_orientation_threshold"])
-        search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
+        
+        parameter_list = ["simple_search", "type_search", "check_gap", "bucket_size", "search_factor", "dynamic_search", "static_check_movement", "consider_gap_threshold", "normal_orientation_threshold", "debug_mode"]
+        search_parameters.CopyValuesFromExistingParameters(self.settings["search_parameters"], parameter_list)
+
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
         self.__assume_master_slave(key)

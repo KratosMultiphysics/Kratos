@@ -204,11 +204,8 @@ class ContactRemeshMmgProcess(MmgProcess):
             settings["hessian_strategy_parameters"].RemoveValue("normalization_method")
 
             # Adding new
-            settings["hessian_strategy_parameters"].AddValue("metric_variable", auxiliary_parameters["metric_variable"])
-            settings["hessian_strategy_parameters"].AddValue("non_historical_metric_variable", auxiliary_parameters["non_historical_metric_variable"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_factor", auxiliary_parameters["normalization_factor"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_alpha", auxiliary_parameters["normalization_alpha"])
-            settings["hessian_strategy_parameters"].AddValue("normalization_method", auxiliary_parameters["normalization_method"])
+            parameter_list = ["metric_variable", "non_historical_metric_variable", "normalization_factor", "normalization_alpha", "normalization_method"]
+            settings["hessian_strategy_parameters"].CopyValuesFromExistingParameters(auxiliary_parameters, parameter_list)
 
         # Auxiliary dictionary with the variables and index
         self.variables_dict = {}
@@ -415,9 +412,8 @@ class ContactRemeshMmgProcess(MmgProcess):
 
         # We compute the error
         error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
-        error_compute_parameters.AddValue("stress_vector_variable", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["stress_vector_variable"])
-        error_compute_parameters.AddValue("penalty_normal", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["penalty_normal"])
-        error_compute_parameters.AddValue("penalty_tangential", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["penalty_tangential"])
+        parameter_list = ["stress_vector_variable", "penalty_normal", "penalty_tangential"]
+        error_compute_parameters.CopyValuesFromExistingParameters(self.settings["error_strategy_parameters"]["compute_error_extra_parameters"], parameter_list)
         error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
         if self.domain_size == 2:
             return ContactStructuralMechanicsApplication.ContactSPRErrorProcess2D(self.main_model_part, error_compute_parameters)
