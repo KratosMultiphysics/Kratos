@@ -1,24 +1,25 @@
 {
     "problem_data": {
-        "problem_name": "cylinder_test",
-        "start_time": 1.0e-12,
-        "end_time": 0.1,
+        "problem_name": "steady_cylinder_test",
+        "start_time": 0.0,
+        "end_time": 1.0,
         "echo_level": 0,
-        "parallel_type": "<PARALLEL_TYPE>"
+        "parallel_type": "OpenMP"
     },
-    "_output_processes": {},
     "solver_settings": {
         "solver_type": "Monolithic",
         "scheme_settings": {
-            "scheme_type": "bossak",
-            "alpha_bossak": -0.3
+            "scheme_type": "steady"
         },
         "response_function_settings": {
-            "response_type": "norm_square",
+            "response_type": "drag",
             "custom_settings": {
-                "main_model_part_name": "MainModelPart",
-                "norm_model_part_name": "MainModelPart.NoSlip2D_Cylinder",
-                "entities" : ["conditions"]
+                "structure_model_part_name": "NoSlip2D_Cylinder",
+                "drag_direction": [
+                    1.0,
+                    0.0,
+                    0.0
+                ]
             }
         },
         "sensitivity_settings": {
@@ -26,7 +27,7 @@
             "nodal_solution_step_sensitivity_variables": [
                 "SHAPE_SENSITIVITY"
             ],
-            "build_mode": "integrate",
+            "build_mode": "static",
             "nodal_solution_step_sensitivity_calculation_is_thread_safe": true
         },
         "domain_size": 2,
@@ -36,35 +37,48 @@
         "skin_parts": [
             "Inlet2D_Inlet",
             "Outlet2D_Outlet",
-            "NoSlip2D_Wall",
-            "NoSlip2D_Cylinder"
+            "NoSlip2D_Cylinder",
+            "NoSlip2D_Wall"
         ],
         "linear_solver_settings": {
             "solver_type": "amgcl",
-            "verbosity": 0,
             "coarse_enough": 500,
             "tolerance": 1e-8
         },
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "AdjointVMSSensitivity2DTest/cylinder_test"
+            "input_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+            "materials_filename": "AdjointQSVMSSensitivity2DTest/steady_cylinder_test_materials.json"
         },
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": 0.01
+            "time_step": 1.0
         },
         "formulation": {
-            "element_type"            : "vms",
+            "element_type": "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau"             : 1.0
+            "dynamic_tau": 0
         }
     },
     "processes": {
         "initial_conditions_process_list": [],
         "boundary_conditions_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Inlet2D_Inlet",
+                    "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
             {
                 "python_module": "assign_scalar_variable_process",
                 "kratos_module": "KratosMultiphysics",
@@ -80,7 +94,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.Inlet2D_Inlet",
+                    "model_part_name": "MainModelPart.NoSlip2D_Cylinder",
                     "variable_name": "ADJOINT_FLUID_VECTOR_1",
                     "value": [
                         0.0,
@@ -104,7 +118,24 @@
                 }
             }
         ],
-        "gravity": [],
+        "gravity": [
+            {
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Parts_Fluid",
+                    "variable_name": "BODY_FORCE",
+                    "modulus": 0.0,
+                    "constrained": false,
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
         "auxiliar_process_list": [
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
@@ -113,31 +144,15 @@
                 "process_name": "",
                 "Parameters": {
                     "model_part_name": "MainModelPart",
-                    "file_settings": {
-                        "file_access_mode": "read_only"
-                    },
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": [
                             "VELOCITY",
-                            "PRESSURE",
-                            "ACCELERATION",
-                            "NORMAL",
-                            "BODY_FORCE"
+                            "PRESSURE"
                         ]
                     },
                     "nodal_data_value_settings": {
                         "list_of_variables": [
-                            "Y_WALL"
-                        ]
-                    },
-                    "nodal_flag_value_settings": {
-                        "list_of_variables": [
-                            "SLIP"
-                        ]
-                    },
-                    "condition_flag_value_settings": {
-                        "list_of_variables": [
-                            "SLIP"
+                            "RELAXED_ACCELERATION"
                         ]
                     }
                 }
