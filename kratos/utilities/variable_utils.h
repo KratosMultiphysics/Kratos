@@ -767,7 +767,7 @@ public:
         const int Step,
         const TVariableArgs&... rVariableArgs)
     {
-        block_for_each(rNodes, [&](NodeType& rNode){(
+        block_for_each(rNodes, [&](auto& rNode){(
             AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode, Step), ...);
         });
     }
