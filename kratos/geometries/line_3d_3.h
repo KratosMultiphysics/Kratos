@@ -346,15 +346,15 @@ public:
     */
     double Length() const override
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(2);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
-        const double lz = point0.Z() - point1.Z();
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double length = 0.0;
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            length += temp[i] * integration_points[i].Weight();
+        }
 
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
+        return length;
     }
 
     /** This method calculate and return area or surface area of
@@ -590,100 +590,7 @@ public:
 
         return rResult;
     }
-
-    /** Determinant of jacobians for given integration method. This
-     * method calculate determinant of jacobian in all
-     * integrations points of given integration method.
-     *
-     * @return Vector of double which is vector of determinants of
-     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-     * integration point index of given integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /** Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
-     * of jacobian in given integration point of given integration
-     * method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which determinant of jacobians has to be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-
-    * Inverse of jacobians for given integration method. This method
-     * calculate inverse of jacobians matrices in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /** Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point which inverse of jacobians has to
-     * be calculated in it.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /** Inverse of jacobian in given point. This method calculate inverse of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
+    
 
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
@@ -752,25 +659,6 @@ public:
         }
 
         return 0;
-    }
-
-    ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     ///@}
