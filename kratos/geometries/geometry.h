@@ -3780,11 +3780,14 @@ public:
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
+        Matrix J(this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
+        double DetJ;
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ ) {
             if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
-            this->InverseOfJacobian(Jinv,pnt, ThisMethod);
+            this->Jacobian(J,pnt, ThisMethod);
+            MathUtils<double>::GeneralizedInvertMatrix(J, Jinv, DetJ);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
             rDeterminantsOfJacobian[pnt] = DetJ;
         }
