@@ -1151,16 +1151,24 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    if (this->Has(rThisVariable)) {
-        return this->GetValue(rThisVariable, rValue);
-    } else {
-        if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
-            return mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
-        } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
-            return mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
-        }
-    }
+    if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
+        const auto &props = rParameterValues.GetMaterialProperties();
+        const auto it_cl_begin = props.GetSubProperties().begin();
+        const auto r_props_matrix_cl = *(it_cl_begin);
+        rParameterValues.SetMaterialProperties(r_props_matrix_cl);
+        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        rParameterValues.SetMaterialProperties(props);
         return rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
+        const auto &props = rParameterValues.GetMaterialProperties();
+        const auto it_cl_begin = props.GetSubProperties().begin();
+        const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+        rParameterValues.SetMaterialProperties(r_props_fiber_cl);
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        rParameterValues.SetMaterialProperties(props);
+        return rValue;
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
