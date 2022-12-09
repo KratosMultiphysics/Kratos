@@ -395,7 +395,7 @@ public:
      * @brief Generates a clone of the current document
      * @return A clone of the given Parameters
      */
-    Parameters Clone();
+    Parameters Clone() const;
 
     /**
      * @brief This method returns a string with the corresponding text to the equivalent *.json file
@@ -530,6 +530,14 @@ public:
     bool IsMatrix() const;
 
     /**
+     * @brief Templetized type checker for supported types.
+     * @details Supported types: double, int, bool, std::string, @ref Vector, @ref Matrix.
+     * @tparam TValue: type of the value to parse.
+     */
+    template <class TValue>
+    bool Is() const;
+
+    /**
      * @brief This method checks if the parameter is a subparameter
      * @return True if it is a suparameter, false otherwise
      */
@@ -578,6 +586,14 @@ public:
     Matrix GetMatrix() const;
 
     /**
+     * @brief Templetized getter for supported types.
+     * @details Supported types: double, int, bool, std::string, @ref Vector, @ref Matrix.
+     * @tparam TValue: type of the value to parse and return.
+     */
+    template <class TValue>
+    TValue Get() const;
+
+    /**
      * @brief This method sets the double contained in the current Parameter
      * @param Value The double value
      */
@@ -618,6 +634,15 @@ public:
      * @param Value The matrix value
      */
     void SetMatrix(const Matrix& rValue);
+
+    /**
+     * @brief Templetized setter for supported types.
+     * @details Supported types: double, int, bool, std::string, @ref Vector, @ref Matrix.
+     * @tparam TValue: type of the value to be set.
+     * @param rValue: value to be written to the JSON.
+     */
+    template <class TValue>
+    void Set(const TValue& rValue);
 
     /**
      * @brief This method adds a new double Parameter

@@ -390,7 +390,7 @@ Parameters& Parameters::operator=(Parameters&& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters Parameters::Clone()
+Parameters Parameters::Clone() const
 {
     //TODO: make a clone
     //TODO: find a better way to make the copy
@@ -711,6 +711,38 @@ Matrix Parameters::GetMatrix() const
     }
 
     return aux_A;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+#define KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(TYPE, TYPE_NAME)                                \
+    template <> bool Parameters::Is<TYPE>() const {return this->Is ## TYPE_NAME();}              \
+    template <> TYPE Parameters::Get<TYPE>() const {return this->Get ## TYPE_NAME();}            \
+    template <> void Parameters::Set<TYPE>(const TYPE& rValue) {this->Set ## TYPE_NAME(rValue);}
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(double, Double)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(int, Int)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(bool, Bool)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::string, String)
+
+//KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(std::vector<std::string>, StringArray) // <== missing Parameters::IsStringArray()
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Vector, Vector)
+
+KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS(Matrix, Matrix)
+
+#undef KRATOS_DEFINE_PARAMETERS_VALUE_ACCESSORS
+
+// Is, Get, and Set for subparameters
+
+template <>
+bool Parameters::Is<Parameters>() const
+{
+    return this->IsSubParameter();
 }
 
 /***********************************************************************************/
