@@ -405,6 +405,56 @@ public:
         return false;
     }
 
+    /**
+     * @brief Determinant of jacobians for given integration method.
+     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
+     * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
+     * @see Jacobian
+     * @see InverseOfJacobian
+     */
+    Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
+    {
+        const std::size_t number_of_integration_points = this->IntegrationPointsNumber( ThisMethod );
+        if( rResult.size() != number_of_integration_points)
+            rResult.resize( number_of_integration_points, false );
+
+        Matrix J(3, 1);
+        for (std::size_t pnt = 0; pnt < number_of_integration_points; ++pnt) {
+            this->Jacobian( J, pnt, ThisMethod);
+            rResult[pnt] = std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2) + std::pow(J(2,0), 2));
+        }
+        return rResult;
+    }
+
+    /**
+     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculate determinant of jacobian in given integration point of given integration method.
+     * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
+     * @param IntegrationPointIndex index of integration point which determinant of jacobians has to be calculated in it.
+     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
+     * @see Jacobian
+     * @see InverseOfJacobian
+     */
+    double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
+    {
+        Matrix J(3, 1);
+        this->Jacobian( J, IntegrationPointIndex, ThisMethod);
+        return std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2) + std::pow(J(2,0), 2));
+    }
+
+    /**
+     * @brief Determinant of jacobian in given point. This method calculate determinant of jacobian matrix in given point.
+     * @param rPoint point which determinant of jacobians has to be calculated in it.
+     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given point.
+     * @see DeterminantOfJacobian
+     * @see InverseOfJacobian
+     */
+    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
+    {
+        Matrix J(3, 1);
+        this->Jacobian( J, rPoint);
+        return std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2) + std::pow(J(2,0), 2));
+    }
+
     ///@}
     ///@name Edges and faces
     ///@{
