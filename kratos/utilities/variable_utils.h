@@ -752,7 +752,7 @@ public:
             AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
         });
     }
-    
+
     /**
      * @brief Set the Historical Variables To Zero
      * This method sets the provided list of variables to zero in the nodal historical database
@@ -1728,7 +1728,7 @@ private:
         NodeType& rNode,
         const int Step = 0)
     {
-        if constexpr(std::is_integral_v<TDataType> || std::is_floating_point_v<TDataType>) {
+        if constexpr(std::is_integral_v<TDataType> || std::is_floating_point_v<TDataType> || std::is_same_v<TDataType, Matrix> || std::is_same_v<TDataType, Vector>) {
             rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         } else {
             noalias(rNode.FastGetSolutionStepValue(rVariable, Step)) = rValue;
