@@ -483,6 +483,19 @@ bool Parameters::RemoveValue(const std::string& rEntry)
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool Parameters::RemoveValues(const std::vector<std::string>& rEntries)
+{
+    bool sucess;
+    for (auto& r_entry : rEntries) {
+        sucess = this->RemoveVale(r_entry);
+        if (!sucess) return false;
+    }
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::json_iteration_proxy Parameters::items() noexcept
 {
     return mpValue->items();

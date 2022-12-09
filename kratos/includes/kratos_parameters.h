@@ -457,6 +457,13 @@ public:
     bool RemoveValue(const std::string& rEntry);
 
     /**
+     * @brief This method removes several entries of the Parameters given a certain list of keys
+     * @param rEntries The keys identifier of the parameters
+     * @return False if failed, true otherwise
+     */
+    bool RemoveValues(const std::vector<std::string>& rEntries);
+
+    /**
      * @brief This method returns the items of the current parameter
      * @return The items of the current Parameter
      */
