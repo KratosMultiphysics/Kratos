@@ -340,11 +340,12 @@ public:
     double Length() const override
     {
         Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        const auto& r_integration_order_required_analytical_solution = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        this->DeterminantOfJacobian( temp, r_integration_order_required_analytical_solution );
+        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( r_integration_order_required_analytical_solution );
         double length = 0.0;
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            length += temp[i] * integration_points[i].Weight();
+        for ( unsigned int i = 0; i < r_integration_points.size(); i++ ) {
+            length += temp[i] * r_integration_points[i].Weight();
         }
 
         return length;
