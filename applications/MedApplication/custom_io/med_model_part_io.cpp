@@ -31,10 +31,58 @@ MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName)
 {
     KRATOS_TRY
 
-    mFileHandle = MEDfileOpen("test1.med", MED_ACC_RDWR);
+
+    med_int v_hdf_major, v_hdf_minor, v_hdf_release;
+    med_int v_med_major, v_med_minor, v_med_release;
+
+    MEDlibraryHdfNumVersion(&v_hdf_major, &v_hdf_minor, &v_hdf_release);
+    MEDlibraryNumVersion(&v_med_major, &v_med_minor, &v_med_release);
+
+    KRATOS_WATCH(v_hdf_major)
+    KRATOS_WATCH(v_hdf_minor)
+    KRATOS_WATCH(v_hdf_release)
+
+    KRATOS_WATCH(v_med_major)
+    KRATOS_WATCH(v_med_minor)
+    KRATOS_WATCH(v_med_release)
+
+    KRATOS_WATCH(MED_MAJOR_NUM)
+    KRATOS_WATCH(MED_NUM_MINEUR)
+    KRATOS_WATCH(MED_NUM_RELEASE)
+
+    // TODO check macros vs what comes from the functions (both for HDF abd MED)
+    // might indicate that versions are differen, aka different versions of the library loaded at runtime!
+    // probably do in the MedApplication class, in register (actually also the filehandle type check could/should be done there ...)
+
+    med_err err;
+
+    med_bool hdf_ok;
+    med_bool med_ok;
+    err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
+    KRATOS_WATCH(err)
+
+    KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "HDF is incompatible" << std::endl;
+    KRATOS_ERROR_IF(med_ok != MED_TRUE) << "MED is incompatible" << std::endl;
+
+    KRATOS_WATCH("About to open trhge file")
+
+    mFileHandle = MEDfileOpen(rFileName.c_str(), MED_ACC_RDWR);
     if (mFileHandle < 0) {
         KRATOS_WATCH("Erreur à la creation du fichier");
     }
+
+    med_int v_major;
+    med_int v_minor;
+    med_int v_release;
+
+    err = MEDfileNumVersionRd(mFileHandle, &v_major, &v_minor, &v_release);
+    KRATOS_WATCH(err)
+
+
+    KRATOS_WATCH(mFileHandle)
+    KRATOS_WATCH(v_major)
+    KRATOS_WATCH(v_minor)
+    KRATOS_WATCH(v_release)
 
 
     KRATOS_CATCH("")
