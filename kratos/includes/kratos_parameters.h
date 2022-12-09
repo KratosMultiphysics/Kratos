@@ -13,15 +13,15 @@
 
 #pragma once
 
+// System includes
+#include <filesystem>
+
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-
-// STL includes
-#include <filesystem>
 
 namespace Kratos
 {
