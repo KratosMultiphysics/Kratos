@@ -57,6 +57,16 @@ public:
     /// Pointer definition of MedModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(MedModelPartIO);
 
+    // declaring this manually to avoid the include of "med.h" in a header file
+    // a compile time check to ensure correct types is done in the source file
+#ifdef KRATOS_MED_FILE_HANDLE_TYPE_INT
+    // HDF version < 1.10
+    using MedFileHandleType = int;
+#else
+    // HDF version >= 1.10
+    using MedFileHandleType = int64_t;
+#endif
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -220,7 +230,7 @@ private:
 
     std::filesystem::path mFileName;
 
-    int mFileHandle;
+    MedFileHandleType mFileHandle;
 
     ///@}
     ///@name Private Operators

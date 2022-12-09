@@ -19,6 +19,10 @@
 #include "includes/model_part_io.h"
 #include "med_model_part_io.h"
 
+// Ensure that the type of the file handle used by Kratos is the same as what is used by MED
+// MED will not work properly if this check fails!
+static_assert(std::is_same<Kratos::MedModelPartIO::MedFileHandleType, med_idt>::value,
+    "Detecting the type of the MED file handle failed, please check the compilation/versions of MED and HDF5!");
 
 namespace Kratos {
 
