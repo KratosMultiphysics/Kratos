@@ -210,7 +210,9 @@ protected:
 
     void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
 
-    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& rGeom);
+    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& rGeom);
+
+    
     ///@}
     ///@name Protected  Access
     ///@{

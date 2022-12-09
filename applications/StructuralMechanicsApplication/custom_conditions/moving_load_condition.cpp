@@ -18,13 +18,6 @@
 // Project includes
 #include "custom_conditions/moving_load_condition.h"
 
-#include <includes/element.h>
-
-#include "includes/checks.h"
-
-#include "utilities/math_utils.h"
-#include "utilities/integration_utilities.h"
-
 namespace Kratos
 {
 //******************************* CONSTRUCTOR ****************************************
@@ -100,27 +93,27 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     const unsigned int NumberOfNodes = GetGeometry().size();
 	const unsigned int block_size = this->GetBlockSize();
     // Resizing as needed the LHS
-    unsigned int MatSize = NumberOfNodes * block_size;
+    const unsigned int mat_size = NumberOfNodes * block_size;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != MatSize )
+        if ( rLeftHandSideMatrix.size1() != mat_size)
         {
-            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false );
         }
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
 
     //resizing as needed the RHS
     if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size( ) != MatSize )
+        if ( rRightHandSideVector.size( ) != mat_size)
         {
-            rRightHandSideVector.resize( MatSize, false );
+            rRightHandSideVector.resize(mat_size, false );
         }
 
-        noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
+        noalias( rRightHandSideVector ) = ZeroVector(mat_size); //resetting RHS
     }
 
     // Vector with a loading applied to the condition
@@ -134,9 +127,9 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 
 	// check if cond should be calculated
     bool is_moving_load = false;
-    for (int i = 0; i < TDim; ++i)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
-        if (std::abs(moving_load[i]) > DBL_EPSILON && local_x_coord <=this->GetGeometry().Length() && local_x_coord >= 0.0)
+        if (std::abs(moving_load[i]) > std::numeric_limits<double>::epsilon() && local_x_coord <= this->GetGeometry().Length() && local_x_coord >= 0.0)
         {
             is_moving_load = true;
         }
@@ -145,10 +138,10 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     // apply moving load if moving load is present
     if (is_moving_load)
     {
-        GeometryType& r_geom = this->GetGeometry();
+        const GeometryType& r_geom = this->GetGeometry();
 
-        bounded_matrix<double, TDim, TDim> rotation_matrix= ZeroMatrix(TDim, TDim);
-        CalculateRotationMatrix(rotation_matrix, r_geom);
+        bounded_matrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
+        this->CalculateRotationMatrix(rotation_matrix, r_geom);
 
         // rotate load to local system
         array_1d<double, TDim> local_moving_load;
@@ -229,7 +222,8 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
             // add load to rhs
             for (unsigned int k = 0; k < TDim; ++k)
             {
-                rRightHandSideVector[base + k] += global_load_matrix(k, ii);
+                const unsigned int index = base + k;
+                rRightHandSideVector[index] += global_load_matrix(k, ii);
             }
 
 
@@ -241,7 +235,8 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 
                 //const double moment = (shape_indices[ii] == 0) ? moment_first_node[k] : moment_end_node[k];
 				//global_moment_matrix(k,ii)
-                rRightHandSideVector[base + TDim +k] = global_moment_matrix(k, ii);
+                const unsigned int index = base + TDim + k;
+                rRightHandSideVector[index] = global_moment_matrix(k, ii);
             }
         }
     }
@@ -284,7 +279,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctio
         rShapeFunctionsVector.resize(TNumNodes, false);
     }
     auto& rGeom = this->GetGeometry();
-    double length = rGeom.Length();
+    const double length = rGeom.Length();
 
     rShapeFunctionsVector[0] = local_x_coord + (pow(local_x_coord, 3) / pow(length, 2)) - 2 * (pow(local_x_coord, 2) / length);
     rShapeFunctionsVector[1] = (pow(local_x_coord, 3) / pow(length, 2)) - (pow(local_x_coord, 2) / length);
@@ -294,108 +289,6 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctio
 //************************************************************************************
 //************************************************************************************
 
-template<>
-void MovingLoadCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
-{
-    constexpr double tolerance = 1e-8;
-
-    //Unitary vector in local x direction
-    array_1d<double, 3> Vx = ZeroVector(3);
-    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
-    const double inv_norm_x = 1.0 / norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-
-    rRotationMatrix(0, 0) = Vx[0];
-    rRotationMatrix(0, 1) = Vx[1];
-
-    array_1d<double, 3> Vy = ZeroVector(3);
-    array_1d<double, 3> VyTmp = ZeroVector(3);
-    array_1d<double, 3> VzTmp = ZeroVector(3);
-
-    VyTmp[1] = 1;
-    VzTmp[2] = 1;
-
-    // Unitary vector in local y direction
-    if (fabs(Vx[0]) < tolerance && fabs(Vx[1]) < tolerance) {
-        MathUtils<double>::CrossProduct(Vy, VyTmp, Vx);
-    }
-    else {
-        MathUtils<double>::CrossProduct(Vy, VzTmp, Vx);
-    }
-
-    //Rotation Matrix
-    rRotationMatrix(0, 0) = Vx[0];
-    rRotationMatrix(0, 1) = Vx[1];
-
-    rRotationMatrix(1, 0) = Vy[0];
-    rRotationMatrix(1, 1) = Vy[1];
-}
-
-template<>
-/// <summary>
-/// Rotation matrix of a line3D3 element
-/// </summary>
-/// <param name="rRotationMatrix"></param>
-/// <param name="rGeom"></param>
-void MovingLoadCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const Element::GeometryType& rGeom)
-{
-    constexpr double tolerance = 1e-8;
-
-    //Unitary vector in local x direction
-    array_1d<double, 3> Vx;
-    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
-    const double inv_norm_x = 1.0 / norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-    Vx[2] *= inv_norm_x;
-
-    //initialise vectors in local y and z direction
-    array_1d<double, 3> Vy = ZeroVector(3);
-    array_1d<double, 3> Vz = ZeroVector(3);
-
-    array_1d<double, 3> VyTmp = ZeroVector(3);
-    array_1d<double, 3> VzTmp = ZeroVector(3);
-
-    VyTmp[1] = 1;
-    VzTmp[2] = 1;
-
-    // Unitary vector in local y direction
-    if (fabs(Vx[0]) < tolerance && fabs(Vx[1]) < tolerance) {
-        MathUtils<double>::CrossProduct(Vy, VyTmp, Vx);
-    }
-    else {
-        MathUtils<double>::CrossProduct(Vy, VzTmp, Vx);
-    }
-
-    double inv_norm_y = 1.0 / norm_2(Vy);
-    Vy[0] *= inv_norm_y;
-    Vy[1] *= inv_norm_y;
-    Vy[2] *= inv_norm_y;
-
-    // Unitary vector in local z direction
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    const double inv_norm_z = 1.0 / norm_2(Vz);
-    if (inv_norm_z > tolerance)
-    {
-        Vz[0] *= inv_norm_z;
-        Vz[1] *= inv_norm_z;
-        Vz[2] *= inv_norm_z;
-    }
-
-    //Rotation Matrix
-    rRotationMatrix(0, 0) = Vx[0];
-    rRotationMatrix(0, 1) = Vx[1];
-    rRotationMatrix(0, 2) = Vx[2];
-
-    rRotationMatrix(1, 0) = Vy[0];
-    rRotationMatrix(1, 1) = Vy[1];
-    rRotationMatrix(1, 2) = Vy[2];
-
-    rRotationMatrix(2, 0) = Vz[0];
-    rRotationMatrix(2, 1) = Vz[1];
-    rRotationMatrix(2, 2) = Vz[2];
-}
 
 template<>
 /// <summary>
@@ -403,7 +296,7 @@ template<>
 /// </summary>
 /// <param name="rRotationMatrix"></param>
 /// <param name="rGeom"></param>
-void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
+void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const GeometryType& rGeom)
 {
     constexpr double tolerance = 1e-8;
 
@@ -446,7 +339,7 @@ template< >
 /// </summary>
 /// <param name="rRotationMatrix"></param>
 /// <param name="rGeom"></param>
-void MovingLoadCondition<3, 2>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const Element::GeometryType& rGeom)
+void MovingLoadCondition<3, 2>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const GeometryType& rGeom)
 {
      constexpr double tolerance = 1e-8;
   
@@ -505,16 +398,121 @@ void MovingLoadCondition<3, 2>::CalculateRotationMatrix(BoundedMatrix<double, 3,
     rRotationMatrix(2, 2) = Vz[2];
 }
 
+
+template<>
+void MovingLoadCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const GeometryType& rGeom)
+{
+    constexpr double tolerance = 1e-8;
+
+    //Unitary vector in local x direction
+    array_1d<double, 3> Vx = ZeroVector(3);
+    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
+    const double inv_norm_x = 1.0 / norm_2(Vx);
+    Vx[0] *= inv_norm_x;
+    Vx[1] *= inv_norm_x;
+
+    rRotationMatrix(0, 0) = Vx[0];
+    rRotationMatrix(0, 1) = Vx[1];
+
+    array_1d<double, 3> Vy = ZeroVector(3);
+    array_1d<double, 3> VyTmp = ZeroVector(3);
+    array_1d<double, 3> VzTmp = ZeroVector(3);
+
+    VyTmp[1] = 1;
+    VzTmp[2] = 1;
+
+    // Unitary vector in local y direction
+    if (fabs(Vx[0]) < tolerance && fabs(Vx[1]) < tolerance) {
+        MathUtils<double>::CrossProduct(Vy, VyTmp, Vx);
+    }
+    else {
+        MathUtils<double>::CrossProduct(Vy, VzTmp, Vx);
+    }
+
+    //Rotation Matrix
+    rRotationMatrix(0, 0) = Vx[0];
+    rRotationMatrix(0, 1) = Vx[1];
+
+    rRotationMatrix(1, 0) = Vy[0];
+    rRotationMatrix(1, 1) = Vy[1];
+}
+
+
+/// <summary>
+/// Rotation matrix of a line3D3 element
+/// </summary>
+/// <param name="rRotationMatrix"></param>
+/// <param name="rGeom"></param>
+template<>
+void MovingLoadCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const GeometryType& rGeom)
+{
+    constexpr double tolerance = 1e-8;
+
+    //Unitary vector in local x direction
+    array_1d<double, 3> Vx;
+    noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
+    const double inv_norm_x = 1.0 / norm_2(Vx);
+    Vx[0] *= inv_norm_x;
+    Vx[1] *= inv_norm_x;
+    Vx[2] *= inv_norm_x;
+
+    //initialise vectors in local y and z direction
+    array_1d<double, 3> Vy = ZeroVector(3);
+    array_1d<double, 3> Vz = ZeroVector(3);
+
+    array_1d<double, 3> VyTmp = ZeroVector(3);
+    array_1d<double, 3> VzTmp = ZeroVector(3);
+
+    VyTmp[1] = 1;
+    VzTmp[2] = 1;
+
+    // Unitary vector in local y direction
+    if (fabs(Vx[0]) < tolerance && fabs(Vx[1]) < tolerance) {
+        MathUtils<double>::CrossProduct(Vy, VyTmp, Vx);
+    }
+    else {
+        MathUtils<double>::CrossProduct(Vy, VzTmp, Vx);
+    }
+
+    const double inv_norm_y = 1.0 / norm_2(Vy);
+    Vy[0] *= inv_norm_y;
+    Vy[1] *= inv_norm_y;
+    Vy[2] *= inv_norm_y;
+
+    // Unitary vector in local z direction
+    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    const double inv_norm_z = 1.0 / norm_2(Vz);
+    if (inv_norm_z > tolerance)
+    {
+        Vz[0] *= inv_norm_z;
+        Vz[1] *= inv_norm_z;
+        Vz[2] *= inv_norm_z;
+    }
+
+    //Rotation Matrix
+    rRotationMatrix(0, 0) = Vx[0];
+    rRotationMatrix(0, 1) = Vx[1];
+    rRotationMatrix(0, 2) = Vx[2];
+
+    rRotationMatrix(1, 0) = Vy[0];
+    rRotationMatrix(1, 1) = Vy[1];
+    rRotationMatrix(1, 2) = Vy[2];
+
+    rRotationMatrix(2, 0) = Vz[0];
+    rRotationMatrix(2, 1) = Vz[1];
+    rRotationMatrix(2, 2) = Vz[2];
+}
+
 //template< std::size_t TDim, std::size_t TNumNodes >
 //bool MovingLoadCondition<TDim, TNumNodes>::HasRotDof() const
 //{
 //    return GetGeometry()[0].HasDofFor(ROTATION_Z) ;
 //}
 
-template class MovingLoadCondition<2, 2>;
-template class MovingLoadCondition<3, 2>;
-template class MovingLoadCondition<2, 3>;
-template class MovingLoadCondition<3, 3>;
+template class MovingLoadCondition<2,2>;
+template class MovingLoadCondition<3,2>;
+template class MovingLoadCondition<2,3>;
+template class MovingLoadCondition<3,3>;
 
 } // Namespace Kratos
 
