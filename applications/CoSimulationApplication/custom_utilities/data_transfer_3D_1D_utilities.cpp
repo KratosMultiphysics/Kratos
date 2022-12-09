@@ -153,7 +153,7 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
                 auto p_point = points_found[i];
                 auto p_geometry = p_point->pGetElement()->pGetGeometry();
                 auto& r_geometry = *p_geometry;
-                const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+                const int intersection = static_cast<int>(IntersectionUtilities::ComputeTetrahedraLineIntersection(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2));
                 if (intersection > 0) {
                     if (intersection < 5) {
                         intersected = true;
@@ -437,7 +437,7 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
             auto p_point = points_found[i];
             auto p_geometry = p_point->pGetElement()->pGetGeometry();
             auto& r_geometry = *p_geometry;
-            const int intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2);
+            const int intersection = static_cast<int>(IntersectionUtilities::ComputeTetrahedraLineIntersection<GeometryType, array_1d<double, 3>, false>(r_geometry_tetra, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), av.intersection_point1, av.intersection_point2));
             // TODO: Actually a better alternative could be to do "a mortar", considering mass matrices between the line and the tetrahedra. This requires some extra work, and I think that the current implementation is enough for the moment
             if (intersection == 1) { // Two intersection points
                 av.line_points[0] = av.intersection_point1;
