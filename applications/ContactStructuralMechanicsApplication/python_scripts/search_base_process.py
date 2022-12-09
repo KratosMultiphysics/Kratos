@@ -38,7 +38,6 @@ class SearchBaseProcess(KM.Process):
         default_parameters = KM.Parameters("""
         {
             "help"                        : "This class is a base class used to perform the search for contact and mesh tying. This class constructs the model parts containing the conditions. The class creates search utilities to be used to create the pairs",
-            "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "search_model_part"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},

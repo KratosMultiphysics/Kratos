@@ -37,7 +37,6 @@ class ContactRemeshMmgProcess(MmgProcess):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "help"                             : "This process remeshes using MMG library. This process uses different utilities and processes. It is adapted to be used for contact problems",
-            "mesh_id"                          : 0,
             "filename"                         : "out",
             "automatic_normalization_factor"   : true,
             "consider_strain_energy"           : false,

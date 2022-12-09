@@ -38,7 +38,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         default_parameters = KM.Parameters("""
         {
             "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
-            "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -76,7 +75,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # We transfer the parameters to the base class
         base_process_settings = KM.Parameters("""{}""")
-        base_process_settings.AddValue("mesh_id", self.mesh_tying_settings["mesh_id"])
         base_process_settings.AddValue("model_part_name", self.mesh_tying_settings["model_part_name"])
         base_process_settings.AddValue("search_model_part", self.mesh_tying_settings["mesh_tying_model_part"])
         base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
