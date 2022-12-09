@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -30,6 +31,7 @@ class StabilizedAdjointFormulation(object):
             model_part.ProcessInfo[variable] = value
 
     def _SetUpClassicAdjointVMS(self,settings):
+        IssueDeprecationWarning('StabilizedAdjointFormulation', 'Please use the "qsvms" formulation instead of "vms" formulation')
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "vms",
             "use_orthogonal_subscales": false,
@@ -110,11 +112,11 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
             "consider_periodic_conditions": false,
             "assign_neighbour_elements_to_conditions": true,
             "formulation": {
-                "element_type": "vms"
+                "element_type": "qsvms"
             }
         }""")
 
-        default_settings.AddMissingParameters(super(AdjointMonolithicSolver, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -130,7 +132,6 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RELAXED_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_2)
@@ -138,6 +139,7 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AUX_ADJOINT_FLUID_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_SCALAR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        # TODO: Remove when old VMS elements are removed.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)

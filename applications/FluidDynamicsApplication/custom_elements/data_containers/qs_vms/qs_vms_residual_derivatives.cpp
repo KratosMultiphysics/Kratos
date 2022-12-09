@@ -86,7 +86,7 @@ GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIn
 template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGaussPointResidualsContributions(
     VectorF& rResidual,
-    Data& rData,
+    QSVMSResidualData& rData,
     const double W,
     const Vector& rN,
     const Matrix& rdNdX) const
@@ -137,7 +137,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddGauss
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::ResidualsContributions::AddViscousTerms(
-    Data& rData,
+    QSVMSResidualData& rData,
     VectorF& rResidual,
     const double W)
 {
@@ -157,7 +157,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 template <unsigned int TComponentIndex>
 void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TComponentIndex>::CalculateGaussPointResidualsDerivativeContributions(
     VectorF& rResidualDerivative,
-    Data& rData,
+    QSVMSResidualData& rData,
     const int NodeIndex,
     const double W,
     const Vector& rN,
@@ -183,7 +183,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::SecondDerivatives<TComponentInde
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(
+void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::Initialize(
     const Element& rElement,
     ConstitutiveLaw& rConstitutiveLaw,
     const ProcessInfo& rProcessInfo)
@@ -205,8 +205,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(
 
     // get values from process info
     mDynamicTau = rProcessInfo[DYNAMIC_TAU];
-    mOSS_SWITCH = rProcessInfo[OSS_SWITCH];
-    KRATOS_ERROR_IF(mOSS_SWITCH == 1)
+    mOSSSwitch = rProcessInfo[OSS_SWITCH];
+    KRATOS_ERROR_IF(mOSSSwitch == 1)
         << "OSS Projection adjoints are not yet supported.\n";
 
     mDeltaTime = rProcessInfo[DELTA_TIME];
@@ -245,7 +245,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::Initialize(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
+void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::CalculateGaussPointData(
     const double W,
     const Vector& rN,
     const Matrix& rdNdX)

@@ -4,18 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
-#define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
-
-// System includes
+#pragma once
 
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
@@ -23,6 +19,9 @@
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
+
+// STL includes
+#include <filesystem>
 
 namespace Kratos
 {
@@ -804,6 +803,16 @@ public:
     void Append(const Parameters& rValue);
 
     /**
+     * @brief This method can be used in order to copy the values from existing Parameters object
+     * @param OriginParameters The Parameters to be copied
+     * @param rListParametersToCopy The list of Parameters to copy
+     */
+    void CopyValuesFromExistingParameters(
+        const Parameters OriginParameters,
+        const std::vector<std::string>& rListParametersToCopy
+        );
+
+    /**
      * @brief This method looks in a recursive way in the json structure
      * @param rBaseValue The value where to find
      * @param rValueToFind The value to look
@@ -877,7 +886,6 @@ public:
      */
     void RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const;
 
-
     ///@}
     ///@name Access
     ///@{
@@ -908,36 +916,6 @@ public:
     {
 //         rOStream << "Parameters Object " << Info();
     };
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
     ///@name Static Member Variables
@@ -1036,6 +1014,22 @@ private:
      */
     void InternalSetValue(const Parameters& rOtherValue);
 
+    /**
+     * @brief This method solves all the include dependencies in a json file
+     * @param rJson The json object
+     * @param rFileName name of the current json file ("root" if called from the constructor)
+     * @param rIncludeSequence a stack containing the current sequence of included JSON files
+     * @return This method leaves in rJson the final json object with no include dependencies
+     */
+    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence);
+
+    /**
+     * @brief This method parses a json file.
+     * @param rFileName The JSON file's name.
+     * @return The JSON object obtained from parsing the file.
+     */
+    nlohmann::json ReadFile(const std::filesystem::path& rFileName);
+
 }; // Parameters class
 
 ///@}
@@ -1070,5 +1064,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_KRATOS_PARAMETERS_H_INCLUDED  defined

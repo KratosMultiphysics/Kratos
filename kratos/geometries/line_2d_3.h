@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_2D_3_H_INCLUDED )
-#define  KRATOS_LINE_2D_3_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1172,5 +1171,3 @@ const GeometryDimension Line2D3<TPointType>::msGeometryDimension(
     2, 2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined

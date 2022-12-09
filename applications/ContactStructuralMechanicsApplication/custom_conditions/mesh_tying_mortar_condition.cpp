@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -273,7 +273,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size )
         rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
-    // Creating an auxiliar vector
+    // Creating an auxiliary vector
     VectorType aux_right_hand_side_vector = Vector();
 
     // Calculate condition system
@@ -289,7 +289,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Creating an auxiliar matrix
+    // Creating an auxiliary matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Compute the matrix size

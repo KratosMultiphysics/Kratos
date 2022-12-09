@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_ADJOINT_ELEMENT_H)
-#define KRATOS_FLUID_ADJOINT_ELEMENT_H
+#pragma once
 
 // System includes
 
@@ -271,23 +270,56 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Adds fluid residual contributions
+     *
+     * @param rResidual
+     * @param rCurrentProcessInfo
+     */
     void AddFluidResidualsContributions(
         VectorType& rResidual,
         const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * @brief Adds fluid residual derivatives w.r.t. state variables
+     *
+     * @param rDerivativesMatrix
+     * @param rCurrentProcessInfo
+     * @param MassTermsDerivativesWeight
+     */
     void AddFluidFirstDerivatives(
         MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo,
         const double MassTermsDerivativesWeight = 1.0);
 
+    /**
+     * @brief Adds fluid residual second derivatives w.r.t. state variables
+     *
+     * @param rDerivativesMatrix
+     * @param rCurrentProcessInfo
+     */
     void AddFluidSecondDerivatives(
         MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * @brief Adds fluid residual derivatives w.r.t. shape variables (nodal coordinates)
+     *
+     * @param rDerivativesMatrix
+     * @param rCurrentProcessInfo
+     */
     void AddFluidShapeDerivatives(
         MatrixType& rDerivativesMatrix,
         const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * @brief Computes shape function data for all the gauss points
+     *
+     * @param rGaussWeights         Gauss point weights
+     * @param rNContainer           Gauss point shape functions (each row corresponds to a specific gauss point)
+     * @param rDN_DX                Gauss point shape function gradients (vector of matrices)
+     * @param rIntegrationMethod    Integration method to be used to compute above gauss point quantities.
+     */
     void CalculateGeometryData(
         Vector& rGaussWeights,
         Matrix& rNContainer,
@@ -300,5 +332,3 @@ protected:
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_ADJOINT_ELEMENT_H

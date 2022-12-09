@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_ADJOINT_TEST_UTILITIES_H_INCLUDED)
-#define KRATOS_FLUID_ADJOINT_TEST_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <functional>
@@ -85,5 +84,3 @@ public:
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_ADJOINT_TEST_UTILITIES_H_INCLUDED
