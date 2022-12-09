@@ -38,6 +38,19 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+enum class IntersectionUtilitiesLineTetrahedra
+{
+    NO_INTERSECTION = 0,                     // (disjoint - no intersection)
+    TWO_POINTS_INTERSECTION = 1,             // (intersect in two points)
+    ONE_POINTS_INTERSECTION = 2,             // (intersect in one point)
+    TWO_POINTS_INTERSECTION_BOTH_INSIDE = 3, // (intersect in two points inside the tetrahedra)
+    TWO_POINTS_INTERSECTION_ONE_INSIDE = 4,  // (intersect in two points, one inside the tetrahedra)
+    FIRST_CORNER = 5,                        // (intersect in the first corner of the tetrahedra)
+    SECOND_CORNER = 6,                       // (intersect in the second corner of the tetrahedra)
+    THIRD_CORNER = 7,                        // (intersect in the thid corner of the tetrahedra)
+    FOURTH_CORNER = 8                        // (intersect in the fourth corner of the tetrahedra)
+};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -59,7 +72,6 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) IntersectionUtilities
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
@@ -248,18 +260,18 @@ public:
      * @return rIntersectionPoint1 The first intersection point coordinates
      * @return rIntersectionPoint2 The second intersection point coordinates
      * @return The intersection type index:
-     *         0 (disjoint - no intersection)
-     *         1 (intersect in two points)
-     *         2 (intersect in one point)
-     *         3 (intersect in two points inside the tetrahedra)
-     *         4 (intersect in two points, one inside the tetrahedra)
-     *         5 (intersect in the first corner of the tetrahedra)
-     *         6 (intersect in the second corner of the tetrahedra)
-     *         7 (intersect in the thid corner of the tetrahedra)
-     *         8 (intersect in the fourth corner of the tetrahedra)
+     *         NO_INTERSECTION (disjoint - no intersection)
+     *         TWO_POINTS_INTERSECTION (intersect in two points)
+     *         ONE_POINTS_INTERSECTION (intersect in one point)
+     *         TWO_POINTS_INTERSECTION_BOTH_INSIDE (intersect in two points inside the tetrahedra)
+     *         TWO_POINTS_INTERSECTION_ONE_INSIDE (intersect in two points, one inside the tetrahedra)
+     *         FIRST_CORNER (intersect in the first corner of the tetrahedra)
+     *         SECOND_CORNER (intersect in the second corner of the tetrahedra)
+     *         THIRD_CORNER (intersect in the thid corner of the tetrahedra)
+     *         FOURTH_CORNER (intersect in the fourth corner of the tetrahedra)
      */
     template <class TGeometryType, class TCoordinatesType, bool TConsiderInsidePoints = true>
-    static int ComputeTetrahedraLineIntersection(
+    static IntersectionUtilitiesLineTetrahedra ComputeTetrahedraLineIntersection(
         const TGeometryType& rTetrahedraGeometry,
         const TCoordinatesType& rLinePoint1,
         const TCoordinatesType& rLinePoint2,
@@ -283,18 +295,18 @@ public:
             return rGeometry.IsInside(point_projected, local_coordinates);
         };
 
-        int solution = 0;
+        IntersectionUtilitiesLineTetrahedra solution = IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION;
         for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
             array_1d<double,3> intersection_point;
             const int face_solution = ComputeTriangleLineIntersection(r_face, rLinePoint1, rLinePoint2, intersection_point, Epsilon);
             if (face_solution == 1) { // The line intersects the face
-                if (solution == 0) {
+                if (solution == IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION) {
                     noalias(rIntersectionPoint1) = intersection_point;
-                    solution = 2;
+                    solution = IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION;
                 } else {
                     if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                         noalias(rIntersectionPoint2) = intersection_point;
-                        solution = 1;
+                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION;
                         break;
                     }
                 }
@@ -337,42 +349,42 @@ public:
                         if ((diff1m < Epsilon || diff1p < Epsilon) && (diff2m < Epsilon || diff2p < Epsilon)) {
                             // First point
                             if (is_inside_projected(r_edge, rLinePoint1)) { // Is inside the line
-                                if (solution == 0) {
+                                if (solution == IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION) {
                                     noalias(rIntersectionPoint1) = rLinePoint1;
-                                    solution = 2;
+                                    solution = IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION;
                                 } else {
                                     if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
                                         noalias(rIntersectionPoint2) = rLinePoint1;
-                                        solution = 1;
+                                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION;
                                         break;
                                     }
                                 }
                             } else { // Is in the border of the line
-                                if (solution == 0) {
+                                if (solution == IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION) {
                                     noalias(rIntersectionPoint1) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
-                                    solution = 2;
+                                    solution = IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION;
                                 } else {
                                     noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
                                     if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                                         noalias(rIntersectionPoint2) = intersection_point;
-                                        solution = 1;
+                                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION;
                                         break;
                                     }
                                 }
                             }
                             // Second point
-                            if (solution == 2) {
+                            if (solution == IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION) {
                                 if (is_inside_projected(r_edge, rLinePoint2)) { // Is inside the line
                                     if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) { // Must be different from the first one
                                         noalias(rIntersectionPoint2) = rLinePoint2;
-                                        solution = 1;
+                                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION;
                                         break;
                                     }
                                 } else { // Is in the border of the line
                                     noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint2) <  norm_2(r_edge_point_2 - rLinePoint2) ? r_edge_point_1 : r_edge_point_2;
                                     if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                                         noalias(rIntersectionPoint2) = intersection_point;
-                                        solution = 1;
+                                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION;
                                         break;
                                     }
                                 }
@@ -381,13 +393,13 @@ public:
                             }
                         }
                     } else { // Direct intersection
-                        if (solution == 0) {
+                        if (solution == IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION) {
                             noalias(rIntersectionPoint1) = intersection_point;
-                            solution = 2;
+                            solution = IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION;
                         } else {
                             if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                                 noalias(rIntersectionPoint2) = intersection_point;
-                                solution = 1;
+                                solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION;
                                 break;
                             }
                         }
@@ -399,34 +411,34 @@ public:
 
         // Check if points are inside 
         if constexpr (TConsiderInsidePoints) {
-            if (solution == 0) {
+            if (solution == IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION) {
                 array_1d<double,3> local_coordinates;
                 if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
                     noalias(rIntersectionPoint1) = rLinePoint1;
-                    solution = 4;
+                    solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION_ONE_INSIDE;
                 }
                 if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
-                    if (solution == 0) {
+                    if (solution == IntersectionUtilitiesLineTetrahedra::NO_INTERSECTION) {
                         noalias(rIntersectionPoint1) = rLinePoint2;
-                        solution = 4;
+                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION_ONE_INSIDE;
                     } else {
                         noalias(rIntersectionPoint2) = rLinePoint2;
-                        solution = 3;
+                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION_BOTH_INSIDE;
                     }
                 }
-            } else if (solution == 2) {
+            } else if (solution == IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION) {
                 array_1d<double,3> local_coordinates;
                 if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
                     if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
                         noalias(rIntersectionPoint2) = rLinePoint1;
-                        solution = 4;
+                        solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION_ONE_INSIDE;
                     }
                 } 
-                if (solution == 2) {
+                if (solution == IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION) {
                     if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
                         if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
                             noalias(rIntersectionPoint2) = rLinePoint2;
-                            solution = 4;
+                            solution = IntersectionUtilitiesLineTetrahedra::TWO_POINTS_INTERSECTION_ONE_INSIDE;
                         }
                     }
                 }
@@ -434,7 +446,7 @@ public:
         }
 
         // Checking if any node of the tetrahedra
-        if (solution == 2) {
+        if (solution == IntersectionUtilitiesLineTetrahedra::ONE_POINTS_INTERSECTION) {
             // Detect the node of the tetrahedra and directly assign
             int index_node = -1;
             for (int i_node = 0; i_node < 4; ++i_node) {
@@ -445,7 +457,7 @@ public:
             }
             // Return index
             if (index_node > -1) {
-                return index_node + 5;
+                return static_cast<IntersectionUtilitiesLineTetrahedra>(index_node + 5);
             }
         }
 
