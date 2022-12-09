@@ -5,13 +5,17 @@ message("**** configuring KratosMedApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}) # for FindMED
 find_package(MED REQUIRED)
 
 # MED uses HDF
 # TODO check interoperability with the HDFapp, both in serial and parallel
 if (NOT HDF5_FOUND)
     find_package(HDF5 REQUIRED COMPONENTS C)
+endif()
+
+if(HDF5_VERSION VERSION_LESS "1.10" )
+    add_definitions(-DKRATOS_MED_FILE_HANDLE_TYPE_INT)
 endif()
 
 include_directories(${MED_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS})
