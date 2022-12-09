@@ -40,6 +40,7 @@
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/assign_mpcs_to_neighbours_utility.h"
+#include "utilities/assign_periodic_mpcs_to_neighbours_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -364,6 +365,20 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable){
             return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable);})
         // .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
+        ;
+    
+    // Radial Node Search and Periodic MPCs Assignation Utility
+    using NodesContainerType = typename AssignMPCsToNeighboursUtility::NodesContainerType;
+    py::class_<AssignPeriodicMPCsToNeighboursUtility>(m, "AssignPeriodicMPCsToNeighboursUtility")
+        .def(py::init<ModelPart&, ModelPart&, const int, const double, IndexType>())
+        .def("SearchCloudOfNodesForNodes", &AssignPeriodicMPCsToNeighboursUtility::SearchCloudOfNodesForNodes)
+        .def("AssignRotationToNodes", &AssignPeriodicMPCsToNeighboursUtility::AssignRotationToNodes)
+        // .def("AssignMPCsToNodes", &AssignPeriodicMPCsToNeighboursUtility::AssignMPCsToNodes)
+        .def("AssignMPCsToNodes", [](AssignPeriodicMPCsToNeighboursUtility& rAssignPeriodicMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable){
+            return rAssignPeriodicMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable);})
+        .def("AssignMPCsToNodes", [](AssignPeriodicMPCsToNeighboursUtility& rAssignPeriodicMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable){
+            return rAssignPeriodicMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable);})
+        // .def("AssignMPCsToNodes", &AssignPeriodicMPCsToNeighboursUtility::AssignMPCsToNodes)
         ;
 }
 

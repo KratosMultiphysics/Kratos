@@ -134,7 +134,6 @@ public:
         GetContainer(mrModelPart, entities_array);
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
-        KRATOS_WATCH("HELLO")
         auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end));
         paux.swap(mpBinsObjectDynamic);
 
@@ -244,6 +243,7 @@ public:
 
                 // Find local position
                 array_1d<double, 3> point_local_coordinates;
+                KRATOS_WATCH(r_geom)
                 const bool is_found = LocalIsInside(r_geom, rCoordinates, point_local_coordinates, Tolerance);
                 r_geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
 
