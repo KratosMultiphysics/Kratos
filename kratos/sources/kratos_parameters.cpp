@@ -487,7 +487,7 @@ bool Parameters::RemoveValues(const std::vector<std::string>& rEntries)
 {
     bool sucess;
     for (auto& r_entry : rEntries) {
-        sucess = this->RemoveVale(r_entry);
+        sucess = this->RemoveValue(r_entry);
         if (!sucess) return false;
     }
     return true;
