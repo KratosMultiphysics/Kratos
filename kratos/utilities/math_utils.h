@@ -1985,11 +1985,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MATH_UTILS  defined */
