@@ -31,6 +31,7 @@ namespace Testing
         // Set auxilary nodal structure
         Model test_model;
         auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+        r_test_model_part.SetBufferSize(2);
         r_test_model_part.AddNodalSolutionStepVariable(PRESSURE);
         r_test_model_part.AddNodalSolutionStepVariable(VELOCITY);
         r_test_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -55,10 +56,17 @@ namespace Testing
             noalias(r_node.FastGetSolutionStepValue(VELOCITY)) = aux_vect;
             noalias(r_node.FastGetSolutionStepValue(DISPLACEMENT)) = aux_vect;
             r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT) = aux_mat;
+
+            r_node.FastGetSolutionStepValue(PRESSURE, 1) = 1.0;
+            r_node.FastGetSolutionStepValue(TEMPERATURE, 1) = 1.0;
+            noalias(r_node.FastGetSolutionStepValue(VELOCITY, 1)) = aux_vect;
+            noalias(r_node.FastGetSolutionStepValue(DISPLACEMENT, 1)) = aux_vect;
+            r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT, 1) = aux_mat;
         }
 
         // Set some values to zero in the non-historical database
         VariableUtils::SetHistoricalVariablesToZero(r_test_model_part.Nodes(), PRESSURE, TEMPERATURE, VELOCITY, DISPLACEMENT, DEFORMATION_GRADIENT);
+        VariableUtils::SetHistoricalVariablesToZero(r_test_model_part.Nodes(), 1, PRESSURE, TEMPERATURE, VELOCITY, DISPLACEMENT, DEFORMATION_GRADIENT);
 
         // Values are properly allocated
         const double tolerance = 1.0e-12;
@@ -68,6 +76,12 @@ namespace Testing
             KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroVector(3), tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroVector(3), tolerance);
             KRATOS_CHECK_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+
+            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(PRESSURE, 1), 0.0, tolerance);
+            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE, 1), 0.0, tolerance);
+            KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY, 1), ZeroVector(3), tolerance);
+            KRATOS_CHECK_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT, 1), ZeroVector(3), tolerance);
+            KRATOS_CHECK_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT, 1), ZeroMatrix(0,0), tolerance);
         }
     }
 
