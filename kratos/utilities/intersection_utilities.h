@@ -240,6 +240,7 @@ public:
     /**
      * @brief Find the 3D intersection of a line (bounded) with a tetrahedra (bounded)
      * @tparam TGeometryType The geometry type
+     * @tparam TCoordinatesType The type of coordinates
      * @tparam TConsiderInsidePoints If considering inside points or just the intersections in the faces
      * @param rTriangleGeometry Is the tetrahedra to intersect
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
@@ -257,28 +258,25 @@ public:
      *         7 (intersect in the thid corner of the tetrahedra)
      *         8 (intersect in the fourth corner of the tetrahedra)
      */
-    template <class TGeometryType, bool TConsiderInsidePoints = true>
+    template <class TGeometryType, class TCoordinatesType, bool TConsiderInsidePoints = true>
     static int ComputeTetrahedraLineIntersection(
         const TGeometryType& rTetrahedraGeometry,
-        const array_1d<double,3>& rLinePoint1,
-        const array_1d<double,3>& rLinePoint2,
-        array_1d<double,3>& rIntersectionPoint1,
-        array_1d<double,3>& rIntersectionPoint2,
+        const TCoordinatesType& rLinePoint1,
+        const TCoordinatesType& rLinePoint2,
+        TCoordinatesType& rIntersectionPoint1,
+        TCoordinatesType& rIntersectionPoint2,
         const double Epsilon = 1e-12
         ) 
     {
-        // Zero tolerance
-        const double zero_tolerance = std::numeric_limits<double>::epsilon();
-
         // Lambda function to check the inside of a line corrected
-        auto is_inside_projected = [] (auto& rGeometry, const array_1d<double,3>& rPoint) -> bool {
+        auto is_inside_projected = [&Epsilon] (auto& rGeometry, const TCoordinatesType& rPoint) -> bool {
             // We compute the distance, if it is not in the plane we project
             const Point point_to_project(rPoint);
             Point point_projected;
             const double distance = GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, point_to_project, point_projected);
 
             // We check if we are on the plane
-            if (std::abs(distance) > 1.0e-6 * rGeometry.Length()) {
+            if (std::abs(distance) > Epsilon * rGeometry.Length()) {
                 return false;
             }
             array_1d<double, 3> local_coordinates;
@@ -316,7 +314,7 @@ public:
                         vector_line /= norm_2(vector_line);
                         array_1d<double, 3> diff_coor_1 = rLinePoint1 - r_edge_point_1;
                         const double diff_coor_1_norm = norm_2(diff_coor_1);
-                        if (diff_coor_1_norm > zero_tolerance) {
+                        if (diff_coor_1_norm > std::numeric_limits<double>::epsilon()) {
                             diff_coor_1 /= diff_coor_1_norm;
                         } else {
                             diff_coor_1 = rLinePoint1 - r_edge_point_2;
@@ -324,7 +322,7 @@ public:
                         }
                         array_1d<double, 3> diff_coor_2 = rLinePoint2 - r_edge_point_1;
                         const double diff_coor_2_norm = norm_2(diff_coor_2);
-                        if (diff_coor_2_norm > zero_tolerance) {
+                        if (diff_coor_2_norm > std::numeric_limits<double>::epsilon()) {
                             diff_coor_2 /= diff_coor_2_norm;
                         } else {
                             diff_coor_2 = rLinePoint2 - r_edge_point_2;
