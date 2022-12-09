@@ -27,15 +27,12 @@ FIND_LIBRARY(MED_LIBRARY medC
   /usr/lib/*
 )
 
-message("MED includes ${MED_INCLUDE_DIR}")
-message("MED lib ${MED_LIBRARY}")
-
 IF(MED_INCLUDE_DIR AND MED_LIBRARY)
   SET( MED_LIBRARIES ${MED_LIBRARY})
   SET( MED_FOUND "YES" )
-  message("MED found!")
+  message(STATUS "MED found!")
   message(STATUS "MED includes: ${MED_INCLUDE_DIR}")
   message(STATUS "MED libraries: ${MED_LIBRARY}")
 else()
-  message("finding MED failed, please try to set the var MED_ROOT")
+  message(WARNING "finding MED failed, please try to set the var MED_ROOT")
 ENDIF()
