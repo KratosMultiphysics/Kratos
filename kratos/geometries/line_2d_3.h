@@ -503,6 +503,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
@@ -547,6 +548,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix& rDeltaPosition ) const override
     {
@@ -593,6 +595,7 @@ public:
      * integration method.
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
@@ -629,6 +632,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
@@ -700,6 +704,10 @@ public:
         this->Jacobian( J, rPoint);
         return std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2));
     }
+
+    ///@}
+    ///@name Edges and faces
+    ///@{
 
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
