@@ -131,169 +131,169 @@ namespace Testing {
         KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
     }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        const double expected_jacobian = 0.5;
 
-    //     Vector jacobians_determinants;
-    //     p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
+        Vector jacobians_determinants;
+        p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 
-    //     for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
-    //         KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
-    //     }
-    // }
+        for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
+            KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
+        }
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        const double expected_jacobian = 0.5;
 
-    //     Vector jacobians_determinants;
-    //     p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
+        Vector jacobians_determinants;
+        p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
-    //     for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
-    //         KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
-    //     }
-    // }
+        for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
+            KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
+        }
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        const double expected_jacobian = 0.5;
 
-    //     Vector jacobians_determinants;
-    //     p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        Vector jacobians_determinants;
+        p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_3 );
 
-    //     for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
-    //         KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
-    //     }
-    // }
+        for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
+            KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
+        }
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        const double expected_jacobian = 0.5;
 
-    //     Vector jacobians_determinants;
-    //     p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+        Vector jacobians_determinants;
+        p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_4 );
 
-    //     for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
-    //         KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
-    //     }
-    // }
+        for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
+            KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
+        }
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        const double expected_jacobian = 0.5;
 
-    //     Vector jacobians_determinants;
-    //     p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+        Vector jacobians_determinants;
+        p_geometry->DeterminantOfJacobian( jacobians_determinants, GeometryData::IntegrationMethod::GI_GAUSS_5 );
 
-    //     for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
-    //         KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
-    //     }
-    // }
+        for (unsigned int i=0; i<jacobians_determinants.size(); ++i) {
+            KRATOS_CHECK_NEAR(jacobians_determinants[i], expected_jacobian, TOLERANCE);
+        }
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        const double expected_jacobian = 0.5;
 
-    //     double jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_1 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
-    // }
+        double jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_1 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     double jacobian_determinant = 0.0;
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        double jacobian_determinant = 0.0;
+        const double expected_jacobian = 0.5;
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_2 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
-    // }
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_2 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     double jacobian_determinant = 0.0;
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        double jacobian_determinant = 0.0;
+        const double expected_jacobian = 0.5;
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
-    // }
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     double jacobian_determinant = 0.0;
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        double jacobian_determinant = 0.0;
+        const double expected_jacobian = 0.5;
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
-    // }
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_4 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+    }
 
-    // /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
-    // * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
-    // */
-    // KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
-    //     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    //     double jacobian_determinant = 0.0;
-    //     const double expected_jacobian = 0.5;
+    /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+    * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
+        auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
+        double jacobian_determinant = 0.0;
+        const double expected_jacobian = 0.5;
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 0, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 2, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 3, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
 
-    //     jacobian_determinant = p_geometry->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
-    //     KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
-    // }
+        jacobian_determinant = p_geometry->DeterminantOfJacobian( 4, GeometryData::IntegrationMethod::GI_GAUSS_5 );
+        KRATOS_CHECK_NEAR(jacobian_determinant, expected_jacobian, TOLERANCE);
+    }
 
     KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine3D3();
