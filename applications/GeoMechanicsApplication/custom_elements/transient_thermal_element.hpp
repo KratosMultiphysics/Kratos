@@ -21,6 +21,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/thermal_dispersion_2D_law.h"
 
 namespace Kratos
 {
@@ -35,6 +36,56 @@ namespace Kratos
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientThermalElement);
         //
         typedef Element BaseType;
+
+
+        struct ElementVariables
+        {
+            ///Properties variables
+            double WaterDensity;
+            double SolidDensity;
+            double Density;
+            double WaterHeatCapacity;
+            double SolidHeatCapacity;
+            double HeatCapacity;
+            double WaterThermalConductivity;
+            double SolidThermalConductivity;
+            double ThermalConductivity;
+            double Porosity;
+
+            ///Nodal variables
+            array_1d<double, TNumNodes> TemperatureVector;
+
+            ///General elemental variables
+            //Vector VoigtVector;
+
+            ///Variables computed at each GP
+            Matrix B;
+            BoundedMatrix<double, TDim, TNumNodes* TDim> Nu;
+
+            ///Constitutive Law parameters
+            Matrix ConstitutiveMatrix;
+            Vector Np;
+            Vector NpT;
+            Matrix GradNp;
+            Matrix GradNpT;
+            Matrix GradNpTInitialConfiguration;
+
+            Matrix F;
+            double detF;
+            Vector detJContainer;
+            Matrix NContainer;
+            GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
+
+            // needed for updated Lagrangian:
+            double detJ;
+            double detJInitialConfiguration;
+            double IntegrationCoefficient;
+            double IntegrationCoefficientInitialConfiguration;
+
+            //Auxiliary Variables
+            BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
+            array_1d<double, TNumNodes> TVector;
+        };
 
 
         /// Default Constructor
@@ -64,6 +115,41 @@ namespace Kratos
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
+    protected:
+
+        void CalculateAll(MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& CurrentProcessInfo,
+            const bool CalculateStiffnessMatrixFlag,
+            const bool CalculateResidualVectorFlag);
+
+        void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+
+        void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
+
+        void InitializeProperties(ElementVariables& rVariables);
+
+        void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
+
+        virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+            unsigned int PointNumber, double detJ);
+
+        void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+
+        void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
+
+        void CalculateAndAddConductivityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+        void CalculateAndAddCapacityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+        void CalculateAndAddCapacityVector(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+
+        virtual void CalculateConductivityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            const ElementVariables& rVariables) const;
+
+        virtual void CalculateCapacityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            const ElementVariables& rVariables) const;
+
+        virtual void CalculateCapacityVector(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            array_1d<double, TNumNodes>& TVector, const ElementVariables& rVariables) const;
 
     }; // Class TransientThermalElement
 

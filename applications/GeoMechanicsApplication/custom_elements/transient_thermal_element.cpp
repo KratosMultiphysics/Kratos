@@ -33,7 +33,8 @@ namespace Kratos
 
     //----------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
-    int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int TransientThermalElement<TDim, TNumNodes>::Check(
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
         //KRATOS_INFO("0-TransientThermalElement::Check()") << this->Id() << std::endl;
@@ -105,6 +106,297 @@ namespace Kratos
         //
         return 0;
         //
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag)
+    {
+        KRATOS_TRY
+    	// KRATOS_INFO("0-TransientThermalElement::CalculateAll()") << std::endl;
+        //
+        //Previous definitions
+    	const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
+        const unsigned int NumGPoints = IntegrationPoints.size();
+        //
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+        //
+        //Loop over integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            //Compute GradNpT, B and StrainVector
+            this->CalculateKinematics(Variables, GPoint);
+            //
+            //Compute weighting coefficient for integration
+            Variables.IntegrationCoefficient =
+                this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+            //
+            //Contributions to the left hand side
+            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            //
+            //Contributions to the right hand side
+            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+        }
+        //
+        // KRATOS_INFO("1-TransientThermalElement::CalculateAll()") << std::endl;
+        KRATOS_CATCH("")
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
+        ElementVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+    	// KRATOS_INFO("0-TransientThermalElement::InitializeElementVariables()") << std::endl;
+        //
+        //Properties variables
+        this->InitializeProperties(rVariables);
+        //
+        //Nodal Variables
+        this->InitializeNodalTemperatureVariables(rVariables);
+        //
+        //Variables computed at each GP
+        rVariables.Np.resize(TNumNodes, false);
+        rVariables.GradNpT.resize(TNumNodes, TDim, false);
+        //
+        //General Variables
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        //
+        // shape functions
+        (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
+        rVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+        //
+        // gradient of shape functions and determinant of Jacobian
+        (rVariables.detJContainer).resize(NumGPoints, false);
+        //
+        Geom.ShapeFunctionsIntegrationPointsGradients(rVariables.DN_DXContainer,
+            rVariables.detJContainer,
+            this->GetIntegrationMethod());
+        //
+        // KRATOS_INFO("1-TransientThermalElement::InitializeElementVariables()") << std::endl;
+        KRATOS_CATCH("")
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::InitializeProperties(ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+    	// KRATOS_INFO("0-UPwSmallStrainElement::InitializeProperties") << std::endl;
+        //
+        const PropertiesType& rProp = this->GetProperties();
+        //
+        rVariables.WaterDensity = rProp[DENSITY_WATER];
+        rVariables.SolidDensity = rProp[DENSITY_SOLID];
+        rVariables.Porosity = rProp[POROSITY];
+        rVariables.WaterHeatCapacity = rProp[HEAT_CAPACITY_WATER];
+        rVariables.SolidHeatCapacity = rProp[HEAT_CAPACITY_SOLID];
+        rVariables.WaterThermalConductivity = rProp[THERMAL_CONDUCTIVITY_WATER];
+        //rVariables.SolidThermalConductivity = rProp[THERMAL_CONDUCTIVITY_SOLID];
+        //
+        // KRATOS_INFO("1-UPwSmallStrainElement::InitializeProperties") << std::endl;
+        KRATOS_CATCH("")
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::InitializeNodalTemperatureVariables(
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+    	//
+        const GeometryType& rGeom = this->GetGeometry();
+        //
+        //Nodal Variables
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
+        }
+        //
+        KRATOS_CATCH("")
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateKinematics(
+        ElementVariables& rVariables,
+        unsigned int PointNumber)
+    {
+        KRATOS_TRY
+        // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
+        //
+        //Setting the vector of shape functions and the matrix of the shape functions global gradients
+        rVariables.Np = row(rVariables.NContainer, PointNumber);
+        rVariables.GradNpT = rVariables.DN_DXContainer[PointNumber];
+        //
+        rVariables.detJ = rVariables.detJContainer[PointNumber];
+        //
+        // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
+        KRATOS_CATCH("")
+    }
+
+    //----------------------------------------------------------------------------------------------------
+    template<unsigned int TDim, unsigned int TNumNodes>
+	double TransientThermalElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        unsigned int PointNumber,
+        double detJ)
+    {
+        return IntegrationPoints[PointNumber].Weight() * detJ;
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddLHS(
+        MatrixType& rLeftHandSideMatrix,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-TransientThermalElement::CalculateAndAddLHS()") << std::endl;
+        this->CalculateAndAddConductivityMatrix(rLeftHandSideMatrix, rVariables);
+        //
+        this->CalculateAndAddCapacityMatrix(rLeftHandSideMatrix, rVariables);
+        //
+        // KRATOS_INFO("1-TransientThermalElement::CalculateAndAddLHS()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddRHS(
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables,
+        unsigned int GPoint)
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-TransientThermalElement::CalculateAndAddRHS()") << std::endl;
+        //
+        this->CalculateAndAddCapacityVector(rRightHandSideVector, rVariables);
+        //
+        // KRATOS_INFO("1-TransientThermalElement::CalculateAndAddRHS()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddConductivityMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-TransientThermalElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
+        //
+        this->CalculateConductivityMatrix(rVariables.TMatrix, rVariables);
+        //
+        //Distribute compressibility block matrix into the elemental matrix
+        GeoElementUtilities::
+            AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix, rVariables.TMatrix);
+        //
+        // KRATOS_INFO("1-TransientThermalElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddCapacityMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-TransientThermalElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
+        //
+        this->CalculateCapacityMatrix(rVariables.TMatrix, rVariables);
+        //
+        //Distribute permeability block matrix into the elemental matrix
+        GeoElementUtilities::AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix, rVariables.TMatrix);
+        //
+        // KRATOS_INFO("1-TransientThermalElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddCapacityVector(
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-UPwSmallStrainElement::CalculateAndAddPermeabilityFlow()") << std::endl;
+        //
+        this->CalculateCapacityVector(rVariables.TMatrix, rVariables.TVector, rVariables);
+        //
+        //Distribute permeability block vector into elemental vector
+        GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+
+        // KRATOS_INFO("1-UPwSmallStrainElement::CalculateAndAddPermeabilityFlow()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(
+        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+        const ElementVariables& rVariables) const
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-UPwSmallStrainElement::CalculateCapacityMatrix()") << std::endl;
+        //
+        const double c1 = POROSITY * SATURATION * DENSITY_WATER * HEAT_CAPACITY_WATER;
+        const double c2 = (1.0 - POROSITY) * DENSITY_SOLID * HEAT_CAPACITY_SOLID;
+        TMatrix = (c1 + c2) * outer_prod(rVariables.Np, trans(rVariables.Np));
+        //
+        // KRATOS_INFO("1-UPwSmallStrainElement::CalculateCapacityMatrix()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(
+        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+        const ElementVariables& rVariables) const
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-UPwSmallStrainElement::CalculateAndAddConductivityMatrix()") << std::endl;
+        //
+        Matrix CMatrix(TDim, TNumNodes);
+        GeoThermalDispersion2DLaw DispersionLaw;
+        DispersionLaw.CalculateThermalDispersionMatrix(CMatrix);
+
+        BoundedMatrix<double, TDim, TNumNodes> Temp = prod(CMatrix, rVariables.GradNpT);
+        TMatrix = prod(trans(rVariables.GradNpT), CMatrix) * rVariables.IntegrationCoefficient;
+        //
+        // KRATOS_INFO("1-UPwSmallStrainElement::CalculateAndAddConductivityMatrix()") << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------
+    template< unsigned int TDim, unsigned int TNumNodes >
+    void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityVector(
+        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+        array_1d<double, TNumNodes>& TVector,
+        const ElementVariables& rVariables) const
+    {
+        KRATOS_TRY;
+        // KRATOS_INFO("0-UPwSmallStrainElement::CalculatePermeabilityFlow()") << std::endl;
+        //
+        const double c1 = POROSITY * SATURATION * DENSITY_WATER * HEAT_CAPACITY_WATER;
+        const double c2 = (1.0 - POROSITY) * DENSITY_SOLID * HEAT_CAPACITY_SOLID;
+        TMatrix = (c1 + c2) * outer_prod(rVariables.Np, trans(rVariables.Np));
+        //
+        TVector = prod(TMatrix, rVariables.TVector);
+        //
+        // KRATOS_INFO("1-UPwSmallStrainElement::CalculatePermeabilityFlow()") << std::endl;
         KRATOS_CATCH("");
     }
 
