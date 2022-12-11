@@ -22,14 +22,13 @@ class ROMSolver(NavierStokesSolverMonolithic):
     #### Private functions ####
     @classmethod
     def GetDefaultParameters(cls):
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "rom_settings": {
-            "nodal_unknowns": [ "CFD_DOFS_USED_LISTED_HERE" ],
-            "number_of_rom_dofs": 3
-            }
-        }
-        """)
+        import json
+        with open("ProblemFiles/RomParameters.json", 'r') as file:
+            f = json.load(file)
+        with open('ProblemFiles/RomParametersHeader.json', 'w') as file:
+            json.dump({"rom_settings":f["rom_settings"]},file, indent=2)
+        with open("ProblemFiles/RomParametersHeader.json", 'r') as file:
+            default_settings = KratosMultiphysics.Parameters(file.read())
         default_settings.AddMissingParameters(super(ROMSolver,cls).GetDefaultParameters())
         return default_settings
 

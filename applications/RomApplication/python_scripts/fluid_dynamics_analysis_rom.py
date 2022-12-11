@@ -1,18 +1,16 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.RomApplication as romapp
-from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+import numpy as np
 
 import json
-import numpy as np
 
 class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters, path = '.', hyper_reduction_element_selector = None):
-        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'FluidDynamicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
-        self.path = path
+    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
         super().__init__(model,project_parameters)
         if hyper_reduction_element_selector != None :
             if hyper_reduction_element_selector == "EmpiricalCubature":
@@ -24,14 +22,11 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
                 raise Exception(err_msg)
         else:
             self.hyper_reduction_element_selector = None
-
-
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        with open(self.path +'/RomParameters.json') as rom_parameters:
+        with open('ProblemFiles/RomParameters.json') as rom_parameters:
             rom_settings = KratosMultiphysics.Parameters(rom_parameters.read())
             self.project_parameters["solver_settings"].AddValue("rom_settings", rom_settings["rom_settings"])
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
@@ -43,7 +38,7 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
         """Here is where the ROM_BASIS is imposed to each node"""
         super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
-        with open(self.path + '/RomParameters.json') as f:
+        with open('ProblemFiles/RomParameters.json') as f:
             data = json.load(f)
             nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
             nodal_modes = data["nodal_modes"]
@@ -57,31 +52,40 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 counter+=1
+
+
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver()._GetScheme())
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver().fluid_solver._GetScheme())
 
 
     def FinalizeSolutionStep(self):
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                print('\n\n\n\nGenerating matrix of residuals')
-                ResMat = self.ResidualUtilityObject.GetResiduals()
-                NP_ResMat = np.array(ResMat, copy=False)
-                self.time_step_residual_matrix_container.append(NP_ResMat)
+                if self.time>0.1:
+                    print('\n\n\n\nGenerating matrix of residuals')
+                    ResMat = self.ResidualUtilityObject.GetResiduals()
+                    NP_ResMat = np.array(ResMat, copy=False)
+                    self.time_step_residual_matrix_container.append(NP_ResMat)
         super().FinalizeSolutionStep()
+
+
 
     def Finalize(self):
         super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self.residuals_snapshots = self._ObtainBasis()
+                np.save(f'HROM_Local/Sr.npy', self._ObtainSnapshotsResidual())
 
-    def _ObtainBasis(self):
+
+
+
+    def _ObtainSnapshotsResidual(self):
         ### Building the Snapshot matrix ####
         for i in range (len(self.time_step_residual_matrix_container)):
             if i == 0:
                 SnapshotMatrix = self.time_step_residual_matrix_container[i]
             else:
-                SnapshotMatrix = np.c_[SnapshotMatrix, self.time_step_residual_matrix_container[i]]
+                SnapshotMatrix = np.c_[SnapshotMatrix,self.time_step_residual_matrix_container[i]]
+        #U,_,_,_ = RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix, 1e-6)
         return SnapshotMatrix
