@@ -428,8 +428,9 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(
     // Operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
     CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
-    // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-    CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
+        // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
+        CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     rVariables.detF     = determinant_F;
     rVariables.detF0   /= rVariables.detF;
@@ -580,10 +581,6 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
 
-    double delta_coefficient = 0;
-    delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
-    VectorType Fh=rRightHandSideVector;
-
     // Stabilization alpha parameters
     double alpha_stabilization  = 1.0;
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
@@ -616,7 +613,6 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                 consistent = (-1) * alpha_stabilization / 36.0;
                 if (i == j)
                     consistent = 2 * alpha_stabilization / 36.0;
-
 
                 rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
             }
@@ -665,8 +661,9 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     // Operation performed: add Kpp to the rLefsHandSideMatrix
     CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
-    CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
+        // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
+        CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     rVariables.detF     = determinant_F;
     rVariables.detF0   /= rVariables.detF;

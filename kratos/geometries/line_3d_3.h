@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_3D_3_H_INCLUDED )
-#define  KRATOS_LINE_3D_3_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,7 +23,6 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -704,6 +702,39 @@ public:
     ///@name Shape Function
     ///@{
 
+    /**
+     * @brief This method gives all non-zero shape functions values evaluated at the rCoordinates provided
+     * @note There is no control if the return vector is empty or not!
+     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the inde of the local enumeration in the element).
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+     */
+     Vector& ShapeFunctionsValues(
+        Vector& rResult,
+        const CoordinatesArrayType& rCoordinates
+        ) const override
+    {
+        if(rResult.size() != 3) {
+            rResult.resize(3, false);
+        }
+
+        rResult[0] = 0.5 * (rCoordinates[0] - 1.0) * rCoordinates[0];
+        rResult[1] = 0.5 * (rCoordinates[0] + 1.0) * rCoordinates[0];
+        rResult[2] = 1.0 - rCoordinates[0] * rCoordinates[0];
+
+        return rResult;
+    }
+
+    /**
+     * @brief This method gives value of given shape function evaluated in given point.
+     * @param rPoint Point of evaluation of the shape function. This point must be in local coordinate.
+     * @param ShapeFunctionIndex index of node which correspounding shape function evaluated in given integration point.
+     * @return Value of given shape function in given point.
+     * @see ShapeFunctionsValues
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+     */
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
@@ -1106,5 +1137,3 @@ const GeometryDimension Line3D3<TPointType>::msGeometryDimension(
     3, 3, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_3D_3_H_INCLUDED  defined
