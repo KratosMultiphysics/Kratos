@@ -336,7 +336,7 @@ protected:
     void CalculateNormal(array_1d<double,3>& An);
 
     void ComputeGaussPointLHSContribution(
-        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLHS,
+        BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
