@@ -8,7 +8,6 @@
 <a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
 
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
-[![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
 
 [release-image]: https://img.shields.io/badge/release-9.2-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
