@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -24,6 +24,7 @@
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
+#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -313,7 +314,7 @@ public:
         const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
         )  const override
     {
-	    if(rResult.size() != 3)
+        if(rResult.size() != 3)
            rResult.resize( 3, false );
         rResult[0] = 1.0/6.0;
         rResult[2] = 2.0/3.0;
@@ -340,11 +341,12 @@ public:
     double Length() const override
     {
         Vector temp;
-        const auto& r_integration_order_required_analytical_solution = GeometryData::IntegrationMethod::GI_GAUSS_3;
-        this->DeterminantOfJacobian( temp, r_integration_order_required_analytical_solution );
-        const auto& r_integration_points = this->IntegrationPoints( r_integration_order_required_analytical_solution );
+        const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
+        this->DeterminantOfJacobian( temp, integration_method );
+        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
         double length = 0.0;
-        for ( unsigned int i = 0; i < r_integration_points.size(); i++ ) {
+
+        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
             length += temp[i] * r_integration_points[i].Weight();
         }
 
