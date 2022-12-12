@@ -24,60 +24,60 @@
 
 namespace Kratos::Testing {
 
-    namespace {
-        /// Factory functions
+namespace {
+    /// Factory functions
 
-        /** Generates a point type sample Line3D3N
-        * @return  Pointer to a Line3D3N
-        */
-        Line3D3<Point>::Pointer GeneratePointsUnitXDirectionLine3D3() {
-            return Kratos::make_shared<Line3D3<Point>>(
-            Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-            Kratos::make_shared<Point>(1.0, 0.0, 0.0),
-            Kratos::make_shared<Point>(0.5, 0.0, 0.0)
-            );
-        }
-
-        // /** Generates a point type sample Line3D3N
-        // * @return  Pointer to a Line3D3N
-        // */
-        // Line3D3<Point>::Pointer GeneratePointsUnitYDirectionLine3D3() {
-        //     return Kratos::make_shared<Line3D3<Point>>(
-        //     Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-        //     Kratos::make_shared<Point>(0.0, 1.0, 0.0),
-        //     Kratos::make_shared<Point>(0.0, 0.5, 0.0)
-        //     );
-        // }
-
-        /** Generates a point type sample Line3D3N
-        * @return  Pointer to a Line3D3N
-        */
-        Line3D3<Point>::Pointer GeneratePointsDiagonalLine3D3() {
-            return Kratos::make_shared<Line3D3<Point>>(
-            Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-            Kratos::make_shared<Point>(1.0, 1.0, 0.0),
-            Kratos::make_shared<Point>(0.5, 0.5, 0.0)
-            );
-        }
-
-        /** Generates a point type sample Line3D3N
-        * @return  Pointer to a Line3D3N
-        */
-        Line3D3<Point>::Pointer GeneratePointsParabolaLine3D3() {
-            return Kratos::make_shared<Line3D3<Point>>(
-            Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-            Kratos::make_shared<Point>(1.0, 0.0, 0.0),
-            Kratos::make_shared<Point>(0.5, 0.5, 0.0)
-            );
-        }
-
-        // /** Generates a point type sample Line3D3N.
-        // * @return  Pointer to a Line3D3N
-        // */
-        // Line3D3<Point>::Pointer GenerateLine3D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
-        //     return Kratos::make_shared<Line3D3<Point>>(pPointOne, pPointTwo, pPointThree);
-        // }
+    /** Generates a point type sample Line3D3N
+    * @return  Pointer to a Line3D3N
+    */
+    Line3D3<Point>::Pointer GeneratePointsUnitXDirectionLine3D3() {
+        return Kratos::make_shared<Line3D3<Point>>(
+        Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+        Kratos::make_shared<Point>(1.0, 0.0, 0.0),
+        Kratos::make_shared<Point>(0.5, 0.0, 0.0)
+        );
     }
+
+    // /** Generates a point type sample Line3D3N
+    // * @return  Pointer to a Line3D3N
+    // */
+    // Line3D3<Point>::Pointer GeneratePointsUnitYDirectionLine3D3() {
+    //     return Kratos::make_shared<Line3D3<Point>>(
+    //     Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+    //     Kratos::make_shared<Point>(0.0, 1.0, 0.0),
+    //     Kratos::make_shared<Point>(0.0, 0.5, 0.0)
+    //     );
+    // }
+
+    /** Generates a point type sample Line3D3N
+    * @return  Pointer to a Line3D3N
+    */
+    Line3D3<Point>::Pointer GeneratePointsDiagonalLine3D3() {
+        return Kratos::make_shared<Line3D3<Point>>(
+        Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+        Kratos::make_shared<Point>(1.0, 1.0, 0.0),
+        Kratos::make_shared<Point>(0.5, 0.5, 0.0)
+        );
+    }
+
+    /** Generates a point type sample Line3D3N
+    * @return  Pointer to a Line3D3N
+    */
+    Line3D3<Point>::Pointer GeneratePointsParabolaLine3D3() {
+        return Kratos::make_shared<Line3D3<Point>>(
+        Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+        Kratos::make_shared<Point>(1.0, 0.0, 0.0),
+        Kratos::make_shared<Point>(0.5, 0.5, 0.0)
+        );
+    }
+
+    // /** Generates a point type sample Line3D3N.
+    // * @return  Pointer to a Line3D3N
+    // */
+    // Line3D3<Point>::Pointer GenerateLine3D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
+    //     return Kratos::make_shared<Line3D3<Point>>(pPointOne, pPointTwo, pPointThree);
+    // }
+}
 
     /** Checks if the number of edges is correct.
     * Checks if the number of edges is correct.
