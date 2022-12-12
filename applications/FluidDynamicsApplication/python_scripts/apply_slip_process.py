@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -14,7 +15,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
         # TODO: Wipe deprecated options. To be removed after the deprecation period.
         if settings.Has("uniform_navier_slip_length"):
             settings.RemoveValue("uniform_navier_slip_length")
-            KratosMultiphysics.Logger.PrintWarning("ApplySlipProcess no longer supports the Navier-slip wall behavior. Check the ApplyFluidWallProcess.")
+            IssueDeprecationWarning('ApplySlipProcess', 'ApplySlipProcess no longer supports the Navier-slip wall behavior. Check the ApplyFluidWallProcess.')
 
         # Validate and assign settings
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
