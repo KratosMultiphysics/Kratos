@@ -356,10 +356,9 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
             counter++;
         }
     }
-    if (counter == 0)
-        return rValue;
-    else
-        return rValue / counter;
+    if (counter != 0)
+        rValue /= counter;
+    return rValue;
 }
 
 /***********************************************************************************/
