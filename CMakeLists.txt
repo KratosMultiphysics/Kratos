@@ -606,6 +606,8 @@ message("\t Model 'CreateModelPart' behavior change (no error thrown if model pa
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
+# Compiling the clipper library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
