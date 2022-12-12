@@ -435,7 +435,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannContribution(ar
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContribution(
-    array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
+    array_1d<double,LocalSize>& rhs_gauss,
     const ConditionDataStruct& data,
     const ProcessInfo& rProcessInfo)
 {
