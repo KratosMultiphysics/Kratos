@@ -341,7 +341,7 @@ protected:
         const ProcessInfo& rProcessInfo);
 
     void ComputeGaussPointRHSContribution(
-        array_1d<double,TNumNodes*(TDim+1)>& rRHS,
+        array_1d<double, LocalSize>& rRHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
