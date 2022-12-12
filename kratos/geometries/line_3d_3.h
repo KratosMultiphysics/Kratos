@@ -434,7 +434,9 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
+    double DeterminantOfJacobian(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod ) const override
     {
         Matrix J(3, 1);
         this->Jacobian( J, IntegrationPointIndex, ThisMethod);
