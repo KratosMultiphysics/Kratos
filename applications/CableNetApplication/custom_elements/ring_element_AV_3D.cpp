@@ -177,7 +177,7 @@ void RingElementAV3D::CalculateLeftHandSide(
 
 
 
-void RingElementAV3D::InternalForcesCircumference(VectorType &rRightHandSideVector) const
+void RingElementAV3D::InternalForcesCircumference(VectorType &rRightHandSideVector)
 { 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -186,14 +186,88 @@ void RingElementAV3D::InternalForcesCircumference(VectorType &rRightHandSideVect
   const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE]; 
   const double l_current = sum(GetCurrentLengthCircumferenceArray());
 
-  if (l_current > l_min)
+  if (mBent && l_current<mDeformedLength){
+    return; // add plastic behavior
+  }
+  else if (l_current > l_min) 
   {
     const double N = k_t * (l_current - l_min);
     noalias(rRightHandSideVector) -= GetDirectionVectorCircumference()*N;
+
+    if (!mBent){
+      mBent=true;
+      mDiagonalAfterBending = GetDiagonalLengthArray();    
+    } ;
+
+    mDeformedLength = l_current;
   }
 
 }
 
+void RingElementAV3D::InternalForcesDiagonal(VectorType &rRightHandSideVector)
+{ 
+  const int points_number = GetGeometry().PointsNumber();
+  const int dimension = 3;
+
+  const double k_b = GetProperties()[RING_BENDING_STIFFNESS]; 
+  const double r_t = GetProperties()[RING_THICKNESS_WIRE]; 
+  const double r_n = GetProperties()[RING_NR_WIRES]; 
+  const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE]; 
+
+
+
+  // only for 4noded element
+  const double d_min = (l_min / PI)- r_t*sqrt(r_n);
+  const Vector diagonals = GetDiagonalLengthArray();
+  Vector forces_diagonal = ZeroVector(2);
+
+  
+
+  // what about eq. 3.10
+  for (SizeType i=0;i<2;++i)
+  {
+    
+    if (mBent)
+    {
+      if (diagonals[i]<mDeformedDiagonal[i]) forces_diagonal[i] = 0.0; // add plastic behavior
+      else 
+      {
+        forces_diagonal[i] = k_b * (mDiagonalAfterBending[i] - d_min);  
+        //can this get negative?????
+
+
+        mDeformedDiagonal[i] = diagonals[i];
+      }
+
+    }
+    else if (diagonals[i] > d_min)
+    {
+      if (diagonals[i]<mDeformedDiagonal[i]) forces_diagonal[i] = 0.0; // add plastic behavior
+      else
+      {
+        forces_diagonal[i] = k_b * (diagonals[i] - d_min);
+        mDeformedDiagonal[i] = diagonals[i];
+      }
+
+    }
+  }
+
+
+  Vector global_diagonal_forces = GetDirectionVectorDiagonal();
+
+  for (SizeType i=0;i<3;++i)
+  {
+    global_diagonal_forces[i] *= forces_diagonal[0];
+    global_diagonal_forces[i+6] *= forces_diagonal[0];
+
+    global_diagonal_forces[i+3] *= forces_diagonal[1];
+    global_diagonal_forces[i+9] *= forces_diagonal[1];
+  } 
+
+
+  noalias(rRightHandSideVector) -= global_diagonal_forces;
+
+}
 
 void RingElementAV3D::CalculateRightHandSide(
     VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
@@ -205,10 +279,11 @@ void RingElementAV3D::CalculateRightHandSide(
   rRightHandSideVector = ZeroVector(local_size);
 
   InternalForcesCircumference(rRightHandSideVector);
-
   KRATOS_WATCH(rRightHandSideVector);
+  InternalForcesDiagonal(rRightHandSideVector);
+  KRATOS_WATCH(rRightHandSideVector);
+  std::cout << "::::::::::::::::::::::::::::" << std::endl;
 
-  // + diagonal
   // + body forces
 
   KRATOS_CATCH("")
@@ -273,6 +348,64 @@ Vector RingElementAV3D::GetCurrentLengthCircumferenceArray() const
   return segment_lengths;
 }
 
+Vector RingElementAV3D::DistanceVectorNodes(const int node_a, const int node_b) const
+{
+    const int dimension = 3;
+    Vector distance = ZeroVector(dimension);
+
+    distance[0] = 
+        this->GetGeometry()[node_a].FastGetSolutionStepValue(DISPLACEMENT_X) -
+        this->GetGeometry()[node_b].FastGetSolutionStepValue(DISPLACEMENT_X) +
+        this->GetGeometry()[node_a].X0() -
+        this->GetGeometry()[node_b].X0();
+
+    distance[1] = 
+        this->GetGeometry()[node_a].FastGetSolutionStepValue(DISPLACEMENT_Y) -
+        this->GetGeometry()[node_b].FastGetSolutionStepValue(DISPLACEMENT_Y) +
+        this->GetGeometry()[node_a].Y0() -
+        this->GetGeometry()[node_b].Y0();
+
+    distance[2] = 
+        this->GetGeometry()[node_a].FastGetSolutionStepValue(DISPLACEMENT_Z) -
+        this->GetGeometry()[node_b].FastGetSolutionStepValue(DISPLACEMENT_Z) +
+        this->GetGeometry()[node_a].Z0() -
+        this->GetGeometry()[node_b].Z0();
+
+    return distance;
+
+}
+
+Vector RingElementAV3D::GetDirectionVectorDiagonal() const
+{
+    const int points_number = GetGeometry().PointsNumber();
+    const int dimension = 3;
+    const SizeType local_size = dimension*points_number;
+
+    Vector n_t = ZeroVector(local_size);
+
+    // only 4 nodes yet
+
+    Vector distance = DistanceVectorNodes(0,2);
+    distance /= norm_2(distance);
+
+    for (SizeType i=0;i<dimension; i++)
+    {
+      n_t[i] = distance[i];
+      n_t[i+6] = -distance[i];
+    }
+
+    distance = DistanceVectorNodes(1,3);
+    distance /= norm_2(distance);
+
+    for (SizeType i=0;i<dimension; i++)
+    {
+      n_t[i+3] = distance[i];
+      n_t[i+9] = -distance[i];
+    }
+
+  return n_t;
+}
+
 
 Vector RingElementAV3D::GetDirectionVectorCircumference() const
 {
@@ -309,6 +442,39 @@ Vector RingElementAV3D::GetDirectionVectorCircumference() const
 
   return n_t;
 }
+
+Vector RingElementAV3D::GetDiagonalLengthArray() const {
+
+  const int points_number = GetGeometry().PointsNumber();
+
+  // only 4 noded so far
+  Vector diagonals = ZeroVector(2);
+  for (int i=0;i<2;++i)
+  {
+    int next_node_id = i+2;
+
+    const double du =
+        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_X) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X);
+    const double dv =
+        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_Y) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    const double dw =
+        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_Z) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
+    const double dx = this->GetGeometry()[next_node_id].X0() - this->GetGeometry()[i].X0();
+    const double dy = this->GetGeometry()[next_node_id].Y0() - this->GetGeometry()[i].Y0();
+    const double dz = this->GetGeometry()[next_node_id].Z0() - this->GetGeometry()[i].Z0();
+
+
+
+    diagonals[i] = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
+                             (dw + dz) * (dw + dz));
+  }
+
+  return diagonals;
+}
+
 
 Vector RingElementAV3D::GetDeltaPositions(const int& rDirection) const
 {
@@ -374,7 +540,10 @@ void RingElementAV3D::CalculateLumpedMassVector(
     }
     rLumpedMassVector = ZeroVector(local_size);
 
-    const double A = GetProperties()[CROSS_AREA];
+
+    const double r_t = GetProperties()[RING_THICKNESS_WIRE]; 
+    const double r_n = GetProperties()[RING_NR_WIRES]; 
+    const double A = r_n * PI * r_t * r_t * 0.25;
     const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE];
     const double rho = this->GetProperties()[DENSITY];
     const double total_mass = A * l_min * rho;
@@ -397,11 +566,6 @@ void RingElementAV3D::CalculateLumpedMassVector(
         rLumpedMassVector[next_node_id*dimension + j] += 0.50 * total_mass * dl;
       }
     }
-
-    KRATOS_WATCH(rLumpedMassVector);
-    KRATOS_WATCH(total_mass);
-    KRATOS_WATCH(l_array);
-    KRATOS_WATCH(l_current);
 
     KRATOS_CATCH("")
 }
@@ -555,8 +719,13 @@ int RingElementAV3D::Check(const ProcessInfo& rCurrentProcessInfo) const
                      << std::endl;
     }
 
-    if (GetProperties().Has(CROSS_AREA) == false) {
-        KRATOS_ERROR << "CROSS_AREA not provided for this element" << Id()
+    if (GetProperties().Has(RING_THICKNESS_WIRE) == false) {
+        KRATOS_ERROR << "RING_THICKNESS_WIRE not provided for this element" << Id()
+                     << std::endl;
+    }
+
+    if (GetProperties().Has(RING_NR_WIRES) == false) {
+        KRATOS_ERROR << "RING_THICKNESS_WIRE not provided for this element" << Id()
                      << std::endl;
     }
 
@@ -571,6 +740,10 @@ int RingElementAV3D::Check(const ProcessInfo& rCurrentProcessInfo) const
                      << std::endl;
     }
 
+    if (GetProperties().Has(RING_BENDING_STIFFNESS) == false) {
+        KRATOS_ERROR << "RING_BENDING_STIFFNESS not provided for this element" << Id()
+                     << std::endl;
+    }
 
     const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE]; 
     const double l_ref = sum(GetRefLengthCircumferenceArray());
@@ -602,6 +775,20 @@ Vector RingElementAV3D::CalculateBodyForces() {
     const SizeType local_size = dimension*points_number;
     Vector body_forces_global = ZeroVector(local_size);
     return body_forces_global;
+}
+
+
+void RingElementAV3D::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    rOutput.resize(1);
+
+    // temporary variable, delete this later
+    if (rVariable == TEMPERATURE) {
+        rOutput[0] = sum(GetCurrentLengthCircumferenceArray());
+    }
 }
 
 

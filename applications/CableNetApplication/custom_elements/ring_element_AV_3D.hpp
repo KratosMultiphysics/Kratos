@@ -23,6 +23,7 @@
 #include "includes/element.h"
 #include "includes/define.h"
 #include "cable_net_application_variables.h"
+#define PI 3.1415926535898
 
 namespace Kratos
 {
@@ -140,14 +141,20 @@ namespace Kratos
             ) override;
 
 
-        void InternalForcesCircumference(VectorType &rRightHandSideVector) const;
+        void InternalForcesCircumference(VectorType &rRightHandSideVector);
+
+        void InternalForcesDiagonal(VectorType &rRightHandSideVector);
 
         Vector GetCurrentLengthCircumferenceArray() const;
         Vector GetRefLengthCircumferenceArray() const;
+        Vector GetDiagonalLengthArray() const;
 
         Vector GetDirectionVectorCircumference() const;
+        Vector GetDirectionVectorDiagonal() const;
 
         Vector GetDeltaPositions(const int& rDirection) const;
+
+        Vector DistanceVectorNodes(const int node_a, const int node_b) const;
 
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -161,7 +168,17 @@ namespace Kratos
          */
         Vector CalculateBodyForces();
 
+        void CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo);
+
     private:
+
+        double mDeformedLength = 0.0;
+        Vector mDiagonalAfterBending = ZeroVector(2);
+        Vector mDeformedDiagonal = ZeroVector(2);
+        bool mBent = false;
 
         friend class Serializer;
         void save(Serializer& rSerializer) const override;

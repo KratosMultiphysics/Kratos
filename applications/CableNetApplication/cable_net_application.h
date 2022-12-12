@@ -29,6 +29,7 @@
 #include "custom_elements/ring_element_AV_3D.hpp"
 #include "custom_elements/weak_coupling_slide.hpp"
 #include "custom_elements/empirical_spring.hpp"
+#include "custom_elements/braking_element_3D.hpp"
 
 #include "custom_conditions/planar_movement_restriction_condition.h"
 
@@ -190,6 +191,7 @@ private:
     const RingElementAV3D mRingElementAV3D4N;
     const RingElementAV3D mRingElementAV3D3N;
     const EmpiricalSpringElement3D2N mEmpiricalSpringElement3D2N;
+    const BrakingElement3D1N mBrakingElement3D1N;
 
     const PlanarMovementRestrictionCondition3D1N mPlanarMovementRestrictionCondition3D1N;
 

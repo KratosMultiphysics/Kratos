@@ -39,6 +39,7 @@ KratosCableNetApplication::KratosCableNetApplication():
     mRingElementAV3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
     mRingElementAV3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
     mEmpiricalSpringElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mBrakingElement3D1N(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
 
     mPlanarMovementRestrictionCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
     {}
@@ -61,6 +62,7 @@ void KratosCableNetApplication::Register()
     KRATOS_REGISTER_ELEMENT("RingElementAV3D4N", mRingElementAV3D4N)
     KRATOS_REGISTER_ELEMENT("RingElementAV3D3N", mRingElementAV3D3N)
     KRATOS_REGISTER_ELEMENT("EmpiricalSpringElement3D2N", mEmpiricalSpringElement3D2N)
+    KRATOS_REGISTER_ELEMENT("BrakingElement3D1N", mBrakingElement3D1N)
 
     KRATOS_REGISTER_CONDITION("PlanarMovementRestrictionCondition3D1N", mPlanarMovementRestrictionCondition3D1N)
 
@@ -68,5 +70,9 @@ void KratosCableNetApplication::Register()
     KRATOS_REGISTER_VARIABLE(WALL_POSITION)
     KRATOS_REGISTER_VARIABLE(RING_REFERENCE_CIRCUMFERENCE)
     KRATOS_REGISTER_VARIABLE(RING_TENSILE_STIFFNESS)
+    KRATOS_REGISTER_VARIABLE(RING_BENDING_STIFFNESS)
+    KRATOS_REGISTER_VARIABLE(RING_THICKNESS_WIRE)
+    KRATOS_REGISTER_VARIABLE(RING_NR_WIRES)
+    KRATOS_REGISTER_VARIABLE(BRAKING_MASS)
 }
 }  // namespace Kratos.
