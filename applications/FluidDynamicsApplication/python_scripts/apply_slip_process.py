@@ -22,10 +22,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             raise Exception("'model_part_name' is not provided.")
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
-        if settings["slip_tangential_correction"].GetBool():
-            self.model_part.ProcessInfo[KratosMultiphysics.FluidDynamicsApplication.SLIP_TANGENTIAL_CORRECTION_SWITCH] = True
-        else:
-            self.model_part.ProcessInfo[KratosMultiphysics.FluidDynamicsApplication.SLIP_TANGENTIAL_CORRECTION_SWITCH] = False
+        self.model_part.ProcessInfo[KratosMultiphysics.FluidDynamicsApplication.SLIP_TANGENTIAL_CORRECTION_SWITCH] = settings["slip_tangential_correction"].GetBool()
 
     @classmethod
     def GetDefaultParameters(cls):
