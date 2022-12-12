@@ -36,6 +36,7 @@ from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
 from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
+from adjoint_qsvms_sensitivity_2d import AdjointQSVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
@@ -112,6 +113,7 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointQSVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipSteady'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipBossak'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
@@ -133,6 +135,8 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipNormCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
+    validationSuite.addTest(AdjointQSVMSSensitivity2D('testCylinder'))
+    validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
     validationSuite.addTest(AdjointFluidTest('testCylinder'))
