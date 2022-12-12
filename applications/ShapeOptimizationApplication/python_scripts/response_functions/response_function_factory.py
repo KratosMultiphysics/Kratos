@@ -14,7 +14,6 @@ from . import surface_normal_shape_change
 from . import face_angle
 from . import airfoil_2d_responses
 from . import total_volume
-from . import shape_fraction
 
 def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()
