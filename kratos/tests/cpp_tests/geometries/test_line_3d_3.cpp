@@ -330,5 +330,4 @@ namespace Kratos::Testing {
         TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+} // namespace Kratos::Testing.
