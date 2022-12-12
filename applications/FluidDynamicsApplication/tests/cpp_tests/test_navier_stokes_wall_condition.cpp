@@ -24,7 +24,9 @@ namespace Kratos::Testing {
 
 namespace
 {
-    auto CreateTestingNavierStokesWallCondition2D2N(ModelPart& rModelPart)
+    auto CreateTestingNavierStokesWallCondition2D2N(
+        const std::string ConditionName,
+        ModelPart& rModelPart)
     {
         // Add required nodal variables
         rModelPart.AddNodalSolutionStepVariable(DIVPROJ);
@@ -41,7 +43,7 @@ namespace
         auto p_properties_0 = rModelPart.CreateNewProperties(0);
         auto p_properties_1 = rModelPart.CreateNewProperties(1);
         p_properties_1->SetValue(DENSITY, 1000.0);
-        p_properties_1->SetValue(DYNAMIC_VISCOSITY, 1.0);
+        p_properties_1->SetValue(DYNAMIC_VISCOSITY, 2.0);
         ConstitutiveLaw::Pointer p_cons_law(new Newtonian2DLaw());
         p_properties_1->SetValue(CONSTITUTIVE_LAW, p_cons_law);
 
@@ -53,7 +55,7 @@ namespace
         p_element->Initialize(rModelPart.GetProcessInfo()); // Initialize constitutive law
 
         // Create the testing condition
-        auto p_test_condition = rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, {{3,1}}, p_properties_0);
+        auto p_test_condition = rModelPart.CreateNewCondition(ConditionName, 1, {{3,1}}, p_properties_0);
 
         // Add DOFs
         for (auto& r_node : rModelPart.Nodes()){
@@ -141,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NZero, FluidDynamicsApplic
     auto& r_model_part = model.CreateModelPart("TestModelPart",buffer_size);
 
     // Create the testing condition
-    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N(r_model_part);
+    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N("NavierStokesWallCondition2D2N", r_model_part);
 
     // Set the testing nodal values
     array_1d<double,3> aux_v = ZeroVector(3);
@@ -170,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflow, FluidDynami
     auto& r_model_part = model.CreateModelPart("TestModelPart",buffer_size);
 
     // Create the testing condition
-    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N(r_model_part);
+    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N("NavierStokesWallCondition2D2N", r_model_part);
 
     // Set the testing nodal values
     array_1d<double,3> aux_v = ZeroVector(3);
@@ -205,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NSlipTangentialCorrection,
     auto& r_model_part = model.CreateModelPart("TestModelPart",buffer_size);
 
     // Create the testing condition
-    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N(r_model_part);
+    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N("NavierStokesWallCondition2D2N", r_model_part);
 
     // Set the testing nodal values
     array_1d<double,3> aux_v = ZeroVector(3);
@@ -232,7 +234,7 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NSlipTangentialCorrection,
     p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
     // Check results
-    std::vector<double> rhs_out = {0,-2.0,0,-2.0/3.0,-2.0/3.0,0};
+    std::vector<double> rhs_out = {0,-4.0,0,-4.0/3.0,-4.0/3.0,0};
     std::vector<double> lhs_row_3_out = {0,0,-1.0/12.0,0,0,-1.0/6.0};
     KRATOS_CHECK_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
     KRATOS_CHECK_VECTOR_NEAR(row(LHS,3), lhs_row_3_out, 1.0e-8)
