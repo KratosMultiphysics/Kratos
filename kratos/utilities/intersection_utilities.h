@@ -258,7 +258,8 @@ public:
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
         // Check geometry type
-        KRATOS_ERROR_IF((rSegment1.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line3D2) || (rSegment2.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line3D2)) << "The geometry type is not correct, it is suppossed to be a linear 3D line" << std::endl;
+        KRATOS_ERROR_IF_NOT((rSegment1.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear && rSegment1.PointsNumber() == 2)) << "The first geometry type is not correct, it is suppossed to be a linear line" << std::endl;
+        KRATOS_ERROR_IF_NOT((rSegment2.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear && rSegment2.PointsNumber() == 2)) << "The second geometry type is not correct, it is suppossed to be a linear line" << std::endl;
 
         // Resulting line segment
         auto resulting_line = PointerVector<Point>();
