@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -129,13 +130,17 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
 
     double denominator = 1.0;
     const double small_cut_instability_tolerance = 0.01;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+
+    if (this->Is(MODIFIED))
     {
-        if (rResult[i] < small_cut_instability_tolerance){
-            denominator += (small_cut_instability_tolerance - rResult[i]);
-            rResult[i] = small_cut_instability_tolerance;
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (rResult[i] < small_cut_instability_tolerance){
+                    denominator += (small_cut_instability_tolerance - rResult[i]);
+                    rResult[i] = small_cut_instability_tolerance;      
+            }
         }
-    }
+    } 
 
     rResult = rResult / denominator;
 

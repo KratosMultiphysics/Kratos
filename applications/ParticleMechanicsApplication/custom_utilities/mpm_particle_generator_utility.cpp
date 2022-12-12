@@ -615,6 +615,7 @@ namespace MPMParticleGeneratorUtility
 
             element_itr->GetGeometry().SetValue(MPC_LAGRANGE_NODE, p_new_node);
             element_itr->GetGeometry().SetValue(MPC_COUNTER, 0);
+            element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
 
         }
     }

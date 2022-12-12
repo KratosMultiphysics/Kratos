@@ -32,6 +32,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
+        # self.background_grid_model_part = Model["Background_Grid"]
+        # self.MPMmaterial_model_part = Model["MPM_Material"]
+
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.model_part_name = settings["model_part_name"].GetString()
         self.model = Model
@@ -152,10 +155,11 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            time_step = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
             if self.interval.IsInInterval(current_time):
 
@@ -166,7 +170,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                     self.variable = self.name[i]
                     if  not self.value_is_numeric[i]:
                         if self.aux_function[i].DependsOnSpace() == False: #depends on time only
-                            self.value[i] = self.aux_function[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
+                            self.value[i] = self.aux_function[i].CallFunction(0.0,0.0,0.0,time_step,0.0,0.0,0.0)
                         else: #most general case - space varying function (possibly also time varying)
                             self.value[i] = self.aux_function[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
                             

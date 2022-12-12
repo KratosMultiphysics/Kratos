@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/quadrature_points_utility.h"
+#include "includes/kratos_flags.h"
 
 #include "particle_mechanics_application_variables.h"
 
@@ -56,6 +57,7 @@ namespace MPMSearchElementUtility
     inline void ConstructNeighbourRelations(GeometryType& rGeom, const ModelPart& rBackgroundGridModelPart)
     {
         std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours;
+        std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours_aligned;
         for (IndexType j = 0; j < rBackgroundGridModelPart.NumberOfElements(); j++)
         {
             auto p_geometry_neighbour = (rBackgroundGridModelPart.ElementsBegin() + j)->pGetGeometry();
@@ -87,8 +89,30 @@ namespace MPMSearchElementUtility
             }
 
         }
+
+        
+            
+        for (IndexType j = 0; j < geometry_neighbours.size(); j++)
+        {
+            int counter =0;
+            for (IndexType n = 0; n < (*geometry_neighbours[j]).size(); n++)
+            {
+                for (IndexType k = 0; k < rGeom.size(); k++)
+                {
+                    if (rGeom[k].Id() == (*geometry_neighbours[j])[n].Id())
+                        counter+=1;
+
+                }
+            }
+            if (counter>= 2){
+                geometry_neighbours_aligned.push_back(geometry_neighbours[j]);
+            }
+        }
+
+ 
         #pragma omp critical
         rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
+        rGeom.SetValue(GEOMETRY_NEIGHBOURS_ALIGNED, geometry_neighbours_aligned);
     }
 
 
@@ -199,6 +223,8 @@ namespace MPMSearchElementUtility
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom.Points()[j].Set(ACTIVE);
                 }
+                int& mp_counter = r_found_geom.GetValue(MP_COUNTER) ; 
+                    mp_counter +=1;
             }
             if(!is_found)
             {
@@ -241,6 +267,10 @@ namespace MPMSearchElementUtility
                     
                     int& mpc_counter = r_found_geom.GetValue(MPC_COUNTER) ; 
                     mpc_counter +=1;
+                    double& mpc_area_element = r_found_geom.GetValue(MPC_AREA_ELEMENT) ; 
+                    mpc_area_element +=condition_itr->GetGeometry().IntegrationPoints()[0].Weight();
+                    condition_itr->Set(ACTIVE);
+                    condition_itr->Reset(MODIFIED);
                     
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom[j].Set(ACTIVE);
@@ -346,6 +376,9 @@ namespace MPMSearchElementUtility
                     auto& r_geometry = element_itr->GetGeometry();
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                         r_geometry[j].Set(ACTIVE);
+
+                    int& mp_counter = pelem->GetGeometry().GetValue(MP_COUNTER); 
+                    mp_counter +=1;
                 }
                 else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
@@ -385,6 +418,10 @@ namespace MPMSearchElementUtility
 
                         int& mpc_counter = pelem->GetGeometry().GetValue(MPC_COUNTER) ; 
                         mpc_counter +=1;
+                        double& mpc_area_element = pelem->GetGeometry().GetValue(MPC_AREA_ELEMENT) ; 
+                        mpc_area_element +=p_quadrature_point_geometry->IntegrationPoints()[0].Weight();
+                        condition_itr->Set(ACTIVE);
+                        condition_itr->Reset(MODIFIED);
 
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                             r_geometry[j].Set(ACTIVE);
@@ -411,6 +448,11 @@ namespace MPMSearchElementUtility
 
             int& mpc_counter = element_itr->GetValue(MPC_COUNTER) ; 
             mpc_counter =0;
+            double& mpc_area_element = element_itr->GetValue(MPC_AREA_ELEMENT) ; 
+            mpc_area_element =0.0;
+            int& mp_counter = element_itr->GetValue(MP_COUNTER); 
+            mp_counter =0;
+            
 
             for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                 r_geometry[j].Reset(ACTIVE);
@@ -445,7 +487,287 @@ namespace MPMSearchElementUtility
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
                 rBackgroundGridModelPart, missing_elements, missing_conditions,
                 MaxNumberOfResults, Tolerance);
+
     }
+
+    void SearchSuperfluousConstraints(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, ModelPart& rConditionModelPart){
+    
+        PointerVector<Condition> mpc_inactive_elements;
+        PointerVector<Condition> mpc_active_elements;
+        PointerVector<Condition> mpc_modify_elements;
+        PointerVector<Condition> mpc_edge_elements;
+        PointerVector<Condition> mpc_slip_elements;
+
+        mpc_active_elements.clear();
+        mpc_inactive_elements.clear();
+        mpc_edge_elements.clear();
+        mpc_modify_elements.clear();
+        mpc_slip_elements.clear();
+
+        // create a list of elements which contain at least one boundary particle
+        for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
+            auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
+
+            
+            
+                bool add = true;
+                for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+                {
+                    if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
+                        add = false;
+                }
+                
+                // add only one condition per background grid element
+                if (add){
+                    mpc_active_elements.push_back(*(condition_itr.base()));
+                    // construct neighbour relations
+                    if (!condition_itr->GetGeometry().GetGeometryParent(0).Has(GEOMETRY_NEIGHBOURS))
+                        ConstructNeighbourRelations(condition_itr->GetGeometry().GetGeometryParent(0), rBackgroundGridModelPart);
+                }
+        }
+
+        // Edge Elements should be constrained twice!
+        int count_edge_element =0;
+        for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+        {
+            auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
+            
+            int counter=0;
+
+            for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+
+                for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                {
+                    if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                        
+                        counter +=1;   
+                    }
+                }
+            }
+            if (counter ==1){
+                
+                count_edge_element+=1;
+                // Fix just the start of the boundary condition
+                // if (count_edge_element & 1)
+                    mpc_edge_elements.push_back(*i.base());
+                
+            }
+                
+        }
+        
+
+        // // SMALL CUT MODIFICATIONS
+        // // ##############################################################################################################
+        // // modify shape function values if elements are small cut parallel to one edge
+        // for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+        // {
+        //     int counter=0;
+        //     for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
+        //         auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
+           
+        //         if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
+        //             auto rResult = row(condition_itr->GetGeometry().ShapeFunctionsValues(), 0);
+        //             for (unsigned int n_nodes = 0; n_nodes < condition_itr->GetGeometry().size(); n_nodes++)
+        //             {   
+        //                 if (rResult[n_nodes]<0.01){
+        //                     counter+=1;
+        //                 }
+        //             }        
+        //         }
+
+        //     }
+        //     auto mpc_counter = i->GetGeometry().GetGeometryParent(0).GetValue(MPC_COUNTER);
+        //     if (counter >= mpc_counter) {
+        //         mpc_modify_elements.push_back(*i.base());
+        //         KRATOS_WATCH("SMALL CUT MODIFICATION")
+        //     }
+                
+        // }
+
+        // // deactivate small cut elements which are cut nearby a vertex
+        // for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+        // {
+        //     auto mpc_counter = i->GetGeometry().GetGeometryParent(0).GetValue(MPC_COUNTER);
+        //     std::vector<double> area(1);
+        //     i->CalculateOnIntegrationPoints(MPC_AREA, area, rMPMModelPart.GetProcessInfo());
+        //     if (mpc_counter * area[0] < i->GetGeometry().GetGeometryParent(0).Length()/10){
+        //         auto rResult = row(i->GetGeometry().ShapeFunctionsValues(), 0);
+        //         for (unsigned int n_nodes = 0; n_nodes < i->GetGeometry().size(); n_nodes++)
+        //         {   
+        //             if (rResult[n_nodes]<0.01){
+        //                 mpc_modify_elements.push_back(*i.base());
+        //                 // mpc_inactive_elements.push_back(*i.base());
+        //                 // auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
+        //                 KRATOS_WATCH("SMALL CUT")
+        //                 // for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+        //                 //     checked_elements.push_back(geometry_neighbours_aligned[k]->Id());
+        //                 // }
+        //             }
+        //         }
+        //     }
+            
+        // }
+        // // ##############################################################################################################
+
+        
+
+        
+        // search elements which should be deactivated
+        for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
+        {
+            auto max_aligned_elements = i->GetGeometry().WorkingSpaceDimension()+1;
+            if (i->Is(SLIP))
+                max_aligned_elements =4;
+            const GeometryData::KratosGeometryType geo_type = i->GetGeometry().GetGeometryParent(0).GetGeometryType();
+            if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3){
+                // max_aligned_elements = i->GetGeometry().WorkingSpaceDimension();
+                max_aligned_elements = 2;   
+                if (i->Is(SLIP))
+                    max_aligned_elements = 1;  
+            }
+                
+                    auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
+                    int counter=0;
+
+                    if (max_aligned_elements == 1){
+                        bool deactivate = true;
+                        for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                        {
+                            if (i->GetGeometry().GetGeometryParent(0).Id() == inactive->GetGeometry().GetGeometryParent(0).Id())
+                                deactivate=false;      
+                        }
+                        
+                        if (deactivate){
+                            for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+                                for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                {
+                                    if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                            bool abc=true;
+                                            for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                                            {
+                                                if (active->GetGeometry().GetGeometryParent(0).Id() == edge->GetGeometry().GetGeometryParent(0).Id())
+                                                    abc=false;      
+                                            }
+                                            if (abc)
+                                                mpc_inactive_elements.push_back(*active.base());
+                                        }
+                                }
+                            }
+                        }
+                        
+
+
+                    }
+                    else{
+                        for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+
+                            for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                            {
+                                
+                                if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                    bool count = true;
+                                    for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                                    {
+                                        if (geometry_neighbours_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                            count=false;
+                                        }
+                                    }
+                                    for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                                    {
+                                        if (geometry_neighbours_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
+                                            count=false;
+                                        }
+                                    }
+                                    // for(auto slip=mpc_slip_elements.begin(); slip!=mpc_slip_elements.end(); ++slip)
+                                    // {
+                                    //     if (geometry_neighbours_aligned[k]->Id() == slip->GetGeometry().GetGeometryParent(0).Id()){
+                                    //         count=false;
+                                    //     }
+                                    // }
+                                
+                
+                                    if (count)
+                                        counter +=1; 
+                                        
+                                        
+                                        
+                            
+                                }
+                            }
+                        }
+                        // deactivate the element only if neighbouring elements are also constrained ->important for edge elements
+                        if (counter>=max_aligned_elements)
+                            mpc_inactive_elements.push_back(*i.base());
+
+                        // if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8){
+                        //     if (counter>=max_aligned_elements-1){
+                        //         mpc_slip_elements.push_back(*i.base());
+                        //     }
+                        // }
+
+                    }
+
+                    
+
+
+
+        }
+
+
+
+        
+        KRATOS_WATCH(mpc_modify_elements.size())
+        KRATOS_WATCH(mpc_inactive_elements.size())
+        KRATOS_WATCH(mpc_edge_elements.size())
+        KRATOS_WATCH(mpc_active_elements.size())
+
+        // for(auto i=mpc_inactive_elements.begin(); i!=mpc_inactive_elements.end(); ++i)
+        // {
+        //     KRATOS_WATCH(i->GetGeometry().GetGeometryParent(0))
+                
+        // }
+        // deactivate conditions which are in the inactive defined elements
+        int counterb =0;
+        KRATOS_WATCH(rConditionModelPart.Conditions().size())
+        for (int i_cond = 0; i_cond < static_cast<int>(rConditionModelPart.Conditions().size()); ++i_cond) {
+            auto condition_itr = rConditionModelPart.Conditions().begin() + i_cond;
+
+            for(auto i=mpc_inactive_elements.begin(); i!=mpc_inactive_elements.end(); ++i)
+            {
+                if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
+                    condition_itr->Set(SELECTED,true);
+                    counterb +=1;
+                    
+                }
+                    
+            }
+
+            // for(auto i=mpc_slip_elements.begin(); i!=mpc_slip_elements.end(); ++i)
+            // {
+            //     if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
+            //         condition_itr->Set(MODIFIED);
+            // }
+
+            // for(auto i=mpc_edge_elements.begin(); i!=mpc_edge_elements.end(); ++i)
+            // {
+            //     if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
+            //         condition_itr->Set(SLIP);
+            // }
+
+            // shape function values should be modified for elements cut parallel to an edge
+            for(auto i=mpc_modify_elements.begin(); i!=mpc_modify_elements.end(); ++i)
+            {
+                if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id())
+                    condition_itr->Set(MODIFIED);
+            }
+            
+        }
+        KRATOS_WATCH(counterb)
+ 
+    }
+
+
+
 } // end namespace MPMSearchElementUtility
 
 } // end namespace Kratos

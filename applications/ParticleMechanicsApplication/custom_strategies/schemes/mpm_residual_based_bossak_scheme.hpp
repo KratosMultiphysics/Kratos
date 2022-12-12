@@ -320,6 +320,14 @@ public:
                 double & r_nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                 r_nodal_mpressure = 0.0;
             }
+            if(i->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER)) {
+                array_1d<double, 3 > & r_lagrange_multiplier  = i->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+                for ( unsigned int j = 0; j < 3; j++ )
+                {
+                    r_lagrange_multiplier[j] *= 0.0;
+                }
+            }
 		}
 
         // Extrapolate from Material Point Elements and Conditions

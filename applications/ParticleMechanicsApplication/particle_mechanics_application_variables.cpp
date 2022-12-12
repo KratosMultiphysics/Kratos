@@ -64,6 +64,7 @@ namespace Kratos
 
     // Mesh variables
     KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node<3>>::Pointer>, GEOMETRY_NEIGHBOURS)
+    KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node<3>>::Pointer>, GEOMETRY_NEIGHBOURS_ALIGNED)
 
     // Conditions
     // Essential Boundary Conditions
@@ -72,6 +73,8 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )
     KRATOS_CREATE_VARIABLE( Node<3>::Pointer, MPC_LAGRANGE_NODE )
     KRATOS_CREATE_VARIABLE( int, MPC_COUNTER )
+    KRATOS_CREATE_VARIABLE( int, MP_COUNTER )
+    KRATOS_CREATE_VARIABLE( double, MPC_AREA_ELEMENT )
 
     // Nodal load variables
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)

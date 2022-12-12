@@ -156,7 +156,7 @@ public:
 
 						Index += BlockSize;
 					}
-
+					
 					if(rotations_needed > 0)
 					{
 						BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
@@ -225,31 +225,31 @@ public:
 					int rotations_needed = 0;
 					const unsigned int NumBlocks = num_nodes + 1;
 					const unsigned int BlockSize = 3;
+					DenseVector<bool> NeedRotation( NumBlocks, false);
 
 					std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
 					for(unsigned int j = 0; j < NumBlocks; ++j)
 					{
 						if (j<num_nodes)
 						{
-							// Normals of the nodes (only node 1 is considered)
 							if( this->IsSlip(rGeometry[j]) )
 							{
+								NeedRotation[j] = true;
 								rotations_needed++;
 								LocalRotationOperatorPure(rRot[j],rGeometry[j]);
-
 							}
 						}
 						else{
 							auto pBoundaryParticle = rGeometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 							if( this->IsSlip(*pBoundaryParticle) )
 							{
+								NeedRotation[j] = true;
 								rotations_needed++;
 								LocalRotationOperatorPure(rRot[j],*pBoundaryParticle);
-
 							}
 						}
 
-						Index += BlockSize;
+						Index += BlockSize;	
 					}
 
 					if(rotations_needed > 0)
@@ -259,31 +259,56 @@ public:
 
 						for(unsigned int i=0; i<NumBlocks; i++)
 						{
-							for(unsigned int j=0; j<NumBlocks; j++)
+							if(NeedRotation[i] == true)
 							{
-								this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
-								noalias(tmp) = prod(mat_block,trans(rRot[j]));
-								noalias(mat_block) = prod(rRot[i],tmp);
-								// Avoid singularities as numerical zero can appear if same rotation matrices are used
-								for(unsigned int k=0; k<BlockSize; k++)
+								for(unsigned int j=0; j<NumBlocks; j++)
 								{
-									for(unsigned int l=0; l<BlockSize; l++)
+									if(NeedRotation[j] == true)
 									{
-										if ((mat_block(k,l)*mat_block(k,l))<1e-20)
-											mat_block(k,l) = 0.0;
+										this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);	
+										noalias(tmp) = prod(mat_block,trans(rRot[j]));
+										noalias(mat_block) = prod(rRot[i],tmp);
+										// Avoid singularities as numerical zero can appear if same rotation matrices are used
+										for(unsigned int k=0; k<BlockSize; k++)
+										{
+											for(unsigned int l=0; l<BlockSize; l++)
+											{
+												if ((mat_block(k,l)*mat_block(k,l))<1e-20)
+													mat_block(k,l) = 0.0;
+											}
+										}
+										this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+									}
+									else
+									{
+										this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+										noalias(tmp) = prod(rRot[i],mat_block);
+										this->WriteBlockMatrix<BlockSize>(tmp, rLocalMatrix, i*BlockSize, j*BlockSize);
 									}
 								}
-								this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+
+
+								for(unsigned int k=0; k<BlockSize; k++)
+								aux[k] = rLocalVector[i*BlockSize+k];
+
+								noalias(aux1) = prod(rRot[i],aux);
+
+								for(unsigned int k=0; k<BlockSize; k++)
+								rLocalVector[i*BlockSize+k] = aux1[k];
 							}
-
-							for(unsigned int k=0; k<BlockSize; k++)
-							aux[k] = rLocalVector[i*BlockSize+k];
-
-							noalias(aux1) = prod(rRot[i],aux);
-
-							for(unsigned int k=0; k<BlockSize; k++)
-							rLocalVector[i*BlockSize+k] = aux1[k];
-
+							else
+							{
+								for(unsigned int j=0; j<NumBlocks; j++)
+								{
+									if(NeedRotation[j] == true)
+									{
+										this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+										noalias(tmp) = prod(mat_block,trans(rRot[j]));
+										this->WriteBlockMatrix<BlockSize>(tmp, rLocalMatrix, i*BlockSize, j*BlockSize);
+									}
+								}
+							}
+			
 						}
 					}
 				}
@@ -596,7 +621,7 @@ public:
 		TLocalVectorType lagrange(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-		#pragma omp parallel for firstprivate(displacement,Tmp)
+		#pragma omp parallel for firstprivate(displacement,Tmp,lagrange)
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
@@ -612,6 +637,13 @@ public:
 					for(unsigned int i = 0; i < 3; i++) displacement[i] = rDisplacement[i];
 					noalias(Tmp) = prod(rRot,displacement);
 					for(unsigned int i = 0; i < 3; i++) rDisplacement[i] = Tmp[i];
+
+					if (itNode->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER)){
+						array_1d<double,3>& rLagrange = itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+						for(unsigned int i = 0; i < 3; i++) lagrange[i] = rLagrange[i];
+						noalias(Tmp) = prod(rRot,lagrange);
+						for(unsigned int i = 0; i < 3; i++) rLagrange[i] = Tmp[i];
+					}	
 				}
 				else
 				{
@@ -650,7 +682,7 @@ public:
 		TLocalVectorType lagrange(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-		#pragma omp parallel for firstprivate(displacement,Tmp)
+		#pragma omp parallel for firstprivate(displacement,Tmp,lagrange)
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
@@ -665,6 +697,13 @@ public:
 					for(unsigned int i = 0; i < 3; i++) displacement[i] = rDisplacement[i];
 					noalias(Tmp) = prod(trans(rRot),displacement);
 					for(unsigned int i = 0; i < 3; i++) rDisplacement[i] = Tmp[i];
+
+					if (itNode->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER)){
+						array_1d<double,3>& rLagrange = itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+						for(unsigned int i = 0; i < 3; i++) lagrange[i] = rLagrange[i];
+						noalias(Tmp) = prod(trans(rRot),lagrange);
+						for(unsigned int i = 0; i < 3; i++) rLagrange[i] = Tmp[i];
+					}
 				}
 				else
 				{

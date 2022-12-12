@@ -157,6 +157,8 @@ class MPMSolver(PythonSolver):
         #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().InitializeSolutionStep()
 
+        self._SearchSuperfluousConstraints()
+        
     def Predict(self):
         self._GetSolutionStrategy().Predict()
 
@@ -237,6 +239,13 @@ class MPMSolver(PythonSolver):
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
             err_msg += "Available options are: \"bin_based\""
             raise Exception(err_msg)
+
+    def _SearchSuperfluousConstraints(self):
+        print("COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        # condition_model_part = self.model["MPM_Material.Slip3D_Slip_Auto2"]
+        
+        # KratosParticle.SearchSuperfluousConstraints(self.grid_model_part, self.material_point_model_part, condition_model_part)
+        
 
     def _AddModelPartContainers(self):
         domain_size = self._GetDomainSize()

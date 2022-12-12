@@ -71,12 +71,21 @@ namespace Python{
         MPMParticleGeneratorUtility::GenerateLagrangeNodes(rBackgroundGridModelPart);
     }
 
+    void SearchSuperfluousConstraints(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rMPMModelPart,
+        ModelPart& rConditionModelPart)
+    {
+        MPMSearchElementUtility::SearchSuperfluousConstraints(rBackgroundGridModelPart, rMPMModelPart, rConditionModelPart);
+    }
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", GenerateLagrangeNodes);
+        m.def("SearchSuperfluousConstraints", SearchSuperfluousConstraints);
     }
 
 }  // namespace Python.
