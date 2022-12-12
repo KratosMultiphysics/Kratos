@@ -33,10 +33,15 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Process to set the moving load 
-/** This process sorts the moving load conditions, it calculates the value and velocity of the moving load. And it places the load on the right position per
- *solution step.
- */
+
+/**
+ * @class SetMovingLoadProcess
+ * @ingroup StructuralMechanicsApplication
+ * @brief Process to set the moving load 
+ * @details This process sorts the moving load conditions, it calculates the value and velocity of the moving load. And it places the load on the right position per
+ * solution step.
+ * @author Aron Noordam
+*/
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetMovingLoadProcess : public Process
 {
 public:
@@ -142,7 +147,7 @@ private:
 	 * \param IndicesVector vector of all the node indices, which are found in the condition elements.
 	 * \return vector of non repeating node indices within the model part
 	 */
-    static std::vector<unsigned int> FindNonRepeatingIndices(std::vector<unsigned int> IndicesVector);
+    static std::vector<unsigned int> FindNonRepeatingIndices(const std::vector<unsigned int> IndicesVector);
 
     /**
 	 * \brief Finds condition elements which are at the spatial ends of the conditions vector. This function checks which condition's points are not repeated
@@ -154,50 +159,50 @@ private:
     /**
 	 * \brief Sorts conditions vector. Sorts conditions in the direction of the moving load. The sorting starts from the first condition. Repeated nodes
 	 * ares searched in the conditions vector. If a node is repeated, it means the condition is connected to the previous condition. 
-	 * \param unsorted_conditions container of the unsorted conditions within the model part
-	 * \param first_condition first condition in the to be sorted conditions vector
+	 * \param rUnsortedConditions container of the unsorted conditions within the model part
+	 * \param rFirstCondition first condition in the to be sorted conditions vector
 	 * \return vector of sorted conditions
 	 */
-    std::vector<Condition> SortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition);
+    std::vector<Condition> SortConditions(ModelPart::ConditionsContainerType& rUnsortedConditions, Condition& rFirstCondition);
 
     /**
 	 * \brief Check if conditions points are to be flipped in the direction of the moving load. The points are sorted based on the x-coordinates; if the x-coordinates are equal,
 	 * sorting is done based on the y-coordinates; if y-coordinates are equal, sorting is done based on the z-coordinates
 	 * \param rCondition reference of the current condition
-	 * \param direction direction of the moving load
+	 * \param Direction direction of the moving load
 	 * \return bool which indicates if the condition's points are to be flipped
 	 */
-    static bool IsConditionReversed(Condition& rCondition, vector<int> direction);
+    static bool IsConditionReversed(const Condition& rCondition, const array_1d<int, 3> Direction);
 
     /**
 	 * \brief Finds the first condition within the model part, based on the direction of the moving load.
-	 * \param  first_point, one of the end points of the condition model part
-	 * \param  second_point, one of the end points of the condition model part
-	 * \param  direction, vector of the direction of the moving load, positive values indicate positive direction with respect to the global axis
-	 * \param  end_conditions vector of the two end conditions within the model part
+	 * \param  FirstPoint, one of the end points of the condition model part
+	 * \param  SecondPoint, one of the end points of the condition model part
+	 * \param  Direction, vector of the direction of the moving load, positive values indicate positive direction with respect to the global axis
+	 * \param  rEndConditions vector of the two end conditions within the model part
 	 * \return the first condition within the model part with respect to the direction of the moving load
 	 */
-    static Condition& GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions);
+    static Condition& GetFirstCondition(const Point FirstPoint, const Point SecondPoint, const array_1d<int, 3> Direction, std::vector<Condition>& rEndConditions);
 
     /**
 	 * \brief Finds the first condition within the model part, based on the direction of the moving load. In this function, a single direction is checked, either
 	 * x,y or z.
-	 * \param first_coord one of the end x,y or z coordinate of the condition model part
-	 * \param second_coord one of the end x,y or z coordinate of the condition model part
-	 * \param direction direction of the moving load, positive or negative with respect to the x,y or z axis
-	 * \param end_conditions vector of the two end conditions within the model part
+	 * \param FirstCoord one of the end x,y or z coordinate of the condition model part
+	 * \param SecondCoord one of the end x,y or z coordinate of the condition model part
+	 * \param Direction direction of the moving load, positive or negative with respect to the x,y or z axis
+	 * \param EndConditions vector of the two end conditions within the model part
 	 * \return the first condition within the model part with respect to the direction of the moving load
 	 */
-    static Condition& GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions);
+    static Condition& GetFirstConditionFromCoord(const double FirstCoord, const double SecondCoord, const int Direction, std::vector<Condition>& EndConditions);
 
     /**
 	 * \brief Checks if the points within a condition are to be swapped, based on the direction of the moving load
-	 * \param first_coord  x,y or z coordinate of the first point within the condition element
-	 * \param second_coord x,y or z coordinate of the second point within the condition element
-	 * \param direction  direction of the moving load, positive or negative with respect to the x,y or z axis
+	 * \param FirstCoord  x,y or z coordinate of the first point within the condition element
+	 * \param SecondCoord x,y or z coordinate of the second point within the condition element
+	 * \param Direction  direction of the moving load, positive or negative with respect to the x,y or z axis
 	 * \return bool which indicates if the condition's points are to be swapped
 	 */
-    static bool IsSwapPoints(double first_coord, double second_coord, int direction);
+    static bool IsSwapPoints(const double FirstCoord, const double SecondCoord, const int Direction);
 
     /**
 	 * \brief Initializes the global distance of the load based on the origin point within the sorted condition vector, starting from the first

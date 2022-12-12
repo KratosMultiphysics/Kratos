@@ -37,7 +37,6 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "help"            : "This process applies a moving load condition belonging to a modelpart. The load moves over line elements.",
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "POINT_LOAD",
-			"is_rotation"     : true,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1,
@@ -45,9 +44,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
         }  )"
     );
     Parameters mParameters;
-    //IntervalUtility interval_utility(mParameters);
 
-    mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+	mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
 
 	// check if load parameter has size 3
@@ -59,12 +57,10 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     bool is_all_number = true;
     for (unsigned int i = 0; i < mParameters["load"].size(); i++)
     {
-        if (!mParameters["load"][i].IsString())
-        {
+        if (!mParameters["load"][i].IsString()){
             is_all_string = false;
         }
-        if(!mParameters["load"][i].IsNumber())
-        {
+        if(!mParameters["load"][i].IsNumber()){
             is_all_number = false;
         }
     }
@@ -74,7 +70,7 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
 }
 
 
-std::vector<unsigned int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vector<unsigned int> IndicesVector)
+std::vector<unsigned int> SetMovingLoadProcess::FindNonRepeatingIndices(const std::vector<unsigned int> IndicesVector)
 {
     // Insert all array elements in hash
     // table
@@ -93,129 +89,108 @@ std::vector<unsigned int> SetMovingLoadProcess::FindNonRepeatingIndices(std::vec
 }
 
 
- bool SetMovingLoadProcess::IsSwapPoints(double first_coord, double second_coord, int direction)
+ bool SetMovingLoadProcess::IsSwapPoints(const double FirstCoord, const double SecondCoord, const int Direction)
 {
     // swap points if points are sorted in opposite order compared to direction
-    if ((first_coord < second_coord) && (direction < 0))
-    {
+    if ((FirstCoord < SecondCoord) && (Direction < 0)){
         return true;
     }
-    if ((first_coord > second_coord) && (direction > 0))
-    {
+    if ((FirstCoord > SecondCoord) && (Direction > 0)){
         return true;
     }
     return false;
 }
 
 
-Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(double first_coord, double second_coord, int direction, std::vector<Condition>& end_conditions)
+Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(const double FirstCoord, const double SecondCoord, const int Direction, std::vector<Condition>& rEndConditions)
 {
     // if center1 coord  < center2 coord and direction is positive
-    if ((first_coord < second_coord) && (direction > 0))
-    {
-        return end_conditions[0];
+    if ((FirstCoord < SecondCoord) && (Direction > 0)){
+        return rEndConditions[0];
     }
     // if center1 coord  > center2 coord and direction is negative
-    if ((first_coord > second_coord) && (direction < 0))
-    {
-        return end_conditions[0];
+    if ((FirstCoord > SecondCoord) && (Direction < 0)){
+        return rEndConditions[0];
     }
-    	return end_conditions[1];
+    	return rEndConditions[1];
 
 }
 
-Condition& SetMovingLoadProcess::GetFirstCondition(Point first_point, Point second_point, vector<int> direction, std::vector<Condition>& end_conditions)
+Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const Point SecondPoint, const array_1d<int,3> Direction, std::vector<Condition>& rEndConditions)
 {
     constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     // sort on x-coord, if x coords are equal, sort on y coord, if y coord is equal sort on z-coord
-    if (std::abs(first_point[0] - second_point[0]) > tolerance)
-    {
-        return GetFirstConditionFromCoord(first_point[0], second_point[0], direction[0], end_conditions);
+    if (std::abs(FirstPoint[0] - SecondPoint[0]) > tolerance){
+        return GetFirstConditionFromCoord(FirstPoint[0], SecondPoint[0], Direction[0], rEndConditions);
     }
-    if (std::abs(first_point[1] - second_point[1]) > tolerance)
-    {
-        return GetFirstConditionFromCoord(first_point[1], second_point[1], direction[1], end_conditions);
+    if (std::abs(FirstPoint[1] - SecondPoint[1]) > tolerance){
+        return GetFirstConditionFromCoord(FirstPoint[1], SecondPoint[1], Direction[1], rEndConditions);
     }
-        return GetFirstConditionFromCoord(first_point[2], second_point[2], direction[2], end_conditions);
+        return GetFirstConditionFromCoord(FirstPoint[2], SecondPoint[2], Direction[2], rEndConditions);
 }
 
 
 
-bool SetMovingLoadProcess::IsConditionReversed(Condition& rCondition, vector<int> direction)
+bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, const array_1d<int, 3> Direction)
 {
     constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
-    auto& rPoints = rCondition.GetGeometry().Points();
-    if (abs(rPoints[0].X0() - rPoints[1].X0()) > tolerance)
-    {
-        return IsSwapPoints(rPoints[0].X0(), rPoints[1].X0(), direction[0]);
+    auto& r_points = rCondition.GetGeometry().Points();
+    if (abs(r_points[0].X0() - r_points[1].X0()) > tolerance){
+        return IsSwapPoints(r_points[0].X0(), r_points[1].X0(), Direction[0]);
     }
-    if (abs(rPoints[0].Y0() - rPoints[1].Y0()) > tolerance)
-    {
-        return IsSwapPoints(rPoints[0].Y0(), rPoints[1].Y0(), direction[1]);
+    if (abs(r_points[0].Y0() - r_points[1].Y0()) > tolerance){
+        return IsSwapPoints(r_points[0].Y0(), r_points[1].Y0(), Direction[1]);
     }
-    return IsSwapPoints(rPoints[0].Z0(), rPoints[1].Z0(), direction[2]);
+    return IsSwapPoints(r_points[0].Z0(), r_points[1].Z0(), Direction[2]);
 }
 
 
 
-std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& unsorted_conditions, Condition& first_condition)
+std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& rUnsortedConditions, Condition& rFirstCondition)
 {
 
-    std::vector<Condition> unsorted_conditions_v(unsorted_conditions.begin(), unsorted_conditions.end());
+    std::vector<Condition> unsorted_conditions_v(rUnsortedConditions.begin(), rUnsortedConditions.end());
 
     std::vector<Condition> sorted_conditions;
     std::vector<int> visited_indices;
-    GeometricalObject::GeometryType& r_geom_first = first_condition.GetGeometry();
+    GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
     std::set<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
 
     bool is_cond_reversed = mIsCondReversedVector[0];
-    while (visited_indices.size() != unsorted_conditions_v.size())
-    {
-        for (unsigned int i =0; i< unsorted_conditions_v.size(); i++)
-        {
+    while (visited_indices.size() != unsorted_conditions_v.size()){
+        for (unsigned int i =0; i< unsorted_conditions_v.size(); i++){
             Condition& r_cond = unsorted_conditions_v[i];
             GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
 
 
             // check if current index is already added to sorted condition vector
-            if (!std::count(visited_indices.begin(), visited_indices.end(), i))
-            {
+            if (!std::count(visited_indices.begin(), visited_indices.end(), i)){
                 // check if geom has a shared node with previous geom
-                if (node_id_vector.find(r_geom.Points()[0].Id()) != node_id_vector.end() || node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end())
-                {
-                    if (sorted_conditions.size() == 0)
-                    {
+                if (node_id_vector.find(r_geom.Points()[0].Id()) != node_id_vector.end() || node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end()){
+                    if (sorted_conditions.size() == 0){
                         // check if both nodes of geom are equal to nodes in start element, only do this to add the first element in the sorted conditions vector
-                        if (node_id_vector.find(r_geom[0].Id()) != node_id_vector.end() && node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end())
-                        {
+                        if (node_id_vector.find(r_geom[0].Id()) != node_id_vector.end() && node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end()){
                             node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
                             sorted_conditions.push_back(r_cond);
                             visited_indices.push_back(i);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         // sort nodes in condition, such that new node is connected to previous condition
                         std::set<IndexType>::iterator prev_id;
-                        if (is_cond_reversed)
-                        {
+                        if (is_cond_reversed){
                             prev_id = node_id_vector.begin();
-                        }
-                        else
+                        } else
                         {
                             prev_id = node_id_vector.end();
                             --prev_id;
                         }
 
-                        if (*prev_id != r_geom.Points()[0].Id())
-                        {
+                        if (*prev_id != r_geom.Points()[0].Id()){
                             is_cond_reversed = true;
                             mIsCondReversedVector.push_back(is_cond_reversed);
-                        }
-                        else
-                        {
+                        } else {
                             is_cond_reversed = false;
                             mIsCondReversedVector.push_back(is_cond_reversed);
                         }
@@ -234,11 +209,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
     return sorted_conditions;
 }
 
-/**
- * \brief Finds condition elements which are at the spatial ends of the conditions vector. This function checks which condition's points are not repeated
- * in this conditions model part. If nodes are not repeated, it means that the condition is at one of the spatial ends. 
- * \return Vector of the two end conditions.
- */
+
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {
     std::vector<unsigned int> node_id_vector;
@@ -251,8 +222,7 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 
         auto& r_geom = r_cond.GetGeometry();
         Point local_point;
-        if (r_geom.IsInside(origin_point, local_point))
-        {
+        if (r_geom.IsInside(origin_point, local_point)){
             condition_is_on_line = true;
         }
 
@@ -274,12 +244,9 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
     for (Condition& r_cond : mrModelPart.Conditions()) {
 
         auto& r_geom = r_cond.GetGeometry();
-        for (unsigned int i = 0; i < r_geom.size(); i++)
-        {
-            for (unsigned int j = 0; j < non_repeating_node_ids.size(); j++)
-            {
-                if (r_geom[i].Id() == non_repeating_node_ids[j])
-                {
+        for (unsigned int i = 0; i < r_geom.size(); i++){
+            for (unsigned int j = 0; j < non_repeating_node_ids.size(); j++){
+                if (r_geom[i].Id() == non_repeating_node_ids[j]){
                     end_conditions.push_back(r_cond);
                 }
             }
@@ -293,8 +260,7 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 {
     double global_distance = 0;
     // loop over sorted conditions
-    for (unsigned int i = 0; i < mSortedConditions.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mSortedConditions.size(); ++i){
         auto& r_cond = mSortedConditions[i];
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
@@ -305,16 +271,13 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
         const array_1d<double, 3> origin_point = mParameters["origin"].GetVector();
 
         // if origin point is within the current condition, set the global distance of the load, else continue the loop
-        if (r_geom.IsInside(origin_point, local_point))
-        {
+        if (r_geom.IsInside(origin_point, local_point)){
             const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
 
-            if (mIsCondReversedVector[i])
-            {
+            if (mIsCondReversedVector[i]){
                 mCurrentDistance = global_distance + element_length - local_to_global_distance;
             }
-            else
-            {
+            else{
                 mCurrentDistance = global_distance + local_to_global_distance;
             }
         }
@@ -333,31 +296,28 @@ void SetMovingLoadProcess::ExecuteInitialize()
     mLoadFunctions.clear();
 
 	// check if load input is a function or numeric and add load to member variable
-    if (mParameters["load"][0].IsString())
-    {
+    if (mParameters["load"][0].IsString()){
         mUseLoadFunction = true;
-        for (unsigned int i = 0; i < mParameters["load"].size(); ++i)
-        {
+        for (unsigned int i = 0; i < mParameters["load"].size(); ++i){
             BasicGenericFunctionUtility load_function = BasicGenericFunctionUtility(mParameters["load"][i].GetString());
             mLoadFunctions.push_back(load_function);
         }
-    }
-    else
-    {
+    } else {
         mUseLoadFunction = false;
     }
 
     // check if velocity input is a function or numeric and add velocity to member variable
-    if (mParameters["velocity"].IsString())
-    {
+    if (mParameters["velocity"].IsString()){
         mUseVelocityFunction = true;
-    }
-    else
-    {
+    } else {
         mUseVelocityFunction = false;
     }
-    
-    const vector<int> direction = mParameters["direction"].GetVector();
+
+    array_1d<int, 3> direction;
+
+    for (IndexType i = 0; i < mParameters["direction"].size(); ++i){
+        direction[i] = mParameters["direction"][i].GetInt();
+    }
 
     // get the two line condition elements at both sides of the model part
     std::vector<Condition> end_conditions = FindEndConditions();
@@ -384,18 +344,14 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     array_1d<double, 3> load_vector;
 
 	// retrieve load from load function if given
-    if (mUseLoadFunction)
-    {
+    if (mUseLoadFunction){
         // get current time
         const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
-        for (unsigned int i =0; i< mLoadFunctions.size();++i)
-        {
+        for (unsigned int i =0; i< mLoadFunctions.size();++i){
             load_vector[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
         }
-    }
-    else
-    {
+    } else {
 	    load_vector = mParameters["load"].GetVector();
     }
     
@@ -405,22 +361,17 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     bool is_moving_load_added = false;
 
     // loop over sorted conditions vector
-    for (unsigned int i = 0; i < mSortedConditions.size(); ++i) 
-    {
+    for (unsigned int i = 0; i < mSortedConditions.size(); ++i) {
         auto& r_cond = mSortedConditions[i];
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added)
-        {
+        if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added){
             double local_distance;
-            if (mIsCondReversedVector[i])
-            {
+            if (mIsCondReversedVector[i]){
                 local_distance = distance_cond + element_length - mCurrentDistance;
-            }
-            else
-            {
+            } else {
                 local_distance = mCurrentDistance - distance_cond;
             }
             
@@ -429,9 +380,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
             // distance is correct assuming nodes in condition are correctly sorted, the sorting is done while initializing this process
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, local_distance);
             is_moving_load_added = true;
-        }
-        else
-        {
+        } else {
             r_cond.SetValue(POINT_LOAD, ZeroVector(3));
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, 0);
         }
@@ -445,8 +394,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 {
     double load_velocity;
     // retrieve load velocity from velocity function if given
-    if (mUseVelocityFunction)
-    {
+    if (mUseVelocityFunction){
         // get current time
         const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
@@ -454,9 +402,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 
 		// update velocity value
         load_velocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
-    }
-    else
-    {
+    } else {
         load_velocity = mParameters["velocity"].GetDouble();
     }
 

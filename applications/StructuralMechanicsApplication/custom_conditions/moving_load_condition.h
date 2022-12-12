@@ -42,9 +42,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class MovingLoadCondition
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class is the responsible to add the contributions of the RHS and LHS of the moving loads of the structure
+ * @details Bending moment and reaction forces are calculated on the nodes of the condition element, following a load on an
+ * arbitrary position within the element
+ * @tparam TDim The dimension of the condition
+ * @tparam TNumNodes The number of nodes of the condition
+ * @author Aron Noordam
+ */
 template<std::size_t TDim, std::size_t TNumNodes>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  MovingLoadCondition
     : public BaseLoadCondition
@@ -121,10 +128,12 @@ public:
         NodesArrayType const& ThisNodes
         ) const override;
 
+
     /**
-     * Check if Rotational Dof existant
-     */
-    //bool HasRotDof() const override;
+	 * @brief Check if Rotational Dof existant
+	 * @return Trues if exists, false otherwise
+	 */
+    bool HasRotDof() const;
 
     ///@}
     ///@name Access
@@ -188,7 +197,7 @@ protected:
     ///@{
 
     /**
-     * This functions calculates both the RHS and the LHS
+     * This functions calculates both the RHS and the LHS following a moving load
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
      * @param rCurrentProcessInfo: The current process info instance
@@ -203,16 +212,36 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
+    /**
+	 * \brief Calculates exact shape functions for a local load in normal direction
+	 * \param rShapeFunctionsVector  vector of exact shape functions
+	 * \param LocalXCoord local x coordinate within condition element
+	 */
+    void CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
-    void CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
+    /**
+	 * \brief Calculates exact shape functions for a local load in perpendicular direction
+	 * \param rShapeFunctionsVector vector of exact shape functions
+	 * \param LocalXCoord local x coordinate within condition element
+	 */
+    void CalculateExactShearShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
-    void CalculateExactShearShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
+    /**
+	 * \brief Calculates exact shape functions for a local moment around z-axis.
+	 * \param rShapeFunctionsVector vector of exact shape functions
+	 * \param LocalXCoord local x coordinate within condition element
+	 */
+    void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
-    void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const;
-
+    /**
+	 * \brief Calculates rotation matrix 
+	 * \param rRotationMatrix rotation matrix for current condition element
+	 * \param rGeom condition element
+	 */
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& rGeom);
 
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -280,14 +309,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    //MovingLoadCondition& operator=(const MovingLoadCondition& rOther);
-
-    /// Copy constructor.
-    //MovingLoadCondition(const MovingLoadCondition& rOther);
-
-
+    
     ///@}
 
 }; // Class MovingLoadCondition
@@ -303,19 +325,22 @@ private:
 
 
 /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        MovingLoadCondition& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const MovingLoadCondition& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+template<std::size_t TDim, std::size_t TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+        MovingLoadCondition<TDim, TNumNodes>& rThis);
 
-      return rOStream;
-    }*/
+/// output stream function
+template<std::size_t TDim, std::size_t TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+        const MovingLoadCondition<TDim, TNumNodes>& rThis)
+{
+  rThis.PrintInfo(rOStream);
+  rOStream << std::endl;
+  rThis.PrintData(rOStream);
+
+  return rOStream;
+}
+
 ///@}
 
 }  // namespace Kratos.
