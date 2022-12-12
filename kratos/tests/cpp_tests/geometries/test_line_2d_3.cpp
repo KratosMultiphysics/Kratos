@@ -22,8 +22,7 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
     /// Factory functions
 
@@ -91,7 +90,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D3FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D3();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -376,5 +375,4 @@ namespace Testing {
         TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+} // namespace Kratos::Testing.

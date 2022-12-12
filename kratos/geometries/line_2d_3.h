@@ -719,11 +719,11 @@ public:
 
 
     /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
+    @return SizeType containes number of this geometry faces.
     */
     SizeType FacesNumber() const override
     {
-      return EdgesNumber();
+      return 0;
     }
 
     ///@}

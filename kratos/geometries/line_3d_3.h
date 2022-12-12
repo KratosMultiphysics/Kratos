@@ -471,7 +471,7 @@ public:
 
     SizeType FacesNumber() const override
     {
-        return EdgesNumber();
+        return 0;
     }
 
     ///@}

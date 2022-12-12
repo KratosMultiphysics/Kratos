@@ -90,7 +90,7 @@ namespace Kratos::Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D3FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
