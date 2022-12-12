@@ -80,6 +80,15 @@ MovingLoadCondition< TDim, TNumNodes>::~MovingLoadCondition()
 
 //************************************************************************************
 //************************************************************************************
+
+ /**
+ * This functions calculates both the RHS and the LHS following a moving load
+ * @param rLeftHandSideMatrix: The LHS
+ * @param rRightHandSideVector: The RHS
+ * @param rCurrentProcessInfo: The current process info instance
+ * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+ * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+ */
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
@@ -243,6 +252,11 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
+/**
+ * \brief Calculates exact shape functions for a local load in normal direction
+ * \param rShapeFunctionsVector  vector of exact shape functions
+ * \param local_x_coord local x coordinate within condition element
+ */
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const
 {
@@ -257,7 +271,11 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactNormalShapeFunctions(V
 
 }
 
-
+/**
+ * \brief Calculates exact shape functions for a local load in perpendicular direction
+ * \param rShapeFunctionsVector vector of exact shape functions
+ * \param local_x_coord local x coordinate within condition element
+ */
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactShearShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const
 {
@@ -272,6 +290,12 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactShearShapeFunctions(Ve
 
 }
 
+
+/**
+ * \brief Calculates exact shape functions for a local moment around z-axis.
+ * \param rShapeFunctionsVector vector of exact shape functions
+ * \param local_x_coord local x coordinate within condition element
+ */
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, double local_x_coord) const
 {
@@ -289,18 +313,15 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctio
 //************************************************************************************
 //************************************************************************************
 
-
+/**
+ * \brief Calculates rotation matrix for a Line2D2 element
+ * \param rRotationMatrix rotation matrix for current condition element
+ * \param rGeom condition element
+ */
 template<>
-/// <summary>
-/// Rotation matrix of a line2D2 element
-/// </summary>
-/// <param name="rRotationMatrix"></param>
-/// <param name="rGeom"></param>
 void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const GeometryType& rGeom)
 {
-    constexpr double tolerance = 1e-8;
-
-    //Unitary vector in local x direction
+	//Unitary vector in local x direction
     array_1d<double, 3> Vx = ZeroVector(3);
     noalias(Vx) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
     const double inv_norm_x = 1.0 / norm_2(Vx);
@@ -318,7 +339,7 @@ void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2,
     VzTmp[2] = 1;
 
     // Unitary vector in local y direction
-    if (fabs(Vx[0]) < tolerance && fabs(Vx[1]) < tolerance) {
+    if (constexpr double tolerance = 1e-8; fabs(Vx[0]) < tolerance && fabs(Vx[1]) < tolerance) {
         MathUtils<double>::CrossProduct(Vy, VyTmp, Vx);
     }
     else {
@@ -333,12 +354,13 @@ void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2,
     rRotationMatrix(1, 1) = Vy[1];
 }
 
+
+/**
+ * \brief Rotation matrix of a line3D2 element
+ * \param rRotationMatrix rotation matrix for current condition element
+ * \param rGeom condition element
+ */
 template< >
-/// <summary>
-/// Rotation matrix of a line3D2 element
-/// </summary>
-/// <param name="rRotationMatrix"></param>
-/// <param name="rGeom"></param>
 void MovingLoadCondition<3, 2>::CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rRotationMatrix, const GeometryType& rGeom)
 {
      constexpr double tolerance = 1e-8;
