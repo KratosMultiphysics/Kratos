@@ -15,7 +15,6 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
-import KratosMultiphysics.eigen_solver_factory as eigen_solver_factory
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
@@ -450,7 +449,7 @@ class AlgorithmShapeFractionOptimization(OptimizationAlgorithm):
         tolerance = self.inner_tolerance
 
         is_converged = False
-        if self.previous_objective_value == None:
+        if self.previous_objective_value is None:
             self.reference_objective_value = objective_value
             self.previous_objective_value = objective_value
             self.relative_change = 0

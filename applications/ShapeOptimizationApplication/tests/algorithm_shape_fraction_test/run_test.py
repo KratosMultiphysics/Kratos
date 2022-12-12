@@ -5,7 +5,6 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
 
 # =======================================================================================================
@@ -81,6 +80,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
             communicator.reportValue("z_65", CoordZ.Value(current_design, 65))
         if communicator.isRequestingGradientOf("z_65"):
             communicator.reportGradient("z_65", CoordZ.Gradient(current_design, 65))
+
 
 # =======================================================================================================
 # Perform optimization
