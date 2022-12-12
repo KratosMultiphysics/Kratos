@@ -357,7 +357,7 @@ protected:
      * @param rProcessInfo Reference to the ProcessInfo container
      */
     void ComputeRHSOutletInflowContribution(
-        array_1d<double,TNumNodes*(TDim+1)>& rRHS,
+        array_1d<double, LocalSize>& rRHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
