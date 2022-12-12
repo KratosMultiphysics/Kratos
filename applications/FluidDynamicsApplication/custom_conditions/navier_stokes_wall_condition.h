@@ -84,7 +84,7 @@ public:
     };
 
     static constexpr std::size_t VoigtSize = 3 * (TDim-1);
-    static constexpr std::size_t BlockSize = TNumNodes + 1;
+    static constexpr std::size_t BlockSize = TDim + 1;
     static constexpr std::size_t LocalSize = TNumNodes*BlockSize;
 
     using Condition::SizeType;
