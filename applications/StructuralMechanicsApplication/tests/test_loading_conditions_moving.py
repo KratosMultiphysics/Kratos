@@ -7,18 +7,18 @@ import math
 class TestLoadingConditionsLine(KratosUnittest.TestCase):
 
 
-    def calculate_reaction_2n(self, length, angle, load, distance):
+    def __CalculateReaction2n(self, length, angle, load, distance):
         """
         Calculate reaction forces on 2 noded 2d inclined element
 
         Parameters
         ----------
-        length
-        angle
-        load
-        distance
+        length length of the element
+        angle angle of the element
+        load load vector
+        distance local distance of the load within the element
 
-        Returns
+        Returns reaction forces
         -------
 
         """
@@ -26,12 +26,12 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         cos = math.cos(angle)
         sin = math.sin(angle)
 
-        P_shear = load[1] * sin + load[0] * -cos
+        p_shear = load[1] * sin + load[0] * -cos
         a = distance
         b = length - distance
 
-        left_shear_reaction = P_shear * b/length
-        right_shear_reaction = P_shear * a/length
+        left_shear_reaction = p_shear * b/length
+        right_shear_reaction = p_shear * a/length
 
         x_l = left_shear_reaction * -sin
         y_l = left_shear_reaction * cos
@@ -42,18 +42,18 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         return (x_l, y_l), (x_r, y_r)
 
 
-    def calculate_reaction_3n(self, length, angle, load, distance):
+    def __CalculateReaction3n(self, length, angle, load, distance):
         """
         Calculate reaction forces on 3 noded 2d inclined element
 
         Parameters
         ----------
-        length
-        angle
-        load
-        distance
+        length length of the element
+        angle angle of the element
+        load load vector
+        distance local distance of the load within the element
 
-        Returns
+        Returns reaction forces
         -------
 
         """
@@ -62,17 +62,17 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         sin = math.sin(angle)
 
         # calculate local forces
-        P_shear = load[1] * sin + load[0] * -cos
-        P_normal = load[1] * cos + load[0] * sin
+        p_shear = load[1] * sin + load[0] * -cos
+        p_normal = load[1] * cos + load[0] * sin
 
         # calculate local reaction forces
-        left_shear_reaction = P_shear * (length**2 - 3*length*distance + 2*distance**2)/length**2
-        right_shear_reaction = P_shear * (2*distance**2 - length*distance)/length**2
-        mid_shear_reaction = P_shear * 4 * (length * distance - distance ** 2) / length ** 2
+        left_shear_reaction = p_shear * (length**2 - 3*length*distance + 2*distance**2)/length**2
+        right_shear_reaction = p_shear * (2*distance**2 - length*distance)/length**2
+        mid_shear_reaction = p_shear * 4 * (length * distance - distance ** 2) / length ** 2
 
-        left_normal_reaction = P_normal * (length**2 - 3*length*distance + 2*distance**2)/length**2
-        right_normal_reaction = P_normal * (2*distance**2 - length*distance)/length**2
-        mid_normal_reaction = P_normal * 4 * (length * distance - distance ** 2) / length ** 2
+        left_normal_reaction = p_normal * (length**2 - 3*length*distance + 2*distance**2)/length**2
+        right_normal_reaction = p_normal * (2*distance**2 - length*distance)/length**2
+        mid_normal_reaction = p_normal * 4 * (length * distance - distance ** 2) / length ** 2
 
         # calculate global force
         x_l = left_shear_reaction * -sin + left_normal_reaction * cos
@@ -84,20 +84,20 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         x_r = right_shear_reaction * -sin + right_normal_reaction * cos
         y_r = right_shear_reaction * cos + right_normal_reaction * sin
 
-        return (x_l, y_l),(x_mid, y_mid), (x_r, y_r)
+        return (x_l, y_l), (x_mid, y_mid), (x_r, y_r)
 
-    def calculate_reaction_with_rotation(self, length, angle, load, distance):
+    def __CalculateReactionWithRotation(self, length, angle, load, distance):
         """
         Calculate reaction forces including moment on a 2d inclined element
 
         Parameters
         ----------
-        length
-        angle
-        load
-        distance
+        length length of the element
+        angle angle of the element
+        load load vector
+        distance local distance of the load within the element
 
-        Returns
+        Returns reaction forces
         -------
 
         """
@@ -105,16 +105,16 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         cos = math.cos(angle)
         sin = math.sin(angle)
 
-        P_shear = load[1] * sin + load[0] * -cos
+        p_shear = load[1] * sin + load[0] * -cos
         a = distance
         b = length - distance
 
-        expected_left_moment = P_shear * a * b ** 2 / length ** 2
-        expected_right_moment = -P_shear * a ** 2 * b / length ** 2
-        Ml, Mr = expected_left_moment, expected_right_moment
+        expected_left_moment = p_shear * a * b ** 2 / length ** 2
+        expected_right_moment = -p_shear * a ** 2 * b / length ** 2
+        moment_left, moment_right = expected_left_moment, expected_right_moment
 
-        left_shear_reaction = (P_shear * b) / length + (Ml + Mr) / length
-        right_shear_reaction = (P_shear * a) / length - (Ml + Mr) / length
+        left_shear_reaction = (p_shear * b) / length + (moment_left + moment_right) / length
+        right_shear_reaction = (p_shear * a) / length - (moment_left + moment_right) / length
 
         x_l = left_shear_reaction * -sin
         y_l = left_shear_reaction * cos
@@ -122,8 +122,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         x_r = right_shear_reaction * -sin
         y_r = right_shear_reaction * cos
 
-        return (x_l, y_l, Ml), (x_r, y_r, Mr)
-
+        return (x_l, y_l, moment_left), (x_r, y_r, moment_right)
 
     def _MovingLoadCondition3D2NRotDofZ(self):
         """"
@@ -174,7 +173,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         for i in range(num_tests):
             distance = i/(num_tests-1) * length
             (x_left, y_left, moment_left), (x_right, y_right, moment_right) = \
-                self.calculate_reaction_with_rotation(length, rotation, load_on_cond, distance)
+                self.__CalculateReactionWithRotation(length, rotation, load_on_cond, distance)
 
             # set load on quarter
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
@@ -258,8 +257,8 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         for i in range(num_tests):
             distance = i/(num_tests-1) * length
             (x_left, z_left, moment_left), (x_right, z_right, moment_right) = \
-                self.calculate_reaction_with_rotation(length, rotation, [load_on_cond[0], load_on_cond[2], load_on_cond[1]],
-                                                                                                  distance)
+                self.__CalculateReactionWithRotation(length, rotation, [load_on_cond[0], load_on_cond[2],
+                                                                      load_on_cond[1]], distance)
 
             # set load on quarter
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
@@ -312,7 +311,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         for i in range(num_tests):
             distance = i / (num_tests - 1) * length
 
-            (x_left, y_left), (x_right, y_right) = self.calculate_reaction_2n(length, rotation, load_on_cond, distance)
+            (x_left, y_left), (x_right, y_right) = self.__CalculateReaction2n(length, rotation, load_on_cond, distance)
 
             cond.SetValue(StructuralMechanicsApplication.POINT_LOAD,load_on_cond)
 
@@ -373,8 +372,8 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         for i in range(num_tests):
             distance = i / (num_tests - 1) * length
             (x_left, y_left, moment_left), (x_right, y_right, moment_right) = \
-                self.calculate_reaction_with_rotation(length, rotation, [load_on_cond[0], load_on_cond[2], load_on_cond[1]],
-                                        distance)
+                self.__CalculateReactionWithRotation(length, rotation, [load_on_cond[0], load_on_cond[2],
+                                                                        load_on_cond[1]], distance)
 
             # set load on node
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
@@ -424,7 +423,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
             distance = i / (num_tests - 1) * length
 
             (x_left, y_left),(x_mid, y_mid), (x_right, y_right) = \
-                self.calculate_reaction_3n(length, rotation, load_on_cond, distance)
+                self.__CalculateReaction3n(length, rotation, load_on_cond, distance)
 
             cond.SetValue(StructuralMechanicsApplication.POINT_LOAD,load_on_cond)
 
@@ -486,7 +485,8 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
             distance = i / (num_tests - 1) * length
 
             (x_left, z_left), (x_mid, z_mid), (x_right, z_right) = \
-                self.calculate_reaction_3n(length, rotation, [load_on_cond[0], load_on_cond[2], load_on_cond[1]], distance)
+                self.__CalculateReaction3n(length, rotation, [load_on_cond[0], load_on_cond[2], load_on_cond[1]],
+                                           distance)
 
             cond.SetValue(StructuralMechanicsApplication.POINT_LOAD,load_on_cond)
 
@@ -516,7 +516,6 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[6], 0)
         self.assertAlmostEqual(rhs[7], 0)
         self.assertAlmostEqual(rhs[8], 0)
-
 
     def test_MovingLoadCondition3D2NRotDofZ(self):
         self._MovingLoadCondition3D2NRotDofZ()

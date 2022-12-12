@@ -158,7 +158,7 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
 
         # create condition
-        conditions=[]
+        conditions = []
         conditions.append(mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], mp.GetProperties()[1]))
         conditions.append(mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], mp.GetProperties()[1]))
 
