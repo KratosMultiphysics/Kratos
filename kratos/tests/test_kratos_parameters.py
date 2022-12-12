@@ -1011,6 +1011,25 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertListEqual(new_string_array, string_array)
 
+    def test_copy_values_from_existing_parameters(self):
+        initial = Parameters("""{
+            "parameter1": ["foo", "bar"],
+            "parameter2": true,
+            "parameter3": "Hello",
+            "parameter4": 15
+        } """)
+        parameter_list = ["parameter2", "parameter3"]
+
+        new_param = Parameters()
+        new_param.CopyValuesFromExistingParameters(initial, parameter_list)
+
+        self.assertFalse(new_param.Has("parameter1"))
+        self.assertTrue(new_param.Has("parameter2"))
+        self.assertEqual(new_param["parameter2"].GetBool(), True)
+        self.assertTrue(new_param.Has("parameter3"))
+        self.assertEqual(new_param["parameter3"].GetString(),"Hello")
+        self.assertFalse(new_param.Has("parameter4"))
+
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
         tmp = Parameters(defaults)

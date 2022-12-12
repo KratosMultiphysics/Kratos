@@ -35,7 +35,6 @@ class BasicMappingProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                             : "This process allows to do a simple mapping using the SimpleMortarMapperProcess",
-            "mesh_id"                          : 0,
             "origin_model_part_name"           : "please_specify_model_part_name",
             "destination_model_part_name"      : "please_specify_model_part_name",
             "interval"                         : [0.0, 1e30],
@@ -85,7 +84,6 @@ class BasicMappingProcess(KratosMultiphysics.Process):
 
         # Removing unused parameters
         settings.RemoveValue("help")
-        settings.RemoveValue("mesh_id")
         settings.RemoveValue("origin_model_part_name")
         settings.RemoveValue("destination_model_part_name")
         settings.RemoveValue("interval")

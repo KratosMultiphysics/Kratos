@@ -324,10 +324,13 @@ public:
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
      * @param Tolerance The maximum tolerance considered
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
+    template<class TMatrix1, class TMatrix2>
     static void GeneralizedInvertMatrix(
-        const MatrixType& rInputMatrix,
-        MatrixType& rInvertedMatrix,
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
         TDataType& rInputMatrixDet,
         const TDataType Tolerance = ZeroTolerance
         )
@@ -391,6 +394,8 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
