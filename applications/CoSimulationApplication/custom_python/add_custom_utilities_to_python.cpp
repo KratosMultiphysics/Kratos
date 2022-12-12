@@ -21,7 +21,6 @@
 #include "spaces/ublas_space.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
 #include "custom_utilities/conversion_utilities.h"
-#include "custom_utilities/data_transfer_3D_1D_utilities.h"
 
 namespace Kratos{
 
@@ -61,11 +60,6 @@ namespace Python{
         pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
             .def_static("ConvertElementalDataToNodalData",
                 &ConversionUtilities::ConvertElementalDataToNodalData)
-            ;
-
-        pybind11::class_< DataTransfer3D1DUtilities>(m, "DataTransfer3D1DUtilities")
-            .def_static("From3Dto1DDataTransfer", &DataTransfer3D1DUtilities::From3Dto1DDataTransfer)
-            .def_static("From1Dto3DDataTransfer", &DataTransfer3D1DUtilities::From1Dto3DDataTransfer)
             ;
 
     }

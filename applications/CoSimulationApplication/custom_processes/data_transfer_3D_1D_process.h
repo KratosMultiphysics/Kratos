@@ -117,19 +117,19 @@ private:
 }; // Class PointElement
 
 /**
- * @class DataTransfer3D1DUtilities
+ * @class DataTransfer3D1DProcess
  * @ingroup CoSimulationApplication
  * @brief This utility includes auxiliary methods to transfer from 3D domains to 1D domains and viceversa
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(CO_SIMULATION_APPLICATION) DataTransfer3D1DUtilities
+class KRATOS_API(CO_SIMULATION_APPLICATION) DataTransfer3D1DProcess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DataTransfer3D1DUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(DataTransfer3D1DUtilities);
+    /// Pointer definition of DataTransfer3D1DProcess
+    KRATOS_CLASS_POINTER_DEFINITION(DataTransfer3D1DProcess);
 
     /// Node definition
     typedef Node<3> NodeType;
@@ -142,13 +142,13 @@ public:
     ///@{
 
     /// Default constructor.
-    DataTransfer3D1DUtilities() = delete;
+    DataTransfer3D1DProcess() = delete;
 
     /// Assignment operator.
-    DataTransfer3D1DUtilities& operator=(DataTransfer3D1DUtilities const& rOther) = delete;
+    DataTransfer3D1DProcess& operator=(DataTransfer3D1DProcess const& rOther) = delete;
 
     /// Copy constructor.
-    DataTransfer3D1DUtilities(DataTransfer3D1DUtilities const& rOther) = delete;
+    DataTransfer3D1DProcess(DataTransfer3D1DProcess const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -258,7 +258,7 @@ private:
     static Parameters GetDefaultParameters();
 
     ///@}
-}; // Class DataTransfer3D1DUtilities
+}; // Class DataTransfer3D1DProcess
 
 ///@}
 

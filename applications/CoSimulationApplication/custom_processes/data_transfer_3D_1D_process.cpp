@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/data_transfer_3D_1D_utilities.h"
+#include "custom_processes/data_transfer_3D_1D_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
@@ -46,7 +46,7 @@ using DistanceIterator = DistanceVector::iterator;                              
 using BucketType = Bucket<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>; \
 using KDTree = Tree<KDTreePartition<BucketType>>;                                                          
 
-void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
+void DataTransfer3D1DProcess::From3Dto1DDataTransfer(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
     Parameters ThisParameters
@@ -72,7 +72,7 @@ void DataTransfer3D1DUtilities::From3Dto1DDataTransfer(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
+void DataTransfer3D1DProcess::From1Dto3DDataTransfer(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
     Parameters ThisParameters
@@ -230,7 +230,7 @@ void DataTransfer3D1DUtilities::From1Dto3DDataTransfer(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DataTransfer3D1DUtilities::GetVariablesList(
+void DataTransfer3D1DProcess::GetVariablesList(
     Parameters ThisParameters,
     std::vector<const Variable<double>*>& rOriginListVariables,
     std::vector<const Variable<double>*>& rDestinationListVariables
@@ -267,7 +267,7 @@ void DataTransfer3D1DUtilities::GetVariablesList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
+void DataTransfer3D1DProcess::InterpolateFrom1Dto3D(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
     Parameters ThisParameters
@@ -299,7 +299,7 @@ void DataTransfer3D1DUtilities::InterpolateFrom1Dto3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
+void DataTransfer3D1DProcess::InterpolateFrom3Dto1D(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
     Parameters ThisParameters
@@ -331,7 +331,7 @@ void DataTransfer3D1DUtilities::InterpolateFrom3Dto1D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
+void DataTransfer3D1DProcess::ExtrapolateFrom1Dto3D(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
     Parameters ThisParameters
@@ -516,7 +516,7 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom1Dto3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DataTransfer3D1DUtilities::ExtrapolateFrom3Dto1D(
+void DataTransfer3D1DProcess::ExtrapolateFrom3Dto1D(
     ModelPart& rModelPart3D,
     ModelPart& rModelPart1D,
     Parameters ThisParameters
@@ -599,7 +599,7 @@ void DataTransfer3D1DUtilities::ExtrapolateFrom3Dto1D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double DataTransfer3D1DUtilities::GetMaxLength(ModelPart& rModelPart)
+double DataTransfer3D1DProcess::GetMaxLength(ModelPart& rModelPart)
 {
     auto& r_elements_array = rModelPart.Elements();
     KRATOS_ERROR_IF(r_elements_array.size() == 0) << "Empty model part" << std::endl;
@@ -611,7 +611,7 @@ double DataTransfer3D1DUtilities::GetMaxLength(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters DataTransfer3D1DUtilities::GetDefaultParameters()
+Parameters DataTransfer3D1DProcess::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
