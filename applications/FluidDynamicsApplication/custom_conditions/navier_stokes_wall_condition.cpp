@@ -351,7 +351,7 @@ void NavierStokesWallCondition<TDim, TNumNodes>::Calculate(
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(
-    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
+    BoundedMatrix<double, LocalSize, LocalSize>& lhs_gauss,
     const ConditionDataStruct& data,
     const ProcessInfo& rProcessInfo)
 {
