@@ -10,7 +10,6 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#include <iomanip> // for std::setprecision
 
 // Project includes
 #include "testing/testing.h"
