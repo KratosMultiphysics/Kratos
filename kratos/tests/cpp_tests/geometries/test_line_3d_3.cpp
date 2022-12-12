@@ -22,8 +22,7 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
     /// Factory functions
 
