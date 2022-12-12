@@ -57,28 +57,19 @@ public:
     /// Pointer definition of MedModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(MedModelPartIO);
 
-    // declaring this manually to avoid the include of "med.h" in a header file
-    // a compile time check to ensure correct types is done in the source file
-#ifdef KRATOS_MED_FILE_HANDLE_TYPE_INT
-    // HDF version < 1.10
-    using MedFileHandleType = int;
-#else
-    // HDF version >= 1.10
-    using MedFileHandleType = int64_t;
-#endif
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with filename.
-    MedModelPartIO(const std::filesystem::path& rFileName);
+    MedModelPartIO(
+        const std::filesystem::path& rFileName,
+        const Flags Options = IO::READ);
 
     /// Copy constructor.
     MedModelPartIO(MedModelPartIO const& rOther) = delete;
 
-    /// Destructor (closes the file).
-    ~MedModelPartIO() override;
+    ~MedModelPartIO() = default;
 
     ///@}
     ///@name Operators
@@ -230,7 +221,8 @@ private:
 
     std::filesystem::path mFileName;
 
-    MedFileHandleType mFileHandle;
+    class MedFileHandler;
+    Kratos::shared_ptr<MedFileHandler> mpFileHandler;
 
     ///@}
     ///@name Private Operators

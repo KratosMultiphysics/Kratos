@@ -14,10 +14,6 @@ if (NOT HDF5_FOUND)
     find_package(HDF5 REQUIRED COMPONENTS C)
 endif()
 
-if(HDF5_VERSION VERSION_LESS "1.10" )
-    add_definitions(-DKRATOS_MED_FILE_HANDLE_TYPE_INT)
-endif()
-
 include_directories(${MED_INCLUDE_DIR} ${HDF5_INCLUDE_DIRS})
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )

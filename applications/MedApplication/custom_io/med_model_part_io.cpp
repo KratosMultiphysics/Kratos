@@ -19,17 +19,14 @@
 #include "includes/model_part_io.h"
 #include "med_model_part_io.h"
 
-// Ensure that the type of the file handle used by Kratos is the same as what is used by MED
-// MED will not work properly if this check fails!
-static_assert(std::is_same<Kratos::MedModelPartIO::MedFileHandleType, med_idt>::value,
-    "Detecting the type of the MED file handle failed, please check the compilation/versions of MED and HDF5!");
-
 namespace Kratos {
 
-MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName)
+MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName, const Flags Options)
     : mFileName(rFileName)
 {
     KRATOS_TRY
+
+    mpFileHandler = Kratos::make_shared<MedFileHandler>(rFileName, Options);
 
 
     med_int v_hdf_major, v_hdf_minor, v_hdf_release;
@@ -66,32 +63,26 @@ MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName)
 
     KRATOS_WATCH("About to open trhge file")
 
-    mFileHandle = MEDfileOpen(rFileName.c_str(), MED_ACC_RDWR);
-    if (mFileHandle < 0) {
-        KRATOS_WATCH("Erreur à la creation du fichier");
-    }
+    // mFileHandle = MEDfileOpen(rFileName.c_str(), MED_ACC_RDWR);
+    // if (mFileHandle < 0) {
+    //     KRATOS_WATCH("Erreur à la creation du fichier");
+    // }
 
-    med_int v_major;
-    med_int v_minor;
-    med_int v_release;
+    // med_int v_major;
+    // med_int v_minor;
+    // med_int v_release;
 
-    err = MEDfileNumVersionRd(mFileHandle, &v_major, &v_minor, &v_release);
-    KRATOS_WATCH(err)
+    // err = MEDfileNumVersionRd(mFileHandle, &v_major, &v_minor, &v_release);
+    // KRATOS_WATCH(err)
 
 
-    KRATOS_WATCH(mFileHandle)
-    KRATOS_WATCH(v_major)
-    KRATOS_WATCH(v_minor)
-    KRATOS_WATCH(v_release)
+    // KRATOS_WATCH(mFileHandle)
+    // KRATOS_WATCH(v_major)
+    // KRATOS_WATCH(v_minor)
+    // KRATOS_WATCH(v_release)
 
 
     KRATOS_CATCH("")
-}
-
-MedModelPartIO::~MedModelPartIO()
-{
-    if (MEDfileClose(mFileHandle) < 0)
-    std::cout << "Closing failed ...";
 }
 
 void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
@@ -161,5 +152,59 @@ void MedModelPartIO::DivideInputToPartitions(Kratos::shared_ptr<std::iostream> *
         rElementsAllPartitions,
         rConditionsAllPartitions);
 }
+
+class MedModelPartIO::MedFileHandler
+{
+public:
+    MedFileHandler(
+        const std::filesystem::path& rFileName,
+        const Kratos::Flags Options) :
+            mFileName(rFileName)
+    {
+        KRATOS_TRY
+
+        med_bool hdf_ok;
+        med_bool med_ok;
+        med_err err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
+        KRATOS_WATCH(err)
+
+        KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "HDF is incompatible" << std::endl;
+        KRATOS_ERROR_IF(med_ok != MED_TRUE) << "MED is incompatible" << std::endl;
+
+        // read only by default, unless other settings are specified
+        med_access_mode open_mode = MED_ACC_RDONLY;
+
+        // Set the mode (consistent with ModelPartIO)
+        if (Options.Is(IO::READ)) {
+            open_mode = MED_ACC_RDONLY;
+        } else if (Options.Is(IO::APPEND)) {
+            open_mode = MED_ACC_RDEXT;
+        } else if (Options.Is(IO::WRITE)) {
+            open_mode = MED_ACC_RDWR; // or MED_ACC_CREAT?
+        }
+
+        mFileHandle = MEDfileOpen(rFileName.c_str(), open_mode);
+
+        KRATOS_CATCH("")
+    }
+
+    med_idt GetFileHandle() const
+    {
+        return mFileHandle;
+    }
+
+    ~MedFileHandler()
+    {
+        KRATOS_TRY
+
+        KRATOS_WARNING_IF("MedModelPartIO", MEDfileClose(mFileHandle) < 0) << "Closing of file " << mFileName << " failed!" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+private:
+    med_idt mFileHandle;
+    std::filesystem::path mFileName;
+};
 
 } // namespace Kratos.
