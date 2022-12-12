@@ -242,8 +242,8 @@ void DispNewtonianFluid3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rVa
     Matrix& ConstitutiveMatrix=rValues.GetConstitutiveMatrix();
 
     //Set to Kirchhoff Stress:
-    StressVector*=DeterminantF;
-    ConstitutiveMatrix*=DeterminantF;
+    StressVector=StressVector*DeterminantF;
+    ConstitutiveMatrix=ConstitutiveMatrix*DeterminantF;
 }
 
 //***********************************UPDATE*******************************************

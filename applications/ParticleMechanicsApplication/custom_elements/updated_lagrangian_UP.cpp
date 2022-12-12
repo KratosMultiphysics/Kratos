@@ -72,8 +72,6 @@ UpdatedLagrangianUP::UpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer
 UpdatedLagrangianUP::UpdatedLagrangianUP( UpdatedLagrangianUP const& rOther)
     :UpdatedLagrangian(rOther)
     , m_mp_pressure(rOther.m_mp_pressure)
-     //,mDeformationGradientF0(rOther.mDeformationGradientF0)
-     //,mDeterminantF0(rOther.mDeterminantF0)
 {
 }
 
@@ -416,9 +414,6 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    rVariables.detF0   *= rVariables.detF;
-    double determinant_F = rVariables.detF;
-    rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
     CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
@@ -432,9 +427,6 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(
     if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
         // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
         CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
-
-    rVariables.detF     = determinant_F;
-    rVariables.detF0   /= rVariables.detF;
 
 }
 //************************************************************************************
@@ -497,12 +489,28 @@ double& UpdatedLagrangianUP::CalculatePUCoefficient(double& rCoefficient, Genera
 {
     KRATOS_TRY
 
-    // TODO: Check what is the meaning of this function
-    rCoefficient = rVariables.detF0 - 1;
+    //rCoefficient = rVariables.detF0 - 1;
+    rCoefficient = (1-(1/rVariables.detF));
 
     return rCoefficient;
 
     KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& UpdatedLagrangianUP::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, GeneralVariables & rVariables)
+{
+
+    KRATOS_TRY
+
+    rDeltaCoefficient = 1.0;
+
+    return rDeltaCoefficient;
+
+    KRATOS_CATCH( "" )
+
 }
 
 //************************************************************************************
@@ -528,6 +536,9 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     if (bulk_modulus != bulk_modulus)
         bulk_modulus = 1.e16;
 
+    double delta_coefficient = 0;
+    delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
+
     double coefficient = 0;
     coefficient = this->CalculatePUCoefficient( coefficient, rVariables );
 
@@ -537,10 +548,10 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
         {
             const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
 
-            rRightHandSideVector[index_p] += (1.0/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
+            rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight;  //2D-3D
         }
 
-        rRightHandSideVector[index_p] -=  coefficient* r_N(0, i) * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+        rRightHandSideVector[index_p] -=  coefficient/delta_coefficient * r_N(0, i) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
@@ -606,7 +617,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                 if (i == j)
                     consistent = 2 * alpha_stabilization / 36.0;
 
-                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight; //2D
             }
             else
             {
@@ -614,7 +625,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                 if (i == j)
                     consistent = 3 * alpha_stabilization / 80.0;
 
-                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //3D
+                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight; //3D
             }
         }
         index_p += (dimension + 1);
@@ -631,10 +642,6 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    rVariables.detF0   *= rVariables.detF;
-    double determinant_F = rVariables.detF;
-    rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
-
     // Operation performed: add Km to the rLefsHandSideMatrix
     CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
@@ -656,9 +663,6 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
         // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
         CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    rVariables.detF     = determinant_F;
-    rVariables.detF0   /= rVariables.detF;
 
 }
 //************************************************************************************
@@ -764,7 +768,7 @@ void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight * rVariables.detF;
+                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
             }
             index_p += (dimension + 1);
         }
@@ -796,7 +800,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight * rVariables.detF;
+                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight;//
             }
         }
         index_p += (dimension + 1);
@@ -832,7 +836,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight /((rVariables.detF0/rVariables.detF));
+            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);
         }
@@ -905,7 +909,7 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
                 if (indexpi == indexpj)
                     consistent = 2 * alpha_stabilization / 36.0;
 
-                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D
+                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight;  //2D
             }
             else
             {
@@ -913,7 +917,7 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
                 if (indexpi == indexpj)
                     consistent = 3 * alpha_stabilization / 80.0;
 
-                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
+                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight;  //3D
             }
             indexpj += (dimension + 1);
         }
