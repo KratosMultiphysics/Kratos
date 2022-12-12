@@ -293,11 +293,11 @@ public:
 
 
     /// To Export a Scalar data (Double/int/...)
-    template<typename TDataType>
+    template<class TContainerType>
     void GetScalarData(
-        const Variable<TDataType>& rVariable,
+        const Variable<typename TContainerType::value_type>& rVariable,
         const DataLocation DataLoc,
-        std::vector<TDataType>& data) const
+        TContainerType& data) const
     {
         switch (DataLoc)
         {
@@ -350,11 +350,11 @@ public:
     }
 
     /// To Export a Vector data (std::vector/array/..)
-    template<class TDataType>
+    template<class TContainerType, class TVarType>
     void GetVectorData(
-        const Variable<TDataType>& rVariable,
+        const Variable<TVarType>& rVariable,
         const DataLocation DataLoc,
-        std::vector<double>& data) const
+        TContainerType& data) const
     {
         switch (DataLoc)
         {
@@ -437,11 +437,11 @@ public:
     }
 
     /// To Import a Scalar data (Double/int/...)
-    template<typename TDataType>
+    template<class TContainerType>
     void SetScalarData(
-        const Variable<TDataType>& rVariable,
+        const Variable<typename TContainerType::value_type>& rVariable,
         const DataLocation DataLoc,
-        const std::vector<TDataType>& rData)
+        const TContainerType& rData)
     {
         switch (DataLoc)
         {
@@ -493,11 +493,11 @@ public:
     }
 
     /// To Import a Vector data (std::vector/array/..)
-    template<class TDataType>
+    template<class TContainerType, class TVarType>
     void SetVectorData(
-        const Variable<TDataType>& rVariable,
+        const Variable<TVarType>& rVariable,
         const DataLocation DataLoc,
-        const std::vector<double>& rData)
+        const TContainerType& rData)
     {
         switch (DataLoc)
         {
@@ -582,14 +582,14 @@ public:
 
     /**
      * @brief This method deep copies a whole model part
-     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour. 
+     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour.
      * This is deep copy, meaning that every entity is deep copied, so created from scratch. The only thing that would be equal will be the Model if not custom Model is provided
      * @param rNewModelPartName The name of the new model part
      * @param pModel The pointer to the Model that will host the new ModelPart, if nullptr, the current Model will be used.
      * @return The deep copied model part
      */
     ModelPart& DeepCopyModelPart(
-        const std::string& rNewModelPartName, 
+        const std::string& rNewModelPartName,
         Model* pModel = nullptr
         );
 
@@ -610,7 +610,7 @@ public:
         TReferenceClassContainer& rReferenceEntities,
         std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
         )
-    {   
+    {
         auto& r_properties= rModelPart.rProperties();
         rEntities.SetMaxBufferSize(rReferenceEntities.GetMaxBufferSize());
         rEntities.SetSortedPartSize(rReferenceEntities.GetSortedPartSize());
@@ -694,8 +694,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<typename TDataType, class TContainerType>
-    void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
@@ -703,8 +703,8 @@ private:
         });
     }
 
-    template<typename TDataType, class TContainerType>
-    void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data) const
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
@@ -715,8 +715,8 @@ private:
         });
     }
 
-    template<typename TDataType, class TContainerType>
-    void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const std::vector<TDataType>& rData)
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
@@ -724,8 +724,8 @@ private:
         });
     }
 
-    template<typename TDataType, class TContainerType>
-    void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const std::vector<double>& rData)
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
@@ -755,7 +755,7 @@ private:
      * @param rNewModelPart The new model part
      */
     void DeepCopySubModelPart(
-        const ModelPart& rOldModelPart, 
+        const ModelPart& rOldModelPart,
         ModelPart& rNewModelPart
         );
 
