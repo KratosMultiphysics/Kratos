@@ -405,6 +405,10 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     }
 
     noalias(rStressSerialResidual) = serial_stress_matrix - serial_stress_fiber;
+    if (norm_serial_stress_matrix <= 1.0e-4 || norm_serial_stress_fiber <= 1.0e-4) {
+        rIsConverged = true;
+        return;
+    }
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
 }
