@@ -28,6 +28,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     py::class_<MedModelPartIO, MedModelPartIO::Pointer, IO>(m,"MedModelPartIO")
         .def(py::init<const std::filesystem::path&>())
+        .def(py::init<const std::filesystem::path&, const Flags>())
         ;
 }
 
