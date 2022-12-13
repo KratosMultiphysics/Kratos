@@ -23,7 +23,7 @@
 #include "utilities/variable_utils.h"
 #include "custom_utilities/self_contact_utilities.h"
 
-namespace Kratos:::Testing
+namespace Kratos::Testing
 {
 // void IOSelfContactDebug(ModelPart& rModelPart)
 // {
