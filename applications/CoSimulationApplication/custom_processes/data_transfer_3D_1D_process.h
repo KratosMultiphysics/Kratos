@@ -284,13 +284,11 @@ private:
     void InterpolateFrom1Dto3D();
 
     /**
-     * @brief This method computes the list of variables to interpolate/extrapolate
-     * @param ThisParameters The parameters containing the list of variables
-     * @param rOriginListVariables The list of origin variables to interpolate/extrapolate
-     * @param rDestinationListVariables The list of destination variables to interpolate/extrapolate
+     * @brief This method computes the list of variables to interpolate
+     * @param rOriginListVariables The list of origin variables to interpolate
+     * @param rDestinationListVariables The list of destination variables to interpolate
      */
-    static void GetVariablesList(
-        Parameters ThisParameters,
+    void GetVariablesList(
         std::vector<const Variable<double>*>& rOriginListVariables,
         std::vector<const Variable<double>*>& rDestinationListVariables
         );

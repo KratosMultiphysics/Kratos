@@ -54,7 +54,7 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
     KRATOS_ERROR_IF(mr3DModelPart.IsDistributed() || mr1DModelPart.IsDistributed()) << "This implementation is not available for MPI model parts" << std::endl;
 
     // Getting mThisParameters
-    GetVariablesList(ThisParameters, mOriginListVariables, mDestinationListVariables);
+    GetVariablesList(mOriginListVariables, mDestinationListVariables);
 
     // We generate auxiliary 3D model part
     auto& r_aux_model_part_3D = mr3DModelPart.CreateSubModelPart("IntersectedElements3D");
@@ -187,7 +187,6 @@ void DataTransfer3D1DProcess::Execute()
 /***********************************************************************************/
 
 void DataTransfer3D1DProcess::GetVariablesList(
-    Parameters ThisParameters,
     std::vector<const Variable<double>*>& rOriginListVariables,
     std::vector<const Variable<double>*>& rDestinationListVariables
     )
@@ -196,8 +195,8 @@ void DataTransfer3D1DProcess::GetVariablesList(
     const std::array<std::string, 3> direction_string({"X", "Y", "Z"});
 
     // Getting variables
-    const std::vector<std::string> origin_variables_names = ThisParameters["origin_variables"].GetStringArray();
-    const std::vector<std::string> destination_variables_names = ThisParameters["destination_variables"].GetStringArray();
+    const std::vector<std::string> origin_variables_names = mThisParameters["origin_variables"].GetStringArray();
+    const std::vector<std::string> destination_variables_names = mThisParameters["destination_variables"].GetStringArray();
     KRATOS_ERROR_IF(origin_variables_names.size() == 0) << "No variables defined" << std::endl;
     KRATOS_ERROR_IF(origin_variables_names.size() != destination_variables_names.size()) << "Origin and destination variables do not coincide in size" << std::endl;
     for (IndexType i_var = 0; i_var < origin_variables_names.size(); ++i_var) {
