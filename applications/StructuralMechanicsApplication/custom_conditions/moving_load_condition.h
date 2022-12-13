@@ -133,7 +133,7 @@ public:
 	 * @brief Check if Rotational Dof existant
 	 * @return Trues if exists, false otherwise
 	 */
-    bool HasRotDof() const;
+    bool HasRotDof() const override;
 
     ///@}
     ///@name Access

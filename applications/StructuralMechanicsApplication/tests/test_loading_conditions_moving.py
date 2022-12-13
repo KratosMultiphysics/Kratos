@@ -4,7 +4,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 
-class TestLoadingConditionsLine(KratosUnittest.TestCase):
+class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
 
     def __CalculateReaction2n(self, length, angle, load, distance):
