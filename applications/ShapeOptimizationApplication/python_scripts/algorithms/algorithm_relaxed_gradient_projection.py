@@ -324,6 +324,15 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 self.step_size *= 5
             else:
                 self.__QNBBStep()
+        elif self.line_search_type == "BB_method":
+            if self.optimization_iteration == 1:
+                # Do initial small step
+                self.step_size /= 5
+                self.__manualStep()
+                self.step_size *= 5
+            else:
+                self.__BBStep()
+
 
     def __manualStep(self):
         step_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE)
@@ -357,6 +366,23 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 s[i] = s[i] * step_i
                 s[i+1] = s[i+1] * step_i
                 s[i+2] = s[i+2] * step_i
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
+
+    def __BBStep(self):
+        self.s_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
+        if abs(self.s_norm) > 1e-10:
+            s = KM.Vector()
+            self.optimization_utilities.AssembleVector(self.design_surface, s, KSO.SEARCH_DIRECTION)
+            s /= self.s_norm
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
+            y = self.prev_s - s
+            if np.dot(y, y) < 1e-9:
+                step = self.step_size
+            else:
+                step = abs(np.dot(y, self.d) / np.dot(y, y))
+            if step > self.step_size:
+                step = self.step_size
+            s = s * step
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
 
     def __saveLineSearchData(self):
