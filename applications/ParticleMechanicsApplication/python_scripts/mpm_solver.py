@@ -158,7 +158,9 @@ class MPMSolver(PythonSolver):
             self.material_point_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = dt
         else:
             self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            self.material_point_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.grid_model_part.CloneTimeStep(new_time)
+            self.material_point_model_part.CloneTimeStep(new_time)
 
         return new_time
 
@@ -181,6 +183,10 @@ class MPMSolver(PythonSolver):
         self._GetSolutionStrategy().FinalizeSolutionStep()
 
         self._GetSolutionStrategy().Clear()
+
+        if self.is_restarted():
+            self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+            self.grid_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def Check(self):
         self._GetSolutionStrategy().Check()
