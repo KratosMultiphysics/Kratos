@@ -176,7 +176,7 @@ DataTransfer3D1DProcess::~DataTransfer3D1DProcess()
 void DataTransfer3D1DProcess::Execute()
 {
     // From 3D to 1D
-    if (this->Is(SELECTED)) { 
+    if (this->Is(MapperFlags::USE_TRANSPOSE)) { 
         InterpolateFrom3Dto1D();
     } else { // From 1D to 3D
         InterpolateFrom1Dto3D();
