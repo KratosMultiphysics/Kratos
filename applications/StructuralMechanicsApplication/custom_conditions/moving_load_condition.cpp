@@ -93,10 +93,10 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-	const unsigned int block_size = this->GetBlockSize();
+    const SizeType number_of_nodes = GetGeometry().size();
+	const SizeType block_size = this->GetBlockSize();
     // Resizing as needed the LHS
-    const unsigned int mat_size = number_of_nodes * block_size;
+    const SizeType mat_size = number_of_nodes * block_size;
 
     if ( CalculateStiffnessMatrixFlag == true ){ //calculation of the matrix is required
         if ( rLeftHandSideMatrix.size1() != mat_size){
@@ -125,7 +125,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 
 	// check if cond should be calculated
     bool is_moving_load = false;
-    for (unsigned int i = 0; i < TDim; ++i){
+    for (IndexType i = 0; i < TDim; ++i){
         if (std::abs(moving_load[i]) > std::numeric_limits<double>::epsilon() && local_x_coord <= this->GetGeometry().Length() && local_x_coord >= 0.0){
             is_moving_load = true;
         }
@@ -171,10 +171,10 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         global_moment_matrix.resize(block_size - TDim, TNumNodes, false);
 
 
-        for (unsigned int nod = 0; nod < TNumNodes; ++nod){
+        for (IndexType nod = 0; nod < TNumNodes; ++nod){
             local_load_matrix(0, nod) = normal_shape_functions_vector[nod] * local_moving_load[0];
 
-            for (unsigned int ii = 1; ii < TDim; ++ii){
+            for (IndexType ii = 1; ii < TDim; ++ii){
                 local_load_matrix(ii,nod) = shear_shape_functions_vector[nod] * local_moving_load[ii];
             }
         }
@@ -202,20 +202,20 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         }
 
 
-        for (unsigned int ii = 0; ii < TNumNodes; ++ii){
-            const unsigned int base = ii * block_size;
+        for (IndexType ii = 0; ii < TNumNodes; ++ii){
+            const IndexType base = ii * block_size;
 
             // add load to rhs
-            for (unsigned int k = 0; k < TDim; ++k){
-                const unsigned int index = base + k;
+            for (IndexType k = 0; k < TDim; ++k){
+                const IndexType index = base + k;
                 rRightHandSideVector[index] += global_load_matrix(k, ii);
             }
 
 
             // shape index is 0 or 1, rotation is only added to first and final node
-            for (unsigned int k = 0; k < block_size - TDim; ++k){
+            for (IndexType k = 0; k < block_size - TDim; ++k){
 
-                const unsigned int index = base + TDim + k;
+                const IndexType index = base + TDim + k;
                 rRightHandSideVector[index] = global_moment_matrix(k, ii);
             }
         }

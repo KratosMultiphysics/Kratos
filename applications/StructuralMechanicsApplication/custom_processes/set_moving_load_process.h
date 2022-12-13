@@ -147,7 +147,7 @@ private:
 	 * \param IndicesVector vector of all the node indices, which are found in the condition elements.
 	 * \return vector of non repeating node indices within the model part
 	 */
-    static std::vector<unsigned int> FindNonRepeatingIndices(const std::vector<unsigned int> IndicesVector);
+    static std::vector<IndexType> FindNonRepeatingIndices(const std::vector<IndexType> IndicesVector);
 
     /**
 	 * \brief Finds condition elements which are at the spatial ends of the conditions vector. This function checks which condition's points are not repeated

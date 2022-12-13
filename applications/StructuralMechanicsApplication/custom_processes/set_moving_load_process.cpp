@@ -55,7 +55,7 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     // check if all elements in load parameter are either string or a number
     bool is_all_string = true;
     bool is_all_number = true;
-    for (unsigned int i = 0; i < mParameters["load"].size(); i++)
+    for (IndexType i = 0; i < mParameters["load"].size(); i++)
     {
         if (!mParameters["load"][i].IsString()){
             is_all_string = false;
@@ -70,16 +70,16 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
 }
 
 
-std::vector<unsigned int> SetMovingLoadProcess::FindNonRepeatingIndices(const std::vector<unsigned int> IndicesVector)
+std::vector<IndexType> SetMovingLoadProcess::FindNonRepeatingIndices(const std::vector<IndexType> IndicesVector)
 {
     // Insert all array elements in hash
     // table
-    std::unordered_map<unsigned int, int> mp;
-    for (unsigned int i = 0; i < IndicesVector.size(); i++)
+    std::unordered_map<IndexType, int> mp;
+    for (IndexType i = 0; i < IndicesVector.size(); i++)
         mp[IndicesVector[i]]++;
 
     // Traverse through map only and
-    std::vector<unsigned int> non_repeating_indices;
+    std::vector<IndexType> non_repeating_indices;
     for (auto x : mp)
         if (x.second == 1)
             non_repeating_indices.push_back(x.first);
@@ -160,7 +160,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
 
     bool is_cond_reversed = mIsCondReversedVector[0];
     while (visited_indices.size() != unsorted_conditions_v.size()){
-        for (unsigned int i =0; i< unsorted_conditions_v.size(); i++){
+        for (IndexType i =0; i< unsorted_conditions_v.size(); i++){
             Condition& r_cond = unsorted_conditions_v[i];
             GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
 
@@ -212,7 +212,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
 
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {
-    std::vector<unsigned int> node_id_vector;
+    std::vector<IndexType> node_id_vector;
     const array_1d<double, 3> origin_point = mParameters["origin"].GetVector();
 
     // get all end node ids ( not the middle nodes, in case of line3 conditions)
@@ -234,7 +234,7 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
     KRATOS_ERROR_IF_NOT(condition_is_on_line) << "Origin point of moving load is not on line" << std::endl;
 
     // find non repeating node ids
-    const std::vector<unsigned int> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
+    const std::vector<IndexType> non_repeating_node_ids = FindNonRepeatingIndices(node_id_vector);
 
     // error if model part does not have 1 end and 1 beginning
     KRATOS_ERROR_IF_NOT(non_repeating_node_ids.size() == 2) << "Moving load condition model part needs to be connected with a beginning and end" << std::endl;
@@ -244,8 +244,8 @@ std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
     for (Condition& r_cond : mrModelPart.Conditions()) {
 
         auto& r_geom = r_cond.GetGeometry();
-        for (unsigned int i = 0; i < r_geom.size(); i++){
-            for (unsigned int j = 0; j < non_repeating_node_ids.size(); j++){
+        for (IndexType i = 0; i < r_geom.size(); i++){
+            for (IndexType j = 0; j < non_repeating_node_ids.size(); j++){
                 if (r_geom[i].Id() == non_repeating_node_ids[j]){
                     end_conditions.push_back(r_cond);
                 }
@@ -260,7 +260,7 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 {
     double global_distance = 0;
     // loop over sorted conditions
-    for (unsigned int i = 0; i < mSortedConditions.size(); ++i){
+    for (IndexType i = 0; i < mSortedConditions.size(); ++i){
         auto& r_cond = mSortedConditions[i];
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
@@ -298,7 +298,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
 	// check if load input is a function or numeric and add load to member variable
     if (mParameters["load"][0].IsString()){
         mUseLoadFunction = true;
-        for (unsigned int i = 0; i < mParameters["load"].size(); ++i){
+        for (IndexType i = 0; i < mParameters["load"].size(); ++i){
             BasicGenericFunctionUtility load_function = BasicGenericFunctionUtility(mParameters["load"][i].GetString());
             mLoadFunctions.push_back(load_function);
         }
@@ -348,7 +348,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         // get current time
         const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
-        for (unsigned int i =0; i< mLoadFunctions.size();++i){
+        for (IndexType i =0; i< mLoadFunctions.size();++i){
             load_vector[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
         }
     } else {
@@ -361,7 +361,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     bool is_moving_load_added = false;
 
     // loop over sorted conditions vector
-    for (unsigned int i = 0; i < mSortedConditions.size(); ++i) {
+    for (IndexType i = 0; i < mSortedConditions.size(); ++i) {
         auto& r_cond = mSortedConditions[i];
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
