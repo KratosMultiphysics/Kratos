@@ -62,25 +62,25 @@ void FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(
     constexpr double two_thirds = 2./3.;
     constexpr double four_thirds = 4./3.;
 
-    // rConstitutiveMatrix(0,0) = DynamicViscosity * four_thirds;
-    // rConstitutiveMatrix(0,1) = -DynamicViscosity * two_thirds;
-    // rConstitutiveMatrix(0,2) = 0.0;
-    // rConstitutiveMatrix(1,0) = -DynamicViscosity * two_thirds;
-    // rConstitutiveMatrix(1,1) = DynamicViscosity * four_thirds;
-    // rConstitutiveMatrix(1,2) = 0.0;
-    // rConstitutiveMatrix(2,0) = 0.0;
-    // rConstitutiveMatrix(2,1) = 0.0;
-    // rConstitutiveMatrix(2,2) = DynamicViscosity;
+    rConstitutiveMatrix(0,0) = DynamicViscosity * four_thirds;
+    rConstitutiveMatrix(0,1) = -DynamicViscosity * two_thirds;
+    rConstitutiveMatrix(0,2) = 0.0;
+    rConstitutiveMatrix(1,0) = -DynamicViscosity * two_thirds;
+    rConstitutiveMatrix(1,1) = DynamicViscosity * four_thirds;
+    rConstitutiveMatrix(1,2) = 0.0;
+    rConstitutiveMatrix(2,0) = 0.0;
+    rConstitutiveMatrix(2,1) = 0.0;
+    rConstitutiveMatrix(2,2) = DynamicViscosity;
 
-    rConstitutiveMatrix(0, 0) = 2 *DynamicViscosity;
-    rConstitutiveMatrix(0, 1) = 0.0;
-    rConstitutiveMatrix(0, 2) = 0.0;
-    rConstitutiveMatrix(1, 0) = 0.0;
-    rConstitutiveMatrix(1, 1) = 2 * DynamicViscosity;
-    rConstitutiveMatrix(1, 2) = 0.0;
-    rConstitutiveMatrix(2, 0) = 0.0;
-    rConstitutiveMatrix(2, 1) = 0.0;
-    rConstitutiveMatrix(2, 2) = DynamicViscosity;
+    // rConstitutiveMatrix(0, 0) = 2 *DynamicViscosity;
+    // rConstitutiveMatrix(0, 1) = 0.0;
+    // rConstitutiveMatrix(0, 2) = 0.0;
+    // rConstitutiveMatrix(1, 0) = 0.0;
+    // rConstitutiveMatrix(1, 1) = 2 * DynamicViscosity;
+    // rConstitutiveMatrix(1, 2) = 0.0;
+    // rConstitutiveMatrix(2, 0) = 0.0;
+    // rConstitutiveMatrix(2, 1) = 0.0;
+    // rConstitutiveMatrix(2, 2) = DynamicViscosity;
 }
 
 template < std::size_t TNumNodes >

@@ -1230,17 +1230,16 @@ void TwoFluidNavierStokes<TElementData>::CalculateConnectivityMPCsMatrix(
             rConnectivityMatrix(slave_id, j) = mpc_weight * enr_sh_func_master / enr_sh_func_slave;
         }
     }
-    if (master_no = slave_no)
+    if (master_no == slave_no)
     {
-
         // we need to calcuate the M matrix in order to multiply impose a only master node.
-        // SUPER MASTER : p_master_nodes_ids[0]
+        // SUPER MASTER : p_master_nodes_ids[1]
         // AN ARBITRARY SLAVE  :  p_slave_nodes_ids[0]
-        MatrixType rMasterDependencyMatrix = ZeroMatrix(master_no, 1);
 
-        rMasterDependencyMatrix(0, 1) = rConnectivityMatrix((*p_master_nodes_ids)[0], 0) / rConnectivityMatrix((*p_slave_nodes_ids)[0], 1);
-        rMasterDependencyMatrix(1, 1) = 1.0;
-
+        MatrixType rMasterDependencyMatrix;
+        rMasterDependencyMatrix = ZeroMatrix(master_no, 1);
+        rMasterDependencyMatrix(0, 0) = rConnectivityMatrix((*p_slave_nodes_ids)[0], 1) / rConnectivityMatrix((*p_slave_nodes_ids)[0], 0);
+        rMasterDependencyMatrix(1, 0) = 1.0;
         rConnectivityMatrix = prod(rConnectivityMatrix, rMasterDependencyMatrix);
     }
 }

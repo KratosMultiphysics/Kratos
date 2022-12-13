@@ -155,6 +155,7 @@ namespace Kratos
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::FindIntersections()
     {
         mFindIntersectedObjectsProcess.FindIntersections();
+
     }
 
     template<std::size_t TDim>
@@ -168,6 +169,7 @@ namespace Kratos
     {
         const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
         auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+
 
         if (mCalculateElementalEdgeDistances) {
             #pragma omp parallel for schedule(dynamic)

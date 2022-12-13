@@ -17,7 +17,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR"
-divide_by_rho = False                # Divide by density in mass conservation equation
+divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
 time_integration = "bdf2"

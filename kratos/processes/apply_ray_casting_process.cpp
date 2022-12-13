@@ -105,64 +105,102 @@ namespace Kratos
 	template<std::size_t TDim>
 	double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
 	{
-		array_1d<double,TDim> distances;
-		unsigned int n_ray_pos(0), n_ray_neg(0);
+		// array_1d<double,TDim> distances;
+		// unsigned int n_ray_pos(0), n_ray_neg(0);
+        // IntersectionsContainerType intersections;
+		// const auto &r_coords = rNode.Coordinates();
+
+		// // Loop the x,y and z (3D) ray directions
+        // for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
+		// 	// Initialize the current direction distance
+		// 	distances[i_direction] = 1.0;
+
+        //     // Creating the ray
+        //     double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
+		// 	auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		// 	rp_octree->NormalizeCoordinates(ray);
+		// 	ray[i_direction] = 0; // Starting from the lower extreme
+
+        //     this->GetRayIntersections(ray, i_direction, intersections);
+
+        //     int ray_color = 1;
+        //     auto i_intersection = intersections.begin();
+        //     while (i_intersection != intersections.end()) {
+        //         double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
+        //         if (int_d > mEpsilon) {
+        //             ray_color = -ray_color;
+        //             distances[i_direction] = int_d;
+        //         } else if (int_d > -mEpsilon) {
+        //             distances[i_direction] = 0.0;
+        //             break;
+        //         } else {
+        //             if (distances[i_direction] > -int_d) {
+        //                 distances[i_direction] = -int_d;
+		// 			}
+        //             break;
+        //         }
+
+        //         i_intersection++;
+        //     }
+
+        //     distances[i_direction] *= ray_color;
+		// 	if (ray_color == -1) {
+		// 		n_ray_neg++;
+		// 	} else {
+		// 		n_ray_pos++;
+		// 	}
+        // }
+
+		// // Check the obtained cartesian ray colors
+		// // If this situation happens, do the "evolved Predator" raycasting to vote
+		// if (n_ray_neg != 0 && n_ray_pos != 0) {
+		// 	this->ComputeExtraRayColors(r_coords, distances);
+		// }
+
+        // double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
+		// if constexpr (TDim == 3){
+        // 	distance = (std::abs(distance) > std::abs(distances[2])) ? distances[2] : distance;
+		// }
+
+        // // return distance;
+		// double ray_distance = 1.0;
+		double ray_distance = std::numeric_limits<double>::max();
         IntersectionsContainerType intersections;
 		const auto &r_coords = rNode.Coordinates();
 
-		// Loop the x,y and z (3D) ray directions
-        for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
-			// Initialize the current direction distance
-			distances[i_direction] = 1.0;
+		// Loop thez (3D) ray directions
+		// Initialize the current direction distance
 
-            // Creating the ray
-            double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
-			auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
-			rp_octree->NormalizeCoordinates(ray);
-			ray[i_direction] = 0; // Starting from the lower extreme
+		// Creating the ray
+		double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
+		auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		rp_octree->NormalizeCoordinates(ray);
+		ray[2] = 0; // Starting from the lower extreme
 
-            this->GetRayIntersections(ray, i_direction, intersections);
+		this->GetRayIntersections(ray, 2, intersections);
 
-            int ray_color = 1;
-            auto i_intersection = intersections.begin();
-            while (i_intersection != intersections.end()) {
-                double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
-                if (int_d > mEpsilon) {
-                    ray_color = -ray_color;
-                    distances[i_direction] = int_d;
-                } else if (int_d > -mEpsilon) {
-                    distances[i_direction] = 0.0;
-                    break;
-                } else {
-                    if (distances[i_direction] > -int_d) {
-                        distances[i_direction] = -int_d;
-					}
-                    break;
-                }
-
-                i_intersection++;
-            }
-
-            distances[i_direction] *= ray_color;
-			if (ray_color == -1) {
-				n_ray_neg++;
+		int ray_color = 1;
+		auto i_intersection = intersections.begin();
+		while (i_intersection != intersections.end()) {
+			double int_d = r_coords[2] - i_intersection->first; // Octree ray intersection distance
+			if (int_d > mEpsilon) {
+				ray_color = -ray_color;
+				ray_distance = int_d;
+			} else if (int_d > -mEpsilon) {
+				ray_distance = 0.0;
+				break;
 			} else {
-				n_ray_pos++;
+				if (ray_distance > -int_d) {
+					//ray_distance = -int_d;
+					ray_distance = int_d;
+				}
+				break;
 			}
-        }
 
-		// Check the obtained cartesian ray colors
-		// If this situation happens, do the "evolved Predator" raycasting to vote
-		if (n_ray_neg != 0 && n_ray_pos != 0) {
-			this->ComputeExtraRayColors(r_coords, distances);
+			i_intersection++;
 		}
 
-        double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
-		if constexpr (TDim == 3){
-        	distance = (std::abs(distance) > std::abs(distances[2])) ? distances[2] : distance;
-		}
-
-        return distance;
+        return ray_distance;
 	}
 
 	template<std::size_t TDim>
