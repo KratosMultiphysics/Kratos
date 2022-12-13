@@ -22,10 +22,12 @@ namespace Kratos::Python{
 
     void  AddCustomProcessesToPython(pybind11::module& m)
     {
-        pybind11::class_< DataTransfer3D1DProcess>(m, "DataTransfer3D1DProcess")
-            .def_static("From3Dto1DDataTransfer", &DataTransfer3D1DProcess::From3Dto1DDataTransfer)
-            .def_static("From1Dto3DDataTransfer", &DataTransfer3D1DProcess::From1Dto3DDataTransfer)
-            ;
+        namespace py = pybind11;
+
+        py::class_< DataTransfer3D1DProcess, DataTransfer3D1DProcess::Pointer, Process>(m, "DataTransfer3D1DProcess")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
     }
 
 }  // namespace Kratos::Python.

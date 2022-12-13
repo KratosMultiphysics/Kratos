@@ -20,11 +20,84 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "processes/process.h"
+
+/* The mappers includes */
+#include "spaces/ublas_space.h"
+#include "mappers/mapper_flags.h"
+#include "factories/mapper_factory.h" 
 
 namespace Kratos
 {
 ///@addtogroup CoSimulationApplication
 ///@{
+
+///@}
+///@name Functions
+///@{
+
+/**
+ * @brief This method determines the 1D model part
+ * @param rFirstModelPart The first ModelPart
+ * @param rSecondModelPart The second ModelPart
+ * @return The 1D model part 
+ */
+ModelPart& Determine1DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+{
+    // In MPI could be a bit troublesome
+    if (rFirstModelPart.IsDistributed()) { 
+        KRATOS_ERROR << "Not compatible with MPI" << std::endl;
+    } else { // In serial we just check model part has 1D entities (local space)
+        // Determine if the modelparts have entities
+
+        // First model part
+        if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
+            if (rFirstModelPart.NumberOfElements() > 0) {
+                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rFirstModelPart;
+                }
+            } else {
+                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rFirstModelPart;
+                }
+            }
+        }
+
+        // Second model part
+        if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
+            if (rSecondModelPart.NumberOfElements() > 0) {
+                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rSecondModelPart;
+                }
+            } else {
+                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 1) {
+                    return rSecondModelPart;
+                }
+            }
+        }
+    }
+
+    KRATOS_ERROR << "Impossible to detect 1D model part" << std::endl;
+    return rFirstModelPart;
+}
+
+/**
+ * @brief This method determines the 3D model part
+ * @details The counter part of the previous method
+ * @param rFirstModelPart The first ModelPart
+ * @param rSecondModelPart The second ModelPart
+ * @return The 3D model part 
+ */
+ModelPart& Determine3DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
+{
+    // It is the counter part of the previous method
+    ModelPart* p_1d_model_part = &Determine1DModelPart(rFirstModelPart, rSecondModelPart);
+    if (p_1d_model_part == &rFirstModelPart) {
+        return rSecondModelPart;
+    } else {
+        return rFirstModelPart;
+    }
+}
 
 ///@}
 ///@name Kratos Classes
@@ -116,6 +189,12 @@ private:
 
 }; // Class PointElement
 
+#define DEFINE_MAPPER_FACTORY_SERIAL                                                                                             \
+using SparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>; \
+using DenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;                                                 \
+using MapperFactoryType = MapperFactory<SparseSpace, DenseSpace>;                                                                \
+using MapperType = Mapper<SparseSpace, DenseSpace>;
+
 /**
  * @class DataTransfer3D1DProcess
  * @ingroup CoSimulationApplication
@@ -123,6 +202,7 @@ private:
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(CO_SIMULATION_APPLICATION) DataTransfer3D1DProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -137,100 +217,71 @@ public:
     /// Geometry definition
     typedef Geometry<NodeType> GeometryType;
 
+    // Define mapper factory
+    DEFINE_MAPPER_FACTORY_SERIAL
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DataTransfer3D1DProcess() = delete;
+    DataTransfer3D1DProcess(
+        ModelPart& rFirstModelPart,
+        ModelPart& rSecondModelPart,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
 
-    /// Assignment operator.
-    DataTransfer3D1DProcess& operator=(DataTransfer3D1DProcess const& rOther) = delete;
+    /// Destructor.
+    ~DataTransfer3D1DProcess() override;
 
-    /// Copy constructor.
-    DataTransfer3D1DProcess(DataTransfer3D1DProcess const& rOther) = delete;
+    ///@}
+    ///@name Operators
+    ///@{
+
+    void operator()()
+    {
+        Execute();
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
-     * @brief This method transfer data from the 3D to the 1D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
+     * @brief This method executes the process
      */
-    static void From3Dto1DDataTransfer(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+    void Execute() override;
 
     /**
-     * @brief This method transfer data from the 1D to the 3D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    static void From1Dto3DDataTransfer(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+    const Parameters GetDefaultParameters() const override;
+    
+    ///@}
+private:
+    ///@name Private member Variables
+    ///@{
+
+    ModelPart& mr3DModelPart;                                       /// The 3D model part
+    ModelPart& mr1DModelPart;                                       /// The 1D model part
+    Parameters mThisParameters;                                     /// The parameters containing the configuration
+    MapperType::Pointer mpMapper;                                   /// The mapper pointer
+    std::vector<const Variable<double>*> mOriginListVariables;      /// The list of variables to be transferred (origin)
+    std::vector<const Variable<double>*> mDestinationListVariables; /// The list of variables to be transferred (destination)
 
     ///@}
-
-private:
     ///@name Private Operations
     ///@{
 
     /**
      * @brief This method interpolates from the 3D to the 1D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
      */
-    static void InterpolateFrom3Dto1D(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters
-        );
+    void InterpolateFrom3Dto1D();
 
     /**
      * @brief This method interpolates from the 1D to the 3D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
      */
-    static void InterpolateFrom1Dto3D(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters
-        );
-
-    /**
-     * @brief This method extrapolates from the 3D to the 1D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
-     */
-    static void ExtrapolateFrom3Dto1D(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters
-        );
-
-    /**
-     * @brief This method extrapolates from the 1D to the 3D
-     * @param rModelPart3D The 3D model part
-     * @param rModelPart1D The 1D model part
-     * @param ThisParameters The parameters containing the configuration
-     */
-    static void ExtrapolateFrom1Dto3D(
-        ModelPart& rModelPart3D,
-        ModelPart& rModelPart1D,
-        Parameters ThisParameters
-        );
+    void InterpolateFrom1Dto3D();
 
     /**
      * @brief This method computes the list of variables to interpolate/extrapolate
@@ -250,12 +301,6 @@ private:
      * @return The maximum length
      */
     static double GetMaxLength(ModelPart& rModelPart);
-
-    /**
-     * @brief This method returns the default parameters
-     * @return The default parameters
-     */
-    static Parameters GetDefaultParameters();
 
     ///@}
 }; // Class DataTransfer3D1DProcess
