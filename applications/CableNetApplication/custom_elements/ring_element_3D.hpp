@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
+#include "cable_net_application_variables.h"
 
 namespace Kratos
 {
@@ -36,6 +37,7 @@ namespace Kratos
     class KRATOS_API(CABLE_NET_APPLICATION) RingElement3D : public Element
     {
     protected:
+        ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RingElement3D);
@@ -89,6 +91,11 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const override;
 
+
+        void Initialize(
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+
         void EquationIdVector(
             EquationIdVectorType& rResult,
             const ProcessInfo& rCurrentProcessInfo) const override;
@@ -112,14 +119,16 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) const override;
 
-        Matrix ElasticStiffnessMatrix() const;
-        Matrix GeometricStiffnessMatrix() const;
-        inline Matrix TotalStiffnessMatrix() const;
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-        double GetCurrentLength() const;
+        Matrix ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        Matrix GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        inline Matrix TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+
+        double GetCurrentLength(const int step = 0) const;
         double GetRefLength() const;
         double CalculateGreenLagrangeStrain() const;
-        double LinearStiffness() const;
+        double LinearStiffness(const ProcessInfo& rCurrentProcessInfo) const;
 
         void CalculateLumpedMassVector(
             VectorType &rLumpedMassVector,
@@ -161,11 +170,13 @@ namespace Kratos
 
     private:
 
-        Vector GetCurrentLengthArray() const;
+        Vector GetCurrentLengthArray(const int step = 0) const;
         Vector GetRefLengthArray() const;
         Vector GetDeltaPositions(const int& rDirection) const;
         Vector GetDirectionVectorNt() const;
-        Vector GetInternalForces() const;
+        Vector GetInternalForces(const ProcessInfo& rCurrentProcessInfo);
+
+        double mMaxLength = 0.0;
 
         friend class Serializer;
         void save(Serializer& rSerializer) const override;

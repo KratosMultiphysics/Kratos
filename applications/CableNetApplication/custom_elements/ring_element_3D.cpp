@@ -51,6 +51,22 @@ RingElement3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
 
 RingElement3D::~RingElement3D() {}
 
+void RingElement3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+            mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        } else {
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
 void RingElement3D::EquationIdVector(EquationIdVectorType &rResult,
                                      const ProcessInfo &rCurrentProcessInfo) const {
 
@@ -161,7 +177,7 @@ void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) const 
   KRATOS_CATCH("")
 }
 
-Vector RingElement3D::GetCurrentLengthArray() const
+Vector RingElement3D::GetCurrentLengthArray(const int step) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -173,14 +189,14 @@ Vector RingElement3D::GetCurrentLengthArray() const
     if (i==points_number-1) next_node_id = 0;
 
     const double du =
-        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_X) -
-        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X);
+        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_X,step) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X,step);
     const double dv =
-        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_Y) -
-        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_Y,step) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y,step);
     const double dw =
-        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_Z) -
-        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
+        this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_Z,step) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z,step);
     const double dx = this->GetGeometry()[next_node_id].X0() - this->GetGeometry()[i].X0();
     const double dy = this->GetGeometry()[next_node_id].Y0() - this->GetGeometry()[i].Y0();
     const double dz = this->GetGeometry()[next_node_id].Z0() - this->GetGeometry()[i].Z0();
@@ -209,11 +225,11 @@ Vector RingElement3D::GetRefLengthArray() const
   return segment_lengths;
 }
 
-double RingElement3D::GetCurrentLength() const
+double RingElement3D::GetCurrentLength(const int step) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
-  Vector segment_lengths = this->GetCurrentLengthArray();
+  Vector segment_lengths = this->GetCurrentLengthArray(step);
   double length = 0.0;
   for (int i=0;i<number_of_segments;++i) length += segment_lengths[i];
   return length;
@@ -221,6 +237,7 @@ double RingElement3D::GetCurrentLength() const
 
 double RingElement3D::GetRefLength() const
 {
+  if (GetProperties()[RING_REFERENCE_CIRCUMFERENCE] > 0.0) return GetProperties()[RING_REFERENCE_CIRCUMFERENCE];
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
   Vector segment_lengths = this->GetRefLengthArray();
@@ -319,18 +336,34 @@ Vector RingElement3D::GetDirectionVectorNt() const
   return n_t;
 }
 
-Vector RingElement3D::GetInternalForces() const
+Vector RingElement3D::GetInternalForces(const ProcessInfo& rCurrentProcessInfo)
 {
-  const double k_0            = this->LinearStiffness();
-  const double strain_gl      = this->CalculateGreenLagrangeStrain();
-  const double current_length = this->GetCurrentLength();
+  ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+  Vector temp_strain = ZeroVector(1);
+  Vector temp_stress = ZeroVector(1);
+  temp_strain[0] = CalculateGreenLagrangeStrain();
+  Values.SetStrainVector(temp_strain);
+  Values.SetStressVector(temp_stress);
+  mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
-  const double total_internal_force = k_0 * strain_gl * current_length;
-  const Vector internal_foces = this->GetDirectionVectorNt() * total_internal_force;
+  const double current_length = GetCurrentLength();
+  const Vector internal_foces = this->GetDirectionVectorNt() * temp_stress[0] * GetProperties()[CROSS_AREA] * current_length /  GetRefLength();
   return internal_foces;
+
+  /* if (current_length >= mMaxLength)
+  {
+    mMaxLength = current_length;
+    const Vector internal_foces = this->GetDirectionVectorNt() * temp_stress[0] * GetProperties()[CROSS_AREA] * current_length /  GetRefLength();
+    return internal_foces;
+  }
+
+  const int points_number = GetGeometry().PointsNumber();
+  const int dimension = 3;
+  const SizeType local_size = dimension*points_number;
+  return ZeroVector(local_size); */
 }
 
-Matrix RingElement3D::ElasticStiffnessMatrix() const
+Matrix RingElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -339,18 +372,18 @@ Matrix RingElement3D::ElasticStiffnessMatrix() const
   Matrix elastic_stiffness_matrix = ZeroMatrix(local_size,local_size);
   const Vector direction_vector = this->GetDirectionVectorNt();
   elastic_stiffness_matrix = outer_prod(direction_vector,direction_vector);
-  elastic_stiffness_matrix *= this->LinearStiffness();
+  elastic_stiffness_matrix *= this->LinearStiffness(rCurrentProcessInfo);
   elastic_stiffness_matrix *= (1.0 + (3.0*this->CalculateGreenLagrangeStrain()));
   return elastic_stiffness_matrix;
 }
 
-Matrix RingElement3D::GeometricStiffnessMatrix() const
+Matrix RingElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
-  const double k_0            = this->LinearStiffness();
+  const double k_0            = this->LinearStiffness(rCurrentProcessInfo);
   const double strain_gl      = this->CalculateGreenLagrangeStrain();
   const double current_length = this->GetCurrentLength();
 
@@ -403,10 +436,10 @@ Matrix RingElement3D::GeometricStiffnessMatrix() const
   return geometric_stiffness_matrix;
 }
 
-inline Matrix RingElement3D::TotalStiffnessMatrix() const
+inline Matrix RingElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
-  const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix();
-  const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix();
+  const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix(rCurrentProcessInfo);
+  const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix(rCurrentProcessInfo);
   return (ElasticStiffnessMatrix+GeometrixStiffnessMatrix);
 }
 
@@ -421,7 +454,7 @@ void RingElement3D::CalculateLeftHandSide(
   // resizing the matrices + create memory for LHS
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
   // creating LHS
-  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
+  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
 
   KRATOS_CATCH("")
 }
@@ -435,7 +468,7 @@ void RingElement3D::CalculateRightHandSide(
   const SizeType local_size = dimension*points_number;
 
   rRightHandSideVector = ZeroVector(local_size);
-  noalias(rRightHandSideVector) -= this->GetInternalForces();
+  noalias(rRightHandSideVector) -= this->GetInternalForces(rCurrentProcessInfo);
   if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
@@ -451,11 +484,12 @@ void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 
 
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
-  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
+  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
 
   rRightHandSideVector = ZeroVector(local_size);
-  noalias(rRightHandSideVector) -= this->GetInternalForces();
+  noalias(rRightHandSideVector) -= this->GetInternalForces(rCurrentProcessInfo);
   if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+
   KRATOS_CATCH("")
 }
 
@@ -633,6 +667,10 @@ int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
+    if (mpConstitutiveLaw != nullptr) {
+        mpConstitutiveLaw->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
+    }
+
     KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
 
     const double domain_size = this->GetCurrentLength();
@@ -699,15 +737,41 @@ Vector RingElement3D::CalculateBodyForces() {
     return body_forces_global;
 }
 
-double RingElement3D::LinearStiffness() const
+double RingElement3D::LinearStiffness(const ProcessInfo& rCurrentProcessInfo) const
 {
-    return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
+    double tangent_modulus(0.00);
+    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+    strain_vector[0] = CalculateGreenLagrangeStrain();
+
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    Values.SetStrainVector(strain_vector);
+
+    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,tangent_modulus);
+
+    return (this->GetProperties()[CROSS_AREA] * tangent_modulus / this->GetRefLength());
 }
+
+
+void RingElement3D::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
+    temp_strain[0] = CalculateGreenLagrangeStrain();
+    Values.SetStrainVector(temp_strain);
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->FinalizeMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
+    KRATOS_CATCH("");
+}
+
 
 void RingElement3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+  rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 void RingElement3D::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+  rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 } // namespace Kratos.
