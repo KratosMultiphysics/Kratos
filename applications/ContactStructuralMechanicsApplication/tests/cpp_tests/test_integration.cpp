@@ -397,7 +397,6 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosCont
     
     mass_matrix_0 = ZeroMatrix(4, 4);
     
-    Vector N;
     for (IndexType point_number = 0; point_number < integration_pointsQuadrilateral.size(); ++point_number) {
         const PointType& local_point = PointType{integration_pointsQuadrilateral[point_number].Coordinates()};
         quadrilateral_0.ShapeFunctionsValues( N, local_point );
@@ -411,8 +410,6 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosCont
     
     mass_matrix_1 = ZeroMatrix(4, 4);
     
-    Vector N1, N2, N3, N4;
-    PointType gp_global;
     for (IndexType point_number = 0; point_number < integration_pointsTriangle.size(); ++point_number) {
         const PointType& local_point_0 = PointType{integration_pointsTriangle[point_number].Coordinates()};
         
