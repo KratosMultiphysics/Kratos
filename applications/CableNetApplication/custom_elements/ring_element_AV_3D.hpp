@@ -91,6 +91,9 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const override;
 
+
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
         void EquationIdVector(
             EquationIdVectorType& rResult,
             const ProcessInfo& rCurrentProcessInfo) const override;
@@ -147,7 +150,7 @@ namespace Kratos
 
         Vector GetCurrentLengthCircumferenceArray() const;
         Vector GetRefLengthCircumferenceArray() const;
-        Vector GetDiagonalLengthArray() const;
+        Vector GetDiagonalLengthArray(const int step = 0) const;
 
         Vector GetDirectionVectorCircumference() const;
         Vector GetDirectionVectorDiagonal() const;
@@ -179,6 +182,7 @@ namespace Kratos
         Vector mDiagonalAfterBending = ZeroVector(2);
         Vector mDeformedDiagonal = ZeroVector(2);
         bool mBent = false;
+        double mPerimeterForce = 0.0;
 
         friend class Serializer;
         void save(Serializer& rSerializer) const override;
