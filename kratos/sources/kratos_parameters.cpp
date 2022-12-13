@@ -485,17 +485,13 @@ bool Parameters::RemoveValue(const std::string& rEntry)
 
 bool Parameters::RemoveValues(const std::vector<std::string>& rEntries)
 {
-    bool sucess = true;
-    for (auto& r_entry : rEntries) {
-        sucess = this->Has(r_entry);
-        if (!sucess) break;
+    for (const auto& r_entry : rEntries) {
+        if (!this->Has(r_entry)) return false;
     }
-    if (sucess) {
-        for (auto& r_entry : rEntries) {
-            this->RemoveValue(r_entry);
-        }
+    for (const auto& r_entry : rEntries) {
+        this->RemoveValue(r_entry);
     }
-    return sucess;
+    return true;
 }
 
 /***********************************************************************************/
