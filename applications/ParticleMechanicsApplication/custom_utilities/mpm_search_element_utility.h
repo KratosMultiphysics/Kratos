@@ -444,19 +444,27 @@ namespace MPMSearchElementUtility
             NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements, Tolerance);
             NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, missing_conditions, Tolerance);
         } else {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
-                auto element_itr = (rMPMModelPart.ElementsBegin() + i);
-                #pragma omp critical
-                missing_elements.push_back(&*element_itr);
-            }
+            missing_elements.resize(rMPMModelPart.Elements().size());
+            IndexPartition(rMPMModelPart.Elements().size()).for_each([&](std::size_t i){
+                missing_elements[i] = &*(rMPMModelPart.ElementsBegin() + i); // maybe add/remove *&?
+            });
+            // #pragma omp parallel for
+            // for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
+            //     auto element_itr = (rMPMModelPart.ElementsBegin() + i);
+            //     #pragma omp critical
+            //     missing_elements.push_back(&*element_itr);
+            // }
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
-                auto condition_itr = rMPMModelPart.Conditions().begin() + i;
-                #pragma omp critical
-                missing_conditions.push_back(&*condition_itr);
-            }
+            missing_conditions.resize(rMPMModelPart.Conditions().size());
+            IndexPartition(rMPMModelPart.Conditions().size()).for_each([&](std::size_t i){
+                missing_conditions[i] = &*(rMPMModelPart.Conditions().begin() + i); // maybe add/remove *&?
+            });
+            // #pragma omp parallel for
+            // for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
+            //     auto condition_itr = rMPMModelPart.Conditions().begin() + i;
+            //     #pragma omp critical
+            //     missing_conditions.push_back(&*condition_itr);
+            // }
         }
 
         if (missing_conditions.size() > 0 || missing_elements.size() > 0)
