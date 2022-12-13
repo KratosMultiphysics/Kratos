@@ -163,6 +163,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_ERROR_IF_NOT(std::filesystem::exists(rFileName)) << "File " << rFileName << " does not exist!" << std::endl;
+
         med_bool hdf_ok;
         med_bool med_ok;
         med_err err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
@@ -171,13 +173,11 @@ public:
         KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "HDF is incompatible" << std::endl;
         KRATOS_ERROR_IF(med_ok != MED_TRUE) << "MED is incompatible" << std::endl;
 
+        // Set the mode (consistent with ModelPartIO)
         // read only by default, unless other settings are specified
         med_access_mode open_mode = MED_ACC_RDONLY;
 
-        // Set the mode (consistent with ModelPartIO)
-        if (Options.Is(IO::READ)) {
-            open_mode = MED_ACC_RDONLY;
-        } else if (Options.Is(IO::APPEND)) {
+        if (Options.Is(IO::APPEND)) {
             open_mode = MED_ACC_RDEXT;
         } else if (Options.Is(IO::WRITE)) {
             open_mode = MED_ACC_RDWR; // or MED_ACC_CREAT?
