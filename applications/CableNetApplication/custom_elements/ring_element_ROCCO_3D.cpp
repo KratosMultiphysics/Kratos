@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/ring_element_AV_3D.hpp"
+#include "custom_elements/ring_element_ROCCO_3D.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
@@ -25,41 +25,43 @@
 
 
 namespace Kratos {
-RingElementAV3D::RingElementAV3D(IndexType NewId,
+RingElementROCCO3D::RingElementROCCO3D(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
 
-RingElementAV3D::RingElementAV3D(IndexType NewId,
+RingElementROCCO3D::RingElementROCCO3D(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {}
 
 Element::Pointer
-RingElementAV3D::Create(IndexType NewId, NodesArrayType const &rThisNodes,
+RingElementROCCO3D::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                          PropertiesType::Pointer pProperties) const {
   const GeometryType &rGeom = this->GetGeometry();
-  return Kratos::make_intrusive<RingElementAV3D>(NewId, rGeom.Create(rThisNodes),
+  return Kratos::make_intrusive<RingElementROCCO3D>(NewId, rGeom.Create(rThisNodes),
                                                pProperties);
 }
 
 Element::Pointer
-RingElementAV3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
+RingElementROCCO3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
                          PropertiesType::Pointer pProperties) const {
-  return Kratos::make_intrusive<RingElementAV3D>(NewId, pGeom,
+  return Kratos::make_intrusive<RingElementROCCO3D>(NewId, pGeom,
                                                pProperties);
 }
 
-RingElementAV3D::~RingElementAV3D() {}
+RingElementROCCO3D::~RingElementROCCO3D() {}
 
-void RingElementAV3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void RingElementROCCO3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    mDeformedLength = GetProperties()[RING_REFERENCE_CIRCUMFERENCE];
+    mDeformedLength = GetProperties()[RING_LIMIT_CIRCUMFERENCE];
+    mMaxDeformedLength = GetProperties()[RING_LIMIT_CIRCUMFERENCE];
     mDeformedDiagonal = GetDiagonalLengthArray();
+    mMaxDeformedDiagonal = GetDiagonalLengthArray();
     KRATOS_CATCH("")
 }
 
-void RingElementAV3D::EquationIdVector(EquationIdVectorType &rResult,
+void RingElementROCCO3D::EquationIdVector(EquationIdVectorType &rResult,
                                      const ProcessInfo &rCurrentProcessInfo) const {
 
   const int points_number = GetGeometry().PointsNumber();
@@ -79,7 +81,7 @@ void RingElementAV3D::EquationIdVector(EquationIdVectorType &rResult,
         this->GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
   }
 }
-void RingElementAV3D::GetDofList(DofsVectorType &rElementalDofList,
+void RingElementROCCO3D::GetDofList(DofsVectorType &rElementalDofList,
                                const ProcessInfo &rCurrentProcessInfo) const {
 
   const int points_number = GetGeometry().PointsNumber();
@@ -102,7 +104,7 @@ void RingElementAV3D::GetDofList(DofsVectorType &rElementalDofList,
 }
 
 
-void RingElementAV3D::GetValuesVector(Vector &rValues, int Step) const {
+void RingElementROCCO3D::GetValuesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -124,7 +126,7 @@ void RingElementAV3D::GetValuesVector(Vector &rValues, int Step) const {
   KRATOS_CATCH("")
 }
 
-void RingElementAV3D::GetFirstDerivativesVector(Vector &rValues, int Step) const {
+void RingElementROCCO3D::GetFirstDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -146,7 +148,7 @@ void RingElementAV3D::GetFirstDerivativesVector(Vector &rValues, int Step) const
   KRATOS_CATCH("")
 }
 
-void RingElementAV3D::GetSecondDerivativesVector(Vector &rValues, int Step) const {
+void RingElementROCCO3D::GetSecondDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -170,7 +172,7 @@ void RingElementAV3D::GetSecondDerivativesVector(Vector &rValues, int Step) cons
 }
 
 
-void RingElementAV3D::CalculateLeftHandSide(
+void RingElementROCCO3D::CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -185,47 +187,45 @@ void RingElementAV3D::CalculateLeftHandSide(
 
 
 
-void RingElementAV3D::InternalForcesCircumference(VectorType &rRightHandSideVector)
+void RingElementROCCO3D::InternalForcesCircumference(VectorType &rRightHandSideVector)
 { 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
 
   const double k_t = GetProperties()[RING_TENSILE_STIFFNESS]; 
-  const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE]; 
+  const double l_min = GetProperties()[RING_LIMIT_CIRCUMFERENCE]; 
   const double l_current = sum(GetCurrentLengthCircumferenceArray());
 
-  /* if (mBent && l_current<mDeformedLength){
-    return; // add plastic behavior
-  } */
 
   if (l_current > l_min) 
   {
-
     const double delta_l = l_current - mDeformedLength;
-    
-    /* if (delta_l > 0.0)
+  
+    if (delta_l > 0.0)
     {
-      const double N = k_t * (l_current - l_min);
-      noalias(rRightHandSideVector) -= GetDirectionVectorCircumference()*N;
-      mDeformedLength = l_current;
-    } */
-
-    const double N = k_t * (l_current - l_min);
-    noalias(rRightHandSideVector) -= GetDirectionVectorCircumference()*N;
-    mDeformedLength = l_current;
-
-    if (!mBent){
-      mBent=true;
-      mDiagonalAfterBending = GetDiagonalLengthArray();    
+      // Loading
+      if (l_current >= mMaxDeformedLength) mPerimeterForce += delta_l * k_t;
+      else mPerimeterForce += delta_l * 3.0 * k_t;
+    }
+    else 
+    {
+      // Unloading
+      mPerimeterForce += delta_l * 3.0 * k_t;
     }
 
-    
+    // Update
+    mDeformedLength = l_current;
+    if (l_current >= mMaxDeformedLength) mMaxDeformedLength = l_current;
 
   }
 
+  
+
+  noalias(rRightHandSideVector) -= GetDirectionVectorCircumference()*mPerimeterForce;
+
 }
 
-void RingElementAV3D::InternalForcesDiagonal(VectorType &rRightHandSideVector)
+void RingElementROCCO3D::InternalForcesDiagonal(VectorType &rRightHandSideVector)
 { 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -233,12 +233,12 @@ void RingElementAV3D::InternalForcesDiagonal(VectorType &rRightHandSideVector)
   const double k_b = GetProperties()[RING_BENDING_STIFFNESS]; 
   const double r_t = GetProperties()[RING_THICKNESS_WIRE]; 
   const double r_n = GetProperties()[RING_NR_WIRES]; 
-  const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE]; 
-
+  const double l_min = GetProperties()[RING_LIMIT_CIRCUMFERENCE]; 
+  const double d_min = GetProperties()[RING_DIAMETER]; 
 
 
   // only for 4noded element
-  const double d_min = 0.3; // hard coded, check this later
+  
   const Vector diagonals = GetDiagonalLengthArray();
 
 
@@ -246,46 +246,32 @@ void RingElementAV3D::InternalForcesDiagonal(VectorType &rRightHandSideVector)
 
   for (SizeType i=0;i<2;++i)
   {
-      if (mBent && diagonals[i] > mDiagonalAfterBending[i])
+      const double delta_diagonal = diagonals[i] - mDeformedDiagonal[i];
+
+      if (diagonals[i] >= d_min)
       {
-        forces_diagonal[i] = (mDiagonalAfterBending[i] - d_min) * k_b;
-      }
-      else if (diagonals[i] > d_min)
-      {
-        forces_diagonal[i] = (diagonals[i] - d_min) * k_b;
+
+        if (delta_diagonal>0.0) 
+        {
+          // Loading
+          if (diagonals[i] >= mMaxDeformedDiagonal[i]) mDiagonalForces[i] += delta_diagonal * k_b;
+          else mDiagonalForces[i] += delta_diagonal * 100.0 * k_b;
+        }
+        else 
+        {
+          // Unloading
+          mDiagonalForces[i] += delta_diagonal * 100.0 * k_b;
+        }
+
+        // Update
+        mDeformedDiagonal[i] = diagonals[i];
+        if (diagonals[i] >= mMaxDeformedDiagonal[i]) mMaxDeformedDiagonal[i] = diagonals[i];
+
+
       } 
   }
 
-  /* // what about eq. 3.10
-  for (SizeType i=0;i<2;++i)
-  {
-    
-    if (mBent)
-    {
-      if (diagonals[i]<mDeformedDiagonal[i]) forces_diagonal[i] = 0.0; // add plastic behavior
-      else 
-      {
-        forces_diagonal[i] = k_b * (mDiagonalAfterBending[i] - d_min);  
-        //can this get negative?????
-
-
-        mDeformedDiagonal[i] = diagonals[i];
-      }
-
-    }
-    else if (diagonals[i] > d_min)
-    {
-      if (diagonals[i]<mDeformedDiagonal[i]) forces_diagonal[i] = 0.0; // add plastic behavior
-      else
-      {
-        forces_diagonal[i] = k_b * (diagonals[i] - d_min);
-        mDeformedDiagonal[i] = diagonals[i];
-      }
-
-    }
-  }
-
-  */
+  forces_diagonal = mDiagonalForces;
 
   Vector global_diagonal_forces = GetDirectionVectorDiagonal();
 
@@ -303,7 +289,7 @@ void RingElementAV3D::InternalForcesDiagonal(VectorType &rRightHandSideVector)
 
 }
 
-void RingElementAV3D::CalculateRightHandSide(
+void RingElementROCCO3D::CalculateRightHandSide(
     VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
@@ -319,7 +305,7 @@ void RingElementAV3D::CalculateRightHandSide(
   KRATOS_CATCH("")
 }
 
-void RingElementAV3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+void RingElementROCCO3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
                                          const ProcessInfo &rCurrentProcessInfo)
 {
@@ -329,7 +315,7 @@ void RingElementAV3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   KRATOS_CATCH("")
 }
 
-Vector RingElementAV3D::GetRefLengthCircumferenceArray() const
+Vector RingElementROCCO3D::GetRefLengthCircumferenceArray() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -349,7 +335,7 @@ Vector RingElementAV3D::GetRefLengthCircumferenceArray() const
 }
 
 
-Vector RingElementAV3D::GetCurrentLengthCircumferenceArray() const
+Vector RingElementROCCO3D::GetCurrentLengthCircumferenceArray() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -378,7 +364,7 @@ Vector RingElementAV3D::GetCurrentLengthCircumferenceArray() const
   return segment_lengths;
 }
 
-Vector RingElementAV3D::DistanceVectorNodes(const int node_a, const int node_b) const
+Vector RingElementROCCO3D::DistanceVectorNodes(const int node_a, const int node_b) const
 {
     const int dimension = 3;
     Vector distance = ZeroVector(dimension);
@@ -405,7 +391,7 @@ Vector RingElementAV3D::DistanceVectorNodes(const int node_a, const int node_b) 
 
 }
 
-Vector RingElementAV3D::GetDirectionVectorDiagonal() const
+Vector RingElementROCCO3D::GetDirectionVectorDiagonal() const
 {
     const int points_number = GetGeometry().PointsNumber();
     const int dimension = 3;
@@ -437,7 +423,7 @@ Vector RingElementAV3D::GetDirectionVectorDiagonal() const
 }
 
 
-Vector RingElementAV3D::GetDirectionVectorCircumference() const
+Vector RingElementROCCO3D::GetDirectionVectorCircumference() const
 {
     const int points_number = GetGeometry().PointsNumber();
     const int dimension = 3;
@@ -473,7 +459,7 @@ Vector RingElementAV3D::GetDirectionVectorCircumference() const
   return n_t;
 }
 
-Vector RingElementAV3D::GetDiagonalLengthArray(const int step) const {
+Vector RingElementROCCO3D::GetDiagonalLengthArray(const int step) const {
 
   const int points_number = GetGeometry().PointsNumber();
 
@@ -506,7 +492,7 @@ Vector RingElementAV3D::GetDiagonalLengthArray(const int step) const {
 }
 
 
-Vector RingElementAV3D::GetDeltaPositions(const int& rDirection) const
+Vector RingElementROCCO3D::GetDeltaPositions(const int& rDirection) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -554,7 +540,7 @@ Vector RingElementAV3D::GetDeltaPositions(const int& rDirection) const
 }
 
 
-void RingElementAV3D::CalculateLumpedMassVector(
+void RingElementROCCO3D::CalculateLumpedMassVector(
     VectorType &rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -594,7 +580,7 @@ void RingElementAV3D::CalculateLumpedMassVector(
     KRATOS_CATCH("")
 }
 
-void RingElementAV3D::CalculateMassMatrix(
+void RingElementROCCO3D::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -619,7 +605,7 @@ void RingElementAV3D::CalculateMassMatrix(
     KRATOS_CATCH("")
 }
 
-void RingElementAV3D::CalculateDampingMatrix(
+void RingElementROCCO3D::CalculateDampingMatrix(
     MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
@@ -655,7 +641,7 @@ void RingElementAV3D::CalculateDampingMatrix(
   KRATOS_CATCH("")
 }
 
-void RingElementAV3D::AddExplicitContribution(
+void RingElementROCCO3D::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     const Variable<double >& rDestinationVariable,
@@ -683,7 +669,7 @@ void RingElementAV3D::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-void RingElementAV3D::AddExplicitContribution(
+void RingElementROCCO3D::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
     const Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo
@@ -728,7 +714,7 @@ void RingElementAV3D::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-int RingElementAV3D::Check(const ProcessInfo& rCurrentProcessInfo) const
+int RingElementROCCO3D::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -753,10 +739,17 @@ int RingElementAV3D::Check(const ProcessInfo& rCurrentProcessInfo) const
                      << std::endl;
     }
 
-    if (GetProperties().Has(RING_REFERENCE_CIRCUMFERENCE) == false) {
-        KRATOS_ERROR << "RING_REFERENCE_CIRCUMFERENCE not provided for this element" << Id()
+    if (GetProperties().Has(RING_LIMIT_CIRCUMFERENCE) == false) {
+        KRATOS_ERROR << "RING_LIMIT_CIRCUMFERENCE not provided for this element" << Id()
                      << std::endl;
     }
+
+    if (GetProperties().Has(RING_DIAMETER) == false) {
+        KRATOS_ERROR << "RING_DIAMETER not provided for this element" << Id()
+                     << std::endl;
+    }
+
+
 
 
     if (GetProperties().Has(RING_TENSILE_STIFFNESS) == false) {
@@ -769,7 +762,7 @@ int RingElementAV3D::Check(const ProcessInfo& rCurrentProcessInfo) const
                      << std::endl;
     }
 
-    const double l_min = GetProperties()[RING_REFERENCE_CIRCUMFERENCE]; 
+    const double l_min = GetProperties()[RING_LIMIT_CIRCUMFERENCE]; 
     const double l_ref = sum(GetRefLengthCircumferenceArray());
     KRATOS_ERROR_IF(l_ref > l_min) << "The ring elements dimensions do not fit the given reference circumference: " << l_min << " < " << l_ref <<  std::endl;
 
@@ -778,7 +771,7 @@ int RingElementAV3D::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CATCH("")
 }
 
-bool RingElementAV3D::HasSelfWeight() const
+bool RingElementROCCO3D::HasSelfWeight() const
 {
     const double norm_self_weight =
     this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]*
@@ -792,7 +785,7 @@ bool RingElementAV3D::HasSelfWeight() const
     else return true;
 }
 
-Vector RingElementAV3D::CalculateBodyForces() {
+Vector RingElementROCCO3D::CalculateBodyForces() {
 
     const int points_number = GetGeometry().PointsNumber();
     const int dimension = 3;
@@ -802,7 +795,7 @@ Vector RingElementAV3D::CalculateBodyForces() {
 }
 
 
-void RingElementAV3D::CalculateOnIntegrationPoints(
+void RingElementROCCO3D::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -816,10 +809,10 @@ void RingElementAV3D::CalculateOnIntegrationPoints(
 }
 
 
-void RingElementAV3D::save(Serializer &rSerializer) const {
+void RingElementROCCO3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
-void RingElementAV3D::load(Serializer &rSerializer) {
+void RingElementROCCO3D::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
 } // namespace Kratos.

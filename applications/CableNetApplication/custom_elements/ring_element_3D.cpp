@@ -237,7 +237,7 @@ double RingElement3D::GetCurrentLength(const int step) const
 
 double RingElement3D::GetRefLength() const
 {
-  if (GetProperties()[RING_REFERENCE_CIRCUMFERENCE] > 0.0) return GetProperties()[RING_REFERENCE_CIRCUMFERENCE];
+  if (GetProperties()[RING_LIMIT_CIRCUMFERENCE] > 0.0) return GetProperties()[RING_LIMIT_CIRCUMFERENCE];
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
   Vector segment_lengths = this->GetRefLengthArray();

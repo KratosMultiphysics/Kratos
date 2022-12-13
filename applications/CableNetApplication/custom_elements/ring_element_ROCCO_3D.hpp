@@ -12,8 +12,8 @@
 //
 //
 
-#if !defined(KRATOS_RING_ELEMENT_AV_3D_H_INCLUDED )
-#define  KRATOS_RING_ELEMENT_3D_AV_H_INCLUDED
+#if !defined(KRATOS_RING_ELEMENT_ROCCO_3D_H_INCLUDED )
+#define  KRATOS_RING_ELEMENT_ROCCO_AV_H_INCLUDED
 
 // System includes
 
@@ -28,19 +28,19 @@
 namespace Kratos
 {
     /**
-     * @class RingElementAV3D
+     * @class RingElementROCCO3D
      *
      * @brief This is a ring elemen with 3 translational dofs per node. Volkwein 2004
      *
      * @author Klaus B Sautter
      */
 
-    class KRATOS_API(CABLE_NET_APPLICATION) RingElementAV3D : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) RingElementROCCO3D : public Element
     {
     protected:
 
     public:
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RingElementAV3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RingElementROCCO3D);
 
 
         typedef Element BaseType;
@@ -55,15 +55,15 @@ namespace Kratos
         typedef BaseType::DofsVectorType DofsVectorType;
 
 
-        RingElementAV3D() {};
-        RingElementAV3D(IndexType NewId,
+        RingElementROCCO3D() {};
+        RingElementROCCO3D(IndexType NewId,
                         GeometryType::Pointer pGeometry);
-        RingElementAV3D(IndexType NewId,
+        RingElementROCCO3D(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties);
 
 
-        ~RingElementAV3D() override;
+        ~RingElementROCCO3D() override;
 
     /**
      * @brief Creates a new element
@@ -179,10 +179,11 @@ namespace Kratos
     private:
 
         double mDeformedLength = 0.0;
-        Vector mDiagonalAfterBending = ZeroVector(2);
+        double mMaxDeformedLength = 0.0;
         Vector mDeformedDiagonal = ZeroVector(2);
-        bool mBent = false;
+        Vector mMaxDeformedDiagonal = ZeroVector(2);
         double mPerimeterForce = 0.0;
+        Vector mDiagonalForces = ZeroVector(2);
 
         friend class Serializer;
         void save(Serializer& rSerializer) const override;
