@@ -44,6 +44,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "MedModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
+
     KRATOS_ERROR << "WriteModelPart is not yet implemented ..." << std::endl;
 
     KRATOS_CATCH("")

@@ -24,7 +24,7 @@ namespace Kratos {
 KratosMedApplication::KratosMedApplication():
     KratosApplication("MedApplication")
 {
-
+    // check if the library that was used to compile is the same as the one that is loaded at runtime
     med_int v_hdf_major, v_hdf_minor, v_hdf_release;
     med_int v_med_major, v_med_minor, v_med_release;
 

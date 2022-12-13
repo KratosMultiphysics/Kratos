@@ -40,9 +40,7 @@ void MedWriteReadModelPart(
 
     { // encapsulating to ensure memory (aka file handle) is freed
         MedModelPartIO io_write(full_name, IO::WRITE);
-        const auto& rconstMP = test_model_part_write;
-        io_write.WriteModelPart(rconstMP);
-        // io_write.WriteModelPart(std::as_const(test_model_part_write));
+        io_write.WriteModelPart(std::as_const(test_model_part_write));
     }
     { // encapsulating to ensure memory (aka file handle) is freed
         MedModelPartIO io_read(full_name);
@@ -58,6 +56,13 @@ void MedWriteReadModelPart(
 }
 
 } // helpers namespace
+
+KRATOS_TEST_CASE_IN_SUITE(WriteReadMedEmpty, KratosMedFastSuite)
+{
+    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+        // deliberately do not create any entities
+    });
+}
 
 KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
 {

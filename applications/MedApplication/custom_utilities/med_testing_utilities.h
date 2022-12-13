@@ -25,29 +25,13 @@ namespace Kratos {
 ///@addtogroup ApplicationNameApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /// Short class definition.
 /** Detail class definition.
 */
-class MedTestingUtilities
+class KRATOS_API(MED_APPLICATION) MedTestingUtilities
 {
 public:
     ///@name Type Definitions
