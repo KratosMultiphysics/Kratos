@@ -221,6 +221,8 @@ private:
 
     std::filesystem::path mFileName;
 
+    Flags mOptions;
+
     class MedFileHandler; // forward declared to avoid "med.h" include in header
     Kratos::shared_ptr<MedFileHandler> mpFileHandler;
 
