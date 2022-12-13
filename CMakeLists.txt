@@ -547,6 +547,11 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(${KRATOS_KERNEL} "")
 set(${KRATOS_PYTHON_INTERFACE} "")
 
+# Enable profiling if requested
+if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
+    add_compile_definitions(KRATOS_ENABLE_PROFILING)
+endif()
+
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
