@@ -39,7 +39,7 @@ void MedWriteReadModelPart(
     rPopulateFunction(test_model_part_write);
 
     { // encapsulating to ensure memory (aka file handle) is freed
-        MedModelPartIO io_write(full_name);
+        MedModelPartIO io_write(full_name, IO::WRITE);
         const auto& rconstMP = test_model_part_write;
         io_write.WriteModelPart(rconstMP);
         // io_write.WriteModelPart(std::as_const(test_model_part_write));

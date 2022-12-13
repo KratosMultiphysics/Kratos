@@ -163,15 +163,19 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(std::filesystem::exists(rFileName)) << "File " << rFileName << " does not exist!" << std::endl;
+        if (Options.IsNot(IO::WRITE)) {
+            // check if file exists
+            KRATOS_ERROR_IF(!std::filesystem::exists(rFileName) && Options.IsNot(IO::WRITE)) << "File " << rFileName << " does not exist!" << std::endl;
 
-        med_bool hdf_ok;
-        med_bool med_ok;
-        med_err err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
-        KRATOS_WATCH(err)
+            // basic checks if the file is compatible with the MED library
+            med_bool hdf_ok;
+            med_bool med_ok;
+            const med_err err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
 
-        KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "HDF is incompatible" << std::endl;
-        KRATOS_ERROR_IF(med_ok != MED_TRUE) << "MED is incompatible" << std::endl;
+            KRATOS_ERROR_IF(err != 0) << "A problem occured while trying to check the compatibility of file " << rFileName << "!" << std::endl;
+            KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "A problem with HDF occured while trying to open file " << rFileName << "!" << std::endl;
+            KRATOS_ERROR_IF(med_ok != MED_TRUE) << "A problem with MED occured while trying to open file " << rFileName << "!" << std::endl;
+        }
 
         // Set the mode (consistent with ModelPartIO)
         // read only by default, unless other settings are specified
@@ -184,6 +188,7 @@ public:
         }
 
         mFileHandle = MEDfileOpen(rFileName.c_str(), open_mode);
+        KRATOS_ERROR_IF(mFileHandle < 0) << "A problem occured while opening file " << rFileName << "!" << std::endl;
 
         KRATOS_CATCH("")
     }
