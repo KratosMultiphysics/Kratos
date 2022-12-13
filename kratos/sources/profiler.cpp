@@ -50,11 +50,11 @@ Profiler<T>::Profiler(std::filesystem::path&& r_outputPath)
       mOutputPath(std::move(r_outputPath))
 {
     // "Reserve" thread map to avoid bucket moving later on.
-    const auto numberOfThreads = std::thread::hardware_concurrency();
+    const auto number_of_threads = std::thread::hardware_concurrency();
     std::vector<std::thread> threads;
-    threads.reserve(numberOfThreads);
-    std::atomic<int> thread_counter = 0;
-    for (int i_thread=0; i_thread<numberOfThreads; ++i_thread) {
+    threads.reserve(number_of_threads);
+    std::atomic<std::size_t> thread_counter = 0;
+    for (std::size_t i_thread=0; i_thread<number_of_threads; ++i_thread) {
         threads.emplace_back([i_thread, &thread_counter, this](){
             while (thread_counter < i_thread) {} // <== wait until the previous thread finishes
             mItemContainerMap.emplace(std::this_thread::get_id(), std::list<Item> {});
