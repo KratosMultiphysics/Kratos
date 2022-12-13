@@ -26,7 +26,7 @@ KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_read, KratosMedFastSuit
     KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path)); // make sure there are no leftovers
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        auto dummy = MedModelPartIO(file_path),
+        MedModelPartIO dummy(file_path),
         "File \""+file_path.string()+"\" does not exist!");
 
     KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path));
@@ -38,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_append, KratosMedFastSu
     KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path)); // make sure there are no leftovers
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        auto dummy = MedModelPartIO(file_path, IO::APPEND),
+        MedModelPartIO dummy(file_path, IO::APPEND),
         "File \""+file_path.string()+"\" does not exist!");
 
     KRATOS_CHECK_IS_FALSE(std::filesystem::exists(file_path));
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_TextFile, KratosMedFastSuite)
     std::ofstream output(file_path); // create a dummy file (that is not a hdf file)
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        auto dummy = MedModelPartIO(file_path),
+        MedModelPartIO dummy(file_path),
         "A problem with HDF occured while trying to open file \""+file_path.string()+"\"!");
 
     std::filesystem::remove(file_path); // clean leftover
