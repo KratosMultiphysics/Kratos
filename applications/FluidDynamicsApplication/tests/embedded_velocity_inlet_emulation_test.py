@@ -165,6 +165,4 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
         }''')
 
 if __name__ == '__main__':
-    test = EmbeddedVelocityInletEmulationTest()
-    test.testEmbeddedVelocityInletEmulationSymbolic2D()
-    test.testEmbeddedVelocityInletEmulationEmbedded2D()
+    UnitTest.main()

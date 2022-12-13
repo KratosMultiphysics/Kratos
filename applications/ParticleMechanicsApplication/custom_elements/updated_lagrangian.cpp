@@ -1255,7 +1255,14 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int matrix_size = number_of_nodes * dimension;
+    unsigned int matrix_size;
+    if (rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)) {
+        matrix_size = number_of_nodes * (dimension + 1);
+    }
+    else {
+        matrix_size = number_of_nodes * dimension;
+    }
+
 
     if ( rDampingMatrix.size1() != matrix_size )
         rDampingMatrix.resize( matrix_size, matrix_size, false );

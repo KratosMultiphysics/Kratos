@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_MODEL_PART_H_INCLUDED )
-#define  KRATOS_MODEL_PART_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -66,11 +65,15 @@ namespace Kratos
 //forward declaring Model to be avoid cross references
 class Model;
 
-/// ModelPart class.
-
-/** Detail class definition.
- */
-class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
+/**
+* @class ModelPart
+* @ingroup KratosCore
+* @brief This class aims to manage meshes for multi-physics simulations
+* @author Pooyan Dadvand
+* @author Riccardo Rossi
+*/
+class KRATOS_API(KRATOS_CORE) ModelPart final
+    : public DataValueContainer, public Flags
 {
     class GetModelPartName
     {
@@ -1657,12 +1660,17 @@ public:
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Returns a reference to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    	Throws if it does not exist.
     */
     ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
-    /** Returns a shared pointer to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    /** Returns a reference to the sub_model part with given string name
+    	Throws if it does not exist.
+    */
+    const ModelPart& GetSubModelPart(std::string const& SubModelPartName) const;
+
+    /** Returns a raw pointer to the sub_model part with given string name
+    	Throws if it does not exist.
     */
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
@@ -1836,10 +1844,10 @@ public:
     }
 
     /**
-     * @brief This method returns the name list of submodelparts
-     * @return A vector conrtaining the list of submodelparts contained
+     * @brief This method returns the names of submodelparts
+     * @return A vector containing the list of submodelparts names
      */
-    std::vector<std::string> GetSubModelPartNames();
+    std::vector<std::string> GetSubModelPartNames() const;
 
     /**
      * @brief This method sets the suffer size of the model part database
@@ -2002,6 +2010,12 @@ private:
         //}
     }
 
+    /**
+     * @brief This method issues a proper error message if a SubModelPart does not exist
+     * @param rSubModelPartName Name of the SubModelPart that does not exits
+     */
+    [[ noreturn ]] void ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -2059,10 +2073,6 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
     return rOStream;
 }
 
-
 ///@}
 
-
 } // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_H_INCLUDED  defined

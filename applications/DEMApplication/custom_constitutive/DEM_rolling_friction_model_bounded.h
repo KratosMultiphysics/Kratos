@@ -1,9 +1,11 @@
-/////////////////////////////////////////////////
-// Main author: Chengshun Shang (CIMNE)
-//              Joaqu¨ªn Iraz¨¢bal
-// Email: chengshun.shang1996@gmail.com
-// Date: Sep 2022
-/////////////////////////////////////////////////
+//  Kratos Multi-Physics - DEM Application
+//
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Chengshun Shang (cshang@cimne.upc.edu)
+//                 Joaquin Irazabal (jirazabal@cimne.upc.edu)
+//
 
 #if !defined(DEM_ROLLING_FRICTION_MODEL_BOUNDED_H_INCLUDED)
 #define DEM_ROLLING_FRICTION_MODEL_BOUNDED_H_INCLUDED
@@ -31,25 +33,27 @@ namespace Kratos{
 
         ~DEMRollingFrictionModelBounded() {}
 
-        virtual DEMRollingFrictionModel::Pointer Clone() const override;
+        DEMRollingFrictionModel::Pointer Clone() const override;
 
-        virtual std::unique_ptr<DEMRollingFrictionModel> CloneUnique() override;
+        std::unique_ptr<DEMRollingFrictionModel> CloneUnique() override;
 
-        virtual void InitializeSolutionStep() override;
+        void InitializeSolutionStep() override;
 
-        virtual void ComputeRollingResistance(const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) override;
+        void ComputeRollingResistance(SphericParticle* p_element, SphericParticle* p_neighbor, double LocalContactForce[3]) override;
 
-        virtual void DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment) override;
+        void ComputeRollingResistanceWithWall(SphericParticle* p_element, Condition* const wall, double LocalContactForce[3]) override;
+
+        void DoFinalOperations(SphericParticle* p_element, double dt, array_1d<double, 3>& mContactMoment) override;
     
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override {
+        void save(Serializer& rSerializer) const override {
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) override {
+        void load(Serializer& rSerializer) override {
                     //rSerializer.load("MyMemberName",myMember);
         }
 

@@ -5,25 +5,24 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborators:    Vicente Mataix Ferrandiz
-//                    Pablo Becker
+//  Collaborators:   Vicente Mataix Ferrandiz
+//                   Pablo Becker
 //
 
-#if !defined(KRATOS_MATH_UTILS )
-#define  KRATOS_MATH_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 #include <cmath>
 #include <type_traits>
 
-/* External includes */
+// External includes
 
-/* External includes */
+// Project includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 
@@ -324,10 +323,13 @@ public:
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
      * @param Tolerance The maximum tolerance considered
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
+    template<class TMatrix1, class TMatrix2>
     static void GeneralizedInvertMatrix(
-        const MatrixType& rInputMatrix,
-        MatrixType& rInvertedMatrix,
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
         TDataType& rInputMatrixDet,
         const TDataType Tolerance = ZeroTolerance
         )
@@ -391,6 +393,8 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -1981,11 +1985,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MATH_UTILS  defined */
