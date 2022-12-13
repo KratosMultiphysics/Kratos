@@ -141,8 +141,8 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationTriangle, KratosContactStructural
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
             for (IndexType j_node = 0; j_node < 3; ++j_node) {
                 mass_matrix_1(i_node, j_node) += det_j_1 * weight * N1[i_node] * N1[j_node] \
-                                                + det_j_2 * weight * N2[i_node] * N2[j_node] \
-                                                + det_j_3 * weight * N3[i_node] * N3[j_node];
+                                               + det_j_2 * weight * N2[i_node] * N2[j_node] \
+                                               + det_j_3 * weight * N3[i_node] * N3[j_node];
             }
         }
     }
@@ -369,9 +369,9 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosCont
         for (IndexType i_node = 0; i_node < 4; ++i_node) {
             for (IndexType j_node = 0; j_node < 4; ++j_node) {                        
                 mass_matrix_1(i_node, j_node ) += det_j_1 * weight * N1[i_node] * N1[j_node] 
-                                                +  det_j_2 * weight * N2[i_node] * N2[j_node]
-                                                +  det_j_3 * weight * N3[i_node] * N3[j_node]
-                                                +  det_j_4 * weight * N4[i_node] * N4[j_node];
+                                               +  det_j_2 * weight * N2[i_node] * N2[j_node]
+                                               +  det_j_3 * weight * N3[i_node] * N3[j_node]
+                                               +  det_j_4 * weight * N4[i_node] * N4[j_node];
             }
         }
     }
@@ -444,9 +444,9 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosCont
         for (IndexType i_node = 0; i_node < 4; ++i_node) {
             for (IndexType j_node = 0; j_node < 4; ++j_node) {                        
                 mass_matrix_1(i_node, j_node ) += det_j_1 * weight * N1[i_node] * N1[j_node] 
-                                                +  det_j_2 * weight * N2[i_node] * N2[j_node]
-                                                +  det_j_3 * weight * N3[i_node] * N3[j_node]
-                                                +  det_j_4 * weight * N4[i_node] * N4[j_node];
+                                               +  det_j_2 * weight * N2[i_node] * N2[j_node]
+                                               +  det_j_3 * weight * N3[i_node] * N3[j_node]
+                                               +  det_j_4 * weight * N4[i_node] * N4[j_node];
             }
         }
     }
