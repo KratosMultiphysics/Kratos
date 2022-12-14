@@ -682,6 +682,7 @@ private:
     void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
         DataSizeCheck(rContainer.size(), data.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             data[index] = r_entity.GetValue(rVariable);
@@ -692,6 +693,7 @@ private:
     void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
         DataSizeCheck(rContainer.size(), data.size()*TSize);
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
@@ -705,6 +707,7 @@ private:
     void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
         DataSizeCheck(rContainer.size(), rData.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             r_entity.SetValue(rVariable,rData[index]);
@@ -715,6 +718,7 @@ private:
     void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
         DataSizeCheck(rContainer.size(), rData.size()*size);
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             TDataType aux;
@@ -726,9 +730,9 @@ private:
         });
     }
 
-    void DataSizeCheck(std::size_t rContainerSize, std::size_t rSize) const
+    void DataSizeCheck(const std::size_t ContainerSize, const std::size_t DataSize) const
     {
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
+        KRATOS_ERROR_IF(rContainerSize != rSize) << "Mismatch in size! Container size: " << ContainerSize << " | Data size: " << DataSize << std::endl;
     }
 
     /**
