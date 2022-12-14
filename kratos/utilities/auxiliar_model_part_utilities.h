@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_AUXILIAR_MODEL_PART_UTILITIES)
-#define KRATOS_AUXILIAR_MODEL_PART_UTILITIES
+#pragma once
 
 // System includes
 
@@ -446,8 +445,6 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-
             auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
                 auto inode = inodebegin + Index;
@@ -459,20 +456,14 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Nodes(), rVariable, rData);
             break;
         }
         case (DataLocation::Element):{
-            ImportDataSizeCheck(mrModelPart.NumberOfElements(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Elements(), rVariable, rData);
             break;
         }
         case (DataLocation::Condition):{
-            ImportDataSizeCheck(mrModelPart.NumberOfConditions(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Conditions(), rVariable, rData);
             break;
         }
@@ -505,7 +496,6 @@ public:
             unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
             auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
@@ -526,8 +516,6 @@ public:
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
-            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
-
             SetVectorDataFromContainer(mrModelPart.Nodes(), size, rVariable, rData);
             break;
         }
@@ -536,8 +524,6 @@ public:
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
-            ImportDataSizeCheckVector(mrModelPart.NumberOfElements()*size , rData.size());
-
             SetVectorDataFromContainer(mrModelPart.Elements(), size, rVariable, rData);
             break;
         }
@@ -545,8 +531,6 @@ public:
             unsigned int size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-
-            ImportDataSizeCheckVector(mrModelPart.NumberOfConditions()*size , rData.size());
 
             SetVectorDataFromContainer(mrModelPart.Conditions(), size, rVariable, rData);
             break;
@@ -697,6 +681,7 @@ private:
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
+        DataSizeCheck(rContainer.size(), data.size());
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             data[index] = r_entity.GetValue(rVariable);
@@ -706,6 +691,7 @@ private:
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
+        DataSizeCheck(rContainer.size(), data.size()*TSize);
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
@@ -718,6 +704,7 @@ private:
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
+        DataSizeCheck(rContainer.size(), rData.size());
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             r_entity.SetValue(rVariable,rData[index]);
@@ -727,6 +714,7 @@ private:
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
+        DataSizeCheck(rContainer.size(), rData.size()*size);
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             TDataType aux;
@@ -738,13 +726,8 @@ private:
         });
     }
 
-    // Only for SetScalarData()
-    void ImportDataSizeCheck(std::size_t rContainerSize, std::size_t rSize){
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
-    }
-
-    // Only for SetVectorData()
-    void ImportDataSizeCheckVector(std::size_t rContainerSize, std::size_t rSize){
+    void DataSizeCheck(std::size_t rContainerSize, std::size_t rSize) const
+    {
         KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
     }
 
@@ -799,4 +782,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_AUXILIAR_MODEL_PART_UTILITIES defined */
