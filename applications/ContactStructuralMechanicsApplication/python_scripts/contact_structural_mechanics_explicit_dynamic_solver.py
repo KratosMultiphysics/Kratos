@@ -7,8 +7,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the explicit solver (the explicit one is derived from it)
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_explicit_dynamic_solver
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ContactExplicitMechanicalSolver(model, custom_settings)
@@ -31,7 +31,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         self.contact_settings = self.settings["contact_settings"]
 
         # Setting default configurations true by default
-        auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
+        auxiliary_methods_solvers.AuxiliarySetSettings(self.settings, self.contact_settings)
 
         # Getting delta_time_factor_for_contact
         self.delta_time_factor_for_contact = self.contact_settings["delta_time_factor_for_contact"].GetDouble()
@@ -44,14 +44,14 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
+        auxiliary_methods_solvers.AuxiliaryValidateSettings(self)
 
     def AddVariables(self):
 
         super().AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddVariables(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Variables ADDED")
 
@@ -60,7 +60,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         super().AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
+        auxiliary_methods_solvers.AuxiliaryAddDofs(self.main_model_part, mortar_type)
 
         KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "DOF's ADDED")
 
@@ -77,7 +77,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
             self.Clear()
 
         mechanical_solution_strategy = self._GetSolutionStrategy()
-        auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
+        auxiliary_methods_solvers.AuxiliarySolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
@@ -98,6 +98,6 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
 
     @classmethod
     def GetDefaultParameters(cls):
-        this_defaults = auxiliar_methods_solvers.AuxiliarExplicitContactSettings()
+        this_defaults = auxiliary_methods_solvers.AuxiliaryExplicitContactSettings()
         this_defaults.RecursivelyAddMissingParameters(super(ContactExplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults

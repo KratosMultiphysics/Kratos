@@ -702,7 +702,6 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
     GlobalPointersVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     std::map<std::size_t, std::size_t> ids; // map to keep track of all different ids corresponding to already added neighbours to avoid repetition
     ids[p_node->Id()] = p_node->Id();
-    unsigned int i = 0;
     for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
         Geometry<Node<3> >& geom = neigh_elems[i_el].GetGeometry();
         unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
@@ -716,7 +715,6 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
                 ids[p_neigh->Id()] = p_neigh->Id();
             }
         }
-        i += TDim;
     }
     OrderByDistance(p_node, neigh_nodes);
     if (neigh_nodes.size() < 10){ // Not worthwhile checking, since there are 10 independent coefficients to be determined
@@ -815,7 +813,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     DenseMatrix<double> A(n_nodal_neighs, n_poly_terms);
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         A(i, 0) = 1.0;
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             Node<3>& neigh = neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
             TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);

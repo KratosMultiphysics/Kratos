@@ -18,6 +18,12 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         pass
 
     def test_triaxial_comp_6n(self):
+        """
+        Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
+        It consistes of two calculation phases:
+        1) apply confining stress of -100 kPa
+        2) apply deviatoric stress of 200 kPa
+        """
         test_name = 'triaxial_comp_6n'
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
 
@@ -55,6 +61,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(-100.0, effective_stresses_zz[idx], 2)
 
     def test_oedometer_ULFEM(self):
+        """
+        Oedometer test on Mohr-Coulomb model with 2D6N elements
+        """
         test_name = 'oedometer_ULFEM'
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         simulation = test_helper.run_kratos(project_path)
@@ -77,6 +86,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(-0.0909090909516868, y_displacements[top_node_nbr], 6)
 
     def test_oedometer_ULFEM_diff_order(self):
+        """
+        Oedometer test on Mohr-Coulomb model with 2D6N with different order elements
+        """
         test_name = 'oedometer_ULFEM_diff_order'
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         simulation = test_helper.run_kratos(project_path)

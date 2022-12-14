@@ -71,7 +71,7 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
 
     /* Warning: mesh groups must be merged on each local partition */
     rPMMGMeshInfo.NumberOfNodes = np;
-    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if constexpr (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         rPMMGMeshInfo.NumberOfTriangles = nt;
         rPMMGMeshInfo.NumberOfQuadrilaterals = nquad;
         rPMMGMeshInfo.NumberOfTetrahedra = ne;
@@ -79,7 +79,7 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
     }
 
     KRATOS_INFO_IF("ParMmgUtilities", GetEchoLevel() > 0) << "\tNodes created: " << rPMMGMeshInfo.NumberOfNodes << std::endl;
-    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if constexpr (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         KRATOS_INFO_IF("ParMmgUtilities", GetEchoLevel() > 0) <<
         "Conditions created: " << rPMMGMeshInfo.NumberOfTriangles + rPMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rPMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rPMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rPMMGMeshInfo.NumberOfTetrahedra + rPMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rPMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rPMMGMeshInfo.NumberOfPrism << std::endl;
@@ -882,7 +882,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Gathering LOCAL mesh info */
     PMMGMeshInfo<TPMMGLibrary> pmmg_mesh_info;
-    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if constexpr (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {

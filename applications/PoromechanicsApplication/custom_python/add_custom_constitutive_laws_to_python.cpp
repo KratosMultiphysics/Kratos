@@ -49,12 +49,14 @@ namespace py = pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
+    // Module local to avoid conflicts with other apps
     py::class_< BilinearCohesive3DLaw, BilinearCohesive3DLaw::Pointer, ConstitutiveLaw >
-    (m, "BilinearCohesive3DLaw")
+    (m, "BilinearCohesive3DLaw", py::module_local())
     .def( py::init<>() );
     py::class_< BilinearCohesive2DLaw, BilinearCohesive2DLaw::Pointer, ConstitutiveLaw >
-    (m, "BilinearCohesive2DLaw")
+    (m, "BilinearCohesive2DLaw", py::module_local())
     .def( py::init<>() ) ;
+
     py::class_< ExponentialCohesive3DLaw, ExponentialCohesive3DLaw::Pointer, ConstitutiveLaw >
     (m, "ExponentialCohesive3DLaw")
     .def( py::init<>() );
@@ -63,16 +65,16 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
 
     py::class_< LinearElastic3DLaw, LinearElastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticSolid3DLaw")
+    (m, "LinearElasticSolid3DLaw", py::module_local())
     .def( py::init<>() );
     py::class_< LinearElasticPlaneStrain2DLaw, LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticPlaneStrainSolid2DLaw")
+    (m, "LinearElasticPlaneStrainSolid2DLaw", py::module_local())
     .def(py::init<>() );
     py::class_< LinearElasticPlaneStress2DLaw, LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticPlaneStressSolid2DLaw")
+    (m, "LinearElasticPlaneStressSolid2DLaw", py::module_local())
     .def(py::init<>() );
     py::class_< HyperElastic3DLaw, HyperElastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "HyperElasticSolid3DLaw")
+    (m, "HyperElasticSolid3DLaw", py::module_local())
     .def( py::init<>() );
 
     py::class_< SimoJuLocalDamage3DLaw, SimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >

@@ -7,7 +7,7 @@
 #   - https://github.com/KratosMultiphysics/Kratos
 
 # Optional parameters:
-# You can find a list will all the compiation options in INSTALL.md or here:
+# You can find a list with all the compilation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 # Function to add apps
@@ -16,8 +16,8 @@ add_app () {
 }
 
 # Set compiler
-export CC=gcc
-export CXX=g++
+export CC=${CC:-gcc}
+export CXX=${CXX:-g++}
 
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
@@ -42,7 +42,10 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+-DUSE_MPI=OFF                                                       \
+-DUSE_EIGEN_MKL=OFF                                                 \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON
 
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

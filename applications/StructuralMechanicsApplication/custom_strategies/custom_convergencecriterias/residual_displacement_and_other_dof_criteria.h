@@ -92,7 +92,7 @@ public:
     ResidualDisplacementAndOtherDoFCriteria(
         TDataType RatioTolerance,
         TDataType AbsoluteTolerance,
-        const std::string OtherDoFName = "ROTATION"
+        const std::string& OtherDoFName = "ROTATION"
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mOtherDoFName(OtherDoFName),
@@ -346,7 +346,7 @@ private:
         TDataType residual_solution_norm_other_dof = TDataType();
         SizeType disp_dof_num = 0;
 
-        // Auxiliar values
+        // Auxiliary values
         TDataType residual_dof_value = 0.0;
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());
