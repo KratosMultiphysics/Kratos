@@ -66,6 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     typedef ModelPart::ElementType::GeometryType GeometryType;
     typedef std::size_t SizeType;
+    using NodeType = Node <3>;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
@@ -122,6 +123,34 @@ public:
     double ComputeVolume();
 
     void ComputeVolumeShapeDerivatives(const Variable<array_3d>& rDerivativeVariable);
+
+    void CalculateGaussianCurvature();
+
+    bool CheckIfElementIsQuadratic(const Kratos::GlobalPointer<Kratos::Condition> pElement);
+
+    bool CheckIfNodesHasQuadraticNeigbourElement(const NodeType &rNode);
+
+    void LocalPointInElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Kratos::Point::CoordinatesArrayType& rLocalPoint);
+
+    Matrix CurvatureTensor(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
+
+    void BaseVectors(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rG1, Vector& rG2);
+
+    void CartesianBaseVectors(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rE1, Vector& rE2);
+
+    void TransformTensorCoefficients(Matrix& rTensor, Matrix& rResultTensor, Vector&rG1, Vector&rG2, Vector&rE1, Vector&rE2);
+
+    void GetInnerAngleAndMixedAreaOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void InnerAngleAndMixedAreaOfTriangleAtNodeI(const Kratos::Point::CoordinatesArrayType& rNodeI, const Kratos::Point::CoordinatesArrayType& rNodeJ, const Kratos::Point::CoordinatesArrayType& rNodeK, double& rInnerAngle, double& rMixedArea);
+
+    void InnerAngleAndMixedAreaOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    void InnerAngleAndMixedAreaOf3D4NQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
+
+    double GetProjectedInnerAngleOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
+
+    double ProjectedInnerAngleOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
 
     // --------------------------------------------------------------------------
 

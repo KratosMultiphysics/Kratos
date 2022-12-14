@@ -134,10 +134,6 @@ private:
 
     double CurvatureFunction(const double& rCurvature, const double& rElementSize);
 
-    void CalculateCurvatureIGL();
-
-    void CalculateCurvatureAtNode(NodeType& rNode);
-
     void CalculateCurvatureBasedFilterRadius();
 
     void CalculateNeighbourBasedFilterRadius();
@@ -161,37 +157,6 @@ private:
 
     void AssignMappingIds();
 
-    double Cotan(const double& rAngle);
-
-    void CalculateInnerAngleAndMixedAreaOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    void CalculateInnerAngleAndMixedAreaOfTriangleAtNodeI(const Kratos::Point::CoordinatesArrayType& rNodeI, const Kratos::Point::CoordinatesArrayType& rNodeJ, const Kratos::Point::CoordinatesArrayType& rNodeK, double& rInnerAngle, double& rMixedArea);
-
-    void CalculateInnerAngleAndMixedAreaOf3Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    void CalculateInnerAngleAndMixedAreaOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    double CalculateCurvatureOf6Node3DTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
-
-    void CalculateInnerAngleAndMixedAreaOf4Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    void CalculateInnerAngleAndMixedAreaOf8Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    void CalculateInnerAngleAndMixedAreaOf9Node3DQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    Matrix CurvatureTensorOfElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
-
-    void BasisOfElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rG1, Vector& rG2);
-
-    void CartesianBasisOfElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rE1, Vector& rE2);
-
-    void TransformTensor(Matrix& rTensor, Matrix& rResultTensor, Vector&rG1, Vector&rG2, Vector&rE1, Vector&rE2);
-
-    Matrix CalculateCurvatureTensor6Node3DTriangle(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
-
-    bool CheckIfElementIsQuadratic(const Kratos::GlobalPointer<Kratos::Condition> pElement);
-
-    bool CheckIfNodesHasQuadraticNeigbourElement(NodeType &rNode);
     ///@}
 
 }; // Class MapperVertexMorphingAdaptiveRadius

@@ -160,7 +160,7 @@ void GeometryUtilities::ExtractBoundaryNodes( std::string const& rBoundarySubMod
 void GeometryUtilities::ExtractEdgeNodes( std::string const& rEdgeSubModelPartName ) {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "ExtractEdgeNodes: No elements defined. Automatic edge detection will not find any edge nodes!" << std::endl;
+    KRATOS_ERROR_IF(mrModelPart.Conditions().size() == 0) << "ExtractEdgeNodes: No elements defined. Automatic edge detection will not find any edge nodes!" << std::endl;
 
     ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(rEdgeSubModelPartName);
 
@@ -169,7 +169,7 @@ void GeometryUtilities::ExtractEdgeNodes( std::string const& rEdgeSubModelPartNa
     for (auto& r_node_i : mrModelPart.Nodes()) {
         auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);  // does not work with const
         for(const auto& r_node_j : r_node_i_neighbours) {
-            auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);  // does not work with const
+            auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_CONDITIONS);  // does not work with const
             int count = 0;
             for(const auto& r_elem_k : r_element_neighbours) {
                 const auto& r_element_geometry = r_elem_k.GetGeometry();
@@ -358,5 +358,408 @@ void GeometryUtilities::CalculateUnitNormals()
         noalias(normalized_normal) = area_normal/norm2;
     }
 }
+
+void GeometryUtilities::CalculateGaussianCurvature() {
+
+    KRATOS_TRY
+
+    this->ComputeUnitSurfaceNormals();
+
+    ModelPart& r_edge_model_part = mrModelPart.HasSubModelPart(mrModelPart.Name() + "_edges") ? mrModelPart.GetSubModelPart(mrModelPart.Name() + "_edges") : mrModelPart.CreateSubModelPart(mrModelPart.Name() + "_edges");
+    if (r_edge_model_part.Nodes().size() == 0) {
+        this->ExtractEdgeNodes(mrModelPart.Name() + "_edges");
+    }
+
+    block_for_each(mrModelPart.Nodes(), [&](NodeType &rNode) {
+
+        const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES).GetContainer();
+        const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
+
+        double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
+
+        // TODO: ACTIVATE AGAIN / FIND A WAY TO DEAL WITH EDGE NODES!
+        // check if node lies on edge
+        // TODO: for all element types
+        // for (const auto& r_neighbour : r_neighbours) {
+        //     int count = 0;
+        //     for (const auto& r_condition_neighbour : r_condition_neighbours) {
+        //         for (int i = 0; i < r_condition_neighbour->GetGeometry().PointsNumber(); ++i) {
+        //             if (r_condition_neighbour->GetGeometry()[i].Id() == r_neighbour->Id()) count++;
+        //         }
+        //     }
+        //     if (count < 2) {
+        //         r_gaussian_curvature = 0;
+        //         return;
+        //     }
+        // }
+        if (this->CheckIfNodesHasQuadraticNeigbourElement(rNode)) {
+            bool local_cartesian_basis_defined = false;
+            Vector e_1 = ZeroVector(3);
+            Vector e_2 = ZeroVector(3);
+            Matrix b_total = ZeroMatrix(2,2);
+            int total = 0;
+            if (rNode.Id() == 1 || rNode.Id() == 10192 || rNode.Id() == 10093) {
+                KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "-------------------------------------------------------------------------------" << std::endl;
+                KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "at node ID =  " << rNode.Id() << std::endl;
+                KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "coordinates =  " << rNode.Coordinates() << std::endl;
+            }
+            for (const auto& r_condition_neighbour : r_condition_neighbours) {
+                if (GeometryUtilities::CheckIfElementIsQuadratic(r_condition_neighbour)) {
+                    Matrix b = GeometryUtilities::CurvatureTensor(rNode, r_condition_neighbour);
+                    if (!local_cartesian_basis_defined) {
+                        GeometryUtilities::CartesianBaseVectors(rNode, r_condition_neighbour, e_1, e_2);
+                        local_cartesian_basis_defined = true;
+                    }
+                    Vector g_1 = ZeroVector(3);
+                    Vector g_2 = ZeroVector(3);
+                    GeometryUtilities::BaseVectors(rNode, r_condition_neighbour, g_1, g_2);
+                    Matrix b_transformed = ZeroMatrix(2,2);
+                    GeometryUtilities::TransformTensorCoefficients(b, b_transformed, g_1, g_2, e_1, e_2);
+                    // TODO: delete e_3 and g_3 again
+                    Vector e_3 = MathUtils<double>::CrossProduct(e_1, e_2);
+                    e_3 *= 1 / MathUtils<double>::Norm3(e_3);
+                    Vector g_3 = MathUtils<double>::CrossProduct(g_1, g_2);
+                    g_3 *= 1 / MathUtils<double>::Norm3(g_3);
+                    // END TODO
+                    // doesn't change anything
+                    // if (MathUtils<double>::Dot3(e_3, g_3) >= 0) {
+                    b_total += b_transformed;
+                    // } else {
+                    //     b_total -= b_transformed;
+                    // }
+                    ++total;
+                    if (rNode.Id() == 1 || rNode.Id() == 10192 || rNode.Id() == 10093) {
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "Element ID =  " << r_condition_neighbour->Id() << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "b = " << b << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "b_transformed = " << b_transformed << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "e_1 = " << e_1 << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "e_2 = " << e_2 << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "e_3 = " << e_3 << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "g_1 = " << g_1 << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "g_2 = " << g_2 << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "g_3 = " << g_3 << std::endl;
+                    }
+                }
+            }
+            b_total /= total;
+            r_gaussian_curvature = MathUtils<double>::Det2(b_total);
+            if (rNode.Id() == 1 || rNode.Id() == 10192 || rNode.Id() == 10093) {
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "b_total = " << b_total << std::endl;
+                        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "K = " << r_gaussian_curvature << std::endl;
+            }
+        } else {
+            if (r_edge_model_part.HasNode(rNode.Id())) {
+                r_gaussian_curvature = 0;
+                for (const auto& r_condition_neighbour : r_condition_neighbours) {
+                    r_gaussian_curvature += this->GetProjectedInnerAngleOfElementAtNode(rNode, r_condition_neighbour);
+                }
+            } else {
+                r_gaussian_curvature =  2*Globals::Pi;
+            }
+            double A_mixed = 0.0;
+            for (const auto& r_condition_neighbour : r_condition_neighbours) {
+                double element_angle = 0;
+                double element_a_mixed = 0;
+                GeometryUtilities::GetInnerAngleAndMixedAreaOfElementAtNode(rNode, r_condition_neighbour, element_angle, element_a_mixed);
+
+                r_gaussian_curvature -= element_angle;
+                A_mixed += element_a_mixed;
+            }
+            r_gaussian_curvature /= A_mixed;
+        }
+        // TODO: Taubin / Camprubi method for 4N quads
+
+    });
+    KRATOS_CATCH("");
+}
+
+bool GeometryUtilities::CheckIfElementIsQuadratic(const Kratos::GlobalPointer<Kratos::Condition> pElement) {
+    if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6) {
+        return true;
+    } else if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8) {
+        return true;
+    } else if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool GeometryUtilities::CheckIfNodesHasQuadraticNeigbourElement(const NodeType &rNode) {
+    const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
+    for (const auto& r_condition_neighbour : r_condition_neighbours) {
+        if (this->CheckIfElementIsQuadratic(r_condition_neighbour)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void GeometryUtilities::LocalPointInElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Kratos::Point::CoordinatesArrayType& rLocalPoint) {
+    Matrix local_points;
+    pElement->GetGeometry().PointsLocalCoordinates(local_points);
+    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+        if (pElement->GetGeometry()[i].Id() == rNode.Id()) {
+            rLocalPoint[0] = local_points(i, 0);
+            rLocalPoint[1] = local_points(i, 1);
+            break;
+        }
+    }
+}
+
+void GeometryUtilities::BaseVectors(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rG1, Vector& rG2) {
+
+    Kratos::Point::CoordinatesArrayType LocalPoint(2);
+    GeometryUtilities::LocalPointInElement(rNode, pElement, LocalPoint);
+
+    matrix<double> first_derivative;
+    pElement->GetGeometry().ShapeFunctionsLocalGradients(first_derivative, LocalPoint);
+    Vector g_1 = ZeroVector(3);
+    Vector g_2 = ZeroVector(3);
+    Vector g_3 = ZeroVector(3);
+    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+        g_1 += first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates();
+        g_2 += first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates();
+    }
+
+    rG1 = g_1;
+    rG2 = g_2;
+}
+
+void GeometryUtilities::CartesianBaseVectors(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rE1, Vector& rE2) {
+
+    Vector g_1 = ZeroVector(3);
+    Vector g_2 = ZeroVector(3);
+    GeometryUtilities::BaseVectors(rNode, pElement, g_1, g_2);
+
+    // local cartesian basis e_i
+    Vector e_1 = g_1 / MathUtils<double>::Norm3(g_1);
+    Vector e_2 = g_2 - MathUtils<double>::Dot3(g_2, e_1) * e_1;
+    e_2 /= MathUtils<double>::Norm3(e_2);
+
+    rE1 = e_1;
+    rE2 = e_2;
+}
+
+Matrix GeometryUtilities::CurvatureTensor(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement) {
+    Kratos::Point::CoordinatesArrayType LocalPoint(2);
+    GeometryUtilities::LocalPointInElement(rNode, pElement, LocalPoint);
+
+    Vector g_1 = ZeroVector(3);
+    Vector g_2 = ZeroVector(3);
+    GeometryUtilities::BaseVectors(rNode, pElement, g_1, g_2);
+
+    GeometryData::ShapeFunctionsSecondDerivativesType second_derivative;
+    pElement->GetGeometry().ShapeFunctionsSecondDerivatives(second_derivative, LocalPoint);
+
+    Vector dg_1_du = ZeroVector(3);
+    Vector dg_1_dv = ZeroVector(3);
+    Vector dg_2_du = ZeroVector(3);
+    Vector dg_2_dv = ZeroVector(3);
+
+    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+        dg_1_du += second_derivative[i](0,0) * pElement->GetGeometry()[i].Coordinates();
+        dg_1_dv += second_derivative[i](0,1) * pElement->GetGeometry()[i].Coordinates();
+        dg_2_du += second_derivative[i](1,0) * pElement->GetGeometry()[i].Coordinates();
+        dg_2_dv += second_derivative[i](1,1) * pElement->GetGeometry()[i].Coordinates();
+    }
+
+    if (rNode.Id() == 1 || rNode.Id() == 10192 || rNode.Id() == 10093) {
+        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "LocalPoint =  " << LocalPoint << std::endl;
+        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "dg_1_du =  " << dg_1_du << std::endl;
+        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "dg_1_dv =  " << dg_1_dv << std::endl;
+        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "dg_2_du =  " << dg_2_du << std::endl;
+        KRATOS_INFO("ShapeOpt CURVATURE CALC: ") << "dg_2_dv =  " << dg_2_dv << std::endl;
+    }
+
+    Vector g_3 = ZeroVector(3);
+    g_3 = MathUtils<double>::CrossProduct(g_1, g_2);
+    g_3 *=  1 / MathUtils<double>::Norm3(g_3);
+
+    // curvature tensor coefficients
+    Matrix b(2,2);
+    b(0, 0) = MathUtils<double>::Dot3(dg_1_du, g_3);
+    b(1, 0) = MathUtils<double>::Dot3(dg_2_du, g_3);
+    b(0, 1) = MathUtils<double>::Dot3(dg_1_dv, g_3);
+    b(1, 1) = MathUtils<double>::Dot3(dg_2_dv, g_3);
+
+    return b;
+}
+
+void GeometryUtilities::TransformTensorCoefficients(Matrix& rTensor, Matrix& rResultTensor, Vector&rG1, Vector&rG2, Vector&rE1, Vector&rE2) {
+
+    Vector contra_G1 = ZeroVector(3);
+    Vector contra_G2 = ZeroVector(3);
+    Matrix covariant_metric(2,2);
+    covariant_metric(0,0) = MathUtils<double>::Dot3(rG1, rG1);
+    covariant_metric(1,0) = MathUtils<double>::Dot3(rG2, rG1);
+    covariant_metric(0,1) = MathUtils<double>::Dot3(rG1, rG2);
+    covariant_metric(1,1) = MathUtils<double>::Dot3(rG2, rG2);
+    Matrix contravariant_metric(2,2);
+    double det;
+    MathUtils<double>::InvertMatrix2(covariant_metric, contravariant_metric, det);
+    contra_G1 = contravariant_metric(0,0) * rG1 + contravariant_metric(1,0) * rG2;
+    contra_G2 = contravariant_metric(0,1) * rG1 + contravariant_metric(1,1) * rG2;
+
+    rResultTensor(0,0) = rTensor(0, 0) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(0,0) += rTensor(1, 0) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(0,0) += rTensor(0, 1) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE1);
+    rResultTensor(0,0) += rTensor(1, 1) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE1);
+
+    rResultTensor(1,0) = rTensor(0, 0) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(1,0) += rTensor(1, 0) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(1,0) += rTensor(0, 1) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE1);
+    rResultTensor(1,0) += rTensor(1, 1) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE1);
+
+    rResultTensor(0,1) = rTensor(0, 0) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(0,1) += rTensor(1, 0) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(0,1) += rTensor(0, 1) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE2);
+    rResultTensor(0,1) += rTensor(1, 1) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE2);
+
+    rResultTensor(1,1) = rTensor(0, 0) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(1,1) += rTensor(1, 0) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(1,1) += rTensor(0, 1) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE2);
+    rResultTensor(1,1) += rTensor(1, 1) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE2);
+}
+
+void GeometryUtilities::GetInnerAngleAndMixedAreaOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
+
+    if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+        GeometryUtilities::InnerAngleAndMixedAreaOf3D3NTriangletAtNode(rNode, pElement, rInnerAngle, rMixedArea);
+    } else if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
+        GeometryUtilities::InnerAngleAndMixedAreaOf3D4NQuadrilateraltAtNode(rNode, pElement, rInnerAngle, rMixedArea);
+    } else {
+        KRATOS_ERROR << "ShapeOpt Adaptive Filter: Geometry type not supported for adaptive filter vertex morphing method." << std::endl;
+    }
+}
+
+void GeometryUtilities::InnerAngleAndMixedAreaOfTriangleAtNodeI(const Kratos::Point::CoordinatesArrayType& rNodeI, const Kratos::Point::CoordinatesArrayType& rNodeJ, const Kratos::Point::CoordinatesArrayType& rNodeK, double& rInnerAngle, double& rMixedArea) {
+
+    const Kratos::Point::CoordinatesArrayType edge_ij = rNodeJ - rNodeI;
+    const Kratos::Point::CoordinatesArrayType edge_ik = rNodeK - rNodeI;;
+    const double cos_theta_i = inner_prod(edge_ij, edge_ik) / (norm_2(edge_ij) * norm_2(edge_ik));
+    const double theta_i = acos(cos_theta_i);
+    rInnerAngle = theta_i;
+
+    const Kratos::Point::CoordinatesArrayType edge_jk = rNodeK - rNodeJ;
+    const double theta_j = acos(inner_prod(-edge_ij, edge_jk) / (norm_2(-edge_ij) * norm_2(edge_jk)));
+    const double theta_k = acos(inner_prod(-edge_ik, -edge_jk) / (norm_2(-edge_ik) * norm_2(-edge_jk)));
+
+    // triangle is obtuse => 1/2 or 1/4 * triangle area
+    if (theta_i > Globals::Pi / 2 || theta_j > Globals::Pi / 2 || theta_k > Globals::Pi / 2) {
+        const double a = norm_2(edge_ij);
+        const double b = norm_2(edge_ik);
+        const double c = norm_2(edge_jk);
+        const double s = (a+b+c) / 2.0;
+        const double area = std::sqrt(s*(s-a)*(s-b)*(s-c));
+        if (theta_i > Globals::Pi / 2) {
+            rMixedArea += 0.5 * area;
+        } else {
+            rMixedArea += 0.25 * area;
+        }
+    }
+    // triangle is non-obtuse => Voronoi area
+    else {
+        rMixedArea += 0.125 * (norm_2_square(edge_ij) * (cos(theta_k) / sin(theta_k)) + norm_2_square(edge_ik) * (cos(theta_j) / sin(theta_j)));
+    }
+}
+
+void GeometryUtilities::InnerAngleAndMixedAreaOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
+
+    const auto& r_node_i = rNode.Coordinates();
+
+    Kratos::Point::CoordinatesArrayType r_node_j;
+    Kratos::Point::CoordinatesArrayType r_node_k;
+
+    if (pElement->GetGeometry()[0].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[1].Coordinates();
+        r_node_k = pElement->GetGeometry()[2].Coordinates();
+    } else if (pElement->GetGeometry()[1].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[2].Coordinates();
+        r_node_k = pElement->GetGeometry()[0].Coordinates();
+    } else if (pElement->GetGeometry()[2].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[0].Coordinates();
+        r_node_k = pElement->GetGeometry()[1].Coordinates();
+    }
+    GeometryUtilities::InnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, rInnerAngle, rMixedArea);
+}
+
+void GeometryUtilities::InnerAngleAndMixedAreaOf3D4NQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {
+    // TODO: check angle at corner and decide how to triangulate based on that
+    const auto& r_node_i = rNode.Coordinates();
+
+    Kratos::Point::CoordinatesArrayType r_node_j;
+    Kratos::Point::CoordinatesArrayType r_node_k;
+    Kratos::Point::CoordinatesArrayType r_node_l;
+
+    bool one_triangle = false;
+    if (pElement->GetGeometry()[0].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[1].Coordinates();
+        r_node_k = pElement->GetGeometry()[2].Coordinates();
+        r_node_l = pElement->GetGeometry()[3].Coordinates();
+    } else if (pElement->GetGeometry()[2].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[3].Coordinates();
+        r_node_k = pElement->GetGeometry()[0].Coordinates();
+        r_node_l = pElement->GetGeometry()[1].Coordinates();
+    } else if (pElement->GetGeometry()[1].Id() == rNode.Id()) {
+        one_triangle = true;
+        r_node_j = pElement->GetGeometry()[2].Coordinates();
+        r_node_k = pElement->GetGeometry()[0].Coordinates();
+    } else if (pElement->GetGeometry()[3].Id() == rNode.Id()) {
+        one_triangle = true;
+        r_node_j = pElement->GetGeometry()[0].Coordinates();
+        r_node_k = pElement->GetGeometry()[2].Coordinates();
+    }
+
+    if (one_triangle) {
+        GeometryUtilities::InnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, rInnerAngle, rMixedArea);
+    } else {
+        double inner_angle = 0.0;
+        GeometryUtilities::InnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_j, r_node_k, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+        GeometryUtilities::InnerAngleAndMixedAreaOfTriangleAtNodeI(r_node_i, r_node_k, r_node_l, inner_angle, rMixedArea);
+        rInnerAngle += inner_angle;
+    }
+}
+
+double GeometryUtilities::GetProjectedInnerAngleOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement) {
+
+    if (pElement->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+        return this->ProjectedInnerAngleOf3D3NTriangletAtNode(rNode, pElement);
+    } else {
+        KRATOS_ERROR << "ShapeOpt Adaptive Filter: Geometry type not supported for adaptive filter vertex morphing method." << std::endl;
+    }
+}
+
+double GeometryUtilities::ProjectedInnerAngleOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement) {
+
+    const auto& r_node_i = rNode.Coordinates();
+
+    Kratos::Point::CoordinatesArrayType r_node_j;
+    Kratos::Point::CoordinatesArrayType r_node_k;
+
+    if (pElement->GetGeometry()[0].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[1].Coordinates();
+        r_node_k = pElement->GetGeometry()[2].Coordinates();
+    } else if (pElement->GetGeometry()[1].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[2].Coordinates();
+        r_node_k = pElement->GetGeometry()[0].Coordinates();
+    } else if (pElement->GetGeometry()[2].Id() == rNode.Id()) {
+        r_node_j = pElement->GetGeometry()[0].Coordinates();
+        r_node_k = pElement->GetGeometry()[1].Coordinates();
+    }
+    const Kratos::Point::CoordinatesArrayType edge_ij = r_node_j - r_node_i;
+    const Kratos::Point::CoordinatesArrayType edge_ik = r_node_k - r_node_i;
+
+    Vector normalized_normal = rNode.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+    Vector projected_edge_ij = edge_ij - inner_prod(edge_ij, normalized_normal) * normalized_normal;
+    Vector projected_edge_ik = edge_ik - inner_prod(edge_ik, normalized_normal) * normalized_normal;
+
+    const double cos_theta_i = inner_prod(projected_edge_ij, projected_edge_ik) / (norm_2(projected_edge_ij) * norm_2(projected_edge_ik));
+    const double theta_i = acos(cos_theta_i);
+
+    return theta_i;
+}
+
 
 }  // namespace Kratos.
