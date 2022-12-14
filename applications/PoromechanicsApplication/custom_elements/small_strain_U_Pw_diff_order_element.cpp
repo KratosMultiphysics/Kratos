@@ -149,7 +149,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
-    
+
     //Imposed Z strain vector initialisation
     if ( mImposedZStrainVector.size() != NumGPoints )
         mImposedZStrainVector.resize( NumGPoints );
@@ -160,7 +160,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
         {
             mConstitutiveLawVector[i] =Prop[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[i]->InitializeMaterial( Prop, rGeom,row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-            
+
             mImposedZStrainVector[i] = 0.0;
         }
     }
@@ -197,7 +197,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     // Initializing the intrinsic permeability matrix from the properties
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    
+
     PoroElementUtilities::CalculatePermeabilityMatrix(mIntrinsicPermeability,Prop,Dim);
 
     KRATOS_CATCH( "" )
@@ -650,8 +650,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number, false );
@@ -696,8 +696,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
@@ -764,8 +764,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
@@ -851,8 +851,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
 
@@ -953,13 +953,14 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
 void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
-    if(rVariable == CONSTITUTIVE_LAW)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for(unsigned int i=0; i<rValues.size(); i++)
-            rValues[i] = mConstitutiveLawVector[i];
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const unsigned int integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (unsigned int point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
     }
 }
 
@@ -1119,8 +1120,6 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables (ElementalVariable
 
 void SmallStrainUPwDiffOrderElement::InitializeProperties (ElementalVariables& rVariables)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
     rVariables.BiotCoefficient = GetProperties()[BIOT_COEFFICIENT];
     double Porosity = GetProperties()[POROSITY];

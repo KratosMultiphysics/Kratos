@@ -5,11 +5,11 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined(KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME
+#if !defined(KRATOS_PORO_NEWMARK_DYNAMIC_U_PW_SCHEME )
+#define  KRATOS_PORO_NEWMARK_DYNAMIC_U_PW_SCHEME
 
 // Application includes
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pw_scheme.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -17,12 +17,12 @@ namespace Kratos
 
 template<class TSparseSpace, class TDenseSpace>
 
-class NewmarkDynamicUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+class PoroNewmarkDynamicUPwScheme : public PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( NewmarkDynamicUPwScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( PoroNewmarkDynamicUPwScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
     typedef typename BaseType::DofsArrayType                 DofsArrayType;
@@ -30,16 +30,16 @@ public:
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
+    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
+    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
+    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
+    using PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+    PoroNewmarkDynamicUPwScheme(double beta, double gamma, double theta)
+        : PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         //Allocate auxiliary memory
         int NumThreads = ParallelUtilities::GetNumThreads();
@@ -52,7 +52,7 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    ~NewmarkDynamicUPwScheme() override {}
+    ~PoroNewmarkDynamicUPwScheme() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -272,7 +272,7 @@ protected:
         }
     }
 
-}; // Class NewmarkDynamicUPwScheme
+}; // Class PoroNewmarkDynamicUPwScheme
 }  // namespace Kratos
 
-#endif // KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME defined
+#endif // KRATOS_PORO_NEWMARK_DYNAMIC_U_PW_SCHEME defined
