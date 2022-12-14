@@ -407,7 +407,7 @@ class KRATOS_API(KRATOS_CORE) AssignPeriodicMPCsToNeighboursUtility
           Vector& rN_container,
           Vector& ListOfAngles
       )
-      {   
+      {
           std::vector<double> rotation_x_global;
           std::vector<double> rotation_y_global;
           std::vector<double> rotation_z_global;
@@ -449,7 +449,7 @@ class KRATOS_API(KRATOS_CORE) AssignPeriodicMPCsToNeighboursUtility
        * @param pNodes Nodes to set MPCs.
        * @param Radius Search radius.
        * @param rComputinModelPart Model Part to which MPCs are applied.
-       * @param rVariable DOFs to assign the MPCs. 
+       * @param rVariable DOFs to assign the MPCs.
        * @param h Shape parameter (to scale the input of the radial kernel)
        **/
       void AssignMPCsToNodes(
@@ -498,6 +498,9 @@ class KRATOS_API(KRATOS_CORE) AssignPeriodicMPCsToNeighboursUtility
                 GetDofsAndCoordinatesForNodes(nodes_array[i], rVariable, rSlave_dof_x,rSlave_dof_y,rSlave_dof_z, rSlave_coordinates);
                 GetDofsAndCoordinatesForNodes(ResultsMaster, rVariable, rCloud_of_dofs_x, rCloud_of_dofs_y, rCloud_of_dofs_z, rCloud_of_nodes_coordinates_master);
                 GetDofsForNodes(ResultsMaster, rVariable, rCloud_of_dofs);
+                if (nodes_array[i]->Id()==1111){
+                  KRATOS_WATCH(ListOfAngles)
+                }
 
                 Matrix rCloud_of_nodes_coordinates_aux_master;
                 GetCoordinatesForNodes(Results, rCloud_of_nodes_coordinates_aux_master);
@@ -610,7 +613,7 @@ class KRATOS_API(KRATOS_CORE) AssignPeriodicMPCsToNeighboursUtility
       ///@{
       Kratos::unique_ptr<NodeBinsType> mpBins;
       int mMaxNumberOfNodes;
-      ModelPart& mrMasterModelPart; 
+      ModelPart& mrMasterModelPart;
       ModelPart& mrAuxiliarModelPart;
       // ModelPart& mModelPart;
 

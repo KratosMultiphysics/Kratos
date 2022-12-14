@@ -243,7 +243,6 @@ public:
 
                 // Find local position
                 array_1d<double, 3> point_local_coordinates;
-                KRATOS_WATCH(r_geom)
                 const bool is_found = LocalIsInside(r_geom, rCoordinates, point_local_coordinates, Tolerance);
                 r_geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
 
