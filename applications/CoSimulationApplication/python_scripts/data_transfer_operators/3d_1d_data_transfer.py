@@ -24,34 +24,65 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
         if not settings.Has("3d_1d_data_transfer_settings"):
             raise Exception('No "3d_1d_data_transfer_settings" provided!')
         super().__init__(settings, parent_coupled_solver_data_communicator)
+        self.__data_transfer_process = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
+        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
         model_part_destination_name = to_solver_data.model_part_name
         variable_destination        = to_solver_data.variable
+        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
-        model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
-        model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
+        identifier_tuple         = (identifier_origin, identifier_destination)
+        inverse_identifier_tuple = (identifier_destination, identifier_origin)
 
-        if self.echo_level > 0:
-            info_msg  = "Creating 3D-1D data transfer:\n"
-            info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
-            info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
-
-            cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
-
-        parameters = KM.Parameters(self.settings["3d_1d_data_transfer_settings"].WriteJsonString())
-        parameters["origin_variables"].Append(variable_origin.Name())
-        parameters["destination_variables"].Append(variable_destination.Name())
-        for transfer_option in transfer_options.GetStringArray():
-            if transfer_option == "swap_sign":
-                parameters["swap_sign"].SetBool(True)
-        if self.__check_model_part_3D(model_part_origin):
-            KratosCoSim.DataTransfer3D1DUtilities.From3Dto1DDataTransfer(model_part_origin, model_part_destination, parameters)
+        if identifier_tuple in self.__data_transfer_process:
+            if self.origin_is_3d == True:
+                self.__data_transfer_process[identifier_tuple].Set(KM.Mapper.USE_TRANSPOSE)
+            self.__data_transfer_process[identifier_tuple].Execute()
+            if self.origin_is_3d == True:
+                self.__data_transfer_process[identifier_tuple].Reset(KM.Mapper.USE_TRANSPOSE)
+        elif inverse_identifier_tuple in self.__data_transfer_process:
+            if self.origin_is_3d == False:
+                self.__data_transfer_process[inverse_identifier_tuple].Set(KM.Mapper.USE_TRANSPOSE)
+            self.__data_transfer_process[inverse_identifier_tuple].Execute()
+            if self.origin_is_3d == False:
+                self.__data_transfer_process[inverse_identifier_tuple].Reset(KM.Mapper.USE_TRANSPOSE)
         else:
-            KratosCoSim.DataTransfer3D1DUtilities.From1Dto3DDataTransfer(model_part_origin, model_part_destination, parameters)
+            model_part_origin      = from_solver_data.GetModelPart()
+            model_part_destination = to_solver_data.GetModelPart()
+
+            if self.echo_level > 0:
+                info_msg  = "Creating Mapper:\n"
+                info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
+                info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
+
+                cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
+
+            # Creating parameters for the data transfer
+            # TODO: I should check if the parameters change between different data transfers
+            parameters = KM.Parameters(self.settings["3d_1d_data_transfer_settings"].WriteJsonString())
+            parameters["origin_variables"].Append(variable_origin.Name())
+            parameters["destination_variables"].Append(variable_destination.Name())
+            for transfer_option in transfer_options.GetStringArray():
+                if transfer_option == "swap_sign":
+                    parameters["swap_sign"].SetBool(True)
+
+            # Check if the origin model part is 3D or 1D
+            if self.__check_model_part_3D(model_part_origin):
+                self.origin_is_3d = True
+            else:
+                self.origin_is_3d = False
+            self.__data_transfer_process[identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other data transfers
+
+            # Execute the data transfer
+            if self.origin_is_3d == True:
+                self.__data_transfer_process[inverse_identifier_tuple].Set(KM.Mapper.USE_TRANSPOSE)
+            self.__data_transfer_process[identifier_tuple].Execute()
+            if self.origin_is_3d == True:
+                self.__data_transfer_process[inverse_identifier_tuple].Reset(KM.Mapper.USE_TRANSPOSE)
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
@@ -101,4 +132,3 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
     @classmethod
     def _GetListAvailableTransferOptions(cls):
         return ["swap_sign"]
-            
