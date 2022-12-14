@@ -144,7 +144,6 @@ class MPMSolver(PythonSolver):
     def AdvanceInTime(self, current_time):
         dt = self.__ComputeDeltaTime()
         new_time = current_time + dt
-        
         self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.grid_model_part.CloneTimeStep(new_time)
 
