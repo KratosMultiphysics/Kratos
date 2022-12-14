@@ -1193,6 +1193,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             // HIERARCHICAL MULTISCALE RVE
             //==========================================================================================================================================
             if (mRVESolve && indentation > 0.0) {
+              mInner = false;
               mCoordNum++;
               mNumContacts++;
               const int dim = r_process_info[DOMAIN_SIZE];
@@ -1247,6 +1248,10 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               array_1d<double, 3>& coordinates_1 = this->GetGeometry()[0].Coordinates();
               std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_1[0] + branch[0], coordinates_1[1] + branch[1], coordinates_1[2] + branch[2], force };
               mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
+
+              // Applied force (normal component)
+              const double force_n = DEM_INNER_PRODUCT_3(GlobalContactForce, normal);
+              mWallForces += force_n;
 
               // Stiffness
               const double kn = mDiscontinuumConstitutiveLaw->mKn;
