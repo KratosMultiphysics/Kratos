@@ -1,9 +1,8 @@
 import KratosMultiphysics as KM
-from KratosMultiphysics import IsDistributedRun
+from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
 import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 if IsDistributedRun():
-    from KratosMultiphysics import mpi as KratosMPI
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 
 import mapper_test_case
@@ -163,6 +162,7 @@ class Projection3D2DMapperNearestNeighborDestination2D(mapper_test_case.MapperTe
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination, KM.TEMPERATURE)
 
+    @KratosUnittest.skipUnless(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() <= 7,  "Test designed to be run with max. 7 ranks.")
     def test_Projection3D2DMapper_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
@@ -175,6 +175,7 @@ class Projection3D2DMapperNearestNeighborDestination2D(mapper_test_case.MapperTe
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_destination, KM.VELOCITY, GetFilePath(self._GetFileName("map_vector")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination, KM.VELOCITY)
 
+    @KratosUnittest.skipUnless(IsDistributedRun() and ParallelEnvironment.GetDefaultSize() <= 7,  "Test designed to be run with max. 7 ranks.")
     def test_Projection3D2DMapper_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
@@ -190,7 +191,7 @@ class Projection3D2DMapperNearestElementDestination2D(mapper_test_case.MapperTes
         mdpa_1 = "3D_blocks_mesh1"
         mdpa_2 = "3D_blocks_mesh2"
         super().setUpModelParts(mdpa_1, mdpa_2)
-        
+
         # Destination will be 2D
         cls.model_part_destination = cls.model_part_destination.GetSubModelPart("Parts_2D")
 
