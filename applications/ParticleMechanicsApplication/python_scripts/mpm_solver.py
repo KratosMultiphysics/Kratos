@@ -144,23 +144,9 @@ class MPMSolver(PythonSolver):
     def AdvanceInTime(self, current_time):
         dt = self.__ComputeDeltaTime()
         new_time = current_time + dt
-        if self.is_restarted():
-            new_step = self.material_point_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART]
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] = new_step
-            self.material_point_model_part.ProcessInfo[KratosMultiphysics.STEP] = new_step
-
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.TIME] = new_time
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = dt
-
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.material_point_model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP]
-
-            self.material_point_model_part.ProcessInfo[KratosMultiphysics.TIME] = new_time
-            self.material_point_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = dt
-        else:
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-            self.material_point_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-            self.grid_model_part.CloneTimeStep(new_time)
-            self.material_point_model_part.CloneTimeStep(new_time)
+        
+        self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.grid_model_part.CloneTimeStep(new_time)
 
         return new_time
 
@@ -231,15 +217,18 @@ class MPMSolver(PythonSolver):
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, False)
 
+        # Assigning extra information to the main model part
+        self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
+        self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
+
         if not self.is_restarted():
-            # Assigning extra information to the main model part
-            self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
             self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
-            self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
             # Generate MP Element and Condition
             KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
             KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
+        else:
+            self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
 
     def _SearchElement(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
@@ -464,6 +453,12 @@ class MPMSolver(PythonSolver):
                 self.initial_mesh_model_part.SetBufferSize(self.min_buffer_size)
             else:
                 self.initial_mesh_model_part.SetBufferSize(current_buffer_size)
+        else:
+            current_buffer_size = self.material_point_model_part.GetBufferSize()
+            if self.min_buffer_size > current_buffer_size:
+                self.material_point_model_part.SetBufferSize(self.min_buffer_size)
+            else:
+                self.material_point_model_part.SetBufferSize(current_buffer_size)
 
     ### Solver private functions
 
@@ -497,6 +492,8 @@ class MPMSolver(PythonSolver):
 
             # Clone property of model_part2 to model_part3
             self.material_point_model_part.Properties = self.initial_mesh_model_part.Properties
+        else:
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.material_point_model_part.Elements)
 
     def __ImportConstitutiveLaws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
