@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
 
-#ifndef KRATOS_NAVIER_STOKES_WALL_CONDITION_H
-#define KRATOS_NAVIER_STOKES_WALL_CONDITION_H
+#pragma once
 
 // System includes
 #include <string>
@@ -65,7 +64,7 @@ namespace Kratos
   slip conditions.
   @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
  */
-template< unsigned int TDim, unsigned int TNumNodes = TDim >
+template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NavierStokesWallCondition : public Condition
 {
 public:
@@ -255,20 +254,55 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-
-    /// Provides the global indices for each one of this element's local rows.
-    /** This determines the elemental equation ID vector for all elemental DOFs
-     * @param rResult A vector containing the global Id of each row
-     * @param rCurrentProcessInfo the current process info object (unused)
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /// Returns a list of the element's Dofs
     /**
-     * @param ElementalDofList the list of DOFs
-     * @param rCurrentProcessInfo the current process info instance
+     * @brief Provides the global indices for each one of this condition's local rows
+     * This determines the elemental equation ID vector for all elemental DOFs
+     * @param rResult Reference to the vector containing the global Id of each row
+     * @param rCurrentProcessInfo Reference to the current ProcessInfo container
      */
-    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        if (rResult.size() != LocalSize) {
+            rResult.resize(LocalSize, false);
+        }
+
+        IndexType local_index = 0;
+        for (const auto& r_node : GetGeometry()) {
+            rResult[local_index++] = r_node.GetDof(VELOCITY_X).EquationId();
+            rResult[local_index++] = r_node.GetDof(VELOCITY_Y).EquationId();
+            if constexpr (TDim == 3) {    
+                rResult[local_index++] = r_node.GetDof(VELOCITY_Z).EquationId();
+            }
+            rResult[local_index++] = r_node.GetDof(PRESSURE).EquationId();
+        }
+    }
+
+    /**
+     * @brief Returns a list of the element's Dofs
+     * 
+     * @param rConditionDofList Reference to the DOF pointers list
+     * @param CurrentProcessInfo Reference to the current ProcessInfo container
+     */
+    void GetDofList(
+        DofsVectorType& rConditionDofList,
+        const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        if (rConditionDofList.size() != LocalSize) {
+            rConditionDofList.resize(LocalSize);
+        }
+
+        IndexType local_index = 0;
+        for (const auto& r_node : GetGeometry()) {
+            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_X);
+            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Y);
+            if constexpr (TDim == 3) {
+                rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Z);
+            }
+            rConditionDofList[local_index++] = r_node.pGetDof(PRESSURE);
+        }
+    }
 
     void Calculate(
         const Variable< array_1d<double,3> >& rVariable,
@@ -333,7 +367,34 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateNormal(array_1d<double,3>& An);
+    /**
+     * @brief Calculate the condition area normal
+     * This method calculates the current condition area normal
+     * @param rAreaNormal Reference to the current condition area normal
+     */
+    void CalculateNormal(array_1d<double,3>& rAreaNormal)
+    {
+        const auto& r_geom = GetGeometry();
+        if constexpr (TDim == 2) {
+            rAreaNormal[0] = r_geom[1].Y() - r_geom[0].Y();
+            rAreaNormal[1] = - (r_geom[1].X() - r_geom[0].X());
+            rAreaNormal[2] = 0.0;
+        } else if constexpr (TDim == 3 && TNumNodes == 3) {
+            array_1d<double,3> v1,v2;
+            v1[0] = r_geom[1].X() - r_geom[0].X();
+            v1[1] = r_geom[1].Y() - r_geom[0].Y();
+            v1[2] = r_geom[1].Z() - r_geom[0].Z();
+
+            v2[0] = r_geom[2].X() - r_geom[0].X();
+            v2[1] = r_geom[2].Y() - r_geom[0].Y();
+            v2[2] = r_geom[2].Z() - r_geom[0].Z();
+
+            MathUtils<double>::CrossProduct(rAreaNormal,v1,v2);
+            rAreaNormal *= 0.5;
+        } else {
+            KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;     
+        }
+    }
 
     void ComputeGaussPointLHSContribution(
         BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
@@ -345,7 +406,9 @@ protected:
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
-    void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    void ComputeRHSNeumannContribution(
+        array_1d<double,LocalSize>& rRHS,
+        const ConditionDataStruct& data);
 
     /**
      * @brief Calculates and adds the RHS outlet inflow prevention contribution
@@ -361,31 +424,31 @@ protected:
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
-    /**
-     * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rRightHandSideVector reference to the RHS vector
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    virtual void ComputeGaussPointNavierSlipRHSContribution(
-        array_1d<double, TNumNodes*(TDim+1)>& rRightHandSideVector,
-        const ConditionDataStruct& rDataStruct );
+    // /**
+    //  * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
+    //  * The (Navier) slip length is read as a nodal variable.
+    //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+    //  * Though only tangential velocities should appear, a tangetial projection is added.
+    //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+    //  * @param rRightHandSideVector reference to the RHS vector
+    //  * @param rDataStruct reference to a struct to hand over data
+    //  */
+    // virtual void ComputeGaussPointNavierSlipRHSContribution(
+    //     array_1d<double, TNumNodes*(TDim+1)>& rRightHandSideVector,
+    //     const ConditionDataStruct& rDataStruct );
 
-    /**
-     * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    virtual void ComputeGaussPointNavierSlipLHSContribution(
-        BoundedMatrix<double, TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-        const ConditionDataStruct& rDataStruct);
+    // /**
+    //  * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
+    //  * The (Navier) slip length is read as a nodal variable.
+    //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+    //  * Though only tangential velocities should appear, a tangetial projection is added.
+    //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+    //  * @param rLeftHandSideMatrix reference to the LHS matrix
+    //  * @param rDataStruct reference to a struct to hand over data
+    //  */
+    // virtual void ComputeGaussPointNavierSlipLHSContribution(
+    //     BoundedMatrix<double, TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+    //     const ConditionDataStruct& rDataStruct);
 
     ///@}
     ///@name Protected  Access
@@ -474,7 +537,18 @@ private:
     void ProjectViscousStress(
         const Vector& rViscousStress,
         const array_1d<double,3> rNormal,
-        array_1d<double,3>& rProjectedViscousStress);
+        array_1d<double,3>& rProjectedViscousStress)
+    {
+        if constexpr (TDim == 2) {
+            rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
+            rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
+            rProjectedViscousStress[2] = 0.0;
+        } else {
+            rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
+            rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];
+            rProjectedViscousStress[2] = rViscousStress[5] * rNormal[0] + rViscousStress[4] * rNormal[1] + rViscousStress[2] * rNormal[2];
+        }
+    }
 
     /**
      * @brief Set the Tangential Projection Matrix
@@ -493,6 +567,8 @@ private:
             }
         }
     }
+
+    
 
     ///@}
     ///@name Private  Access
@@ -526,15 +602,15 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim, unsigned int TNumNodes >
-inline std::istream& operator >> (std::istream& rIStream, NavierStokesWallCondition<TDim,TNumNodes>& rThis)
+template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
+inline std::istream& operator >> (std::istream& rIStream, NavierStokesWallCondition<TDim,TNumNodes,TWallModel>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim, unsigned int TNumNodes >
-inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWallCondition<TDim,TNumNodes>& rThis)
+template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
+inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWallCondition<TDim,TNumNodes,TWallModel>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -549,5 +625,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWall
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NAVIER_STOKES_WALL_CONDITION_H
