@@ -656,7 +656,7 @@ private:
         } else if (mMetaMapperType == MetaMapperType::BARYCENTRIC) {
             mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
         } else {
-            KRATOS_ERROR << "ERROR:: Mapper " << mCopiedParameters["base_mapper"].GetString() << " is not available as base mapper for projection" << std::endl;
+            KRATOS_ERROR << "Mapper " << mCopiedParameters["base_mapper"].GetString() << " is not available as base mapper for projection" << std::endl;
         }
 
         KRATOS_CATCH("");
