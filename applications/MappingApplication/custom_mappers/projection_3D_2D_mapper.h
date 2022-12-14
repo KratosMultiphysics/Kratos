@@ -449,11 +449,6 @@ public:
     ///@name Inquiry
     ///@{
 
-    int AreMeshesConforming() const override
-    {
-        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return BaseType::mMeshesAreConforming;
-    }
 
     ///@}
     ///@name Input and output
