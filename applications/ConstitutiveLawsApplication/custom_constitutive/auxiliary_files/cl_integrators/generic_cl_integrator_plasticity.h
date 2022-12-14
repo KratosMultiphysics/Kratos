@@ -181,7 +181,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
-        // Matrix tangent_tensor = ZeroMatrix(6,6);
+        Matrix tangent_tensor = ZeroMatrix(6,6);
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
@@ -203,10 +203,8 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
-        // CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
-        // noalias(rConstitutiveMatrix) = tangent_tensor;
-        if (iteration > max_iter)
-            KRATOS_ERROR << "GenericConstitutiveLawIntegratorPlasticity" << std::endl;
+        CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
+        noalias(rConstitutiveMatrix) = tangent_tensor;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
