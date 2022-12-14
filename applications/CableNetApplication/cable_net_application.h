@@ -26,7 +26,7 @@
 
 #include "custom_elements/sliding_cable_element_3D.hpp"
 #include "custom_elements/ring_element_3D.hpp"
-#include "custom_elements/ring_element_AV_3D.hpp"
+#include "custom_elements/ring_element_ROCCO_3D.hpp"
 #include "custom_elements/weak_coupling_slide.hpp"
 #include "custom_elements/empirical_spring.hpp"
 #include "custom_elements/braking_element_3D.hpp"
@@ -188,8 +188,7 @@ private:
     const SlidingCableElement3D mSlidingCableElement3D3N;
     const RingElement3D mRingElement3D4N;
     const RingElement3D mRingElement3D3N;
-    const RingElementAV3D mRingElementAV3D4N;
-    const RingElementAV3D mRingElementAV3D3N;
+    const RingElementROCCO3D mRingElementROCCO3D4N;
     const EmpiricalSpringElement3D2N mEmpiricalSpringElement3D2N;
     const BrakingElement3D1N mBrakingElement3D1N;
 

@@ -36,8 +36,7 @@ KratosCableNetApplication::KratosCableNetApplication():
     mSlidingCableElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
     mRingElement3D4N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(4)))),
     mRingElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-    mRingElementAV3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    mRingElementAV3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+    mRingElementROCCO3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
     mEmpiricalSpringElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mBrakingElement3D1N(0, Element::GeometryType::Pointer(new Point3D<NodeType >(Element::GeometryType::PointsArrayType(1)))),
 
@@ -59,8 +58,7 @@ void KratosCableNetApplication::Register()
     KRATOS_REGISTER_ELEMENT("SlidingCableElement3D3N", mSlidingCableElement3D3N)
     KRATOS_REGISTER_ELEMENT("RingElement3D4N", mRingElement3D4N)
     KRATOS_REGISTER_ELEMENT("RingElement3D3N", mRingElement3D3N)
-    KRATOS_REGISTER_ELEMENT("RingElementAV3D4N", mRingElementAV3D4N)
-    KRATOS_REGISTER_ELEMENT("RingElementAV3D3N", mRingElementAV3D3N)
+    KRATOS_REGISTER_ELEMENT("RingElementROCCO3D4N", mRingElementROCCO3D4N)
     KRATOS_REGISTER_ELEMENT("EmpiricalSpringElement3D2N", mEmpiricalSpringElement3D2N)
     KRATOS_REGISTER_ELEMENT("BrakingElement3D1N", mBrakingElement3D1N)
 
