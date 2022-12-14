@@ -539,10 +539,10 @@ private:
 
         // A priori in the constructor we have already checked that the 2D is not empty
         const auto& r_2d_model_part = this->Get2DModelPart();
-        if (r_2d_model_part.NumberOfElements() > 0) {
-            mEntityTypeMesh = EntityTypeMesh::ELEMENTS;
-        } else if (r_2d_model_part.NumberOfConditions() > 0) {
+        if (r_2d_model_part.NumberOfConditions() > 0) {
             mEntityTypeMesh = EntityTypeMesh::CONDITIONS;
+        } else if (r_2d_model_part.NumberOfElements() > 0) {
+            mEntityTypeMesh = EntityTypeMesh::ELEMENTS;
         } else {
             mEntityTypeMesh = EntityTypeMesh::NONE; // Enum is zero, will be used to check if not elements/conditions in MPI
         }
@@ -560,7 +560,7 @@ private:
         // We retrieve the values of interest
         const auto& r_2d_model_part = this->Get2DModelPart();
         const bool is_distributed = r_2d_model_part.IsDistributed();
-        GeometryType::Pointer p_geometry = mEntityTypeMesh == EntityTypeMesh::NONE ? nullptr : mEntityTypeMesh == EntityTypeMesh::ELEMENTS ? r_2d_model_part.ElementsBegin()->pGetGeometry() : r_2d_model_part.ConditionsBegin()->pGetGeometry();
+        GeometryType::Pointer p_geometry = mEntityTypeMesh == EntityTypeMesh::NONE ? nullptr : mEntityTypeMesh == EntityTypeMesh::CONDITIONS ? r_2d_model_part.ConditionsBegin()->pGetGeometry() : r_2d_model_part.ElementsBegin()->pGetGeometry();
 
         // MPI data
         const auto& r_communicator = r_2d_model_part.GetCommunicator();
@@ -597,16 +597,16 @@ private:
                 array_1d<double, 3> reference_normal;
                 GeometryType::CoordinatesArrayType aux_coords;
             };
-            if (mEntityTypeMesh == EntityTypeMesh::ELEMENTS) {
-                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
-                    auto& r_geom = r_elem.GetGeometry();
+            if (mEntityTypeMesh == EntityTypeMesh::CONDITIONS) {
+                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
+                    auto& r_geom = r_cond.GetGeometry();
                     r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
                     const auto normal = r_geom.UnitNormal(nc.aux_coords);
                     if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
                 });
             } else {
-                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Conditions(), normal_check(mNormalPlane), [&numerical_limit](auto& r_cond, normal_check& nc) {
-                    auto& r_geom = r_cond.GetGeometry();
+                check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
+                    auto& r_geom = r_elem.GetGeometry();
                     r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
                     const auto normal = r_geom.UnitNormal(nc.aux_coords);
                     if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
