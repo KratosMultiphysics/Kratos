@@ -21,6 +21,8 @@ from particle_mechanics_test_factory import BeamCantileverDynamicHyperelasticUPT
 from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCooksMembraneCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
+from particle_mechanics_test_factory import CooksMembraneUPCompressibleASGSTest as TCooksMembraneUPCompressibleASGSTest
+from particle_mechanics_test_factory import CooksMembraneUPIncompressibleASGSTest as TCooksMembraneUPIncompressibleASGSTest
 
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from particle_mechanics_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
@@ -114,6 +116,8 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPCompressibleASGSTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPIncompressibleASGSTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
