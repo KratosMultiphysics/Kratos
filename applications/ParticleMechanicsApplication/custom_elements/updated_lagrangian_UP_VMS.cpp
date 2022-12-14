@@ -351,12 +351,6 @@ void UpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
     rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
 
-//     if ( stabilization_type == 1)
-//      {
-//           rVariables.tau1 = 0;
-//          rVariables.tau2 = 0;
-//      }
-
     KRATOS_CATCH( "" )
 }
 
@@ -539,13 +533,13 @@ void UpdatedLagrangianUPVMS::CalculateAndAddRHS(
 {
 
     // Operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
-    CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    UpdatedLagrangianUP::CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
     // Operation performed: rRightHandSideVector -= IntForce*IntegrationWeight
-    CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
+    UpdatedLagrangianUP::CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
-    CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
+    UpdatedLagrangianUP::CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
     CalculateAndAddStabilizedDisplacement( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
@@ -554,85 +548,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddRHS(
     CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
 }
-//************************************************************************************
-//*********************Calculate the contribution of external force*******************
 
-void UpdatedLagrangianUPVMS::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
-        Vector& rVolumeForce,
-        const double& rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        int index_up = dimension * i + i;
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rRightHandSideVector[index_up + j] += r_N(0, i) * rVolumeForce[j];
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    VectorType internal_forces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index_up = dimension * i + i;
-        unsigned int index_u  = dimension * i;
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rRightHandSideVector[index_up + j] -= internal_forces[index_u + j];
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    unsigned int index_p = dimension;
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-
-        rRightHandSideVector[index_p] += ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * rIntegrationWeight;
-
-        index_p += (dimension + 1);
-    }
-
-    KRATOS_CATCH( "" )
-}
 //************************************************************************************
 //************************************************************************************
 
@@ -716,7 +632,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
 {
 
     // Operation performed: add Km to the rLefsHandSideMatrix
-    CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    UpdatedLagrangianUP::CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kg to the rLefsHandSideMatrix
     if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
@@ -725,13 +641,13 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
     }
 
     // Operation performed: add Kup to the rLefsHandSideMatrix
-    CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    UpdatedLagrangianUP::CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operations performed: add Kpu to the rLefsHandSideMatrix
-    CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    UpdatedLagrangianUP::CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp to the rLefsHandSideMatrix
-    CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    UpdatedLagrangianUP::CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
     CalculateAndAddKuuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -746,181 +662,6 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
 }
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight
-                                             )
-{
-    KRATOS_TRY
-
-    Matrix Kuum = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) );
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    unsigned int indexi = 0;
-    unsigned int indexj = 0;
-
-    // Assemble components considering added DOF matrix system
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        for ( unsigned int idim = 0; idim < dimension ; idim ++)
-        {
-            indexj=0;
-            for ( unsigned int j = 0; j < number_of_nodes; j++ )
-            {
-                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-                {
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+=Kuum(indexi,indexj);
-                    indexj++;
-                }
-            }
-            indexi++;
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
-
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const int size = number_of_nodes * dimension;
-
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    Matrix reduced_Kg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
-    Matrix Kuug = ZeroMatrix(size, size);
-    MathUtils<double>::ExpandAndAddReducedMatrix( Kuug, reduced_Kg, dimension );
-
-    // Assemble components considering added DOF matrix system
-    unsigned int indexi = 0;
-    unsigned int indexj = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        for ( unsigned int idim = 0; idim < dimension ; idim ++)
-        {
-            indexj=0;
-            for ( unsigned int j = 0; j < number_of_nodes; j++ )
-            {
-                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
-                {
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+=Kuug(indexi,indexj);
-                    indexj++;
-                }
-            }
-            indexi++;
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    // Assemble components considering added DOF matrix system
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int index_p  = dimension;
-        unsigned int index_up = dimension * i + i;
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            for ( unsigned int k = 0; k < dimension; k++ )
-            {
-                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
-            }
-            index_p += (dimension + 1);
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
-
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    // Assemble components considering added DOF matrix system
-    unsigned int index_p = dimension;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            unsigned int index_up = dimension*j + j;
-            for ( unsigned int k = 0; k < dimension; k++ )
-            {
-                rLeftHandSideMatrix(index_p, index_up + k) += r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
-            }
-        }
-        index_p += (dimension + 1);
-    }
-
-    KRATOS_CATCH( "" )
-}
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    unsigned int indexpi = dimension;
-
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        unsigned int indexpj = dimension;
-        for (unsigned int j = 0; j < number_of_nodes; j++)
-        {
-            rLeftHandSideMatrix(indexpi, indexpj) -= (1.0 / rVariables.BulkModulus) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
-
-            indexpj += (dimension + 1);
-        }
-
-        indexpi += (dimension + 1);
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
 
 //************************************************************************************
 //************************************************************************************

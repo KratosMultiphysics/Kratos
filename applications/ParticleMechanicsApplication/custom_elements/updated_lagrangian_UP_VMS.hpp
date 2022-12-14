@@ -205,45 +205,6 @@ protected:
                             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
-     */
-
-    void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                             GeneralVariables& rVariables,
-                             const double& rIntegrationWeight) override;
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    void CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
-                               GeneralVariables& rVariables,
-                               const double& rIntegrationWeight);
-
-    /**
-     * Calculation of the Kup matrix
-     */
-    void CalculateAndAddKup (MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     const double& rIntegrationWeight
-                                    ) override;
-
-    /**
-     * Calculation of the Kpu matrix
-     */
-    void CalculateAndAddKpu(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    const double& rIntegrationWeight
-                                   ) override;
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    void CalculateAndAddKpp(MatrixType& rK,
-                                    GeneralVariables & rVariables,
-                                    const double& rIntegrationWeight
-                                   ) override;
-
-    /**
      * Calculation of the Kuu Stabilization Term matrix
      */
 
@@ -278,30 +239,9 @@ protected:
                                         GeneralVariables & rVariables,
                                         const double& rIntegrationWeight
                                        ) override;
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables& rVariables,
-                                       Vector& rVolumeForce,
-                                       const double& rIntegrationWeight) override;
 
     /**
-      * Calculation of the Internal Forces Vector. Fi = B * sigma
-      */
-    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables & rVariables,
-                                       const double& rIntegrationWeight) override;
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            const double& rIntegrationWeight) override;
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
+     * Calculation of stabilization terms for the continuity equation
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
