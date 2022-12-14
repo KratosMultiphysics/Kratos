@@ -1,5 +1,5 @@
 import KratosMultiphysics as KM
-from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
+from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 if IsDistributedRun():
@@ -78,7 +78,7 @@ class Projection3D2DMapperNearestElementOrigin2D(mapper_test_case.MapperTestCase
         mdpa_1 = "3D_blocks_mesh1"
         mdpa_2 = "3D_blocks_mesh2"
         super().setUpModelParts(mdpa_1, mdpa_2)
-        
+
         # Origin will be 2D
         cls.model_part_origin = cls.model_part_origin.GetSubModelPart("Parts_2D")
 
