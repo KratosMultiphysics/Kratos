@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/serializer.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
@@ -298,6 +297,8 @@ public:
         const DataLocation DataLoc,
         TContainerType& data) const
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -346,6 +347,8 @@ public:
             break;
         }
         }
+
+        KRATOS_CATCH("")
     }
 
     /// To Export a Vector data (std::vector/array/..)
@@ -355,6 +358,8 @@ public:
         const DataLocation DataLoc,
         TContainerType& data) const
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -433,6 +438,8 @@ public:
             break;
         }
         }
+
+        KRATOS_CATCH("")
     }
 
     /// To Import a Scalar data (Double/int/...)
@@ -442,6 +449,8 @@ public:
         const DataLocation DataLoc,
         const TContainerType& rData)
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -481,6 +490,7 @@ public:
         }
         }
 
+        KRATOS_CATCH("")
     }
 
     /// To Import a Vector data (std::vector/array/..)
@@ -490,6 +500,8 @@ public:
         const DataLocation DataLoc,
         const TContainerType& rData)
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -562,6 +574,7 @@ public:
 
         }
 
+        KRATOS_CATCH("")
     }
 
     /**
@@ -595,6 +608,8 @@ public:
         std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
         )
     {
+        KRATOS_TRY
+
         auto& r_properties= rModelPart.rProperties();
         rEntities.SetMaxBufferSize(rReferenceEntities.GetMaxBufferSize());
         rEntities.SetSortedPartSize(rReferenceEntities.GetSortedPartSize());
@@ -611,6 +626,8 @@ public:
             p_new_ent->Set(Flags(*p_old_ent));
             r_entities_container[i] = p_new_ent;
         });
+
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -681,17 +698,23 @@ private:
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
+        KRATOS_TRY
+
         DataSizeCheck(rContainer.size(), data.size());
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             data[index] = r_entity.GetValue(rVariable);
         });
+
+        KRATOS_CATCH("")
     }
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, TDataContainerType& data) const
     {
+        KRATOS_TRY
+
         DataSizeCheck(rContainer.size(), data.size()*TSize);
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
@@ -701,22 +724,30 @@ private:
                 data[(TSize*index) + dim] = r_val[dim];
             }
         });
+
+        KRATOS_CATCH("")
     }
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
+        KRATOS_TRY
+
         DataSizeCheck(rContainer.size(), rData.size());
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             r_entity.SetValue(rVariable,rData[index]);
         });
+
+        KRATOS_CATCH("")
     }
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
     void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
     {
+        KRATOS_TRY
+
         DataSizeCheck(rContainer.size(), rData.size()*size);
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
@@ -728,6 +759,8 @@ private:
             }
             r_entity.SetValue(rVariable, aux);
         });
+
+        KRATOS_CATCH("")
     }
 
     void DataSizeCheck(const std::size_t ContainerSize, const std::size_t DataSize) const
