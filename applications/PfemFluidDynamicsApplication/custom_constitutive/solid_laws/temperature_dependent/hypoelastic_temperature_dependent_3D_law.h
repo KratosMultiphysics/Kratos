@@ -12,24 +12,24 @@
 //-------------------------------------------------------------
 //
 
-#if !defined(KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED)
-#define KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED
+#if !defined(KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED)
+#define KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/solid_laws/hypoelastic_2D_law.h"
+#include "custom_constitutive/solid_laws/hypoelastic_3D_law.h"
 
 namespace Kratos {
 /**
- * Defines an Hypoelastic constitutive law for 2D
+ * Defines an Hypoelastic constitutive law for 3D
  * This material law is defined by the parameters:
  * 1) YOUNG MODULUS
  * 2) POISSON RATIO
  */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependent2DLaw : public Hypoelastic2DLaw {
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependent3DLaw : public Hypoelastic3DLaw {
    public:
     /**
      * Type Definitions
@@ -39,9 +39,9 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependen
     typedef std::size_t SizeType;
 
     /**
-     * Counted pointer of HypoelasticTemperatureDependent2DLaw
+     * Counted pointer of HypoelasticTemperatureDependent3DLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(HypoelasticTemperatureDependent2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HypoelasticTemperatureDependent3DLaw);
 
     /**
      * Life Cycle
@@ -50,7 +50,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependen
     /**
      * Default constructor.
      */
-    HypoelasticTemperatureDependent2DLaw();
+    HypoelasticTemperatureDependent3DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -61,12 +61,12 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependen
     /**
      * Copy constructor.
      */
-    HypoelasticTemperatureDependent2DLaw(const HypoelasticTemperatureDependent2DLaw& rOther);
+    HypoelasticTemperatureDependent3DLaw(const HypoelasticTemperatureDependent3DLaw& rOther);
 
     /**
      * Destructor.
      */
-    ~HypoelasticTemperatureDependent2DLaw() override;
+    ~HypoelasticTemperatureDependent3DLaw() override;
 
     /**
      * Operations needed by the base class:
@@ -106,14 +106,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependen
     ///@name Protected Operations
     ///@{
 
-    /// Get the effective Young Modulus for the solid.
-    double GetEffectiveYoungModulus(ConstitutiveLaw::Parameters& rParameters) const override;
-
-    /// Get the effective Poisson ratio for the solid.
-    double GetEffectivePoissonRatio(ConstitutiveLaw::Parameters& rParameters) const override;
-
     /// Get the effective density for the solid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
+    double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
     ///@}
 
@@ -147,8 +141,8 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) HypoelasticTemperatureDependen
     void load(Serializer& rSerializer) override;
     ///@}
 
-};  // Class HypoelasticTemperatureDependent2DLaw
+};  // Class HypoelasticTemperatureDependent3DLaw
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_2D_LAW_H_INCLUDED  defined
+#endif  // KRATOS_HYPOELASTIC_TEMPERATURE_DEPENDENT_3D_LAW_H_INCLUDED  defined

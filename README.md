@@ -110,6 +110,11 @@ Organizations contributing to Kratos:
 
 </br></br>
 
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/logo_UNIPD.svg" width="128">
+<p> University of Padova, Italy </p>
+
+</br></br>
+
 # Our Users
 Some users of the technologies developed in Kratos are:
 
