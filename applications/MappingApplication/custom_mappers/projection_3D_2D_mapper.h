@@ -133,12 +133,12 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
         if (partition_entity_1 > -1) {
             if (mpi_rank == partition_entity_1) {
                 if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
-                    if (rFirstModelPart.NumberOfElements() > 0) {
-                        if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                    if (rFirstModelPart.NumberOfConditions() > 0) {
+                        if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                             model_part_index = 1;
                         }
                     } else {
-                        if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                        if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                             model_part_index = 1;
                         }
                     }
@@ -160,12 +160,12 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
         if (partition_entity_2 > -1) {
             if (mpi_rank == partition_entity_2) {
                 if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
-                    if (rSecondModelPart.NumberOfElements() > 0) {
-                        if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                    if (rSecondModelPart.NumberOfConditions() > 0) {
+                        if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                             model_part_index = 1;
                         }
                     } else {
-                        if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                        if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                             model_part_index = 1;
                         }
                     }
@@ -187,12 +187,12 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
 
         // First model part
         if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
-            if (rFirstModelPart.NumberOfElements() > 0) {
-                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+            if (rFirstModelPart.NumberOfConditions() > 0) {
+                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                     return rFirstModelPart;
                 }
             } else {
-                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                     return rFirstModelPart;
                 }
             }
@@ -200,12 +200,12 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
         
         // Second model part
         if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
-            if (rSecondModelPart.NumberOfElements() > 0) {
-                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+            if (rSecondModelPart.NumberOfConditions() > 0) {
+                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                     return rSecondModelPart;
                 }
             } else {
-                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
+                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
                     return rSecondModelPart;
                 }
             }
