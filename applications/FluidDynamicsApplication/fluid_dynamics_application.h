@@ -99,7 +99,7 @@
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 // Wall laws
-#include "custom_conditions/navier_stokes_wall_condition_wall_laws.h"
+#include "custom_conditions/wall_laws/wall_law.h"
 
 // Adjoint fluid elements
 #include "custom_elements/vms_adjoint_element.h"

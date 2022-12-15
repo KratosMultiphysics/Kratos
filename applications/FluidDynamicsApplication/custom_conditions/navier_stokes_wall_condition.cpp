@@ -21,7 +21,7 @@
 
 // Application includes
 #include "navier_stokes_wall_condition.h"
-#include "navier_stokes_wall_condition_wall_laws.h"
+#include "wall_laws/wall_law.h"
 
 
 namespace Kratos
