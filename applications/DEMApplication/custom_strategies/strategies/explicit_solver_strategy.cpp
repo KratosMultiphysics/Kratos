@@ -2207,6 +2207,16 @@ namespace Kratos {
                           << mRVE_VoidRatio
                           << std::endl;
 
+      if (mRVE_FileContactNumber.is_open()) {
+        mRVE_FileContactNumber << time_step << " " << time << " ";
+        const int number_of_particles = (int)mListOfSphericParticles.size();
+        for (int i = 0; i < number_of_particles; i++) {
+          const int contacts = mListOfSphericParticles[i]->mCoordNum;
+          mRVE_FileCoordinates << contacts << " ";
+        }
+        mRVE_FileContactNumber << std::endl;
+      }
+
       if (mRVE_FileCoordNumber.is_open())
         mRVE_FileCoordNumber << time_step        << " "
                              << time             << " "
@@ -2330,6 +2340,13 @@ namespace Kratos {
       mRVE_FilePorosity << "7 - VOID RATIO";
       mRVE_FilePorosity << std::endl;
 
+      mRVE_FileContactNumber.open("rve_conact_number.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileContactNumber) << "Could not open file rve_conact_number.txt!" << std::endl;
+      mRVE_FileContactNumber << "1 - STEP | ";
+      mRVE_FileContactNumber << "2 - TIME | ";
+      mRVE_FileContactNumber << "3 - NUMBER OF CONTACTS OF ALL PARTICLES";
+      mRVE_FileContactNumber << std::endl;
+
       mRVE_FileCoordNumber.open("rve_coordination_number.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileCoordNumber) << "Could not open file rve_coordination_number.txt!" << std::endl;
       mRVE_FileCoordNumber << "1 - STEP | ";
@@ -2410,6 +2427,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::RVECloseFiles(void) {
       if (mRVE_FileCoordinates.is_open())   mRVE_FileCoordinates.close();
       if (mRVE_FilePorosity.is_open())      mRVE_FilePorosity.close();
+      if (mRVE_FileContactNumber.is_open()) mRVE_FileContactNumber.close();
       if (mRVE_FileCoordNumber.is_open())   mRVE_FileCoordNumber.close();
       if (mRVE_FileForceChain.is_open())    mRVE_FileForceChain.close();
       if (mRVE_FileRoseDiagram.is_open())   mRVE_FileRoseDiagram.close();
