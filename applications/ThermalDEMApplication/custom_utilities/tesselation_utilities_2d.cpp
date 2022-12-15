@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 // System includes
@@ -76,10 +72,10 @@ namespace Kratos {
     in.numberofpoints = num_particles;
     in.pointlist = (double*)malloc(sizeof(double) * in.numberofpoints * 2);
 
+    ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < in.numberofpoints; i++) {
-      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it+i));
 
       particle.mDelaunayPointListIndex = i;
 
@@ -146,10 +142,10 @@ namespace Kratos {
       ModelPart::ElementsContainerType::iterator it = rElements.ptr_begin() + i;
       ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
 
-      for (unsigned int j = 0; j < rOut.numberofedges; j++) {
+      for (int j = 0; j < rOut.numberofedges; j++) {
         // Vertices of delaunay edge
-        const int vd1 = rOut.edgelist[2 * j + 0] - 1;
-        const int vd2 = rOut.edgelist[2 * j + 1] - 1;
+        unsigned const int vd1 = rOut.edgelist[2 * j + 0] - 1;
+        unsigned const int vd2 = rOut.edgelist[2 * j + 1] - 1;
 
         // Check if delaunay edge contains current point:
         // Only look at one vertex to avoid repeating the process for both vetices of the same edge

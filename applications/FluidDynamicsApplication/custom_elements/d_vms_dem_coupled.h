@@ -177,6 +177,8 @@ public:
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -212,6 +214,7 @@ protected:
     // Velocity subscale history, stored at integration points
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
 
     ///@}
     ///@name Protected Operators
@@ -245,6 +248,8 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
@@ -264,6 +269,9 @@ protected:
 
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData) override;
+
+    void UpdateSubscaleVelocity(
+        const TElementData& rData);
 
     void MassProjTerm(
         const TElementData& rData,

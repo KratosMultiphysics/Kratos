@@ -15,14 +15,16 @@
 #if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
 #define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
-// System includes
-
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
+
+// STL includes
+#include <filesystem>
+
 
 namespace Kratos
 {
@@ -68,23 +70,20 @@ private:
      * @author Riccardo Rossi
      */
     class KRATOS_API(KRATOS_CORE) iterator_adaptor
-        : public std::iterator<std::forward_iterator_tag, Parameters>
     {
+    public:
         ///@name Type Definitions
         ///@{
+
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = Parameters;
+        using pointer           = Parameters*;
+        using reference         = Parameters&;
 
         using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::size_t mDistance = 0;                       /// The iterator distance
-        nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
-
-        ///@}
-    public:
         ///@name Life Cycle
         ///@{
 
@@ -165,6 +164,16 @@ private:
         const std::string name();
 
         ///@}
+
+    private:
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+
+        ///@}
     };
 
     /**
@@ -174,23 +183,20 @@ private:
      * @author Riccardo Rossi
      */
     class KRATOS_API(KRATOS_CORE) const_iterator_adaptor
-        : public std::iterator<std::forward_iterator_tag, Parameters>
     {
+    public:
         ///@name Type Definitions
         ///@{
+
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = Parameters;
+        using pointer           = const Parameters*;
+        using reference         = const Parameters&;
 
         using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
 
         ///@}
-        ///@name Member Variables
-        ///@{
-
-        std::size_t mDistance = 0;                       /// The iterator distance
-        nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
-
-        ///@}
-    public:
         ///@name Life Cycle
         ///@{
 
@@ -270,6 +276,15 @@ private:
          * @return The key (name) of the Parameter iterator
          */
         const std::string name();
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        std::size_t mDistance = 0;                       /// The iterator distance
+        nlohmann::json& mrValue;                         /// The original container
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
     };
@@ -1022,6 +1037,22 @@ private:
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
     void InternalSetValue(const Parameters& rOtherValue);
+
+    /**
+     * @brief This method solves all the include dependencies in a json file
+     * @param rJson The json object
+     * @param rFileName name of the current json file ("root" if called from the constructor)
+     * @param rIncludeSequence a stack containing the current sequence of included JSON files
+     * @return This method leaves in rJson the final json object with no include dependencies
+     */
+    void SolveIncludes(nlohmann::json& rJson, const std::filesystem::path& rFileName, std::vector<std::filesystem::path>& rIncludeSequence);
+
+    /**
+     * @brief This method parses a json file.
+     * @param rFileName The JSON file's name.
+     * @return The JSON object obtained from parsing the file.
+     */
+    nlohmann::json ReadFile(const std::filesystem::path& rFileName);
 
 }; // Parameters class
 

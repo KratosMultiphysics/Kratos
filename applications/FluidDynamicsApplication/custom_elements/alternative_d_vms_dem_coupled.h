@@ -257,6 +257,8 @@ protected:
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS) override;
 
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
@@ -283,6 +285,10 @@ protected:
     void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access

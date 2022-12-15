@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 // System includes
@@ -97,8 +93,8 @@ namespace Kratos {
     ElementsArrayType& r_elements     = r_model_part.GetCommunicator().LocalMesh().Elements();
 
     // Parameters
-    const double safety_factor  = 0.1;
-    const int    max_freq       = 10000;
+    const double safety_factor = 0.1;
+    const int    max_freq      = 10000;
 
     // Get minimum diffusivity time between all particles
     double min_diff_time = DBL_MAX;
