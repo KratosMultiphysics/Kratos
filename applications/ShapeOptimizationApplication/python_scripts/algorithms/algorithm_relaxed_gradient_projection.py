@@ -258,7 +258,6 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
         self.inner_iter = 1
 
-        #TODO add convergence criteria, for now only 1 iteration run for testing
         while not self.__checkInnerConvergence():
 
             self.direction_has_changed = False
@@ -318,18 +317,18 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             self.__manualStep()
         elif self.line_search_type == "QNBB_method":
             if self.optimization_iteration == 1:
+                self.max_step_size = self.step_size
                 # Do initial small step
                 self.step_size /= 5
                 self.__manualStep()
-                self.step_size *= 5
             else:
                 self.__QNBBStep()
         elif self.line_search_type == "BB_method":
             if self.optimization_iteration == 1:
+                self.max_step_size = self.step_size
                 # Do initial small step
                 self.step_size /= 5
                 self.__manualStep()
-                self.step_size *= 5
             else:
                 self.__BBStep()
 
@@ -357,11 +356,11 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 y_i = np.array(self.prev_s[i: i+3]) - np.array(s[i: i+3])
                 d_i = np.array(self.d[i:i+3])
                 if np.dot(y_i, y_i) < 1e-9:
-                    step_i = self.step_size
+                    step_i = self.max_step_size
                 else:
                     step_i = abs(np.dot(d_i, y_i) / np.dot(y_i, y_i))
-                if step_i > self.step_size:
-                    step_i = self.step_size
+                if step_i > self.max_step_size:
+                    step_i = self.max_step_size
                 node.SetSolutionStepValue(KSO.INV_HESSIAN, step_i)
                 s[i] = s[i] * step_i
                 s[i+1] = s[i+1] * step_i
@@ -377,11 +376,11 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
             y = self.prev_s - s
             if np.dot(y, y) < 1e-9:
-                step = self.step_size
+                step = max_step_size
             else:
                 step = abs(np.dot(y, self.d) / np.dot(y, y))
-            if step > self.step_size:
-                step = self.step_size
+            if step > max_step_size:
+                step = max_step_size
             s = s * step
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
 
@@ -411,18 +410,18 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             p = nabla_f * (-1.0)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.SEARCH_DIRECTION)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, [0.0]*len(p), KSO.CORRECTION)
+            KM.VariableUtils().SetHistoricalVariableToZero(KSO.CORRECTION, self.design_surface.Nodes)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.CONTROL_POINT_UPDATE)
             self.__LineSearch()
             return
 
         omega_r = KM.Matrix()
         self.optimization_utilities.AssembleBufferMatrix(omega_r, self.relaxation_coefficients)
-        omega_c = KM.Vector()
-        self.optimization_utilities.AssembleBufferVector(omega_c, self.correction_coefficients)
+        omega_c = KM.Vector(self.correction_coefficients)
+
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        self.optimization_utilities.AssembleVectorstoMatrix(self.design_surface, N, self.g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        self.optimization_utilities.AssembleMatrix(self.design_surface, N, self.g_a_variables)
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -468,7 +467,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 g_a_variable_vector = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, g_a_variable_vector, g_a_variable)
                 if abs(g_a_norm) > 1e-10:
-                    g_a_variable_vector *= 1.0/g_a_norm
+                    g_a_variable_vector /= g_a_norm
 
                 active_constraint_variables.append(g_a_variable_vector)
                 active_relaxation_coefficient.append(min(buffer_value,1.0))

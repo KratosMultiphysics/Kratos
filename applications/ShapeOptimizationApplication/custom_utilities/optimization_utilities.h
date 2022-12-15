@@ -156,23 +156,7 @@ public:
      // ==============================================================================
     // For running relaxed gradient projection
     // ==============================================================================
-/**
-     * Assemble a list of Numbers into a Vector, independent of the model part
-     */
-    static void AssembleBufferVector( Vector& rVector,
-        const std::vector<double>& rVariables)
-    {
-    	size_t VectorSize = rVariables.size();
-        if (rVector.size() != VectorSize){
-            rVector.resize(VectorSize);
-        }
 
-
-        for (size_t i=0;i < VectorSize;i++)
-        {
-            rVector[i] = rVariables[i];
-        }
-    }
     /**
      * Assemble a list of Numbers into a diagonal Matrix, independent of the model part
      */
@@ -181,37 +165,7 @@ public:
     {
     	size_t VectorSize = rVariables.size();
         rMatrix = ZeroMatrix(VectorSize, VectorSize);
-        for (size_t i=0; i < VectorSize; i++)
-        {
-            rMatrix(i,i) = rVariables[i];
-        }
-    }
-    /**
-     * Assemble a list of Vectors into a  Matrix
-     */
-    static void AssembleVectorstoMatrix(ModelPart& rModelPart,
-        Matrix& rMatrix,
-        const std::vector<Vector*>& rVariables
-    )
-    {
-        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
-            rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
-        }
-
-
-    	int j=0;
-    	for (Vector* p_variable_j : rVariables)
-    	{
-        	const Vector& r_variable_j = *p_variable_j;
-
-
-        	for (size_t i = 0; i < rModelPart.NumberOfNodes()*3; i++)
-        	{
-        		rMatrix(i, j) = r_variable_j[i];
-        	}
-   		++j;
- 	}
-
+        IndexPartition(VectorSize).for_each([&](const int i) {rMatrix(i,i) = rVariables[i];} );
     }
 
     /**
