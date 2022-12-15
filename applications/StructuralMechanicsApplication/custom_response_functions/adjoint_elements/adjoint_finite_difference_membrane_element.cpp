@@ -201,15 +201,6 @@ int AdjointFiniteDifferencingMembraneElement<TPrimalElement>::Check(const Proces
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo[DOMAIN_SIZE]==3) << "DOMAIN_SIZE in element " << this->Id() << " is not 3" << std::endl;
     KRATOS_ERROR_IF_NOT(dimension==3) << "dimension in element " << this->Id() << " is not 3" << std::endl;
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( SizeType i = 0; i < number_of_nodes; i++ ) {
         const Node<3> &r_node = this->GetGeometry()[i];
