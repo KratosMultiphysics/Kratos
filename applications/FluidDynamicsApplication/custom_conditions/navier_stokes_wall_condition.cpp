@@ -21,7 +21,6 @@
 
 // Application includes
 #include "navier_stokes_wall_condition.h"
-#include "wall_laws/wall_law.h"
 #include "wall_laws/navier_slip_wall_law.h"
 
 
@@ -31,8 +30,8 @@ namespace Kratos
 ///@name Specialized implementation of VMS for functions that depend on TDim
 ///@{
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateLocalSystem(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -89,6 +88,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateLocalSystem(
         data.wGauss = J * IntegrationPoints[igauss].Weight();
         ComputeGaussPointRHSContribution(rhs_gauss, data, rCurrentProcessInfo);
         ComputeGaussPointLHSContribution(lhs_gauss, data, rCurrentProcessInfo);
+        //TODO: Implement a ComputeGausPointLocalSystemContribution
         noalias(rLeftHandSideMatrix) += lhs_gauss;
         noalias(rRightHandSideVector) += rhs_gauss;
     }
@@ -98,8 +98,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateLocalSystem(
 
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateLeftHandSide(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -118,8 +118,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateLeftHandSide
 
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateRightHandSide(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -180,8 +180,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateRightHandSid
 /**
  * @param rCurrentProcessInfo reference to the ProcessInfo
  */
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-int NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::Check(const ProcessInfo& rCurrentProcessInfo) const
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+int NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
@@ -217,8 +217,8 @@ int NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::Check(const ProcessInf
     KRATOS_CATCH("");
 }
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim, TNumNodes,TWallModel>::Calculate(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim, TNumNodes,TWallModel...>::Calculate(
     const Variable< array_1d<double,3> >& rVariable,
     array_1d<double,3>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -268,8 +268,8 @@ void NavierStokesWallCondition<TDim, TNumNodes,TWallModel>::Calculate(
 }
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeGaussPointLHSContribution(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointLHSContribution(
     BoundedMatrix<double, LocalSize, LocalSize>& lhs_gauss,
     const ConditionDataStruct& data,
     const ProcessInfo& rProcessInfo)
@@ -292,8 +292,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeGaussPointLHSC
 
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeGaussPointRHSContribution(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointRHSContribution(
     array_1d<double, LocalSize>& rhs_gauss,
     const ConditionDataStruct& data,
     const ProcessInfo& rProcessInfo)
@@ -323,12 +323,17 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeGaussPointRHSC
             CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
         }
     }
+
+    // Add the wall law contribution
+    // auto wall_law_data_container = TWallModel::WallLawDataContainer();
+    // wall_law_data_container.Initialize(this, data, rProcessInfo);
+    // TWallModel::AddRightHandSideGaussPointContribution(rhs_gauss, rProcessInfo);
 }
 
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeRHSNeumannContribution(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSNeumannContribution(
     array_1d<double,LocalSize>& rhs_gauss,
     const ConditionDataStruct& data)
 {
@@ -352,8 +357,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeRHSNeumannCont
 }
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeRHSOutletInflowContribution(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletInflowContribution(
     array_1d<double,LocalSize>& rhs_gauss,
     const ConditionDataStruct& data,
     const ProcessInfo& rProcessInfo)
@@ -391,8 +396,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeRHSOutletInflo
     }
 }
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSlipTangentialCorrectionLHSContribution(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateGaussPointSlipTangentialCorrectionLHSContribution(
     BoundedMatrix<double,LocalSize,LocalSize>& rLeftHandSideMatrix,
     const ConditionDataStruct& rDataStruct)
 {
@@ -443,8 +448,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSl
 
 
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSlipTangentialCorrectionRHSContribution(
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateGaussPointSlipTangentialCorrectionRHSContribution(
     array_1d<double,LocalSize>& rRightHandSideVector,
     const ConditionDataStruct& rDataStruct)
 {
@@ -512,7 +517,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSl
 
 
 // template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-// void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeGaussPointNavierSlipRHSContribution(
+// void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointNavierSlipRHSContribution(
 //     array_1d<double,LocalSize>& rRightHandSideVector,
 //     const ConditionDataStruct& rDataStruct)
 // {
@@ -562,7 +567,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSl
 
 
 // template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-// void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::ComputeGaussPointNavierSlipLHSContribution(
+// void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointNavierSlipLHSContribution(
 //     BoundedMatrix<double,LocalSize,LocalSize>& rLeftHandSideMatrix,
 //     const ConditionDataStruct& rDataStruct)
 // {
@@ -611,9 +616,9 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSl
 // }
 
 
-template class NavierStokesWallCondition<2,2,WallLaw>;
-template class NavierStokesWallCondition<3,3,WallLaw>;
-template class NavierStokesWallCondition<2,2,NavierSlipWallLaw>;
-template class NavierStokesWallCondition<3,3,NavierSlipWallLaw>;
+template class NavierStokesWallCondition<2,2>;
+template class NavierStokesWallCondition<3,3>;
+template class NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;
+template class NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>>;
 
 } // namespace Kratos

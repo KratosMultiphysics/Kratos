@@ -21,14 +21,13 @@
 
 // Application includes
 #include "two_fluid_navier_stokes_wall_condition.h"
-#include "wall_laws/wall_law.h"
 
 
 namespace Kratos
 {
 
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-int TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel>::Check(const ProcessInfo& rCurrentProcessInfo) const
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+int TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -36,7 +35,7 @@ int TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel>::Check(const Pr
     if (check != 0) {
         return check;
     } else {
-        // Checks on nodes        
+        // Checks on nodes
         const auto& r_geom = BaseType::GetGeometry();
         for (const auto& r_node : r_geom) {
             if(r_node.SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false){
@@ -145,7 +144,7 @@ int TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel>::Check(const Pr
 // }
 
 
-template class TwoFluidNavierStokesWallCondition<2,2,WallLaw>;
-template class TwoFluidNavierStokesWallCondition<3,3,WallLaw>;
+template class TwoFluidNavierStokesWallCondition<2,2>;
+template class TwoFluidNavierStokesWallCondition<3,3>;
 
 } // namespace Kratos

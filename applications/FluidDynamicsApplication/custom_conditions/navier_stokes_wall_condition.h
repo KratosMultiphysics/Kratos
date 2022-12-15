@@ -64,7 +64,7 @@ namespace Kratos
   slip conditions.
   @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
  */
-template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NavierStokesWallCondition : public Condition
 {
 public:
@@ -272,7 +272,7 @@ public:
         for (const auto& r_node : GetGeometry()) {
             rResult[local_index++] = r_node.GetDof(VELOCITY_X).EquationId();
             rResult[local_index++] = r_node.GetDof(VELOCITY_Y).EquationId();
-            if constexpr (TDim == 3) {    
+            if constexpr (TDim == 3) {
                 rResult[local_index++] = r_node.GetDof(VELOCITY_Z).EquationId();
             }
             rResult[local_index++] = r_node.GetDof(PRESSURE).EquationId();
@@ -281,7 +281,7 @@ public:
 
     /**
      * @brief Returns a list of the element's Dofs
-     * 
+     *
      * @param rConditionDofList Reference to the DOF pointers list
      * @param CurrentProcessInfo Reference to the current ProcessInfo container
      */
@@ -392,7 +392,7 @@ protected:
             MathUtils<double>::CrossProduct(rAreaNormal,v1,v2);
             rAreaNormal *= 0.5;
         } else {
-            KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;     
+            KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;
         }
     }
 
@@ -568,7 +568,6 @@ private:
         }
     }
 
-    
 
     ///@}
     ///@name Private  Access

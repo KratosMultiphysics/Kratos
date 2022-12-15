@@ -61,8 +61,8 @@ namespace Kratos
   slip conditions.
   @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
  */
-template< unsigned int TDim, unsigned int TNumNodes, class TWallModel>
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) TwoFluidNavierStokesWallCondition : public NavierStokesWallCondition<TDim, TNumNodes, TWallModel>
+template< unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) TwoFluidNavierStokesWallCondition : public NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>
 {
 public:
     ///@name Type Definitions
@@ -71,7 +71,7 @@ public:
     /// Pointer definition of TwoFluidNavierStokesWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidNavierStokesWallCondition);
 
-    typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel> BaseType;
+    typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel...> BaseType;
 
     using BaseType::LocalSize;
 
@@ -106,7 +106,7 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);condition
       */
     TwoFluidNavierStokesWallCondition(IndexType NewId = 0)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel>(NewId)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId)
     {
     }
 
@@ -118,7 +118,7 @@ public:
     TwoFluidNavierStokesWallCondition(
         IndexType NewId,
         const NodesArrayType& ThisNodes)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel>(NewId, ThisNodes)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, ThisNodes)
     {
     }
 
@@ -130,7 +130,7 @@ public:
     TwoFluidNavierStokesWallCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel>(NewId, pGeometry)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, pGeometry)
     {
     }
 
@@ -144,13 +144,13 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel>(NewId, pGeometry, pProperties)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
     TwoFluidNavierStokesWallCondition(TwoFluidNavierStokesWallCondition const& rOther):
-        NavierStokesWallCondition<TDim, TNumNodes, TWallModel>(rOther)
+        NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(rOther)
     {
     }
 
