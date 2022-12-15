@@ -16,5 +16,5 @@ cmake ..                                                     \
 -DUSE_VTK=OFF                                                \
 -DBUILD_SHARED_LIBS=ON                                       \
 
-# Buid
+# Build
 cmake --build $(pwd) -- -j$(nproc)
