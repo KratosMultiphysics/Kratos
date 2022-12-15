@@ -77,9 +77,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                     "central_buffer_value": 0.0,
                     "lower_buffer_value": - 1e-12,
                     "upper_buffer_value": 1e-12,
-                    "constraint_value-1": 0.0,
-                    "constraint_value-2": 0.0,
-                    "constraint_value-3": 0.0,
+                    "g_i-1": 0.0,
+                    "g_i-2": 0.0,
+                    "g_i-3": 0.0,
                     "max_constraint_change": 0.0
                 }
             })
@@ -217,8 +217,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     # compute new buffer size and buffer values
     	for constraint in self.constraints:
             identifier = constraint["identifier"].GetString()
-            constraint_value = self.communicator.getStandardizedValue(identifier)
-            constraint_value_m1 = self.constraint_buffer_variables[identifier]["constraint_value-1"]
+            g_i = self.communicator.getStandardizedValue(identifier)
+            g_i_m1 = self.constraint_buffer_variables[identifier]["g_i-1"]
             buffer_size_factor = self.constraint_buffer_variables[identifier]["buffer_size_factor"]
 
 
@@ -226,8 +226,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             if self.optimization_iteration > 1:
 
-                if abs(constraint_value - constraint_value_m1) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
-                    self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(constraint_value - constraint_value_m1)
+                if abs(g_i - g_i_m1) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
+                    self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(g_i - g_i_m1)
 
                 max_constraint_change = self.constraint_buffer_variables[identifier]["max_constraint_change"]
                 self.constraint_buffer_variables[identifier]["buffer_size"] = max(buffer_size_factor * max_constraint_change, 1e-12)
@@ -238,10 +238,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             if self.__isConstraintActive(constraint):
                 if constraint["type"].GetString() == "=":
-                    self.constraint_buffer_variables[identifier]["buffer_value"] = min(1 - abs(constraint_value) / buffer_size, 2.0)
+                    self.constraint_buffer_variables[identifier]["buffer_value"] = min(1 - abs(g_i) / buffer_size, 2.0)
                 else:
                     lower_buffer_value = self.constraint_buffer_variables[identifier]["lower_buffer_value"]
-                    self.constraint_buffer_variables[identifier]["buffer_value"] = min( (constraint_value - lower_buffer_value) / buffer_size, 2.0 )
+                    self.constraint_buffer_variables[identifier]["buffer_value"] = min( (g_i - lower_buffer_value) / buffer_size, 2.0 )
             else:
                 self.constraint_buffer_variables[identifier]["buffer_value"] = 0.0
 
@@ -293,15 +293,15 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             if self.__isConstraintActive(constraint):
                 index += 1
                 identifier = constraint["identifier"].GetString()
-                constraint_value = self.communicator.getStandardizedValue(identifier)
+                g_i = self.communicator.getStandardizedValue(identifier)
                 g_a_variable = self.constraint_gradient_variables[identifier]["gradient"]
                 shape_update = KM.Vector()
                 gradient = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, gradient, g_a_variable)
                 self.optimization_utilities.AssembleVector(self.design_surface, shape_update, KSO.SHAPE_UPDATE)
-                new_constraint_value = constraint_value + np.dot(gradient, shape_update)
-                KM.Logger.PrintInfo("Constraint ", identifier, "\n Linearized new value = ", new_constraint_value)
-                if new_constraint_value > 0.0:
+                new_g_i = g_i + np.dot(gradient, shape_update)
+                KM.Logger.PrintInfo("Constraint ", identifier, "\n Linearized new value = ", new_g_i)
+                if new_g_i > 0.0:
                     if self.relaxation_coefficients[index] < 1.0:
                         self.relaxation_coefficients[index] = min(self.relaxation_coefficients[index] + self.buffer_coeff_update, 1.0)
                         self.direction_has_changed = True
@@ -458,10 +458,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         for constraint in self.constraints:
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
-                constraint_value = self.communicator.getStandardizedValue(identifier)
+                g_i = self.communicator.getStandardizedValue(identifier)
                 buffer_value = self.constraint_buffer_variables[identifier]["buffer_value"]
 
-                active_constraint_values.append(constraint_value)
+                active_constraint_values.append(g_i)
                 g_a_variable = self.constraint_gradient_variables[identifier]["mapped_gradient"]
                 g_a_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, g_a_variable)
                 g_a_variable_vector = KM.Vector()
@@ -489,10 +489,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraint):
         identifier = constraint["identifier"].GetString()
-        constraint_value = self.communicator.getStandardizedValue(identifier)
+        g_i = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=":
             return True
-        elif constraint_value >= self.constraint_buffer_variables[identifier]["lower_buffer_value"]:
+        elif g_i >= self.constraint_buffer_variables[identifier]["lower_buffer_value"]:
             return True
         else:
             return False
@@ -502,33 +502,33 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         for constraint in self.constraints:
 
             identifier = constraint["identifier"].GetString()
-            constraint_value = self.communicator.getStandardizedValue(identifier)
-            constraint_value_m1 = self.constraint_buffer_variables[identifier]["constraint_value-1"]
-            constraint_value_m2 = self.constraint_buffer_variables[identifier]["constraint_value-2"]
-            constraint_value_m3 = self.constraint_buffer_variables[identifier]["constraint_value-3"]
+            g_i = self.communicator.getStandardizedValue(identifier)
+            g_i_m1 = self.constraint_buffer_variables[identifier]["g_i-1"]
+            g_i_m2 = self.constraint_buffer_variables[identifier]["g_i-2"]
+            g_i_m3 = self.constraint_buffer_variables[identifier]["g_i-3"]
 
             buffer_value = self.constraint_buffer_variables[identifier]["buffer_value"]
             buffer_value_m1 = self.constraint_buffer_variables[identifier]["buffer_value-1"]
 
             if self.optimization_iteration > 3:
-                delta_g_1 = constraint_value - constraint_value_m1
-                delta_g_2 = constraint_value_m1 -constraint_value_m2
-                delta_g_3 = constraint_value_m2 -constraint_value_m3
+                delta_g_1 = g_i - g_i_m1
+                delta_g_2 = g_i_m1 -g_i_m2
+                delta_g_3 = g_i_m2 -g_i_m3
 
                 if delta_g_1*delta_g_2 < 0 and delta_g_2*delta_g_3 < 0:
                     self.constraint_buffer_variables[identifier]["buffer_size_factor"] += abs(buffer_value - buffer_value_m1)
 
             if self.optimization_iteration > 1:
-                delta_g = constraint_value - constraint_value_m1
-                if delta_g >= 0.0 and constraint_value_m1 > 0:
-                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= constraint_value_m1
-                elif delta_g <= 0.0 and constraint_value_m1 < 0:
-                    self.constraint_buffer_variables[identifier]["central_buffer_value"] += constraint_value_m1
+                delta_g = g_i - g_i_m1
+                if delta_g >= 0.0 and g_i_m1 > 0:
+                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= g_i_m1
+                elif delta_g <= 0.0 and g_i_m1 < 0:
+                    self.constraint_buffer_variables[identifier]["central_buffer_value"] += g_i_m1
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] = max(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
 
-            self.constraint_buffer_variables[identifier]["constraint_value-3"] = constraint_value_m2
-            self.constraint_buffer_variables[identifier]["constraint_value-2"] = constraint_value_m1
-            self.constraint_buffer_variables[identifier]["constraint_value-1"] = constraint_value
+            self.constraint_buffer_variables[identifier]["g_i-3"] = g_i_m2
+            self.constraint_buffer_variables[identifier]["g_i-2"] = g_i_m1
+            self.constraint_buffer_variables[identifier]["g_i-1"] = g_i
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
