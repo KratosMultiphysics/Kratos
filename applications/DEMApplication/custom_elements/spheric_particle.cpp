@@ -1251,7 +1251,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
 
               // Applied force (normal component)
               const double force_n = DEM_INNER_PRODUCT_3(GlobalContactForce, normal);
-              mWallForces += force_n;
+              mWallForces += std::abs(force_n);
 
               // Stiffness
               const double kn = mDiscontinuumConstitutiveLaw->mKn;
