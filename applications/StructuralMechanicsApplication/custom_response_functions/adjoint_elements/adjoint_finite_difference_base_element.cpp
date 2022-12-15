@@ -404,45 +404,35 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
         primal_solution_variable_list.push_back(&ROTATION_Z);
     }
 
-    // TODO Find a better way of doing this check
-    KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-        << "This stress displacement derivative computation is only usable for linear cases!" << std::endl;
-
-    for (IndexType i = 0; i < num_nodes; ++i)
-    {
+    const double delta = this->GetPerturbationSize(DISPLACEMENT, rCurrentProcessInfo); // this will return the given delta modified with factor 1
+    const double numeric_limit = std::numeric_limits<double>::epsilon();
+    for (IndexType i = 0; i < num_nodes; ++i) {
         const IndexType index = i * num_dofs_per_node;
-        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-        {
-            initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
-            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
+        Vector perturbed_stress_vector;
+        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
+            // find suitable disturbance measure for each displacement component
+            double displacement = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
+            if (std::abs(displacement) < numeric_limit) {
+                displacement = 1e-10;
+            }
+            double disturbance = delta * std::abs(displacement);
+            while (std::abs(disturbance) < 1e-10) {
+                disturbance *= 10.0;
+            }
+            // disturb displacement value
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) += disturbance;
+            if (rStressVariable == STRESS_ON_GP) {
+                StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, perturbed_stress_vector, rCurrentProcessInfo);
+            }
+            else {
+                StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, perturbed_stress_vector, rCurrentProcessInfo);
+            }
+            for(IndexType k = 0; k < stress_derivatives_vector.size(); ++k) {
+                rOutput(index+j, k) = (perturbed_stress_vector[k] - stress_derivatives_vector[k]) / disturbance;
+            }
+            // undisturb displacement value
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) -= disturbance;
         }
-    }
-    for (IndexType i = 0; i < num_nodes; ++i)
-    {
-        const IndexType index = i * num_dofs_per_node;
-        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-        {
-            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
-
-            TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-            if (rStressVariable == STRESS_ON_GP)
-                StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
-            else
-                StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
-
-            for(IndexType k = 0; k < stress_derivatives_vector.size(); ++k)
-                rOutput(index+j, k) = stress_derivatives_vector[k];
-
-            stress_derivatives_vector.clear();
-
-            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
-        }
-    }
-    for (IndexType i = 0; i < num_nodes; ++i)
-    {
-        const IndexType index = i * num_dofs_per_node;
-        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
     }
 
     KRATOS_CATCH("")
@@ -502,7 +492,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     }
     else
     {
-        rOutput = ZeroMatrix(0, stress_vector_size);
+        rOutput = ZeroMatrix(1, stress_vector_size);
     }
 
     KRATOS_CATCH("")
@@ -573,7 +563,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     }
     else
     {
-        rOutput = ZeroMatrix(0, stress_vector_size);
+        rOutput = ZeroMatrix(1, stress_vector_size);
     }
 
     KRATOS_CATCH("")
