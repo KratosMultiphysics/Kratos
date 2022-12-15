@@ -117,11 +117,13 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    // Navier-Stokes symbolic elements
-    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))), //TODO: Legacy to be removed
+    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))), //TODO: Legacy to be removed
+    // Navier-Stokes wall conditions
     mNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    mNavierStokesNavierSlipWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+    mNavierStokesNavierSlipWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -386,6 +388,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D", mMonolithicWallCondition3D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D2N", mNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D3N", mNavierStokesWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition2D2N", mNavierStokesNavierSlipWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition3D3N", mNavierStokesNavierSlipWallCondition3D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition2D2N", mTwoFluidNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition3D3N", mTwoFluidNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N", mEmbeddedAusasNavierStokesWallCondition2D);

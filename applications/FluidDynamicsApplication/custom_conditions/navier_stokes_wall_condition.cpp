@@ -22,6 +22,7 @@
 // Application includes
 #include "navier_stokes_wall_condition.h"
 #include "wall_laws/wall_law.h"
+#include "wall_laws/navier_slip_wall_law.h"
 
 
 namespace Kratos
@@ -612,5 +613,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel>::CalculateGaussPointSl
 
 template class NavierStokesWallCondition<2,2,WallLaw>;
 template class NavierStokesWallCondition<3,3,WallLaw>;
+template class NavierStokesWallCondition<2,2,NavierSlipWallLaw>;
+template class NavierStokesWallCondition<3,3,NavierSlipWallLaw>;
 
 } // namespace Kratos

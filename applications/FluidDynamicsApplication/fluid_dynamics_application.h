@@ -100,6 +100,7 @@
 
 // Wall laws
 #include "custom_conditions/wall_laws/wall_law.h"
+#include "custom_conditions/wall_laws/navier_slip_wall_law.h"
 
 // Adjoint fluid elements
 #include "custom_elements/vms_adjoint_element.h"
@@ -402,6 +403,8 @@ private:
     const NavierStokes<3> mNavierStokes3D;
     const NavierStokesWallCondition<2,2,WallLaw> mNavierStokesWallCondition2D;
     const NavierStokesWallCondition<3,3,WallLaw> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<2,2,NavierSlipWallLaw> mNavierStokesNavierSlipWallCondition2D;
+    const NavierStokesWallCondition<3,3,NavierSlipWallLaw> mNavierStokesNavierSlipWallCondition3D;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;

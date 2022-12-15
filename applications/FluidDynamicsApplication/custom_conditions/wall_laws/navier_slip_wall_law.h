@@ -19,12 +19,10 @@
 
 
 // Project includes
-#include "includes/cfd_variables.h"
-#include "includes/define.h"
-#include "includes/process_info.h"
+
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
+#include "wall_law.h"
 
 
 namespace Kratos
@@ -51,31 +49,33 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class WallLaw
+class NavierSlipWallLaw : public WallLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of WallLaw
-    KRATOS_CLASS_POINTER_DEFINITION(WallLaw);
+    /// Pointer definition of NavierSlipWallLaw
+    KRATOS_CLASS_POINTER_DEFINITION(NavierSlipWallLaw);
 
-    using MatrixType = Matrix;
+    using BaseType = WallLaw;
 
-    using VectorType = Vector;
+    using MatrixType = BaseType::MatrixType;
+
+    using VectorType = BaseType::VectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    WallLaw(){}
+    NavierSlipWallLaw(){}
 
     /// Copy constructor.
-    WallLaw(WallLaw const& rOther) = delete;
+    NavierSlipWallLaw(NavierSlipWallLaw const& rOther) = delete;
 
     /// Destructor.
-    ~WallLaw() = default;
+    ~NavierSlipWallLaw() = default;
 
     ///@}
     ///@name Operators
@@ -86,23 +86,23 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void AddLocalSystemGaussPointContribution(
+    void AddLocalSystemGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    virtual void AddLeftHandSideGaussPointContribution(
+    void AddLeftHandSideGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    virtual void AddRightHandSideGaussPointContribution(
+    void AddRightHandSideGaussPointContribution(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         return 0;
     }
@@ -125,14 +125,14 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "WallLaw";
+        buffer << "NavierSlipWallLaw";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "WallLaw";
+        rOStream << "NavierSlipWallLaw";
     }
 
     /// Print object's data.
@@ -144,7 +144,7 @@ public:
 
 
     ///@}
-}; // Class WallLaw
+}; // Class NavierSlipWallLaw
 
 ///@}
 ///@name Type Definitions
