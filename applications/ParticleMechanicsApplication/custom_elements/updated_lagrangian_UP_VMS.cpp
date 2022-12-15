@@ -512,10 +512,11 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
 
 void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP)
 {
-    // Only for OSGS stabilization
+    // For OSGS stabilization
+
     KRATOS_TRY
 
-    rResidualU = rVolumeForce - rVariables.PressureGradient + mMP.density *mMP.acceleration;
+    rResidualU = rVolumeForce - rVariables.PressureGradient; // + mMP.density *mMP.acceleration;
     rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
 
     KRATOS_CATCH( "" )
@@ -562,23 +563,21 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    //unsigned int index_p = dimension;
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    // Vector Stab1 = rVolumeForce + rVariables.PressureGradient;
     Vector Testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
+    double VolumetricStrainFunction = this->CalculateVolumetricStrainFunction( VolumetricStrainFunction, rVariables );
+
     unsigned int indexi  = 0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index_up = dimension * i + i;
-//         unsigned int index_u  = dimension * i;
-
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf1(i) * rIntegrationWeight;
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT) ) * rVariables.DN_DX(i,jdim) *rIntegrationWeight; //(rVariables.PressureGP/rVariables.BulkModulus)+
+            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) -VolumetricStrainFunction ) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             indexi++;
         }
     }
@@ -602,19 +601,16 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
-    Vector aux_vector;
-
-//     aux_vector = - rVariables.PressureGradient + rVolumeForce + rVariables.DynamicRHS;
-//     Vector Stab1 = prod(rVariables.DN_DX,aux_vector);
+    double VolumetricStrainFunction = this->CalculateVolumetricStrainFunction( VolumetricStrainFunction, rVariables );
+    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-//         rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
         for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-           rRightHandSideVector[index_p] -= rVariables.tau1  *  rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime]) * rIntegrationWeight;
+           rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime]) * rIntegrationWeight;
         }
 
-        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
+        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
@@ -680,6 +676,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
     Vector Kuustab2 = prod( Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
     Vector testf1   = Kuustab1;
     Vector testf2   = prod( Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
+    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
 
 
     unsigned int indexi = 0;
@@ -701,7 +698,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * testf1(j);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab1(i) * rIntegrationWeight * testf2(indexj);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * testf2(indexj);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+= rVariables.tau2 * rVariables.DN_DX(i,idim) * rIntegrationWeight * rVariables.DN_DX(j,jdim);
+                    rLeftHandSideMatrix(indexi+i,indexj+j)+= rVariables.tau2 * functionJ *rVariables.DN_DX(i,idim) * rIntegrationWeight * rVariables.DN_DX(j,jdim);
                     indexj++;
                 }
             }
@@ -728,6 +725,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Stab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Stab2 = prod(Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
+    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -741,10 +739,10 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau1 *  rVariables.DynamicCoefficient * r_N(0 , j) * rVariables.DN_DX(i, k) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab1(j) * rVariables.DN_DX(i, k) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab2(indexj) * rVariables.DN_DX(i, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab1(j) * functionJ * rVariables.DN_DX(i, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab2(indexj) * functionJ * rVariables.DN_DX(i, k) * rIntegrationWeight;
 
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2 * (1/rVariables.BulkModulus)* rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2 * functionJ * (1 / rVariables.BulkModulus)* rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
                 indexj++;
             }
             index_p += (dimension + 1);
@@ -808,14 +806,14 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     unsigned int indexpi = dimension;
     Matrix Stab1 = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
-
+    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1 * Stab1(i,j)  * rIntegrationWeight;
+            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1 * functionJ * Stab1(i,j)  * rIntegrationWeight;
             rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau2 * (1.0 / pow(rVariables.BulkModulus,2)) *r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);

@@ -369,12 +369,12 @@ protected:
     /**
      * Calculation of the constitutive coefficient for pressure of the Element
      */
-    virtual double& CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+    virtual double& CalculateVolumetricStrainFunction(double& rVolumetricStrainFunction, GeneralVariables & rVariables);
 
     /**
      * Calculation of the constitutive coefficient derivative for pressure  of the Element
      */
-    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+    virtual double& CalculateFunctionFromLinearizarionOfVolumetricStrain(double& rFunction, GeneralVariables & rVariables);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step

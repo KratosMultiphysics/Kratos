@@ -485,14 +485,13 @@ void UpdatedLagrangianUP::CalculateAndAddInternalForces(VectorType& rRightHandSi
 
 //******************************************************************************************************************
 //******************************************************************************************************************
-double& UpdatedLagrangianUP::CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables)
+double& UpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolumetricStrainFunction, GeneralVariables & rVariables)
 {
     KRATOS_TRY
 
-    //rCoefficient = rVariables.detF0 - 1;
-    rCoefficient = (1-(1/rVariables.detF));
+    rVolumetricStrainFunction = 1-(1/rVariables.detF);
 
-    return rCoefficient;
+    return rVolumetricStrainFunction;
 
     KRATOS_CATCH( "" )
 }
@@ -500,14 +499,14 @@ double& UpdatedLagrangianUP::CalculatePUCoefficient(double& rCoefficient, Genera
 //************************************************************************************
 //************************************************************************************
 
-double& UpdatedLagrangianUP::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, GeneralVariables & rVariables)
+double& UpdatedLagrangianUP::CalculateFunctionFromLinearizarionOfVolumetricStrain(double &rFunction, GeneralVariables & rVariables)
 {
 
     KRATOS_TRY
 
-    rDeltaCoefficient = 1.0;
+    rFunction= 1.0;
 
-    return rDeltaCoefficient;
+    return rFunction;
 
     KRATOS_CATCH( "" )
 
@@ -536,11 +535,7 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     if (bulk_modulus != bulk_modulus)
         bulk_modulus = 1.e16;
 
-    double delta_coefficient = 0;
-    delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
-
-    double coefficient = 0;
-    coefficient = this->CalculatePUCoefficient( coefficient, rVariables );
+    double VolumetricStrainFunction = this->CalculateVolumetricStrainFunction( VolumetricStrainFunction, rVariables );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -548,10 +543,10 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
         {
             const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
 
-            rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight;  //2D-3D
+            rRightHandSideVector[index_p] += (1.0 / bulk_modulus) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight;  //2D-3D
         }
 
-        rRightHandSideVector[index_p] -=  coefficient/delta_coefficient * r_N(0, i) * rIntegrationWeight;
+        rRightHandSideVector[index_p] -=  VolumetricStrainFunction * r_N(0, i) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
@@ -758,6 +753,7 @@ void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -768,7 +764,7 @@ void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up+k,index_p) +=  functionJ * rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
             }
             index_p += (dimension + 1);
         }
@@ -800,7 +796,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight;//
+                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight;
             }
         }
         index_p += (dimension + 1);
