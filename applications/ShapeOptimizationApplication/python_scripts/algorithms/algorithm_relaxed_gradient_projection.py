@@ -469,7 +469,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 if abs(g_a_norm) > 1e-10:
                     g_a_variable_vector /= g_a_norm
 
-                active_constraint_variables.append(g_a_variable_vector)
+                self.optimization_utilities.AssignVectorToVariable(self.design_surface, g_a_variable_vector, g_a_variable)
+
+                active_constraint_variables.append(g_a_variable)
                 active_relaxation_coefficient.append(min(buffer_value,1.0))
 
                 max_buffer = 2.0
