@@ -696,7 +696,10 @@ private:
     ///@{
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
-    void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, TDataContainerType& data) const
+    void GetScalarDataFromContainer(
+        const TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        TDataContainerType& data) const
     {
         KRATOS_TRY
 
@@ -711,17 +714,21 @@ private:
     }
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
-    void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, TDataContainerType& data) const
+    void GetVectorDataFromContainer(
+        const TContainerType& rContainer,
+        const std::size_t VectorSize,
+        const Variable<TDataType>& rVariable,
+        TDataContainerType& data) const
     {
         KRATOS_TRY
 
-        DataSizeCheck(rContainer.size(), data.size()*TSize);
+        DataSizeCheck(rContainer.size()*VectorSize, data.size());
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
-            for(std::size_t dim = 0 ; dim < TSize ; dim++){
-                data[(TSize*index) + dim] = r_val[dim];
+            for(std::size_t dim = 0 ; dim < VectorSize ; dim++){
+                data[(VectorSize*index) + dim] = r_val[dim];
             }
         });
 
@@ -729,7 +736,10 @@ private:
     }
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
-    void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
+    void SetScalarDataFromContainer(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const TDataContainerType& rData) const
     {
         KRATOS_TRY
 
@@ -737,25 +747,29 @@ private:
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
-            r_entity.SetValue(rVariable,rData[index]);
+            r_entity.SetValue(rVariable, rData[index]);
         });
 
         KRATOS_CATCH("")
     }
 
     template<typename TDataType, class TContainerType, class TDataContainerType>
-    void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const TDataContainerType& rData)
+    void SetVectorDataFromContainer(
+        TContainerType& rContainer,
+        const std::size_t VectorSize,
+        const Variable<TDataType>& rVariable,
+        const TDataContainerType& rData) const
     {
         KRATOS_TRY
 
-        DataSizeCheck(rContainer.size(), rData.size()*size);
+        DataSizeCheck(rContainer.size()*VectorSize, rData.size());
 
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             TDataType aux;
-            KRATOS_DEBUG_ERROR_IF(aux.size() != size) << "mismatch in size!" << std::endl;
-            for(std::size_t dim = 0 ; dim < size ; dim++){
-                aux[dim] = rData[(size*index) + dim];
+            KRATOS_DEBUG_ERROR_IF(aux.size() != VectorSize) << "mismatch in size!" << std::endl;
+            for(std::size_t dim = 0 ; dim < VectorSize ; dim++){
+                aux[dim] = rData[(VectorSize*index) + dim];
             }
             r_entity.SetValue(rVariable, aux);
         });
@@ -763,9 +777,11 @@ private:
         KRATOS_CATCH("")
     }
 
-    void DataSizeCheck(const std::size_t ContainerSize, const std::size_t DataSize) const
+    void DataSizeCheck(
+        const std::size_t ContainerSize,
+        const std::size_t DataSize) const
     {
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "Mismatch in size! Container size: " << ContainerSize << " | Data size: " << DataSize << std::endl;
+        KRATOS_ERROR_IF(ContainerSize != DataSize) << "Mismatch in size! Container size: " << ContainerSize << " | Data size: " << DataSize << std::endl;
     }
 
     /**
