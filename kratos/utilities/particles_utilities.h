@@ -252,7 +252,7 @@ public:
         typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
 
         auto interpolations = std::make_pair(std::vector<bool>(rCoordinates.size1()), std::vector<TDataType>(rCoordinates.size1()));
-        std::vector<int> is_found_aux_vector(rCoordinates.size1()); //aux vector using ints to allow running in omp
+        std::vector<char> is_found_aux_vector(rCoordinates.size1()); //aux vector using ints to allow running in omp
 
         //for every interface node (nodes in cut elements)
         const auto zero = rInterpolationVariable.Zero();
@@ -263,7 +263,7 @@ public:
             Element::Pointer p_element;
             const bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
 
-            is_found_aux_vector[i] = static_cast<int>(is_found);
+            is_found_aux_vector[i] = static_cast<char>(is_found);
             if(is_found)
             {
 
@@ -283,9 +283,8 @@ public:
         });
         
         //storing info in bool vector (do not use omp!)
-        for(unsigned int i=0; i<rCoordinates.size1(); i++){
-            (interpolations.first)[i] = static_cast<bool>(is_found_aux_vector[i]);
-        }
+        std::copy(is_found_aux_vector.begin(), is_found_aux_vector.end(), interpolations.first.begin());
+
 
         return interpolations;
 
