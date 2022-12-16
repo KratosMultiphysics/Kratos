@@ -14,13 +14,11 @@
 //                    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED )
-#define  KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -40,9 +38,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    /// The size definition
-    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -92,6 +87,9 @@ public:
     /// The definition of the geometry
     typedef Geometry<NodeType> GeometryType;
 
+    /// The size definition
+    typedef std::size_t SizeType;
+
     /// The index definition
     typedef std::size_t IndexType;
 
@@ -109,10 +107,39 @@ public:
     explicit BinBasedFastPointLocator(ModelPart& rModelPart)
         : mrModelPart(rModelPart)
     {
+        // NOTE: Should call UpdateSearchDatabase() to initialize the search database
+        // UpdateSearchDatabase();
+    }
+
+    /**
+     * @brief This is the default constructor (with cell size)
+     * @param rModelPart The model part of the mesh used in the search
+     * @param CellSize The current size of the cell used for search
+     */
+    explicit BinBasedFastPointLocator(
+        ModelPart& rModelPart,
+        const double CellSize
+        )
+        : mrModelPart(rModelPart),
+          mCellSize(CellSize)
+    {
+        UpdateSearchDatabaseAssignedSize(mCellSize);
     }
 
     /// Destructor.
     virtual ~BinBasedFastPointLocator() = default;
+
+    /// Copy constructor.
+    BinBasedFastPointLocator(BinBasedFastPointLocator const& rOther)
+        : mrModelPart(rOther.mrModelPart),
+          mCellSize(rOther.mCellSize)
+    {
+        if (mCellSize > 0.0) {
+            UpdateSearchDatabaseAssignedSize(mCellSize);
+        } else {
+            UpdateSearchDatabase();
+        }
+    }
 
     ///@}
     ///@name Operators
@@ -129,7 +156,7 @@ public:
     {
         KRATOS_TRY
 
-        // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
+        // Copy the entities to a new container, as the list will be shuffled during the construction of the tree
         ContainerType entities_array;
         GetContainer(mrModelPart, entities_array);
         IteratorType it_begin = entities_array.begin();
@@ -145,7 +172,7 @@ public:
      * @brief Function to construct or update the search database
      * @param CellSize The current size of the cell used for search
      */
-    void UpdateSearchDatabaseAssignedSize(double CellSize)
+    void UpdateSearchDatabaseAssignedSize(const double CellSize)
     {
         KRATOS_TRY
 
@@ -154,8 +181,9 @@ public:
         GetContainer(mrModelPart, entities_array);
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
+        mCellSize = CellSize;
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
+        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, mCellSize));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -359,6 +387,8 @@ private:
 
     typename BinsObjectDynamic<ConfigureType>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
 
+    double mCellSize = -1.0; /// The cell size used for the search. Default is negative to indicate that it is not set
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -412,5 +442,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED  defined
