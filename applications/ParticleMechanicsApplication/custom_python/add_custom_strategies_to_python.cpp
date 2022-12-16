@@ -35,6 +35,7 @@
 //---schemes
 #include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/schemes/mpm_explicit_scheme.hpp"
+#include "custom_strategies/schemes/mpm_residual_based_simple_steady_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 //---builders and solvers
@@ -66,6 +67,7 @@ namespace Python{
         //custom scheme types
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
         typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
+        typedef MPMResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadyScheme;
 
         // MPM Residual Based Bossak Scheme Type
         py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
@@ -78,6 +80,16 @@ namespace Python{
             .def(py::init < ModelPart& >())
             .def("Initialize", &MPMExplicitSchemeType::Initialize)
             ;
+
+        // MPM Residual Based Simple Steady Type
+//         py::class_< MPMResidualBasedSimpleSteadyScheme,typename MPMResidualBasedSimpleSteadyScheme::Pointer, BaseSchemeType >(m,"MPMResidualBasedSimpleSteadyScheme")
+//             ;
+//
+        py::class_< MPMResidualBasedSimpleSteadyScheme, typename MPMResidualBasedSimpleSteadyScheme:: Pointer, BaseSchemeType >
+        (m, "MPMResidualBasedSimpleSteadyScheme")
+        .def(py::init<Parameters >() )
+        .def(py::init< >()
+        );
 
         // MPM Residual Based Newton Raphson Strategy Type
         py::class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")

@@ -180,10 +180,11 @@ protected:
     void ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /*
-     * Compute coefficients for dynamic terms (only for stabilization and for Newmark scheme integration)
+     * Operations related with the osgs stabilization
      */
-
     void ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP);
+
+    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -261,6 +262,7 @@ protected:
      * Initialize Element General Variables
      */
     void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+
 
     ///@}
     ///@name Protected  Access

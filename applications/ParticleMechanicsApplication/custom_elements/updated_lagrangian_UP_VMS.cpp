@@ -826,6 +826,61 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
 }
 
 
+void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
+{
+//     // Get Shape function data
+//     Vector GaussWeights;
+//     Matrix ShapeFunctions;
+//     ShapeFunctionDerivativesArrayType ShapeDerivatives;
+//     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+//     const unsigned int NumGauss = GaussWeights.size();
+//
+//     array_1d<double,NumNodes*Dim> momentum_rhs = ZeroVector(NumNodes*Dim);
+//     VectorType MassRHS = ZeroVector(NumNodes);
+//     VectorType NodalArea = ZeroVector(NumNodes);
+//
+//     TElementData data;
+//     data.Initialize(*this, rCurrentProcessInfo);
+//
+//     for (unsigned int g = 0; g < NumGauss; g++)
+//     {
+//         this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+//
+//         array_1d<double, 3> MomentumRes = ZeroVector(3);
+//         double MassRes = 0.0;
+//
+//         array_1d<double,3> convective_velocity = this->GetAtCoordinate(data.Velocity,data.N) - this->GetAtCoordinate(data.MeshVelocity,data.N);
+//
+//         this->MomentumProjTerm(data, convective_velocity, MomentumRes);
+//         this->MassProjTerm(data,MassRes);
+//
+//         for (unsigned int i = 0; i < NumNodes; i++)
+//         {
+//             double W = data.Weight*data.N[i];
+//             unsigned int row = i*Dim;
+//             for (unsigned int d = 0; d < Dim; d++)
+//                 momentum_rhs[row+d] += W*MomentumRes[d];
+//             NodalArea[i] += W;
+//             MassRHS[i] += W*MassRes;
+//         }
+//     }
+//
+//     // Add carefully to nodal variables to avoid OpenMP race condition
+//     GeometryType& r_geometry = this->GetGeometry();
+//     for (SizeType i = 0; i < NumNodes; ++i)
+//     {
+//         r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
+//         array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(ADVPROJ);
+//         unsigned int row = i*Dim;
+//         for (unsigned int d = 0; d < Dim; d++)
+//             rMomValue[d] += momentum_rhs[row + d];
+//         r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+//         r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+//         r_geometry[i].UnSetLock(); // Free the node for other threads
+//     }
+}
+
+
 void UpdatedLagrangianUPVMS::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian )

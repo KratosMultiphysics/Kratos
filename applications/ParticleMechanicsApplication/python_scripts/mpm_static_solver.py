@@ -2,6 +2,9 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Import applications and dependencies
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+
 # Importing the base class
 from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
 
@@ -16,4 +19,5 @@ class MPMStaticSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Construction is finished.")
 
     def _CreateSolutionScheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        #return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        return KratosParticle.MPMResidualBasedSimpleSteadyScheme()
