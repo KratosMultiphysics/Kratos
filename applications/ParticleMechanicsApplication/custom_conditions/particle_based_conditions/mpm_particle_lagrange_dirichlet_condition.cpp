@@ -590,13 +590,13 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
         rValues.resize(1);
 
     if (rVariable == MPC_NORMAL) {
-        rValues[0] = m_unit_normal;
-        // const GeometryType& r_geometry = GetGeometry();
-        // auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-        // auto area_element = r_geometry.GetGeometryParent(0).GetValue(MPC_AREA_ELEMENT);
-        // array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+        // rValues[0] = m_unit_normal;
+        const GeometryType& r_geometry = GetGeometry();
+        auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+        auto area_element = r_geometry.GetGeometryParent(0).GetValue(MPC_AREA_ELEMENT);
+        array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
-        // rValues[0] = r_lagrange_multiplier ;
+        rValues[0] = r_lagrange_multiplier ;
     }
     else if (rVariable == MPC_CONTACT_FORCE) {
         this->CalculateContactForce(rCurrentProcessInfo);

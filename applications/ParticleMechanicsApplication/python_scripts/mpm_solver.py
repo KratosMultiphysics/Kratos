@@ -251,9 +251,9 @@ class MPMSolver(PythonSolver):
 
     def _SearchSuperfluousConstraints(self):
         print("COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-        # condition_model_part = self.model["MPM_Material.Slip3D_Slip_Auto2"]
+        condition_model_part = self.model["MPM_Material.Slip3D_Slip_Auto2"]
         
-        # KratosParticle.SearchSuperfluousConstraints(self.grid_model_part, self.material_point_model_part, condition_model_part)
+        KratosParticle.SearchSuperfluousConstraints(self.grid_model_part, self.material_point_model_part, condition_model_part)
         
 
     def _AddModelPartContainers(self):

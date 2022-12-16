@@ -104,7 +104,9 @@ namespace MPMSearchElementUtility
 
                 }
             }
-            if (counter>= 2){
+            if (counter>= rGeom.WorkingSpaceDimension()){
+            // if (counter>= 2){
+                
                 geometry_neighbours_aligned.push_back(geometry_neighbours[j]);
             }
         }
@@ -531,7 +533,6 @@ namespace MPMSearchElementUtility
         for(auto i=mpc_active_elements.begin(); i!=mpc_active_elements.end(); ++i)
         {
             auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
-            
             int counter=0;
 
             for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
@@ -617,7 +618,7 @@ namespace MPMSearchElementUtility
         {
             auto max_aligned_elements = i->GetGeometry().WorkingSpaceDimension()+1;
             if (i->Is(SLIP))
-                max_aligned_elements =4;
+                max_aligned_elements =3;
             const GeometryData::KratosGeometryType geo_type = i->GetGeometry().GetGeometryParent(0).GetGeometryType();
             if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3){
                 // max_aligned_elements = i->GetGeometry().WorkingSpaceDimension();
@@ -627,85 +628,137 @@ namespace MPMSearchElementUtility
             }
                 
                     auto& geometry_neighbours_aligned = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS_ALIGNED);
+                    auto& geometry_neighbours = i->GetGeometry().GetGeometryParent(0).GetValue(GEOMETRY_NEIGHBOURS);
                     int counter=0;
 
-                    if (max_aligned_elements == 1){
-                        bool deactivate = true;
-                        for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
-                        {
-                            if (i->GetGeometry().GetGeometryParent(0).Id() == inactive->GetGeometry().GetGeometryParent(0).Id())
-                                deactivate=false;      
-                        }
-                        
-                        if (deactivate){
-                            for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
-                                for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
-                                {
-                                    if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
-                                            bool abc=true;
-                                            for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
-                                            {
-                                                if (active->GetGeometry().GetGeometryParent(0).Id() == edge->GetGeometry().GetGeometryParent(0).Id())
-                                                    abc=false;      
-                                            }
-                                            if (abc)
-                                                mpc_inactive_elements.push_back(*active.base());
-                                        }
+                    bool deactivate = true;
+                    for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                    {
+                        if (i->GetGeometry().GetGeometryParent(0).Id() == inactive->GetGeometry().GetGeometryParent(0).Id())
+                            deactivate=false;      
+                    }
+                    
+                    if (deactivate){
+                        int count_neigh = 0;
+                        for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+                            bool count = true;
+                            for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                            {
+                                if (geometry_neighbours_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                    count=false;
                                 }
                             }
+                            if (count){
+                                for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                {   
+                                
+                                    if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                        bool abc=true;
+                                        count_neigh +=1;
+                                        for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                                        {
+                                            if (active->GetGeometry().GetGeometryParent(0).Id() == edge->GetGeometry().GetGeometryParent(0).Id())
+                                                abc=false;      
+                                        }
+                                        
+                                        
+                                        if (abc && count_neigh>=max_aligned_elements)
+                                            mpc_inactive_elements.push_back(*active.base());
+                                    }
+                                }   
+                            }
                         }
+
+                        // delete also not aligned neighbors 
+                        for (IndexType k = 0; k < geometry_neighbours.size(); ++k) {
+                            bool aligned_neighbor=false;
+                            for (IndexType aligned = 0; aligned < geometry_neighbours_aligned.size(); ++aligned) {
+                                if (geometry_neighbours[k]->Id() == geometry_neighbours_aligned[aligned]->Id()){
+                                    aligned_neighbor =true;
+                                }
+
+                            }
+                            if (aligned_neighbor == false){
+
+                                bool count = true;
+                                for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                                {
+                                    if (geometry_neighbours[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                                        count=false;
+                                    }
+                                }
+                                if (count){
+
+                                    for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                                    {   
+                                    
+                                        if (geometry_neighbours[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                                            count_neigh +=1;
+                                            
+                                            if (count_neigh>=max_aligned_elements)
+                                                mpc_inactive_elements.push_back(*active.base());
+                                        }
+                                    } 
+                                }  
+
+                            }
+
+
+                        }
+                        
+                    }
                         
 
 
-                    }
-                    else{
-                        for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
+                    
+                    // else{
+                    //     for (IndexType k = 0; k < geometry_neighbours_aligned.size(); ++k) {
 
-                            for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
-                            {
+                    //         for(auto active=mpc_active_elements.begin(); active!=mpc_active_elements.end(); ++active)
+                    //         {
                                 
-                                if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
-                                    bool count = true;
-                                    for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
-                                    {
-                                        if (geometry_neighbours_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
-                                            count=false;
-                                        }
-                                    }
-                                    for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
-                                    {
-                                        if (geometry_neighbours_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
-                                            count=false;
-                                        }
-                                    }
-                                    // for(auto slip=mpc_slip_elements.begin(); slip!=mpc_slip_elements.end(); ++slip)
-                                    // {
-                                    //     if (geometry_neighbours_aligned[k]->Id() == slip->GetGeometry().GetGeometryParent(0).Id()){
-                                    //         count=false;
-                                    //     }
-                                    // }
+                    //             if (geometry_neighbours_aligned[k]->Id() == active->GetGeometry().GetGeometryParent(0).Id()){
+                    //                 bool count = true;
+                    //                 for(auto inactive=mpc_inactive_elements.begin(); inactive!=mpc_inactive_elements.end(); ++inactive)
+                    //                 {
+                    //                     if (geometry_neighbours_aligned[k]->Id() == inactive->GetGeometry().GetGeometryParent(0).Id()){
+                    //                         count=false;
+                    //                     }
+                    //                 }
+                    //                 for(auto edge=mpc_edge_elements.begin(); edge!=mpc_edge_elements.end(); ++edge)
+                    //                 {
+                    //                     if (geometry_neighbours_aligned[k]->Id() == edge->GetGeometry().GetGeometryParent(0).Id()){
+                    //                         count=false;
+                    //                     }
+                    //                 }
+                    //                 // for(auto slip=mpc_slip_elements.begin(); slip!=mpc_slip_elements.end(); ++slip)
+                    //                 // {
+                    //                 //     if (geometry_neighbours_aligned[k]->Id() == slip->GetGeometry().GetGeometryParent(0).Id()){
+                    //                 //         count=false;
+                    //                 //     }
+                    //                 // }
                                 
                 
-                                    if (count)
-                                        counter +=1; 
+                    //                 if (count)
+                    //                     counter +=1; 
                                         
                                         
                                         
                             
-                                }
-                            }
-                        }
-                        // deactivate the element only if neighbouring elements are also constrained ->important for edge elements
-                        if (counter>=max_aligned_elements)
-                            mpc_inactive_elements.push_back(*i.base());
+                    //             }
+                    //         }
+                    //     }
+                    //     // deactivate the element only if neighbouring elements are also constrained ->important for edge elements
+                    //     if (counter>=max_aligned_elements)
+                    //         mpc_inactive_elements.push_back(*i.base());
 
-                        // if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8){
-                        //     if (counter>=max_aligned_elements-1){
-                        //         mpc_slip_elements.push_back(*i.base());
-                        //     }
-                        // }
+                    //     // if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8){
+                    //     //     if (counter>=max_aligned_elements-1){
+                    //     //         mpc_slip_elements.push_back(*i.base());
+                    //     //     }
+                    //     // }
 
-                    }
+                    // }
 
                     
 
@@ -735,7 +788,7 @@ namespace MPMSearchElementUtility
             for(auto i=mpc_inactive_elements.begin(); i!=mpc_inactive_elements.end(); ++i)
             {
                 if (i->GetGeometry().GetGeometryParent(0).Id() == condition_itr->GetGeometry().GetGeometryParent(0).Id()){
-                    condition_itr->Set(SELECTED,true);
+                    condition_itr->Reset(ACTIVE);
                     counterb +=1;
                     
                 }
