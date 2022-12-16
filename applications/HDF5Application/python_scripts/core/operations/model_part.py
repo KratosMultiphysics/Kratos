@@ -618,7 +618,7 @@ def Create(settings: ParametersWrapper) -> IOFactory:
     operation_type_camel = snake_to_camel(operation_type)
     factory = next((io.Factory for io in GetSubclasses(IOOperation) if io.__name__ == operation_type_camel), None)
 
-    if factory == None: # the requested operation was not defined in this script
+    if factory is None: # the requested operation was not defined in this script
         if settings.Has('module_name'):
             module_name = settings['module_name']
             module = import_module(
@@ -630,6 +630,6 @@ def Create(settings: ParametersWrapper) -> IOFactory:
     else:
         instance = factory(settings)
 
-    if instance == None:
+    if instance is None:
         raise RuntimeError(f"no instance created for operation: {operation_type_camel}")
     return instance
