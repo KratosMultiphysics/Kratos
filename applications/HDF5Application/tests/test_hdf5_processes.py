@@ -1,3 +1,4 @@
+# --- Kratos Imports ---
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -8,6 +9,8 @@ import KratosMultiphysics.HDF5Application.initialization_from_hdf5_process as in
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process as single_mesh_temporal_input_process
 import KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process as single_mesh_xdmf_output_process
 import KratosMultiphysics.HDF5Application.import_model_part_from_hdf5_process as import_model_part_from_hdf5_process
+
+# --- STD Imports ---
 from unittest.mock import patch
 import pathlib
 
@@ -136,8 +139,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_once_with(
             self.model_part)
         self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 2)
-        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/test_model_part/0.20')
+        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/test_model_part/0.20')
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.call_args[0][0]['list_of_variables'][0].GetString(), 'DISPLACEMENT')
         self.assertEqual(
@@ -417,12 +419,13 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             'KratosMultiphysics.HDF5Application.xdmf_utils.WriteMultifileTemporalAnalysisToXdmf', autospec=True)
         patcher2 = patch(
             'KratosMultiphysics.kratos_utilities.DeleteFileIfExisting', autospec=True)
-        patcher3 = patch('os.listdir', autospec=True)
+        patcher3 = patch('pathlib.Path.glob', autospec=True)
         WriteMultifileTemporalAnalysisToXdmf = patcher1.start()
         DeleteFileIfExisting = patcher2.start()
         listdir = patcher3.start()
         listdir.return_value = [
-            'test_model_part-0.0000.h5', 'test_model_part-0.1000.h5']
+            pathlib.Path('test_model_part-0.0000.h5').absolute(),
+            pathlib.Path('test_model_part-0.1000.h5').absolute()]
         process = single_mesh_xdmf_output_process.Factory(settings, self.model)
         process.ExecuteInitialize()
         process.ExecuteBeforeSolutionLoop()
@@ -433,7 +436,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         WriteMultifileTemporalAnalysisToXdmf.assert_called_with(
             'test_model_part.h5', '/ModelData', '/ResultsData')
         DeleteFileIfExisting.assert_called_once_with(
-            './test_model_part-0.1000.h5')
+            str(pathlib.Path('./test_model_part-0.1000.h5').absolute()))
         patcher1.stop()
         patcher2.stop()
         patcher3.stop()
