@@ -228,7 +228,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                             GlobalPointersVector< Element > VectorOfNeighbours;
                             VectorOfNeighbours.resize(1);
                             VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
-                            KRATOS_INFO("VectorOfNeighbours(0)") << VectorOfNeighbours(0) << std::endl;
 
                             for (Condition::Pointer pCondition : ListConditions) {
                                 pCondition->Set(VISITED,true);
