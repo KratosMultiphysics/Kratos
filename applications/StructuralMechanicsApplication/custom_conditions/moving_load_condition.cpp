@@ -91,7 +91,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     const bool CalculateResidualVectorFlag
     )
 {
-    KRATOS_TRY
+    //KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().size();
 	const SizeType block_size = this->GetBlockSize();
@@ -166,9 +166,9 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         BoundedMatrix<double, TDim, TNumNodes> local_load_matrix = ZeroMatrix(TDim, TNumNodes);
         BoundedMatrix<double, TDim, TNumNodes> global_load_matrix = ZeroMatrix(TDim, TNumNodes);
 
-        Matrix global_moment_matrix;
+        const Matrix global_moment_matrix = CalculateGlobalMomentMatrix(rotational_shape_functions_vector, local_moving_load);
 
-        global_moment_matrix.resize(block_size - TDim, TNumNodes, false);
+        //global_moment_matrix.resize(block_size - TDim, TNumNodes, false);
 
 
         for (IndexType nod = 0; nod < TNumNodes; ++nod){
@@ -183,23 +183,23 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         noalias(global_load_matrix) = prod(trans(rotation_matrix), local_load_matrix);
 
 
-        // rotation around y and z axis (3D)
-        if (block_size > TDim + 1){
-            global_moment_matrix(0, 0) = 0;
-            global_moment_matrix(1, 0) = rotational_shape_functions_vector[0] * local_moving_load[2];
-            global_moment_matrix(2, 0) = rotational_shape_functions_vector[0] * local_moving_load[1];
+     //   // rotation around y and z axis (3D)
+     //   if (block_size > TDim + 1){
+     //       global_moment_matrix(0, 0) = 0;
+     //       global_moment_matrix(1, 0) = rotational_shape_functions_vector[0] * local_moving_load[2];
+     //       global_moment_matrix(2, 0) = rotational_shape_functions_vector[0] * local_moving_load[1];
 
-            global_moment_matrix(0, 1) = 0;
-            global_moment_matrix(1, 1) = rotational_shape_functions_vector[1] * local_moving_load[2];
-            global_moment_matrix(2, 1) = rotational_shape_functions_vector[1] * local_moving_load[1];
+     //       global_moment_matrix(0, 1) = 0;
+     //       global_moment_matrix(1, 1) = rotational_shape_functions_vector[1] * local_moving_load[2];
+     //       global_moment_matrix(2, 1) = rotational_shape_functions_vector[1] * local_moving_load[1];
 
-        }
-        // rotation around z axis (2D)
-    	else if (block_size > TDim){
-            global_moment_matrix(0, 0) = rotational_shape_functions_vector[0] * local_moving_load[1];
-            global_moment_matrix(0, 1) = rotational_shape_functions_vector[1] * local_moving_load[1];
+     //   }
+     //   // rotation around z axis (2D)
+    	//else if (block_size > TDim){
+     //       global_moment_matrix(0, 0) = rotational_shape_functions_vector[0] * local_moving_load[1];
+     //       global_moment_matrix(0, 1) = rotational_shape_functions_vector[1] * local_moving_load[1];
 
-        }
+     //   }
 
 
         for (IndexType ii = 0; ii < TNumNodes; ++ii){
@@ -220,9 +220,96 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
             }
         }
     }
-    KRATOS_CATCH( "" )
+    //KRATOS_CATCH( "" )
 }
 
+
+template< >
+Matrix MovingLoadCondition<2,2>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, 2> LocalMovingLoad) const
+{
+    // check if condition has rotation dof 
+    bool has_rot_dof = this->HasRotDof();
+
+    Matrix global_moment_matrix;
+    global_moment_matrix.resize(1, 2, false);
+
+    // rotation around z axis (2D)
+    if (has_rot_dof) {
+
+        global_moment_matrix(0, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[1];
+        global_moment_matrix(0, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[1];
+    }
+
+    return global_moment_matrix;
+
+}
+
+template< >
+Matrix MovingLoadCondition<2, 3>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, 2> LocalMovingLoad) const
+{
+    // check if condition has rotation dof 
+    bool has_rot_dof = this->HasRotDof();
+
+    Matrix global_moment_matrix;
+    global_moment_matrix.resize(1, 3, false);
+
+    // rotation around z axis (2D)
+    if (has_rot_dof) {
+
+        global_moment_matrix(0, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[1];
+        global_moment_matrix(0, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[1];
+    }
+
+    return global_moment_matrix;
+}
+
+template< >
+Matrix MovingLoadCondition<3, 2>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, 3> LocalMovingLoad) const
+{
+    // check if condition has rotation dof 
+    bool has_rot_dof = this->HasRotDof();
+
+    Matrix global_moment_matrix;
+    global_moment_matrix.resize(3, 2, false);
+
+    // rotation around y and z axis (3D)
+    if (has_rot_dof) {
+
+        global_moment_matrix(0, 0) = 0;
+        global_moment_matrix(1, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[2];
+        global_moment_matrix(2, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[1];
+
+        global_moment_matrix(0, 1) = 0;
+        global_moment_matrix(1, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[2];
+        global_moment_matrix(2, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[1];
+    }
+
+    return global_moment_matrix;
+}
+
+template< >
+Matrix MovingLoadCondition<3, 3>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, 3> LocalMovingLoad) const
+{
+    // check if condition has rotation dof 
+    bool has_rot_dof = this->HasRotDof();
+
+    Matrix global_moment_matrix;
+    global_moment_matrix.resize(3, 3, false);
+
+    // rotation around y and z axis (3D)
+    if (has_rot_dof) {
+
+        global_moment_matrix(0, 0) = 0;
+        global_moment_matrix(1, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[2];
+        global_moment_matrix(2, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[1];
+
+        global_moment_matrix(0, 1) = 0;
+        global_moment_matrix(1, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[2];
+        global_moment_matrix(2, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[1];
+    }
+
+    return global_moment_matrix;
+}
 
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const
@@ -475,10 +562,10 @@ bool MovingLoadCondition<TDim, TNumNodes>::HasRotDof() const
     return GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2;
 }
 
-template class MovingLoadCondition<2,2>;
-template class MovingLoadCondition<3,2>;
-template class MovingLoadCondition<2,3>;
-template class MovingLoadCondition<3,3>;
+template class MovingLoadCondition<2, 2>;
+template class MovingLoadCondition<2, 3>;
+template class MovingLoadCondition<3, 2>;
+template class MovingLoadCondition<3, 3>;
 
 } // Namespace Kratos
 
