@@ -72,7 +72,7 @@ class TestOperations(KratosUnittest.TestCase):
             partitioned_model_part_io = p.return_value
             model_part = test_hdf5_core._SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileParallel)
-            partitioned_model_part_output(model_part, hdf5_file)
+            partitioned_model_part_output(model_part, hdf5_file).Execute()
             p.assert_called_once_with(hdf5_file, '/ModelData')
             partitioned_model_part_io.WriteModelPart.assert_called_once_with(
                 model_part)
@@ -89,7 +89,7 @@ class TestOperations(KratosUnittest.TestCase):
         with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
             model_part = test_hdf5_core._SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileParallel)
-            partitioned_model_part_output(model_part, hdf5_file)
+            partitioned_model_part_output(model_part, hdf5_file).Execute()
             args, _ = p.call_args
             self.assertEqual(args[1], '/ModelData/model_part/1.23')
 
