@@ -10,9 +10,9 @@ license: HDF5Application/license.txt
 
 
 # Kratos imports
-from tokenize import Single
 import KratosMultiphysics
 from . import file_io
+from . import operations
 
 # STL imports
 import abc
@@ -26,10 +26,10 @@ class Controller(metaclass=abc.ABCMeta):
     def __init__(self, model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO):
         self.model_part = model_part
         self.io = io
-        self.operations = []
+        self.operation_factories: "list[operations.IOFactory]" = []
 
-    def Add(self, operation) -> None:
-        self.operations.append(operation)
+    def Add(self, factory: operations.IOFactory) -> None:
+        self.operation_factories.append(factory)
 
     @abc.abstractmethod
     def IsExecuteStep(self) -> bool:
@@ -44,8 +44,8 @@ class Controller(metaclass=abc.ABCMeta):
     def ExecuteOperations(self) -> None:
         """!Execute all assigned operations, bypassing the controller's checks."""
         current_io = self.io.Get(self.model_part)
-        for op in self.operations:
-            op(self.model_part, current_io)
+        for factory in self.operation_factories:
+            factory(self.model_part, current_io).Execute()
 
 
 class DefaultController(Controller):
