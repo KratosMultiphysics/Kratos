@@ -603,10 +603,6 @@ namespace Kratos
 
         this->GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX) += mechanicalDissipation / numberOfNeighElems;
       }
-      else
-      {
-        std::cout << "NO HEAT FLUX  IN NODE " << this->GetGeometry()[i].Y() << std::endl;
-      }
     }
 
     const double time_step = rCurrentProcessInfo[DELTA_TIME];
