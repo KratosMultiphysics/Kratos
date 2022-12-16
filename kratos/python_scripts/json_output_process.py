@@ -115,8 +115,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                         if count == 0:
                             data["RESULTANT"] = {}
 
-                    for i in range(len(self.output_variables)):
-                        variable = self.output_variables[i]
+                    for variable in self.output_variables:
                         variable_name = variable.Name()
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                         if self.historical_value:
@@ -168,8 +167,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     else:
                         data["RESULTANT"] = {}
 
-                    for i in range(len(self.gauss_points_output_variables)):
-                        variable = self.gauss_points_output_variables[i]
+                    for variable in self.gauss_points_output_variables:
                         variable_name = variable.Name()
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
@@ -246,7 +244,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             data["TIME"].append(time)
 
             # Nodal values
-            if len(self.output_variables) > 0:
+            if self.output_variables:
                 count = 0
                 for node in self.sub_model_part.Nodes:
                     compute = self.__check_flag(node)
@@ -254,8 +252,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     if compute:
                         node_identifier = "NODE_" + self.__get_node_identifier(node)
 
-                        for i in range(len(self.output_variables)):
-                            variable = self.output_variables[i]
+                        for variable in self.output_variables:
                             variable_name = variable.Name()
                             variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                             if self.historical_value:
@@ -317,8 +314,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     compute = self.__check_flag(elem)
 
                     if compute:
-                        for i in range(len(self.gauss_points_output_variables)):
-                            variable = self.gauss_points_output_variables[i]
+                        for variable in self.gauss_points_output_variables:
                             variable_name = variable.Name()
                             variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                             value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
