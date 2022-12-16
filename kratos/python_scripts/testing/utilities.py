@@ -51,7 +51,7 @@ def ReadSerialModelPart(mdpa_file_name, model_part):
 
 
 @KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
-def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None):
+def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None, clean_orphan_nodes = False):
     """Reads mdpa file
 
     This method reads mdpa file and fills given model_part accordingly using MPI
@@ -78,7 +78,8 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None)
         model_part, importer_settings)
     model_part_import_util.ImportModelPart()
     model_part_import_util.CreateCommunicators()
-    Kratos.AuxiliarModelPartUtilities(model_part).RemoveNodesFromSubModePartsWithoutCorrespondingEntities()
+    if clean_orphan_nodes:
+        Kratos.AuxiliarModelPartUtilities(model_part).RemoveNodesFromSubModePartsWithoutCorrespondingEntities()
 
 def PrintTestHeader(application):
     Kratos.Logger.Flush()
