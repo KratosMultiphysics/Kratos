@@ -157,7 +157,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     count += 1
 
         # Gauss points values
-        if len(self.gauss_points_output_variables) > 0:
+        if self.gauss_points_output_variables:
             count = 0
             for elem in self.sub_model_part.Elements:
                 compute = self.__check_flag(elem)
