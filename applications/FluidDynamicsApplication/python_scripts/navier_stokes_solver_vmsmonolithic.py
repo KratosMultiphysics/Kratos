@@ -4,6 +4,8 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
+import math
+
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
@@ -16,6 +18,7 @@ class StabilizedFormulation(object):
         self.historical_nodal_properties_variables_list = []
         self.non_historical_nodal_properties_variables_list = []
         self.process_data = {}
+
 
         #TODO: Keep this until the MonolithicWallCondition is removed to ensure backwards compatibility in solvers with no defined condition_name
         self.condition_name = "MonolithicWallCondition"
@@ -225,6 +228,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_flag": false
         }""")
 
+
         default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
@@ -280,6 +284,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         # Update the default buffer size according to the selected time scheme
         self._SetTimeSchemeBufferSize()
 
+        ## Get time-step size
+        self.timestep=self.settings["time_stepping"]["time_step"].GetDouble()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithic finished.")
 
     def AddVariables(self):
@@ -322,8 +329,57 @@ class NavierStokesSolverMonolithic(FluidSolver):
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
+        
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+    def CalculateNodalArea(self):    
+        nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part,2)
+        nodal_area_process.Execute()
+
+    def CalculateTheError(self):
+        print("CalculateTheError")  
+        self.CalculateNodalArea() 
+        time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  
+        if (time==self.timestep or time>1.279999):  
+         mu=0.001
+         rho=1.0
+         totalerrorvelocitywithnodalarea=0.0
+         totalerrorpressurewithnodalarea=0.0
+         totalerrorvelocity=0.0
+         totalerrorpressure=0.0
+         nodalareasum=0.0
+         for node in self.main_model_part.Nodes:
+          vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)  
+          vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)
+          vel_z=0.0
+          pressure=(rho/4.0)*(math.cos(2.0*node.X)+math.cos(2.0*node.Y))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_vel_x=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+          numerical_vel_y=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+          numerical_pressure=node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+          nodalarea=node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+          nodalareasum+=nodalarea
+          errorvel_x = vel_x-numerical_vel_x
+          errorvel_y = vel_y-numerical_vel_y
+          errorpressure = pressure-numerical_pressure
+          totalerrorvelocitywithnodalarea +=(errorvel_x*errorvel_x+errorvel_y*errorvel_y)*nodalarea
+          totalerrorpressurewithnodalarea +=(errorpressure*errorpressure)*nodalarea
+          totalerrorvelocity +=(errorvel_x*errorvel_x+errorvel_y*errorvel_y)
+          totalerrorpressure +=(errorpressure*errorpressure)
+         totalerrorvelocitywithnodalarea=totalerrorvelocitywithnodalarea/nodalareasum
+         totalerrorpressurewithnodalarea=totalerrorpressurewithnodalarea/nodalareasum
+         totalerrorvelocitywithnodalarea  = math.sqrt(totalerrorvelocitywithnodalarea)  
+         totalerrorpressurewithnodalarea  = math.sqrt(totalerrorpressurewithnodalarea)
+         totalerrorvelocity  = math.sqrt(totalerrorvelocity)  
+         totalerrorpressure  = math.sqrt(totalerrorpressure)
+         elementvelocityerror=0.0
+         elementpressureerror=0.0
+         totalarea=0.0
+         print("dt=", self.timestep)
+         print("totalerrorvelocitywithnodalarea=", totalerrorvelocitywithnodalarea) 
+         print("totalerrorpressurewithnodalarea=", totalerrorpressurewithnodalarea)
+         print("totalerrorvelocity=", totalerrorvelocity) 
+         print("totalerrorpressure=", totalerrorpressure)   
 
     def InitializeSolutionStep(self):
         # If required, compute the BDF coefficients

@@ -65,6 +65,7 @@ class AnalysisStage(object):
             is_converged = self._GetSolver().SolveSolutionStep()
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
+            self._GetSolver().CalculateTheError()
             self.OutputSolutionStep()
 
     def Initialize(self):
