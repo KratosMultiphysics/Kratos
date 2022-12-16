@@ -92,7 +92,6 @@ class DistributedImportModelPartUtility:
                     partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, self.comm , domain_size, verbosity, sync_conditions)
                     partitioner.Execute()
                     serial_model_part_io.ReadModelPart(self.main_model_part)
-                    KratosMultiphysics.AuxiliarModelPartUtilities(self.main_model_part).RemoveNodesFromSubModePartsWithoutCorrespondingEntities()
 
                 KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished in {0:.{1}f} [s]".format(time()-start_time,1),data_communicator=self.comm)
 

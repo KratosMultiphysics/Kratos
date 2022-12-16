@@ -78,7 +78,7 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None)
         model_part, importer_settings)
     model_part_import_util.ImportModelPart()
     model_part_import_util.CreateCommunicators()
-
+    Kratos.AuxiliarModelPartUtilities(model_part).RemoveNodesFromSubModePartsWithoutCorrespondingEntities()
 
 def PrintTestHeader(application):
     Kratos.Logger.Flush()
