@@ -101,7 +101,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         data = {}
         data["TIME"] = []
         # Nodal values
-        if len(self.output_variables) > 0:
+        if self.output_variables:
             count = 0
             for node in self.sub_model_part.Nodes:
                 compute = self.__check_flag(node)
