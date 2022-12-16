@@ -568,6 +568,16 @@ private:
         }
     }
 
+    template<typename TWallModelType>
+    void AddRightHandSideGaussPointWallModelContributionCall(
+        array_1d<double, LocalSize>& rRHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo)
+    {
+        auto wall_law_data_container = TWallModelType::WallLawDataContainer();
+        wall_law_data_container.Initialize(this, rData, rProcessInfo);
+        TWallModelType::AddRightHandSideGaussPointContribution(rRHS, rProcessInfo);
+    }
 
     ///@}
     ///@name Private  Access

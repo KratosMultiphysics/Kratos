@@ -325,9 +325,28 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
     }
 
     // Add the wall law contribution
-    // auto wall_law_data_container = TWallModel::WallLawDataContainer();
-    // wall_law_data_container.Initialize(this, data, rProcessInfo);
-    // TWallModel::AddRightHandSideGaussPointContribution(rhs_gauss, rProcessInfo);
+    constexpr SizeType n_wall_models = sizeof...(TWallModel);
+    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
+    if (this->Is(WALL) && n_wall_models != 0) {
+
+
+        // auto aux_function = [&, this](
+        //     array_1d<double, LocalSize>& rRHS,
+        //     const auto&& rWallData,
+        //     const ConditionDataStruct& rData,
+        //     const ProcessInfo& rProcessInfo){
+        //     KRATOS_WATCH("Inside aux lambda")
+        // };
+
+        (AddRightHandSideGaussPointWallModelContributionCall<TWallModel>(rhs_gauss, data, rProcessInfo), ...);
+
+
+        // [](...){ }((std::cout << "Here!" << std::endl)...);
+
+        // auto (wall_law_data_container = TWallModel::WallLawDataContainer(),...);
+        // wall_law_data_container.Initialize(this, data, rProcessInfo);
+        // TWallModel...::AddRightHandSideGaussPointContribution(rhs_gauss, rProcessInfo);
+    }
 }
 
 
