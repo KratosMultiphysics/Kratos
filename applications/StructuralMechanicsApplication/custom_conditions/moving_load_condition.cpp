@@ -91,7 +91,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     const bool CalculateResidualVectorFlag
     )
 {
-    //KRATOS_TRY
+    KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().size();
 	const SizeType block_size = this->GetBlockSize();
@@ -220,13 +220,14 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
             }
         }
     }
-    //KRATOS_CATCH( "" )
+    KRATOS_CATCH( "" )
 }
 
 
 template< >
 Matrix MovingLoadCondition<2,2>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, 2> LocalMovingLoad) const
 {
+    KRATOS_TRY
     // check if condition has rotation dof 
     bool has_rot_dof = this->HasRotDof();
 
@@ -241,12 +242,14 @@ Matrix MovingLoadCondition<2,2>::CalculateGlobalMomentMatrix(const VectorType& r
     }
 
     return global_moment_matrix;
+    KRATOS_CATCH("")
 
 }
 
 template< >
 Matrix MovingLoadCondition<2, 3>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, 2> LocalMovingLoad) const
 {
+    KRATOS_TRY
     // check if condition has rotation dof 
     bool has_rot_dof = this->HasRotDof();
 
@@ -261,6 +264,8 @@ Matrix MovingLoadCondition<2, 3>::CalculateGlobalMomentMatrix(const VectorType& 
     }
 
     return global_moment_matrix;
+
+    KRATOS_CATCH("")
 }
 
 template< >
@@ -314,6 +319,7 @@ Matrix MovingLoadCondition<3, 3>::CalculateGlobalMomentMatrix(const VectorType& 
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const
 {
+    KRATOS_TRY
     if (rShapeFunctionsVector.size() != TNumNodes) {
         rShapeFunctionsVector.resize(TNumNodes, false);
     }
@@ -323,12 +329,15 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactNormalShapeFunctions(V
     rShapeFunctionsVector[0] = 1 - LocalXCoord / length;
     rShapeFunctionsVector[1] = LocalXCoord / length;
 
+    KRATOS_CATCH("")
+
 }
 
 
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactShearShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const
 {
+    KRATOS_TRY
     if (rShapeFunctionsVector.size() != TNumNodes) {
         rShapeFunctionsVector.resize(TNumNodes, false);
     }
@@ -337,13 +346,14 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactShearShapeFunctions(Ve
 
     rShapeFunctionsVector[0] = 1 + 2 * std::pow((LocalXCoord / length), 3) - 3 * std::pow((LocalXCoord / length), 2);
     rShapeFunctionsVector[1] = -2 * std::pow((LocalXCoord / length), 3) + 3 * std::pow((LocalXCoord / length), 2);
-
+    KRATOS_CATCH("")
 }
 
 
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const
 {
+    KRATOS_TRY
     if (rShapeFunctionsVector.size() != TNumNodes) {
         rShapeFunctionsVector.resize(TNumNodes, false);
     }
@@ -352,7 +362,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctio
 
     rShapeFunctionsVector[0] = LocalXCoord + (pow(LocalXCoord, 3) / pow(length, 2)) - 2 * (pow(LocalXCoord, 2) / length);
     rShapeFunctionsVector[1] = (pow(LocalXCoord, 3) / pow(length, 2)) - (pow(LocalXCoord, 2) / length);
-
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -363,6 +373,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctio
 template<>
 void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const GeometryType& rGeom)
 {
+    KRATOS_TRY
     constexpr double tolerance = 1e-8;
 	//Unitary vector in local x direction
     array_1d<double, 3> vx = ZeroVector(3);
@@ -394,6 +405,8 @@ void MovingLoadCondition<2, 2>::CalculateRotationMatrix(BoundedMatrix<double, 2,
 
     rRotationMatrix(1, 0) = vy[0];
     rRotationMatrix(1, 1) = vy[1];
+
+    KRATOS_CATCH("")
 }
 
 
@@ -462,6 +475,7 @@ void MovingLoadCondition<3, 2>::CalculateRotationMatrix(BoundedMatrix<double, 3,
 template<>
 void MovingLoadCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const GeometryType& rGeom)
 {
+    KRATOS_TRY
     constexpr double tolerance = 1e-8;
 
     //Unitary vector in local x direction
@@ -494,6 +508,8 @@ void MovingLoadCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2,
 
     rRotationMatrix(1, 0) = vy[0];
     rRotationMatrix(1, 1) = vy[1];
+
+    KRATOS_CATCH("")
 }
 
 
@@ -559,7 +575,10 @@ void MovingLoadCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<double, 3,
 template< std::size_t TDim, std::size_t TNumNodes >
 bool MovingLoadCondition<TDim, TNumNodes>::HasRotDof() const
 {
+    KRATOS_TRY
     return GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2;
+
+    KRATOS_CATCH("")
 }
 
 template class MovingLoadCondition<2, 2>;
