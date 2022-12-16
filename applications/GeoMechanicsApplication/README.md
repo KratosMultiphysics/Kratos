@@ -57,8 +57,9 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 ~~~
 
-*Note*: 
+#### Note: 
 - MPI has not been tested and does not work.
+
 - The UMAT/UDSM constitutive models are not included in this repository. Some practical constitutive models can be found at https://soilmodels.com/ or https://github.com/Vahid-Galavi/GeoMaterials.
 
 
