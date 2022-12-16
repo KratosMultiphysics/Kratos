@@ -602,7 +602,7 @@ def GetSubclasses(base_class: type) -> "list[type]":
     return subclasses
 
 
-def Create(settings):
+def Create(settings: ParametersWrapper) -> IOFactory:
     '''Return the operation factory specified by the setting 'operation_type'.
 
     If the 'operation_type' is not found and the settings have a 'module_name',
