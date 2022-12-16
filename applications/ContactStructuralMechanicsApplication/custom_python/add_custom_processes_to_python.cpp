@@ -19,11 +19,9 @@
 #include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
-
-//Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
-//Processes
+/* Processes */
 #include "custom_processes/master_slave_process.h"
 #include "custom_processes/alm_fast_init_process.h"
 #include "custom_processes/alm_variables_calculation_process.h"
@@ -38,32 +36,28 @@
 #include "custom_processes/mpc_contact_search_process.h"
 #include "custom_processes/mpc_contact_search_wrapper_process.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    typedef Process  ProcessBaseType;
-
-    py::class_<ALMFastInit, ALMFastInit::Pointer, ProcessBaseType >
+    py::class_<ALMFastInit, ALMFastInit::Pointer, Process >
     (m, "ALMFastInit")
     .def(py::init<ModelPart&>())
     ;
 
-    py::class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, ProcessBaseType >
+    py::class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, Process >
     (m, "MasterSlaveProcess")
     .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ComputeDynamicFactorProcess, ComputeDynamicFactorProcess::Pointer, ProcessBaseType >
+    py::class_<ComputeDynamicFactorProcess, ComputeDynamicFactorProcess::Pointer, Process >
     (m, "ComputeDynamicFactorProcess")
     .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ALMVariablesCalculationProcess, ALMVariablesCalculationProcess::Pointer, ProcessBaseType >
+    py::class_<ALMVariablesCalculationProcess, ALMVariablesCalculationProcess::Pointer, Process >
     (m, "ALMVariablesCalculationProcess")
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>()) // Considering default variables
@@ -346,6 +340,5 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
 }
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 
