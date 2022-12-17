@@ -25,27 +25,13 @@ KratosMedApplication::KratosMedApplication():
     KratosApplication("MedApplication")
 {
     // check if the library that was used to compile is the same as the one that is loaded at runtime
-    med_int v_hdf_major, v_hdf_minor, v_hdf_release;
+    // they must match, otherwise random errors can occur
     med_int v_med_major, v_med_minor, v_med_release;
-
-    MEDlibraryHdfNumVersion(&v_hdf_major, &v_hdf_minor, &v_hdf_release);
     MEDlibraryNumVersion(&v_med_major, &v_med_minor, &v_med_release);
 
-    KRATOS_WATCH(v_hdf_major)
-    KRATOS_WATCH(v_hdf_minor)
-    KRATOS_WATCH(v_hdf_release)
-
-    KRATOS_WATCH(v_med_major)
-    KRATOS_WATCH(v_med_minor)
-    KRATOS_WATCH(v_med_release)
-
-    KRATOS_WATCH(MED_MAJOR_NUM)
-    KRATOS_WATCH(MED_NUM_MINEUR)
-    KRATOS_WATCH(MED_NUM_RELEASE)
-
-    // TODO check macros vs what comes from the functions (both for HDF abd MED)
-    // might indicate that versions are differen, aka different versions of the library loaded at runtime!
-    // probably do in the MedApplication class, in register (actually also the filehandle type check could/should be done there ...)
+    KRATOS_ERROR_IF(v_med_major   != MED_MAJOR_NUM ||
+                    v_med_minor   != MED_NUM_MINEUR ||
+                    v_med_release != MED_NUM_RELEASE) << "The MED library that was used during compilation (v" << v_med_major << "." << v_med_minor << "." << v_med_release << ") is different from the one loaded at runtime (v" << MED_MAJOR_NUM << "." << MED_NUM_MINEUR << "." << MED_NUM_RELEASE << ")!\nThis will cause problems with reading/writing MED files, please check your paths for loading the library (e.g. \"PATH\" or \"LD_LIBRARY_PATH\")" << std::endl;
 }
 
 void KratosMedApplication::Register()
