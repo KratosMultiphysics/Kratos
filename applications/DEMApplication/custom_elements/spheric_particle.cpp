@@ -1201,7 +1201,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               // Branch vector
               // ATTENTION: Assuming twice the radius for the branch vector!
               const double r = GetRadius();
-              const double d = 2 * r - indentation;
+              const double d = r - indentation;
               const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };
               const double branch[3] = { d * normal[0], d * normal[1], d * normal[2] };
 
