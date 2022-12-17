@@ -62,45 +62,17 @@ public:
     /// Pointer definition of NavierSlipWallLaw
     KRATOS_CLASS_POINTER_DEFINITION(NavierSlipWallLaw);
 
+    static constexpr std::size_t BlockSize = TDim+1;
+
+    static constexpr std::size_t LocalSize = TNumNodes*BlockSize;
+
     using SizeType = Condition::SizeType;
 
     using IndexType = Condition::IndexType;
 
-    using MatrixType = Condition::MatrixType;
+    using VectorType = array_1d<double,LocalSize>;
 
-    using VectorType = Condition::VectorType;
-
-    static constexpr SizeType BlockSize = TDim+1;
-    static constexpr SizeType LocalSize = TNumNodes*BlockSize;
-
-    struct WallLawDataContainer
-    {
-        double SlipLength;
-        double DynamicViscosity;
-        array_1d<array_1d<double,3>,4> NodalWallVelocities;
-
-        template<class TConditionDataContainer>
-        void Initialize(
-            const Condition& rCondition,
-            const TConditionDataContainer& rConditionData,
-            const ProcessInfo& rProcessInfo)
-        {
-            // Get dynamic viscosity from parent element properties
-            // Note that this assumes constant viscosity within the element
-            const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-            DynamicViscosity = r_parent_element.GetProperties().GetValue(DYNAMIC_VISCOSITY);
-
-            // Save the nodal velocities and interpolate the slip length at current integration point
-            SlipLength = 0.0;
-            const auto& r_geom = rCondition.GetGeometry();
-            for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
-                const auto& r_node = r_geom[i_node];
-                SlipLength += rConditionData.N[i_node] * r_node.GetValue(SLIP_LENGTH);
-                noalias(NodalWallVelocities[i_node]) = r_node.FastGetSolutionStepValue(VELOCITY) - r_node.FastGetSolutionStepValue(MESH_VELOCITY);
-            }
-            KRATOS_ERROR_IF(SlipLength < 1.0e-12) << "Negative or zero 'SLIP_LENGTH' in condition " << rCondition.Id() << "." << std::endl;
-        }
-    };
+    using MatrixType = BoundedMatrix<double,LocalSize,LocalSize>;
 
     ///@}
     ///@name Life Cycle
@@ -128,20 +100,24 @@ public:
     static void AddLocalSystemGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const WallLawDataContainer& rWallLawData,
-        const TConditionDataContainer& rConditionData,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Condition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const TConditionDataContainer& rConditionData)
     {
+        // Create and fill the wall law auxiliar data container
+        WallLawDataContainer wall_law_data;
+        wall_law_data.Initialize(&pCondition, rConditionData);
+
         // Set the tangential projection matrix
         BoundedMatrix<double,TDim,TDim> tang_proj_mat;
         SetTangentialProjectionMatrix(rConditionData.Normal, tang_proj_mat);
 
         // Calculate the Navier-slip required magnitudes
-        const double beta = rWallLawData.DynamicViscosity / rWallLawData.SlipLength;
+        const double beta = wall_law_data.DynamicViscosity / wall_law_data.SlipLength;
         const double aux_val = beta * rConditionData.wGauss;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
-                const auto& r_v_j = rWallLawData.NodalWallVelocities[j_node];
+                const auto& r_v_j = wall_law_data.NodalWallVelocities[j_node];
                 for (IndexType d1 = 0; d1 < TDim; ++d1) {
                     for (IndexType d2 = 0; d2 < TDim; ++d2) {
                         rRightHandSideVector[i_node*BlockSize + d2] += aux_val * rConditionData.N[i_node] * rConditionData.N[j_node] * tang_proj_mat(d1,d2) * r_v_j[d1];
@@ -155,16 +131,20 @@ public:
     template<class TConditionDataContainer>
     static void AddLeftHandSideGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
-        const WallLawDataContainer& rWallLawData,
-        const TConditionDataContainer& rConditionData,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Condition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const TConditionDataContainer& rConditionData)
     {
+        // Create and fill the wall law auxiliar data container
+        WallLawDataContainer wall_law_data;
+        wall_law_data.Initialize(&pCondition, rConditionData);
+
         // Set the tangential projection matrix
         BoundedMatrix<double,TDim,TDim> tang_proj_mat;
         SetTangentialProjectionMatrix(rConditionData.Normal, tang_proj_mat);
 
         // Calculate the Navier-slip required magnitudes
-        const double beta = rWallLawData.DynamicViscosity / rWallLawData.SlipLength;
+        const double beta = wall_law_data.DynamicViscosity / wall_law_data.SlipLength;
         const double aux_val = beta * rConditionData.wGauss;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
@@ -180,20 +160,24 @@ public:
     template<class TConditionDataContainer>
     static void AddRightHandSideGaussPointContribution(
         VectorType& rRightHandSideVector,
-        const WallLawDataContainer& rWallLawData,
-        const TConditionDataContainer& rConditionData,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Condition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        const TConditionDataContainer& rConditionData)
     {
+        // Create and fill the wall law auxiliar data container
+        WallLawDataContainer wall_law_data;
+        wall_law_data.Initialize(*pCondition, rConditionData);
+
         // Set the tangential projection matrix
         BoundedMatrix<double,TDim,TDim> tang_proj_mat;
         SetTangentialProjectionMatrix(rConditionData.Normal, tang_proj_mat);
 
         // Calculate the Navier-slip required magnitudes
-        const double beta = rWallLawData.DynamicViscosity / rWallLawData.SlipLength;
+        const double beta = wall_law_data.DynamicViscosity / wall_law_data.SlipLength;
         const double aux_val = beta * rConditionData.wGauss;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
-                const auto& r_v_j = rWallLawData.NodalWallVelocities[j_node];
+                const auto& r_v_j = wall_law_data.NodalWallVelocities[j_node];
                 for (IndexType d1 = 0; d1 < TDim; ++d1) {
                     for (IndexType d2 = 0; d2 < TDim; ++d2) {
                         rRightHandSideVector[i_node*BlockSize + d2] += aux_val * rConditionData.N[i_node] * rConditionData.N[j_node] * tang_proj_mat(d1,d2) * r_v_j[d1];
@@ -248,6 +232,34 @@ public:
 private:
     ///@name Private operations
     ///@{
+
+    struct WallLawDataContainer
+    {
+        double SlipLength;
+        double DynamicViscosity;
+        array_1d<array_1d<double,3>,TNumNodes> NodalWallVelocities;
+
+        template<class TConditionDataContainer>
+        void Initialize(
+            const Condition& rCondition,
+            const TConditionDataContainer& rConditionData)
+        {
+            // Get dynamic viscosity from parent element properties
+            // Note that this assumes constant viscosity within the element
+            const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+            DynamicViscosity = r_parent_element.GetProperties().GetValue(DYNAMIC_VISCOSITY);
+
+            // Save the nodal velocities and interpolate the slip length at current integration point
+            SlipLength = 0.0;
+            const auto& r_geom = rCondition.GetGeometry();
+            for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
+                const auto& r_node = r_geom[i_node];
+                SlipLength += rConditionData.N[i_node] * r_node.GetValue(SLIP_LENGTH);
+                noalias(NodalWallVelocities[i_node]) = r_node.FastGetSolutionStepValue(VELOCITY) - r_node.FastGetSolutionStepValue(MESH_VELOCITY);
+            }
+            KRATOS_ERROR_IF(SlipLength < 1.0e-12) << "Negative or zero 'SLIP_LENGTH' in condition " << rCondition.Id() << "." << std::endl;
+        }
+    };
 
     //TODO: Remove this by a common implementation (FluidElementUtilities cannot be used yet)
     static void SetTangentialProjectionMatrix(

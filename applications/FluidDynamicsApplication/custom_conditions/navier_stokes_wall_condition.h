@@ -574,9 +574,26 @@ private:
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo)
     {
-        auto wall_law_data_container = TWallModelType::WallLawDataContainer();
-        wall_law_data_container.Initialize(this, rData, rProcessInfo);
-        TWallModelType::AddRightHandSideGaussPointContribution(rRHS, rProcessInfo);
+        TWallModelType::AddRightHandSideGaussPointContribution(rRHS, this, rProcessInfo, rData);
+    }
+
+    template<typename TWallModelType>
+    void AddLeftHandSideGaussPointWallModelContributionCall(
+        BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo)
+    {
+        TWallModelType::AddLeftHandSideGaussPointContribution(rLHS, this, rProcessInfo, rData);
+    }
+
+    template<typename TWallModelType>
+    void AddLocalSystemGaussPointWallModelContributionCall(
+        array_1d<double, LocalSize>& rRHS,
+        BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo)
+    {
+        TWallModelType::AddLocalSystemGaussPointContribution(rRHS, rLHS, this, rProcessInfo, rData);
     }
 
     ///@}
