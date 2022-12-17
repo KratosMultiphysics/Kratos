@@ -34,7 +34,7 @@ void MedWriteReadModelPart(
     auto& test_model_part_read = model.CreateModelPart("test_read");
 
     auto full_name = rFileName;
-    full_name.replace_extension(".hdf");
+    full_name.replace_extension(".med");
 
     test_model_part_write.GetProcessInfo()[DOMAIN_SIZE] = 3;
     rPopulateFunction(test_model_part_write);

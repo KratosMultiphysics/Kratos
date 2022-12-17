@@ -16,8 +16,9 @@
 #include "med.h"
 
 // Project includes
-#include "includes/model_part_io.h"
 #include "med_model_part_io.h"
+#include "includes/model_part_io.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -109,18 +110,38 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     const int dimension = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
+    MEDfileCommentWr(mpFileHandler->GetFileHandle(),"A 2D unstructured mesh : 15 nodes, 12 cells");
+
+    const char axisname[2*MED_SNAME_SIZE+1] = "x               y               ";
+    const char unitname[2*MED_SNAME_SIZE+1] = "cm              cm              ";
+
     med_err err = MEDmeshCr(
         mpFileHandler->GetFileHandle(),
         rThisModelPart.Name().c_str(), // meshname
         dimension , //spacedim
         dimension , //meshdim
         MED_UNSTRUCTURED_MESH,
-        "", // description
+        "Kratos med", // description
         "",
         MED_SORT_DTIT,
         MED_CARTESIAN,
-        "",
-        "");
+        axisname,
+        unitname);
+
+    // TODO find better solution than to copy
+    const Vector nodal_coords = VariableUtils().GetCurrentPositionsVector(rThisModelPart.Nodes(), dimension);
+
+    std::vector<double> vec_nodal_coords(nodal_coords.begin(), nodal_coords.end());
+
+    err = MEDmeshNodeCoordinateWr(
+        mpFileHandler->GetFileHandle(),
+        rThisModelPart.Name().c_str(),
+        MED_NO_DT,
+        MED_NO_IT,
+        0.0,
+        MED_FULL_INTERLACE,
+        vec_nodal_coords.size(),
+        vec_nodal_coords.data());
 
     KRATOS_CATCH("")
 }
