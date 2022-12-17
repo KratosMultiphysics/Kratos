@@ -36,6 +36,7 @@ void MedWriteReadModelPart(
     auto full_name = rFileName;
     full_name.replace_extension(".hdf");
 
+    test_model_part_write.GetProcessInfo()[DOMAIN_SIZE] = 3;
     rPopulateFunction(test_model_part_write);
 
     { // encapsulating to ensure memory (aka file handle) is freed
