@@ -235,6 +235,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    int GetNumberOfMedMeshes() const;
+
 
     ///@}
     ///@name Private  Access

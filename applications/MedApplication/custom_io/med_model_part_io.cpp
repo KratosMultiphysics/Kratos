@@ -50,8 +50,9 @@ public:
         // read only by default, unless other settings are specified
         med_access_mode open_mode = MED_ACC_RDONLY;
 
+        // TODO check to make sure to not accidentially create multiple meshes in one file, there should only ever be one!
         if (Options.Is(IO::APPEND)) {
-            open_mode = MED_ACC_RDEXT;
+            open_mode = MED_ACC_RDEXT; // Do we need append?
         } else if (Options.Is(IO::WRITE)) {
             open_mode = MED_ACC_RDWR; // or MED_ACC_CREAT?
         }
@@ -95,7 +96,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
-    // KRATOS_ERROR << "ReadModelPart is not yet implemented ..." << std::endl;
+    KRATOS_ERROR_IF(GetNumberOfMedMeshes() != 1) << "Expected one mesh, but file " << mFileName << " contains " << GetNumberOfMedMeshes() << " meshes!" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -103,6 +104,10 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
+
+    // TODO what happens if this function is called multiple times?
+    // will it overwrite the mesh?
+    // or just crash?
 
     KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "MedModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
 
@@ -131,7 +136,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     // TODO find better solution than to copy
     const Vector nodal_coords = VariableUtils().GetCurrentPositionsVector(rThisModelPart.Nodes(), dimension);
 
-    std::vector<double> vec_nodal_coords(nodal_coords.begin(), nodal_coords.end());
+    const std::vector<double> vec_nodal_coords(nodal_coords.begin(), nodal_coords.end());
 
     err = MEDmeshNodeCoordinateWr(
         mpFileHandler->GetFileHandle(),
@@ -196,6 +201,9 @@ void MedModelPartIO::DivideInputToPartitions(Kratos::shared_ptr<std::iostream> *
         rConditionsAllPartitions);
 }
 
-
+int MedModelPartIO::GetNumberOfMedMeshes() const
+{
+    return MEDnMesh(mpFileHandler->GetFileHandle());
+}
 
 } // namespace Kratos.
