@@ -245,6 +245,11 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
+        // Registering node variable for OSGS stabilization
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESPROJ_DISPL )
+        KRATOS_REGISTER_VARIABLE( RESPROJ_PRESS )
+
+
         // Registering Constitutive Laws
         // CL: Linear Elastic laws
         KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticIsotropic3DLaw", mLinearElastic3DLaw);

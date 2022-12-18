@@ -300,11 +300,11 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
 
 
     // Compute Residual if the stabilization is OSGS type
-    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==3)
-    {
-     Vector volume_force = mMP.volume_acceleration * mMP.mass;
-     ComputeResidual(rVariables,volume_force,rVariables.GPResidualU,rVariables.GPResidualP);
-    }
+//     if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==3)
+//     {
+//      Vector volume_force = mMP.volume_acceleration * mMP.mass;
+//      ComputeResidual(rVariables,volume_force,rVariables.GPResidualU,rVariables.GPResidualP);
+//     }
 
     KRATOS_CATCH("")
 }

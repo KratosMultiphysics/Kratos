@@ -289,7 +289,8 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
 
         # Nodal variable for the OSGS stabilization
-        #model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUALPROJ)
+        model_part.AddNodalSolutionStepVariable(KratosParticle.RESPROJ_DISPL)
+        model_part.AddNodalSolutionStepVariable(KratosParticle.RESPROJ_PRESS)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])

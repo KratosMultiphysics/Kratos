@@ -101,27 +101,58 @@ public:
 
   virtual ~MPMResidualBasedSimpleSteadyScheme() override {}
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-//     /**
-//      * @brief Create method
-//      * @param ThisParameters The configuration parameters
-//      */
-//     typename BaseType::Pointer Create(Parameters ThisParameters) const override
-//     {
-//         return Kratos::make_shared<ClassType>(ThisParameters);
-//     }
 
     //***************************************************************************
     //***************************************************************************
 
+  void FinalizeNonLinIteration(ModelPart& rModelPart,
+                                       TSystemMatrixType& rA,
+                                       TSystemVectorType& rDx,
+                                       TSystemVectorType& rb) override
+  {
 
+    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+    //if orthogonal subscales are computed
+    if (CurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 3) {
+
+      KRATOS_INFO_IF("MPMResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
+          << "Computing OSS projections" << std::endl;
+
+//       const int number_of_nodes = rModelPart.NumberOfNodes();
+//
+//       #pragma omp parallel for
+//       for (int i = 0; i < number_of_nodes; i++) {
+//         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+//         noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
+//         it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+//         it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+//       }
+//
+//       const int number_of_elements = rModelPart.NumberOfElements();
+//       array_1d<double, 3 > output;
+//
+//       #pragma omp parallel for private(output)
+//       for (int i = 0; i < number_of_elements; i++) {
+//         ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
+//         it_elem->Calculate(ADVPROJ,output,CurrentProcessInfo);
+//       }
+//
+// //       rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+// //       rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+// //       rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+//
+//       #pragma omp parallel for
+//       for (int i = 0; i < number_of_nodes; i++) {
+//         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+//         if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+//           it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+//         const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
+//         it_node->FastGetSolutionStepValue(ADVPROJ) *= area_inverse;
+//         it_node->FastGetSolutionStepValue(DIVPROJ) *= area_inverse;
+//       }
+    }
+  }
 
 
 
