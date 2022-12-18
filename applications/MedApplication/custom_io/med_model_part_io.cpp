@@ -145,7 +145,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         MED_NO_IT,
         0.0,
         MED_FULL_INTERLACE,
-        vec_nodal_coords.size(),
+        rThisModelPart.NumberOfNodes(),
         vec_nodal_coords.data());
 
     KRATOS_CATCH("")
