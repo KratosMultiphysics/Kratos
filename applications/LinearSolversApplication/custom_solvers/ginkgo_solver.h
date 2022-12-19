@@ -272,7 +272,8 @@ public:
     {
         Parameters default_parameters( R"(
         {
-            "solver_type"           : "CG",
+            "solver_type"           : "ginkgo",
+            "solver"                : "bicgstab",
             "executor"              : "reference",
             "max_iteration"         : 100,
             "tolerance"             : 1e-6,
@@ -283,7 +284,7 @@ public:
             "parilu_iterations"     : 1,
             "parilut_approx_select" : 0,
             "parilut_limit"         : 1,
-            "isai_power"            : 0,
+            "isai_power"            : 0
         })");
 
         // Now validate agains defaults -- this also ensures no type mismatch
@@ -330,7 +331,7 @@ public:
         } else if (settings["solver"].GetString() == "idr") {
             mSolver = add_criteria_precond_finalize(gko::solver::Idr<double>::build(), mPrecond);
         } else if (settings["solver"].GetString() == "gmres") {
-            mSolver = add_criteria_precond_finalize(gko::solver::Gmres<double>::build(), mPrecond);
+            mSolver = add_criteria_precond_finalize(gko::solver::Gmres<double>::build().with_krylov_dim(100u), mPrecond);
         // TODO: Doesn't seem to work
         // } else if (settings["solver"].GetString() == "overhead") {
         //     mSolver = add_criteria_precond_finalize(gko::Overhead<double>::build(), mPrecond);
@@ -381,7 +382,7 @@ public:
     std::unique_ptr<gko::LinOpFactory> add_criteria_precond_finalize(SolverIntermediate inter, std::shared_ptr<const gko::LinOpFactory> precond)
     {
         return inter.with_criteria(create_stop_criterion())
-            // .with_preconditioner(give(precond))
+            .with_preconditioner(give(precond))
             .on(mExec);
     }
 
