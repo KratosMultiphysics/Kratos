@@ -13,11 +13,8 @@
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_VMS_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_UP_VMS_H_INCLUDED
 
-// System includes
 
-// External includes
-
-// Project includes
+#include "includes/element.h"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 
 namespace Kratos
@@ -51,6 +48,8 @@ public:
 
     ///@name Type Definitions
     ///@{
+    ///base type: Element
+    typedef Element BaseType;
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
@@ -130,6 +129,29 @@ protected:
     static const unsigned int msIndexVoigt3D6C [6][2];
     static const unsigned int msIndexVoigt2D4C [4][2];
     static const unsigned int msIndexVoigt2D3C [3][2];
+
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void Calculate(
+        const Variable<Vector >& rVariable,
+        Vector& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix >& rVariable,
+        Matrix& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /*
         Compute Element Size

@@ -119,25 +119,29 @@ public:
       KRATOS_INFO_IF("MPMResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
           << "Computing OSS projections" << std::endl;
 
-//       const int number_of_nodes = rModelPart.NumberOfNodes();
-//
-//       #pragma omp parallel for
-//       for (int i = 0; i < number_of_nodes; i++) {
-//         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-//         noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
-//         it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-//         it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-//       }
-//
-//       const int number_of_elements = rModelPart.NumberOfElements();
-//       array_1d<double, 3 > output;
-//
-//       #pragma omp parallel for private(output)
-//       for (int i = 0; i < number_of_elements; i++) {
-//         ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
-//         it_elem->Calculate(ADVPROJ,output,CurrentProcessInfo);
-//       }
-//
+      const int number_of_nodes = rModelPart.NumberOfNodes();
+
+      #pragma omp parallel for
+      for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        noalias(it_node->FastGetSolutionStepValue(RESPROJ_DISPL)) = ZeroVector(3);
+        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) = 0.0;
+        it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+
+//                     if ((i)->SolutionStepsDataHas(NODAL_AREA)){
+//                 double & r_nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
+//                 r_nodal_area          = 0.0;
+      }
+
+      const int number_of_elements = rModelPart.NumberOfElements();
+      array_1d<double, 3 > output;
+
+      #pragma omp parallel for private(output)
+      for (int i = 0; i < number_of_elements; i++) {
+        ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
+         it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo);
+      }
+
 // //       rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 // //       rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
 // //       rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);

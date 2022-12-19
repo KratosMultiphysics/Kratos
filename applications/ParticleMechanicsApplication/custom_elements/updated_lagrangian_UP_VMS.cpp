@@ -122,6 +122,47 @@ UpdatedLagrangianUPVMS::~UpdatedLagrangianUPVMS()
 //************************************************************************************
 //************************************************************************************
 
+// template <class TElementData>
+void UpdatedLagrangianUPVMS::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+
+void UpdatedLagrangianUPVMS::Calculate(
+    const Variable<array_1d<double, 3>>& rVariable,
+    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
+    // Lumped projection terms
+//     if (rVariable == ADVPROJ) {
+//         this->CalculateProjections(rCurrentProcessInfo);
+//     } else {
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+//     }
+}
+
+// template <class TElementData>
+void UpdatedLagrangianUPVMS::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+// template <class TElementData>
+void UpdatedLagrangianUPVMS::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+
+
 void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -828,9 +869,9 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
 
 void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
-//     // Get Shape function data
-//     Vector GaussWeights;
-//     Matrix ShapeFunctions;
+    // Get Shape function data
+    Vector IntegrationWeights;
+    Matrix ShapeFunctions;
 //     ShapeFunctionDerivativesArrayType ShapeDerivatives;
 //     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
 //     const unsigned int NumGauss = GaussWeights.size();
