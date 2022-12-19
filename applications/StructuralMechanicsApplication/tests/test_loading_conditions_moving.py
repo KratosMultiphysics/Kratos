@@ -1,3 +1,8 @@
+import sys
+
+sys.path.append(r"D:\software_development\Kratos\bin\Debug\libs")
+sys.path.append(r"D:\software_development\Kratos\bin\Debug")
+
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -461,7 +466,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp.CreateNewNode(2,second_coord[0],second_coord[1],second_coord[2])
         mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
         length = 2.0
-        rotation = math.atan(second_coord[1] / second_coord[0])
+        rotation = math.atan(second_coord[2] / second_coord[0])
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
