@@ -28,7 +28,8 @@ namespace Kratos::Python
 
 namespace py = pybind11;
 
-template< typename TVectorType > py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
+template< typename TVectorType > 
+py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
 {
     py::class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str(), py::buffer_protocol());
     binder.def(py::init<>());
