@@ -55,11 +55,11 @@ MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::MapperVertexMorph
     : BaseType(rOriginModelPart, rDestinationModelPart, MapperSettings),
         mrOriginModelPart(rOriginModelPart),
         mrDestinationModelPart(rDestinationModelPart),
-        mMinimumFilterRadius(MapperSettings["adaptive_filter_settings"]["minimum_filter_radius"].GetDouble()),
-        mNumberOfSmoothingIterations(MapperSettings["adaptive_filter_settings"]["filter_radius_smoothing_iterations"].GetInt()),
         mRadiusFunctionType(MapperSettings["adaptive_filter_settings"]["radius_function"].GetString()),
         mRadiusFunctionParameter(MapperSettings["adaptive_filter_settings"]["radius_function_parameter"].GetDouble()),
+        mMinimumFilterRadius(MapperSettings["adaptive_filter_settings"]["minimum_filter_radius"].GetDouble()),
         mCurvatureLimit(MapperSettings["adaptive_filter_settings"]["curvature_limit"].GetDouble()),
+        mNumberOfSmoothingIterations(MapperSettings["adaptive_filter_settings"]["filter_radius_smoothing_iterations"].GetInt()),
         mMaxNumberOfNeighbors(MapperSettings["max_nodes_in_filter_radius"].GetInt())
 {
 }
@@ -205,8 +205,6 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
         [](const GlobalPointer<NodeType> &rGP)
         { return rGP->Coordinates(); });
 
-    double step_size = 1;
-
     GeometryUtilities geom_util(this->mrDestinationModelPart);
     geom_util.CalculateGaussianCurvature();
     block_for_each(mrDestinationModelPart.Nodes(), [&](NodeType &rNode) {
@@ -232,7 +230,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
 }
 
 template <class TBaseVertexMorphingMapper>
-void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeighbourBasedFilterRadius()
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenCurvatureBasedFilterRadius()
 {
     KRATOS_TRY
 
@@ -302,7 +300,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateAda
     CreateListOfNodesInOriginModelPart();
     CreateSearchTreeWithAllNodesInOriginModelPart();
     CalculateCurvatureBasedFilterRadius();
-    SmoothenNeighbourBasedFilterRadius();
+    SmoothenCurvatureBasedFilterRadius();
 
     KRATOS_INFO("ShapeOpt") << "Finished calculation of adaptive vertex morphing radius in " << timer.ElapsedSeconds() << " s." << std::endl;
 }

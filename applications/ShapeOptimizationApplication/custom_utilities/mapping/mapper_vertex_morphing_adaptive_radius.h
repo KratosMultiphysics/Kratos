@@ -116,10 +116,9 @@ private:
     // Initialized by class constructor
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
-    double mFilterRadiusFactor;
     std::string mRadiusFunctionType;
-    double mMinimumFilterRadius;
     double mRadiusFunctionParameter;
+    double mMinimumFilterRadius;
     double mCurvatureLimit;
     IndexType mNumberOfSmoothingIterations;
     IndexType mMaxNumberOfNeighbors;
@@ -136,9 +135,7 @@ private:
 
     void CalculateCurvatureBasedFilterRadius();
 
-    void CalculateNeighbourBasedFilterRadius();
-
-    void SmoothenNeighbourBasedFilterRadius();
+    void SmoothenCurvatureBasedFilterRadius();
 
     void CalculateAdaptiveVertexMorphingRadius();
 

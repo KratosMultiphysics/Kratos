@@ -172,26 +172,22 @@ void GeometryUtilities::ExtractEdgeNodes( std::string const& rEdgeSubModelPartNa
             bool node_i_and_j_share_edge = false;
             auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_CONDITIONS);  // does not work with const
             for(const auto& r_elem_k : r_element_neighbours) {
-                const auto& r_element_geometry = r_elem_k.GetGeometry();
-                for(const auto& r_node_l : r_element_geometry) {
-                    Condition::GeometryType::GeometriesArrayType edges = r_element_geometry.GenerateEdges();
-                    for (const auto& edge : edges) {
-                        bool edge_has_node_i = false;
-                        bool edge_has_node_j = false;
-                        for(const auto& r_node_m : edge) {
-                            if (r_node_m.Id() == r_node_i.Id()) {
-                                edge_has_node_i = true;
-                            }
-                            if (r_node_m.Id() == r_node_j.Id()) {
-                                edge_has_node_j = true;
-                            }
+                Condition::GeometryType::GeometriesArrayType edges = r_elem_k.GetGeometry().GenerateEdges();
+                for (const auto& edge : edges) {
+                    bool edge_has_node_i = false;
+                    bool edge_has_node_j = false;
+                    for(const auto& r_node_m : edge) {
+                        if (r_node_m.Id() == r_node_i.Id()) {
+                            edge_has_node_i = true;
                         }
-                        if (edge_has_node_i && edge_has_node_j) {
-                            node_i_and_j_share_edge = true;
-                            break;
+                        if (r_node_m.Id() == r_node_j.Id()) {
+                            edge_has_node_j = true;
                         }
                     }
-                    if (node_i_and_j_share_edge) break;
+                    if (edge_has_node_i && edge_has_node_j) {
+                        node_i_and_j_share_edge = true;
+                        break;
+                    }
                 }
                 if (node_i_and_j_share_edge) break;
             }
@@ -419,7 +415,6 @@ void GeometryUtilities::CalculateGaussianCurvature() {
 
     block_for_each(mrModelPart.Nodes(), [&](NodeType &rNode) {
 
-        const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES).GetContainer();
         const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
         double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 
