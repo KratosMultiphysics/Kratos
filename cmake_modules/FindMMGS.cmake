@@ -105,8 +105,7 @@ if(MMG_INCDIR)
       PATH_SUFFIXES  "mmg" "mmg/common")
   endif()
 endif()
-STRING(REGEX REPLACE "(mmg/mmgs)|(mmg/common)" ""
-  MMGS_libmmgtypes.h_DIRS ${MMGS_libmmgtypes.h_DIRS} )
+STRING(REGEX REPLACE "(mmg/mmgs)|(mmg/common)" "" MMGS_libmmgtypes.h_DIRS "${MMGS_libmmgtypes.h_DIRS}" )
 
 mark_as_advanced(MMGS_libmmgtypes.h_DIRS)
 
