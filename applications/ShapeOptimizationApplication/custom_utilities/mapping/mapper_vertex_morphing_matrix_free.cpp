@@ -382,9 +382,9 @@ void MapperVertexMorphingMatrixFree::ThrowWarningIfNumberOfNeighborsExceedsLimit
         KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMatrixFree") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
 }
 
-void MapperVertexMorphingMatrixFree::ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
-                                    NodeVector& neighbor_nodes,
-                                    unsigned int number_of_neighbors,
+void MapperVertexMorphingMatrixFree::ComputeWeightForAllNeighbors(  const ModelPart::NodeType& design_node,
+                                    const NodeVector& neighbor_nodes,
+                                    const unsigned int number_of_neighbors,
                                     std::vector<double>& list_of_weights,
                                     double& sum_of_weights )
 {

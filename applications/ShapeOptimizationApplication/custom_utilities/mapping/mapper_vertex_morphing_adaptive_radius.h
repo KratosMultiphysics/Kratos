@@ -145,12 +145,12 @@ private:
 
     void CreateListOfNodesInOriginModelPart();
 
-    void ComputeWeightForAllNeighbors(
+    virtual void ComputeWeightForAllNeighbors(
         const ModelPart::NodeType& destination_node,
         const NodeVector& neighbor_nodes,
         const unsigned int number_of_neighbors,
         std::vector<double>& list_of_weights,
-        double& sum_of_weights);
+        double& sum_of_weights) override;
 
     void AssignMappingIds();
 

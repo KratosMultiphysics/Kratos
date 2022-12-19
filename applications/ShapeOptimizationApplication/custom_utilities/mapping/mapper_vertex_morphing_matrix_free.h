@@ -254,9 +254,9 @@ private:
     void ThrowWarningIfNumberOfNeighborsExceedsLimit(ModelPart::NodeType& given_node, unsigned int number_of_neighbors);
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
+    virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& design_node,
+                                        const NodeVector& neighbor_nodes,
+                                        const unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights );
 
