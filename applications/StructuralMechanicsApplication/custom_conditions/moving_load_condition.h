@@ -3,15 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Aron Noordam
 //
 
+#pragma once 
+
 // System includes
-#if !defined(KRATOS_MOVING_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_MOVING_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -130,9 +130,9 @@ public:
 
 
     /**
-	 * @brief Check if Rotational Dof existant
-	 * @return Trues if exists, false otherwise
-	 */
+     * @brief Check if Rotational Dof existant
+     * @return Trues if exists, false otherwise
+     */
     bool HasRotDof() const override;
 
     ///@}
@@ -213,31 +213,31 @@ protected:
         ) override;
 
     /**
-	 * \brief Calculates exact shape functions for a local load in normal direction
-	 * \param rShapeFunctionsVector  vector of exact shape functions
-	 * \param LocalXCoord local x coordinate within condition element
-	 */
+     * \brief Calculates exact shape functions for a local load in normal direction
+     * \param rShapeFunctionsVector  vector of exact shape functions
+     * \param LocalXCoord local x coordinate within condition element
+     */
     void CalculateExactNormalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
-	 * \brief Calculates exact shape functions for a local load in perpendicular direction
-	 * \param rShapeFunctionsVector vector of exact shape functions
-	 * \param LocalXCoord local x coordinate within condition element
-	 */
+     * \brief Calculates exact shape functions for a local load in perpendicular direction
+     * \param rShapeFunctionsVector vector of exact shape functions
+     * \param LocalXCoord local x coordinate within condition element
+     */
     void CalculateExactShearShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
-	 * \brief Calculates exact shape functions for a local moment around z-axis.
-	 * \param rShapeFunctionsVector vector of exact shape functions
-	 * \param LocalXCoord local x coordinate within condition element
-	 */
+     * \brief Calculates exact shape functions for a local moment around z-axis.
+     * \param rShapeFunctionsVector vector of exact shape functions
+     * \param LocalXCoord local x coordinate within condition element
+     */
     void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
-	 * \brief Calculates rotation matrix 
-	 * \param rRotationMatrix rotation matrix for current condition element
-	 * \param rGeom condition element
-	 */
+     * \brief Calculates rotation matrix 
+     * \param rRotationMatrix rotation matrix for current condition element
+     * \param rGeom condition element
+     */
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& rGeom);
 
 
@@ -346,7 +346,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MOVING_LOAD_CONDITION_H_INCLUDED  defined
-
-

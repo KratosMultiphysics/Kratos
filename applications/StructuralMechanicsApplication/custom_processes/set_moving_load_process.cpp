@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aron Noordam
 //
@@ -40,15 +40,15 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1,
-			"origin"          : [0.0, 0.0, 0.0]
+            "origin"          : [0.0, 0.0, 0.0]
         }  )"
     );
     Parameters mParameters;
 
-	mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
 
-	// check if load parameter has size 3
+    // check if load parameter has size 3
     KRATOS_ERROR_IF(mParameters["load"].size() != 3) <<
         "'load' has to have size 3!" << std::endl;
 
@@ -112,8 +112,7 @@ Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(const double FirstCo
     if ((FirstCoord > SecondCoord) && (Direction < 0)){
         return rEndConditions[0];
     }
-    	return rEndConditions[1];
-
+    return rEndConditions[1];
 }
 
 Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const Point SecondPoint, const array_1d<int,3> Direction, std::vector<Condition>& rEndConditions)
@@ -137,10 +136,10 @@ bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, cons
     constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     auto& r_points = rCondition.GetGeometry().Points();
-    if (abs(r_points[0].X0() - r_points[1].X0()) > tolerance){
+    if (std::abs(r_points[0].X0() - r_points[1].X0()) > tolerance){
         return IsSwapPoints(r_points[0].X0(), r_points[1].X0(), Direction[0]);
     }
-    if (abs(r_points[0].Y0() - r_points[1].Y0()) > tolerance){
+    if (std::abs(r_points[0].Y0() - r_points[1].Y0()) > tolerance){
         return IsSwapPoints(r_points[0].Y0(), r_points[1].Y0(), Direction[1]);
     }
     return IsSwapPoints(r_points[0].Z0(), r_points[1].Z0(), Direction[2]);
@@ -181,8 +180,7 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
                         std::set<IndexType>::iterator prev_id;
                         if (is_cond_reversed){
                             prev_id = node_id_vector.begin();
-                        } else
-                        {
+                        } else {
                             prev_id = node_id_vector.end();
                             --prev_id;
                         }
@@ -276,8 +274,7 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 
             if (mIsCondReversedVector[i]){
                 mCurrentDistance = global_distance + element_length - local_to_global_distance;
-            }
-            else{
+            } else {
                 mCurrentDistance = global_distance + local_to_global_distance;
             }
         }
@@ -295,7 +292,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
     // clear load functions vector
     mLoadFunctions.clear();
 
-	// check if load input is a function or numeric and add load to member variable
+    // check if load input is a function or numeric and add load to member variable
     if (mParameters["load"][0].IsString()){
         mUseLoadFunction = true;
         for (IndexType i = 0; i < mParameters["load"].size(); ++i){
@@ -327,7 +324,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
     const Point center_2 = end_conditions[1].GetGeometry().Center();
     Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
 
-	// Initialise vector which indicates if nodes in condition are in direction of movement
+    // Initialise vector which indicates if nodes in condition are in direction of movement
     mIsCondReversedVector.clear();
     mIsCondReversedVector.push_back(IsConditionReversed(r_first_cond, direction));
     mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
@@ -343,7 +340,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
 
     array_1d<double, 3> load_vector;
 
-	// retrieve load from load function if given
+    // retrieve load from load function if given
     if (mUseLoadFunction){
         // get current time
         const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
@@ -352,7 +349,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
             load_vector[i] = mLoadFunctions[i].CallFunction(0, 0, 0, current_time, 0, 0, 0);
         }
     } else {
-	    load_vector = mParameters["load"].GetVector();
+        load_vector = mParameters["load"].GetVector();
     }
     
     double distance_cond = 0;
@@ -400,7 +397,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 
         BasicGenericFunctionUtility velocity_function = BasicGenericFunctionUtility(mParameters["velocity"].GetString());
 
-		// update velocity value
+        // update velocity value
         load_velocity = velocity_function.CallFunction(0, 0, 0, current_time, 0, 0, 0);
     } else {
         load_velocity = mParameters["velocity"].GetDouble();
