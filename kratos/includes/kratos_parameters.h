@@ -13,15 +13,15 @@
 
 #pragma once
 
+// System includes
+#include <filesystem>
+
 // External includes
 #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-
-// STL includes
-#include <filesystem>
 
 namespace Kratos
 {
@@ -455,6 +455,13 @@ public:
      * @return False if failed, true otherwise
      */
     bool RemoveValue(const std::string& rEntry);
+
+    /**
+     * @brief This method removes several entries of the Parameters given a certain list of keys
+     * @param rEntries The keys identifier of the parameters
+     * @return False if failed, true otherwise
+     */
+    bool RemoveValues(const std::vector<std::string>& rEntries);
 
     /**
      * @brief This method returns the items of the current parameter
