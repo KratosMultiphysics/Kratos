@@ -78,7 +78,8 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
                 }]
              }""")
 
-            save_restart_parameters["restart_processes"][0]["Parameters"].AddValue("model_part_name", self.project_parameters_save["solver_settings"]["model_part_name"])
+            model_part_name = self.project_parameters_save["solver_settings"]["model_part_name"]
+            save_restart_parameters["restart_processes"][0]["Parameters"].AddValue("model_part_name", model_part_name)
 
             self.project_parameters_save.AddValue("output_processes", save_restart_parameters)
 
@@ -88,8 +89,7 @@ class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
             load_mp_import_settings["restart_load_file_label"].SetString(str(self.start_time+self.time_step))
 
             # Correct the path
-            restart_file_path = load_mp_import_settings["input_filename"].GetString()
-            restart_file_path = load_mp_import_settings["input_filename"].SetString("MPM_Material")
+            load_mp_import_settings["input_filename"].SetString("MPM_Material")
 
     def test_execution(self):
         # Within this location context:
@@ -119,9 +119,9 @@ class MPMRestartTestBeamStaticLineLoad2D(ParticleMechanicsRestartTestFactory):
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestBeamStaticLineLoad2D]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestDynamicCantilever2D]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
+    small_suite = suites['small'] # These tests are executed by the continuous integration tool
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestBeamStaticLineLoad2D]))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestDynamicCantilever2D]))
+    all_suite = suites['all']
+    all_suite.addTests(small_suite)
     KratosUnittest.runTests(suites)
