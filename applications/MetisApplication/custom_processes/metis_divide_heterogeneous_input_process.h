@@ -43,6 +43,7 @@ public:
 
     using SizeType = IO::SizeType;
     using GraphType = IO::GraphType;
+    using PartitioningInfo = IO::PartitioningInfo;
     using PartitionIndicesType = IO::PartitionIndicesType;
     using PartitionIndicesContainerType = IO::PartitionIndicesContainerType;
     using idxtype = idx_t; // from metis
