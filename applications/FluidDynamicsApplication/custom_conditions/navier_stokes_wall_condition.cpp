@@ -184,34 +184,40 @@ template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 int NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-    int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
-    if (Check != 0) {
-        return Check;
-    }
-    else {
+    int check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
+    if (check != 0) {
+        return check;
+    } else {
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+        for (const auto& r_node : this->GetGeometry())
         {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_ERROR << "missing PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                KRATOS_ERROR << "missing MESH_VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR << "missing ACCELERATION variable on solution step data for node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-                KRATOS_ERROR << "missing EXTERNAL_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-               this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-               this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                KRATOS_ERROR << "missing VELOCITY component degree of freedom on node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                KRATOS_ERROR << "missing PRESSURE component degree of freedom on node " << this->GetGeometry()[i].Id();
+            if(r_node.SolutionStepsDataHas(VELOCITY) == false)
+                KRATOS_ERROR << "Missing VELOCITY variable on solution step data for node " << r_node.Id() << "." << std::endl;
+            if(r_node.SolutionStepsDataHas(PRESSURE) == false)
+                KRATOS_ERROR << "Missing PRESSURE variable on solution step data for node " << r_node.Id() << "." << std::endl;
+            if(r_node.SolutionStepsDataHas(MESH_VELOCITY) == false)
+                KRATOS_ERROR << "Missing MESH_VELOCITY variable on solution step data for node " << r_node.Id() << "." << std::endl;
+            if(r_node.SolutionStepsDataHas(ACCELERATION) == false)
+                KRATOS_ERROR << "Missing ACCELERATION variable on solution step data for node " << r_node.Id() << "." << std::endl;
+            if(r_node.SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
+                KRATOS_ERROR << "Missing EXTERNAL_PRESSURE variable on solution step data for node " << r_node.Id() << "." << std::endl;
+            if(r_node.HasDofFor(VELOCITY_X) == false ||
+               r_node.HasDofFor(VELOCITY_Y) == false ||
+               r_node.HasDofFor(VELOCITY_Z) == false)
+                KRATOS_ERROR << "Missing VELOCITY component degree of freedom on node " << r_node.Id() << "." << std::endl;
+            if(r_node.HasDofFor(PRESSURE) == false)
+                KRATOS_ERROR << "Missing PRESSURE component degree of freedom on node " << r_node.Id() << "." << std::endl;
         }
 
-        return Check;
+        // If provided, check wall law
+        constexpr SizeType n_wall_models = sizeof...(TWallModel);
+        static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
+        if (n_wall_models != 0) {
+            ((check = WallModelCheckCall<TWallModel>(rCurrentProcessInfo)), ...);
+        }
+
+        return check;
     }
 
     KRATOS_CATCH("");
@@ -277,16 +283,18 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointL
     const unsigned int LocalSize = TDim+1;
     lhs_gauss = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
-    //TODO: Add a proper switch to activate this
-    // if (this->Is(SLIP)){
-    //     ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
-    // }
-
     // Contribution to avoid spurious tangential components in the pure-slip residual
     if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
         if (this->Is(SLIP) && rProcessInfo.GetValue(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
             CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
         }
+    }
+
+    // Add the wall law contribution
+    constexpr SizeType n_wall_models = sizeof...(TWallModel);
+    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
+    if (this->Is(WALL) && n_wall_models != 0) {
+        (AddLeftHandSideGaussPointWallModelContributionCall<TWallModel>(lhs_gauss, data, rProcessInfo), ...);
     }
 }
 
@@ -312,11 +320,6 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
         }
     }
 
-    //TODO: Add a proper switch to activate this
-    // if (this->Is(SLIP)){
-    //     ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
-    // }
-
     // Contribution to avoid spurious tangential components in the pure-slip residual
     if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
         if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
@@ -328,24 +331,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
     constexpr SizeType n_wall_models = sizeof...(TWallModel);
     static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
     if (this->Is(WALL) && n_wall_models != 0) {
-
-
-        // auto aux_function = [&, this](
-        //     array_1d<double, LocalSize>& rRHS,
-        //     const auto&& rWallData,
-        //     const ConditionDataStruct& rData,
-        //     const ProcessInfo& rProcessInfo){
-        //     KRATOS_WATCH("Inside aux lambda")
-        // };
-
         (AddRightHandSideGaussPointWallModelContributionCall<TWallModel>(rhs_gauss, data, rProcessInfo), ...);
-
-
-        // [](...){ }((std::cout << "Here!" << std::endl)...);
-
-        // auto (wall_law_data_container = TWallModel::WallLawDataContainer(),...);
-        // wall_law_data_container.Initialize(this, data, rProcessInfo);
-        // TWallModel...::AddRightHandSideGaussPointContribution(rhs_gauss, rProcessInfo);
     }
 }
 

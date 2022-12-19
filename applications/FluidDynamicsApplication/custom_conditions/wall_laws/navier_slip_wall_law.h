@@ -52,6 +52,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Navier-slip law LHS and RHS contribution implementation
+ * This class implements the LHS and RHS contributions of the Navier-slip wall model
+ * This class should be used in combination with an incompressible Navier-Stokes (or Stokes) condition
+ * implementing the remaining terms (see @NavierStokesWallCondition).
+ * More information about can be found in https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
+ * @tparam TDim Number of dimensions
+ * @tparam TNumNodes Number of nodes
+ */
 template<std::size_t TDim, std::size_t TNumNodes>
 class NavierSlipWallLaw
 {
@@ -79,7 +88,7 @@ public:
     ///@{
 
     /// Default constructor.
-    NavierSlipWallLaw(){}
+    NavierSlipWallLaw() = delete;
 
     /// Copy constructor.
     NavierSlipWallLaw(NavierSlipWallLaw const& rOther) = delete;
@@ -96,6 +105,16 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Add the LHS and RHS Navier-slip contributions
+     * This method adds the Navier-slip LHS and RHS contributions to the provided matrices
+     * @tparam TConditionDataContainer Condition data container
+     * @param rLeftHandSideMatrix Reference to the output LHS matrix
+     * @param rRightHandSideVector Reference to the output RHS matrix
+     * @param pCondition Pointer to the current condition
+     * @param rCurrentProcessInfo Reference to current ProcessInfo container
+     * @param rConditionData Reference to the condition data container
+     */
     template<class TConditionDataContainer>
     static void AddLocalSystemGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -106,7 +125,7 @@ public:
     {
         // Create and fill the wall law auxiliar data container
         WallLawDataContainer wall_law_data;
-        wall_law_data.Initialize(&pCondition, rConditionData);
+        wall_law_data.Initialize(*pCondition, rConditionData);
 
         // Set the tangential projection matrix
         BoundedMatrix<double,TDim,TDim> tang_proj_mat;
@@ -128,6 +147,15 @@ public:
         }
     }
 
+    /**
+     * @brief Add the LHS Navier-slip contribution
+     * This method adds the Navier-slip LHS contribution to the provided matrix
+     * @tparam TConditionDataContainer Condition data container
+     * @param rLeftHandSideMatrix Reference to the output LHS matrix
+     * @param pCondition Pointer to the current condition
+     * @param rCurrentProcessInfo Reference to current ProcessInfo container
+     * @param rConditionData Reference to the condition data container
+     */
     template<class TConditionDataContainer>
     static void AddLeftHandSideGaussPointContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -137,7 +165,7 @@ public:
     {
         // Create and fill the wall law auxiliar data container
         WallLawDataContainer wall_law_data;
-        wall_law_data.Initialize(&pCondition, rConditionData);
+        wall_law_data.Initialize(*pCondition, rConditionData);
 
         // Set the tangential projection matrix
         BoundedMatrix<double,TDim,TDim> tang_proj_mat;
@@ -157,6 +185,15 @@ public:
         }
     }
 
+    /**
+     * @brief Add the RHS Navier-slip contribution
+     * This method adds the Navier-slip RHS contribution to the provided vector
+     * @tparam TConditionDataContainer Condition data container
+     * @param rRightHandSideVector Reference to the output RHS vector
+     * @param pCondition Pointer to the current condition
+     * @param rCurrentProcessInfo Reference to current ProcessInfo container
+     * @param rConditionData Reference to the condition data container
+     */
     template<class TConditionDataContainer>
     static void AddRightHandSideGaussPointContribution(
         VectorType& rRightHandSideVector,
@@ -187,7 +224,16 @@ public:
         }
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const
+    /**
+     * @brief Check function
+     * This function checks the current wall law input parameters
+     * @param pCondition Pointer to the current condition
+     * @param rCurrentProcessInfo Reference to the ProcessInfo data container
+     * @return int Check status
+     */
+    static int Check(
+        const Condition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         return 0;
     }
@@ -233,6 +279,10 @@ private:
     ///@name Private operations
     ///@{
 
+    /**
+     * @brief Auxiliary data container
+     * This class serves as a temporary data container for the wall-related data
+     */
     struct WallLawDataContainer
     {
         double SlipLength;
