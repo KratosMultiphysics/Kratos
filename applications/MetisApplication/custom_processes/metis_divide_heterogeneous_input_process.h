@@ -138,17 +138,6 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-    struct PartitioningInfo
-    {
-        GraphType Graph;
-        PartitionIndicesType NodesPartitions; // partition where the Node is local
-        PartitionIndicesType ElementsPartitions; // partition where the Element is local
-        PartitionIndicesType ConditionsPartitions; // partition where the Condition is local
-        PartitionIndicesContainerType NodesAllPartitions; // partitions, in which the Node is present (local & ghost)
-        PartitionIndicesContainerType ElementsAllPartitions; // partitions, in which the Element is present (local & ghost)
-        PartitionIndicesContainerType ConditionsAllPartitions; // partitions, in which the Condition is present (local & ghost)
-    };
-
     ///@}
     ///@name Member Variables
     ///@{
