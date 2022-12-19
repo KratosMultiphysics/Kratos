@@ -240,7 +240,7 @@ public:
            - values the interpolated values (only valid if the corresponding value of is_inside is true)
     */
     template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
-    static std::pair< std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
+    static std::pair< DenseVector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
         BinBasedFastPointLocator<TDim>& rLocator,
         const Matrix& rCoordinates,
         const Variable<TDataType>& rInterpolationVariable,
@@ -250,13 +250,12 @@ public:
         unsigned int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType TLS(max_results);
 
-        auto interpolations = std::make_pair(std::vector<bool>(rCoordinates.size1()), std::vector<TDataType>(rCoordinates.size1()));
+        auto interpolations = std::make_pair(DenseVector<bool>(rCoordinates.size1()), std::vector<TDataType>(rCoordinates.size1()));
 
         //for every interface node (nodes in cut elements)
         const auto zero = rInterpolationVariable.Zero();
         IndexPartition(rCoordinates.size1()).for_each(TLS, [&rLocator, &rCoordinates, &interpolations, &rInterpolationVariable, &zero, SearchTolerance](const auto& i, auto& rTLS)
         {
-
             Vector shape_functions;
             Element::Pointer p_element;
             const bool is_found = rLocator.FindPointOnMesh(row(rCoordinates,i), shape_functions, p_element, rTLS.begin(), rTLS.size(), SearchTolerance);
@@ -264,7 +263,6 @@ public:
             (interpolations.first)[i] = is_found;
             if(is_found)
             {
-
                 auto& r_geom = p_element->GetGeometry();
                 (interpolations.second)[i] = zero;
                 for(unsigned int k=0; k<r_geom.size(); ++k)
@@ -275,9 +273,7 @@ public:
                         (interpolations.second)[i] += shape_functions[k]*r_geom[k].GetValue(rInterpolationVariable);
 
                 }
-
             }
-
         });
 
         return interpolations;
