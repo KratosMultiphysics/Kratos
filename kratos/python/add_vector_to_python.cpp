@@ -465,7 +465,7 @@ void  AddVectorToPython(pybind11::module& m)
     bool_vector_binder.def(py::init( [](py::buffer b)
     {
         py::buffer_info info = b.request();
-        KRATOS_ERROR_IF( info.format != py::format_descriptor<typename DenseVector<bool>::value_type >::value ) << "Expected a double array\n";
+        KRATOS_ERROR_IF( info.format != py::format_descriptor<typename DenseVector<bool>::value_type >::value ) << "Expecting a bool vector\n";
         KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
         DenseVector<bool> vec(info.shape[0]);
 
