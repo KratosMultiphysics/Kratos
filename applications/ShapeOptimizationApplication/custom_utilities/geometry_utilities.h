@@ -124,7 +124,16 @@ public:
 
     void ComputeVolumeShapeDerivatives(const Variable<array_3d>& rDerivativeVariable);
 
+    // Computes the gaussian curvature at a surface node depending on the surrounding elements
+    // (I) Quadratic Elements:  Curvature tensor by shape functions
+    // (II) Linear Quadrangle:  Taubin http://graphics.stanford.edu/courses/cs348a-17-winter/ReaderNotes/taubin-iccv95b.pdf
+    //                          Camprubi Estebo https://mediatum.ub.tum.de/doc/601055/00000039.pdf
+    // (III) Linear Triangle:   Meyer https://authors.library.caltech.edu/99186/2/diffGeoOps.pdf
     void CalculateGaussianCurvature();
+
+    // Selects the curvature technique according to the surrounding elements
+    // Precedence: (I) > (II) > (III)
+    std::string GetCurvatureTechnique(const NodeType &rNode);
 
     bool CheckIfElementIsQuadratic(const Kratos::GlobalPointer<Kratos::Condition> pElement);
 
@@ -140,17 +149,7 @@ public:
 
     void TransformTensorCoefficients(Matrix& rTensor, Matrix& rResultTensor, Vector&rG1, Vector&rG2, Vector&rE1, Vector&rE2);
 
-    void GetInnerAngleAndMixedAreaOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    void InnerAngleAndMixedAreaOfTriangleAtNodeI(const Kratos::Point::CoordinatesArrayType& rNodeI, const Kratos::Point::CoordinatesArrayType& rNodeJ, const Kratos::Point::CoordinatesArrayType& rNodeK, double& rInnerAngle, double& rMixedArea);
-
     void InnerAngleAndMixedAreaOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    void InnerAngleAndMixedAreaOf3D4NQuadrilateraltAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
-
-    double GetProjectedInnerAngleOfElementAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
-
-    double ProjectedInnerAngleOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
 
     // --------------------------------------------------------------------------
 

@@ -5,11 +5,7 @@ message("**** configuring KratosShapeOptimizationApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories(
-    ${KRATOS_SOURCE_DIR}/kratos
-    SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
-    SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
-    )
+include_directories(${KRATOS_SOURCE_DIR}/kratos)
 
 ## ShapeOptimization core sources
 file( GLOB_RECURSE KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE

@@ -30,14 +30,6 @@
 #include "custom_utilities/geometry_utilities.h"
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include "external_libraries/igl/include/igl/gaussian_curvature.h"
-#include "external_libraries/igl/include/igl/massmatrix.h"
-#include "external_libraries/igl/include/igl/invert_diag.h"
-#include "external_libraries/igl/include/igl/writeOFF.h"
-
-// ------------------------------------------------------------------------------
 // Base mapper includes
 // ------------------------------------------------------------------------------
 #include "mapper_vertex_morphing.h"
@@ -155,6 +147,10 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
 {
     KRATOS_TRY
 
+    BuiltinTimer timer;
+    KRATOS_INFO("") << std::endl;
+    KRATOS_INFO("ShapeOpt") << "Starting calculation of curvature based filter radius for  " << mrDestinationModelPart.FullName() << "..." << std::endl;
+
     class GlobalPointerAdder
     {
     public:
@@ -230,6 +226,8 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateCur
         vm_radius_raw = this->CurvatureFunction(r_gaussian_curvature, max_distance);
     });
 
+    KRATOS_INFO("ShapeOpt") << "Finished calculation of curvature based filter radius " << timer.ElapsedSeconds() << " s." << std::endl;
+
     KRATOS_CATCH("");
 }
 
@@ -298,7 +296,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateAda
 {
     BuiltinTimer timer;
     KRATOS_INFO("") << std::endl;
-    KRATOS_INFO("ShapeOpt") << "Starting calculation of adaptive vertext morphing radius for  " << mrDestinationModelPart.FullName() << "..." << std::endl;
+    KRATOS_INFO("ShapeOpt") << "Starting calculation of adaptive vertex morphing radius for  " << mrDestinationModelPart.FullName() << "..." << std::endl;
 
     AssignMappingIds();
     CreateListOfNodesInOriginModelPart();
@@ -306,7 +304,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateAda
     CalculateCurvatureBasedFilterRadius();
     SmoothenNeighbourBasedFilterRadius();
 
-    KRATOS_INFO("ShapeOpt") << "Finished calculation of adaptive vertext morphing radius in " << timer.ElapsedSeconds() << " s." << std::endl;
+    KRATOS_INFO("ShapeOpt") << "Finished calculation of adaptive vertex morphing radius in " << timer.ElapsedSeconds() << " s." << std::endl;
 }
 
 template <class TBaseVertexMorphingMapper>
@@ -338,8 +336,6 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::ComputeWeigh
     std::vector<double>& list_of_weights,
     double& sum_of_weights)
 {
-    // KRATOS_INFO("ShapeOpt") << "VERTEX_MORPHING_RADIUS on node id = " << destination_node.Id() << " : " << destination_node.GetValue(VERTEX_MORPHING_RADIUS) << std::endl;
-
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++) {
         const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
         const double weight = this->mpFilterFunction->ComputeWeight( destination_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(destination_node) );
