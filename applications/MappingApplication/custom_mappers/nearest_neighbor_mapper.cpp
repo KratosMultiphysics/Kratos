@@ -27,7 +27,7 @@ void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rI
 {
     SetLocalSearchWasSuccessful();
 
-    const double neighbor_distance = MapperUtilities::ComputeDistance(this->Coordinates(), rInterfaceObject.Coordinates());
+    const double neighbor_distance = this->Distance(rInterfaceObject);
 
     if (neighbor_distance < mNearestNeighborDistance) {
         mNearestNeighborDistance = neighbor_distance;
