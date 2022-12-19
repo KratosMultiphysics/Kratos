@@ -383,28 +383,21 @@ void AuxiliarModelPartUtilities::RemoveNodesFromSubModePartsWithoutCorresponding
         if (r_sub_model_part.NumberOfNodes() > 0) {
             auto& r_array_nodes = r_sub_model_part.Nodes();
             variable_utils.ResetFlag(TO_ERASE, r_array_nodes);
-            // If no entities remove all
-            if (r_sub_model_part.NumberOfElements() == 0 && r_sub_model_part.NumberOfConditions() == 0) {
-                variable_utils.SetFlag(TO_ERASE, true, r_array_nodes);
-            } else { // Check orphans nodes
-                std::unordered_set<IndexType> not_orphan_node;
+            variable_utils.SetFlag(TO_ERASE, true, r_array_nodes);
+            // Check orphans nodes
+            if (r_sub_model_part.NumberOfElements() > 0 || r_sub_model_part.NumberOfConditions() > 0) {
                 for (auto& r_elem : r_sub_model_part.Elements()) {
                     auto& r_geometry = r_elem.GetGeometry();
                     for (auto& r_node : r_geometry) {
-                        not_orphan_node.insert(r_node.Id());
+                        r_node.Set(TO_ERASE, false);
                     }
                 }
                 for (auto& r_cond : r_sub_model_part.Conditions()) {
                     auto& r_geometry = r_cond.GetGeometry();
                     for (auto& r_node : r_geometry) {
-                        not_orphan_node.insert(r_node.Id());
+                        r_node.Set(TO_ERASE, false);
                     }
                 }
-                block_for_each(r_array_nodes,[&not_orphan_node](ModelPart::NodeType& rNode) {
-                    if (not_orphan_node.find(rNode.Id()) == not_orphan_node.end()) {
-                        rNode.Set(TO_ERASE);
-                    }
-                }); 
             }
             r_sub_model_part.RemoveNodes(TO_ERASE);
         }
