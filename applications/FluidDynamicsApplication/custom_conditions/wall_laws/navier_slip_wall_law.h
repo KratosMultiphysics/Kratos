@@ -54,7 +54,7 @@ namespace Kratos
 
 /**
  * @brief Navier-slip law LHS and RHS contribution implementation
- * This class implements the LHS and RHS contributions of the Navier-slip wall model
+ * This class implements the LHS and RHS Gauss point contributions of the Navier-slip wall model
  * This class should be used in combination with an incompressible Navier-Stokes (or Stokes) condition
  * implementing the remaining terms (see @NavierStokesWallCondition).
  * More information about can be found in https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
@@ -107,7 +107,7 @@ public:
 
     /**
      * @brief Add the LHS and RHS Navier-slip contributions
-     * This method adds the Navier-slip LHS and RHS contributions to the provided matrices
+     * This method adds the Navier-slip LHS and RHS Gauss point contributions to the provided matrices
      * @tparam TConditionDataContainer Condition data container
      * @param rLeftHandSideMatrix Reference to the output LHS matrix
      * @param rRightHandSideVector Reference to the output RHS matrix
@@ -149,7 +149,7 @@ public:
 
     /**
      * @brief Add the LHS Navier-slip contribution
-     * This method adds the Navier-slip LHS contribution to the provided matrix
+     * This method adds the Navier-slip LHS Gauss point contribution to the provided matrix
      * @tparam TConditionDataContainer Condition data container
      * @param rLeftHandSideMatrix Reference to the output LHS matrix
      * @param pCondition Pointer to the current condition
@@ -187,7 +187,7 @@ public:
 
     /**
      * @brief Add the RHS Navier-slip contribution
-     * This method adds the Navier-slip RHS contribution to the provided vector
+     * This method adds the Navier-slip RHS Gauss point contribution to the provided vector
      * @tparam TConditionDataContainer Condition data container
      * @param rRightHandSideVector Reference to the output RHS vector
      * @param pCondition Pointer to the current condition

@@ -29,12 +29,10 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "includes/deprecated_variables.h"
-#include "includes/cfd_variables.h"
-#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
+
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
@@ -57,12 +55,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Implements a wall condition for the Navier-Stokes monolithic formulation.
 /**
-  It is intended to be used in combination with ASGS Navier-Stokes symbolic elements or their
-  derived classes and the ResidualBasedIncrementalUpdateStaticSchemeSlip time scheme, which supports
-  slip conditions.
-  @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
+ * @brief Implements a wall condition for the Navier-Stokes (and Stokes) monolithic formulations
+ * This condition is intended to be used in combination with Navier-Stokes (or Stokes) monolithic
+ * formulations. It supports the Neumann BC contribution as well as the addition of a wall law
+ * contribution through the TWallModel template argument. Such TWallModel must be a class implementing
+ * the wall model RHS and LHS Gauss point contributions (as example see @NavierSlipWallLaw).
+ * Current condition also has optional features that help numerical stability such as the outlet
+ * inflow energy correction or the spurious tangential velocity correction for pure slip boundaries.
+ * @tparam TDim Number of dimensions
+ * @tparam TNumNodes Number of nodes
+ * @tparam TWallModel Optional class implementing a LHS and RHS wall contribution
  */
 template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NavierStokesWallCondition : public Condition
