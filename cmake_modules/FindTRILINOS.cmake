@@ -8,7 +8,7 @@
 #
 
 # Only find if TrilinosApplication is in the list of applications
-LIST(FIND "$ENV{KRATOS_APPLICATIONS}" "TrilinosApplication" index)
+STRING(FIND "$ENV{KRATOS_APPLICATIONS}" "TrilinosApplication" index)
 IF (${index} GREATER -1)
     IF ((TRILINOS_LIBRARY_DIR AND TRILINOS_INCLUDE_DIR) OR TRILINOS_ROOT)
         # You can specify your own version of the library
