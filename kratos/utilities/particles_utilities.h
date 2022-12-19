@@ -231,7 +231,6 @@ public:
     /**
      * @brief This function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable
     at those positions. Note that the value is only initialized if the particle is found
-     * @details This is an implementation of the function InterpolateValuesAtCoordinates. It is separated in order to allow for use std::vector<bool>
      * @param rLocator this is a search structure for the volume
      * @param rCoordinates positions at which we want to retrieve the interpolation values
      * @param rInterpolationVariable: variable whose value that will be interpolated
@@ -241,7 +240,7 @@ public:
            - values the interpolated values (only valid if the corresponding value of is_inside is true)
     */
     template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
-    static std::pair< DenseVector<bool>, std::vector<TDataType> > ImplementationInterpolateValuesAtCoordinates(
+    static std::pair< DenseVector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
         BinBasedFastPointLocator<TDim>& rLocator,
         const Matrix& rCoordinates,
         const Variable<TDataType>& rInterpolationVariable,
@@ -277,34 +276,6 @@ public:
             }
         });
 
-        return interpolations;
-    }
-
-    /**
-     * @brief This function takes a matrix of coordinates and gives the intrpolated value of the variable rInterpolationVariable
-    at those positions. Note that the value is only initialized if the particle is found
-     * @param rLocator this is a search structure for the volume
-     * @param rCoordinates positions at which we want to retrieve the interpolation values
-     * @param rInterpolationVariable: variable whose value that will be interpolated
-     * @param SearchTolerance: search tolerance used in the spatial search
-     * @return the function returns:
-           - is_inside a vector of bools telling if the given coordinate falls within the volume
-           - values the interpolated values (only valid if the corresponding value of is_inside is true)
-    */
-    template<unsigned int TDim, class TDataType, bool InterpolationVariableHasHistory>
-    static std::pair<std::vector<bool>, std::vector<TDataType> > InterpolateValuesAtCoordinates(
-        BinBasedFastPointLocator<TDim>& rLocator,
-        const Matrix& rCoordinates,
-        const Variable<TDataType>& rInterpolationVariable,
-        const double SearchTolerance
-        )
-    {
-        const auto result_interpolations = ParticlesUtilities::ImplementationInterpolateValuesAtCoordinates<TDim, TDataType, InterpolationVariableHasHistory>(rLocator, rCoordinates, rInterpolationVariable,  SearchTolerance);
-        const std::size_t size_result = result_interpolations.first.size();
-        auto interpolations = std::make_pair(std::vector<bool>(size_result), std::vector<TDataType>(result_interpolations.second));
-        for (std::size_t i = 0; i < size_result; ++i) {
-            (interpolations.first)[i] = (result_interpolations.first)[i];
-        }
         return interpolations;
     }
 
