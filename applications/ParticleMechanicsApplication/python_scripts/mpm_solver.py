@@ -171,7 +171,6 @@ class MPMSolver(PythonSolver):
 
         if self.is_restarted():
             self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -218,9 +217,9 @@ class MPMSolver(PythonSolver):
 
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
-        self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
         if not self.is_restarted():
+            self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
             self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
@@ -259,14 +258,6 @@ class MPMSolver(PythonSolver):
         if not self.model.HasModelPart("Background_Grid"):
             self.grid_model_part = self.model.CreateModelPart("Background_Grid") #Equivalent to model_part1 in the old format
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-        # Set if the analysis is restarted
-        if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
-            self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-        else:
-            self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-            self.grid_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
         if not self.is_restarted():
             # Initial material model part definition
