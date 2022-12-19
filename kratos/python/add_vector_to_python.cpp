@@ -452,10 +452,12 @@ void  AddVectorToPython(pybind11::module& m)
     py::implicitly_convertible<array_1d<double,3>, Vector>();
 
     //***********************************************************************************
-    auto bool_vector_binder = CreateVectorInterface<DenseVector<bool>>(m, "DenseVectorBool");
-    bool_vector_binder.def(py::init<typename DenseVector<bool>::size_type>());
-    bool_vector_binder.def(py::init<typename DenseVector<bool>::size_type, bool>());
-    bool_vector_binder.def(py::init<DenseVector<bool>>());
+        //***********************************************************************************
+    py::class_< DenseVector<bool>, std::shared_ptr<DenseVector<bool>> > bool_vector_binder(m,"BoolVector", py::buffer_protocol());
+    bool_vector_binder.def(py::init<>());
+    bool_vector_binder.def(py::init<const DenseVector<bool>&>());
+    bool_vector_binder.def(py::init< DenseVector<bool>::size_type>());
+    bool_vector_binder.def(py::init< DenseVector<bool>::size_type, bool>());
     bool_vector_binder.def(py::init( [](const py::list& input)
     {
         DenseVector<bool> tmp(input.size());
@@ -463,32 +465,34 @@ void  AddVectorToPython(pybind11::module& m)
             tmp[i] = py::cast<bool>(input[i]);
         return tmp;
     }));
-    bool_vector_binder.def(py::init( [](py::buffer b)
+    bool_vector_binder.def("Size", [](const DenseVector<bool>& self)
     {
-        py::buffer_info info = b.request();
-        KRATOS_ERROR_IF( info.format != py::format_descriptor<typename DenseVector<bool>::value_type >::value ) << "Expecting a bool vector\n";
-        KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
-        DenseVector<bool> vec(info.shape[0]);
-
-        std::copy(
-            static_cast<const bool*>(info.ptr),
-            static_cast<const bool*>(info.ptr) + info.shape[0],
-            vec.begin()
-        );
-
-        return vec;
-    }));
-    bool_vector_binder.def_buffer( [](DenseVector<bool>& self)-> py::buffer_info
+        return self.size();
+    } );
+    bool_vector_binder.def("Resize", [](DenseVector<bool>& self, const typename DenseVector<bool>::size_type  new_size)
     {
-        return py::buffer_info(
-            self.data().begin(),
-            sizeof(typename DenseVector<bool>::value_type),
-            py::format_descriptor<typename DenseVector<bool>::value_type>::format(),
-            1,
-        {self.size()},
-        {sizeof(typename DenseVector<bool>::value_type)}
-        );
-    });
+        if(self.size() != new_size) self.resize(new_size, false);
+    } );
+    bool_vector_binder.def("__len__", [](const DenseVector<bool>& self)
+    {
+        return self.size();
+    } );
+    bool_vector_binder.def("__setitem__", [](DenseVector<bool>& self,
+                                            const unsigned int i,
+                                            const bool value)
+    {
+        self[i] = value;
+    } );
+    bool_vector_binder.def("__getitem__", [](const DenseVector<bool>& self, const unsigned int i)
+    {
+        return self[i];
+    } );
+    bool_vector_binder.def("__iter__", [](DenseVector<bool>& self)
+    {
+        return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
+    }, py::keep_alive<0,1>() ) ;
+    bool_vector_binder.def("__str__", PrintObject<DenseVector<bool>>);
+
     py::implicitly_convertible<py::list, DenseVector<bool>>();
 
     //***********************************************************************************
