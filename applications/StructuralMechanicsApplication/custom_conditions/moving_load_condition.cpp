@@ -118,7 +118,11 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
     // Vector with a loading applied to the condition
     array_1d<double, TDim > moving_load = ZeroVector(TDim);
     if( this->Has(POINT_LOAD) ){
-        noalias(moving_load) = this->GetValue(POINT_LOAD);
+        array_1d<double, 3 > point_load = this->GetValue(POINT_LOAD);
+        for (IndexType i = 0; i < TDim; ++i)
+    	{
+            moving_load[i] = point_load[i];
+    	}
     }
 
     const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
