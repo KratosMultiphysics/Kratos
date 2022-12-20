@@ -6,7 +6,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
-from KratosMultiphysics.json_output_process import JsonOutputProcess
+# from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 import os, csv
 
@@ -27,6 +27,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
             for node in current_design.Nodes:
                 gradient[node.Id] = [0.0, 0.0, 0.0]
             communicator.reportGradient("no_objective", gradient)
+
 
 # Create optimizer and perform optimization
 optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
