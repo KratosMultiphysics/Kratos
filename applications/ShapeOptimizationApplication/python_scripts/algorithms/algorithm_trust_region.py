@@ -412,7 +412,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                         "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
                     }
                 })
-            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, constraint_gradient_variables, self.opt_iteration)
+            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.opt_iteration)
         self.data_logger.LogCurrentValues(self.opt_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.opt_iteration)
 

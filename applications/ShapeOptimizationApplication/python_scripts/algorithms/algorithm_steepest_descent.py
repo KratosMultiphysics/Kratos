@@ -213,7 +213,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
 
         if self.data_logger.SensitivityHeatmapLogging():
-            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, None, self.optimization_iteration)
+            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.optimization_iteration)
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
         self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
 

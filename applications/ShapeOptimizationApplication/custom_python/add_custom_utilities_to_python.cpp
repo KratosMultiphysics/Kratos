@@ -183,7 +183,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("AssembleVector", [](ModelPart& rModelPart, Vector& rVector, const Variable< array_1d<double, 3> >& rVariable){
                                          OptimizationUtilities::AssembleVector(rModelPart, rVector, rVariable);
                                          })
-        .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def_static("AssignVectorToVariable", [](ModelPart& rModelPart, Vector& rVector, const Variable< double >& rVariable) {
+                                                 OptimizationUtilities::AssignVectorToVariable(rModelPart, rVector, rVariable);
+                                                 })
+        .def_static("AssignVectorToVariable", [](ModelPart& rModelPart, Vector& rVector, const Variable< array_1d<double, 3> >& rVariable){
+                                                 OptimizationUtilities::AssignVectorToVariable(rModelPart, rVector, rVariable);
+                                                 })
         .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
                                             std::size_t list_length = pybind11::len(rVariables);
                                             std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);

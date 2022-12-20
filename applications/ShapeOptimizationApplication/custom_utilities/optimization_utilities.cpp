@@ -230,50 +230,28 @@ void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
     const Variable<double> &rVariable)
 {
-
-    std::vector<double> data;
-    AuxiliarModelPartUtilities(rModelPart).GetScalarData<double>(rVariable, DataLocation::NodeHistorical, data);
-    if (rVector.size() != rModelPart.NumberOfNodes()){
-        rVector.resize(rModelPart.NumberOfNodes());
-    }
-    for (unsigned i = 0; i < data.size(); ++i)
-    {
-        rVector[i] = data[i];
-    }
+    AuxiliarModelPartUtilities(rModelPart).GetScalarData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
-    std::vector<double> data;
-    AuxiliarModelPartUtilities(rModelPart).GetVectorData<array_3d>(rVariable, DataLocation::NodeHistorical, data);
+    AuxiliarModelPartUtilities(rModelPart).GetVectorData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
+}
 
-    if (rVector.size() != rModelPart.NumberOfNodes()*3){
-        rVector.resize(rModelPart.NumberOfNodes()*3);
-    }
-    for (unsigned i = 0; i < data.size(); ++i)
-    {
-        rVector[i] = data[i];
-    }
+void OptimizationUtilities::AssignVectorToVariable(ModelPart& rModelPart,
+    const Vector& rVector,
+    const Variable<double> &rVariable)
+{
+    AuxiliarModelPartUtilities(rModelPart).SetScalarData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssignVectorToVariable(ModelPart& rModelPart,
     const Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
-    KRATOS_ERROR_IF(rVector.size() != rModelPart.NumberOfNodes()*3)
-        << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
-
-    int i=0;
-    for (auto & node_i : rModelPart.Nodes())
-    {
-        array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
-        variable_vector[0] = rVector[i*3+0];
-        variable_vector[1] = rVector[i*3+1];
-        variable_vector[2] = rVector[i*3+2];
-        ++i;
-    }
+    AuxiliarModelPartUtilities(rModelPart).SetVectorData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,

@@ -200,7 +200,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                         "mapped_gradient": KM.KratosGlobals.GetVariable("DC1DX_MAPPED")
                     }
             })
-            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, constraint_gradient_variable, self.optimization_iteration)
+            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.optimization_iteration)
         additional_values_to_log = {}
         additional_values_to_log["correction_scaling"] = self.correction_scaling
         additional_values_to_log["step_size"] = self.step_size

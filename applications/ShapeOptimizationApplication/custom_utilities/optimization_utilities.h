@@ -131,6 +131,13 @@ public:
         const Variable<array_3d> &rVariable);
 
     /**
+     * Assigns the values of a vector to the scalar variables
+     */
+    static void AssignVectorToVariable(ModelPart& rModelPart,
+        const Vector& rVector,
+        const Variable<double> &rVariable);
+
+    /**
      * Assigns the values of a vector to the nodal vector variables
      */
     static void AssignVectorToVariable(ModelPart& rModelPart,
