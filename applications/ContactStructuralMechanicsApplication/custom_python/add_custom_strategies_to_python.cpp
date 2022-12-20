@@ -21,16 +21,16 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 
-// Strategies
+/* Strategies */
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/custom_strategies/line_search_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_mpc_contact_strategy.h"
 
-// Schemes
+/* Schemes */
 #include "solving_strategies/schemes/scheme.h"
 
-// Convergence criterias
+/* Convergence criterias */
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mortar_and_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mesh_tying_mortar_criteria.h"
@@ -50,19 +50,17 @@
 #include "custom_strategies/custom_convergencecriterias/contact_error_mesh_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mpc_contact_criteria.h"
 
-// Builders and solvers
+/* Builders and solvers */
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver_with_constraints.h"
 
-// Linear solvers
+/* Linear solvers */
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -370,7 +368,5 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+} // Namespace Kratos::Python.
 

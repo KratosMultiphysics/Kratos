@@ -20,10 +20,7 @@
 #include "spaces/ublas_space.h"
 #include "custom_linear_solvers/mixedulm_linear_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -43,7 +40,5 @@ void  AddCustomLinearSolversToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

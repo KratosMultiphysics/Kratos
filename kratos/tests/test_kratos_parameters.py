@@ -497,6 +497,23 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
+    def test_remove_values(self):
+        kp = Parameters(json_string)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1", "You_ll_never_take_me_alive"]
+        success = kp.RemoveValues(list_remove)
+        self.assertFalse(success)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1"]
+        kp.RemoveValues(list_remove)
+
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+
     def test_copy_deepcopy(self):
         kp = Parameters(json_string)
 
@@ -1010,6 +1027,25 @@ class TestParameters(KratosUnittest.TestCase):
         new_string_array = initial["parameter"].GetStringArray()
 
         self.assertListEqual(new_string_array, string_array)
+
+    def test_copy_values_from_existing_parameters(self):
+        initial = Parameters("""{
+            "parameter1": ["foo", "bar"],
+            "parameter2": true,
+            "parameter3": "Hello",
+            "parameter4": 15
+        } """)
+        parameter_list = ["parameter2", "parameter3"]
+
+        new_param = Parameters()
+        new_param.CopyValuesFromExistingParameters(initial, parameter_list)
+
+        self.assertFalse(new_param.Has("parameter1"))
+        self.assertTrue(new_param.Has("parameter2"))
+        self.assertEqual(new_param["parameter2"].GetBool(), True)
+        self.assertTrue(new_param.Has("parameter3"))
+        self.assertEqual(new_param["parameter3"].GetString(),"Hello")
+        self.assertFalse(new_param.Has("parameter4"))
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):

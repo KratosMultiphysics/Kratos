@@ -275,7 +275,9 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
-
+        // CL: Newtonian fluid
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
@@ -307,6 +309,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE (IS_PQMPM)
         KRATOS_REGISTER_VARIABLE(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS)
         KRATOS_REGISTER_VARIABLE(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION)
+
+        // Stabilization variables
+        KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
     }
 
 }  // namespace Kratos.
