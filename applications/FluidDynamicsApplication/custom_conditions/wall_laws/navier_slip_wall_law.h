@@ -301,6 +301,7 @@ private:
 
             // Save the nodal velocities and interpolate the slip length at current integration point
             SlipLength = 0.0;
+            NodalWallVelocities = ZeroVector(3);
             const auto& r_geom = rCondition.GetGeometry();
             for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
                 const auto& r_node = r_geom[i_node];
