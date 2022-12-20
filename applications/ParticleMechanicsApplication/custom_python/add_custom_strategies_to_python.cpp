@@ -67,7 +67,7 @@ namespace Python{
         //custom scheme types
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
         typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
-        typedef MPMResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadyScheme;
+        typedef MPMResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadySchemeType;
 
         // MPM Residual Based Bossak Scheme Type
         py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
@@ -81,15 +81,10 @@ namespace Python{
             .def("Initialize", &MPMExplicitSchemeType::Initialize)
             ;
 
-        // MPM Residual Based Simple Steady Type
-//         py::class_< MPMResidualBasedSimpleSteadyScheme,typename MPMResidualBasedSimpleSteadyScheme::Pointer, BaseSchemeType >(m,"MPMResidualBasedSimpleSteadyScheme")
-//             ;
-//
-        py::class_< MPMResidualBasedSimpleSteadyScheme, typename MPMResidualBasedSimpleSteadyScheme:: Pointer, BaseSchemeType >
-        (m, "MPMResidualBasedSimpleSteadyScheme")
-        .def(py::init<Parameters >() )
-        .def(py::init< >()
-        );
+        py::class_< MPMResidualBasedSimpleSteadySchemeType, typename MPMResidualBasedSimpleSteadySchemeType:: Pointer, BaseSchemeType >(m, "MPMResidualBasedSimpleSteadyScheme")
+            .def(py::init < ModelPart& >())
+            //.def("Initialize", &MPMResidualBasedSimpleSteadyScheme::Initialize)
+            ;
 
         // MPM Residual Based Newton Raphson Strategy Type
         py::class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")

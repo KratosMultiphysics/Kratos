@@ -24,9 +24,11 @@
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/element.h"
+#include "custom_elements/updated_lagrangian_UP_VMS.hpp"
 #include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "custom_utilities/mpm_particle_generator_utility.h"
 
 
 namespace Kratos
@@ -48,7 +50,9 @@ public:
 
   KRATOS_CLASS_POINTER_DEFINITION(MPMResidualBasedSimpleSteadyScheme);
 
-  typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> BaseType;
+  typedef Scheme<TSparseSpace,TDenseSpace>                                      BaseType;
+
+  typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> StaticBaseType;
 
   typedef MPMResidualBasedSimpleSteadyScheme<TSparseSpace, TDenseSpace>         ClassType;
 
@@ -64,6 +68,8 @@ public:
 
   typedef Element::GeometryType                                                 GeometryType;
 
+  typedef typename BaseType::Pointer                                     BaseTypePointer;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -73,33 +79,33 @@ public:
     * @param ThisParameters Dummy parameters
     */
 
-  explicit MPMResidualBasedSimpleSteadyScheme(Parameters ThisParameters)
-      : BaseType()
-  {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
-  }
+    MPMResidualBasedSimpleSteadyScheme(ModelPart& rGridModelPart)
+        : ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+          mGridModelPart(rGridModelPart)
+    {
 
-  /** Default onstructor.
-   */
-
-  explicit MPMResidualBasedSimpleSteadyScheme()
-      : BaseType()
-  {}
+    }
 
     /** Copy Constructor.
     */
 
-   explicit MPMResidualBasedSimpleSteadyScheme(MPMResidualBasedSimpleSteadyScheme& rOther)
-        :BaseType(rOther)
+    MPMResidualBasedSimpleSteadyScheme(MPMResidualBasedSimpleSteadyScheme& rOther)
+        :StaticBaseType(rOther),
+         mGridModelPart(rOther.mGridModelPart)
+    {}
+
+     /**
+     * @brief Clone method
+     */
+    BaseTypePointer Clone() override
     {
+        return BaseTypePointer( new MPMResidualBasedSimpleSteadyScheme(*this) );
     }
 
     /** Destructor.
     */
 
-  virtual ~MPMResidualBasedSimpleSteadyScheme() override {}
+    virtual ~MPMResidualBasedSimpleSteadyScheme() override {}
 
 
     //***************************************************************************
@@ -111,7 +117,7 @@ public:
                                        TSystemVectorType& rb) override
   {
 
-    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+    ProcessInfo& CurrentProcessInfo = mGridModelPart.GetProcessInfo();
 
     //if orthogonal subscales are computed
     if (CurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 3) {
@@ -119,7 +125,7 @@ public:
       KRATOS_INFO_IF("MPMResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
           << "Computing OSS projections" << std::endl;
 
-      const int number_of_nodes = rModelPart.NumberOfNodes();
+      const int number_of_nodes = mGridModelPart.NumberOfNodes();
 
       #pragma omp parallel for
       for (int i = 0; i < number_of_nodes; i++) {
@@ -133,28 +139,32 @@ public:
 //                 r_nodal_area          = 0.0;
       }
 
-      const int number_of_elements = rModelPart.NumberOfElements();
+      const int number_of_elements = mGridModelPart.NumberOfElements();
       array_1d<double, 3 > output;
 
-      #pragma omp parallel for private(output)
-      for (int i = 0; i < number_of_elements; i++) {
-        ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
-         it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo);
-      }
 
-// //       rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-// //       rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
-// //       rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
-//
-//       #pragma omp parallel for
-//       for (int i = 0; i < number_of_nodes; i++) {
-//         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-//         if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-//           it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
-//         const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
-//         it_node->FastGetSolutionStepValue(ADVPROJ) *= area_inverse;
-//         it_node->FastGetSolutionStepValue(DIVPROJ) *= area_inverse;
-//       }
+              // Loop over the submodelpart of rInitialModelPart
+        for (auto& submodelpart : rModelPart.SubModelParts())
+        {
+
+            #pragma omp parallel for private(output)
+            for (ModelPart::ElementIterator it_elem = submodelpart.ElementsBegin();
+                      it_elem != submodelpart.ElementsEnd(); it_elem++) {
+      //         ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
+              const Geometry< Node < 3 > >& r_geometry = it_elem ->GetGeometry();
+              it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo);
+            }
+
+      #pragma omp parallel for
+      for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+          it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+        const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
+        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse;
+      }
+        }
     }
   }
 
@@ -210,6 +220,8 @@ public:
 protected:
   ///@name Protected Operators
   ///@{
+  // MPM Background Grid
+    ModelPart& mGridModelPart;
 
   ///@}
 

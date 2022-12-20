@@ -395,7 +395,7 @@ namespace MPMParticleGeneratorUtility
                             {
                                 p_condition->Set(INTERFACE);
                                 p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
-                                
+
                             }
 
                             // Setting particle condition's initial condition
