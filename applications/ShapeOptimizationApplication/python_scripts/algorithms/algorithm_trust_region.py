@@ -405,13 +405,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __LogCurrentOptimizationStep(self, additional_values_to_log):
         if self.data_logger.SensitivityHeatmapLogging():
-            constraint_gradient_variables = {}
-            for itr, constraint in enumerate(self.constraints):
-                constraint_gradient_variables.update({
-                    constraint["identifier"].GetString() : {
-                        "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
-                    }
-                })
             ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.opt_iteration)
         self.data_logger.LogCurrentValues(self.opt_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.opt_iteration)

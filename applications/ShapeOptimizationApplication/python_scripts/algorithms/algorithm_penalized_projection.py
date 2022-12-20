@@ -194,12 +194,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         if self.data_logger.SensitivityHeatmapLogging():
-            constraint_gradient_variable = {}
-            constraint_gradient_variable.update({
-                    self.constraints[0]["identifier"].GetString() : {
-                        "mapped_gradient": KM.KratosGlobals.GetVariable("DC1DX_MAPPED")
-                    }
-            })
             ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.optimization_iteration)
         additional_values_to_log = {}
         additional_values_to_log["correction_scaling"] = self.correction_scaling
