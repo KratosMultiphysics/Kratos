@@ -81,6 +81,11 @@ public:
     typedef typename ConfigureType::ResultContainerType ResultContainerType;
     typedef typename ConfigureType::ResultIteratorType ResultIteratorType;
 
+    // The definition of the bins
+    typedef BinsObjectDynamic<ConfigureType> BinsType;
+    typedef typename BinsObjectDynamic<ConfigureType>::CoordinateType BinsCoordinateType;
+    typedef typename BinsObjectDynamic<ConfigureType>::PointType BinsPointType;
+
     /// The definition of the node
     typedef Node<3> NodeType;
 
@@ -116,7 +121,7 @@ public:
     BinBasedFastPointLocator(BinBasedFastPointLocator const& rOther)
         : mrModelPart(rOther.mrModelPart)
     {
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (*rOther.mpBinsObjectDynamic));
+        auto paux = typename BinsType::Pointer(new BinsType(*rOther.mpBinsObjectDynamic));
         paux.swap(mpBinsObjectDynamic);
     }
 
@@ -141,7 +146,7 @@ public:
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end));
+        auto paux = typename BinsType::Pointer(new BinsType(it_begin, it_end));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -151,7 +156,7 @@ public:
      * @brief Function to construct or update the search database
      * @param CellSize The current size of the cell used for search
      */
-    void UpdateSearchDatabaseAssignedSize(const double CellSize)
+    void UpdateSearchDatabaseAssignedSize(const BinsCoordinateType CellSize)
     {
         KRATOS_TRY
 
@@ -161,7 +166,7 @@ public:
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
+        auto paux = typename BinsType::Pointer(new BinsType(it_begin, it_end, CellSize));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -191,7 +196,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(BinsPointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
@@ -240,7 +245,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        const SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<ConfigureType>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        const SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(BinsPointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
@@ -363,7 +368,7 @@ private:
 
     ModelPart& mrModelPart; /// The model part containing the mesh for the search
 
-    typename BinsObjectDynamic<ConfigureType>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
+    typename BinsType::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
 
     ///@}
     ///@name Private Operators
