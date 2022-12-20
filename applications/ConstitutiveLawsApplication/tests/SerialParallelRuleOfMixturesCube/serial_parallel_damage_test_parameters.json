@@ -86,7 +86,7 @@
             "time_frequency"                : 0.2
         }
     }
-    ],
+    ]
 	//"_json_output_process" : [
 	//{
 	//	"python_module"   : "json_output_process",
