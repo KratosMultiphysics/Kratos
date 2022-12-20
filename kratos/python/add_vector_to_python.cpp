@@ -5,13 +5,11 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-
-
 
 // System includes
 
@@ -25,15 +23,13 @@
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
 
-template< typename TVectorType > py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
+template< typename TVectorType > 
+py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
 {
     py::class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str(), py::buffer_protocol());
     binder.def(py::init<>());
@@ -456,6 +452,50 @@ void  AddVectorToPython(pybind11::module& m)
     py::implicitly_convertible<array_1d<double,3>, Vector>();
 
     //***********************************************************************************
+        //***********************************************************************************
+    py::class_< DenseVector<bool>, std::shared_ptr<DenseVector<bool>> > bool_vector_binder(m,"BoolVector", py::buffer_protocol());
+    bool_vector_binder.def(py::init<>());
+    bool_vector_binder.def(py::init<const DenseVector<bool>&>());
+    bool_vector_binder.def(py::init< DenseVector<bool>::size_type>());
+    bool_vector_binder.def(py::init< DenseVector<bool>::size_type, bool>());
+    bool_vector_binder.def(py::init( [](const py::list& input)
+    {
+        DenseVector<bool> tmp(input.size());
+        for(unsigned int i=0; i<tmp.size(); ++i)
+            tmp[i] = py::cast<bool>(input[i]);
+        return tmp;
+    }));
+    bool_vector_binder.def("Size", [](const DenseVector<bool>& self)
+    {
+        return self.size();
+    } );
+    bool_vector_binder.def("Resize", [](DenseVector<bool>& self, const typename DenseVector<bool>::size_type  new_size)
+    {
+        if(self.size() != new_size) self.resize(new_size, false);
+    } );
+    bool_vector_binder.def("__len__", [](const DenseVector<bool>& self)
+    {
+        return self.size();
+    } );
+    bool_vector_binder.def("__setitem__", [](DenseVector<bool>& self,
+                                            const unsigned int i,
+                                            const bool value)
+    {
+        self[i] = value;
+    } );
+    bool_vector_binder.def("__getitem__", [](const DenseVector<bool>& self, const unsigned int i)
+    {
+        return self[i];
+    } );
+    bool_vector_binder.def("__iter__", [](DenseVector<bool>& self)
+    {
+        return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
+    }, py::keep_alive<0,1>() ) ;
+    bool_vector_binder.def("__str__", PrintObject<DenseVector<bool>>);
+
+    py::implicitly_convertible<py::list, DenseVector<bool>>();
+
+    //***********************************************************************************
     auto int_vector_binder = CreateVectorInterface<DenseVector<int>>(m, "DenseVectorInt");
     int_vector_binder.def(py::init<typename DenseVector<int>::size_type>());
     int_vector_binder.def(py::init<typename DenseVector<int>::size_type, int>());
@@ -556,6 +596,4 @@ void  AddVectorToPython(pybind11::module& m)
     CreateArray1DInterface< 9 >(m,"Array9");
 
 }
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
