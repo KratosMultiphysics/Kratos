@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP_VMS.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
@@ -26,6 +27,7 @@
 #include "includes/checks.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_utilities/mpm_particle_generator_utility.h"
 
 namespace Kratos
 {
@@ -136,11 +138,11 @@ void UpdatedLagrangianUPVMS::Calculate(
     const Variable<array_1d<double, 3>>& rVariable,
     array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
     // Lumped projection terms
-//     if (rVariable == ADVPROJ) {
-//         this->CalculateProjections(rCurrentProcessInfo);
-//     } else {
+    if (rVariable == RESPROJ_DISPL) {
+        this->CalculateProjections(rCurrentProcessInfo);
+    } else {
         BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-//     }
+    }
 }
 
 // template <class TElementData>
@@ -210,6 +212,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
     const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
@@ -338,14 +341,6 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
         rVariables.ShearModulus = GetProperties()[DYNAMIC_VISCOSITY];
         rVariables.BulkModulus = 1e16;
     }
-
-
-    // Compute Residual if the stabilization is OSGS type
-//     if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==3)
-//     {
-//      Vector volume_force = mMP.volume_acceleration * mMP.mass;
-//      ComputeResidual(rVariables,volume_force,rVariables.GPResidualU,rVariables.GPResidualP);
-//     }
 
     KRATOS_CATCH("")
 }
@@ -551,17 +546,6 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
 }
 
 
-void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP)
-{
-    // For OSGS stabilization
-
-    KRATOS_TRY
-
-    rResidualU = rVolumeForce - rVariables.PressureGradient; // + mMP.density *mMP.acceleration;
-    rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
-
-    KRATOS_CATCH( "" )
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -866,60 +850,106 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
     KRATOS_CATCH( "" )
 }
 
+//***********************************************************************************
+// Calculate Projections for OSGS stabilization
+//***********************************************************************************
 
 void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
-    // Get Shape function data
-    Vector IntegrationWeights;
-    Matrix ShapeFunctions;
-//     ShapeFunctionDerivativesArrayType ShapeDerivatives;
-//     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-//     const unsigned int NumGauss = GaussWeights.size();
+
+    GeometryType& r_geometry = this->GetGeometry();
+//     const Geometry< Node < 3 > >& r_geometry = GetGeometry();
+//     const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
+
+//     const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+//     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+//     const Geometry< Node < 3 > >& r_geometry = GetGeometry(); // current element's geometry
+
+
+    const unsigned int number_of_nodes  = r_geometry.size();
+    const unsigned int dimension        = r_geometry.WorkingSpaceDimension();
+//     const Matrix& r_N                   = r_geometry.ShapeFunctionsValues();
+    const double density                = GetProperties()[DENSITY];
+    double mp_mass = 0;
+    double mp_volume = 0;
+    std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+    double volume_force;
+    unsigned int particles_per_element  = GetProperties()[PARTICLES_PER_ELEMENT];
+    IntegrationMethod int_method        = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    Matrix shape_functions_values;
+    bool is_equal_int_volumes = false;
+
+
+
+    GeneralVariables Variables;
+    this-> InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    this-> SetSpecificVariables(Variables,rCurrentProcessInfo);
+
+
+    MPMParticleGeneratorUtility::DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
+                        int_method, shape_functions_values, is_equal_int_volumes);
+    const unsigned int integration_point_per_elements = shape_functions_values.size1();
+    Vector int_volumes (integration_point_per_elements);
+
+    for (size_t j = 0; j < integration_point_per_elements; ++j)  int_volumes[j] = r_geometry.DomainSize() / integration_point_per_elements;
+
+    VectorType momentum_rhs = ZeroVector(number_of_nodes*dimension);
+    VectorType conserv_rhs                                  = ZeroVector(number_of_nodes);
+    VectorType NodalArea                                    = ZeroVector(number_of_nodes);
+
+    // Loop over the material points that fall in each grid element
+
+
+    for (unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++)
+    {
+        UpdatedLagrangian::SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
+        mp_volume = int_volumes[PointNumber];
+        mp_mass = int_volumes[PointNumber]*density;
 //
-//     array_1d<double,NumNodes*Dim> momentum_rhs = ZeroVector(NumNodes*Dim);
-//     VectorType MassRHS = ZeroVector(NumNodes);
-//     VectorType NodalArea = ZeroVector(NumNodes);
-//
-//     TElementData data;
-//     data.Initialize(*this, rCurrentProcessInfo);
-//
-//     for (unsigned int g = 0; g < NumGauss; g++)
-//     {
-//         this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+//         Vector volume_force = mp_volume_acceleration * mp_mass[0];
 //
 //         array_1d<double, 3> MomentumRes = ZeroVector(3);
-//         double MassRes = 0.0;
+//         double ConservRes = 0.0;
 //
-//         array_1d<double,3> convective_velocity = this->GetAtCoordinate(data.Velocity,data.N) - this->GetAtCoordinate(data.MeshVelocity,data.N);
+//         this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes)
 //
-//         this->MomentumProjTerm(data, convective_velocity, MomentumRes);
-//         this->MassProjTerm(data,MassRes);
-//
-//         for (unsigned int i = 0; i < NumNodes; i++)
+//         // Loop over the nodes
+//         for (unsigned int i = 0; i < number_of_nodes; i++)
 //         {
-//             double W = data.Weight*data.N[i];
+//             double W = mp_volume*r_N[i];
 //             unsigned int row = i*Dim;
 //             for (unsigned int d = 0; d < Dim; d++)
 //                 momentum_rhs[row+d] += W*MomentumRes[d];
 //             NodalArea[i] += W;
-//             MassRHS[i] += W*MassRes;
+//             conserv_rhs[i] += W*ConservRes;
 //         }
-//     }
+    }
 //
 //     // Add carefully to nodal variables to avoid OpenMP race condition
-//     GeometryType& r_geometry = this->GetGeometry();
-//     for (SizeType i = 0; i < NumNodes; ++i)
+//
+//     for (SizeType i = 0; i < number_of_nodes; ++i)
 //     {
 //         r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
-//         array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(ADVPROJ);
+//         array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(RESPROJ_DISPL);
 //         unsigned int row = i*Dim;
 //         for (unsigned int d = 0; d < Dim; d++)
 //             rMomValue[d] += momentum_rhs[row + d];
-//         r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+//         r_geometry[i].FastGetSolutionStepValue(RESPROJ_PRESS) += conserv_rhs[i];
 //         r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
 //         r_geometry[i].UnSetLock(); // Free the node for other threads
 //     }
 }
+
+
+void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP)
+{
+
+    rResidualU = rVolumeForce - rVariables.PressureGradient;
+    rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
+
+}
+
+
 
 
 void UpdatedLagrangianUPVMS::save( Serializer& rSerializer ) const
