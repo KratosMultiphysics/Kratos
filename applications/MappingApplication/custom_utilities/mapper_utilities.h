@@ -204,6 +204,15 @@ void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLoca
                                             const Communicator& rModelPartCommunicator,
                                             std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
 
+template <class T1, class T2>
+inline double ComputeDistance(const T1& rCoords1,
+                              const T2& rCoords2)
+{
+    return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
+                      std::pow(rCoords1[1] - rCoords2[1] , 2) +
+                      std::pow(rCoords1[2] - rCoords2[2] , 2) );
+}
+
 template <class T1, class T2, class T3>
 bool PointsAreCollinear(
     const T1& rP1,
