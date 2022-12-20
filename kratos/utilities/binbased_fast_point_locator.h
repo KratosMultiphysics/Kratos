@@ -107,23 +107,6 @@ public:
     explicit BinBasedFastPointLocator(ModelPart& rModelPart)
         : mrModelPart(rModelPart)
     {
-        // NOTE: Should call UpdateSearchDatabase() to initialize the search database
-        // UpdateSearchDatabase();
-    }
-
-    /**
-     * @brief This is the default constructor (with cell size)
-     * @param rModelPart The model part of the mesh used in the search
-     * @param CellSize The current size of the cell used for search
-     */
-    explicit BinBasedFastPointLocator(
-        ModelPart& rModelPart,
-        const double CellSize
-        )
-        : mrModelPart(rModelPart),
-          mCellSize(CellSize)
-    {
-        UpdateSearchDatabaseAssignedSize(mCellSize);
     }
 
     /// Destructor.
@@ -131,14 +114,10 @@ public:
 
     /// Copy constructor.
     BinBasedFastPointLocator(BinBasedFastPointLocator const& rOther)
-        : mrModelPart(rOther.mrModelPart),
-          mCellSize(rOther.mCellSize)
+        : mrModelPart(rOther.mrModelPart)
     {
-        if (mCellSize > 0.0) {
-            UpdateSearchDatabaseAssignedSize(mCellSize);
-        } else {
-            UpdateSearchDatabase();
-        }
+        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (*rOther.mpBinsObjectDynamic));
+        paux.swap(mpBinsObjectDynamic);
     }
 
     ///@}
@@ -181,9 +160,8 @@ public:
         GetContainer(mrModelPart, entities_array);
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
-        mCellSize = CellSize;
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, mCellSize));
+        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -386,8 +364,6 @@ private:
     ModelPart& mrModelPart; /// The model part containing the mesh for the search
 
     typename BinsObjectDynamic<ConfigureType>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
-
-    double mCellSize = -1.0; /// The cell size used for the search. Default is negative to indicate that it is not set
 
     ///@}
     ///@name Private Operators
