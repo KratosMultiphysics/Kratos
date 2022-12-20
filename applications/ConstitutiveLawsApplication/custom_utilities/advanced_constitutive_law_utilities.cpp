@@ -201,7 +201,7 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLeng
     double radius = 0.0;
 
     const SizeType points_number = rGeometry.size();
-	array_1d<double, 3> center = rGeometry[0].GetInitialPosition().Coordinates();
+    array_1d<double, 3> center = rGeometry[0].GetInitialPosition().Coordinates();
     for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
         center += rGeometry[i_node].GetInitialPosition().Coordinates();
     }
@@ -762,90 +762,82 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
     const BoundedMatrixType& rEulerOperator,
     BoundedMatrixVoigtType& rVoigtOperator
     )
 {
-    rVoigtOperator.clear();
+    if constexpr (Dimension == 2) {
+        const double c = rEulerOperator(0, 0);
+        const double s = rEulerOperator(0, 1);
 
-    const double l1 = rEulerOperator(0, 0);
-    const double l2 = rEulerOperator(1, 0);
-    const double l3 = rEulerOperator(2, 0);
-    const double m1 = rEulerOperator(0, 1);
-    const double m2 = rEulerOperator(1, 1);
-    const double m3 = rEulerOperator(2, 1);
-    const double n1 = rEulerOperator(0, 2);
-    const double n2 = rEulerOperator(1, 2);
-    const double n3 = rEulerOperator(2, 2);
+        rVoigtOperator(0, 0) = std::pow(c, 2);
+        rVoigtOperator(0, 1) = std::pow(s, 2);
+        rVoigtOperator(0, 2) = c * s;
 
-    rVoigtOperator(0, 0) = std::pow(l1, 2);
-    rVoigtOperator(0, 1) = std::pow(m1, 2);
-    rVoigtOperator(0, 2) = std::pow(n1, 2);
-    rVoigtOperator(0, 3) = l1 * m1;
-    rVoigtOperator(0, 4) = m1 * n1;
-    rVoigtOperator(0, 5) = n1 * l1;
+        rVoigtOperator(1, 0) = std::pow(s, 2);
+        rVoigtOperator(1, 1) = std::pow(c, 2);
+        rVoigtOperator(1, 2) = -c * s;
 
-    rVoigtOperator(1, 0) = std::pow(l2, 2);
-    rVoigtOperator(1, 1) = std::pow(m2, 2);
-    rVoigtOperator(1, 2) = std::pow(n2, 2);
-    rVoigtOperator(1, 3) = l2 * m2;
-    rVoigtOperator(1, 4) = m2 * n2;
-    rVoigtOperator(1, 5) = n2 * l2;
+        rVoigtOperator(2, 0) = -2.0 * c * s;
+        rVoigtOperator(2, 1) = 2.0 * c * s;
+        rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+    } else {
+        rVoigtOperator.clear();
 
-    rVoigtOperator(2, 0) = std::pow(l3, 2);
-    rVoigtOperator(2, 1) = std::pow(m3, 2);
-    rVoigtOperator(2, 2) = std::pow(n3, 2);
-    rVoigtOperator(2, 3) = l3 * m3;
-    rVoigtOperator(2, 4) = m3 * n3;
-    rVoigtOperator(2, 5) = n3 * l3;
+        const double l1 = rEulerOperator(0, 0);
+        const double l2 = rEulerOperator(1, 0);
+        const double l3 = rEulerOperator(2, 0);
+        const double m1 = rEulerOperator(0, 1);
+        const double m2 = rEulerOperator(1, 1);
+        const double m3 = rEulerOperator(2, 1);
+        const double n1 = rEulerOperator(0, 2);
+        const double n2 = rEulerOperator(1, 2);
+        const double n3 = rEulerOperator(2, 2);
 
-    rVoigtOperator(3, 0) = 2.0 * l1 * l2;
-    rVoigtOperator(3, 1) = 2.0 * m1 * m2;
-    rVoigtOperator(3, 2) = 2.0 * n1 * n2;
-    rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
-    rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
-    rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
+        rVoigtOperator(0, 0) = std::pow(l1, 2);
+        rVoigtOperator(0, 1) = std::pow(m1, 2);
+        rVoigtOperator(0, 2) = std::pow(n1, 2);
+        rVoigtOperator(0, 3) = l1 * m1;
+        rVoigtOperator(0, 4) = m1 * n1;
+        rVoigtOperator(0, 5) = n1 * l1;
 
-    rVoigtOperator(4, 0) = 2.0 * l2 * l3;
-    rVoigtOperator(4, 1) = 2.0 * m2 * m3;
-    rVoigtOperator(4, 2) = 2.0 * n2 * n3;
-    rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
-    rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
-    rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
+        rVoigtOperator(1, 0) = std::pow(l2, 2);
+        rVoigtOperator(1, 1) = std::pow(m2, 2);
+        rVoigtOperator(1, 2) = std::pow(n2, 2);
+        rVoigtOperator(1, 3) = l2 * m2;
+        rVoigtOperator(1, 4) = m2 * n2;
+        rVoigtOperator(1, 5) = n2 * l2;
 
-    rVoigtOperator(5, 0) = 2.0 * l3 * l1;
-    rVoigtOperator(5, 1) = 2.0 * m3 * m1;
-    rVoigtOperator(5, 2) = 2.0 * n3 * n1;
-    rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
-    rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
-    rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
-}
+        rVoigtOperator(2, 0) = std::pow(l3, 2);
+        rVoigtOperator(2, 1) = std::pow(m3, 2);
+        rVoigtOperator(2, 2) = std::pow(n3, 2);
+        rVoigtOperator(2, 3) = l3 * m3;
+        rVoigtOperator(2, 4) = m3 * n3;
+        rVoigtOperator(2, 5) = n3 * l3;
 
-/***********************************************************************************/
-/***********************************************************************************/
+        rVoigtOperator(3, 0) = 2.0 * l1 * l2;
+        rVoigtOperator(3, 1) = 2.0 * m1 * m2;
+        rVoigtOperator(3, 2) = 2.0 * n1 * n2;
+        rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
+        rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
+        rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
 
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
-    const BoundedMatrixType& rEulerOperator,
-    BoundedMatrixVoigtType& rVoigtOperator
-    )
-{
-    const double c = rEulerOperator(0, 0);
-    const double s = rEulerOperator(0, 1);
+        rVoigtOperator(4, 0) = 2.0 * l2 * l3;
+        rVoigtOperator(4, 1) = 2.0 * m2 * m3;
+        rVoigtOperator(4, 2) = 2.0 * n2 * n3;
+        rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
+        rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
+        rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
 
-    rVoigtOperator(0, 0) = std::pow(c, 2);
-    rVoigtOperator(0, 1) = std::pow(s, 2);
-    rVoigtOperator(0, 2) = c * s;
-
-    rVoigtOperator(1, 0) = std::pow(s, 2);
-    rVoigtOperator(1, 1) = std::pow(c, 2);
-    rVoigtOperator(1, 2) = -c * s;
-
-    rVoigtOperator(2, 0) = -2.0 * c * s;
-    rVoigtOperator(2, 1) = 2.0 * c * s;
-    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+        rVoigtOperator(5, 0) = 2.0 * l3 * l1;
+        rVoigtOperator(5, 1) = 2.0 * m3 * m1;
+        rVoigtOperator(5, 2) = 2.0 * n3 * n1;
+        rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
+        rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
+        rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
+    }
 }
 
 /***********************************************************************************/
