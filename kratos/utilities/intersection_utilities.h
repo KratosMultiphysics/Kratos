@@ -5,21 +5,24 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_INTERSECTION_UTILITIES )
-#define  KRATOS_INTERSECTION_UTILITIES
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
+#include "geometries/point.h"
+#include "containers/pointer_vector.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -51,8 +54,9 @@ namespace Kratos
  * intersections between different entities, and if there is, give back
  * the intersection points.
  * @author Ruben Zorrilla
+ * @author Vicente Mataix Ferrandiz
  */
-class IntersectionUtilities
+class KRATOS_API(KRATOS_CORE) IntersectionUtilities
 {
 public:
 
@@ -231,6 +235,119 @@ public:
         if (eta < -Tolerance) return false;
         if (xi + eta > 1.0 + Tolerance) return false;
         return true;
+    }
+
+    /**
+     * @brief Calculates the line to line intersection (shortest line). If line is length 0, it is considered a point and therefore there is intersection (3D version)
+     * @details Calculate the line segment PaPb that is the shortest route between two lines P1P2 and P3P4. Calculate also the values of mua and mub where
+     *    Pa = P1 + mua (P2 - P1)
+     *    Pb = P3 + mub (P4 - P3)
+     *    http://paulbourke.net/geometry/pointlineplane/
+     * @param rSegment1 The first segment
+     * @param rSegment2 The second segment
+     * @tparam TGeometryType The geometry type
+     * @return Return empty points array if no solution exists. Otherwise returns the line intersection points array
+     */
+    template<class TGeometryType>
+    static PointerVector<Point> ComputeShortestLineBetweenTwoLines(
+        const TGeometryType& rSegment1,
+        const TGeometryType& rSegment2
+        )  
+    {
+        // Zero tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+        // Check geometry type
+        KRATOS_ERROR_IF_NOT((rSegment1.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear && rSegment1.PointsNumber() == 2)) << "The first geometry type is not correct, it is suppossed to be a linear line" << std::endl;
+        KRATOS_ERROR_IF_NOT((rSegment2.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear && rSegment2.PointsNumber() == 2)) << "The second geometry type is not correct, it is suppossed to be a linear line" << std::endl;
+
+        // Resulting line segment
+        auto resulting_line = PointerVector<Point>();
+
+        // Variable definitions
+        array_1d<double, 3> p13,p43,p21;
+        double d1343,d4321,d1321,d4343,d2121;
+        double mua, mub;
+        double numer,denom;
+
+        // Points segments
+        const Point& p1 = rSegment1[0];
+        const Point& p2 = rSegment1[1];
+        const Point& p3 = rSegment2[0];
+        const Point& p4 = rSegment2[1];
+
+        p13[0] = p1.X() - p3.X();
+        p13[1] = p1.Y() - p3.Y();
+        p13[2] = p1.Z() - p3.Z();
+
+        p43[0] = p4.X() - p3.X();
+        p43[1] = p4.Y() - p3.Y();
+        p43[2] = p4.Z() - p3.Z();
+        if (std::abs(p43[0]) < zero_tolerance && std::abs(p43[1]) < zero_tolerance && std::abs(p43[2]) < zero_tolerance)
+            return resulting_line;
+
+        p21[0] = p2.X() - p1.X();
+        p21[1] = p2.Y() - p1.Y();
+        p21[2] = p2.Z() - p1.Z();
+        if (std::abs(p21[0]) < zero_tolerance && std::abs(p21[1]) < zero_tolerance && std::abs(p21[2]) < zero_tolerance)
+            return resulting_line;
+
+        d1343 = p13[0] * p43[0] + p13[1] * p43[1] + p13[2] * p43[2];
+        d4321 = p43[0] * p21[0] + p43[1] * p21[1] + p43[2] * p21[2];
+        d1321 = p13[0] * p21[0] + p13[1] * p21[1] + p13[2] * p21[2];
+        d4343 = p43[0] * p43[0] + p43[1] * p43[1] + p43[2] * p43[2];
+        d2121 = p21[0] * p21[0] + p21[1] * p21[1] + p21[2] * p21[2];
+
+        denom = d2121 * d4343 - d4321 * d4321;
+        auto pa = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        auto pb = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        if (std::abs(denom) < zero_tolerance) { // Parallel lines, infinite solutions. Projecting points and getting one perpendicular line
+            // Projection auxiliary variables
+            Point projected_point;
+            array_1d<double,3> local_coords;
+            // Projecting first segment
+            GeometricalProjectionUtilities::FastProjectOnLine(rSegment2, rSegment1[0], projected_point);
+            if (rSegment2.IsInside(projected_point, local_coords)) {
+                pa->Coordinates() = rSegment1[0].Coordinates();
+                pb->Coordinates() = projected_point;
+            } else {
+                GeometricalProjectionUtilities::FastProjectOnLine(rSegment2, rSegment1[1], projected_point);
+                if (rSegment2.IsInside(projected_point, local_coords)) {
+                    pa->Coordinates() = rSegment1[1].Coordinates();
+                    pb->Coordinates() = projected_point;
+                } else { // Trying to project second segment
+                    GeometricalProjectionUtilities::FastProjectOnLine(rSegment1, rSegment2[0], projected_point);
+                    if (rSegment1.IsInside(projected_point, local_coords)) {
+                        pa->Coordinates() = rSegment2[0].Coordinates();
+                        pb->Coordinates() = projected_point;
+                    } else {
+                        GeometricalProjectionUtilities::FastProjectOnLine(rSegment1, rSegment2[1], projected_point);
+                        if (rSegment1.IsInside(projected_point, local_coords)) {
+                            pa->Coordinates() = rSegment2[1].Coordinates();
+                            pb->Coordinates() = projected_point;
+                        } else { // Parallel and not projection possible
+                            return resulting_line;
+                        }
+                    }
+                }
+            }
+        } else {
+            numer = d1343 * d4321 - d1321 * d4343;
+
+            mua = numer / denom;
+            mub = (d1343 + d4321 * mua) / d4343;
+
+            pa->X() = p1.X() + mua * p21[0];
+            pa->Y() = p1.Y() + mua * p21[1];
+            pa->Z() = p1.Z() + mua * p21[2];
+            pb->X() = p3.X() + mub * p43[0];
+            pb->Y() = p3.Y() + mub * p43[1];
+            pb->Z() = p3.Z() + mub * p43[2];
+        }
+
+        resulting_line.push_back(pa);
+        resulting_line.push_back(pb);
+        return resulting_line;
     }
 
     /**
@@ -515,6 +632,3 @@ private:
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_INTERSECTION_UTILITIES  defined */
-
