@@ -42,7 +42,6 @@ void OmegaUBasedWallConditionData::Check(
     KRATOS_TRY
     const auto& r_geometry = rCondition.GetGeometry();
     const auto& r_properties = rCondition.GetProperties();
-    const int number_of_nodes = r_geometry.PointsNumber();
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA))
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
@@ -57,9 +56,7 @@ void OmegaUBasedWallConditionData::Check(
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        const auto& r_node = r_geometry[i_node];
+    for (const auto& r_node : r_geometry) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);

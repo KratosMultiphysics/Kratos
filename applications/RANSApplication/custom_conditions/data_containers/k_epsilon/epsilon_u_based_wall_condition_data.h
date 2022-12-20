@@ -37,7 +37,7 @@ class EpsilonUBasedWallConditionData : public ScalarWallFluxConditionData
 public:
     using BaseType = ScalarWallFluxConditionData;
     using NodeType = Node<3>;
-    using GeometryType = typename BaseType::GeometryType;
+    using GeometryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
 

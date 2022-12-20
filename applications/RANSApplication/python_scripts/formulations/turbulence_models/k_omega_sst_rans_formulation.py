@@ -160,7 +160,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info = self.GetBaseModelPart().ProcessInfo
         # wall law constants
         constants = settings["wall_law_constants"]
-        # TODO: This needs to be checked with validation cases
         process_info.SetValue(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, constants["sigma_omega"].GetDouble())
         process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
