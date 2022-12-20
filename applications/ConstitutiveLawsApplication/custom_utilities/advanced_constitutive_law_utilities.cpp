@@ -738,8 +738,6 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
     )
 {
-    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
-
     const double pi_over_180 = Globals::Pi / 180.0;
     const double cos1 = std::cos(EulerAngle1 * pi_over_180);
     const double sin1 = std::sin(EulerAngle1 * pi_over_180);
@@ -784,8 +782,6 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoig
         rVoigtOperator(2, 1) = 2.0 * c * s;
         rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
     } else {
-        rVoigtOperator.clear();
-
         const double l1 = rEulerOperator(0, 0);
         const double l2 = rEulerOperator(1, 0);
         const double l3 = rEulerOperator(2, 0);
