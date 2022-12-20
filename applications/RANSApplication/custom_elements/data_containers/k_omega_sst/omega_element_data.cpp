@@ -150,6 +150,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
 
+    // omega needs to be always positive, hence we use the bracketing.
     const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
     mReactionTerm = mBlendedBeta * omega;
     mReactionTerm -= (1.0 - mF1) * mCrossDiffusion / omega;
