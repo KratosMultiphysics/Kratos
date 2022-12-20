@@ -40,7 +40,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         default_parameters = KM.Parameters("""
         {
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -227,7 +226,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         super().ExecuteFinalize()
 
     def _compute_search(self):
-        """ This method return if the serach must be computed
+        """ This method return if the search must be computed
 
         Keyword arguments:
         self -- It signifies an instance of a class.

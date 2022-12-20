@@ -98,8 +98,8 @@ namespace Kratos
             effective_dynamic_viscosity = (first_viscous_term + second_viscous_term) * std::fabs(mean_pressure);
         }
         else
-        {            
-            effective_dynamic_viscosity = 1.0; //this is for the first iteration and first time step
+        {
+            effective_dynamic_viscosity = 1.0; // this is for the first iteration and first time step
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
@@ -123,68 +123,42 @@ namespace Kratos
     //*****************************************************************************
 
     int MuIRheology3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                             const ProcessInfo &rCurrentProcessInfo) const
+                                const ProcessInfo &rCurrentProcessInfo) const
     {
-        if (rMaterialProperties[STATIC_FRICTION] < 0.0)
-        {
-            KRATOS_ERROR
-                << "Incorrect or missing STATIC_FRICTION provided in process info for MuIRheology3DLaw: "
-                << rMaterialProperties[STATIC_FRICTION] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[STATIC_FRICTION] < 0.0)
+            << "Incorrect or missing STATIC_FRICTION provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[STATIC_FRICTION] << std::endl;
 
-        if (rMaterialProperties[DYNAMIC_FRICTION] < 0.0)
-        {
-            KRATOS_ERROR
-                << "Incorrect or missing DYNAMIC_FRICTION provided in process info for MuIRheology3DLaw: "
-                << rMaterialProperties[DYNAMIC_FRICTION] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_FRICTION] < 0.0)
+            << "Incorrect or missing DYNAMIC_FRICTION provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[DYNAMIC_FRICTION] << std::endl;
 
-        if (rMaterialProperties[INERTIAL_NUMBER_ZERO] < 0.0)
-        {
-            KRATOS_ERROR
-                << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for MuIRheology3DLaw: "
-                << rMaterialProperties[INERTIAL_NUMBER_ZERO] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[INERTIAL_NUMBER_ZERO] < 0.0)
+            << "Incorrect or missing INERTIAL_NUMBER_ZERO provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[INERTIAL_NUMBER_ZERO] << std::endl;
 
-        if (rMaterialProperties[GRAIN_DIAMETER] <= 0.0)
-        {
-            KRATOS_ERROR
-                << "Incorrect or missing GRAIN_DIAMETER provided in process info for MuIRheology3DLaw: "
-                << rMaterialProperties[GRAIN_DIAMETER] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[GRAIN_DIAMETER] < 0.0)
+            << "Incorrect or missing GRAIN_DIAMETER provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[GRAIN_DIAMETER] << std::endl;
 
-        if (rMaterialProperties[GRAIN_DENSITY] <= 0.0)
-        {
-            KRATOS_ERROR
-                << "Incorrect or missing GRAIN_DENSITY provided in process info for MuIRheology3DLaw: "
-                << rMaterialProperties[GRAIN_DENSITY] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[GRAIN_DENSITY] < 0.0)
+            << "Incorrect or missing GRAIN_DENSITY provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[GRAIN_DENSITY] << std::endl;
 
-        if (rMaterialProperties[REGULARIZATION_COEFFICIENT] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for "
-                            "MuIRheology3DLaw: "
-                         << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[REGULARIZATION_COEFFICIENT] < 0.0)
+            << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
 
-        if (rMaterialProperties[BULK_MODULUS] <= 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for "
-                            "MuIRheology3DLaw: "
-                         << rMaterialProperties[BULK_MODULUS] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
+            << "Incorrect or missing BULK_MODULUS provided in process info for MuIRheology3DLaw: "
+            << rMaterialProperties[BULK_MODULUS] << std::endl;
 
         return 0;
     }
 
-    double MuIRheology3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
+    double MuIRheology3DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {
-        return rParameters.GetConstitutiveMatrix()(5, 5);
-    }
-
-    double MuIRheology3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[DENSITY];
+        return rParameters.GetMaterialProperties()[rVariable];
     }
 
     void MuIRheology3DLaw::save(Serializer &rSerializer) const

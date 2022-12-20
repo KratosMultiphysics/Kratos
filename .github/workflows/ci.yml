@@ -193,6 +193,7 @@ jobs:
 
     - name: Build
       run: |
+        export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         cp .github/workflows/centos_configure.sh centos_configure.sh
         bash centos_configure.sh
 
@@ -260,7 +261,7 @@ jobs:
         -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
         -DINSTALL_RUNKRATOS=OFF
 
-        # Buid
+        # Build
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 
         ccache -s
