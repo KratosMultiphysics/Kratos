@@ -30,6 +30,7 @@
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/sbm_laplacian_element.h"
+#include "custom_elements/laplacian_shifted_boundary_element.h"
 #include "custom_elements/mixed_laplacian_element.h"
 #include "custom_elements/embedded_laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
@@ -239,6 +240,7 @@ private:
     const ConvDiff3D  mConvDiff3D;
     const LaplacianElement mLaplacian2D3N;
     const SBMLaplacianElement mSBMLaplacian2D3N;
+    const LaplacianShiftedBoundaryElement<2> mLaplacianShiftedBoundary2D3N;
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;

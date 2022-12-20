@@ -217,7 +217,7 @@ namespace
         std::size_t domain_size = r_process_info[DOMAIN_SIZE];
 
         // Set the required interface flags
-        SetInterfaceFlags();
+        // SetInterfaceFlags();             // OOOOOOOOOOCCHIOOOOOOOOO
 
         // Create the nodal gradient projection weights
         // This means to build a gradient reconstruction for each node in the surrogate boundary from the positive neighbour values
@@ -484,7 +484,7 @@ namespace
     void ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateMeshlessBasedConformingExtensionBasis()
     {
         // Set the required interface flags
-        SetInterfaceFlags();
+        // SetInterfaceFlags();             // OOOOOOOOOOCCHIOOOOOOOOO
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
@@ -679,7 +679,7 @@ namespace
     void ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateMeshlessBasedNonConformingExtensionBasis()
     {
         // Set the required interface flags
-        SetInterfaceFlags();
+        // SetInterfaceFlags();             // OOOOOOOOOOCCHIOOOOOOOOO
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
@@ -1219,7 +1219,7 @@ namespace
                     //     if (it->IsNot(BOUNDARY)){
                     //         r_elem_neigh_vect.push_back(it);
                     //     }             
-                    // }     
+                    // }
                     // // Unique
                     // r_elem_neigh_vect.Unique() ;    
                     // // shrink_to_fit
@@ -1289,7 +1289,7 @@ namespace
         for (auto& r_bd_node : mpModelPart->Nodes()) {
             auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
             if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {
-                // Calculate the nodal gradient coefficients in the ACTIVE elements neighbouring current node
+                // Calculate the nodal gradient coefficients in the MARKER elements neighbouring current node
                 int count = 0 ;         
                 auto& r_elem_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
@@ -1316,13 +1316,17 @@ namespace
                             count_neigh_nodes = count_neigh_nodes + 1 ;
                         }
                     }
-
+                    // KRATOS_WATCH(count_neigh_nodes)
                     // KRATOS_WATCH(count_neigh_nodes)
                     if (count_neigh_nodes < 3) {
-                        KRATOS_WATCH("There are at least one very_problematic node")
+                        KRATOS_WATCH("There is at least one very_problematic node")
                         int temp = 0 ; // Variable to find the two admissible neigh nodes
                         auto p_node_neigh1 = r_node_neigh_vect(1).get();
                         auto p_node_neigh2 = r_node_neigh_vect(1).get(); 
+                        if (r_node_neigh_vect.size() == 0 ) {
+                            KRATOS_WATCH("r_node_neigh_vect.size() == 0 !!! STOP") 
+                            exit(0) ;
+                        }
                         for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
                             auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
                             double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
@@ -1334,6 +1338,7 @@ namespace
                                     p_node_neigh2 = p_node_neigh ;
                                 }  
                             }
+
                         }
                         auto& r_node1 = *p_node_neigh1 ; 
                         auto& r_node2 = *p_node_neigh2 ;

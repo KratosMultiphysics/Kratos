@@ -18,13 +18,14 @@ def Create_Fluid_model_part(divisions):
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
     model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
     problem_domain = KratosMultiphysics.Quadrilateral2D4(
-        KratosMultiphysics.Node(1, -4.25, -4.18, 0.0),
-        KratosMultiphysics.Node(2, -4.25,  4.0, 0.0),
-        KratosMultiphysics.Node(3,  7.0,  4.0, 0.0),
-        KratosMultiphysics.Node(4,  7.0, -4.18, 0.0))
+        KratosMultiphysics.Node(1, 1.0, 1.0, 0.0),
+        KratosMultiphysics.Node(2, 1.0,  2.0, 0.0),
+        KratosMultiphysics.Node(3,  2.0,  2.0, 0.0),
+        KratosMultiphysics.Node(4,  2.0, 1.0, 0.0))
     parameters = KratosMultiphysics.Parameters("{}")
     parameters.AddEmptyValue("element_name").SetString("Element2D3N")
     # parameters.AddEmptyValue("condition_name").SetString("LineCondition2D2N")
@@ -92,7 +93,7 @@ def FindSurrogateNodes(model_part,iter):
         if count_pos == 3 :
             # The element is a fluid element completely ouside the surrogate boundary
             elem.Set(MARKER,True)
-            elem.Set(ACTIVE,True)
+            # elem.Set(ACTIVE,True)
             count2 = count2 + 1
         # if count_neg > 0 :
             # elem.Set(ACTIVE,False)
@@ -147,12 +148,12 @@ def FindClosestSkinElement(model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
 
 
 
-def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closest_element) :
+def Find_projections(model_part,skin_model_part,tot_sur_nodes,closest_element) :
     start_time = time.time()
     # Find the PROJECTION for each of the surrogate nodes on the closest skin element
     # 1.0.1 Initialize a matrix with the coordinates of the projections
     projection_surr_nodes = [[0 for _ in range(2)] for _ in range(tot_sur_nodes)]
-    file_tre = open("projection_surr_nodes.txt", "w")
+    # file_tre = open("projection_surr_nodes.txt", "w")
     # 1.1 Run over each surrogate node take the closest skin element
     i = 0
     for node in model_part.Nodes :
@@ -193,15 +194,15 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closes
                     candidate = node2
                 #-----------------------NEED TO IMPROVE--------------------------------------- 
                 # search for the element with node = candidate (so I find the other unique possible second-closest element)
-                for elem in skin_model_part.Conditions:
-                    for nod in elem.GetGeometry():
+                for cond in skin_model_part.Conditions:
+                    for nod in cond.GetGeometry():
                         if nod.Id == candidate.Id :
                             break
                     if nod.Id == candidate.Id :
                         break
                 # Now we know on which element the projection lies --> We take the two nodes: node1 & node2
-                node1 = skin_model_part.Conditions[elem.Id].GetNodes()[0]
-                node2 = skin_model_part.Conditions[elem.Id].GetNodes()[1]
+                node1 = skin_model_part.Conditions[cond.Id].GetNodes()[0]
+                node2 = skin_model_part.Conditions[cond.Id].GetNodes()[1]
                 # 1.4 Compute m and q 
                 if (node1.X - node2.X) != 0 :
                     m = (node1.Y - node2.Y) / (node1.X - node2.X)
@@ -232,12 +233,12 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closes
                 else :
                     # We have found the correct projection
                     print('Trovata proiezione nel secondo elemento più vicino del nodo : ', node.Id)
-            file_tre.write(str(projection_surr_nodes[i][0]))
-            file_tre.write('  ')
-            file_tre.write(str(projection_surr_nodes[i][1]))
-            file_tre.write('\n')
+            # file_tre.write(str(projection_surr_nodes[i][0]))
+            # file_tre.write('  ')
+            # file_tre.write(str(projection_surr_nodes[i][1]))
+            # file_tre.write('\n')
             i = i + 1
-    file_tre.close()
+    # file_tre.close()
     print("--> %s seconds for Find_projections" % (time.time() - start_time))
     return projection_surr_nodes
 
@@ -395,18 +396,24 @@ def Compute_error(main_model_part, sub_model_part_fluid) :
         for node in main_model_part.Nodes :
             exact_grad = KratosMultiphysics.Array3()
             # exact = node.X + node.Y    # --> Tutto lineare
-            # exact_grad[0] = 1.0   # --> Tutto lineare
-            # exact_grad[1] = 1.0   # --> Tutto lineare
+            # exact_grad[0] = 1.0        # --> Tutto lineare
+            # exact_grad[1] = 1.0        # --> Tutto lineare
             # exact = 0.25*(4 - ((node.X)**2 + (node.Y)**2) )  # --> Paraboloide
-            # exact_grad[0] = 0.25*(-2*node.X)   # --> Paraboloide
-            # exact_grad[1] = 0.25*(-2*node.Y)  # --> Paraboloide
-            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
-            # exact_grad[0] = 0.25 * (-2*node.X + 2*node.X / (node.X**2 + node.Y**2))  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
-            # exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2))  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
+            # exact_grad[0] = 0.25*(-2*node.X)                 # --> Paraboloide
+            # exact_grad[1] = 0.25*(-2*node.Y)                 # --> Paraboloide
+                    
+            exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y)
+            exact_grad[0] = 0.25 * (-2*node.X + 2*node.X / (node.X**2 + node.Y**2))  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
+            exact_grad[1] = 0.25 * (-2*node.Y + 2*node.Y / (node.X**2 + node.Y**2))  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
+            # 1/log
+            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + math.log(1/(node.X**2+node.Y**2))
+            # exact_grad[0] = 0.25 * (-2*node.X )   -2*node.X/(node.X**2+node.Y**2)
+            # exact_grad[1] = 0.25 * (-2*node.Y )   -2*node.Y/(node.X**2+node.Y**2)
+            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + node.X**3 * node.Y - node.X * node.Y**3
             ## Senza Logaritmo
-            exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
-            exact_grad[0] = 0.25 * (-2*node.X)  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
-            exact_grad[1] = 0.25 * (-2*node.Y)  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
+            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
+            # exact_grad[0] = 0.25 * (-2*node.X)  +  0.25 * math.cos(node.X) * math.sinh(node.Y)
+            # exact_grad[1] = 0.25 * (-2*node.Y)  +  0.25 * math.sin(node.X) * math.cosh(node.Y)
             ## Solo Logaritmo
             # exact = math.log(node.X**2+node.Y**2)
             # exact_grad[0] = 2*node.X / (node.X**2 + node.Y**2)
@@ -445,18 +452,17 @@ def Compute_error(main_model_part, sub_model_part_fluid) :
             
         if total_number_fluid_nodes == 0 :
             total_number_fluid_nodes = len(sub_model_part_fluid.Nodes)
-            print('!!!!!!!!!')
         L2_err = math.sqrt(L2_err  / total_number_fluid_nodes )
-        # L2_err_area = math.sqrt(L2_err_area / total_area) 
+        L2_err_area = math.sqrt(L2_err_area / total_area) 
         H1_err = L2_err +  math.sqrt( L2_grad_err  / total_number_fluid_nodes )
-        # H1_err_area = L2_err_area + math.sqrt(L2_grad_err_area / total_area ) 
+        H1_err_area = L2_err_area + math.sqrt(L2_grad_err_area / total_area ) 
         # file_due.write(str(L2_err))
-        print('Errore in norma L2 : ', L2_err)
-        # print('Errore in norma L2 (equal areas): ', L2_err_area)
-        print('Errore in norma H1 : ', H1_err)
-        # print('Errore in norma H1 (equal areas): ', H1_err_area)
+        print('Errore in norma L2 (equal areas): ', L2_err)
+        print('Errore in norma L2 : ', L2_err_area)
+        # print('Errore in norma H1 (equal areas): ', H1_err)
+        print('Errore in norma H1 : ', H1_err_area)
         file_due.close
-        return
+        return L2_err_area, H1_err_area
 
 
 

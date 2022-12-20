@@ -28,7 +28,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
     print('ci siamo')
-    skin_model_part = Import_Structural_model_part('Structural_huge')
+    skin_model_part = Import_Structural_model_part('Structural')
 
     def __init__(self, main_model_part, custom_settings):
         super().__init__(main_model_part, custom_settings)
@@ -39,55 +39,71 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        print(self.skin_model_part)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
 
 
     def Initialize(self):
         super().Initialize()
+
+        # # DA TOGLIERE DOPO CHECK
+        # self.main_model_part = Create_Fluid_model_part(50)
+        # main_model_part = self.main_model_part
+        # for node in main_model_part.Nodes:
+        #     if node.X == 1.0 or node.X == 2.0 or node.Y == 1.0 or node.Y == 2.0 :
+        #         node.Set(BOUNDARY, True)
+        # # DA TOGLIERE DOPO CHECK
+
+
         iter = 0
         main_model_part = self.GetComputingModelPart()
         for node in main_model_part.Nodes :
-            if node.Is(BOUNDARY) :
+            if node.Is(BOUNDARY) : 
+                # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
+                # node.Fix(KratosMultiphysics.TEMPERATURE)
                 node.Set(BOUNDARY, False)
         skin_model_part = self.skin_model_part
-        KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
-        # Find the surrogate boundary nodes
-        surrogate_sub_model_part, tot_sur_nodes = FindSurrogateNodes(main_model_part,iter)
-        self.surrogate_sub_model_part = surrogate_sub_model_part
         # Total number of skin elements
         tot_skin_el = len(self.skin_model_part.Conditions)
         print('Number of skin elements: ', tot_skin_el)
-        # Find the closest skin element for each surr node
-        closest_element = FindClosestSkinElement(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
+
+        KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
+        # Find the surrogate boundary nodes
+        a = KratosMultiphysics.FindSurrogateNodesProcess2D(main_model_part, skin_model_part)
+        a.Execute()
+        self.closest_element = a.FindClosestElement(main_model_part, skin_model_part)
+
+        self.surrogate_sub_model_part = main_model_part.CreateSubModelPart("surrogate_sub_model_part")
+        tot_sur_nodes = 0 
+        for node in main_model_part.Nodes :
+            if node.Is(BOUNDARY):
+                self.surrogate_sub_model_part.AddNode(node,0)
+                tot_sur_nodes = tot_sur_nodes + 1
+        
+        # self.surrogate_sub_model_part, tot_sur_nodes = FindSurrogateNodes(main_model_part,iter)
+        # self.closest_element = FindClosestSkinElement(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
+        
         # Find the projection onto the skin elements for each surr node
-        projection_surr_nodes = Find_projections(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el,closest_element)
+        projection_surr_nodes = Find_projections(main_model_part,skin_model_part,tot_sur_nodes,self.closest_element)
         # Then we create a sub_model part with just the elements & the nodes "outside" the surrogate boundary
         sub_model_part_fluid = Create_sub_model_part_fluid(main_model_part,iter)
         self.sub_model_part_fluid = sub_model_part_fluid
         print('Creato il sub_model_part per il calcolo del gradiente')
         self.projection_surr_nodes = projection_surr_nodes
-        self.closest_element = closest_element
+        # self.closest_element = closest_element
         self.tot_sur_nodes = tot_sur_nodes
+
 
         # Set the BC at the skin mesh________________________________________________________________________________________________
         for node in skin_model_part.Nodes:
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X + node.Y)
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(4 - ((node.X)**2 + (node.Y)**2) ) ) # --> Paraboloide
-            # ## Senza Logaritmo
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
-            ## Solo Logaritmo
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.log(node.X**2+node.Y**2))
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
-
-        
         # Calculate the required neighbours
-        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(sub_model_part_fluid)
+        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(main_model_part)
         nodal_neighbours_process.Execute()
-
-
 
         ## Find the so called "INTERFACE" elements
         for elem in sub_model_part_fluid.Elements :
@@ -99,20 +115,14 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
                         count_surr = count_surr + 1
                 if count_surr > 1 :  # two or three nodes are surrogate nodes
                     elem.Set(INTERFACE, True) # FUNDAMENTAL
-       
 
-
-
-        # elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
-        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(sub_model_part_fluid)
+        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
         elemental_neighbours_process.Execute()
 
-
         # # Compute the gradint coefficients for each of the surrogate node
-        self.result, self.result2 = ComputeGradientCoefficients (sub_model_part_fluid, self.model, surrogate_sub_model_part)
+        self.result, self.result2 = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
 
-
-        for node in surrogate_sub_model_part.Nodes :
+        for node in self.surrogate_sub_model_part.Nodes :
             my_result = self.result[node.Id]
             if len(my_result) == 0 :
                 # Sostitute the results of the "Problematic" & "Very_Problematic" surrogate nodes 
@@ -122,40 +132,34 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
         # Compute the T matrix for imposition of sbm condition
         i = 0
-        for node in surrogate_sub_model_part.Nodes :
+        for node in self.surrogate_sub_model_part.Nodes :
             # Create the T matrices: 0 , 1 , ... , len(boundary_sub_model_part.Nodes)-1
             nameT = "T_" + str(i)
             globals()[nameT] = Compute_T_matrix (self.result, node, projection_surr_nodes, i)
             i = i + 1
 
         
-        # Sebastian -> Create CreateNewMasterSlaveConstraint
+        # Create the CreateMasterSlaveConstraints
         j = 1
         for node in self.surrogate_sub_model_part.Nodes :
             name = "T_" + str(j-1)
             T = globals()[name]
-            # Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
+            Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
             j = j + 1
 
-
-
-
-
     def InitializeSolutionStep(self):
-        
-        main_model_part = self.GetComputingModelPart()
-        # Compute the gradient with the function ComputeNodalGradientProcess using the sub_model_part_fluid
-        KratosMultiphysics.ComputeNodalGradientProcess(
-        self.sub_model_part_fluid,
-        KratosMultiphysics.TEMPERATURE,
-        KratosMultiphysics.TEMPERATURE_GRADIENT,
-        KratosMultiphysics.NODAL_AREA).Execute()
+
+        # ## Compute the gradient with the function ComputeNodalGradientProcess using the sub_model_part_fluid
+        # KratosMultiphysics.ComputeNodalGradientProcess(
+        # self.sub_model_part_fluid,
+        # KratosMultiphysics.TEMPERATURE,
+        # KratosMultiphysics.TEMPERATURE_GRADIENT,
+        # KratosMultiphysics.NODAL_AREA).Execute()
 
         ## Compute the Dirichlet BC at the surrogate nodes
-        surr_BC = Dirichlet_BC (main_model_part,self.skin_model_part,self.tot_sur_nodes,self.closest_element,self.projection_surr_nodes)
+        # surr_BC = Dirichlet_BC (main_model_part,self.skin_model_part,self.tot_sur_nodes,self.closest_element,self.projection_surr_nodes)
         
         super().InitializeSolutionStep()
-        
         
         ## Create the embedded BC con matrix T
         embedded_BC = [0 for _ in range(len(self.surrogate_sub_model_part.Nodes))]
@@ -172,50 +176,26 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
                 T = globals()[name]
                 scalar_product = scalar_product + contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) * T[j]
                 j = j +1 
-                # Check the gradient
-                # gradient2[0] = gradient2[0] + value[0] * contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-                # gradient2[1] = gradient2[1] + value[1] * contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            # print(gradient2)
-            # if node.Is(SLAVE) :
-            #     print('SLAVE^')
-            # Get the Dirichlet value at the projection point  
+
             dirichlet_projection = Interpolation(self.skin_model_part,self.closest_element,self.projection_surr_nodes, i, node)
             # Get the BC at the surrogate node
             embedded_BC[i] = dirichlet_projection - scalar_product
             i = i+1
-        
+        self.embedded_BC = embedded_BC
         ## Impose the embedded BC
         i = 0 
         for node in self.surrogate_sub_model_part.Nodes:
-            # exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
-            # exact = node.X+node.Y
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,surr_BC[i])
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,exact)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,embedded_BC[i])
-            node.Fix(KratosMultiphysics.TEMPERATURE)
-            # print(embedded_BC[i], surr_BC[i])
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,embedded_BC[i])
+            # node.Fix(KratosMultiphysics.TEMPERATURE)
             i = i + 1
     
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        main_model_part = self.GetComputingModelPart()
 
         ## Sebastian check for MPC
         self.CheckIfMPCsAreAppliedCorrectly()
-
-        # # Check solutions of the MPC
-        # i = 0 
-        # for node in self.surrogate_sub_model_part.Nodes:
-        #     print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), self.embedded_BC[i], node.X + node.Y)
-        #     if node.Is(SLAVE) :
-        #         print('SLAVE ^')
-        #     i = i + 1
-        # exit()
-
-  
-
-            
-
+        
 
     def Finalize(self):
         super().Finalize()
@@ -227,10 +207,12 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             file_tre.write(str(node.Y))
             file_tre.write('\n')
         file_tre.close()
-        main_model_part = self.GetComputingModelPart()
+
+        # main_model_part = self.GetComputingModelPart()
+        main_model_part = self.main_model_part
         
         # Check the error if the exact solution is known
-        Compute_error(main_model_part, self.sub_model_part_fluid)
+        self.errorL2, self.errorH1 = Compute_error(main_model_part, self.sub_model_part_fluid)
 
         file_tre1 = open("Surr_B1.txt", "w")
         for node in self.surrogate_sub_model_part.Nodes :
@@ -242,6 +224,102 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
                 file_tre1.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node.X-node.Y)))
                 file_tre1.write('\n')
         file_tre1.close()
+
+
+        ## Sebastian 2.0 --> save TEMPERATURE
+        temperature = []
+        for node in main_model_part.Nodes:
+            temperature.append(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+        velocity_numpy = np.array(temperature)
+        print(velocity_numpy.shape)
+        np.save("SBtemperature.npy", velocity_numpy)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              
+        # with open('Values.txt') as f:
+        #     i = 0
+        #     for node in main_model_part.Nodes :
+        #         # print(float(f.readlines(2)[0]))
+        #         node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, float(f.readlines(2)[0]))
+        #         # print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+        #         i = i+1
+
+
+        # file_21 = open("Values.txt", "w")
+        # for node in main_model_part.Nodes :
+        #         file_21.write(str(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)))
+        #         file_21.write(' \n ')
+        # file_21.close()
 
 
 
@@ -256,14 +334,50 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         #     Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
         #     j = j + 1
 
+        
 
 
 
 
         ## Sebastian check for MPC
-        self.CheckIfMPCsAreAppliedCorrectly()
+        # self.CheckIfMPCsAreAppliedCorrectly()
 
 
+
+
+
+        # main_model_part = self.GetComputingModelPart()
+        # ## Create the embedded BC con matrix T
+        # embedded_BC = [0 for _ in range(len(self.surrogate_sub_model_part.Nodes))]
+        # i = 0
+        # for node in self.surrogate_sub_model_part.Nodes:
+        #     # get the neighbourhoods nodes of node --> key
+        #     my_result = self.result[node.Id]
+        #     j = 0
+        #     scalar_product = 0
+        #     # gradient2 = [0, 0]
+        #     for key, value in my_result.items() :
+        #         contributing_node = self.sub_model_part_fluid.GetNode(key)
+        #         name = "T_" + str(i)
+        #         T = globals()[name]
+        #         scalar_product = scalar_product + contributing_node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) * T[j]
+        #         j = j +1 
+        #     dirichlet_projection = Interpolation(self.skin_model_part,self.closest_element,self.projection_surr_nodes, i, node)
+        #     embedded_BC[i] = dirichlet_projection - scalar_product
+        #     i = i+1
+        # # Compute the gradient with the function ComputeNodalGradientProcess using the sub_model_part_fluid
+        # KratosMultiphysics.ComputeNodalGradientProcess(
+        # self.sub_model_part_fluid,
+        # KratosMultiphysics.TEMPERATURE,
+        # KratosMultiphysics.TEMPERATURE_GRADIENT,
+        # KratosMultiphysics.NODAL_AREA).Execute()
+        # ## Compute the Dirichlet BC at the surrogate nodes
+        # surr_BC = Dirichlet_BC (main_model_part,self.skin_model_part,self.tot_sur_nodes,self.closest_element,self.projection_surr_nodes)
+        # i = 0
+        # for node in self.surrogate_sub_model_part.Nodes:
+        #     exact = 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log(node.X**2+node.Y**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y) 
+        #     # print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),embedded_BC[i],surr_BC[i])
+        #     i = i + 1
 
 
 
