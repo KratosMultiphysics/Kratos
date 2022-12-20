@@ -10,8 +10,7 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED
+#pragma once
 
 ///@defgroup FluidDynamicsApplication Fluid Dynamics Application
 ///@brief Basic set of CFD tools.
@@ -77,7 +76,6 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
-#include "custom_elements/vms_adjoint_element.h"
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
@@ -99,6 +97,11 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
+
+// Adjoint fluid elements
+#include "custom_elements/vms_adjoint_element.h"
+#include "custom_elements/fluid_adjoint_element.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.h"
 
 // Adjoint fluid conditions
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
@@ -421,9 +424,6 @@ private:
     const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
 
-    const VMSAdjointElement<2> mVMSAdjointElement2D;
-    const VMSAdjointElement<3> mVMSAdjointElement3D;
-
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
     const Euler2DLaw mEuler2DLaw;
@@ -435,6 +435,15 @@ private:
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
     const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+
+    /// Fluid adjoint elements
+    const VMSAdjointElement<2> mVMSAdjointElement2D;
+    const VMSAdjointElement<3> mVMSAdjointElement3D;
+
+    const FluidAdjointElement<2, 3, QSVMSAdjointElementData<2, 3>> mQSVMSAdjoint2D3N;
+    const FluidAdjointElement<2, 4, QSVMSAdjointElementData<2, 4>> mQSVMSAdjoint2D4N;
+    const FluidAdjointElement<3, 4, QSVMSAdjointElementData<3, 4>> mQSVMSAdjoint3D4N;
+    const FluidAdjointElement<3, 8, QSVMSAdjointElementData<3, 8>> mQSVMSAdjoint3D8N;
 
     /// Adjoint fluid conditions
     const AdjointMonolithicWallCondition<2, 2> mAdjointMonolithicWallCondition2D2N;
@@ -491,5 +500,3 @@ private:
 ///@} FluidDynamicsApplication group
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED  defined
