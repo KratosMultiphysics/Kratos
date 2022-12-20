@@ -77,7 +77,7 @@ void KElementData<TDim>::CalculateConstants(
     KRATOS_TRY
 
     mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+    mInvTurbulentKineticEnergySigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
     mDensity = this->GetProperties().GetValue(DENSITY);
 
     KRATOS_CATCH("");
@@ -113,7 +113,7 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvTkeSigma;
+    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvTurbulentKineticEnergySigma;
     mReactionTerm = std::max(mGamma + (2.0 / 3.0) * mVelocityDivergence, 0.0);
     mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
 
