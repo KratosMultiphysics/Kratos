@@ -221,7 +221,7 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
     PointWithId point(
         r_node.GetValue(INTERFACE_EQUATION_ID),
         r_node.Coordinates(),
-        this->Distance(r_node)
+        MapperUtilities::ComputeDistance(this->Coordinates(), r_node.Coordinates())
         );
 
     mClosestPoints.Add(point);
