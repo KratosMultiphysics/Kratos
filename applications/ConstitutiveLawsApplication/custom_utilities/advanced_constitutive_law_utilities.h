@@ -9,7 +9,6 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -53,7 +52,6 @@ namespace Kratos
  * @details The methods are static, so it can be called without constructing the class
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo
- * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
@@ -470,17 +468,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
         BoundedMatrix<double, 3, 3>& rRotationOperator
-        );
-
-    /**
-     * @brief This converts the
-     * 3x3 rotation matrix to the 6x6
-     * Cook et al., "Concepts and applications
-     * of finite element analysis"
-     */
-    static void CalculateRotationOperatorVoigt(
-        const BoundedMatrixType& rOldOperator,
-        BoundedMatrixVoigtType& rNewOperator
         );
 
 }; // class AdvancedConstitutiveLawUtilities
