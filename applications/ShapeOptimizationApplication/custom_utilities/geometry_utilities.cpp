@@ -570,7 +570,7 @@ bool GeometryUtilities::CheckIfNodesHasQuadraticNeigbourElement(const NodeType &
 void GeometryUtilities::LocalPointInElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Kratos::Point::CoordinatesArrayType& rLocalPoint) {
     Matrix local_points;
     pElement->GetGeometry().PointsLocalCoordinates(local_points);
-    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+    for (SizeType i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
         if (pElement->GetGeometry()[i].Id() == rNode.Id()) {
             rLocalPoint[0] = local_points(i, 0);
             rLocalPoint[1] = local_points(i, 1);
@@ -588,8 +588,7 @@ void GeometryUtilities::BaseVectors(const NodeType& rNode, const Kratos::GlobalP
     pElement->GetGeometry().ShapeFunctionsLocalGradients(first_derivative, LocalPoint);
     Vector g_1 = ZeroVector(3);
     Vector g_2 = ZeroVector(3);
-    Vector g_3 = ZeroVector(3);
-    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+    for (SizeType i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
         g_1 += first_derivative(i, 0) * pElement->GetGeometry()[i].Coordinates();
         g_2 += first_derivative(i, 1) * pElement->GetGeometry()[i].Coordinates();
     }
@@ -629,7 +628,7 @@ Matrix GeometryUtilities::CurvatureTensor(const NodeType& rNode, const Kratos::G
     Vector dg_2_du = ZeroVector(3);
     Vector dg_2_dv = ZeroVector(3);
 
-    for (int i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
+    for (SizeType i = 0; i < pElement->GetGeometry().PointsNumber(); ++i) {
         dg_1_du += second_derivative[i](0,0) * pElement->GetGeometry()[i].Coordinates();
         dg_1_dv += second_derivative[i](0,1) * pElement->GetGeometry()[i].Coordinates();
         dg_2_du += second_derivative[i](1,0) * pElement->GetGeometry()[i].Coordinates();
