@@ -207,6 +207,16 @@ private:
      * coordinate of the first condition in the sorted conditions vector
      */
     void InitializeDistanceLoadInSortedVector();
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+
     ///@}
 
 }; // Class SetMovingLoadProcess

@@ -288,49 +288,51 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 void SetMovingLoadProcess::ExecuteInitialize()
 {
     KRATOS_TRY
+    if (!this->mrModelPart.GetProcessInfo()[IS_RESTARTED]){
+        // clear load functions vector
+        mLoadFunctions.clear();
 
-    // clear load functions vector
-    mLoadFunctions.clear();
-
-    // check if load input is a function or numeric and add load to member variable
-    if (mParameters["load"][0].IsString()){
-        mUseLoadFunction = true;
-        for (IndexType i = 0; i < mParameters["load"].size(); ++i){
-            BasicGenericFunctionUtility load_function = BasicGenericFunctionUtility(mParameters["load"][i].GetString());
-            mLoadFunctions.push_back(load_function);
+        // check if load input is a function or numeric and add load to member variable
+        if (mParameters["load"][0].IsString()) {
+            mUseLoadFunction = true;
+            for (IndexType i = 0; i < mParameters["load"].size(); ++i) {
+                BasicGenericFunctionUtility load_function = BasicGenericFunctionUtility(mParameters["load"][i].GetString());
+                mLoadFunctions.push_back(load_function);
+            }
         }
-    } else {
-        mUseLoadFunction = false;
+        else {
+            mUseLoadFunction = false;
+        }
+
+        // check if velocity input is a function or numeric and add velocity to member variable
+        if (mParameters["velocity"].IsString()) {
+            mUseVelocityFunction = true;
+        }
+        else {
+            mUseVelocityFunction = false;
+        }
+
+        array_1d<int, 3> direction;
+
+        for (IndexType i = 0; i < mParameters["direction"].size(); ++i) {
+            direction[i] = mParameters["direction"][i].GetInt();
+        }
+
+        // get the two line condition elements at both sides of the model part
+        std::vector<Condition> end_conditions = FindEndConditions();
+
+        // find start condition 
+        const Point center_1 = end_conditions[0].GetGeometry().Center();
+        const Point center_2 = end_conditions[1].GetGeometry().Center();
+        Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
+
+        // Initialise vector which indicates if nodes in condition are in direction of movement
+        mIsCondReversedVector.clear();
+        mIsCondReversedVector.push_back(IsConditionReversed(r_first_cond, direction));
+        mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
+
+        InitializeDistanceLoadInSortedVector();
     }
-
-    // check if velocity input is a function or numeric and add velocity to member variable
-    if (mParameters["velocity"].IsString()){
-        mUseVelocityFunction = true;
-    } else {
-        mUseVelocityFunction = false;
-    }
-
-    array_1d<int, 3> direction;
-
-    for (IndexType i = 0; i < mParameters["direction"].size(); ++i){
-        direction[i] = mParameters["direction"][i].GetInt();
-    }
-
-    // get the two line condition elements at both sides of the model part
-    std::vector<Condition> end_conditions = FindEndConditions();
-
-    // find start condition 
-    const Point center_1 = end_conditions[0].GetGeometry().Center();
-    const Point center_2 = end_conditions[1].GetGeometry().Center();
-    Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
-
-    // Initialise vector which indicates if nodes in condition are in direction of movement
-    mIsCondReversedVector.clear();
-    mIsCondReversedVector.push_back(IsConditionReversed(r_first_cond, direction));
-    mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
-
-    InitializeDistanceLoadInSortedVector();
-   
     KRATOS_CATCH("")
 }
 
@@ -405,6 +407,27 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 
     // move the load
     mCurrentDistance = mCurrentDistance + mrModelPart.GetProcessInfo().GetValue(DELTA_TIME) * load_velocity;
+}
+
+void SetMovingLoadProcess::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process);
+    rSerializer.save("SortedConditions", mSortedConditions);
+    rSerializer.save("IsCondReversedVector", mIsCondReversedVector);
+    rSerializer.save("UseLoadFunction", mUseLoadFunction);
+    rSerializer.save("UseVelocityFunction", mUseVelocityFunction);
+    rSerializer.save("CurrentDistance", mCurrentDistance);
+
+}
+
+void SetMovingLoadProcess::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process);
+    rSerializer.load("SortedConditions", mSortedConditions);
+    rSerializer.load("IsCondReversedVector", mIsCondReversedVector);
+    rSerializer.load("UseLoadFunction", mUseLoadFunction);
+    rSerializer.load("UseVelocityFunction", mUseVelocityFunction);
+    rSerializer.load("CurrentDistance", mCurrentDistance);
 }
 
 }  // namespace Kratos.
