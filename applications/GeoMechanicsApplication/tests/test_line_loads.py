@@ -70,9 +70,4 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
 
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsLineLoadTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    KratosUnittest.main()
