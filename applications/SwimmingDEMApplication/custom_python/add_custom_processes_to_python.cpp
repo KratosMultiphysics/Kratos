@@ -21,11 +21,13 @@
 #include "includes/kratos_parameters.h"
 
 #include "custom_processes/apply_rigid_rotation_process.hpp"
-#include "custom_processes/transient_porosity_solution_body_force_process.h"
+#include "custom_processes/bump_transient_porosity_solution_body_force_process.h"
+#include "custom_processes/porosity_solution_and_sinusoidal_body_force_process.h"
 #include "custom_processes/porosity_solution_and_body_force_process.h"
 #include "custom_processes/sinusoidal_porosity_solution_transient_body_force_process.h"
 #include "custom_processes/sinusoidal_porosity_solution_and_body_force_process.h"
 #include "custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.h"
+#include "custom_processes/hyperbolic_tangential_porosity_solution_transient_body_force_process.h"
 #include "custom_processes/porosity_solution_transient_body_force_process.h"
 
 namespace Kratos
@@ -42,14 +44,20 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     (m, "ApplyRigidRotationProcess")
     .def( py::init< ModelPart&, Parameters&>());
 
-    py::class_<TransientPorositySolutionBodyForceProcess, TransientPorositySolutionBodyForceProcess::Pointer, Process>
-    (m, "TransientPorositySolutionBodyForceProcess")
+    py::class_<BumpTransientPorositySolutionBodyForceProcess, BumpTransientPorositySolutionBodyForceProcess::Pointer, Process>
+    (m, "BumpTransientPorositySolutionBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
     py::class_<PorositySolutionAndBodyForceProcess, PorositySolutionAndBodyForceProcess::Pointer, Process>
     (m, "PorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+        py::class_<PorositySolutionAndSinusoidalBodyForceProcess, PorositySolutionAndSinusoidalBodyForceProcess::Pointer, Process>
+    (m, "PorositySolutionAndSinusoidalBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
@@ -74,6 +82,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<HyperbolicTangentialPorositySolutionAndBodyForceProcess, HyperbolicTangentialPorositySolutionAndBodyForceProcess::Pointer, Process>
     (m, "HyperbolicTangentialPorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<HyperbolicTangentialPorositySolutionTransientBodyForceProcess, HyperbolicTangentialPorositySolutionTransientBodyForceProcess::Pointer, Process>
+    (m, "HyperbolicTangentialPorositySolutionTransientBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;

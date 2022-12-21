@@ -130,6 +130,26 @@ namespace Kratos
     ///@{
 
     void Shell3pStressBasedElement::CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const SizeType integration_points_number = GetGeometry().IntegrationPointsNumber();
+
+        if (rOutput.size() != integration_points_number)
+        {
+            rOutput.resize(integration_points_number);
+        }
+
+        if (rVariable == MATERIAL_ID) {
+            for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+                rOutput[point_number] = GetProperties().Id();
+            }
+        }
+    }
+
+    void Shell3pStressBasedElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo

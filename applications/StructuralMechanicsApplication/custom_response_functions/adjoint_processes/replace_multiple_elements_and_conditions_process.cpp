@@ -40,7 +40,7 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
 
     // create set with entities that should be ignored
     std::set<std::string> ignore_entities;
-    for(auto it : IgnoreEntities){
+    for(const auto& it : IgnoreEntities){
         ignore_entities.insert( it.GetString() );
     }
 
@@ -77,7 +77,7 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
         );
 
         // Deep copy data and flags
-        p_entity->Data() = it->Data();
+        p_entity->GetData() = it->GetData();
         p_entity->Set(Flags(*it));
 
         (*it.base()) = p_entity;

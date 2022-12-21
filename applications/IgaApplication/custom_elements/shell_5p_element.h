@@ -291,6 +291,11 @@ public:
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) final;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void GetValuesVector(
         Vector& rValues,
         int Step) const final;

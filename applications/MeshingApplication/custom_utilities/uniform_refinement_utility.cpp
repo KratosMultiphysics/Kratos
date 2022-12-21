@@ -133,7 +133,7 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
         const IndexType tag = collection.first;
         if (tag != 0) // NOTE: tag == 0 is the root model part
         {
-            for (auto model_part_name : collection.second)
+            for (const auto& model_part_name : collection.second)
             {
                 ModelPart& sub_model_part = mrModelPart.GetSubModelPart(model_part_name);
                 sub_model_part.AddNodes(tag_nodes[tag]);

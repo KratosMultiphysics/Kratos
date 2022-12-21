@@ -63,13 +63,20 @@ def AssembleTestSuites():
     nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
     if(hasattr(MeshingApplication,"MmgProcess2D")):
         nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
-        nightSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
+    else:
+        print("MMG process is not compiled and the corresponding tests will not be executed")
+
+
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    if(hasattr(MeshingApplication,"MmgProcess2D")):
+        validationSuite.addTest(TestXMCAlgorithm('test_mlmc_Kratos'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

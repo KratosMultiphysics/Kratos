@@ -18,7 +18,7 @@
 // Project includes
 #include "containers/model.h"
 
-#include "processes/output_process.h"
+#include "processes/process.h"
 
 #include "geometries/coupling_geometry.h"
 
@@ -32,7 +32,7 @@ namespace Kratos
  * @ingroup IgaApplication
  * @brief This class outputs the location of the quadrature points within the local space of the containing geometry. */
 class KRATOS_API(IGA_APPLICATION) OutputEigenValuesProcess
-    : public OutputProcess
+    : public Process
 {
 public:
     ///@name Type Definitions

@@ -542,7 +542,7 @@ namespace Kratos
     {
         bool compute_director = false;
 
-        #pragma omp critical
+#pragma omp critical
         if (!GetGeometry().GetGeometryParent(0).GetValue(DIRECTOR_COMPUTED))
         {
             GetGeometry().GetGeometryParent(0).SetValue(DIRECTOR_COMPUTED, true);
@@ -568,6 +568,48 @@ namespace Kratos
                 node.FastGetSolutionStepValue(DIRECTORINC_X) = 0.0;
                 node.FastGetSolutionStepValue(DIRECTORINC_Y) = 0.0;
                 node.SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director_new));
+            }
+        }
+    }
+
+    void Shell5pElement::CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
+
+        if (rVariable == SHEAR_FORCE_1 || rVariable == SHEAR_FORCE_2)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+                array_1d<double, 3> t = InterpolateNodalVariable(row(GetGeometry().ShapeFunctionsValues(), point_number), m_GetValueFunctor, DIRECTOR);
+                array_1d<double, 3> a1 = InterpolateNodalVariable(row(m_cart_deriv[point_number], 0), m_GetCoordinatesFunctor);
+                array_1d<double, 3> a2 = InterpolateNodalVariable(row(m_cart_deriv[point_number], 1), m_GetCoordinatesFunctor);
+
+                const double invL_t = 1.0 / norm_2(t);
+                t *= invL_t;
+
+                const double nu = this->GetProperties()[POISSON_RATIO];
+                const double Emodul = this->GetProperties()[YOUNG_MODULUS];
+                const double thickness = this->GetProperties().GetValue(THICKNESS);
+                const double G_h = thickness * Emodul * 0.5 / (1 + nu);
+
+                if (rVariable == SHEAR_FORCE_1)
+                {
+                    rOutput[point_number] = (inner_prod(t, a1) - reference_TransShear[point_number][0]) * G_h;
+                }
+                else if (rVariable == SHEAR_FORCE_2)
+                {
+                    rOutput[point_number] = (inner_prod(t, a2) - reference_TransShear[point_number][1]) * G_h;
+                }
             }
         }
     }

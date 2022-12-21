@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/convection_diffusion_settings.h"
+#include "includes/kratos_components.h"
 
 namespace Kratos {
 

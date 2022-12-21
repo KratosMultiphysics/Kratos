@@ -23,7 +23,7 @@ namespace Kratos
 OutputEigenValuesProcess::OutputEigenValuesProcess(
     Model& rModel,
     Parameters ThisParameters)
-    : OutputProcess()
+    : Process()
     , mrModel(rModel)
     , mThisParameters(ThisParameters)
 {

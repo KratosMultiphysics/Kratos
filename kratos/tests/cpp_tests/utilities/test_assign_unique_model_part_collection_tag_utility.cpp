@@ -85,7 +85,7 @@ namespace Kratos
                 const IndexSize key = r_nodes_tag.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (collections.find(key) != collections.end()) {
-                        for (auto sub_model_part_name : collections[key]) {
+                        for (const auto& sub_model_part_name : collections[key]) {
                             ModelPart& r_sub_model_part = second_model_part.GetSubModelPart(sub_model_part_name);
                             r_sub_model_part.AddNode(p_node);
                         }
@@ -98,7 +98,7 @@ namespace Kratos
                 const IndexSize key = r_elems_tag.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (collections.find(key) != collections.end()) {
-                        for (auto sub_model_part_name : collections[key]) {
+                        for (const auto& sub_model_part_name : collections[key]) {
                             ModelPart& r_sub_model_part = second_model_part.GetSubModelPart(sub_model_part_name);
                             r_sub_model_part.AddElement(p_elem);
                         }
@@ -183,7 +183,7 @@ namespace Kratos
                 const IndexSize key = r_nodes_tag.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (collections.find(key) != collections.end()) {
-                        for (auto sub_model_part_name : collections[key]) {
+                        for (const auto& sub_model_part_name : collections[key]) {
                             ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(r_second_model_part, sub_model_part_name);
                             r_sub_model_part.AddNode(p_node);
                         }
@@ -196,7 +196,7 @@ namespace Kratos
                 const IndexSize key = r_elems_tag.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (collections.find(key) != collections.end()) {
-                        for (auto sub_model_part_name : collections[key]) {
+                        for (const auto& sub_model_part_name : collections[key]) {
                             ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(r_second_model_part, sub_model_part_name);
                             r_sub_model_part.AddElement(p_elem);
                         }

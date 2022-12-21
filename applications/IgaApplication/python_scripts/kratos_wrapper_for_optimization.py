@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 import KratosMultiphysics.StructuralMechanicsApplication as KSM
-import KratosMultiphysics.IgaApplication
+import KratosMultiphysics.IgaApplication as IGA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 import numpy as np
@@ -50,8 +50,8 @@ class KratosWrapperForOptimization:
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KM.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            read_shit = KM.ReadMaterialsUtility(self.model)
-            read_shit.ReadMaterialsToModelPart(material_settings)
+            read_optimization_materials = KM.ReadMaterialsUtility(self.model)
+            read_optimization_materials.ReadMaterialsToModelPart(material_settings)
 
         print()
         init_solution = []
@@ -75,6 +75,13 @@ class KratosWrapperForOptimization:
                 disp = math.sqrt(displacement[0][0]*displacement[0][0] + displacement[0][1]*displacement[0][1] + displacement[0][2]*displacement[0][2])
                 max_disp = max([max_disp, disp])
         return max_disp
+
+    def ComputeBelowYieldStress(self):
+        for mp_name in model_parts_to_compare:
+            for element in self.model[mp_name].Elements:
+                if not (element.CalculateOnIntegrationPoints(IGA.BELOW_YIELD_STRESS, self.model[mp_name].ProcessInfo)[0]):
+                    return False;
+        return True
 
     def UpdateMaterials(self, updated_solution):
         print("Updated solution in UpdateMaterials:" + str(updated_solution))
@@ -123,6 +130,7 @@ class KratosWrapperForOptimization:
                 print("    Solver did not converge")
 
         max_disp = self.ComputeMaxDisplacements()
+
         msg = f"    Max displacement: {round(max_disp, 5)}"
         new_min_found = False
         if max_disp < self.min_norm:
@@ -130,6 +138,9 @@ class KratosWrapperForOptimization:
             new_min_found = True
             msg += " " + "new minimum found!"
         print(msg)
+
+        if (new_min_found):
+            self.analysis.OutputSolutionStep()
 
         self.norms.append(max_disp)
 

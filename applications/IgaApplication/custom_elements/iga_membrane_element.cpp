@@ -680,6 +680,56 @@ namespace Kratos
     }
 
     void IgaMembraneElement::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
+        if (rValues.size() != r_integration_points.size())
+        {
+            rValues.resize(r_integration_points.size());
+        }
+
+        if (rVariable == PK2_STRESS || rVariable == CAUCHY_STRESS)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            {
+                const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+                KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+
+                if (rVariable == PK2_STRESS)
+                {
+                    array_1d<double, 3> pk2_stresses = ZeroVector(3);
+                    CalculatePK2Stresses(point_number, pk2_stresses, kinematic_variables, shape_functions_gradients_i, rCurrentProcessInfo);
+
+                    rValues[point_number] = pk2_stresses;
+                }
+
+                if (rVariable == CAUCHY_STRESS)
+                {
+                    array_1d<double, 3> cauchy_stresses = ZeroVector(3);
+                    CalculateCauchyStresses(point_number, cauchy_stresses, kinematic_variables, shape_functions_gradients_i, rCurrentProcessInfo);
+
+                    rValues[point_number] = cauchy_stresses;
+                }
+            }
+        }
+        else
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            {
+                rValues[point_number] = ZeroVector(3);
+            }
+        }
+    }
+
+    void IgaMembraneElement::CalculateOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo

@@ -12,6 +12,7 @@ The Mapping Application contains the core developments in mapping data between n
 - [Available Mappers](#available-mappers)
 - [When to use which Mapper?](#when-to-use-which-mapper)
 - [Using the Mapper for ModelParts that are not part of all ranks](#using-the-mapper-for-modelparts-that-are-not-part-of-all-ranks)
+- [Miscellaneous functionalities](#miscellaneous-functionalities)
 - [FAQ](#faq)
 
 ### List of features
@@ -219,7 +220,7 @@ The default settings of the search are working fine in most cases, but in some s
 |---|---|---|---|
 | `search_radius`| `double` | computed | The search radius to start with in the first iteration. In each next iteration it will be increased by multiplying with `search_radius_increase_factor` (`search_radius *= search_radius_increase_factor`) |
 | `max_search_radius` | `double` | computed | The max search radius to use. |
-| `search_radius_increase_factor`| `double` | `2.0` | factor by which the search radius is increasing in each search iteration (see above). |
+| `search_radius_increase_factor`| `double` | `2.0` | factor by which the search radius is increasing in each search iteration (see above). **Tuning this parameter is usually the best way to achieve a faster search**. In many cases decreasing it will speed up the search, especially for volumetric mapping, but it is case dependent. |
 | `max_num_search_iterations` | `int` | computed (min 3) | max number of search iterations that is conducted. If the search is successful before then it will terminate earlier. The more heterogeneous the mesh the larger this will be.
 
 It is recommended to set the `echo_level` to 2 or higher for getting useful information from the search. This will help to debug the search in case of problems.
@@ -327,6 +328,51 @@ mpi_mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
     mapper_settings
 )
 ```
+
+### Miscellaneous functionalities
+- [serial_output_process](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MappingApplication/python_scripts/serial_output_process.py): This process can be used to map results to one rank and then do postprocessing on this rank. This has two advantages:
+  - Some output formats write one file per rank in distributed simulations, which leads to many files when running with many cores. This process collects the results on one rank and can hence reduce the number of files significantly
+  - Different meshes can be used to do the postprocessing. This is in particular useful when the computational mesh is very fine, but a coarser mesh would be sufficient for postprocessing.
+
+  <ins>The following input parameters are used:</ins>
+  - `model_part_name_origin`: name of the origin ModelPart where the data comes from (is being mapped from)
+  - `model_part_name_destination`: name of destination ModelPart where the data is mapped to. This ModelPart is being read.
+  - `mdpa_file_name_destination`: name of the mdpa file containing the mesh that is used for the destination
+  - `historical_variables_destination` list of historical variables that are allocated on the destination ModelPart
+  - `destination_rank` rank on which the processing of the destination happens (i.e. the rank on which the destination ModelPart is read). Note that this increases the memory usage significantly, especially for large destination meshes. The default is rank 0, which in most distributed simulations acts as the master rank with already increased computational effort. Hence it can make sense to use another rank, preferably on another compute node, to optimize the memory and computational load balance
+  - `mapper_settings`: setting that are passed to the mapper, as explained above
+  - `mapping_settings`: list of mapping steps to be executed before the postprocessing is done. `variable_origin` and `variable_destination` must be specified, while `mapping_options` is optional and can contain the flags as explained above.
+  - `output_process_settings`: The settings for the output process (which will be only executed on the destination rank). **Important**: For mapping onto a serial ModelPart, the DataCommunicator is set as explained [here](#using-the-mapper-for-modelparts-that-are-not-part-of-all-ranks). This means that the destination ModelPart is not valid on other ranks and can hence not be used in the regular postprocessing (which happens also on the ranks where it is not valid and hence some MPI-functionalities would fail)
+  Example input:
+  ~~~js
+  "python_module" : "serial_output_process",
+  "kratos_module" : "KratosMultiphysics.MappingApplication",
+  "Parameters"    : {
+      "model_part_name_origin"      : "FluidModelPart",
+      "model_part_name_destination" : "PostProcessing",
+      "mdpa_file_name_destination"  : "coarse_mesh",
+      "historical_variables_destination" : ["REACTION", "DISPLACEMENT"],
+      "mapper_settings" :  {"mapper_type" : "nearest_neighbor"},
+      "mapping_settings" : [{
+          "variable_origin" : "REACTION",
+          "variable_destination" : "REACTION"
+      },{
+          "variable_origin" : "REACTION",
+          "variable_destination" : "REACTION",
+          "mapping_options" : ["add_values"]
+      },{
+          "variable_origin" : "MESH_DISPLACEMENT",
+          "variable_destination" : "DISPLACEMENT"
+      }],
+      "output_process_settings" : {
+          "python_module" : "vtk_output_process",
+          "kratos_module" : "KratosMultiphysics",
+          "Parameters"    : {
+              // ...
+          }
+      }
+  }
+  ~~~
 
 ### FAQ
 

@@ -43,6 +43,7 @@ public:
     typedef typename TContainerPointType::value_type NodeType;
 
     typedef Geometry<NodeType> BaseType;
+    typedef Geometry<NodeType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;

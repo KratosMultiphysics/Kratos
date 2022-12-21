@@ -1276,7 +1276,7 @@ namespace Kratos
                 GetValueOnConstitutiveLaw(rVariable, rOutput);
             }
             else {
-                KRATOS_WATCH("No results for desired variable available in Calculate of Shell5pHierarchicElement.", rVariable)
+                KRATOS_WATCH("No results for desired variable available in Calculate of Shell5pHierarchicElement." + rVariable)
             }
         }
 

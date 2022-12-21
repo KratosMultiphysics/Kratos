@@ -103,6 +103,57 @@ namespace Kratos
     ///@{
 
     void Shell3pElement::CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const SizeType integration_points_number = GetGeometry().IntegrationPointsNumber();
+
+        if (rOutput.size() != integration_points_number)
+        {
+            rOutput.resize(integration_points_number);
+        }
+
+        if (rVariable == BELOW_YIELD_STRESS) {
+            for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+                array_1d<double, 3> membrane_stress_cau_car;
+                array_1d<double, 3> bending_stress_cau_car;
+
+                CalculateCauchyStress(point_number, membrane_stress_cau_car, bending_stress_cau_car, rCurrentProcessInfo);
+                double thickness = this->GetProperties().GetValue(THICKNESS);
+
+                double yield_stress_compression = GetProperties()[YIELD_STRESS_COMPRESSION];
+                double yield_stress_tension = GetProperties()[YIELD_STRESS_TENSION];
+
+                double sigma_xx_top = membrane_stress_cau_car[0] + thickness / 2 * bending_stress_cau_car[0];
+                double sigma_yy_top = membrane_stress_cau_car[1] + thickness / 2 * bending_stress_cau_car[1];
+                double sigma_xy_top = membrane_stress_cau_car[2] + thickness / 2 * bending_stress_cau_car[2];
+
+                double sigma_max_top = ((sigma_xx_top + sigma_yy_top) / 2) + std::sqrt(std::pow((sigma_xx_top - sigma_yy_top) / 2, 2) + sigma_xy_top * sigma_xy_top);
+                double sigma_min_top = ((sigma_xx_top + sigma_yy_top) / 2) - std::sqrt(std::pow((sigma_xx_top - sigma_yy_top) / 2, 2) + sigma_xy_top * sigma_xy_top);
+
+                bool below_yield_stress_comp_top = sigma_max_top < yield_stress_compression;
+                bool below_yield_stress_ten_top = sigma_min_top > yield_stress_tension;
+
+                bool below_yield_stress_top = sigma_max_top < yield_stress_compression && sigma_min_top > yield_stress_tension;
+
+                double sigma_xx_bottom = membrane_stress_cau_car[0] - thickness / 2 * bending_stress_cau_car[0];
+                double sigma_yy_bottom = membrane_stress_cau_car[1] - thickness / 2 * bending_stress_cau_car[1];
+                double sigma_xy_bottom = membrane_stress_cau_car[2] - thickness / 2 * bending_stress_cau_car[2];
+
+                double sigma_max_bottom = ((sigma_xx_bottom + sigma_yy_bottom) / 2) + std::sqrt(std::pow((sigma_xx_bottom - sigma_yy_bottom) / 2, 2) + sigma_xy_bottom * sigma_xy_bottom);
+                double sigma_min_bottom = ((sigma_xx_bottom + sigma_yy_bottom) / 2) - std::sqrt(std::pow((sigma_xx_bottom - sigma_yy_bottom) / 2, 2) + sigma_xy_bottom * sigma_xy_bottom);
+
+                bool below_yield_stress_bottom = sigma_max_bottom < yield_stress_compression && sigma_min_bottom > yield_stress_tension;
+                bool below_yield_stress = below_yield_stress_top && below_yield_stress_bottom;
+
+                rOutput[point_number] = below_yield_stress;
+            }
+        }
+    }
+
+    void Shell3pElement::CalculateOnIntegrationPoints(
         const Variable<int>& rVariable,
         std::vector<int>& rOutput,
         const ProcessInfo& rCurrentProcessInfo

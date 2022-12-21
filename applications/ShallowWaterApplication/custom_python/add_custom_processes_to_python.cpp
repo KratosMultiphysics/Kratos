@@ -20,7 +20,6 @@
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/elemental_refining_criteria_process.h"
 #include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/calculate_distance_to_boundary_process.h"
@@ -36,13 +35,6 @@ namespace Python
     void  AddCustomProcessesToPython(pybind11::module& m)
     {
         namespace py = pybind11;
-
-        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>
-        (m, "ElementalRefiningCriteriaProcess")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, Parameters>())
-        .def(py::init<ModelPart&, const Variable<double>&, double, bool>())
-        ;
 
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
         py::class_<ApplyPerturbationScalarFunctionProcess, ApplyPerturbationScalarFunctionProcess::Pointer, Process>
@@ -65,12 +57,17 @@ namespace Python
 
         py::class_<CalculateDistanceToBoundaryProcess, CalculateDistanceToBoundaryProcess::Pointer, Process>
         (m, "CalculateDistanceToBoundaryProcess")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         ;
 
-        py::class_<DepthIntegrationProcess, DepthIntegrationProcess::Pointer, Process>
-        (m, "DepthIntegrationProcess")
+        py::class_<DepthIntegrationProcess<2>, DepthIntegrationProcess<2>::Pointer, Process>
+        (m, "DepthIntegrationProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<DepthIntegrationProcess<3>, DepthIntegrationProcess<3>::Pointer, Process>
+        (m, "DepthIntegrationProcess3D")
         .def(py::init<Model&, Parameters>())
         ;
 

@@ -103,7 +103,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  ContactDomainCondition::IntegrationMethod ContactDomainCondition::GetIntegrationMethod()
+  ContactDomainCondition::IntegrationMethod ContactDomainCondition::GetIntegrationMethod() const
   {
     return mThisIntegrationMethod;
   }

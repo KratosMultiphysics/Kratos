@@ -52,6 +52,7 @@ void FillModelParts2D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPar
     root_model_part.AddNodalSolutionStepVariable(MOMENTUM);
     root_model_part.AddNodalSolutionStepVariable(HEIGHT);
     root_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+    root_model_part.GetProcessInfo().SetValue(GRAVITY, array_1d<double,3>({0.0, -9.81, 0.0}));
     StructuredMeshGeneratorProcess(geometry, rVolumeModelPart, mesher_parameters).Execute();
 
     auto id = root_model_part.NumberOfNodes();
@@ -84,6 +85,7 @@ void FillModelParts3D(ModelPart& rVolumeModelPart, ModelPart& rInterfaceModelPar
     root_model_part.AddNodalSolutionStepVariable(MOMENTUM);
     root_model_part.AddNodalSolutionStepVariable(HEIGHT);
     root_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+    root_model_part.GetProcessInfo().SetValue(GRAVITY, array_1d<double,3>({0.0, 0.0, -9.81}));
     StructuredMeshGeneratorProcess(geometry, rVolumeModelPart, mesher_parameters).Execute();
 
     auto id = root_model_part.NumberOfNodes();
@@ -118,13 +120,12 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess2D, ShallowWaterApplicationFast
     {
         "volume_model_part_name"    : "model_part.volume",
         "interface_model_part_name" : "model_part.interface",
-        "direction_of_integration"  : [0.0, 1.0, 0.0],
         "store_historical_database" : false
     })");
-    DepthIntegrationProcess(model, process_parameters).Execute();
+    DepthIntegrationProcess<2>(model, process_parameters).Execute();
 
     std::vector<std::vector<double>> reference;
-    reference.push_back({0.482051, 0.0, 0.0});
+    reference.push_back({0.55, 0.0, 0.0});
 
     for(std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;
@@ -145,17 +146,16 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess3D, ShallowWaterApplicationFast
     {
         "volume_model_part_name"    : "model_part.volume",
         "interface_model_part_name" : "model_part.interface",
-        "direction_of_integration"  : [0.0, 0.0, 1.0],
         "store_historical_database" : false
     })");
-    DepthIntegrationProcess(model, process_parameters).Execute();
+    DepthIntegrationProcess<3>(model, process_parameters).Execute();
 
     std::vector<std::vector<double>> reference;
-    reference.push_back({0.462963, 0.0, 0.0});
-    reference.push_back({0.574074, 0.0, 0.0});
-    reference.push_back({0.851852, 0.0, 0.0});
-    reference.push_back({1.129630, 0.0, 0.0});
-    reference.push_back({1.240741, 0.0, 0.0});
+    reference.push_back({0.426304, 0.0, 0.0});
+    reference.push_back({0.657407, 0.0, 0.0});
+    reference.push_back({0.935185, 0.0, 0.0});
+    reference.push_back({1.157407, 0.0, 0.0});
+    reference.push_back({1.435185, 0.0, 0.0});
 
     for (std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;

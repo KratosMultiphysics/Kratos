@@ -41,7 +41,7 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
+ 
 class KRATOS_API(KRATOS_CORE) IndexedPoint : public Point, public IndexedObject
 {
 public:
@@ -162,6 +162,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 };
 
+template<class TPointType>
 class KRATOS_API(KRATOS_CORE) DivideGeometry
 {
 public:
@@ -173,7 +174,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DivideGeometry);
 
     // General type definitions
-    typedef Geometry < Node<3> >                                    GeometryType;
+    typedef Geometry < TPointType >                                    GeometryType;
     typedef IndexedPoint                                            IndexedPointType;
     typedef IndexedPoint::Pointer                                   IndexedPointPointerType;
     typedef Geometry < IndexedPoint >                               IndexedPointGeometryType;

@@ -72,7 +72,7 @@ class Model;
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-    class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
+    class GetModelPartName
     {
     public:
         std::string const& operator()(const ModelPart& rModelPart) const
@@ -109,13 +109,7 @@ public:
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
-//     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
-    typedef PointerVectorSet<DofType,
-                SetIdentityFunction<DofType>,
-                std::less<SetIdentityFunction<DofType>::result_type>,
-                std::equal_to<SetIdentityFunction<DofType>::result_type>,
-                DofType* > DofsArrayType;
-
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -559,7 +553,7 @@ public:
         return *mpVariablesList;
     }
 
-    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList() const
     {
         return mpVariablesList;
     }
@@ -862,7 +856,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -880,7 +874,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns if the sub Properties corresponding to it's address exists

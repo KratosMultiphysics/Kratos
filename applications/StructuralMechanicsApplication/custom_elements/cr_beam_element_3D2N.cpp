@@ -819,12 +819,10 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     UpdateQuaternionParameters(quaternion_sca_a,
     quaternion_sca_b,quaternion_vec_a,quaternion_vec_b);
 
-
     Vector temp_vector = ZeroVector(msDimension);
     // scalar part of difference quaternion
-    double scalar_diff;
-    scalar_diff = (quaternion_sca_a + quaternion_sca_b) *
-                  (quaternion_sca_a + quaternion_sca_b);
+    double scalar_diff = (quaternion_sca_a + quaternion_sca_b) *
+                         (quaternion_sca_a + quaternion_sca_b);
 
     temp_vector = quaternion_vec_a + quaternion_vec_b;
     scalar_diff += MathUtils<double>::Norm(temp_vector) *
@@ -833,15 +831,10 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     scalar_diff = 0.50 * std::sqrt(scalar_diff);
 
     // mean rotation quaternion
-    double mean_rotation_scalar;
-    mean_rotation_scalar =
-        (quaternion_sca_a + quaternion_sca_b) * 0.50;
+    double mean_rotation_scalar = (quaternion_sca_a + quaternion_sca_b) * 0.50;
     mean_rotation_scalar = mean_rotation_scalar / scalar_diff;
 
-    BoundedVector<double, msDimension> mean_rotation_vector =
-        ZeroVector(msDimension);
-    mean_rotation_vector =
-        (quaternion_vec_a + quaternion_vec_b) * 0.50;
+    BoundedVector<double, msDimension> mean_rotation_vector = (quaternion_vec_a + quaternion_vec_b) * 0.50;
     mean_rotation_vector = mean_rotation_vector / scalar_diff;
 
     // vector part of difference quaternion
@@ -859,8 +852,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     const double r2 = mean_rotation_vector[1];
     const double r3 = mean_rotation_vector[2];
 
-    BoundedMatrix<double, msElementSize, msElementSize>
-    reference_transformation = CalculateInitialLocalCS();
+    BoundedMatrix<double, msElementSize, msElementSize> reference_transformation = CalculateInitialLocalCS();
     Vector rotated_nx0 = ZeroVector(msDimension);
     Vector rotated_ny0 = ZeroVector(msDimension);
     Vector rotated_nz0 = ZeroVector(msDimension);
@@ -886,7 +878,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     // rotate basis to element axis + redefine R
     Bisectrix = ZeroVector(msDimension);
     Vector delta_x = ZeroVector(msDimension);
-    double vector_norm;
+    double vector_norm = 0.0;
 
     BoundedVector<double, msLocalSize> current_nodal_position =
         GetCurrentNodalPosition();
