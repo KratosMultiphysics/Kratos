@@ -552,31 +552,28 @@ private:
     }
 
     template<typename TWallModelType>
-    void AddRightHandSideGaussPointWallModelContributionCall(
-        array_1d<double, LocalSize>& rRHS,
-        const ConditionDataStruct& rData,
+    void AddWallModelRightHandSideCall(
+        VectorType& rRHS,
         const ProcessInfo& rProcessInfo)
     {
-        TWallModelType::AddRightHandSideGaussPointContribution(rRHS, this, rProcessInfo, rData);
+        TWallModelType::AddWallModelRightHandSide(rRHS, this, rProcessInfo);
     }
 
     template<typename TWallModelType>
-    void AddLeftHandSideGaussPointWallModelContributionCall(
-        BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
-        const ConditionDataStruct& rData,
+    void AddWallModelLeftHandSideCall(
+        MatrixType& rLHS,
         const ProcessInfo& rProcessInfo)
     {
-        TWallModelType::AddLeftHandSideGaussPointContribution(rLHS, this, rProcessInfo, rData);
+        TWallModelType::AddWallModelLeftHandSide(rLHS, this, rProcessInfo);
     }
 
     template<typename TWallModelType>
-    void AddLocalSystemGaussPointWallModelContributionCall(
-        array_1d<double, LocalSize>& rRHS,
-        BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
-        const ConditionDataStruct& rData,
+    void AddWallModelLocalSystemCall(
+        MatrixType& rLHS,
+        VectorType& rRHS,
         const ProcessInfo& rProcessInfo)
     {
-        TWallModelType::AddLocalSystemGaussPointContribution(rRHS, rLHS, this, rProcessInfo, rData);
+        TWallModelType::AddWallModelLocalSystem(rLHS, rRHS, this, rProcessInfo);
     }
 
     ///@}
