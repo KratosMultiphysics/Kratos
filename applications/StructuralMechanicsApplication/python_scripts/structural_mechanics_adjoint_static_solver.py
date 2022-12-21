@@ -115,6 +115,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_reaction":
             self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_stress_limit_state":
+            self.response_function = StructuralMechanicsApplication.AdjointStressLimitStateResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
             raise Exception("invalid response_type: " + response_type)
 
