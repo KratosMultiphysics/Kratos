@@ -21,7 +21,6 @@
 
 // Application includes
 #include "navier_stokes_wall_condition.h"
-#include "wall_laws/linear_log_wall_law.h"
 #include "wall_laws/navier_slip_wall_law.h"
 
 namespace Kratos
@@ -29,6 +28,46 @@ namespace Kratos
 
 ///@name Specialized implementation of VMS for functions that depend on TDim
 ///@{
+
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    if (rResult.size() != LocalSize) {
+        rResult.resize(LocalSize, false);
+    }
+
+    IndexType local_index = 0;
+    for (const auto& r_node : GetGeometry()) {
+        rResult[local_index++] = r_node.GetDof(VELOCITY_X).EquationId();
+        rResult[local_index++] = r_node.GetDof(VELOCITY_Y).EquationId();
+        if constexpr (TDim == 3) {
+            rResult[local_index++] = r_node.GetDof(VELOCITY_Z).EquationId();
+        }
+        rResult[local_index++] = r_node.GetDof(PRESSURE).EquationId();
+    }
+}
+
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::GetDofList(
+    DofsVectorType& rConditionDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    if (rConditionDofList.size() != LocalSize) {
+        rConditionDofList.resize(LocalSize);
+    }
+
+    IndexType local_index = 0;
+    for (const auto& r_node : GetGeometry()) {
+        rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_X);
+        rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Y);
+        if constexpr (TDim == 3) {
+            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Z);
+        }
+        rConditionDofList[local_index++] = r_node.pGetDof(PRESSURE);
+    }
+}
 
 template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLocalSystem(
@@ -295,6 +334,30 @@ void NavierStokesWallCondition<TDim, TNumNodes,TWallModel...>::Calculate(
     }
 }
 
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateNormal(array_1d<double,3>& rAreaNormal)
+{
+    const auto& r_geom = GetGeometry();
+    if constexpr (TDim == 2) {
+        rAreaNormal[0] = r_geom[1].Y() - r_geom[0].Y();
+        rAreaNormal[1] = - (r_geom[1].X() - r_geom[0].X());
+        rAreaNormal[2] = 0.0;
+    } else if constexpr (TDim == 3 && TNumNodes == 3) {
+        array_1d<double,3> v1,v2;
+        v1[0] = r_geom[1].X() - r_geom[0].X();
+        v1[1] = r_geom[1].Y() - r_geom[0].Y();
+        v1[2] = r_geom[1].Z() - r_geom[0].Z();
+
+        v2[0] = r_geom[2].X() - r_geom[0].X();
+        v2[1] = r_geom[2].Y() - r_geom[0].Y();
+        v2[2] = r_geom[2].Z() - r_geom[0].Z();
+
+        MathUtils<double>::CrossProduct(rAreaNormal,v1,v2);
+        rAreaNormal *= 0.5;
+    } else {
+        KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;
+    }
+}
 
 template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointLHSContribution(
@@ -458,9 +521,6 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateGaussPoin
     KRATOS_CATCH("");
 }
 
-
-
-
 template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateGaussPointSlipTangentialCorrectionRHSContribution(
     array_1d<double,LocalSize>& rRightHandSideVector,
@@ -527,10 +587,25 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateGaussPoin
     KRATOS_CATCH("")
 }
 
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ProjectViscousStress(
+    const Vector& rViscousStress,
+    const array_1d<double,3> rNormal,
+    array_1d<double,3>& rProjectedViscousStress)
+{
+    if constexpr (TDim == 2) {
+        rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
+        rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
+        rProjectedViscousStress[2] = 0.0;
+    } else {
+        rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
+        rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];
+        rProjectedViscousStress[2] = rViscousStress[5] * rNormal[0] + rViscousStress[4] * rNormal[1] + rViscousStress[2] * rNormal[2];
+    }
+}
+
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;
-template class NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
-template class NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 template class NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;
 template class NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>>;
 
