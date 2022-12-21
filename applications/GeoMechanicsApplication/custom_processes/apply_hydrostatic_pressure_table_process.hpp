@@ -79,7 +79,7 @@ public:
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {

@@ -197,11 +197,8 @@ class ContactRemeshMmgProcess(MmgProcess):
                     auxiliary_parameters["normalization_method"].Append(settings["hessian_strategy_parameters"]["normalization_method"][i])
 
             # Removing old
-            settings["hessian_strategy_parameters"].RemoveValue("metric_variable")
-            settings["hessian_strategy_parameters"].RemoveValue("non_historical_metric_variable")
-            settings["hessian_strategy_parameters"].RemoveValue("normalization_factor")
-            settings["hessian_strategy_parameters"].RemoveValue("normalization_alpha")
-            settings["hessian_strategy_parameters"].RemoveValue("normalization_method")
+            list_remove = ["metric_variable", "non_historical_metric_variable", "normalization_factor", "normalization_alpha", "normalization_method"]
+            settings["hessian_strategy_parameters"].RemoveValues(list_remove)
 
             # Adding new
             parameter_list = ["metric_variable", "non_historical_metric_variable", "normalization_factor", "normalization_alpha", "normalization_method"]
@@ -214,8 +211,8 @@ class ContactRemeshMmgProcess(MmgProcess):
             self.variables_dict[settings["hessian_strategy_parameters"]["metric_variable"][i].GetString()] = i
 
         # Avoid conflict with mother class
-        settings.RemoveValue("automatic_normalization_factor")
-        settings.RemoveValue("consider_strain_energy")
+        list_remove = ["automatic_normalization_factor", "consider_strain_energy"]
+        settings.RemoveValues(list_remove)
 
         # Construct the base process.
         super().__init__(Model, settings)

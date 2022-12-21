@@ -30,7 +30,7 @@ from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
 from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
 from test_consecutive_pipe_lines import TestConsecutivePipeLines
-
+from test_element_lab import KratosGeoMechanicsLabElementTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -60,7 +60,8 @@ def AssembleTestSuites():
         KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
         KratosGeoMechanicsSoilWeightTests,
         KratosGeoMechanicsSettlementTests,
-        KratosGeoMechanicsCurvedBeamElementTests]
+        KratosGeoMechanicsCurvedBeamElementTests,
+        KratosGeoMechanicsLabElementTests]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
