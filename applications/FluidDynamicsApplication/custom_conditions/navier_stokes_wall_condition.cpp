@@ -21,6 +21,7 @@
 
 // Application includes
 #include "navier_stokes_wall_condition.h"
+#include "wall_laws/linear_log_wall_law.h"
 #include "wall_laws/navier_slip_wall_law.h"
 
 namespace Kratos
@@ -45,6 +46,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLocalSyst
 
     // Struct to pass around the data
     ConditionDataStruct data;
+
     // Allocate memory needed
     array_1d<double,MatrixSize> rhs_gauss;
     BoundedMatrix<double,MatrixSize, MatrixSize> lhs_gauss;
@@ -89,6 +91,13 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLocalSyst
         noalias(rRightHandSideVector) += rhs_gauss;
     }
 
+    // Add the wall law contribution
+    constexpr SizeType n_wall_models = sizeof...(TWallModel);
+    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
+    if (this->Is(WALL) && n_wall_models != 0) {
+        (AddWallModelLocalSystemCall<TWallModel>(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo), ...);
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -108,6 +117,13 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLeftHandS
 
     // LHS contributions initialization
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
+
+    // Add the wall law contribution
+    constexpr SizeType n_wall_models = sizeof...(TWallModel);
+    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
+    if (this->Is(WALL) && n_wall_models != 0) {
+        (AddWallModelLeftHandSideCall<TWallModel>(rLeftHandSideMatrix, rCurrentProcessInfo), ...);
+    }
 
     KRATOS_CATCH("")
 }
@@ -163,6 +179,13 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateRightHand
         data.wGauss = J * IntegrationPoints[igauss].Weight();
         ComputeGaussPointRHSContribution(rhs_gauss, data, rCurrentProcessInfo);
         noalias(rRightHandSideVector) += rhs_gauss;
+    }
+
+    // Add the wall law contribution    
+    constexpr SizeType n_wall_models = sizeof...(TWallModel);
+    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
+    if (this->Is(WALL) && n_wall_models != 0) {
+        (AddWallModelRightHandSideCall<TWallModel>(rRightHandSideVector, rCurrentProcessInfo), ...);
     }
 
     KRATOS_CATCH("")
@@ -288,13 +311,6 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointL
             CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
         }
     }
-
-    // Add the wall law contribution
-    constexpr SizeType n_wall_models = sizeof...(TWallModel);
-    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
-    if (this->Is(WALL) && n_wall_models != 0) {
-        (AddLeftHandSideGaussPointWallModelContributionCall<TWallModel>(lhs_gauss, data, rProcessInfo), ...);
-    }
 }
 
 
@@ -324,13 +340,6 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
         if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
             CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
         }
-    }
-
-    // Add the wall law contribution
-    constexpr SizeType n_wall_models = sizeof...(TWallModel);
-    static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
-    if (this->Is(WALL) && n_wall_models != 0) {
-        (AddRightHandSideGaussPointWallModelContributionCall<TWallModel>(rhs_gauss, data, rProcessInfo), ...);
     }
 }
 
@@ -520,6 +529,8 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateGaussPoin
 
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;
+template class NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
+template class NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 template class NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;
 template class NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>>;
 
