@@ -31,7 +31,7 @@ from test_sellmeijers_rule import TestSellmeijersRule
 from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
 from test_consecutive_pipe_lines import TestConsecutivePipeLines
 from test_line_loads import KratosGeoMechanicsLineLoadTests
-
+from test_element_lab import KratosGeoMechanicsLabElementTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -62,7 +62,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsSoilWeightTests,
                         KratosGeoMechanicsSettlementTests,
                         KratosGeoMechanicsLineLoadTests,
-                        KratosGeoMechanicsCurvedBeamElementTests
+                        KratosGeoMechanicsCurvedBeamElementTests,
+                        KratosGeoMechanicsLabElementTests
                         ]
 
     # Create an array with the selected tests
