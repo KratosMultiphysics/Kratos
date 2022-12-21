@@ -122,6 +122,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Navier-Stokes wall conditions
     mNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    mNavierStokesLinearLogWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+    mNavierStokesLinearLogWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     mNavierStokesNavierSlipWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mNavierStokesNavierSlipWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     // Embedded Navier-Stokes symbolic elements
@@ -388,6 +390,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D", mMonolithicWallCondition3D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D2N", mNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D3N", mNavierStokesWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesLinearLogWallCondition2D2N", mNavierStokesLinearLogWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesLinearLogWallCondition3D3N", mNavierStokesLinearLogWallCondition3D);
     KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition2D2N", mNavierStokesNavierSlipWallCondition2D);
     KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition3D3N", mNavierStokesNavierSlipWallCondition3D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition2D2N", mTwoFluidNavierStokesWallCondition2D);
