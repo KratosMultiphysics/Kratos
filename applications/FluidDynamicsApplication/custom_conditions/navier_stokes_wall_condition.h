@@ -265,22 +265,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override
-    {
-        if (rResult.size() != LocalSize) {
-            rResult.resize(LocalSize, false);
-        }
-
-        IndexType local_index = 0;
-        for (const auto& r_node : GetGeometry()) {
-            rResult[local_index++] = r_node.GetDof(VELOCITY_X).EquationId();
-            rResult[local_index++] = r_node.GetDof(VELOCITY_Y).EquationId();
-            if constexpr (TDim == 3) {
-                rResult[local_index++] = r_node.GetDof(VELOCITY_Z).EquationId();
-            }
-            rResult[local_index++] = r_node.GetDof(PRESSURE).EquationId();
-        }
-    }
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Returns a list of the element's Dofs
@@ -290,22 +275,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionDofList,
-        const ProcessInfo& rCurrentProcessInfo) const override
-    {
-        if (rConditionDofList.size() != LocalSize) {
-            rConditionDofList.resize(LocalSize);
-        }
-
-        IndexType local_index = 0;
-        for (const auto& r_node : GetGeometry()) {
-            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_X);
-            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Y);
-            if constexpr (TDim == 3) {
-                rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Z);
-            }
-            rConditionDofList[local_index++] = r_node.pGetDof(PRESSURE);
-        }
-    }
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Calculate(
         const Variable< array_1d<double,3> >& rVariable,
@@ -375,40 +345,44 @@ protected:
      * This method calculates the current condition area normal
      * @param rAreaNormal Reference to the current condition area normal
      */
-    void CalculateNormal(array_1d<double,3>& rAreaNormal)
-    {
-        const auto& r_geom = GetGeometry();
-        if constexpr (TDim == 2) {
-            rAreaNormal[0] = r_geom[1].Y() - r_geom[0].Y();
-            rAreaNormal[1] = - (r_geom[1].X() - r_geom[0].X());
-            rAreaNormal[2] = 0.0;
-        } else if constexpr (TDim == 3 && TNumNodes == 3) {
-            array_1d<double,3> v1,v2;
-            v1[0] = r_geom[1].X() - r_geom[0].X();
-            v1[1] = r_geom[1].Y() - r_geom[0].Y();
-            v1[2] = r_geom[1].Z() - r_geom[0].Z();
+    void CalculateNormal(array_1d<double,3>& rAreaNormal);
 
-            v2[0] = r_geom[2].X() - r_geom[0].X();
-            v2[1] = r_geom[2].Y() - r_geom[0].Y();
-            v2[2] = r_geom[2].Z() - r_geom[0].Z();
-
-            MathUtils<double>::CrossProduct(rAreaNormal,v1,v2);
-            rAreaNormal *= 0.5;
-        } else {
-            KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;
-        }
-    }
-
+    /**
+     * @brief Calculates the Gauss point LHS contribution
+     * This method calculates the current Gauss point LHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the LHS output matrix
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
     void ComputeGaussPointLHSContribution(
         BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
+    /**
+     * @brief Calculates the Gauss point RHS contribution
+     * This method calculates the current Gauss point RHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the RHS output vector
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
     void ComputeGaussPointRHSContribution(
         array_1d<double, LocalSize>& rRHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
+    /**
+     * @brief Calculates the RHS Neumann BC contribution
+     * This method calculates the Neumann BC pressure flux contribution
+     * Note that the Neumann BC value is expected to be stored in the historical
+     * database within the EXTERNAL_PRESSURE variable.
+     * @param rRHS Reference to the RHS output vector
+     * @param data Condition data container
+     */
     void ComputeRHSNeumannContribution(
         array_1d<double,LocalSize>& rRHS,
         const ConditionDataStruct& data);
@@ -514,18 +488,7 @@ private:
     void ProjectViscousStress(
         const Vector& rViscousStress,
         const array_1d<double,3> rNormal,
-        array_1d<double,3>& rProjectedViscousStress)
-    {
-        if constexpr (TDim == 2) {
-            rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
-            rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
-            rProjectedViscousStress[2] = 0.0;
-        } else {
-            rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
-            rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];
-            rProjectedViscousStress[2] = rViscousStress[5] * rNormal[0] + rViscousStress[4] * rNormal[1] + rViscousStress[2] * rNormal[2];
-        }
-    }
+        array_1d<double,3>& rProjectedViscousStress);
 
     /**
      * @brief Set the Tangential Projection Matrix
