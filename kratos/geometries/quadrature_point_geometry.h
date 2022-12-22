@@ -338,7 +338,7 @@ public:
     /// Returns the domain size of this quadrature point.
     double DomainSize() const override
     {
-        return IntegrationUtilities::ComputeDomainSize(*this, this->IntegrationPoints());
+        return IntegrationUtilities::ComputeDomainSize(*this);
     }
 
     /**

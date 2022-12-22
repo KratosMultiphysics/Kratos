@@ -341,8 +341,7 @@ public:
     double Length() const override
     {
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        return IntegrationUtilities::ComputeDomainSize(*this, r_integration_points);
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /** This method calculate and return area or surface area of

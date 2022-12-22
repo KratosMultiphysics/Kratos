@@ -56,19 +56,40 @@ public:
     /** 
      * @brief This method calculates and returns the domain size of the geometry from any geometry in a generic manner
      * @param rGeometry The geometry considered
-     * @param rIntegrationPoints The integration points considered
+     * @tparam TGeometryType The geometry type
+     * @return double value contains volume.
+     */
+    template<class TGeometryType>
+    static inline double ComputeDomainSize(const TGeometryType& rGeometry)
+    {
+        const auto& r_integration_points = rGeometry.IntegrationPoints();
+        const auto number_gp = r_integration_points.size();
+        Vector temp(number_gp);
+        temp = rGeometry.DeterminantOfJacobian(temp);
+        double domain_size = 0.0;
+        for (unsigned int i = 0; i < number_gp; ++i) {
+            domain_size += temp[i] * r_integration_points[i].Weight();
+        }
+        return domain_size;
+    }
+
+    /** 
+     * @brief This method calculates and returns the domain size of the geometry from any geometry in a generic manner
+     * @param rGeometry The geometry considered
+     * @param IntegrationMethod The integration method considered
      * @tparam TPointType The Point type
      * @return double value contains volume.
      */
     template<class TPointType>
     static inline double ComputeDomainSize(
         const Geometry<TPointType>& rGeometry,
-        const typename Geometry<TPointType>::IntegrationPointsArrayType& rIntegrationPoints
+        const typename Geometry<TPointType>::IntegrationMethod IntegrationMethod
         )
     {
-        const auto number_gp = rIntegrationPoints.size();
+        const auto& r_integration_points = this->IntegrationPoints( IntegrationMethod );
+        const auto number_gp = r_integration_points.size();
         Vector temp(number_gp);
-        temp = rGeometry.DeterminantOfJacobian(temp);
+        temp = rGeometry.DeterminantOfJacobian(temp, IntegrationMethod);
         double domain_size = 0.0;
         for (unsigned int i = 0; i < number_gp; ++i) {
             domain_size += temp[i] * rIntegrationPoints[i].Weight();
