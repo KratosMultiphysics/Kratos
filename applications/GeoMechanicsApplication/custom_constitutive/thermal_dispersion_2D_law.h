@@ -156,11 +156,6 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue);
 
-    /**
-     * @brief It calculates the constitutive matrix C
-     * @param C The constitutive matrix
-     */
-    void CalculateThermalDispersionMatrix(Matrix& C);
 
 protected:
 
@@ -179,7 +174,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
+    /**
+     * @brief It calculates the constitutive matrix C
+     * @param C The constitutive matrix
+     */
+    void CalculateThermalDispersionMatrix(Matrix& C);
 
     // /**
     //  * @brief It calculates the strain vector
