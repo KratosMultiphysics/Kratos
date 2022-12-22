@@ -69,9 +69,6 @@ class GeoMechanicalSolver(PythonSolver):
         # Variables for 2-phase types of calculations:
         ## Fluid Variables
         self._add_water_variables()
-        
-        # Add heat variables
-        self._add_temperature_variables()
 
         ## smoothing variables
         self._add_smoothing_variables()
@@ -206,9 +203,6 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
-        
-    def _add_temperature_variables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
