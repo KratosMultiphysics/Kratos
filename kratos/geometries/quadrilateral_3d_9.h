@@ -422,8 +422,7 @@ public:
     double Area() const override
     {
         const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        return IntegrationUtilities::ComputeDomainSize(*this, r_integration_points);
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /**

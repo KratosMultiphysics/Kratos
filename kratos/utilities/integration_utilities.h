@@ -86,13 +86,13 @@ public:
         const typename Geometry<TPointType>::IntegrationMethod IntegrationMethod
         )
     {
-        const auto& r_integration_points = this->IntegrationPoints( IntegrationMethod );
+        const auto& r_integration_points = rGeometry.IntegrationPoints( IntegrationMethod );
         const auto number_gp = r_integration_points.size();
         Vector temp(number_gp);
         temp = rGeometry.DeterminantOfJacobian(temp, IntegrationMethod);
         double domain_size = 0.0;
         for (unsigned int i = 0; i < number_gp; ++i) {
-            domain_size += temp[i] * rIntegrationPoints[i].Weight();
+            domain_size += temp[i] * r_integration_points[i].Weight();
         }
         return domain_size;
     }
