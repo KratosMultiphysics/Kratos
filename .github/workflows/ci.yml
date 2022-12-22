@@ -261,7 +261,7 @@ jobs:
         -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
         -DINSTALL_RUNKRATOS=OFF
 
-        # Buid
+        # Build
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 
         ccache -s
