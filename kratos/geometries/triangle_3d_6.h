@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -464,16 +463,9 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
+        return IntegrationUtilities::ComputeDomainSize(*this, r_integration_points);
     }
 
     // TODO: Code activated in June 2023
@@ -1155,5 +1147,3 @@ GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
     2, 3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined
