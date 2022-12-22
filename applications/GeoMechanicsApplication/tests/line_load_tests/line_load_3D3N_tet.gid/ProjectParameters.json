@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "Oedometer_ULFEM_diff_order",
+        "problem_name":         "line_load_3D3N_tet",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -10,29 +10,29 @@
     "solver_settings": {
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
-        "domain_size":                        2,
+        "domain_size":                        3,
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "Oedometer_ULFEM_diff_order"
+            "input_filename":   "line_load_3D3N_tet"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.5,
+            "time_step":                1.0,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  false,
-        "move_mesh_flag":                     true,
-        "reform_dofs_at_each_step":           false,
+        "move_mesh_flag":                     false,
+        "reform_dofs_at_each_step":           true,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
-        "scheme_type":                        "Newmark",
+        "scheme_type":                        "Backward_Euler",
         "reset_displacements":                true,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
@@ -45,9 +45,11 @@
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
-        "min_iterations":                      6,
-        "max_iterations":                      15,
-        "number_cycles":                      1,
+        "water_pressure_relative_tolerance":  1.0E-4,
+        "water_pressure_absolute_tolerance":  1.0E-9,
+        "min_iterations":                     6,
+        "max_iterations":                     15,
+        "number_cycles":                      100,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "realised_factor":                    0.9999,
@@ -63,12 +65,15 @@
         "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
-            "solver_type":   "LinearSolversApplication.sparse_lu",
-            "scaling":       true
+            "solver_type":         "bicgstab",
+            "tolerance":           1.0e-6,
+            "max_iteration":       1000,
+            "scaling":             true,
+            "preconditioner_type": "ilu0"
         },
-        "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Lateral_fixity","Bottom_fixity","top_load"],
-        "body_domain_sub_model_part_list":    ["Soil"]
+        "problem_domain_sub_model_part_list": ["Soil_drained-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Line_Load-auto-1"],
+        "body_domain_sub_model_part_list":    ["Soil_drained-auto-1"]
     },
     "output_processes": {
         "gid_output": [{
@@ -77,7 +82,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "Oedometer_ULFEM_diff_order",
+                "output_name": "line_load_3D3N_tet",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -93,8 +98,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","LINE_LOAD"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR"]
+                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","VOLUME_ACCELERATION"],
+                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","ENGINEERING_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR","HYDRAULIC_HEAD"]
                     },
                     "point_data_configuration":  []
                 }
@@ -107,22 +112,10 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Lateral_fixity",
+            "model_part_name": "PorousDomain.Solid_Displacement-auto-1",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,false,false],
-            "is_fixed":        [true,false,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Bottom_fixity",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
+            "active":          [true,true,true],
+            "is_fixed":        [true,true,true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -132,12 +125,13 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.top_load",
+            "model_part_name": "PorousDomain.Line_Load-auto-1",
             "variable_name":   "LINE_LOAD",
-            "active":          [false,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,1,0]
+            "active":          [true,true,true],
+            "value":           [0.0,1.0,0.0],
+            "table":           [0,0,0]
         }
-    }]
+    }],
+        "auxiliar_process_list": []
     }
 }

@@ -127,7 +127,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
                 noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
             }
         } else { // Damage case
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
 
@@ -171,6 +171,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateTangen
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
         rValues.GetConstitutiveMatrix() *= (1.0 - mDamage);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
+        return;
     }
 }
 
@@ -268,7 +270,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
         const double F = uniaxial_stress - threshold;
 
         if (F >= threshold_tolerance) { // Plastic case
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
             mDamage = damage;
