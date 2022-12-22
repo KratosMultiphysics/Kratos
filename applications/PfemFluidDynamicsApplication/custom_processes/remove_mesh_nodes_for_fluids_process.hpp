@@ -113,10 +113,6 @@ namespace Kratos
 				std::cout << " [ REMOVE CLOSE NODES: " << std::endl;
 			}
 
-			// double NumberOfNodes = mrModelPart.NumberOfNodes();
-
-			bool any_node_removed = false;
-
 			int error_nodes_removed = 0;
 			int inside_nodes_removed = 0;
 			int boundary_nodes_removed = 0;
@@ -124,42 +120,34 @@ namespace Kratos
 			// if the remove_node switch is activated, we check if the nodes got too close
 			if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES))
 			{
+				bool some_node_is_removed = false;
+				
 				if (mEchoLevel > 1)
 					std::cout << " REMOVE_NODES is TRUE " << std::endl;
-				// bool any_node_removed_on_error = false;
-				// ////////////////////////////////////////////////////////////
-				// if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR))
-				// {
-				// 	if (mEchoLevel > 1)
-				// 		std::cout << " REMOVE_NODES_ON_ERROR is TRUE " << std::endl;
 
-				// 	any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
-				// }
-				////////////////////////////////////////////////////////////
 				if (mEchoLevel > 1)
 					std::cout << "error_nodes_removed :" << error_nodes_removed << std::endl;
 
-				bool any_node_removed_on_distance = false;
+				bool some_node_is_removed_due_to_distance = false;
 				////////////////////////////////////////////////////////////
 				if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 				{
 					if (mEchoLevel > 1)
 						std::cout << " REMOVE_NODES_ON_DISTANCE is TRUE " << std::endl;
-					// double  MeanRadius=0;
-					any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
+
+					some_node_is_removed_due_to_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
 				}
 				// REMOVE ON DISTANCE
 				////////////////////////////////////////////////////////////
 
-				if (any_node_removed_on_distance)
-					any_node_removed = true;
+				if (some_node_is_removed_due_to_distance)
+					some_node_is_removed = true;
 
-				if (any_node_removed || mrRemesh.UseBoundingBox == true)
+				if (some_node_is_removed || mrRemesh.UseBoundingBox == true)
 					this->CleanRemovedNodes(mrModelPart);
 			}
 
 			// number of removed nodes:
-			// mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
 			mrRemesh.Info->RemovedNodes += error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
 			int distance_remove = inside_nodes_removed + boundary_nodes_removed;
 
@@ -167,8 +155,6 @@ namespace Kratos
 			{
 				std::cout << "   [ NODES      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
 				std::cout << "   [ Error(removed: " << error_nodes_removed << "); Distance(removed: " << distance_remove << "; inside: " << inside_nodes_removed << "; boundary: " << boundary_nodes_removed << ") ]" << std::endl;
-
-				// std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes().size()<<std::endl;
 				std::cout << "   REMOVE CLOSE NODES ]; " << std::endl;
 			}
 
@@ -291,64 +277,6 @@ namespace Kratos
 		//**************************************************************************
 		//**************************************************************************
 
-		// bool RemoveNodesOnError(int &error_removed_nodes)
-		// {
-		// 	KRATOS_TRY
-
-		// 	//***SIZES :::: parameters do define the tolerance in mesh size:
-		// 	double size_for_criterion_error = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
-
-		// 	bool any_node_removed = false;
-
-		// 	MeshErrorCalculationUtilities MeshErrorDistribution;
-		// 	MeshErrorDistribution.SetEchoLevel(mEchoLevel);
-
-		// 	std::vector<double> NodalError;
-		// 	std::vector<int> nodes_ids;
-
-		// 	MeshErrorDistribution.NodalErrorCalculation(mrModelPart, NodalError, nodes_ids, mrRemesh.Refine->GetErrorVariable());
-
-		// 	for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
-		// 	{
-
-		// 		NodeWeakPtrVectorType &rN = in->GetValue(NEIGHBOUR_NODES);
-		// 		int erased_nodes = 0;
-		// 		for (unsigned int i = 0; i < rN.size(); i++)
-		// 		{
-		// 			if (rN[i].Is(TO_ERASE))
-		// 				erased_nodes += 1;
-		// 		}
-
-		// 		if (in->IsNot(BOUNDARY) && in->IsNot(STRUCTURE) && erased_nodes < 1)
-		// 		{
-		// 			double &MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
-		// 			MeanError = NodalError[nodes_ids[in->Id()]];
-
-		// 			ElementWeakPtrVectorType &neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
-		// 			double mean_node_radius = 0;
-		// 			for (ElementWeakPtrVectorType::iterator ne = neighb_elems.begin(); ne != neighb_elems.end(); ne++)
-		// 			{
-		// 				mean_node_radius += mMesherUtilities.CalculateElementRadius((ne)->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-		// 																								  //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius((ne)->GetGeometry());
-		// 																								  //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius((ne)->GetGeometry());
-		// 			}
-
-		// 			mean_node_radius /= double(neighb_elems.size());
-
-		// 			if (NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
-		// 			{
-		// 				in->Set(TO_ERASE);
-		// 				any_node_removed = true;
-		// 				error_removed_nodes++;
-		// 			}
-		// 		}
-		// 	}
-
-		// 	return any_node_removed;
-
-		// 	KRATOS_CATCH(" ")
-		// }
-
 		bool RemoveNodesOnDistance(int &inside_nodes_removed, int &boundary_nodes_removed)
 		{
 			KRATOS_TRY
@@ -356,10 +284,7 @@ namespace Kratos
 			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			//***SIZES :::: parameters do define the tolerance in mesh size:
-
-			bool derefine_wall_tip_contact = false;
-
-			bool any_node_removed = false;
+			bool some_node_is_removed = false;
 
 			// bucket size definition:
 			unsigned int bucket_size = 20;
@@ -373,12 +298,9 @@ namespace Kratos
 			}
 
 			KdtreeType nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
 			////////////////////////////////////////////////////////////
-
 			// all of the nodes in this list will be preserved
 			unsigned int num_neighbours = 100;
-
 			std::vector<Node<3>::Pointer> neighbours(num_neighbours);
 			std::vector<double> neighbour_distances(num_neighbours);
 
@@ -388,17 +310,19 @@ namespace Kratos
 			unsigned int n_points_in_radius;
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			double currentTime = rCurrentProcessInfo[TIME];
+			const double currentTime = rCurrentProcessInfo[TIME];
 			double meshSize = mrRemesh.Refine->CriticalRadius;
-			double initialTimeForRefinement = mrRemesh.RefiningBoxInitialTime;
-			double finalTimeForRefinement = mrRemesh.RefiningBoxFinalTime;
-			bool refiningBox = mrRemesh.UseRefiningBox;
-			if (!(refiningBox == true && currentTime > initialTimeForRefinement && currentTime < finalTimeForRefinement))
+
+			bool refiningBox = false;
+			for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
 			{
-				refiningBox = false;
+				if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
+				{
+					refiningBox = true;
+				}
 			}
 
-			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
+			const unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 			unsigned int erased_nodes = 0;
 			for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
 				 ie != mrModelPart.ElementsEnd(); ie++)
@@ -407,13 +331,11 @@ namespace Kratos
 				// coordinates
 				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
 				{
-
 					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
 					{
 						rigidNodes++;
 					}
 				}
-
 				if (dimension == 2)
 				{
 					if (rigidNodes > 0)
@@ -429,7 +351,7 @@ namespace Kratos
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
 
-				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
+				const unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 				meshSize = mrRemesh.Refine->CriticalRadius;
 				double rigidNodeLocalMeshSize = 0;
 				double rigidNodeMeshCounter = 0;
@@ -449,14 +371,17 @@ namespace Kratos
 					array_1d<double, 3> NodeCoordinates = in->Coordinates();
 					if (dimension == 2)
 					{
-						meshSize = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
+						bool insideTransitionZone = false;
+						mMesherUtilities.DefineMeshSizeInTransitionZones2D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideTransitionZone);
 					}
 					else if (dimension == 3)
 					{
-						meshSize = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
+						bool insideTransitionZone = false;
+						mMesherUtilities.DefineMeshSizeInTransitionZones3D(mrRemesh, currentTime, NodeCoordinates, meshSize, insideTransitionZone);
 					}
 				}
-				if (rigidNodeMeshCounter > 0 && refiningBox == false)
+
+				if (rigidNodeMeshCounter > 0)
 				{
 					const double rigidWallMeshSize = rigidNodeLocalMeshSize / rigidNodeMeshCounter;
 					const double ratio = rigidWallMeshSize / meshSize;
@@ -473,7 +398,7 @@ namespace Kratos
 
 				if (in->Is(TO_ERASE))
 				{
-					any_node_removed = true;
+					some_node_is_removed = true;
 				}
 				bool on_contact_tip = false;
 
@@ -521,7 +446,7 @@ namespace Kratos
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 						{
-							unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
+							const unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
 							if ((nn)->Is(FREE_SURFACE))
 							{
 								freeSurfaceNeighNodes++;
@@ -605,24 +530,12 @@ namespace Kratos
 								}
 								else
 								{
-									// look if we are already erasing any of the other nodes
-									unsigned int contact_nodes = 0;
-									for (std::vector<Node<3>::Pointer>::iterator nn = neighbours.begin(); nn != neighbours.begin() + n_points_in_radius; nn++)
+									in->Set(TO_ERASE);
+									some_node_is_removed = true;
+									inside_nodes_removed++;
+									if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 									{
-										if ((*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT))
-											contact_nodes += 1;
-									}
-
-									if (contact_nodes < 1)
-									{ // we release the node if no other nodes neighbours are being erased
-										in->Set(TO_ERASE);
-										any_node_removed = true;
-										inside_nodes_removed++;
-										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-										{
-											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-										}
-										// distance_remove++;
+										mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 									}
 								}
 							}
@@ -653,7 +566,6 @@ namespace Kratos
 										counter += 1;
 									}
 								}
-
 								k++;
 							}
 
@@ -662,21 +574,7 @@ namespace Kratos
 								in->Set(TO_ERASE);
 								if (mEchoLevel > 1)
 									std::cout << "     Removed Boundary Node [" << in->Id() << "] on Distance " << std::endl;
-								any_node_removed = true;
-								boundary_nodes_removed++;
-
-								if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-								{
-									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-								}
-
-							}
-							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
-							{
-								in->Set(TO_ERASE);
-								if (mEchoLevel > 1)
-									std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
-								any_node_removed = true;
+								some_node_is_removed = true;
 								boundary_nodes_removed++;
 
 								if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
@@ -693,7 +591,7 @@ namespace Kratos
 			{
 				if (mEchoLevel > 1)
 					std::cout << "layer_nodes_removed " << erased_nodes << std::endl;
-				any_node_removed = true;
+				some_node_is_removed = true;
 			}
 			// Build boundary after removing boundary nodes due distance criterion
 			if (mEchoLevel > 1)
@@ -701,7 +599,7 @@ namespace Kratos
 				std::cout << "boundary_nodes_removed " << boundary_nodes_removed << std::endl;
 				std::cout << "inside_nodes_removed " << inside_nodes_removed << std::endl;
 			}
-			return any_node_removed;
+			return some_node_is_removed;
 
 			KRATOS_CATCH(" ")
 		}
@@ -716,7 +614,7 @@ namespace Kratos
 			unsigned int numNodes = eElement.size();
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
+			const unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 
 			array_1d<double, 3> Edges(3, 0.0);
 			array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
@@ -724,7 +622,7 @@ namespace Kratos
 			double wallLength = 0;
 			array_1d<double, 3> CoorDifference = eElement[1].Coordinates() - eElement[0].Coordinates();
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
 			if (eElement[0].Is(RIGID) && eElement[1].Is(RIGID))
@@ -739,7 +637,7 @@ namespace Kratos
 					noalias(CoorDifference) = eElement[i].Coordinates() - eElement[j].Coordinates();
 					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 					counter += 1;
-					Edges[counter] = sqrt(SquaredLength);
+					Edges[counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[counter] = j;
 					SecondEdgeNode[counter] = i;
 					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && Edges[counter] > wallLength)
@@ -748,18 +646,6 @@ namespace Kratos
 					}
 				}
 			}
-
-			// double wallLength = 0;
-			// double rigidNodeMeshCounter = 0;
-			// for (unsigned int i = 0; i < eElement.size(); i++)
-			// {
-			// 	if (eElement[i].Is(RIGID))
-			// 	{
-			// 		wallLength += eElement[i].FastGetSolutionStepValue(NODAL_H_WALL);
-			// 		rigidNodeMeshCounter += 1.0;
-			// 	}
-			// }
-			// wallLength *= 1.0 / rigidNodeMeshCounter;
 
 			////////  to compare the triangle height to wall edge length /////////
 			for (unsigned int i = 0; i < eElement.size(); i++)
@@ -798,7 +684,7 @@ namespace Kratos
 						erased_nodes += 1;
 						inside_nodes_removed++;
 
-						unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -825,7 +711,7 @@ namespace Kratos
 							erased_nodes += 1;
 							inside_nodes_removed++;
 
-							unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+							const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 							{
 								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -848,7 +734,7 @@ namespace Kratos
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
-										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -864,212 +750,11 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		double SetMeshSizeInMeshRefinementArea(array_1d<double, 3> NodeCoordinates)
-		{
-			KRATOS_TRY
-
-			array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
-			array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
-			array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
-			array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-			array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-			array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-
-			double meshSize = mrRemesh.Refine->CriticalRadius;
-			double distance = 2 * meshSize;
-			double seperation = 0;
-			double coefficient = 0;
-			if (meshSize > mrRemesh.RefiningBoxMeshSize)
-			{
-				if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
-					NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1])
-				{
-					meshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
-				}
-				else if ((NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > (minExternalPoint[0] - distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > (minExternalPoint[1] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
-				{
-					seperation = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < (maxExternalPoint[0] + distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < (maxExternalPoint[1] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
-				{
-					seperation = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-			}
-			else
-			{
-				distance = 2.0 * mrRemesh.RefiningBoxMeshSize;
-
-				if (NodeCoordinates[0] > (minInternalPoint[0] + distance) && NodeCoordinates[0] < (maxInternalPoint[0] - distance) &&
-					NodeCoordinates[1] > (minInternalPoint[1] + distance) && NodeCoordinates[1] < (maxInternalPoint[1] - distance))
-				{
-					meshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
-				}
-				else if ((NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < (minInternalPoint[0] + distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = (minInternalPoint[0] + distance) - NodeCoordinates[0];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < (minInternalPoint[1] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
-				{
-					seperation = (minInternalPoint[1] + distance) - NodeCoordinates[1];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[0] < RefiningBoxMaximumPoint[0] && NodeCoordinates[0] > (maxInternalPoint[0] - distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = (maxInternalPoint[0] - distance) - NodeCoordinates[0];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] < RefiningBoxMaximumPoint[1] && NodeCoordinates[1] > (maxInternalPoint[1] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
-				{
-					seperation = (maxInternalPoint[1] - distance) - NodeCoordinates[1];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-			}
-
-			return meshSize;
-
-			KRATOS_CATCH("")
-		}
-
-		double SetMeshSizeInMeshRefinementVolume(array_1d<double, 3> NodeCoordinates)
-		{
-			KRATOS_TRY
-
-			array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
-			array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
-			array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
-			array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-			array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-			array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-
-			double meshSize = mrRemesh.Refine->CriticalRadius;
-			double distance = 2.0 * meshSize;
-			double seperation = 0;
-			double coefficient = 0;
-			if (meshSize > mrRemesh.RefiningBoxMeshSize)
-			{
-				if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
-					NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1] &&
-					NodeCoordinates[2] > RefiningBoxMinimumPoint[2] && NodeCoordinates[2] < RefiningBoxMaximumPoint[2])
-				{
-					meshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
-				}
-				else if ((NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > (minExternalPoint[0] - distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > (minExternalPoint[1] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[2] < RefiningBoxMinimumPoint[2] && NodeCoordinates[2] > (minExternalPoint[2] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < (maxExternalPoint[0] + distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < (maxExternalPoint[1] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[2] > RefiningBoxMaximumPoint[2] && NodeCoordinates[2] < (maxExternalPoint[2] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
-					coefficient = fabs(seperation) / (distance + meshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-			}
-			else
-			{
-
-				distance = 2.0 * mrRemesh.RefiningBoxMeshSize;
-
-				if (NodeCoordinates[0] > (minInternalPoint[0] + distance) && NodeCoordinates[0] < (maxInternalPoint[0] - distance) &&
-					NodeCoordinates[1] > (minInternalPoint[1] + distance) && NodeCoordinates[1] < (maxInternalPoint[1] - distance) &&
-					NodeCoordinates[2] > (minInternalPoint[2] + distance) && NodeCoordinates[2] < (maxInternalPoint[2] - distance))
-				{
-					meshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
-				}
-				else if ((NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < (minInternalPoint[0] + distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = (minInternalPoint[0] + distance) - NodeCoordinates[0];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < (minInternalPoint[1] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = (minInternalPoint[1] + distance) - NodeCoordinates[1];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[2] > RefiningBoxMinimumPoint[2] && NodeCoordinates[2] < (minInternalPoint[2] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = (minInternalPoint[2] + distance) - NodeCoordinates[2];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[0] < RefiningBoxMaximumPoint[0] && NodeCoordinates[0] > (maxInternalPoint[0] - distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = (maxInternalPoint[0] - distance) - NodeCoordinates[0];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[1] < RefiningBoxMaximumPoint[1] && NodeCoordinates[1] > (maxInternalPoint[1] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
-				{
-					seperation = (maxInternalPoint[1] - distance) - NodeCoordinates[1];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-				else if ((NodeCoordinates[2] < RefiningBoxMaximumPoint[2] && NodeCoordinates[2] > (maxInternalPoint[2] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
-				{
-					seperation = (maxInternalPoint[2] - distance) - NodeCoordinates[2];
-					coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
-					meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
-				}
-			}
-			return meshSize;
-
-			KRATOS_CATCH("")
-		}
-
 		void EraseCriticalNodes3D(Element::GeometryType &eElement, unsigned int &erased_nodes, int &inside_nodes_removed, unsigned int rigidNodes)
 		{
 
 			KRATOS_TRY
 			double safetyCoefficient3D = 0.6;
-			// double safetyCoefficient3D=0.7;
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
@@ -1089,26 +774,38 @@ namespace Kratos
 			double baricenterY = 0.25 * (eElement[0].Y() + eElement[1].Y() + eElement[2].Y() + eElement[3].Y());
 			double baricenterZ = 0.25 * (eElement[0].Z() + eElement[1].Z() + eElement[2].Z() + eElement[3].Z());
 
-			if (mrRemesh.UseRefiningBox == true)
+			const unsigned int numberOfRefiningBoxes = mrRemesh.UseRefiningBox.size();
+			double currentTime = rCurrentProcessInfo[TIME];
+			for (unsigned int index = 0; index < numberOfRefiningBoxes; index++)
 			{
-				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-				if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
-					baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
-					baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
+				double initialTime = mrRemesh.RefiningBoxInitialTime[index];
+				double finalTime = mrRemesh.RefiningBoxFinalTime[index];
+				bool refiningBox = mrRemesh.UseRefiningBox[index];
+
+				if (refiningBox == true && currentTime > initialTime && currentTime < finalTime)
 				{
-					criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
-				}
-				else
-				{
-					criticalVolume = 0.01 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
-				}
-				double meanSize = 0.5 * (mrRemesh.RefiningBoxMeshSize + mrRemesh.Refine->CriticalRadius);
-				if ((baricenterX > (RefiningBoxMinimumPoint[0] - meanSize) && baricenterX < (RefiningBoxMaximumPoint[0] + meanSize)) ||
-					(baricenterY > (RefiningBoxMinimumPoint[1] - meanSize) && baricenterY < (RefiningBoxMaximumPoint[1] + meanSize)) ||
-					(baricenterZ > (RefiningBoxMinimumPoint[2] - meanSize) && baricenterZ < (RefiningBoxMaximumPoint[2] + meanSize))) // transition zone
-				{
-					safetyCoefficient3D *= 0.8;
+					double meanMeshSize = mrRemesh.RefiningBoxMeshSize[index] * 0.5 + mrRemesh.Refine->CriticalRadius * 0.5;
+					array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxShiftedMinimumPoint[index];
+					array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxShiftedMaximumPoint[index];
+					array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
+					array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
+					if (baricenterX > RefiningBoxMinimumPoint[0] && baricenterX < RefiningBoxMaximumPoint[0] &&
+						baricenterY > RefiningBoxMinimumPoint[1] && baricenterY < RefiningBoxMaximumPoint[1] &&
+						baricenterZ > RefiningBoxMinimumPoint[2] && baricenterZ < RefiningBoxMaximumPoint[2])
+					{
+						criticalVolume = 0.01 * (std::pow(mrRemesh.RefiningBoxMeshSize[index], 3) / (6.0 * std::sqrt(2))); // mean Volume of a regular tetrahedral per node with 0.01 of penalization
+					}
+					else if ((baricenterX < RefiningBoxMinimumPoint[0] && baricenterX > minExternalPoint[0]) || (baricenterX > RefiningBoxMaximumPoint[0] && baricenterX < maxExternalPoint[0]) ||
+							 (baricenterY < RefiningBoxMinimumPoint[1] && baricenterY > minExternalPoint[1]) || (baricenterY > RefiningBoxMaximumPoint[1] && baricenterY < maxExternalPoint[1]) ||
+							 (baricenterZ < RefiningBoxMinimumPoint[2] && baricenterZ > minExternalPoint[2]) || (baricenterZ > RefiningBoxMaximumPoint[2] && baricenterZ < maxExternalPoint[2])) // transition zone
+					{
+						criticalVolume = 0.005 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
+						safetyCoefficient3D *= 0.5;
+					}
+					else
+					{
+						criticalVolume = 0.01 * (std::pow(meanMeshSize, 3) / (6.0 * std::sqrt(2)));
+					}
 				}
 			}
 
@@ -1147,7 +844,7 @@ namespace Kratos
 						erased_nodes += 1;
 						inside_nodes_removed++;
 
-						unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1185,20 +882,20 @@ namespace Kratos
 				c4 = (rigidNodesCoordinates[0][0] - rigidNodesCoordinates[2][0]) * (notRigidNodeCoordinates[1] - rigidNodesCoordinates[2][1]) - (notRigidNodeCoordinates[0] - rigidNodesCoordinates[2][0]) * (rigidNodesCoordinates[0][1] - rigidNodesCoordinates[2][1]);
 
 				// angle between the plane composed by rigid nodes only and the other plans. If the angle is small, the particle can pass through the wall
-				double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-				double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-				double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+				double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
+				double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
+				double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (std::sqrt(std::pow(a1, 2) + std::pow(b1, 2) + std::pow(c1, 2)) * std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)));
 
 				// angle between the normals of the rigid nodes. I want to avoid rigid elements at the corner
 				double cosAngleBetweenNormals01 = (rigidNodesNormals[0][0] * rigidNodesNormals[1][0] + rigidNodesNormals[0][1] * rigidNodesNormals[1][1]) /
-												  (sqrt(pow(rigidNodesNormals[0][0], 2) + pow(rigidNodesNormals[0][1], 2)) *
-												   sqrt(pow(rigidNodesNormals[1][0], 2) + pow(rigidNodesNormals[1][1], 2)));
+												  (std::sqrt(std::pow(rigidNodesNormals[0][0], 2) + std::pow(rigidNodesNormals[0][1], 2)) *
+												   std::sqrt(std::pow(rigidNodesNormals[1][0], 2) + std::pow(rigidNodesNormals[1][1], 2)));
 				double cosAngleBetweenNormals02 = (rigidNodesNormals[0][0] * rigidNodesNormals[2][0] + rigidNodesNormals[0][1] * rigidNodesNormals[2][1]) /
-												  (sqrt(pow(rigidNodesNormals[0][0], 2) + pow(rigidNodesNormals[0][1], 2)) *
-												   sqrt(pow(rigidNodesNormals[2][0], 2) + pow(rigidNodesNormals[2][1], 2)));
+												  (std::sqrt(std::pow(rigidNodesNormals[0][0], 2) + std::pow(rigidNodesNormals[0][1], 2)) *
+												   std::sqrt(std::pow(rigidNodesNormals[2][0], 2) + std::pow(rigidNodesNormals[2][1], 2)));
 				double cosAngleBetweenNormals12 = (rigidNodesNormals[1][0] * rigidNodesNormals[2][0] + rigidNodesNormals[1][1] * rigidNodesNormals[2][1]) /
-												  (sqrt(pow(rigidNodesNormals[1][0], 2) + pow(rigidNodesNormals[1][1], 2)) *
-												   sqrt(pow(rigidNodesNormals[2][0], 2) + pow(rigidNodesNormals[2][1], 2)));
+												  (std::sqrt(std::pow(rigidNodesNormals[1][0], 2) + std::pow(rigidNodesNormals[1][1], 2)) *
+												   std::sqrt(std::pow(rigidNodesNormals[2][0], 2) + std::pow(rigidNodesNormals[2][1], 2)));
 
 				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
 				{
@@ -1207,7 +904,7 @@ namespace Kratos
 					erased_nodes += 1;
 					inside_nodes_removed++;
 
-					unsigned int propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
+					const unsigned int propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
 						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1240,7 +937,7 @@ namespace Kratos
 							erased_nodes += 1;
 							inside_nodes_removed++;
 
-							unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+							const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 							{
 								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1268,7 +965,7 @@ namespace Kratos
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
-										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1290,7 +987,7 @@ namespace Kratos
 										erased_nodes += 1;
 										inside_nodes_removed++;
 
-										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
+										const unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1314,7 +1011,7 @@ namespace Kratos
 			double SquaredLength = CoorDifference[0] * CoorDifference[0] +
 								   CoorDifference[1] * CoorDifference[1] +
 								   CoorDifference[2] * CoorDifference[2];
-			Edges[0] = sqrt(SquaredLength);
+			Edges[0] = std::sqrt(SquaredLength);
 			double minimumLength = Edges[0] * 10.0;
 			FirstEdgeNode[0] = 0;
 			SecondEdgeNode[0] = 1;
@@ -1347,7 +1044,7 @@ namespace Kratos
 									CoorDifference[1] * CoorDifference[1] +
 									CoorDifference[2] * CoorDifference[2];
 					counter += 1;
-					Edges[counter] = sqrt(SquaredLength);
+					Edges[counter] = std::sqrt(SquaredLength);
 					FirstEdgeNode[counter] = j;
 					SecondEdgeNode[counter] = i;
 					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && (wallLength == 0 || Edges[counter] > wallLength))
@@ -1409,7 +1106,7 @@ namespace Kratos
 					eElement[erasableNode].Set(TO_ERASE);
 					inside_nodes_removed++;
 					erased_nodes += 1;
-					unsigned int propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
+					const unsigned int propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
 						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1448,7 +1145,7 @@ namespace Kratos
 						inside_nodes_removed++;
 						erased_nodes += 1;
 
-						unsigned int propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1460,7 +1157,7 @@ namespace Kratos
 						inside_nodes_removed++;
 						erased_nodes += 1;
 
-						unsigned int propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+						const unsigned int propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1501,7 +1198,7 @@ namespace Kratos
 				}
 			}
 			// I have looked for the biggest edge for moving there the layer node
-			double maxNeighDistance = sqrt(maxSquaredDistance);
+			double maxNeighDistance = std::sqrt(maxSquaredDistance);
 			if (maxNeighDistance > wallLength && wallLength > 0)
 			{
 				for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)

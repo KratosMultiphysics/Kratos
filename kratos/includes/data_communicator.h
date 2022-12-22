@@ -10,8 +10,7 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_DATA_COMMUNICATOR_H_INCLUDED
-#define KRATOS_DATA_COMMUNICATOR_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -314,7 +313,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     template<bool value> struct TypeFromBool {};
 
     template<typename T> void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<true>) const {}
-    
+
     template<typename T>
     KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type. Please implement direct communication support for this type.")
     void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const {}
@@ -360,6 +359,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(unsigned int)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(double)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(char)
 
     // Reduce operations
 
@@ -1042,5 +1042,3 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
 #undef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
-
-#endif // KRATOS_DATA_COMMUNICATOR_H_INCLUDED  defined

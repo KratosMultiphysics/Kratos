@@ -114,16 +114,16 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
     return full_path;
 }
 
-std::vector<std::string> ListDirectory(const std::string& rPath)
+std::vector<std::filesystem::path> ListDirectory(const std::filesystem::path& rPath)
 {
-    std::vector<std::string> result;
+    std::vector<std::filesystem::path> result;
     for (const auto& current_directory : std::filesystem::directory_iterator(rPath)) {
-        result.push_back(current_directory.path().string());
+        result.push_back(current_directory.path());
     }
     return result;
 }
 
-void MPISafeCreateDirectories(const std::string& rPath)
+void MPISafeCreateDirectories(const std::filesystem::path& rPath)
 {
     if (!std::filesystem::exists(rPath)) {
         std::filesystem::create_directories(rPath);

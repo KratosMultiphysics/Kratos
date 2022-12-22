@@ -23,9 +23,7 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
 namespace
@@ -215,6 +213,4 @@ namespace
         KRATOS_CHECK_MATRIX_NEAR(r_DN_DX, expected_DN_DX, tolerance);
     }
 
-} // namespace Testing
-
-} // namespace Kratos
+} // namespace Kratos::Testing

@@ -115,6 +115,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
+    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     inline SizeType Dimension() const
     {
         return mDimension;
@@ -165,7 +166,6 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mDimension << std::endl;
         rOStream << "    Working space dimension : " << mWorkingSpaceDimension << std::endl;
         rOStream << "    Local space dimension   : " << mLocalSpaceDimension;
     }

@@ -741,7 +741,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic push) \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic ignored "-Wdeprecated-declarations")
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUG__) && !defined(__INTEL_COMPILER)
 #define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic push) \
@@ -750,6 +750,8 @@ KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic ignored "-Wdeprecated-decla
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(push))\
 __pragma(warning(disable: 4996))
+#else
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 // The following block defines the macro KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING which ends the scope for
@@ -757,12 +759,14 @@ __pragma(warning(disable: 4996))
 #if defined(__clang__)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("clang diagnostic pop")
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUG__) && !defined(__INTEL_COMPILER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("GCC diagnostic pop")
 #elif defined(_MSC_VER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(pop))
+#else
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 

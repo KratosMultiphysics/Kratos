@@ -1,7 +1,8 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -17,7 +18,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "containers/pointer_vector.h"
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
@@ -105,9 +105,6 @@ public:
     /// Copy constructor.
     ShiftedBoundaryMeshlessInterfaceUtility(ShiftedBoundaryMeshlessInterfaceUtility const& rOther) = delete;
 
-    /// Destructor.
-    virtual ~ShiftedBoundaryMeshlessInterfaceUtility() = default;
-
     ///@}
     ///@name Operators
     ///@{
@@ -136,19 +133,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return "ShiftedBoundaryMeshlessInterfaceUtility";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "ShiftedBoundaryMeshlessInterfaceUtility";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -169,6 +166,8 @@ private:
     ModelPart* mpBoundarySubModelPart = nullptr;
 
     bool mConformingBasis;
+
+    const Variable<double>* mpLevelSetVariable;
 
     ExtensionOperator mExtensionOperator;
 
@@ -224,61 +223,25 @@ private:
     void SetInterfaceFlags();
 
     /**
-     * @brief Check if current geometry is split
-     * This method checks if current geometry is split from the nodal historical DISTANCE values
-     * @param rGeometry Geometry to be checked
-     * @return true If split
-     * @return false If not split
-     */
-    bool IsSplit(const GeometryType& rGeometry);
-
-    /**
-     * @brief Check if current geometry is in negative side
-     * This method checks if current geometry has negative DISTANCE value in all the nodes
-     * @param rGeometry Geometry to be checked
-     * @return true If all nodes are negative
-     * @return false If there is one or more positive nodes
-     */
-    bool IsNegative(const GeometryType& rGeometry);
-
-    /**
-     * @brief Set the nodal distances vector
-     * This method saves the nodal historical values of DISTANCE in the provided vector
-     * @param rGeometry Geometry from which the nodal values are retrieved
-     * @param rNodalDistances Vector container to store the distance values
-     */
-    void SetNodalDistancesVector(
-        const GeometryType& rGeometry,
-        Vector& rNodalDistances);
-
-    /**
-     * @brief Get the standard modified shape functions factory object
-     * This function returns a prototype for the split shape functions calculation from the provided geometry
-     * @param rGeometry Input geometry
-     * @return ModifiedShapeFunctionsFactoryType Factory to be used for the split shape functions calculation
-     */
-    ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry);
-
-    /**
      * @brief Get the MLS shape functions and gradients factory object
      * This function returns a prototype for the MLS shape functions and gradients calculation
      * @return MLSShapeFunctionsAndGradientsFunctionType MLS shape functions and gradients call prototype
      */
-    MLSShapeFunctionsAndGradientsFunctionType GetMLSShapeFunctionsAndGradientsFunction();
+    MLSShapeFunctionsAndGradientsFunctionType GetMLSShapeFunctionsAndGradientsFunction() const;
 
     /**
      * @brief Get the MLS shape functions factory object
      * This function returns a prototype for the MLS shape functions calculation
      * @return MLSShapeFunctionsFunctionType MLS shape functions call prototype
      */
-    MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction();
+    MeshlessShapeFunctionsFunctionType GetMLSShapeFunctionsFunction() const;
 
     /**
      * @brief Get the RBF shape functions factory object
      * This function returns a prototype for the RBF shape functions calculation
      * @return RBFShapeFunctionsFunctionType RBF shape functions call prototype
      */
-    MeshlessShapeFunctionsFunctionType GetRBFShapeFunctionsFunction();
+    MeshlessShapeFunctionsFunctionType GetRBFShapeFunctionsFunction() const;
 
     /**
      * @brief Get the element size function object
@@ -341,9 +304,9 @@ private:
      * Positive in this case means that, for each node in the surrogate boundary, only the positive elements are considered
      * for the nodal gradients calculation. The results are stored in a map which entry is each one of the surrogate nodes ids.
      * and the value is another map containing the surrounding nodes and their weighted gradients.
-     * @return std::map<std::size_t, std::map<std::size_t, Vector>> Map with the nodal gradients for each node in the surrogate boundary
+     * @return std::unordered_map<std::size_t, std::map<std::size_t, Vector>> Map with the nodal gradients for each node in the surrogate boundary
      */
-    std::map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights();
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> SetSurrogateBoundaryNodalGradientWeights();
 
     ///@}
     ///@name Private  Access

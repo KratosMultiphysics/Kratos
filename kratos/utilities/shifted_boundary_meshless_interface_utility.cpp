@@ -1,7 +1,8 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -14,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/pointer_vector.h"
 #include "includes/variables.h"
 #include "includes/global_pointer_variables.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
@@ -27,6 +29,99 @@
 
 namespace Kratos
 {
+
+namespace
+{
+    using GeometryType = ShiftedBoundaryMeshlessInterfaceUtility::GeometryType;
+    using ModifiedShapeFunctionsFactoryType = ShiftedBoundaryMeshlessInterfaceUtility::ModifiedShapeFunctionsFactoryType;
+
+    /**
+     * @brief Check if current geometry is split
+     * This method checks if current geometry is split from the nodal historical level set values
+     * @param rGeometry Geometry to be checked
+     * @param rLevelSetVariable Variable storing the level set function
+     * @return true If split
+     * @return false If not split
+     */
+    bool IsSplit(
+        const GeometryType& rGeometry,
+        const Variable<double>& rLevelSetVariable)
+    {
+        std::size_t n_neg = 0;
+        std::size_t n_pos = 0;
+        for (const auto& r_node : rGeometry) {
+            if (r_node.FastGetSolutionStepValue(rLevelSetVariable) < 0.0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+        return (n_pos != 0 && n_neg != 0);
+    }
+
+    /**
+     * @brief Check if current geometry is in negative side
+     * This method checks if current geometry has negative level set value in all the nodes
+     * @param rGeometry Geometry to be checked
+     * @param rLevelSetVariable Variable storing the level set function
+     * @return true If all nodes are negative
+     * @return false If there is one or more positive nodes
+     */
+    bool IsNegative(
+        const GeometryType& rGeometry,
+        const Variable<double>& rLevelSetVariable)
+    {
+        std::size_t n_neg = 0;
+        for (const auto& r_node : rGeometry) {
+            if (r_node.FastGetSolutionStepValue(rLevelSetVariable) < 0.0) {
+                n_neg++;
+            }
+        }
+        return (n_neg == rGeometry.PointsNumber());
+    }
+
+    /**
+     * @brief Set the nodal distances vector
+     * This method saves the nodal historical values of level set in the provided vector
+     * @param rGeometry Geometry from which the nodal values are retrieved
+     * @param rLevelSetVariable Variable storing the level set function
+     * @param rNodalDistances Vector container to store the distance values
+     */
+    void SetNodalDistancesVector(
+        const GeometryType& rGeometry,
+        const Variable<double>& rLevelSetVariable,
+        Vector& rNodalDistances)
+    {
+        const std::size_t n_nodes = rGeometry.PointsNumber();
+        if (rNodalDistances.size() != n_nodes) {
+            rNodalDistances.resize(n_nodes);
+        }
+        std::size_t i = 0;
+        for (const auto& r_node : rGeometry) {
+            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(rLevelSetVariable);
+        }
+    }
+
+    /**
+     * @brief Get the standard modified shape functions factory object
+     * This function returns a prototype for the split shape functions calculation from the provided geometry
+     * @param rGeometry Input geometry
+     * @return ModifiedShapeFunctionsFactoryType Factory to be used for the split shape functions calculation
+     */
+    ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
+    {
+        switch (rGeometry.GetGeometryType()) {
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
+                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
+                    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
+            default:
+                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+        }
+    }
+}
 
     ShiftedBoundaryMeshlessInterfaceUtility::ShiftedBoundaryMeshlessInterfaceUtility(
         Model& rModel,
@@ -46,6 +141,14 @@ namespace Kratos
             KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInferfaceProcess", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
         } else {
             mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
+        }
+
+        // Save a pointer to variable storing the level set
+        const std::string levelset_variable_name = ThisParameters["levelset_variable_name"].GetString();
+        if (KratosComponents<Variable<double>>::Has(levelset_variable_name)) {
+            mpLevelSetVariable = &KratosComponents<Variable<double>>::Get(levelset_variable_name);
+        } else {
+            KRATOS_ERROR << "Provided 'levelset_variable_name' " << levelset_variable_name << " is not registered." << std::endl;
         }
 
         // Set the order of the MLS extension operator used in the MLS shape functions utility
@@ -99,7 +202,8 @@ namespace Kratos
             "sbm_interface_condition_name" : "",
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
-            "mls_extension_operator_order" : 1
+            "mls_extension_operator_order" : 1,
+            "levelset_variable_name" : "DISTANCE"
         })" );
 
         return default_parameters;
@@ -121,6 +225,8 @@ namespace Kratos
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -137,7 +243,7 @@ namespace Kratos
 
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Find the intersected element negative nodes
                 for (auto& r_node : *p_geom) {
 
@@ -161,7 +267,7 @@ namespace Kratos
                         Vector w_sur_nodes(bd_nodes_ids.size());
                         for (std::size_t bd_node_id : bd_nodes_ids) {
                             const auto p_sur_bd_node = mpModelPart->pGetNode(bd_node_id);
-                            const double aux_dist = 1.0 / norm_2(r_node.Coordinates() - p_sur_bd_node->Coordinates());
+                            const double aux_dist = 1.0 / r_node.Distance(*p_sur_bd_node);
                             inv_tot_dist += aux_dist;
                             w_sur_nodes(aux_i) = aux_dist;
                             ++aux_i;
@@ -239,12 +345,12 @@ namespace Kratos
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Set up the distances vector
                 const auto& r_geom = *p_geom;
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 Vector nodal_distances(n_nodes);
-                SetNodalDistancesVector(r_geom, nodal_distances);
+                SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -382,6 +488,8 @@ namespace Kratos
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -401,7 +509,7 @@ namespace Kratos
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Find the intersected element negative nodes
                 for (auto& r_node : *p_geom) {
                     const std::size_t found = ext_op_map.count(&r_node);
@@ -438,12 +546,12 @@ namespace Kratos
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Set up the distances vector
                 const auto& r_geom = *p_geom;
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 Vector nodal_distances(n_nodes);
-                SetNodalDistancesVector(r_geom, nodal_distances);
+                SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -575,6 +683,8 @@ namespace Kratos
 
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
+        KRATOS_ERROR_IF_NOT(mpModelPart->NumberOfElements())
+            << "There are no elements in background mesh model part '" << mpModelPart->FullName() << "'." << std::endl;
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
@@ -595,7 +705,7 @@ namespace Kratos
 
             // If the element is split, get the interface Gauss pt. data
             // If the element is negative, it is deactivated to not be assembled
-            if (IsSplit(*p_geom)) {
+            if (IsSplit(*p_geom, *mpLevelSetVariable)) {
                 // Set the meshless cloud of point support for the MLS
                 Matrix cloud_nodes_coordinates;
                 PointerVector<NodeType> cloud_nodes;
@@ -605,7 +715,7 @@ namespace Kratos
                 const auto& r_geom = *p_geom;
                 const std::size_t n_nodes = r_geom.PointsNumber();
                 Vector nodal_distances(n_nodes);
-                SetNodalDistancesVector(r_geom, nodal_distances);
+                SetNodalDistancesVector(r_geom, *mpLevelSetVariable, nodal_distances);
 
                 // Set the modified shape functions pointer and calculate the positive interface data
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
@@ -674,7 +784,7 @@ namespace Kratos
         // Find active regions
         for (auto& rElement : mpModelPart->Elements()) {
             auto& r_geom = rElement.GetGeometry();
-            if (IsSplit(r_geom)) {
+            if (IsSplit(r_geom, *mpLevelSetVariable)) {
                 // Mark the intersected elements as BOUNDARY
                 // The intersected elements are also flagged as non ACTIVE to avoid assembling them
                 // Note that the split elements BC is applied by means of the extension operators
@@ -682,11 +792,11 @@ namespace Kratos
                 rElement.Set(BOUNDARY, true);
                 // Mark the positive intersected nodes as BOUNDARY
                 for (auto& rNode : r_geom) {
-                    if (!(rNode.FastGetSolutionStepValue(DISTANCE) < 0.0)) {
+                    if (!(rNode.FastGetSolutionStepValue(*mpLevelSetVariable) < 0.0)) {
                         rNode.Set(BOUNDARY, true);
                     }
                 }
-            } else if (IsNegative(r_geom)) {
+            } else if (IsNegative(r_geom, *mpLevelSetVariable)) {
                 // Mark the negative element as non ACTIVE to avoid assembling it
                 rElement.Set(ACTIVE, false);
             } else {
@@ -721,60 +831,7 @@ namespace Kratos
         }
     }
 
-    bool ShiftedBoundaryMeshlessInterfaceUtility::IsSplit(const GeometryType& rGeometry)
-    {
-        std::size_t n_neg = 0;
-        std::size_t n_pos = 0;
-        for (const auto& r_node : rGeometry) {
-            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
-                n_neg++;
-            } else {
-                n_pos++;
-            }
-        }
-        return (n_pos != 0 && n_neg != 0);
-    }
-
-    bool ShiftedBoundaryMeshlessInterfaceUtility::IsNegative(const GeometryType& rGeometry)
-    {
-        std::size_t n_neg = 0;
-        for (const auto& r_node : rGeometry) {
-            if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
-                n_neg++;
-            }
-        }
-        return (n_neg == rGeometry.PointsNumber());
-    }
-
-    void ShiftedBoundaryMeshlessInterfaceUtility::SetNodalDistancesVector(
-        const GeometryType& rGeometry,
-        Vector& rNodalDistances)
-    {
-        const std::size_t n_nodes = rGeometry.PointsNumber();
-        if (rNodalDistances.size() != n_nodes) {
-            rNodalDistances.resize(n_nodes);
-        }
-        std::size_t i = 0;
-        for (const auto& r_node : rGeometry) {
-            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(DISTANCE);
-        }
-    }
-
-    ShiftedBoundaryMeshlessInterfaceUtility::ModifiedShapeFunctionsFactoryType ShiftedBoundaryMeshlessInterfaceUtility::GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
-    {
-        switch (rGeometry.GetGeometryType()) {
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
-        }
-    }
-
-    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsAndGradientsFunction() const
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -804,7 +861,7 @@ namespace Kratos
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetMLSShapeFunctionsFunction() const
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -834,7 +891,7 @@ namespace Kratos
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction()
+    ShiftedBoundaryMeshlessInterfaceUtility::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtility::GetRBFShapeFunctionsFunction() const
     {
         return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
             RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);
@@ -1062,9 +1119,9 @@ namespace Kratos
         }
     }
 
-    std::map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights()
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights()
     {
-        std::map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
+        std::unordered_map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
         for (auto& r_bd_node : mpModelPart->Nodes()) {
             auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
             if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {

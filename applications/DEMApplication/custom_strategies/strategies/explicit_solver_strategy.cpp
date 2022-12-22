@@ -203,8 +203,6 @@ namespace Kratos {
             for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
         }
 
-        r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
-
         //FinalizeSolutionStep();
 
         ComputeNodalArea();
@@ -490,10 +488,8 @@ namespace Kratos {
     }//SearchFEMOperations
 
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
-
         KRATOS_TRY
 
-        CleanEnergies();
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
@@ -1781,23 +1777,6 @@ namespace Kratos {
     void ExplicitSolverStrategy::SynchronizeRHS(ModelPart& r_model_part) {
         r_model_part.GetCommunicator().SynchronizeVariable(TOTAL_FORCES);
         r_model_part.GetCommunicator().SynchronizeVariable(PARTICLE_MOMENT);
-    }
-
-    void ExplicitSolverStrategy::CleanEnergies() {
-        
-        KRATOS_TRY
-
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        double& total_elastic_energy = r_process_info[PARTICLE_ELASTIC_ENERGY];
-        total_elastic_energy = 0.0;
-        double& total_inelastic_frictional_energy = r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY];
-        total_inelastic_frictional_energy = 0.0;
-        double& total_inelastic_viscodamping_energy = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
-        total_inelastic_viscodamping_energy = 0.0;
-        double& total_inelastic_rollresist_energy = r_process_info[PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY];
-        total_inelastic_rollresist_energy = 0.0;
-
-        KRATOS_CATCH("")
     }
 
     double ExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
