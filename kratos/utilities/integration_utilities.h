@@ -19,7 +19,6 @@
 
 // Project includes
 #include "geometries/geometry.h"
-
 namespace Kratos
 {
 
@@ -112,7 +111,7 @@ public:
         Matrix J(2, 2);
         for ( unsigned int i = 0; i < r_integration_points.size(); i++ ) {
             rGeometry.Jacobian( J, i, integration_method);
-            volume += (J(0,0)*J(1,1)-J(0,1)*J(1,0)) * r_integration_points[i].Weight();
+            volume += MathUtils<double>::Det2(J) * r_integration_points[i].Weight();
         }
 
         return volume;
@@ -133,7 +132,7 @@ public:
         Matrix J(3, 3);
         for ( unsigned int i = 0; i < r_integration_points.size(); i++ ) {
             rGeometry.Jacobian( J, i, integration_method);
-            volume += J(0,0)*(J(1,1)*J(2,2) - J(1,2)*J(2,1)) - J(0,1)*(J(1,0)*J(2,2) - J(1,2)*J(2,0)) + J(0,2)*(J(1,0)*J(2,1) - J(1,1)*J(2,0)) * r_integration_points[i].Weight();
+            volume += MathUtils<double>::Det3(J) * r_integration_points[i].Weight();
         }
 
         return volume;
