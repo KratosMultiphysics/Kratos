@@ -53,8 +53,7 @@ namespace Kratos
         /// Destructor
         ~TransientThermalElement() override {}
 
-        ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
 
 
 
