@@ -4,30 +4,27 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
-//
 
-#if !defined(KRATOS_VARIABLE_UTILS )
-#define  KRATOS_VARIABLE_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/reduction_utilities.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -800,6 +797,26 @@ public:
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
             if(rEntity.Is(Flag) == Check){
                 rEntity.SetValue(rVariable, rValue);}
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Erases the container non historical variable
+     * @param rVariable reference to the scalar variable to be erased
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType, class TVarType>
+    void EraseNonHistoricalVariable(
+        const TVarType& rVariable,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        block_for_each(rContainer, [&rVariable](auto& rEntity){
+                rEntity.GetData().Erase(rVariable);
         });
 
         KRATOS_CATCH("")
@@ -1754,5 +1771,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_VARIABLE_UTILS  defined */

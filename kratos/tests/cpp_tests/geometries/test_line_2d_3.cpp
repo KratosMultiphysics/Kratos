@@ -22,9 +22,8 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
-
+namespace Kratos::Testing {
+namespace {
     /// Factory functions
 
     /** Generates a point type sample Line2D3N
@@ -38,16 +37,16 @@ namespace Testing {
         );
     }
 
-    /** Generates a point type sample Line2D3N
-    * @return  Pointer to a Line2D3N
-    */
-    Line2D3<Point>::Pointer GeneratePointsUnitYDirectionLine2D3() {
-        return Kratos::make_shared<Line2D3<Point>>(
-        Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-        Kratos::make_shared<Point>(0.0, 1.0, 0.0),
-        Kratos::make_shared<Point>(0.0, 0.5, 0.0)
-        );
-    }
+    // /** Generates a point type sample Line2D3N
+    // * @return  Pointer to a Line2D3N
+    // */
+    // Line2D3<Point>::Pointer GeneratePointsUnitYDirectionLine2D3() {
+    //     return Kratos::make_shared<Line2D3<Point>>(
+    //     Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+    //     Kratos::make_shared<Point>(0.0, 1.0, 0.0),
+    //     Kratos::make_shared<Point>(0.0, 0.5, 0.0)
+    //     );
+    // }
 
     /** Generates a point type sample Line2D3N
     * @return  Pointer to a Line2D3N
@@ -71,12 +70,13 @@ namespace Testing {
         );
     }
 
-    /** Generates a point type sample Line2D3N.
-    * @return  Pointer to a Line2D3N
-    */
-    Line2D3<Point>::Pointer GenerateLine2D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
-        return Kratos::make_shared<Line2D3<Point>>(pPointOne, pPointTwo, pPointThree);
-    }
+    // /** Generates a point type sample Line2D3N.
+    // * @return  Pointer to a Line2D3N
+    // */
+    // Line2D3<Point>::Pointer GenerateLine2D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
+    //     return Kratos::make_shared<Line2D3<Point>>(pPointOne, pPointTwo, pPointThree);
+    // }
+}
 
     /** Checks if the number of edges is correct.
     * Checks if the number of edges is correct.
@@ -91,7 +91,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D3FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D3();
-        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -376,5 +376,4 @@ namespace Testing {
         TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+} // namespace Kratos::Testing.
