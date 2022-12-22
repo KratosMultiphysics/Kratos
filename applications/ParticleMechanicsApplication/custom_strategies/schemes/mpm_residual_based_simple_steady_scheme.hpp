@@ -133,39 +133,35 @@ public:
         noalias(it_node->FastGetSolutionStepValue(RESPROJ_DISPL)) = ZeroVector(3);
         it_node->FastGetSolutionStepValue(RESPROJ_PRESS) = 0.0;
         it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-
-//                     if ((i)->SolutionStepsDataHas(NODAL_AREA)){
-//                 double & r_nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
-//                 r_nodal_area          = 0.0;
       }
 
       const int number_of_elements = mGridModelPart.NumberOfElements();
       array_1d<double, 3 > output;
 
 
-              // Loop over the submodelpart of rInitialModelPart
-        for (auto& submodelpart : rModelPart.SubModelParts())
-        {
+      // Loop over the submodelpart of rInitialModelPart
+      for (auto& submodelpart : rModelPart.SubModelParts()){
 
-            #pragma omp parallel for private(output)
-            for (ModelPart::ElementIterator it_elem = submodelpart.ElementsBegin();
-                      it_elem != submodelpart.ElementsEnd(); it_elem++) {
-      //         ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
+        //Loop over the elements of the ModelPart
+          #pragma omp parallel for private(output)
+          for (ModelPart::ElementIterator it_elem = submodelpart.ElementsBegin();
+                    it_elem != submodelpart.ElementsEnd(); it_elem++) {
               const Geometry< Node < 3 > >& r_geometry = it_elem ->GetGeometry();
               it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo);
-            }
+           }
+       }
 
-      #pragma omp parallel for
-      for (int i = 0; i < number_of_nodes; i++) {
-        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-        if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-          it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
-        const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
-        it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
-        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse;
+       #pragma omp parallel for
+       for (int i = 0; i < number_of_nodes; i++) {
+          ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+          if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+            it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+          const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
+          it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
+          it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse;
+       }
+
       }
-        }
-    }
   }
 
 

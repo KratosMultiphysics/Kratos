@@ -893,7 +893,7 @@ void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentPro
     for (unsigned int PointNumber = 0; PointNumber < particles_per_element; PointNumber++)
     {
         UpdatedLagrangian::SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
-        mp_volume = int_volumes[PointNumber];
+        mp_volume =  int_volumes[PointNumber];
         mp_mass[0] = int_volumes[PointNumber]*density;
 
 //         for(unsigned int k = 0; k<3; k++) volume_force[k] = mp_mass[0] * mp_volume_acceleration[k];
@@ -935,6 +935,7 @@ void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vecto
 
     GeometryType& r_geometry = this->GetGeometry();
     const unsigned int dimension        = r_geometry.WorkingSpaceDimension();
+
     for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = rVolumeForce[k] - rVariables.PressureGradient[k];
     rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
 
