@@ -206,18 +206,6 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mGeoCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCurvedBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
 
-    // Transient Temperature elements
-    mTransientThermalElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3 <NodeType >(Element::GeometryType::PointsArrayType(3)))),
-    mTransientThermalElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4 <NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientThermalElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientThermalElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <NodeType >(Element::GeometryType::PointsArrayType(8)))),
-    mTransientThermalElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6 <NodeType >(Element::GeometryType::PointsArrayType(6)))),
-    mTransientThermalElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8 <NodeType >(Element::GeometryType::PointsArrayType(8)))),
-    mTransientThermalElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9 <NodeType >(Element::GeometryType::PointsArrayType(9)))),
-    mTransientThermalElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10 <NodeType >(Element::GeometryType::PointsArrayType(10)))),
-    mTransientThermalElement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20 <NodeType >(Element::GeometryType::PointsArrayType(20)))),
-    mTransientThermalElement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27 <NodeType >(Element::GeometryType::PointsArrayType(27)))),
-
     // conditions
     mUPwForceCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<NodeType >( Condition::GeometryType::PointsArrayType(1)))),
     mUPwForceCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D<NodeType >( Condition::GeometryType::PointsArrayType(1)))),
@@ -432,18 +420,6 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
-
-    // Updated-Lagrangian elements
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D3N", mTransientThermalElement2D3N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D4N", mTransientThermalElement2D4N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D4N", mTransientThermalElement3D4N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D8N", mTransientThermalElement3D8N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D6N", mTransientThermalElement2D6N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D8N", mTransientThermalElement2D8N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D9N", mTransientThermalElement2D9N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D10N", mTransientThermalElement3D10N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D20N", mTransientThermalElement3D20N)
-    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D27N", mTransientThermalElement3D27N)
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "UPwForceCondition2D1N", mUPwForceCondition2D1N )
