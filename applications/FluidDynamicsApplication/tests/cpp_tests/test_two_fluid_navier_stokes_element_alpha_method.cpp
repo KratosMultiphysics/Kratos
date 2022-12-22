@@ -55,8 +55,11 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
             modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
             modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY_RESIDUAL_NORM);
             modelPart.AddNodalSolutionStepVariable(VELOCITY);
             modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+            modelPart.AddNodalSolutionStepVariable(ARTIFICIAL_MASS_DIFFUSIVITY);
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
 
             // Process info creation
@@ -126,6 +129,9 @@ namespace Kratos {
             const auto &r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+            double residual_velocity_norm;
+            pElement->Calculate(VELOCITY_RESIDUAL_NORM, residual_velocity_norm, r_process_info);
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(9);
@@ -138,6 +144,11 @@ namespace Kratos {
             reference_RHS[6] =-43.90588458;
             reference_RHS[7] = -79.83781791;
             reference_RHS[8] = -0.06606793466;
+            KRATOS_WATCH(RHS)
+            double check;
+            check = norm_2(RHS);
+            KRATOS_WATCH(check)
+            KRATOS_WATCH(residual_velocity_norm)
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
@@ -347,7 +358,7 @@ namespace Kratos {
             Matrix LHS = ZeroMatrix(16,16);
 
             const auto& r_process_info = modelPart.GetProcessInfo();
-            
+
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
@@ -1411,7 +1422,7 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
- 
+
 
             KRATOS_CHECK_NEAR(RHS(0), -119.5094945, 1e-7);
             KRATOS_CHECK_NEAR(RHS(1), 13.86753717, 1e-7);
@@ -2037,7 +2048,7 @@ namespace Kratos {
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
             // std::cout << pElement->Info() << std::setprecision(10) << std::endl;
-        
+
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(16);

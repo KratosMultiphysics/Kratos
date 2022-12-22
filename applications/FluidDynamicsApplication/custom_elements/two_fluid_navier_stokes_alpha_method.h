@@ -73,6 +73,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using BaseType = TwoFluidNavierStokes<TElementData>;
+
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -159,6 +161,11 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -178,7 +185,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-        
+
     ///@}
     ///@name Friends
     ///@{
@@ -210,13 +217,13 @@ protected:
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
     void PressureGradientStabilization(
-        const TElementData& rData,
-        const Vector& rInterfaceWeights,
-        const Matrix& rEnrInterfaceShapeFunctionPos,
-        const Matrix& rEnrInterfaceShapeFunctionNeg,
-        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
-        MatrixType& rKeeTot,
-		VectorType& rRHSeeTot) override;
+        const TElementData &rData,
+        const Vector &rInterfaceWeights,
+        const Matrix &rEnrInterfaceShapeFunctionPos,
+        const Matrix &rEnrInterfaceShapeFunctionNeg,
+        const GeometryType::ShapeFunctionsGradientsType &rInterfaceShapeDerivatives,
+        MatrixType &rKeeTot,
+        VectorType &rRHSeeTot) override;
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -261,6 +268,8 @@ protected:
      * @param rData Data container with the input velocity and gradients and output strain rate vector
      */
     void CalculateStrainRate(TElementData& rData) const override;
+
+    double CalculateArtificialDynamicViscositySpecialization(TElementData &rData) const;
 
     ///@}
     ///@name Protected  Access

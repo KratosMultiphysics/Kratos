@@ -39,6 +39,7 @@
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/shock_capturing_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -199,6 +200,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<double>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, double>))
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
+        ;
+
+
+    py::class_<ShockCapturingUtilities<2,3>>(m, "ShockCapturingUtilities2D3N")
+        .def_static("ExecuteRMethodType", [](const ModelPart &rModelPart){ return ShockCapturingUtilities<2,3>::ExecuteRMethodType(rModelPart); })
+        ;
+    py::class_<ShockCapturingUtilities<3,4>>(m, "ShockCapturingUtilities3D4N")
+        .def_static("ExecuteRMethodType", [](const ModelPart &rModelPart){ return ShockCapturingUtilities<3,4>::ExecuteRMethodType(rModelPart); })
         ;
 
 }

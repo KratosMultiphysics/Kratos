@@ -73,9 +73,10 @@ double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
-double VolumeErrorRate;    // Mass loss time rate (m^3/s) to be used as source term in the mass conservation equation
+double VolumeErrorRate;
+   // Mass loss time rate (m^3/s) to be used as source term in the mass conservation equation
 double MaxSpectralRadius;
-
+double ArtificialViscosity;
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
@@ -93,7 +94,6 @@ ShapeFunctionsGradientsType DN_DX_neg_side;
 
 BoundedMatrix<double,TNumNodes,TNumNodes> Enr_Pos_Interp;
 BoundedMatrix<double,TNumNodes,TNumNodes> Enr_Neg_Interp;
-
 Vector w_gauss_pos_side;
 Vector w_gauss_neg_side;
 

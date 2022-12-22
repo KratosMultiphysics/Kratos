@@ -20,7 +20,7 @@ linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
-time_integration="bdf2"
+time_integration = "alpha_method"
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes.cpp"
@@ -312,10 +312,16 @@ for dim in dim_vector:
     Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
     rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
 
+    #  Calculate artificial viscosity in each point gauss
 
+    vel_residual_norm = 0.0
+    vel_residual_norm = vel_residual.norm()
+    grad_v_norm = grad_v.norm()
+    C_artificial =0.8
+    artificial_mu = 0.5*h*C_artificial*(vel_residual_norm/grad_v_norm)
 
-
-
+    grad_v_norm_out = OutputScalar(grad_v_norm, "grad_v_norm", mode)
+    artificial_mu_out = OutputScalar(artificial_mu, "artificial_mu", mode)
 
     #####################################################################
     #####################################################################
@@ -329,6 +335,9 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_Kee_2D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_2D", rhs_ee_out)
 
+        outstring = outstring.replace("//substitute_artificial_mu_2D_3N", artificial_mu_out)
+        outstring = outstring.replace("//substitute_artificial_mu_grad_v_norm_2D_3N", grad_v_norm_out)
+
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
@@ -337,6 +346,9 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_H_3D", H_out)
         outstring = outstring.replace("//substitute_enrichment_Kee_3D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_3D", rhs_ee_out)
+
+        outstring = outstring.replace("//substitute_artificial_mu_3D_4N", artificial_mu_out)
+        outstring = outstring.replace("//substitute_artificial_mu_grad_v_norm_3D_4N", grad_v_norm_out)
 
 #We write in the file
 out = open(output_filename,'w')
