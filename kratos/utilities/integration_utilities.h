@@ -1,25 +1,22 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//                       license: license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  License:          BSD License
-//  Main authors:     Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_INTEGRATION_UTILITIES_INCLUDED )
-#define  KRATOS_INTEGRATION_UTILITIES_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -37,10 +34,10 @@ public:
             integration_method = GeometryData::IntegrationMethod::GI_GAUSS_3;
         else if(integration_method == GeometryData::IntegrationMethod::GI_GAUSS_3)
             integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
+        else if(integration_method == GeometryData::IntegrationMethod::GI_GAUSS_4)
+            integration_method = GeometryData::IntegrationMethod::GI_GAUSS_5;
         return integration_method;
     }
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_INTEGRATION_UTILITIES_INCLUDED  defined
