@@ -139,9 +139,20 @@ class MultistageAnalysis:
             analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
             analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
 
-            # Import the stage module, create the corresponding instance and insert it to the map
+            # Import the stage module and create the corresponding instance
             analysis_stage_module = importlib.import_module(analysis_stage_module_name)
-            analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
-            stages_map[stage_name] = analysis_stage_class(self.model,  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
+            if hasattr(analysis_stage_module, analysis_stage_class_name):
+                # First we check for the expected class name
+                analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
+                stage_instance = analysis_stage_class(self.model,  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
+            elif hasattr(analysis_stage_module, "Create"):
+                # If Kratos convention is not fulfilled we search for a Create method
+                stage_instance = analysis_stage_module.Create(self.model,  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
+            else:
+                err_msg = f"Analysis stage in '{analysis_stage_module_name}' Python module cannot be created. Please check class name or provide a 'Create' method."
+                raise Exception(err_msg)
+
+            # Insert current stage instance in the stages map
+            stages_map[stage_name] = stage_instance
 
         return stages_map
