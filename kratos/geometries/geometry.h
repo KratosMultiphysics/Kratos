@@ -1284,6 +1284,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
+    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     inline SizeType Dimension() const
     {
         return mpGeometryData->Dimension();
@@ -2418,7 +2419,7 @@ public:
         this->GlobalCoordinates(rResult, IntegrationPointIndex, GetDefaultIntegrationMethod());
     }
 
-    /** 
+    /**
     * @brief This method provides the global coordinates to the corresponding integration point
     * @param rResult The global coordinates
     * @param IntegrationPointIndex The index of the integration point
@@ -3829,7 +3830,7 @@ public:
         std::stringstream buffer;
         buffer << "Geometry # "
             << std::to_string(mId) << ": "
-            << Dimension() << " dimensional geometry in "
+            << LocalSpaceDimension() << "-dimensional geometry in "
             << WorkingSpaceDimension() << "D space";
 
         return buffer.str();
