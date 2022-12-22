@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_HEXAHEDRA_3D_8_H_INCLUDED )
-#define  KRATOS_HEXAHEDRA_3D_8_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,6 +23,7 @@
 
 // Project includes
 #include "geometries/quadrilateral_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
 #include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
@@ -387,7 +387,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -409,21 +409,18 @@ public:
         return Volume();
     }
 
-    double Volume() const override //Not a closed formula for a hexahedra
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -504,12 +501,9 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
-        {
-            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) )
-            {
-                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) )
-                {
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
+            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) ) {
+                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) ) {
                     return true;
                 }
             }
@@ -666,7 +660,6 @@ public:
 
         return false;
     }
-
 
     /**
      * Shape Function
@@ -882,7 +875,6 @@ public:
 
         return rResult;
     }
-
 
     /**
      * Input and output
@@ -1288,5 +1280,3 @@ GeometryDimension Hexahedra3D8<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined
