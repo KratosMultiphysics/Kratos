@@ -60,6 +60,8 @@ public:
 
     static constexpr std::size_t StrainSize = 3 * (TDim-1);
 
+    static constexpr std::size_t BlockSize = TDim;
+
     static constexpr std::size_t LocalSize = NumNodes * TDim;
 
     ///@}
@@ -192,8 +194,8 @@ private:
 
     void CalculateCauchyTractionVector(
         const Vector& rVoigtStress,
-        const array_1d<double,3>& rUnitNormal,
-        array_1d<double,TDim>& rCauchyTracion)
+        const array_1d<double,TDim>& rUnitNormal,
+        array_1d<double,TDim>& rCauchyTraction)
     {
         if constexpr (TDim == 2) {
             rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
@@ -207,26 +209,26 @@ private:
 
     void CalculateCBProjectionLinearisation(
         const Matrix& rC,
-        const Matrix& rB,
-        const array_1d<double,3>& rUnitNormal,
+        const BoundedMatrix<double,StrainSize,LocalSize>& rB,
+        const array_1d<double,TDim>& rUnitNormal,
         BoundedMatrix<double,TDim,LocalSize>& rAuxMat)
     {
         BoundedMatrix<double,StrainSize,LocalSize> aux_CB = prod(rC, rB);
         if constexpr (TDim == 2) {
-            for (std::size_t = 0; j < LocalSize; ++j) {
+            for (std::size_t j = 0; j < LocalSize; ++j) {
                 rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
             }
-            for (std::size_t = 0; j < LocalSize; ++j) {
+            for (std::size_t j = 0; j < LocalSize; ++j) {
                 rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
             }
         } else {
-            for (std::size_t  = 0; j < LocalSize; ++j) {
+            for (std::size_t j = 0; j < LocalSize; ++j) {
                 rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(3,j) + rUnitNormal[2]*aux_CB(5,j);
             }
-            for (std::size_t  = 0; j < LocalSize; ++j) {
+            for (std::size_t j = 0; j < LocalSize; ++j) {
                 rAuxMat(1,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(1,j) + rUnitNormal[2]*aux_CB(4,j);
             }
-            for (std::size_t  = 0; j < LocalSize; ++j) {
+            for (std::size_t j = 0; j < LocalSize; ++j) {
                 rAuxMat(2,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j) + rUnitNormal[2]*aux_CB(2,j);
             }
         }
