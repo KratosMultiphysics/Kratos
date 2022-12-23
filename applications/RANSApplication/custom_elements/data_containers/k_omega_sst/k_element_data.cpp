@@ -39,15 +39,30 @@ const Variable<double>& KElementData<TDim>::GetScalarVariable()
 
 template <unsigned int TDim>
 void KElementData<TDim>::Check(
-    const GeometryType& rGeometry,
+    const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const int number_of_nodes = rGeometry.PointsNumber();
+    const auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto& r_node = rGeometry[i_node];
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_KINETIC_ENERGY_SIGMA_1))
+        << "TURBULENT_KINETIC_ENERGY_SIGMA_1 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_KINETIC_ENERGY_SIGMA_2))
+        << "TURBULENT_KINETIC_ENERGY_SIGMA_2 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2))
+        << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
+        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
+        << "DENSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
+    for (const auto& r_node : r_geometry) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
@@ -85,7 +100,7 @@ double KElementData<TDim>::CalculateEffectiveViscosity(
     // Get Shape function data
     Vector gauss_weights;
     Matrix shape_functions;
-    GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+    typename GeometryType::ShapeFunctionsGradientsType shape_derivatives;
     CalculateGeometryData(this->GetGeometry(), GeometryData::IntegrationMethod::GI_GAUSS_1,
                           gauss_weights, shape_functions, shape_derivatives);
     const int num_gauss_points = gauss_weights.size();
@@ -116,7 +131,9 @@ double KElementData<TDim>::CalculateEffectiveViscosity(
             std::tie(y, DISTANCE)
         );
 
-        CalculateGradient<TDim>(velocity_gradient, this->GetGeometry(), VELOCITY, r_shape_derivatives);
+        FluidCalculationUtilities::EvaluateGradientInPoint(
+            this->GetGeometry(), r_shape_derivatives,
+            std::tie(velocity_gradient, VELOCITY));
 
         const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
 
@@ -173,14 +190,13 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 
-    CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
-                      TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mTurbulentKineticEnergyGradient, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRateGradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mVelocityGradient, VELOCITY));
 
-    CalculateGradient(mTurbulentSpecificEnergyDissipationRateGradient,
-                      r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-                      rShapeFunctionDerivatives, Step);
-
-    mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm(
+    mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm<TDim>(
         mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
         mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
 
@@ -191,47 +207,13 @@ void KElementData<TDim>::CalculateGaussPointData(
     mBlendedSimgaK =
         KOmegaSSTElementData::CalculateBlendedPhi(mSigmaK1, mSigmaK2, f_1);
 
-    mVelocityDivergence = GetDivergence(r_geometry, VELOCITY, rShapeFunctionDerivatives);
+    mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    CalculateGradient<TDim>(mVelocityGradient, r_geometry, VELOCITY,
-                            rShapeFunctionDerivatives, Step);
+    mEffectiveKinematicViscosity = mKinematicViscosity + mBlendedSimgaK * mTurbulentKinematicViscosity;
+    mReactionTerm = std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + (2.0 / 3.0) * mVelocityDivergence, 0.0);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mEffectiveVelocity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mKinematicViscosity + mBlendedSimgaK * mTurbulentKinematicViscosity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateReactionTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return std::max(mBetaStar * mTurbulentKineticEnergy / mTurbulentKinematicViscosity +
-                        (2.0 / 3.0) * mVelocityDivergence,
-                    0.0);
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateSourceTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return KEpsilonElementData::CalculateSourceTerm<TDim>(
-        mVelocityGradient, mTurbulentKinematicViscosity);
 }
 
 // template instantiations

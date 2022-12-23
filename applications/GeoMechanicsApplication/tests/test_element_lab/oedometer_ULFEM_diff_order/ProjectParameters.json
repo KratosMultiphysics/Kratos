@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "Oedometer_ULFEM",
+        "problem_name":         "Oedometer_ULFEM_diff_order",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -14,7 +14,7 @@
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "Oedometer_ULFEM"
+            "input_filename":   "Oedometer_ULFEM_diff_order"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -39,9 +39,9 @@
         "newmark_theta":                      0.5,
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
-        "strategy_type":                      "newton_raphson",
+        "strategy_type":                      "line_search",
         "convergence_criterion":              "displacement_criterion",
-        "displacement_relative_tolerance":    1.0E-4,
+        "displacement_relative_tolerance":    1.0E-6,
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
@@ -77,7 +77,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "Oedometer_ULFEM",
+                "output_name": "Oedometer_ULFEM_diff_order",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
