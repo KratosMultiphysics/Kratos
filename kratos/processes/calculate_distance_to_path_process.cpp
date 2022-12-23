@@ -253,7 +253,6 @@ DistanceComputed CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanc
         } else { // Othwerise we compute the distance to the closest node and compute the difference with the "radius cylinder"
             // Distances to the nodes
             const Point::Pointer point = Kratos::make_shared<Point>(rPoint.Coordinates());
-            const Point::Pointer aux_projected_point = Kratos::make_shared<Point>(projected_point.Coordinates());
             const Point::Pointer point_a = Kratos::make_shared<Point>(line[0].Coordinates());
             const Point::Pointer point_b = Kratos::make_shared<Point>(line[1].Coordinates());
             const double distance_a = rPoint.Distance(*point_a);
@@ -266,7 +265,7 @@ DistanceComputed CalculateDistanceToPathProcess<THistorical>::FastMinimalDistanc
                 const double N_line = Radius/projected_distance;
                 const Point::Pointer point_distance_r_projection = Kratos::make_shared<Point>((1.0 - N_line) * projected_point.Coordinates() + N_line * rPoint.Coordinates());
                 const Point::Pointer aux_point_parallel = Kratos::make_shared<Point>(point_distance_r_projection->Coordinates() + vector_line);
-                
+
                 // Parallel line to the segment
                 Geometry<Point>::PointsArrayType points_array_parallel_line;
                 points_array_parallel_line.reserve(2);
