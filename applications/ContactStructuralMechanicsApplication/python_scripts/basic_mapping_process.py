@@ -83,11 +83,8 @@ class BasicMappingProcess(KratosMultiphysics.Process):
             linear_solver = None
 
         # Removing unused parameters
-        settings.RemoveValue("help")
-        settings.RemoveValue("origin_model_part_name")
-        settings.RemoveValue("destination_model_part_name")
-        settings.RemoveValue("interval")
-        settings.RemoveValue("linear_solver_settings")
+        list_remove = ["help", "origin_model_part_name", "destination_model_part_name", "destination_model_part_name", "interval", "linear_solver_settings"]
+        settings.RemoveValues(list_remove)
 
         # Creating the mapper
         self.mapper = KratosMultiphysics.SimpleMortarMapperProcess(self.origin_model_part, self.destination_model_part, settings, linear_solver)
