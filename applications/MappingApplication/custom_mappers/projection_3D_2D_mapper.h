@@ -56,43 +56,54 @@ GeometryType::Pointer GetGeometryFromModelPart(const ModelPart& rModelPart)
 }
 
 /**
+ * @brief This method determines the maximum value between all partitions
+ * @param rModelPart The input model part
+ * @param rValue The value to be considered
+ * @return The maximum value between all partitions
+ */
+template<class TReturnType>
+TReturnType GettingMaxFromPartitions(
+    const ModelPart& rModelPart, 
+    const TReturnType& rValue
+    )
+{
+    // MPI data
+    const auto& r_communicator = rModelPart.GetCommunicator();
+    const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+    const int mpi_rank = r_data_communicator.Rank();
+    const int mpi_size = r_data_communicator.Size();
+
+    // Getting the maximum local space dimension
+    constexpr int root_rank = 0;
+    TReturnType aux_value = rValue;
+    TReturnType max_value = r_data_communicator.Max(aux_value, root_rank);
+
+    // Define the send tag
+    const int tag_send_index = 1;
+
+    // Communicate to all partitions
+    if (mpi_rank == root_rank) {
+        for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
+            r_data_communicator.Send(max_value, i_rank, tag_send_index);
+        }
+    } else {
+        r_data_communicator.Recv(max_value, root_rank, tag_send_index);
+    }
+
+    return max_value;
+}
+
+/**
  * @brief This method determines the partition where the model part has at least one entity
  * @param rModelPart The input model part where determine the partition with at least one entity
  * @return A partition with at least one partition
  */
 int DeterminePartitionWithEntities(const ModelPart& rModelPart)
 {
+    // Get partition with entities
     auto p_geometry = GetGeometryFromModelPart(rModelPart);
-
-    // MPI data
-    int aux_partition_entity = -1;
-    const auto& r_communicator = rModelPart.GetCommunicator();
-    const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-    const int mpi_rank = r_data_communicator.Rank();
-    const int mpi_size = r_data_communicator.Size();
-
-    // Get maximum rank
-    if (p_geometry != nullptr) aux_partition_entity = mpi_rank;
-
-    // Determine root's rank
-    constexpr int root_rank = 0;
-
-    // Getting the partition with entities index
-    int partition_entity = r_data_communicator.Max(aux_partition_entity, root_rank);
-
-    // Define the send tag
-    const int tag_send_index = 1;
-
-    // Transfer to other partitions
-    if (mpi_rank == root_rank) {
-        for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
-            r_data_communicator.Send(partition_entity, i_rank, tag_send_index);
-        }
-    } else {
-        r_data_communicator.Recv(partition_entity, root_rank, tag_send_index);
-    }
-
-    return partition_entity;
+    const int partition_entity = (p_geometry != nullptr) ? rModelPart.GetCommunicator().GetDataCommunicator().Rank() : -1;
+    return GettingMaxFromPartitions(rModelPart, partition_entity);
 }
 
 /**
@@ -102,33 +113,10 @@ int DeterminePartitionWithEntities(const ModelPart& rModelPart)
  */
 unsigned int DetermineModelPartMaximumLocalDimension(ModelPart& rModelPart)
 {
-    // Getting geometry
+    // Getting local space dimension
     auto p_geometry = GetGeometryFromModelPart(rModelPart);
-
-    // Getting communicators
-    const auto& r_communicator = rModelPart.GetCommunicator();
-    const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-    const int mpi_rank = r_data_communicator.Rank();
-    const int mpi_size = r_data_communicator.Size();
-
-    // Getting the maximum local space dimension
-    constexpr int root_rank = 0;
-    const unsigned int local_dimension = (p_geometry == nullptr) ? 0 : p_geometry->LocalSpaceDimension();
-    unsigned int maximum_local_dimension = r_data_communicator.Max(local_dimension, root_rank);
-    
-    // Define the send tag
-    const int tag_send_index = 1;
-
-    // Communicate to all partitions
-    if (mpi_rank == root_rank) {
-        for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
-            r_data_communicator.Send(maximum_local_dimension, i_rank, tag_send_index);
-        }
-    } else {
-        r_data_communicator.Recv(maximum_local_dimension, root_rank, tag_send_index);
-    }
-
-    return maximum_local_dimension;
+    const unsigned int local_space_dimension = (p_geometry == nullptr) ? 0 : p_geometry->LocalSpaceDimension();
+    return GettingMaxFromPartitions(rModelPart, local_space_dimension);
 }
 
 /**
