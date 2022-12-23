@@ -442,116 +442,58 @@ public:
         return std::sqrt( Area() );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /** 
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-        // Finite element way
         Vector temp;
-        DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        this->DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_3 );
         double area = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-           area += temp[i] * integration_points[i].Weight();
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            area += temp[i] * integration_points[i].Weight();
         }
 
         return area;
-
-//         // 24/01/2014 - Massimo Petracca
-//         // the following procedure calculates the area of a general
-//         // quadrilateral (flat or warped) using the parametric representation
-//         // of ruled hyperbolic paraboloid surface.
-//         // the integration of the normal is then performed with a 2x2 gauss quadrature
-//         // in the U-V domain [0,1].
-//         // results explicitly written after symbolic calculation.
-//
-//         const TPointType& p1 = this->Points()[0];
-//         const TPointType& p2 = this->Points()[1];
-//         const TPointType& p3 = this->Points()[2];
-//         const TPointType& p4 = this->Points()[3];
-//
-//         const double& p1x = p1.X();
-//         const double& p1y = p1.Y();
-//         const double& p1z = p1.Z();
-//
-//         const double& p2x = p2.X();
-//         const double& p2y = p2.Y();
-//         const double& p2z = p2.Z();
-//
-//         const double& p3x = p3.X();
-//         const double& p3y = p3.Y();
-//         const double& p3z = p3.Z();
-//
-//         const double& p4x = p4.X();
-//         const double& p4y = p4.Y();
-//         const double& p4z = p4.Z();
-//
-//         const double pos = 0.5 + 0.5 / std::sqrt(3.0);
-//         const double w = 0.25;
-//
-//         const double C1  = pos*(p1z - p2z + p3z - p4z);
-//         const double C2  = pos*(p1y - p2y + p3y - p4y);
-//         const double C3  = pos*(p1x - p2x + p3x - p4x);
-//         const double C4  = C1 - p1z + p2z;
-//         const double C5  = C1 + p1z - p2z;
-//         const double C6  = C2 + p1y - p2y;
-//         const double C7  = C2 - p1y + p2y;
-//         const double C8  = C3 - p1x + p2x;
-//         const double C9  = C3 + p1x - p2x;
-//         const double C10 = C1 - p1z + p4z;
-//         const double C11 = C2 - p1y + p4y;
-//         const double C12 = C3 - p1x + p4x;
-//         const double C13 = C1 + p1z - p4z;
-//         const double C14 = C2 + p1y - p4y;
-//         const double C15 = C3 + p1x - p4x;
-//
-//         return w * (
-//             std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) +
-//             std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) +
-//             std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) +
-//             std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
-//             );
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Error, the volume of a 2D geometry is not defined (In June 2023)
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double Volume() const override
+    {
+        KRATOS_WARNING("Quadrilateral3D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
+        return Area();
+        // TODO: Replace in June 2023
+        // KRATOS_ERROR << "Quadrilateral3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+        // return 0.0;
+    }
+
+    /** 
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double DomainSize() const override
     {
         return Area();
     }
-
-
-    double Volume() const override
-    {
-        return Area();
-    }
+    
 
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
