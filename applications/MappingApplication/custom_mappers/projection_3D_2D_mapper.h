@@ -33,6 +33,10 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+// Geometric definitions
+using NodeType = Node<3>;
+using GeometryType = Geometry<NodeType>;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -42,14 +46,23 @@ namespace Kratos
 ///@{
 
 /**
+ * @brief This method retrieves the first geometry from a model part
+ * @param rModelPart The input model part 
+ * @return The first geometry of the model part
+ */
+GeometryType::Pointer GetGeometryFromModelPart(const ModelPart& rModelPart)
+{
+    return (rModelPart.NumberOfElements() > 0 ? rModelPart.ElementsBegin()->pGetGeometry() : rModelPart.NumberOfConditions() > 0 ? rModelPart.ConditionsBegin()->pGetGeometry() : nullptr);
+}
+
+/**
  * @brief This method determines the partition where the model part has at least one entity
  * @param rModelPart The input model part where determine the partition with at least one entity
  * @return A partition with at least one partition
  */
 int DeterminePartitionWithEntities(const ModelPart& rModelPart)
 {
-    const bool is_distributed = rModelPart.IsDistributed();
-    Geometry<Node<3>>::Pointer p_geometry = rModelPart.NumberOfElements() > 0 ? rModelPart.ElementsBegin()->pGetGeometry() : rModelPart.NumberOfConditions() > 0 ? rModelPart.ConditionsBegin()->pGetGeometry() : nullptr;
+    auto p_geometry = GetGeometryFromModelPart(rModelPart);
 
     // MPI data
     int aux_partition_entity = -1;
@@ -62,7 +75,7 @@ int DeterminePartitionWithEntities(const ModelPart& rModelPart)
     if (p_geometry != nullptr) aux_partition_entity = mpi_rank;
 
     // Determine root's rank
-    const int root_rank = 0;
+    constexpr int root_rank = 0;
 
     // Getting the partition with entities index
     int partition_entity = r_data_communicator.Max(aux_partition_entity, root_rank);
@@ -71,14 +84,12 @@ int DeterminePartitionWithEntities(const ModelPart& rModelPart)
     const int tag_send_index = 1;
 
     // Transfer to other partitions
-    if (is_distributed) {
-        if (mpi_rank == root_rank) {
-            for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
-                r_data_communicator.Send(partition_entity, i_rank, tag_send_index);
-            }
-        } else {
-            r_data_communicator.Recv(partition_entity, root_rank, tag_send_index);
+    if (mpi_rank == root_rank) {
+        for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
+            r_data_communicator.Send(partition_entity, i_rank, tag_send_index);
         }
+    } else {
+        r_data_communicator.Recv(partition_entity, root_rank, tag_send_index);
     }
 
     return partition_entity;
@@ -91,12 +102,8 @@ int DeterminePartitionWithEntities(const ModelPart& rModelPart)
  */
 unsigned int DetermineModelPartMaximumLocalDimension(ModelPart& rModelPart)
 {
-    // Geometric definitions
-    using NodeType = Node<3>;
-    using GeometryType = Geometry<NodeType>;
-
     // Getting geometry
-    GeometryType::Pointer p_geometry = rModelPart.NumberOfConditions() > 0 ? rModelPart.ConditionsBegin()->pGetGeometry() : rModelPart.NumberOfElements() > 0 ? rModelPart.ElementsBegin()->pGetGeometry() : nullptr;
+    auto p_geometry = GetGeometryFromModelPart(rModelPart);
 
     // Getting communicators
     const auto& r_communicator = rModelPart.GetCommunicator();
@@ -105,20 +112,20 @@ unsigned int DetermineModelPartMaximumLocalDimension(ModelPart& rModelPart)
     const int mpi_size = r_data_communicator.Size();
 
     // Getting the maximum local space dimension
-    constexpr int root = 0;
+    constexpr int root_rank = 0;
     const unsigned int local_dimension = (p_geometry == nullptr) ? 0 : p_geometry->LocalSpaceDimension();
-    unsigned int maximum_local_dimension = r_data_communicator.Max(local_dimension, root);
+    unsigned int maximum_local_dimension = r_data_communicator.Max(local_dimension, root_rank);
     
     // Define the send tag
     const int tag_send_index = 1;
 
     // Communicate to all partitions
-    if (mpi_rank == root) {
+    if (mpi_rank == root_rank) {
         for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
             r_data_communicator.Send(maximum_local_dimension, i_rank, tag_send_index);
         }
     } else {
-        r_data_communicator.Recv(maximum_local_dimension, root, tag_send_index);
+        r_data_communicator.Recv(maximum_local_dimension, root_rank, tag_send_index);
     }
 
     return maximum_local_dimension;
@@ -208,10 +215,6 @@ public:
     typedef NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend> NearestNeighborMapperType;
     typedef NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>   NearestElementMapperType;
     typedef BarycentricMapper<TSparseSpace, TDenseSpace, TMapperBackend>         BarycentricMapperType;
-
-    /// Geometric definitions
-    typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
     
     ///@}
     ///@name  Enum's
@@ -491,7 +494,7 @@ private:
         // We retrieve the values of interest
         const auto& r_2d_model_part = this->Get2DModelPart();
         const bool is_distributed = r_2d_model_part.IsDistributed();
-        GeometryType::Pointer p_geometry = mEntityTypeMesh == EntityTypeMesh::NONE ? nullptr : mEntityTypeMesh == EntityTypeMesh::CONDITIONS ? r_2d_model_part.ConditionsBegin()->pGetGeometry() : r_2d_model_part.ElementsBegin()->pGetGeometry();
+        auto p_geometry = GetGeometryFromModelPart(r_2d_model_part);
 
         // MPI data
         const auto& r_communicator = r_2d_model_part.GetCommunicator();
