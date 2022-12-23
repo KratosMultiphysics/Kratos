@@ -46,8 +46,30 @@ void MapperVertexMorphingImprovedIntegration::SetIntegrationMethod()
     std::string integration_method = mMapperSettings["integration_method"].GetString();
     int number_of_gauss_points = mMapperSettings["number_of_gauss_points"].GetInt();
 
-    mAreaWeightedNodeSum = true;
-
+    if (integration_method.compare("area_weighted_sum") == 0)
+        mAreaWeightedNodeSum = true;
+    else if (integration_method.compare("gauss_integration") == 0)
+    {
+        mAreaWeightedNodeSum = false;
+        if (number_of_gauss_points == 1)
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        else if (number_of_gauss_points == 2)
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        else if (number_of_gauss_points == 3)
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        else if (number_of_gauss_points == 4)
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+        else if (number_of_gauss_points == 5)
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        else
+        {
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingImprovedIntegration") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
+            mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+    }
+    else{
+        KRATOS_ERROR << "\n> Integration method " << integration_method << " unknown!" << std::endl;
+    }
 }
 
 void MapperVertexMorphingImprovedIntegration::FindNeighbourConditions()
@@ -73,50 +95,71 @@ void MapperVertexMorphingImprovedIntegration::ComputeWeightForAllNeighbors(  Mod
             // Computation of weight according specified weighting function
             // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
             double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates());
-            // array_3d& node_j_damp = node_j.GetValue(DAMPING_FACTOR);
-            // array_3d& node_i_damp = node_i.GetValue(DAMPING_FACTOR);
+            Aij *= nodalAreas[node_j.GetValue(MAPPING_ID)];
 
-            list_of_weights[j_itr] += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);
-            sum_of_weights += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);            
+            // Add values to list
+            list_of_weights[j_itr] += Aij;
 
-            // if(node_i_damp[0]<0.00000000001){
-            //     list_of_weights[j_itr] = 0.0;
-            //     sum_of_weights = 1.0;
-            // }
-            // else
-            // {
-            //     list_of_weights[j_itr] += Aij  * pow(node_j_damp[0],4);
-            //     sum_of_weights += (Aij * nodalAreas[node_j.GetValue(MAPPING_ID)]);
-            // }            
+            // Computed for integration of weighting function later using post-scaling
+            sum_of_weights += Aij;
+        }
+        else
+        {
+            const GlobalPointersVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
+
+            // loop conditions
+            for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
+            {
+                // Get geometry of current condition
+                Condition rCondition = rConditions[c_itr];
+                Condition::GeometryType& geom_i = rCondition.GetGeometry();
+
+                // Get geometry information of current condition
+                unsigned int n_nodes = geom_i.size();
+                int localNodeIndex = -1;
+                for (unsigned int node_ctr=0; node_ctr<n_nodes; node_ctr++)
+                {
+                    if (geom_i[node_ctr].Id() == node_j.Id())
+                        localNodeIndex = node_ctr;
+                }
+
+                // Evaluate shape functions of design surface according specified integration method
+                const Condition::GeometryType::IntegrationPointsArrayType& integrationPoints = geom_i.IntegrationPoints(mIntegrationMethod);
+                const unsigned int numberOfIntegrationPoints = integrationPoints.size();
+                const Matrix& N_container = geom_i.ShapeFunctionsValues(mIntegrationMethod);
+
+                for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
+                {
+
+                    // Get FEM-shape-function-value for current integration point
+                    Vector N_FEM_GPi = row( N_container, pointNumber);
+
+                    // Get gp coordinates
+                    NodeType::CoordinatesArrayType gp_i_coord;
+                    geom_i.GlobalCoordinates(gp_i_coord, integrationPoints[pointNumber].Coordinates());
+
+                    // Computation of weight according specified weighting function
+                    // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
+                    double Aij = mpFilterFunction->ComputeWeight(gp_i_coord,node_i.Coordinates());
+
+                    // multiply with evaluation of shape function at gauss point
+                    Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);;
+
+                    // Get weight for integration
+                    Aij *= integrationPoints[pointNumber].Weight();
+
+                    // consider jacobian
+                    Aij *= geom_i.DeterminantOfJacobian(pointNumber,mIntegrationMethod);
+
+                    // Add values to list
+                    list_of_weights[j_itr] += Aij;
+
+                    // Computed for integration of weighting function later using post-scaling
+                    sum_of_weights += Aij;
+                }
+            }
         }
     }
-}
-
-void MapperVertexMorphingImprovedIntegration::Map( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable)
-{
-
-    for(auto& node_i : mrOriginModelPart.Nodes())
-    {
-        // int i = node_i.GetValue(MAPPING_ID);
-        array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
-        r_nodal_variable[0] *= nodalAreas[node_i.GetValue(MAPPING_ID)];
-        r_nodal_variable[1] *= nodalAreas[node_i.GetValue(MAPPING_ID)];
-        r_nodal_variable[2] *= nodalAreas[node_i.GetValue(MAPPING_ID)];
-    }
-    MapperVertexMorphing::Map(rOriginVariable,rDestinationVariable);
-}
-
-void MapperVertexMorphingImprovedIntegration::InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable)
-{
-    MapperVertexMorphing::InverseMap(rDestinationVariable,rOriginVariable);
-}
-
-void MapperVertexMorphingImprovedIntegration::InverseMap( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable)
-{
-}
-
-void MapperVertexMorphingImprovedIntegration::Map( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable)
-{
 }
 
 void MapperVertexMorphingImprovedIntegration::InitializeComputationOfMappingMatrix()

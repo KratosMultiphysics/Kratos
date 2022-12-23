@@ -89,15 +89,7 @@ public:
     void Initialize() override;
 
     void Update() override;
-
     // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) override;    
-    // --------------------------------------------------------------------------
-    void Map( const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override;
-    // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) override;
-    // --------------------------------------------------------------------------
-    void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) override;    
 
     ///@}
     ///@name Access
