@@ -109,43 +109,20 @@ public:
     /**
      * @brief This method divides a model part into partitions
      * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
+     * @param rPartitioningInfo Information about partitioning of entities
      */
     void DivideInputToPartitions(SizeType NumberOfPartitions,
-                                 GraphType const& rDomainsColoredGraph,
-                                 PartitionIndicesType const& rNodesPartitions,
-                                 PartitionIndicesType const& rElementsPartitions,
-                                 PartitionIndicesType const& rConditionsPartitions,
-                                 PartitionIndicesContainerType const& rNodesAllPartitions,
-                                 PartitionIndicesContainerType const& rElementsAllPartitions,
-                                 PartitionIndicesContainerType const& rConditionsAllPartitions) override;
+                                 const PartitioningInfo& rPartitioningInfo) override;
+
     /**
      * @brief This method divides a model part into partitions
      * @param pStreams The stream pointer
      * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
+     * @param rPartitioningInfo Information about partitioning of entities
      */
     void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
-                                 SizeType NumberOfPartitions,
-                                 GraphType const& rDomainsColoredGraph,
-                                 PartitionIndicesType const& rNodesPartitions,
-                                 PartitionIndicesType const& rElementsPartitions,
-                                 PartitionIndicesType const& rConditionsPartitions,
-                                 PartitionIndicesContainerType const& rNodesAllPartitions,
-                                 PartitionIndicesContainerType const& rElementsAllPartitions,
-                                 PartitionIndicesContainerType const& rConditionsAllPartitions) override;
+                                SizeType NumberOfPartitions,
+                                const PartitioningInfo& rPartitioningInfo) override;
 
     ///@}
     ///@name Access

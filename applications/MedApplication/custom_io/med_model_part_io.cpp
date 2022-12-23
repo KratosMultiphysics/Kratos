@@ -227,58 +227,34 @@ void MedModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 void MedModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 {
     KRATOS_TRY
-    KRATOS_ERROR << "Calling base class method (WriteGeometries). Please check the definition of derived class" << std::endl;
+    KRATOS_ERROR << "MedModelPartIO::WriteGeometries is not yet implemented!" << std::endl;
     KRATOS_CATCH("")
 }
 
 void MedModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions,
-                                             GraphType const& rDomainsColoredGraph,
-                                             PartitionIndicesType const& rNodesPartitions,
-                                             PartitionIndicesType const& rElementsPartitions,
-                                             PartitionIndicesType const& rConditionsPartitions,
-                                             PartitionIndicesContainerType const& rNodesAllPartitions,
-                                             PartitionIndicesContainerType const& rElementsAllPartitions,
-                                             PartitionIndicesContainerType const& rConditionsAllPartitions)
+                                             const PartitioningInfo& rPartitioningInfo)
 {
     // these are not used in ModelPartIO, as the partitioned files are created independently
     std::stringbuf dummy_strbuf;
     auto dummy_stream(Kratos::make_shared<std::iostream>(&dummy_strbuf));
 
-    ModelPartIO(dummy_stream).DivideInputToPartitions(
-        NumberOfPartitions,
-        rDomainsColoredGraph,
-        rNodesPartitions,
-        rElementsPartitions,
-        rConditionsPartitions,
-        rNodesAllPartitions,
-        rElementsAllPartitions,
-        rConditionsAllPartitions);
+    // ModelPartIO(dummy_stream).DivideInputToPartitions(
+    //     NumberOfPartitions,
+    //     rPartitioningInfo);
 }
 
 void MedModelPartIO::DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
                                              SizeType NumberOfPartitions,
-                                             GraphType const& rDomainsColoredGraph,
-                                             PartitionIndicesType const& rNodesPartitions,
-                                             PartitionIndicesType const& rElementsPartitions,
-                                             PartitionIndicesType const& rConditionsPartitions,
-                                             PartitionIndicesContainerType const& rNodesAllPartitions,
-                                             PartitionIndicesContainerType const& rElementsAllPartitions,
-                                             PartitionIndicesContainerType const& rConditionsAllPartitions)
+                                             const PartitioningInfo& rPartitioningInfo)
 {
     // these are not used in ModelPartIO, streams are passed from outside
     std::stringbuf dummy_strbuf;
     auto dummy_stream(Kratos::make_shared<std::iostream>(&dummy_strbuf));
 
-    ModelPartIO(dummy_stream).DivideInputToPartitions(
-        pStreams,
-        NumberOfPartitions,
-        rDomainsColoredGraph,
-        rNodesPartitions,
-        rElementsPartitions,
-        rConditionsPartitions,
-        rNodesAllPartitions,
-        rElementsAllPartitions,
-        rConditionsAllPartitions);
+    // ModelPartIO(dummy_stream).DivideInputToPartitions(
+    //     pStreams,
+    //     NumberOfPartitions,
+    //     rPartitioningInfo);
 }
 
 int MedModelPartIO::GetNumberOfMedMeshes() const
