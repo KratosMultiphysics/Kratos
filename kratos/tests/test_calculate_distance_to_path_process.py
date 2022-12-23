@@ -172,6 +172,7 @@ class TestCalculateDistanceToPathProcess(KratosUnittest.TestCase):
     def test_calculate_distance_to_path_process_radius(self):
         self.__base_test_calculate_distance_to_path_process(0.1, False, 5e-3, False)
 
+
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
