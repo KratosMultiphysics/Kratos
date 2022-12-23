@@ -125,20 +125,14 @@ if (mVerbosity > 2)
 void MetisDivideHeterogeneousInputProcess::Execute()
 {
 
-    auto part_info(Kratos::make_shared<PartitioningInfo>());
+    PartitioningInfo part_info;
 
-    ExecutePartitioning(*part_info);
+    ExecutePartitioning(part_info);
 
     // Write files
     mrIO.DivideInputToPartitions(
         mNumberOfPartitions,
-        part_info->Graph,
-        part_info->NodesPartitions,
-        part_info->ElementsPartitions,
-        part_info->ConditionsPartitions,
-        part_info->NodesAllPartitions,
-        part_info->ElementsAllPartitions,
-        part_info->ConditionsAllPartitions);
+        part_info);
 }
 
 

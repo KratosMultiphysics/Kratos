@@ -10,7 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -73,10 +72,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 typedef Node<3> NodeType;
 
@@ -118,13 +114,11 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
-
-
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<Process, Process::Pointer>(m,"Process")
+    py::class_<Process, Process::Pointer, Flags>(m,"Process")
     .def(py::init<>())
     .def("Create",&Process::Create)
     .def("Execute",&Process::Execute)
@@ -737,6 +731,4 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
