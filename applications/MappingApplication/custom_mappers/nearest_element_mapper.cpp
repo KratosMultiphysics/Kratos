@@ -151,7 +151,7 @@ void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int Ec
 
     rOStream << "NearestElementLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {
-        rOStream << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        rOStream << " at Coordinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
     }
 }
 

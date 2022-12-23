@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES)
-#define KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES
+#pragma once
 
 // System includes
 
@@ -299,7 +298,7 @@ public:
 
 }; // class MortarExplicitContributionUtilities
 
-namespace AuxiliarOperationsUtilities
+namespace AuxiliaryOperationsUtilities
 {
     /**
      * @brief This functions computes the integration weight to consider
@@ -324,4 +323,3 @@ namespace AuxiliarOperationsUtilities
 }
 
 }  // namespace Kratos
-#endif /* KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES defined */

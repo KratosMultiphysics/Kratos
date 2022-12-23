@@ -80,7 +80,7 @@ namespace Kratos
         if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
             KRATOS_WARNING_IF("FiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+                << "The call of this non shared-memory-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
@@ -131,7 +131,7 @@ namespace Kratos
         if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
             KRATOS_WARNING_IF("FiniteDifferenceUtility::CalculateMassMatrixDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+                << "The call of this non shared-memory-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
