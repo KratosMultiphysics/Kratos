@@ -497,6 +497,23 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
+    def test_remove_values(self):
+        kp = Parameters(json_string)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1", "You_ll_never_take_me_alive"]
+        success = kp.RemoveValues(list_remove)
+        self.assertFalse(success)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1"]
+        kp.RemoveValues(list_remove)
+
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+
     def test_copy_deepcopy(self):
         kp = Parameters(json_string)
 

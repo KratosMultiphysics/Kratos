@@ -18,15 +18,13 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_frictional_laws_to_python.h"
 
-// Utilities
+/* Utilities */
 #include "custom_frictional_laws/frictional_law.h"
 #include "custom_frictional_laws/frictional_law_with_derivative.h"
 #include "custom_frictional_laws/tresca_frictional_law.h"
 #include "custom_frictional_laws/coulomb_frictional_law.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -237,7 +235,4 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
-
+}  // namespace Kratos::Python.
