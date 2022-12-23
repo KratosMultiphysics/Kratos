@@ -85,6 +85,46 @@ int DeterminePartitionWithEntities(const ModelPart& rModelPart)
 }
 
 /**
+ * @brief This method determines maximum local space dimension of a ModelPart
+ * @param rModelPart The model part to be considered
+ * @return The maximum local space dimension
+ */
+unsigned int DetermineModelPartMaximumLocalDimension(ModelPart& rModelPart)
+{
+    // Geometric definitions
+    using NodeType = Node<3>;
+    using GeometryType = Geometry<NodeType>;
+
+    // Getting geometry
+    GeometryType::Pointer p_geometry = rModelPart.NumberOfConditions() > 0 ? rModelPart.ConditionsBegin()->pGetGeometry() : rModelPart.NumberOfElements() > 0 ? rModelPart.ElementsBegin()->pGetGeometry() : nullptr;
+
+    // Getting communicators
+    const auto& r_communicator = rModelPart.GetCommunicator();
+    const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+    const int mpi_rank = r_data_communicator.Rank();
+    const int mpi_size = r_data_communicator.Size();
+
+    // Getting the maximum local space dimension
+    constexpr int root = 0;
+    const unsigned int local_dimension = (p_geometry == nullptr) ? 0 : p_geometry->LocalSpaceDimension();
+    unsigned int maximum_local_dimension = r_data_communicator.Max(local_dimension, root);
+    
+    // Define the send tag
+    const int tag_send_index = 1;
+
+    // Communicate to all partitions
+    if (mpi_rank == root) {
+        for (int i_rank = 1; i_rank < mpi_size; ++i_rank) {
+            r_data_communicator.Send(maximum_local_dimension, i_rank, tag_send_index);
+        }
+    } else {
+        r_data_communicator.Recv(maximum_local_dimension, root, tag_send_index);
+    }
+
+    return maximum_local_dimension;
+}
+
+/**
  * @brief This method determines the 2D model part
  * @param rFirstModelPart The first ModelPart
  * @param rSecondModelPart The second ModelPart
@@ -92,107 +132,19 @@ int DeterminePartitionWithEntities(const ModelPart& rModelPart)
  */
 ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
 {
-    // In MPI could be a bit troublesome
-    if (rFirstModelPart.IsDistributed()) { 
-        const auto& r_communicator = rFirstModelPart.GetCommunicator();
-        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-        const int mpi_rank = r_data_communicator.Rank();
-        const int mpi_size = r_data_communicator.Size();
-
-        const int partition_entity_1 = DeterminePartitionWithEntities(rFirstModelPart);
-        const int partition_entity_2 = DeterminePartitionWithEntities(rSecondModelPart);
-        KRATOS_ERROR_IF(partition_entity_1 == -1 && partition_entity_2 == -1) << "ERROR:: Both model parts are empty (no elements or not conditions)" << std::endl;
-
-        // Define the send tag
-        const int tag_send_index = 1;
-
-        // Checking model parts
-        int model_part_index = 0;
-
-        // First model part
-        if (partition_entity_1 > -1) {
-            if (mpi_rank == partition_entity_1) {
-                if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
-                    if (rFirstModelPart.NumberOfConditions() > 0) {
-                        if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                            model_part_index = 1;
-                        }
-                    } else {
-                        if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                            model_part_index = 1;
-                        }
-                    }
-                }
-                for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
-                    if (mpi_rank != i_rank) {
-                        r_data_communicator.Send(model_part_index, i_rank, tag_send_index);
-                    }
-                }
-            } else {
-                r_data_communicator.Recv(model_part_index, partition_entity_1, tag_send_index);
-            }
-            if (model_part_index > 0) {
-                return rFirstModelPart;
-            }
-        }
-       
-        // Second model part
-        if (partition_entity_2 > -1) {
-            if (mpi_rank == partition_entity_2) {
-                if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
-                    if (rSecondModelPart.NumberOfConditions() > 0) {
-                        if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                            model_part_index = 1;
-                        }
-                    } else {
-                        if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                            model_part_index = 1;
-                        }
-                    }
-                }
-                for (int i_rank = 0; i_rank < mpi_size; ++i_rank) {
-                    if (mpi_rank != i_rank) {
-                        r_data_communicator.Send(model_part_index, i_rank, tag_send_index);
-                    }
-                }
-            } else {
-                r_data_communicator.Recv(model_part_index, partition_entity_2, tag_send_index);
-            }
-            if (model_part_index > 0) {
-                return rSecondModelPart;
-            }
-        }
-    } else { // In serial we just check model part has 2D entities (local space)
-        // Determine if the modelparts have entities
-
-        // First model part
-        if (rFirstModelPart.NumberOfElements() > 0 || rFirstModelPart.NumberOfConditions() > 0 ) {
-            if (rFirstModelPart.NumberOfConditions() > 0) {
-                if (rFirstModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                    return rFirstModelPart;
-                }
-            } else {
-                if (rFirstModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                    return rFirstModelPart;
-                }
-            }
-        }
-        
-        // Second model part
-        if (rSecondModelPart.NumberOfElements() > 0 || rSecondModelPart.NumberOfConditions() > 0 ) {
-            if (rSecondModelPart.NumberOfConditions() > 0) {
-                if (rSecondModelPart.ConditionsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                    return rSecondModelPart;
-                }
-            } else {
-                if (rSecondModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 2) {
-                    return rSecondModelPart;
-                }
-            }
-        }
+    // Getting the maximum local space dimension
+    const unsigned int max_local_space_dimension_1 = DetermineModelPartMaximumLocalDimension(rFirstModelPart);
+    const unsigned int max_local_space_dimension_2 = DetermineModelPartMaximumLocalDimension(rSecondModelPart);
+    KRATOS_ERROR_IF(max_local_space_dimension_1 == 3 && max_local_space_dimension_2 == 3) << "Both model parts are 3D" << std::endl;
+    KRATOS_ERROR_IF(max_local_space_dimension_1 == 1 || max_local_space_dimension_2 == 1) << "One model part is 1D, not compatible" << std::endl;
+    KRATOS_ERROR_IF(max_local_space_dimension_1 == 0 || max_local_space_dimension_2 == 0) << "Impossible to determine local space dimension in at least one model part" << std::endl;
+    if (max_local_space_dimension_1 == 2) {
+        return rFirstModelPart;
+    } else if (max_local_space_dimension_2 == 2) {
+        return rSecondModelPart;
+    } else { // Corner case a priori impossible
+        KRATOS_ERROR << "Impossible to detect 2D model part" << std::endl;
     }
-
-    KRATOS_ERROR << "Impossible to detect 2D model part" << std::endl;
     return rFirstModelPart;
 }
 
@@ -205,13 +157,20 @@ ModelPart& Determine2DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondMo
  */
 ModelPart& Determine3DModelPart(ModelPart& rFirstModelPart, ModelPart& rSecondModelPart)
 {
-    // It is the counter part of the previous method
-    ModelPart* p_2d_model_part = &Determine2DModelPart(rFirstModelPart, rSecondModelPart);
-    if (p_2d_model_part == &rFirstModelPart) {
-        return rSecondModelPart;
-    } else {
+    // Getting the maximum local space dimension
+    const unsigned int max_local_space_dimension_1 = DetermineModelPartMaximumLocalDimension(rFirstModelPart);
+    const unsigned int max_local_space_dimension_2 = DetermineModelPartMaximumLocalDimension(rSecondModelPart);
+    KRATOS_ERROR_IF(max_local_space_dimension_1 == 3 && max_local_space_dimension_2 == 3) << "Both model parts are 3D" << std::endl;
+    KRATOS_ERROR_IF(max_local_space_dimension_1 == 1 || max_local_space_dimension_2 == 1) << "One model part is 1D, not compatible" << std::endl;
+    KRATOS_ERROR_IF(max_local_space_dimension_1 == 0 || max_local_space_dimension_2 == 0) << "Impossible to determine local space dimension in at least one model part" << std::endl;
+    if (max_local_space_dimension_1 == 3) {
         return rFirstModelPart;
+    } else if (max_local_space_dimension_2 == 3) {
+        return rSecondModelPart;
+    } else { // Corner case a priori impossible
+        KRATOS_ERROR << "Impossible to detect 3D model part" << std::endl;
     }
+    return rFirstModelPart;
 }
 
 ///@}
