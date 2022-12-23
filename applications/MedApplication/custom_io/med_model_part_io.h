@@ -95,6 +95,18 @@ public:
     void WriteModelPart(const ModelPart& rThisModelPart) override;
 
     /**
+     * @brief This method writes the nodes from an array of nodes
+     * @param rThisNodes The array of nodes to be written
+     */
+    void WriteNodes(NodesContainerType const& rThisNodes) override;
+
+    /**
+     * @brief This method writes an array of geometries
+     * @param rThisGeometries The array of geometries to be written
+     */
+    void WriteGeometries(GeometryContainerType const& rThisGeometries) override;
+
+    /**
      * @brief This method divides a model part into partitions
      * @param NumberOfPartitions The number of partitions
      * @param rDomainsColoredGraph The colors of the partition graph
