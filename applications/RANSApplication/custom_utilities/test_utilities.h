@@ -78,6 +78,9 @@ KRATOS_API(RANS_APPLICATION) void TestGetDofList(
     ModelPart& rModelPart,
     const Variable<double>& rVariable);
 
+KRATOS_API(RANS_APPLICATION) void CheckElementsAndConditions(
+    const ModelPart& rModelPart);
+
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos
 
