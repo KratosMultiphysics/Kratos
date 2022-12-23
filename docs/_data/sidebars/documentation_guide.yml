@@ -15,7 +15,8 @@ entries:
   - title: How Tos
     output: web
     folderitems:
-    - title: 
+    - title: Documentation testing and updating
+      url: /pages/Kratos/Documentation_Guide/How_Tos/Testing.html
       output: web
       subfolders:
       - title: Create Content
