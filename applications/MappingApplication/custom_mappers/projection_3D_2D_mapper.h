@@ -574,14 +574,14 @@ private:
                     auto& r_geom = r_cond.GetGeometry();
                     r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
                     const auto normal = r_geom.UnitNormal(nc.aux_coords);
-                    if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
+                    return (norm_2(normal - nc.reference_normal) > numerical_limit);
                 });
             } else {
                 check_normal = block_for_each<SumReduction<std::size_t>>(r_2d_model_part.Elements(), normal_check(mNormalPlane), [&numerical_limit](auto& r_elem, normal_check& nc) {
                     auto& r_geom = r_elem.GetGeometry();
                     r_geom.PointLocalCoordinates(nc.aux_coords, r_geom.Center());
                     const auto normal = r_geom.UnitNormal(nc.aux_coords);
-                    if (norm_2(normal - nc.reference_normal) > numerical_limit) { return 1; } else { return 0; }
+                    return (norm_2(normal - nc.reference_normal) > numerical_limit);
                 });
             }
             KRATOS_ERROR_IF_NOT(check_normal == 0) << "The 2D reference model part has not consistent normals. Please check that is properly aligned" << std::endl;
