@@ -38,16 +38,6 @@ namespace Kratos
 ///@{
 
 /**
- * @brief Type of meta mapper considered
- */
-enum class MetaMapperType
-{
-    NEAREST_NEIGHBOR,
-    NEAREST_ELEMENT,
-    BARYCENTRIC
-};
-
-/**
  * @brief Entity type mesh considered
  */
 enum class EntityTypeMesh
@@ -310,7 +300,7 @@ public:
         CheckOriginIs2D();
 
         // Type of metamapper considered
-        GetBaseMapperType();
+        mMetaMapperType = mCopiedParameters["base_mapper"].GetString();
 
         // Pre mapper creation operations when model part of origin is 2D
         if (mOriginIs2D) {
@@ -486,7 +476,7 @@ private:
     array_1d<double, 3> mNormalPlane;           /// The normal defining the plane to project
     Point mPointPlane;                          /// The coordinates of the plane to project
     Parameters mCopiedParameters;               /// The copied parameters. We copy the parameters to avoid conflicts in inverse mapping
-    MetaMapperType mMetaMapperType;             /// The meta mapper type
+    std::string mMetaMapperType;                /// The meta mapper type
     EntityTypeMesh mEntityTypeMesh;             /// The type of mesh considered
     bool mOriginIs2D;                           /// If the 2D modelpart is the origin model part
 
@@ -504,28 +494,6 @@ private:
         const auto* p_origin_model_part = &(this->GetOriginModelPart());
         const auto* p_2d_model_part = &(this->Get2DModelPart());
         mOriginIs2D = p_origin_model_part == p_2d_model_part ? true : false;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Getting the base mapper type
-     */
-    void GetBaseMapperType()
-    {
-        KRATOS_TRY;
-
-        // Detect the mapper type
-        const std::string mapper_name = mCopiedParameters["base_mapper"].GetString();
-        if (mapper_name == "nearest_neighbor") {
-            mMetaMapperType = MetaMapperType::NEAREST_NEIGHBOR;
-        } else if (mapper_name == "nearest_element") {
-            mMetaMapperType = MetaMapperType::NEAREST_ELEMENT;
-        } else if (mapper_name == "barycentric") {
-            mMetaMapperType = MetaMapperType::BARYCENTRIC;
-        } else {
-            KRATOS_ERROR << "Not defined mapper type " << mapper_name << std::endl;
-        }
 
         KRATOS_CATCH("");
     }
@@ -641,14 +609,14 @@ private:
         auto& r_destination_model_part = this->GetDestinationModelPart();
 
         // Creating the base mapper
-        if (mMetaMapperType == MetaMapperType::NEAREST_NEIGHBOR) {
+        if (mMetaMapperType == "nearest_neighbor") {
             if (mCopiedParameters.Has("interpolation_type")) mCopiedParameters.RemoveValue("interpolation_type");
             if (mCopiedParameters.Has("local_coord_tolerance")) mCopiedParameters.RemoveValue("local_coord_tolerance");
             mpBaseMapper = Kratos::make_unique<NearestNeighborMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
-        } else if (mMetaMapperType == MetaMapperType::NEAREST_ELEMENT) {
+        } else if (mMetaMapperType == "nearest_element") {
             if (mCopiedParameters.Has("interpolation_type")) mCopiedParameters.RemoveValue("interpolation_type");
             mpBaseMapper = Kratos::make_unique<NearestElementMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
-        } else if (mMetaMapperType == MetaMapperType::BARYCENTRIC) {
+        } else if (mMetaMapperType == "barycentric") {
             mpBaseMapper = Kratos::make_unique<BarycentricMapperType>(r_origin_model_part, r_destination_model_part, mCopiedParameters);
         } else {
             KRATOS_ERROR << "Mapper " << mCopiedParameters["base_mapper"].GetString() << " is not available as base mapper for projection" << std::endl;
