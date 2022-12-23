@@ -4,23 +4,22 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
-//
 
-/* System includes */
+// System includes
 #include <algorithm>
 #include <functional>
 #include <unordered_set>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -357,8 +356,8 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
 
     const std::function<double(const Node<3>&)>& r_weight_method =
         (IsInverseWeightProvided) ?
-        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
-        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
+        static_cast<std::function<double(const Node<3>&)>>([&rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
+        static_cast<std::function<double(const Node<3>&)>>([&rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
 
 #pragma omp parallel for
     for (int i_entity = 0; i_entity < n_entities; ++i_entity)
@@ -529,6 +528,75 @@ KRATOS_API(KRATOS_CORE) void VariableUtils::SetSolutionStepValuesVector(
             }
         );
 }
+
+KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetValuesVector(
+    const ModelPart::NodesContainerType& rNodes,
+    const Variable<array_1d<double,3>>& rVariable,
+    const unsigned int Dimension
+    )
+{
+    Vector out(rNodes.size()*Dimension);
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            const auto& r_v = (rNodes.begin()+i)->GetValue(rVariable);
+            for(unsigned int k=0; k<Dimension; k++)
+                out[i*Dimension+k] = r_v[k];
+            }
+        );
+    return out;
+}
+
+KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetValuesVector(
+    const ModelPart::NodesContainerType& rNodes,
+    const Variable<double>& rVar
+    )
+{
+    Vector out(rNodes.size());
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            out[i] = (rNodes.begin()+i)->GetValue(rVar);
+            }
+        );
+    return out;
+}
+
+KRATOS_API(KRATOS_CORE) void VariableUtils::SetValuesVector(
+    ModelPart::NodesContainerType& rNodes,
+    const Variable<array_1d<double,3>>& rVar,
+    const Vector& rData
+    )
+{
+    KRATOS_ERROR_IF(rData.size()%rNodes.size()!=0) << "Incompatible number of nodes and position data" << std::endl;
+
+    const unsigned int Dimension = rData.size()/rNodes.size();
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& r_v = (rNodes.begin()+i)->GetValue(rVar);
+            for(unsigned int k=0; k<Dimension; k++)
+                r_v[k] = rData[i*Dimension+k];
+            }
+        );
+}
+
+KRATOS_API(KRATOS_CORE) void VariableUtils::SetValuesVector(
+    ModelPart::NodesContainerType& rNodes,
+    const Variable<double>& rVar,
+    const Vector& rData
+    )
+{
+    KRATOS_ERROR_IF(rData.size()%rNodes.size()!=0) << "Incompatible number of nodes and position data" << std::endl;
+
+    IndexPartition<unsigned int>(rNodes.size()).for_each(
+        [&](unsigned int i){
+            auto& r_v = (rNodes.begin()+i)->GetValue(rVar);
+            r_v = rData[i];
+            }
+        );
+}
+
 
 // template instantiations
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>(

@@ -348,7 +348,7 @@ namespace Kratos
             aux_pts.clear();
 
             // Check against all candidates to count the number of current edge intersections
-            const double edge_tolerance = 1e-6*norm_2(rEdgesContainer[i_edge][0] - rEdgesContainer[i_edge][1]);
+            const double edge_tolerance = 1e-6* rEdgesContainer[i_edge][0].Distance(rEdgesContainer[i_edge][1]);
             for (const auto &r_int_obj : rIntersectedObjects){
                 // Call the compute intersection method
                 Point int_pt;
@@ -415,7 +415,7 @@ namespace Kratos
         const double& rEdgeTolerance)
     {
         // Check if there is a close intersection (repeated intersection point)
-        for (auto aux_pt : rIntersectionPointsVector){
+        for (const auto& aux_pt : rIntersectionPointsVector){
                 const double aux_dist = norm_2(rIntersectionPoint - aux_pt);
                 if (aux_dist < rEdgeTolerance){
                     return true;

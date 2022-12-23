@@ -663,7 +663,7 @@ protected:
 		Vector strain_vector,
 		Vector stress_vector,
 		CalculationData& data,
-		const Properties props);
+		const Properties& props);
 
 	/**
      * @brief This method computes the secant tensor
