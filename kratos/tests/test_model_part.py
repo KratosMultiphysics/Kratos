@@ -1,8 +1,6 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-import sys
-
 class TestModelPart(KratosUnittest.TestCase):
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
