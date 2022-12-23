@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -183,7 +183,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     // Resizing as needed
     ResizeLHS(rLeftHandSideMatrix);
 
-    // Creating an auxiliar vector
+    // Creating an auxiliary vector
     VectorType aux_right_hand_side_vector = Vector();
 
     // Calculate condition system
@@ -199,7 +199,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Creating an auxiliar matrix
+    // Creating an auxiliary matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Resizing as needed
@@ -452,7 +452,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     const double velocity_constant = HalfJump ? 0.25 : 0.5;
 //     const double acceleration_constant = HalfJump ? 0.125 : 0.5;
 //
-//     // Some auxiliar values
+//     // Some auxiliary values
 //     PointType center_local_coords;
 //     Vector N_slave, N_master;
 //

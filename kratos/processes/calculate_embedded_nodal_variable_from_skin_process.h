@@ -217,7 +217,7 @@ public:
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const double GradientPenaltyCoefficient = 0.0,
         const unsigned int BufferPosition = 0,
-        const std::string AuxPartName = "IntersectedElementsModelPart",
+        const std::string& AuxPartName = "IntersectedElementsModelPart",
         const std::size_t EchoLevel = 0)
         : Process()
         , mEchoLevel(EchoLevel)
@@ -555,7 +555,7 @@ protected:
                                 for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
                                     i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
                                 }
-                                i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
+                                i_edge_d += intersection_point.Distance(r_i_edge_geom[0]) / r_i_edge_geom.Length();
                             }
                         }
 

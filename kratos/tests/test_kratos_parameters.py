@@ -231,6 +231,24 @@ four_levels_defaults = """{
     "string_value": "hello"
 }"""
 
+json_with_includes = """
+{
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+   "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters.json"
+}
+"""
+
+more_levels_json_with_includes = """
+{
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+   "level1":
+   {
+     "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+   },
+   "string_value" : "hello"
+}
+"""
+
 class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -252,6 +270,20 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(self.kp["string_value"].GetString(), "hello")
 
         self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
+
+    def test_kratos_include_parameters(self):
+        param = Parameters(json_with_includes)
+        self.assertEqual(
+            param.WriteJsonString(),
+            self.compact_expected_output
+        )
+
+    def test_kratos_more_levels_include_parameters(self):
+        param = Parameters(more_levels_json_with_includes)
+        self.assertEqual(
+            param.WriteJsonString(),
+            self.compact_expected_output
+        )
 
     def test_kratos_change_parameters(self):
         # now change one item in the sublist
@@ -461,6 +493,23 @@ class TestParameters(KratosUnittest.TestCase):
 
         kp.RemoveValue("int_value")
         kp.RemoveValue("level1")
+
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+
+    def test_remove_values(self):
+        kp = Parameters(json_string)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1", "You_ll_never_take_me_alive"]
+        success = kp.RemoveValues(list_remove)
+        self.assertFalse(success)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1"]
+        kp.RemoveValues(list_remove)
 
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
@@ -978,6 +1027,25 @@ class TestParameters(KratosUnittest.TestCase):
         new_string_array = initial["parameter"].GetStringArray()
 
         self.assertListEqual(new_string_array, string_array)
+
+    def test_copy_values_from_existing_parameters(self):
+        initial = Parameters("""{
+            "parameter1": ["foo", "bar"],
+            "parameter2": true,
+            "parameter3": "Hello",
+            "parameter4": 15
+        } """)
+        parameter_list = ["parameter2", "parameter3"]
+
+        new_param = Parameters()
+        new_param.CopyValuesFromExistingParameters(initial, parameter_list)
+
+        self.assertFalse(new_param.Has("parameter1"))
+        self.assertTrue(new_param.Has("parameter2"))
+        self.assertEqual(new_param["parameter2"].GetBool(), True)
+        self.assertTrue(new_param.Has("parameter3"))
+        self.assertEqual(new_param["parameter3"].GetString(),"Hello")
+        self.assertFalse(new_param.Has("parameter4"))
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):

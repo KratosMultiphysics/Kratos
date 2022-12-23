@@ -26,8 +26,6 @@
 #include <omp.h>
 #endif
 
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
-
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
@@ -49,15 +47,6 @@
 
 #ifdef USING_CGAL
 #include <CGAL/spatial_sort.h>
-#endif
-
-/* Timer defines */
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
 #endif
 
 namespace Kratos {
@@ -261,8 +250,8 @@ namespace Kratos {
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
-        void CleanEnergies();
         void Check_MPI(bool& has_mpi);
+        virtual double ComputeCoordinationNumber(double& standard_dev);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
