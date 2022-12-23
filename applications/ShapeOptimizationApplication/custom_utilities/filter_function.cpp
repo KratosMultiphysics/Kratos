@@ -52,7 +52,7 @@ FilterFunction::FilterFunction(const std::string FilterFunctionType, const doubl
 
     // Type 6: Green's function
     else if (FilterFunctionType == "green")
-        mFilterFunctional = [](double radius, double distance) {return (1.0/((4*3.14159265359*distance)/(radius*radius)+1)) * exp(-distance/radius);};  
+        mFilterFunctional = [](double radius, double distance) {return (1.0/((4*Kratos::Globals::PI*distance)/(radius*radius)+1)) * exp(-distance/radius);};  
 
     // Throw error message in case of wrong specification
     else
