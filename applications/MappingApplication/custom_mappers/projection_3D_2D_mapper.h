@@ -37,16 +37,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-/**
- * @brief Entity type mesh considered
- */
-enum class EntityTypeMesh
-{
-    NONE,
-    CONDITIONS,
-    ELEMENTS
-};
-
 ///@}
 ///@name  Functions
 ///@{
@@ -263,7 +253,21 @@ public:
     /// Geometric definitions
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
+    
+    ///@}
+    ///@name  Enum's
+    ///@{
 
+    /**
+     * @brief Entity type mesh considered
+     */
+    enum class EntityTypeMesh
+    {
+        NONE,
+        CONDITIONS,
+        ELEMENTS
+    };
+    
     ///@}
     ///@name Life Cycle
     ///@{
