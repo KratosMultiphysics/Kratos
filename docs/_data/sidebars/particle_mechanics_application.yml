@@ -6,7 +6,7 @@ entries:
   - title: General
     output: web
     folderitems:
-    - title: Overview
+    - title: Particle Mechanics Application
       url: /pages/Applications/Particle_Mechanics_Application/General/Overview.html
       output: web
   - title: MPM example in GiD
@@ -30,10 +30,12 @@ entries:
   - title: Examples
     output: web
     folderitems:
-    - title: Granular Flow
-      url: /pages/Applications/Particle_Mechanics_Application/Examples/Granular_flow_2d.html
-      output: web
-    - title: Cylinder on inclined plane
+    - title: Cylinder on inclined plane 2D - comparison between analytical and numerical solution with MPM
       url: /pages/Applications/Particle_Mechanics_Application/Examples/Cylinder_on_inclined_plane.html
       output: web
-    
+    - title: Granular Flow 2D Validation Test
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/Granular_flow_2d.html
+      output: web
+    - title: Granular flow 2d readme
+      url: /pages/Applications/Particle_Mechanics_Application/Examples/remote_Granular_flow_2d_readme.html
+      output: web
