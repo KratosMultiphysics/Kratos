@@ -133,7 +133,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         if self.contact_settings["advance_explicit_parameters"]["manual_max_gap_theshold"].GetBool():
             process_info[CSMA.MAX_GAP_THRESHOLD] = self.contact_settings["advance_explicit_parameters"]["max_gap_threshold"].GetDouble()
         else:
-            empty_settings = KM.Parameters("""{}""")
             mean_nodal_h = CSMA.ContactUtilities.CalculateMeanNodalH(self.main_model_part)
             process_info[CSMA.MAX_GAP_THRESHOLD] = mean_nodal_h
 
