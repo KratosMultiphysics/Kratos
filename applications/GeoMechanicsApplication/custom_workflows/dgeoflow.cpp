@@ -31,6 +31,11 @@ public:
         return mvariable_name == "WATER_PRESSURE";
     }
 
+    bool hasTemperature()
+    {
+        return mvariable_name == "TEMPERATURE";
+    }
+
     Kratos::ModelPart &GetModelPart()
     {
         return mr_model_part;
@@ -71,6 +76,11 @@ public:
     {
         return mVariableName == "WATER_PRESSURE";
     }
+
+    bool hasTemperature()
+    {
+        return mVariableName == "TEMPERATURE";
+    }
 };
 
 void NodeOperation::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part){};
@@ -80,6 +90,10 @@ void NodeDISPLACEMENT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_p
 void NodeTOTAL_DISPLACEMENT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::TOTAL_DISPLACEMENT, model_part.Nodes(), 0, 0); }
 
 void NodeWATER_PRESSURE::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::WATER_PRESSURE, model_part.Nodes(), 0, 0); }
+
+void NodeTEMPERATURE::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.WriteNodalResults(Kratos::TEMPERATURE, model_part.Nodes(), 0, 0); }
+
+void NodeNORMAL_HEAT_FLUX::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.WriteNodalResults(Kratos::NORMAL_HEAT_FLUX, model_part.Nodes(), 0, 0); }
 
 void NodeNORMAL_FLUID_FLUX::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) { gid_io.WriteNodalResults(Kratos::NORMAL_FLUID_FLUX, model_part.Nodes(), 0, 0); }
 
@@ -520,6 +534,8 @@ namespace Kratos
         NodeOutput["DISPLACEMENT"] = Kratos::make_unique<NodeDISPLACEMENT>();
         NodeOutput["TOTAL_DISPLACEMENT"] = Kratos::make_unique<NodeTOTAL_DISPLACEMENT>();
         NodeOutput["WATER_PRESSURE"] = Kratos::make_unique<NodeWATER_PRESSURE>();
+        NodeOutput["TEMPERATURE"] = Kratos::make_unique<NodeTEMPERATURE>();
+        NodeOutput["NORMAL_HEAT_FLUX"] = Kratos::make_unique<NodeNORMAL_HEAT_FLUX>();
         NodeOutput["NORMAL_FLUID_FLUX"] = Kratos::make_unique<NodeNORMAL_FLUID_FLUX>();
         NodeOutput["VOLUME_ACCELERATION"] = Kratos::make_unique<NodeVOLUME_ACCELERATION>();
         NodeOutput["HYDRAULIC_DISCHARGE"] = Kratos::make_unique<NodeHYDRAULIC_DISCHARGE>();
@@ -704,6 +720,11 @@ namespace Kratos
             model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
             model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
 
+            // Temperature
+            model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+            model_part.AddNodalSolutionStepVariable(DT_TEMPERATURE);
+            model_part.AddNodalSolutionStepVariable(NORMAL_HEAT_FLUX);
+
             // Smoothing
             model_part.AddNodalSolutionStepVariable(NODAL_AREA);
             model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
@@ -727,6 +748,8 @@ namespace Kratos
             VariableUtils().AddDof(VOLUME_ACCELERATION_X, model_part);
             VariableUtils().AddDof(VOLUME_ACCELERATION_Y, model_part);
             VariableUtils().AddDof(VOLUME_ACCELERATION_Z, model_part);
+
+            VariableUtils().AddDof(TEMPERATURE, model_part);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Added DoF" << std::endl;
 

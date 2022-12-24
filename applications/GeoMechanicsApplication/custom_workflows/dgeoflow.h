@@ -86,6 +86,17 @@ public:
     void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
 };
 
+class NodeTEMPERATURE : public NodeOperation
+{
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
+};
+class NodeNORMAL_HEAT_FLUX : public NodeOperation
+{
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
+};
+
 class GaussOperation
 {
 public:
