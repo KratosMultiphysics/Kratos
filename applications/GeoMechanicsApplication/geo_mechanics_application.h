@@ -72,6 +72,7 @@
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_FIC_element.hpp"
+#include "custom_elements/transient_thermal_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -440,6 +441,18 @@ private:
     const GeoCableElement<3,2> mGeoCableElement3D2N;
 
     const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N;
+
+    // transient one-phase temperature elements:
+    const TransientThermalElement<2, 3>  mTransientThermalElement2D3N;
+    const TransientThermalElement<2, 4>  mTransientThermalElement2D4N;
+    const TransientThermalElement<3, 4>  mTransientThermalElement3D4N;
+    const TransientThermalElement<3, 8>  mTransientThermalElement3D8N;
+    const TransientThermalElement<2, 6>  mTransientThermalElement2D6N;
+    const TransientThermalElement<2, 8>  mTransientThermalElement2D8N;
+    const TransientThermalElement<2, 9>  mTransientThermalElement2D9N;
+    const TransientThermalElement<3, 10> mTransientThermalElement3D10N;
+    const TransientThermalElement<3, 20> mTransientThermalElement3D20N;
+    const TransientThermalElement<3, 27> mTransientThermalElement3D27N;
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N;
