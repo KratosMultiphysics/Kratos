@@ -49,6 +49,7 @@
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_conditions/T_normal_flux_condition.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -472,6 +473,9 @@ private:
     const PwNormalFluxCondition<3, 4> mPwNormalFluxCondition3D4N;
 
     const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N;
+
+    const TNormalFluxCondition<2,2> mTNormalFluxCondition2D2N;
+    const TNormalFluxCondition<2,3> mTNormalFluxCondition2D3N;
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N;
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N;

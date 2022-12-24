@@ -236,6 +236,9 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
 
     mUPwFaceLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
 
+    mTNormalFluxCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+    mTNormalFluxCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+
     mUPwFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <NodeType >( Condition::GeometryType::PointsArrayType(4)))),
     mUPwNormalFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
@@ -462,6 +465,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N )
+
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D2N", mTNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D3N", mTNormalFluxCondition2D3N)
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
