@@ -99,7 +99,11 @@ namespace Kratos
     enum indexDOF2DBeam: int{ INDEX_2D_BEAM_X,
                               INDEX_2D_BEAM_Y,
                               INDEX_2D_BEAM_T };
-
+    // Heat vector indices:
+    enum indexHeat2D : int {
+        INDEX_2D_HEAT_X,
+        INDEX_2D_HEAT_Y
+    };
 }
 
 #endif  /* KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED */
