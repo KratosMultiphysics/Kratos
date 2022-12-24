@@ -131,10 +131,103 @@ namespace Kratos
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties) const override;
 
+        int Check(const ProcessInfo & rCurrentProcessInfo) const override;
+
+        void Initialize(const ProcessInfo & rCurrentProcessInfo) override;
+
+        void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
+
+        void FinalizeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
+
+        void GetDofList(DofsVectorType & rElementalDofList,
+            const ProcessInfo & rCurrentProcessInfo) const override;
+
+        void EquationIdVector(EquationIdVectorType & rResult,
+            const ProcessInfo & rCurrentProcessInfo) const override;
+
+        void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
+        void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
+
+        
+        void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
+        void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
+        void GetValuesVector(Vector& rValues, int Step) const;
+        void GetFirstDerivativesVector(Vector& rValues, int Step) const;
+        void GetSecondDerivativesVector(Vector& rValues, int Step) const;
+
+
+        // Turn back information as a string.
+        //std::string Info() const override
+        //{
+        //    std::stringstream buffer;
+        //    buffer << "transient Pw flow Element #" << this->Id() << "\nRetention law: " << mRetentionLawVector[0]->Info();
+        //    return buffer.str();
+        //}
+
+        // Print information about this object.
+        //void PrintInfo(std::ostream & rOStream) const override
+        //{
+        //    rOStream << "transient Pw flow Element #" << this->Id() << "\nRetention law: " << mRetentionLawVector[0]->Info();
+        //}
+
+        
 
     protected:
 
+        GeometryData::IntegrationMethod mThisIntegrationMethod;
+        /// Member Variables
 
+        void CalculateAll(MatrixType & rLeftHandSideMatrix,
+            VectorType & rRightHandSideVector,
+            const ProcessInfo & CurrentProcessInfo,
+            const bool CalculateStiffnessMatrixFlag,
+            const bool CalculateResidualVectorFlag);
+
+        void InitializeElementVariables(ElementVariables & rVariables,
+            const ProcessInfo & CurrentProcessInfo);
+
+        void CalculateAndAddLHS(MatrixType & rLeftHandSideMatrix, ElementVariables & rVariables);
+
+        void CalculateAndAddRHS(VectorType & rRightHandSideVector, ElementVariables & rVariables, unsigned int GPoint);
+
+        void CalculateKinematics(ElementVariables & rVariables, unsigned int PointNumber);
+
+        void CalculateAndAddConductivityMatrix(MatrixType & rLeftHandSideMatrix, ElementVariables & rVariables);
+        void CalculateAndAddCapacityMatrix(MatrixType & rLeftHandSideMatrix, ElementVariables & rVariables);
+        void CalculateAndAddConductivityVector(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+        void CalculateAndAddCapacityVector(VectorType& rRightHandSideVector, ElementVariables & rVariables);
+
+        void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
+
+        unsigned int GetNumberOfDOF() const;
+
+        virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+            unsigned int PointNumber, double detJ);
+
+        void InitializeProperties(ElementVariables& rVariables);
+
+        virtual void CalculateConductivityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            ElementVariables& rVariables);
+
+        virtual void CalculateCapacityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            ElementVariables& rVariables) const;
+        
+        virtual void CalculateCapacityVector(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            array_1d<double, TNumNodes>& TVector, ElementVariables& rVariables) const;
+
+        virtual void  CalculateConductivityVector(BoundedMatrix<double, TNumNodes, TDim>& TDimMatrix,
+            BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix, array_1d<double, TNumNodes>& TVector,
+            const ElementVariables& rVariables);
+
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateThermalDispersionMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
+
+        void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+
+        GeometryData::IntegrationMethod GetIntegrationMethod() const;
 
     private:
 
