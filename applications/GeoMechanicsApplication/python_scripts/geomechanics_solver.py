@@ -70,6 +70,9 @@ class GeoMechanicalSolver(PythonSolver):
         ## Fluid Variables
         self._add_water_variables()
 
+        # Add temperature variables
+        self._add_temperature_variables()
+        
         ## smoothing variables
         self._add_smoothing_variables()
 
@@ -204,6 +207,13 @@ class GeoMechanicalSolver(PythonSolver):
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
 
+    def _add_temperature_variables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        # Add dynamic variables
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.DT_TEMPERATURE)
+        # Add variables for the heat conditions
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_HEAT_FLUX)
+        
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_CAUCHY_STRESS_TENSOR)
