@@ -17,8 +17,17 @@ class LagrangianRotationProcess(KratosMultiphysics.Process):
         params.AddValue("angular_velocity",settings["angular_velocity"])
         params.AddValue("rotation_axis_initial_point",settings["rotation_axis_initial_point"])
         params.AddValue("rotation_axis_final_point",settings["rotation_axis_final_point"])
-        params.AddValue("initial_time",settings["initial_time"])
+        params.AddValue("initial_time", settings["interval"][0])
+        
+        if(settings.Has("interval")):
+            if(settings["interval"][1].IsString()):
+                if(settings["interval"][1].GetString() == "End"):
+                    settings["interval"][1].SetDouble(1e30) 
+                else:
+                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
+        params.AddValue("final_time", settings["interval"][1])
+        
         self.process = KratosPfemFluid.LagrangianRotationProcess(model_part, params)
 
     def ExecuteInitialize(self):

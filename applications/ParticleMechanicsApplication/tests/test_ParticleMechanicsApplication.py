@@ -23,6 +23,7 @@ from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as T
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
+from particle_mechanics_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
 
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
 from particle_mechanics_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
@@ -94,6 +95,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))  # FIXME:
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
+    smallSuite.addTest(TCLDispNewtonianFluidTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
     smallSuite.addTest(TGravityTimeStepTableTest('test_execution'))
 

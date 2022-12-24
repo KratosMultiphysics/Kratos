@@ -21,7 +21,8 @@
 #include "constitutive_laws_application_variables.h"
 #include "generic_anisotropic_3d_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -114,7 +115,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
                 AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                     r_euler_angles(0), r_euler_angles(1),
                     r_euler_angles(2), rotation_matrix);
-                AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                     (rotation_matrix),
                     voigt_rotation_matrix);
         } else {
@@ -270,7 +271,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
             AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                 r_euler_angles(0), r_euler_angles(1),
                 r_euler_angles(2), rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                 (rotation_matrix),
                 voigt_rotation_matrix);
     } else {
@@ -477,7 +478,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
                     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                         r_euler_angles(0), r_euler_angles(1),
                         r_euler_angles(2), rotation_matrix);
-                    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+                    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                         (rotation_matrix),
                         voigt_rotation_matrix);
                     double det = 0.0;
