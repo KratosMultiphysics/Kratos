@@ -221,17 +221,17 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
 
     def PrepareModelPart(self):
-        if not self.is_restarted():
-            ## Set fluid properties from materials json file
-            materials_imported = self._SetPhysicalProperties()
-            if not materials_imported:
-                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
-            ## Replace default elements and conditions
-            self._ReplaceElementsAndConditions()
-            ## Set and fill buffer
-            self._SetAndFillBuffer()
+        # Restarting the simulation is OFF (needs a careful implementation)
+        # Set fluid properties from materials json file
+        materials_imported = self._SetPhysicalProperties()
+        if not materials_imported:
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
+        # Replace default elements and conditions
+        self._ReplaceElementsAndConditions()
+        # Set and fill buffer
+        self._SetAndFillBuffer()
 
-        ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
+        # Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
         self._ExecuteCheckAndPrepare()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
@@ -303,7 +303,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
 
     def AdvanceInTime(self, current_time):
-        dt = self._ComputeDeltaTime()
+        dt = self.settings["time_stepping"]["time_step"].GetDouble() # The automatic dt calculation is deactivated.
         new_time = current_time + dt
 
         self.main_model_part.CloneTimeStep(new_time)
@@ -542,7 +542,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             self.volume_model_part = self.main_model_part.GetSubModelPart(volume_model_part_name)
 
         skin_parts = []
-        for i in range(self.skin_name_list.size()):
+        for i in range(skin_name_list.size()):
             skin_parts.append(self.main_model_part.GetSubModelPart(skin_name_list[i].GetString()))
 
         # Temporary name: "fluid_computational_model_part"
@@ -731,6 +731,10 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         return acceleration_limitation_utility
 
 
+    def _PerformLevelSetConvection(self):
+        # Solve the levelset convection problem
+        self._GetLevelSetConvectionProcess().Execute()
+    
     def _GetLevelSetConvectionProcess(self):
         if not hasattr(self, '_level_set_convection_process'):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
