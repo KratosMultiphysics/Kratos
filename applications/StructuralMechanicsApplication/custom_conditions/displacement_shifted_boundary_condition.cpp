@@ -77,16 +77,26 @@ void DisplacementShiftedBoundaryCondition::EquationIdVector(
 
     // Resize the equation ids. vector
     const auto &r_geometry = this->GetGeometry();
-    const std::size_t n_nodes = r_geometry.PointsNumber();
-    if (rResult.size() != n_nodes) {
-        rResult.resize(n_nodes, false);
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+    const SizeType local_size = n_dim * n_nodes;
+    if (rResult.size() != local_size) {
+        rResult.resize(local_size, false);
     }
 
     // Fill the equation ids. vector from the condition DOFs
-    for (std::size_t i = 0; i < n_nodes; ++i){
-        rResult[i] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[i] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[i] = r_geometry[i].GetDof(DISPLACEMENT_Z).EquationId();
+    const SizeType disp_x_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    if (n_dim == 2) {
+        for (std::size_t i = 0; i < n_nodes; ++i){
+            rResult[i*n_dim] = r_geometry[i].GetDof(DISPLACEMENT_X, disp_x_pos).EquationId();
+            rResult[i*n_dim +1] = r_geometry[i].GetDof(DISPLACEMENT_Y, disp_x_pos + 1).EquationId();
+        }
+    } else {
+        for (std::size_t i = 0; i < n_nodes; ++i){
+            rResult[i*n_dim] = r_geometry[i].GetDof(DISPLACEMENT_X, disp_x_pos).EquationId();
+            rResult[i*n_dim + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, disp_x_pos + 1).EquationId();
+            rResult[i*n_dim + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, disp_x_pos + 2).EquationId();
+        }
     }
 
     KRATOS_CATCH("")
@@ -100,20 +110,29 @@ void DisplacementShiftedBoundaryCondition::GetDofList(
 
     // Resize the DOFs vector
     const auto &r_geometry = this->GetGeometry();
-    const std::size_t n_nodes = r_geometry.PointsNumber();
-    if (rConditionalDofList.size() != n_nodes){
-        rConditionalDofList.resize(n_nodes);
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+    const SizeType local_size = n_dim * n_nodes;
+    if (rConditionalDofList.size() != local_size){
+        rConditionalDofList.resize(local_size);
     }
 
     // Fill the DOFs vector from the condition nodes
-    for (std::size_t i = 0; i < n_nodes; ++i){
-        rConditionalDofList[i] = r_geometry[i].pGetDof(DISPLACEMENT_X);
-        rConditionalDofList[i] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
-        rConditionalDofList[i] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
+    if (n_dim == 2) {
+        for (std::size_t i = 0; i < n_nodes; ++i) {
+            rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(DISPLACEMENT_X);
+            rConditionalDofList[i*n_dim + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
+        }
+    } else {
+        for (std::size_t i = 0; i < n_nodes; ++i) {
+            rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(DISPLACEMENT_X);
+            rConditionalDofList[i*n_dim + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
+            rConditionalDofList[i*n_dim + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
+        }
     }
 
-    KRATOS_CATCH("")
-}
+        KRATOS_CATCH("")
+    }
 
 void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
@@ -121,8 +140,6 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    KRATOS_WATCH(this->Id())
 
     // Get problem dimension
     const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
@@ -149,11 +166,6 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     array_1d<double,3> normal = GetValue(NORMAL);
     normal /= norm_2(normal);
 
-    KRATOS_WATCH(w)
-    KRATOS_WATCH(r_N)
-    KRATOS_WATCH(r_DN_DX)
-    KRATOS_WATCH(normal)
-
     // Interpolate conductivity and get unknown values
     Vector unknown_values(local_size);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -163,29 +175,25 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
         }
     }
 
-    KRATOS_WATCH(unknown_values)
-
     // Get Dirichlet BC imposition data
     const double h = GetValue(ELEMENT_H);
     const auto& r_bc_val = GetValue(DISPLACEMENT);
     const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET];
 
-    KRATOS_WATCH(h)
-    KRATOS_WATCH(r_bc_val)
-    KRATOS_WATCH(gamma)
-
     // Calculate the Nitsche BC imposition contribution
     double aux_1;
+    double aux_2;
     const double aux_weight = w * gamma; //TODO: Temporary penalty constant (this is not unit-consisten)
     // const double aux_weight_stab = w * k;
     DenseVector<double> i_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         //TODO: So far we are only adding the penalty part of the Nitsche
-        aux_1 = aux_weight * r_N(i_node);
+        aux_1 = aux_weight * r_N[i_node];
         for (std::size_t d = 0; d < n_dim; ++d) {
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
-                rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_1 * r_N[j_node];
-                rRightHandSideVector(i_node*n_dim + d) -= aux_1 * r_N[j_node] * unknown_values(j_node*n_dim + d);
+                aux_2 = aux_1 * r_N[j_node];
+                rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
+                rRightHandSideVector(i_node*n_dim + d) -= aux_2 * unknown_values(j_node*n_dim + d);
             }
             rRightHandSideVector(i_node*n_dim + d) += aux_1 * r_bc_val[d];
         }
