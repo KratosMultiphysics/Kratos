@@ -141,7 +141,7 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
 
 def VtkOutputNodesHistorical(model_part, variable, prefix=""):
     vtk_parameters = KM.Parameters("""{
-        "model_part_name"                    : \"""" + model_part.Name + """\",
+        "model_part_name"                    : \"""" + model_part.FullName() + """\",
         "file_format"                        : "binary",
         "output_control_type"                : "step",
         "output_sub_model_parts"             : false,
