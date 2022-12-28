@@ -19,9 +19,75 @@
 // Project includes
 #include "med_model_part_io.h"
 #include "includes/model_part_io.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos {
+
+static const std::map<GeometryData::KratosGeometryType, med_geometry_type> KratosToMedGeometryType {
+    { GeometryData::KratosGeometryType::Kratos_Point2D,          MED_POINT1 },
+    { GeometryData::KratosGeometryType::Kratos_Point3D,          MED_POINT1 },
+
+    { GeometryData::KratosGeometryType::Kratos_Line2D2,          MED_SEG2 },
+    { GeometryData::KratosGeometryType::Kratos_Line3D2,          MED_SEG2 },
+    { GeometryData::KratosGeometryType::Kratos_Line2D3,          MED_SEG3 },
+    { GeometryData::KratosGeometryType::Kratos_Line3D3,          MED_SEG3 },
+
+    { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      MED_TRIA3 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      MED_TRIA3 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      MED_TRIA6 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle3D6,      MED_TRIA6 },
+
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, MED_QUAD4 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, MED_QUAD4 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, MED_QUAD8 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, MED_QUAD8 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, MED_QUAD9 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, MED_QUAD9 },
+
+    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    MED_TETRA4 },
+    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   MED_TETRA10 },
+
+    { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       MED_PYRA5 },
+    { GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      MED_PYRA13 },
+
+    { GeometryData::KratosGeometryType::Kratos_Prism3D6,         MED_PENTA6 },
+    { GeometryData::KratosGeometryType::Kratos_Prism3D15,        MED_PENTA15 },
+
+    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     MED_HEXA8 },
+    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    MED_HEXA20 },
+    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    MED_HEXA27 }
+};
+
+auto GetReorderFunction(const med_geometry_type MedGeomType)
+{
+    auto check_size[](
+        const std::size_t ExpectedSize,
+        const std::vector<med_int>& Connectivities) {
+            KRATOS_DEBUG_ERROR_IF_NOT(Connectivities.size() == ExpectedSize) << "Connectivities must have a size of " << ExpectedSize << ", but have " << Connectivities.size() << "!" << std::endl;
+    };
+
+    switch (MedGeomType)
+    {
+    case MED_TRIA3:
+        return [](std::vector<med_int>& Connectivities){
+            check_size(3, Connectivities);
+            std::swap(Connectivities[1], Connectivities[2]);
+        };
+
+    case MED_QUAD4:
+        return [](std::vector<med_int>& Connectivities){
+            check_size(4, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+        };
+
+    default:
+        return [](std::vector<med_int>& Connectivities){
+            // does nothing if no reordering is needed
+        };
+    }
+}
+
 
 class MedModelPartIO::MedFileHandler
 {
@@ -71,7 +137,7 @@ public:
             KRATOS_ERROR_IF(num_meshes != 1) << "Expected one mesh, but file " << mFileName << " contains " << num_meshes << " meshes!" << std::endl;
 
             mMeshName.resize(MED_NAME_SIZE+1);
-            med_int space_dim;
+            med_int space_dim = MEDmeshnAxis(mFileHandle, 1);
             med_int mesh_dim;
             med_mesh_type mesh_type;
             std::string description(MED_COMMENT_SIZE+1, '\0');
@@ -79,8 +145,8 @@ public:
             med_sorting_type sorting_type;
             med_int n_step;
             med_axis_type axis_type;
-            std::string axis_name(MED_SNAME_SIZE+100, '\0'); // Not sure why the exessive size is required, but segfaults otherwise
-            std::string axis_unit(MED_SNAME_SIZE+100, '\0'); // Not sure why the exessive size is required, but segfaults otherwise
+            std::string axis_name(MED_SNAME_SIZE*space_dim+1, '\0');
+            std::string axis_unit(MED_SNAME_SIZE*space_dim+1, '\0');
 
             med_err err = MEDmeshInfo(
                 mFileHandle,
@@ -174,11 +240,9 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     KRATOS_ERROR_IF(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in write mode to write a ModelPart!" << std::endl;
 
-    KRATOS_ERROR_IF_NOT(rThisModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" is not defined in ModelPart " << rThisModelPart.FullName() << std::endl;
-
-    const int dimension = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
     MEDfileCommentWr(mpFileHandler->GetFileHandle(), "A 2D unstructured mesh : 15 nodes, 12 cells");
+
+    constexpr med_int dimension = 3;
 
     const char axisname[MED_SNAME_SIZE] = "x y";
     const char unitname[MED_SNAME_SIZE] = "cm cm";
@@ -197,28 +261,110 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         unitname);
 
 
-    KRATOS_CATCH("")
-}
+//     KRATOS_CATCH("")
+// }
 
-void MedModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
-{
-    KRATOS_TRY
+// void MedModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
+// {
+//     KRATOS_TRY
 
-    const int dimension = mpFileHandler->GetDimension();
-    const Vector nodal_coords = VariableUtils().GetCurrentPositionsVector(rThisNodes, dimension);
+    const Vector nodal_coords = VariableUtils().GetCurrentPositionsVector(rThisModelPart.Nodes(), dimension);
 
     // TODO find better solution than to copy
     const std::vector<double> vec_nodal_coords(nodal_coords.begin(), nodal_coords.end());
 
-    med_err err = MEDmeshNodeCoordinateWr(
+    err = MEDmeshNodeCoordinateWr(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(),
         MED_NO_DT,
         MED_NO_IT,
         0.0,
         MED_FULL_INTERLACE,
-        rThisNodes.size() / dimension,
+        rThisModelPart.NumberOfNodes(),
         vec_nodal_coords.data());
+
+
+
+
+
+
+    if (rThisModelPart.NumberOfGeometries() > 0) {
+        std::string geometry_name;
+
+        auto it_geom_begin = rThisModelPart.GeometriesBegin();
+
+        auto geom_type_current = it_geom_begin->GetGeometryType();
+        auto it_geom_current = it_geom_begin;
+        std::size_t n_points_current = it_geom_current->PointsNumber();
+
+
+        using ConnectivitiesType = std::vector<med_int>;
+        using ConnectivitiesVector = std::vector<ConnectivitiesType>;
+
+        ConnectivitiesVector connectivities;
+
+
+
+        auto write_geometries = [this](
+            const GeometryData::KratosGeometryType GeomType,
+            const std::size_t NumberOfPoints,
+            const ConnectivitiesVector& Connectivities) {
+
+                const auto med_geom_type = KratosToMedGeometryType[GeomType];
+                const auto reorder_fct = GetReorderFunction(med_geom_type)
+
+                auto GetMedConnectivities = [&reorder_fct](
+                    const ConnectivitiesVector& Connectivities,
+                    const std::size_t NumberOfPoints){
+                    std::vector<med_int> med_conn(Connectivities.size() * NumberOfPoints);
+
+
+                    IndexPartition(Connectivities.size()).for_each([&med_conn, NumberOfPoints, &reorder_fct](const std::size_t i){
+                        reorder_fct(Connectivities[i]);
+                        for (std::size_t p=0; p<NumberOfPoints; ++p) {
+                            med_conn[i*NumberOfPoints+p] = Connectivities[i][p];
+                        }
+                    });
+
+                    return med_conn;
+                };
+
+            std::vector<med_int> med_conn = GetMedConnectivities(Connectivities);
+
+            if  ( MEDmeshElementConnectivityWr (
+                mpFileHandler->GetFileHandle(),
+                mpFileHandler->GetMeshName(),  MED_NO_DT ,  MED_NO_IT , 0.0,  MED_CELL ,  MED_QUAD4 ,
+                                        MED_NODAL ,  MED_FULL_INTERLACE , Connectivities.size(), med_conn.data()) < 0) {
+                                            KRATOS_ERROR << "Writing failed!" << std::endl;
+            // MESSAGE ( "ERROR : quadrangular cells connectivity ..." );
+            // goto  ERROR;
+            }
+        };
+
+        for (std::size_t i=0; i<rThisModelPart.NumberOfGeometries(); ++i) {
+            auto this_geom_type = it_geom_current->GetGeometryType();
+            if (this_geom_type != geom_type_current) {
+                // write the previously collected geometries
+                write_geometries(geom_type_current, n_points_current, connectivities);
+
+                connectivities.clear();
+
+                geom_type_current = this_geom_type;
+                n_points_current = it_geom_current->PointsNumber();
+            }
+
+            ConnectivitiesType conn;
+            for (const auto& r_point : it_geom_current->Points()) {
+                conn.push_back(r_point.Id());
+            }
+            connectivities.push_back(conn);
+
+            ++it_geom_current;
+        }
+
+        // write the last batch of geometries
+        write_geometries(geom_type_current, connectivities);
+    }
 
     KRATOS_CATCH("")
 }
