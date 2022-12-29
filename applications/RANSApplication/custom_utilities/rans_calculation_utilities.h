@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED)
-#define KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -146,5 +145,3 @@ void CalculateWallTurbulentViscosity(
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED defined

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_TEST_UTILITIES_H_INCLUDED)
-#define KRATOS_RANS_TEST_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <functional>
@@ -44,5 +43,3 @@ KRATOS_API(RANS_APPLICATION) void CheckElementsAndConditions(
 
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos
-
-#endif

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED)
-#define KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -325,5 +324,3 @@ inline std::ostream& operator<<(
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED defined

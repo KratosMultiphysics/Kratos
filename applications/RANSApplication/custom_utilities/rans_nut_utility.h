@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_NUT_UTILITY_H_INCLUDED)
-#define KRATOS_RANS_NUT_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 #include <vector>
@@ -149,5 +148,3 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_RANS_NUT_UTILITY_H_INCLUDED defined

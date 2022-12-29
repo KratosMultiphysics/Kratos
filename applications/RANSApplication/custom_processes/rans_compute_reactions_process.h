@@ -7,11 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Dharmin Shah
+//                   Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_COMPUTE_REACTIONS_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_COMPUTE_REACTIONS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -160,5 +160,3 @@ inline std::ostream& operator<<(
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_RANS_COMPUTE_REACTIONS_PROCESS_H_INCLUDED defined

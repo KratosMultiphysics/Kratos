@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_SCALAR_WALL_FLUX_CONDITION_DATA_H_INCLUDED)
-#define KRATOS_SCALAR_WALL_FLUX_CONDITION_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -101,5 +100,3 @@ private:
     ///@}
 };
 } // namespace Kratos
-
-#endif

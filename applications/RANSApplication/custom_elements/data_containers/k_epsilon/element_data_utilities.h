@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_EPSILON_HIGH_RE_ELEMENT_DATA_UTILITIES_H_INCLUDED)
-#define KRATOS_K_EPSILON_HIGH_RE_ELEMENT_DATA_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -49,5 +48,3 @@ double CalculateGamma(
 ///@}
 
 } // namespace Kratos
-
-#endif

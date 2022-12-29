@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#ifndef KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H
-#define KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H
+#pragma once
 
 // System includes
 #include <iostream>
@@ -654,5 +653,3 @@ inline std::ostream& operator<<(
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H

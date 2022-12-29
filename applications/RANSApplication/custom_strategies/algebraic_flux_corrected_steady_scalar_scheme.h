@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_ALGEBRAIC_FLUX_CORRECTED_SCALAR_STEADY_SCHEME)
-#define KRATOS_ALGEBRAIC_FLUX_CORRECTED_SCALAR_STEADY_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -606,5 +605,3 @@ private:
 ///@}
 
 } // namespace Kratos
-
-#endif /* KRATOS_ALGEBRAIC_FLUX_CORRECTED_SCALAR_STEADY_SCHEME defined */

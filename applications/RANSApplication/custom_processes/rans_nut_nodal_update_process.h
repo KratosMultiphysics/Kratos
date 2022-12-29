@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_NUT_NODAL_UPDATE_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_NUT_NODAL_UPDATE_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -132,5 +131,3 @@ inline std::ostream& operator<<(
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_UPDATE_PROCESS_H_INCLUDED defined

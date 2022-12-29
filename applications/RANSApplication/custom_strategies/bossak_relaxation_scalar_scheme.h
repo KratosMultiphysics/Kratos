@@ -11,8 +11,7 @@
 //                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED)
-#define KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED
+#pragma once
 
 // System includes
 #include <sstream>
@@ -409,5 +408,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED defined */

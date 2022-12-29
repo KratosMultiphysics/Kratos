@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_OMEGA_SST_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED)
-#define KRATOS_K_OMEGA_SST_ELEMENT_DATA_K_ELEMENT_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -134,5 +133,3 @@ protected:
 } // namespace KOmegaSSTElementData
 
 } // namespace Kratos
-
-#endif

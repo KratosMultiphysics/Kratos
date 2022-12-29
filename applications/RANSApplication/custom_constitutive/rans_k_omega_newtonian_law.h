@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_K_OMEGA_NEWTONIAN_LAW_H_INCLUDED)
-#define KRATOS_RANS_K_OMEGA_NEWTONIAN_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -154,4 +153,3 @@ private:
     ///@}
 }; // Class RansKOmegaNewtonianLaw
 } // namespace Kratos.
-#endif // KRATOS_RANS_K_OMEGA_NEWTONIAN_LAW_H_INCLUDED  defined

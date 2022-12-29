@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_VARIABLE_UTILS)
-#define KRATOS_RANS_VARIABLE_UTILS
+#pragma once
 
 /* System includes */
 
@@ -113,5 +112,3 @@ void KRATOS_API(RANS_APPLICATION)
 } // namespace RansVariableUtilities
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RANS_VARIABLE_UTILS  defined */

@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_STEADY_SCALAR_TRANSPORT_SCHEME)
-#define KRATOS_STEADY_SCALAR_TRANSPORT_SCHEME
+#pragma once
 
 // System includes
 #include <iomanip>
@@ -253,5 +252,3 @@ private:
 ///@}
 
 } // namespace Kratos
-
-#endif /* KRATOS_STEADY_SCALAR_TRANSPORT_SCHEME defined */

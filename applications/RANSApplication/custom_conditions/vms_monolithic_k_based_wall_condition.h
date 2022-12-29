@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_VMS_MONOLITHIC_K_BASED_WALL_CONDITION_WALL_H_INCLUDED)
-#define KRATOS_VMS_MONOLITHIC_K_BASED_WALL_CONDITION_WALL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -314,5 +313,3 @@ inline std::ostream& operator<<(
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_VMS_MONOLITHIC_K_BASED_WALL_CONDITION_WALL_H_INCLUDED

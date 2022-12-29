@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_OMEGA_WALL_CONDITION_DATA_OMEGA_U_BASED_CONDITION_DATA_H_INCLUDED)
-#define KRATOS_K_OMEGA_WALL_CONDITION_DATA_OMEGA_U_BASED_CONDITION_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -94,5 +93,3 @@ protected:
 } // namespace KOmegaWallConditionData
 
 } // namespace Kratos
-
-#endif

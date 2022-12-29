@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_EPSILON_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED)
-#define KRATOS_K_EPSILON_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -93,5 +92,3 @@ protected:
 } // namespace KEpsilonWallConditionData
 
 } // namespace Kratos
-
-#endif // KRATOS_K_EPSILON_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED
