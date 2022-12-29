@@ -401,6 +401,30 @@ class SphericElementGlobalPhysicsCalculator
           return viscodamping_energy;
       }
 
+      double CalculateInelasticRollingResistanceEnergy(ModelPart& r_model_part)
+      {
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+          double rollingresistance_energy = 0.0;
+
+          #pragma omp parallel for reduction(+ : rollingresistance_energy)
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                      double particle_rollingresistance_energy = 0.0;
+
+                      (it)->Calculate(PARTICLE_INELASTIC_ROLLING_RESISTANCE_ENERGY, particle_rollingresistance_energy, r_model_part.GetProcessInfo());
+
+                      rollingresistance_energy += particle_rollingresistance_energy;
+                  }
+              }
+
+          }
+
+          return rollingresistance_energy;
+      }
+
       //***************************************************************************************************************
       //***************************************************************************************************************
 

@@ -70,8 +70,9 @@ void  AddIOToPython(pybind11::module& m)
     .def("ReadInitialValues",&ReadInitialValues2)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
-    .def("WriteModelPart",&IO::WriteModelPart)
+    .def("WriteModelPart", py::overload_cast<const ModelPart&>(&IO::WriteModelPart)) // overload_cast can be removed once the legacy version is removed
     ;
+
     io_python_interface.attr("READ") = IO::READ;
     io_python_interface.attr("WRITE") =IO::WRITE;
     io_python_interface.attr("APPEND") = IO::APPEND;

@@ -4,30 +4,27 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
-//
 
-#if !defined(KRATOS_VARIABLE_UTILS )
-#define  KRATOS_VARIABLE_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/reduction_utilities.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -806,6 +803,26 @@ public:
     }
 
     /**
+     * @brief Erases the container non historical variable
+     * @param rVariable reference to the scalar variable to be erased
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType, class TVarType>
+    void EraseNonHistoricalVariable(
+        const TVarType& rVariable,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        block_for_each(rContainer, [&rVariable](auto& rEntity){
+                rEntity.GetData().Erase(rVariable);
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Clears the container data value container
      * @param rContainer Reference to the objective container
      */
@@ -1556,6 +1573,71 @@ public:
                                 const unsigned int Step
                                 );
 
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const unsigned int Dimension=3
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const Vector& rData
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar,
+        const Vector& rData
+        );
 
 
     ///@}
@@ -1689,5 +1771,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_VARIABLE_UTILS  defined */

@@ -39,7 +39,7 @@ public:
 
     using BaseType = ScalarWallFluxConditionData;
 
-    using GeometryType = typename BaseType::GeometryType;
+    using GeometryType = BaseType::GeometryType;
 
     ///@}
     ///@name Static Operations

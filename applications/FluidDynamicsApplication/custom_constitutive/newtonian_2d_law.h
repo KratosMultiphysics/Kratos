@@ -10,8 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined (KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED)
-#define  KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -182,4 +181,3 @@ private:
 
 }; // Class Newtonian2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined

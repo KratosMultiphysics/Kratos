@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_TEST_UTILITIES_H_INCLUDED)
-#define KRATOS_FLUID_TEST_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <functional>
@@ -79,12 +78,36 @@ public:
         const Variable<TDataType>& rVariable,
         const double MinValue = 0.0,
         const double MaxValue = 1.0,
+        const int Step = 0)
+    {
+        RandomFillHistoricalVariable<TDataType>(rModelPart, rVariable, rVariable.Name(), MinValue, MaxValue, Step);
+    }
+
+    template<class TDataType>
+    static void RandomFillHistoricalVariable(
+        ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rSeedExtension,
+        const double MinValue = 0.0,
+        const double MaxValue = 1.0,
         const int Step = 0);
 
     template<class TContainerType, class TDataType>
     static void RandomFillNonHistoricalVariable(
         TContainerType& rContainer,
         const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
+        const double MinValue = 0.0,
+        const double MaxValue = 1.0)
+    {
+        RandomFillNonHistoricalVariable<TContainerType, TDataType>(rContainer, rVariable, rVariable.Name(), DomainSize, MinValue, MaxValue);
+    }
+
+    template<class TContainerType, class TDataType>
+    static void RandomFillNonHistoricalVariable(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const std::string& rSeedExtension,
         const IndexType DomainSize,
         const double MinValue = 0.0,
         const double MaxValue = 1.0);
@@ -133,5 +156,3 @@ public:
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_ADJOINT_TEST_UTILITIES_H_INCLUDED

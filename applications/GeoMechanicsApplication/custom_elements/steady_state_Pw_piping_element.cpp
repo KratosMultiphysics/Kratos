@@ -102,7 +102,7 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 {
     // currently length is only calculated in x direction
     KRATOS_TRY
-        this->SetValue(PIPE_ELEMENT_LENGTH, abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
+        this->SetValue(PIPE_ELEMENT_LENGTH, std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
 	KRATOS_CATCH("")
 }
 

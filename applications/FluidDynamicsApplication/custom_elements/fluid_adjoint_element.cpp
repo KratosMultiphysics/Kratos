@@ -72,15 +72,13 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::
     std::vector<IndirectScalar<double>>& rVector,
     std::size_t Step)
 {
-    auto& r_node = mpElement->GetGeometry()[NodeId];
     rVector.resize(TDim + 1);
 
-    const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+    auto& r_node = mpElement->GetGeometry()[NodeId];
 
-    for (unsigned int i = 0; i < TDim; ++i) {
-        rVector[i] = MakeIndirectScalar(r_node, (*dofs_list[i]).GetTimeDerivative(), Step);
-    }
-
+    rVector[0] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_X, Step);
+    rVector[1] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Y, Step);
+    if constexpr(TDim == 3) rVector[2] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Z, Step);
     rVector[TDim] = IndirectScalar<double>{}; // pressure
 }
 
@@ -90,16 +88,13 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::
     std::vector<IndirectScalar<double>>& rVector,
     std::size_t Step)
 {
-    auto& r_node = mpElement->GetGeometry()[NodeId];
     rVector.resize(TDim + 1);
 
-    const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+    auto& r_node = mpElement->GetGeometry()[NodeId];
 
-    for (unsigned int i = 0; i < TDim; ++i) {
-        rVector[i] = MakeIndirectScalar(
-            r_node, (*dofs_list[i]).GetTimeDerivative().GetTimeDerivative(), Step);
-    }
-
+    rVector[0] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_X, Step);
+    rVector[1] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Y, Step);
+    if constexpr(TDim == 3) rVector[2] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Z, Step);
     rVector[TDim] = IndirectScalar<double>{}; // pressure
 }
 
@@ -109,17 +104,13 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::
     std::vector<IndirectScalar<double>>& rVector,
     std::size_t Step)
 {
-    auto& r_node = mpElement->GetGeometry()[NodeId];
     rVector.resize(TDim + 1);
 
-    const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+    auto& r_node = mpElement->GetGeometry()[NodeId];
 
-    for (unsigned int i = 0; i < TDim; ++i) {
-        rVector[i] = MakeIndirectScalar(
-            r_node, (*dofs_list[i]).GetTimeDerivative().GetTimeDerivative().GetTimeDerivative(),
-            Step);
-    }
-
+    rVector[0] = MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_X, Step);
+    rVector[1] = MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Y, Step);
+    if constexpr(TDim == 3) rVector[2] = MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Z, Step);
     rVector[TDim] = IndirectScalar<double>{}; // pressure
 }
 
@@ -212,7 +203,25 @@ Element::Pointer FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Clon
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 int FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    TAdjointElementData::Check(*this, rCurrentProcessInfo);
+    TAdjointElementData::EquationAuxiliaries::Check(*this, rCurrentProcessInfo);
+
+    const auto& r_geometry = this->GetGeometry();
+
+    for (IndexType c = 0; c < TNumNodes; ++c) {
+        const auto& r_node = r_geometry[c];
+
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_1, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_VECTOR_3, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_FLUID_SCALAR_1, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_ADJOINT_FLUID_VECTOR_1, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_FLUID_VECTOR_1_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_FLUID_VECTOR_1_Y, r_node);
+        if constexpr(TDim == 3) KRATOS_CHECK_DOF_IN_NODE(ADJOINT_FLUID_VECTOR_1_Z, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_FLUID_SCALAR_1, r_node);
+    }
+
     return BaseType::Check(rCurrentProcessInfo);
 }
 
@@ -225,15 +234,20 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::EquationIdVector
         rElementalEquationIdList.resize(TElementLocalSize, false);
     }
 
-    const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
+    const auto& r_geometry = this->GetGeometry();
+
+    const unsigned int vector_pos = r_geometry[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int scaler_pos = r_geometry[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
 
     IndexType local_index = 0;
     for (IndexType i = 0; i < TNumNodes; ++i) {
-        const auto& r_node = this->GetGeometry()[i];
-        for (const auto p_variable : r_variables_list) {
-            rElementalEquationIdList[local_index++] =
-                r_node.GetDof(*p_variable).EquationId();
+        const auto& r_node = r_geometry[i];
+        rElementalEquationIdList[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_X, vector_pos).EquationId();
+        rElementalEquationIdList[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Y, vector_pos + 1).EquationId();
+        if constexpr(TDim == 3) {
+            rElementalEquationIdList[local_index++] = r_node.GetDof(ADJOINT_FLUID_VECTOR_1_Z, vector_pos + 2).EquationId();
         }
+        rElementalEquationIdList[local_index++] = r_node.GetDof(ADJOINT_FLUID_SCALAR_1, scaler_pos).EquationId();
     }
 }
 
@@ -246,14 +260,20 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetDofList(
         rElementalDofList.resize(TElementLocalSize);
     }
 
-    const auto& r_variables_list = TAdjointElementData::GetDofVariablesList();
+    const auto& r_geometry = this->GetGeometry();
+
+    const unsigned int vector_pos = r_geometry[0].GetDofPosition(ADJOINT_FLUID_VECTOR_1_X);
+    const unsigned int scaler_pos = r_geometry[0].GetDofPosition(ADJOINT_FLUID_SCALAR_1);
 
     IndexType local_index = 0;
     for (IndexType i = 0; i < TNumNodes; ++i) {
-        const auto& r_node = this->GetGeometry()[i];
-        for (const auto p_variable : r_variables_list) {
-            rElementalDofList[local_index++] = r_node.pGetDof(*p_variable);
+        const auto& r_node = r_geometry[i];
+        rElementalDofList[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_X, vector_pos);
+        rElementalDofList[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Y, vector_pos + 1);
+        if constexpr(TDim == 3) {
+            rElementalDofList[local_index++] = r_node.pGetDof(ADJOINT_FLUID_VECTOR_1_Z, vector_pos + 2);
         }
+        rElementalDofList[local_index++] = r_node.pGetDof(ADJOINT_FLUID_SCALAR_1, scaler_pos);
     }
 }
 
@@ -270,13 +290,11 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetValuesVector(
     IndexType local_index = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
-        const auto& r_velocity =
-            r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1, Step);
+        const auto& r_velocity = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1, Step);
         for (IndexType d = 0; d < TDim; ++d) {
             rValues[local_index++] = r_velocity[d];
         }
-        rValues[local_index++] =
-            r_node.FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, Step);
+        rValues[local_index++] = r_node.FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, Step);
     }
 }
 
@@ -303,8 +321,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetSecondDerivat
     const auto& r_geometry = this->GetGeometry();
     IndexType local_index = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const auto& r_acceleration =
-            r_geometry[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, Step);
+        const auto& r_acceleration = r_geometry[i_node].FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3, Step);
         for (IndexType d = 0; d < TDim; ++d) {
             rValues[local_index++] = r_acceleration[d];
         }
@@ -537,7 +554,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidual
 {
     KRATOS_TRY
 
-    const auto& integration_method = TAdjointElementData::GetIntegrationMethod();
+    const auto& integration_method = TAdjointElementData::EquationAuxiliaries::GetIntegrationMethod();
 
     Vector Ws;
     Matrix Ns;
@@ -588,7 +605,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
 {
     KRATOS_TRY
 
-    const auto& integration_method = TAdjointElementData::GetIntegrationMethod();
+    const auto& integration_method = TAdjointElementData::EquationAuxiliaries::GetIntegrationMethod();
 
     Vector Ws;
     Matrix Ns;
@@ -639,7 +656,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidSecondDe
 {
     KRATOS_TRY
 
-    const auto& integration_method = TAdjointElementData::GetIntegrationMethod();
+    const auto& integration_method = TAdjointElementData::EquationAuxiliaries::GetIntegrationMethod();
 
     Vector Ws;
     Matrix Ns;
@@ -687,7 +704,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
 {
     KRATOS_TRY
 
-    const auto& integration_method = TAdjointElementData::GetIntegrationMethod();
+    const auto& integration_method = TAdjointElementData::EquationAuxiliaries::GetIntegrationMethod();
 
     Vector Ws;
     Matrix Ns;

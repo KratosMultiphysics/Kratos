@@ -101,7 +101,7 @@ protected:
     double mTurbulentKineticEnergy;
     double mKinematicViscosity;
     double mVelocityDivergence;
-    double mInvTkeSigma;
+    double mInvTurbulentKineticEnergySigma;
     double mCmu;
     double mDensity;
 

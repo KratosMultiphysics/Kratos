@@ -10,8 +10,7 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED
+#pragma once
 
 ///@defgroup FluidDynamicsApplication Fluid Dynamics Application
 ///@brief Basic set of CFD tools.
@@ -501,5 +500,3 @@ private:
 ///@} FluidDynamicsApplication group
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED  defined
