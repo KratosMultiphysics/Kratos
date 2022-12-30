@@ -231,16 +231,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     is_locally_built = args.build_type == "local"
+
+    Path("_data").mkdir(parents=True, exist_ok=True)
     print("Creating top navigation bar...")
     # generate top navigation bar
-    with open("_data/topnav.yml.orig", "r") as file_input:
+    with open("pages/topnav.yml.orig", "r") as file_input:
         lines = file_input.readlines()
     list_of_strings = CreateNavigatonBar("pages", 2, default_header_dict, is_locally_built)
     lines.extend(list_of_strings)
     with open("_data/topnav.yml", "w") as file_output:
         file_output.writelines(lines)
 
-    # generate Shape optimization application side bar
+    Path("_data/sidebars").mkdir(parents=True, exist_ok=True)
+    # generate side bar
     for iter_dir in Path("pages").iterdir():
         if iter_dir.is_dir():
             for sub_itr_dir in iter_dir.iterdir():
