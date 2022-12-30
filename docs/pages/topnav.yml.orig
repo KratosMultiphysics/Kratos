@@ -6,7 +6,7 @@ topnav:
     - title: GitHub
       external_url: https://github.com/KratosMultiphysics/Kratos
     - title: News
-      url: /news
+      external_url: https://twitter.com/kratosmultiphys
 
 #Topnav dropdowns
 topnav_dropdowns:
