@@ -80,15 +80,15 @@ namespace Kratos
     {
     public:
         // component ij of the consistent mass matrix (M = Ni * Nj * dOmega)
-        double Mass;
+        double Mass = 0.0;
         // components kl of the laplacian matrix of edge ij (L = dNi/dxk * dNj/dxl * dOmega)
         // double Laplacian;
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> LaplacianIJ;
         // components k of the gradient matrix of edge ij (G = Ni * dNj/dxl * dOmega)
-        array_1d<double, TDim> Ni_DNj;
+        array_1d<double, TDim> Ni_DNj = ZeroVector(TDim);
         // components k of the transposed gradient matrix of edge ij (GT = dNi/dxl * Nj * dOmega)
         // TRANSPOSED GRADIENT
-        array_1d<double, TDim> DNi_Nj;
+        array_1d<double, TDim> DNi_Nj = ZeroVector(TDim);
 
         //*************************************************************************************
         //*************************************************************************************
@@ -408,7 +408,6 @@ namespace Kratos
         typedef vector<unsigned int> IndicesVectorType;
         // names for separately stored node based values
         typedef vector<double> ValuesVectorType;
-        // 			typedef std::vector< array_1d<double,TDim> > CalcVectorType;
         typedef vector<array_1d<double, TDim>> CalcVectorType;
 
         // constructor and destructor

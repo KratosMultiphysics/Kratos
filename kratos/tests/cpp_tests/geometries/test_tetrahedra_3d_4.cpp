@@ -96,6 +96,21 @@ namespace Kratos {
       ));
     }
 
+    /** Generates a sample Triangle3D3.
+    * Generates a triangle defined by three random points in the space.
+    * @return  Pointer to a Triangle3D3
+    */
+    Triangle3D3<PointType>::Pointer GenerateTriangle3D3(
+    PointPtrType PointA = GeneratePoint<PointType>(),
+    PointPtrType PointB = GeneratePoint<PointType>(),
+    PointPtrType PointC = GeneratePoint<PointType>()) {
+        return Triangle3D3<PointType>::Pointer(new Triangle3D3<PointType>(
+        PointA,
+        PointB,
+        PointC
+        ));
+    }
+
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
@@ -409,12 +424,6 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
-
-
-
-
-
-
     /** Checks if the min dihedral angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
@@ -437,7 +446,6 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
     }
 
-
     /** Checks if the min solid angle quality metric is correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
@@ -448,7 +456,6 @@ namespace Kratos {
 
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.339836909, TOLERANCE);
     }
-
 
     /** Checks if the dihedral angles are correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
@@ -468,7 +475,6 @@ namespace Kratos {
 
     }
 
-
     /** Checks if the solid angles are correctly calculated.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
@@ -484,6 +490,68 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(solid_angles[3],  0.339836909, TOLERANCE);
     }
 
+    /**
+     * This test performs the check of the box intersection method
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4HasIntersection, KratosCoreGeometriesFastSuite) {
+      auto p_tetrahedron = GenerateTriRectangularTetrahedra3D4();
+
+      /* 3D intersection */
+      auto p_geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
+      const bool intersection_geomRegLen1 = p_tetrahedron->HasIntersection(*p_geomRegLen1);
+      KRATOS_CHECK(intersection_geomRegLen1);
+
+      auto p_geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
+      const bool intersection_geomRegLen2 = p_tetrahedron->HasIntersection(*p_geomRegLen2);
+      KRATOS_CHECK(intersection_geomRegLen2);
+
+      PointPtrType PointA = GeneratePoint<PointType>(100.0, 100.0, 100.0);
+      PointPtrType PointB = GeneratePoint<PointType>(101.0, 100.0, 100.0);
+      PointPtrType PointC = GeneratePoint<PointType>(100.0, 101.0, 100.0);
+      PointPtrType PointD = GeneratePoint<PointType>(100.0, 100.0, 101.0);
+      auto p_far_tetrahedron = GenerateTetrahedra3D4(PointA, PointB, PointC, PointD);
+      const bool intersection_far_geom = p_tetrahedron->HasIntersection(*p_far_tetrahedron);
+      KRATOS_CHECK_IS_FALSE(intersection_far_geom);
+
+      /* 2D intersection */
+      auto p_triangle_inside = Triangle3D3<PointType>::Pointer(new Triangle3D3<PointType>(
+        GeneratePoint<PointType>(1.0, 0.0, 0.0),
+        GeneratePoint<PointType>(0.0, 1.0, 0.0),
+        GeneratePoint<PointType>(0.0, 0.0, 1.0)
+      ));
+      const bool intersection_geomTriangleInside = p_tetrahedron->HasIntersection(*p_triangle_inside);
+      KRATOS_CHECK(intersection_geomTriangleInside);
+
+      auto p_far_triangle = GenerateTriangle3D3(PointA, PointB, PointC);
+      const bool intersection_far_triangle = p_tetrahedron->HasIntersection(*p_far_triangle);
+      KRATOS_CHECK_IS_FALSE(intersection_far_triangle);
+
+      /* 1D intersection */
+      auto p_line_1 = Kratos::make_shared<Line3D2<PointType>>(
+        GeneratePoint<PointType>(0.0, 0.0, 0.0),
+        GeneratePoint<PointType>(1.0, 0.0, 0.0)
+      );
+      const bool intersection_line_1 = p_tetrahedron->HasIntersection(*p_line_1);
+      KRATOS_CHECK(intersection_line_1);
+
+      auto p_line_2 = Kratos::make_shared<Line3D2<PointType>>(
+        GeneratePoint<PointType>(0.0, 0.0, 0.0),
+        GeneratePoint<PointType>(0.0, 1.0, 0.0)
+      );
+      const bool intersection_line_2 = p_tetrahedron->HasIntersection(*p_line_2);
+      KRATOS_CHECK(intersection_line_2);
+
+      auto p_line_3 = Kratos::make_shared<Line3D2<PointType>>(
+        GeneratePoint<PointType>(0.0, 0.0, 0.0),
+        GeneratePoint<PointType>(1.0, 1.0, 1.0)
+      );
+      const bool intersection_line_3 = p_tetrahedron->HasIntersection(*p_line_3);
+      KRATOS_CHECK(intersection_line_3);
+
+      auto p_far_line = Kratos::make_shared<Line3D2<PointType>>(PointA, PointB);
+      const bool intersection_far_line = p_tetrahedron->HasIntersection(*p_far_line);
+      KRATOS_CHECK_IS_FALSE(intersection_far_line);
+    }
 
     /**
      * This test performs the check of the box intersection method

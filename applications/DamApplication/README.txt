@@ -8,7 +8,6 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 
 -DMETIS_APPLICATION=ON								                                        \
 -DMETIS_INCLUDE_DIR="/usr/include/"                                                         \
--DUSE_METIS_5=ON                                                                            \
 -DPARMETIS_ROOT_DIR="/usr/lib/"                                                   			\
 -DTRILINOS_APPLICATION=ON							                                        \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu/"                                         \

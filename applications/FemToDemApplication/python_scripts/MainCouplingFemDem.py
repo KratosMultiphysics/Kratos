@@ -355,7 +355,7 @@ class MainCoupledFemDem_Solution:
             self.nodal_neighbour_finder.Execute()
         else: # 2D
             neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part)
-            neighbour_elemental_finder.ExecuteInitialize()
+            neighbour_elemental_finder.Execute()
 
 #PerformRemeshingIfNecessary============================================================================================================================
     def PerformRemeshingIfNecessary(self):
@@ -396,7 +396,7 @@ class MainCoupledFemDem_Solution:
                 else: # 2D
                     self.InitializeSolutionAfterRemeshing()
                     neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part)
-                    neighbour_elemental_finder.ExecuteInitialize()
+                    neighbour_elemental_finder.Execute()
 
 #RefineMappedVariables============================================================================================================================
     def RefineMappedVariables(self):

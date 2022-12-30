@@ -251,8 +251,8 @@ public:
 
         const double dt_0 = r_current_process_info[DELTA_TIME];
         const double dt_1 = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-        KRATOS_ERROR_IF(mOrder > 2 && std::abs(dt_0 -dt_1) > std::numeric_limits<double>::epsilon())
-        << "ResidualBasedBDFScheme. For higher orders than 2 the time step must be constant.\n";
+        KRATOS_ERROR_IF(mOrder > 2 && std::abs(dt_0 - dt_1) > 1e-10*(dt_0 + dt_1))
+        << "ResidualBasedBDFScheme. For higher orders than 2 the time step must be constant.\nPrevious time step : " << dt_1 << "\nCurrent time step : " << dt_0 << std::endl;
 
         KRATOS_CATCH( "" );
     }

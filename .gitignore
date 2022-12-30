@@ -24,6 +24,9 @@ bin/*
 docs/.jekyll-cache/*
 docs/_site/*
 
+# Autocopied file
+kratos/scripts/wheels/README.md
+
 # Times files
 *.time
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -62,7 +62,7 @@ public:
 
     /// Default constructor.
     Process() : Flags() {}
-    explicit Process(Flags options) : Flags( options ) {}
+    explicit Process(const Flags options) : Flags( options ) {}
 
     /// Destructor.
     ~Process() override {}
@@ -85,7 +85,7 @@ public:
 
     /**
      * @brief This method creates an pointer of the process
-     * @details We consider as input a Mmodel and a set of Parameters for the sake of generality
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
      * @warning Must be overrided in each process implementation
      * @param rModel The model to be consider
      * @param ThisParameters The configuration parameters

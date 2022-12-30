@@ -169,9 +169,9 @@ public:
     ApplyConstantVectorValueProcess(ModelPart& model_part,
                               const Variable< array_1d<double, 3 > >& rVariable,
                               const double modulus,
-                              const Vector direction,
+                              const Vector& direction,
                               std::size_t mesh_id,
-                              Flags options
+                              const Flags options
                                    ) : Process(options) , mr_model_part(model_part), mmodulus(modulus),mdirection(direction),mmesh_id(mesh_id)
     {
         KRATOS_TRY;

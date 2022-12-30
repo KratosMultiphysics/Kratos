@@ -5,28 +5,26 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborators:    Vicente Mataix Ferrandiz
-//                    Pablo Becker
+//  Collaborators:   Vicente Mataix Ferrandiz
+//                   Pablo Becker
 //
 
-#if !defined(KRATOS_MATH_UTILS )
-#define  KRATOS_MATH_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 #include <cmath>
 #include <type_traits>
 
-/* External includes */
+// External includes
 
-/* External includes */
+// Project includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -126,8 +124,7 @@ public:
      * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
-
-    template<bool check>// = false>
+    template<bool TCheck>// = false>
     static inline double Heron(
         double a,
         double b,
@@ -136,7 +133,7 @@ public:
     {
         const double s = 0.5 * (a + b + c);
         const double A2 = s * (s - a) * (s - b) * (s - c);
-        if(check) {
+        if constexpr(TCheck) {
             if(A2 < 0.0) {
                 KRATOS_ERROR << "The square of area is negative, probably the triangle is in bad shape:" << A2 << std::endl;
             } else {
@@ -264,14 +261,14 @@ public:
         /* Compute Determinant of the matrix */
         rInputMatrixDet = Det(rInputMatrix);
 
-        if(TDim == 1) {
+        if constexpr (TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
-        } else if (TDim == 2) {
+        } else if constexpr (TDim == 2) {
             InvertMatrix2(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             InvertMatrix3(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 4) {
+        } else if constexpr (TDim == 4) {
             InvertMatrix4(rInputMatrix, inverted_matrix, rInputMatrixDet);
         } else {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
@@ -326,10 +323,13 @@ public:
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
      * @param Tolerance The maximum tolerance considered
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
+    template<class TMatrix1, class TMatrix2>
     static void GeneralizedInvertMatrix(
-        const MatrixType& rInputMatrix,
-        MatrixType& rInvertedMatrix,
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
         TDataType& rInputMatrixDet,
         const TDataType Tolerance = ZeroTolerance
         )
@@ -393,6 +393,8 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -1983,11 +1985,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MATH_UTILS  defined */

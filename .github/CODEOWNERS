@@ -32,3 +32,4 @@
 /applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification
 /applications/ParticleMechanicsApplication/            @KratosMultiphysics/mpm
 /applications/RomApplication/                          @KratosMultiphysics/rom
+/applications/GeoMechanicsApplication/.................@KratosMultiphysics/geomechanics

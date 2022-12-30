@@ -94,14 +94,15 @@ public:
                     "reduction_factor": 0.5,
                     "end_time": 1.0,
                     "realised_factor": 1.0,
-
+                    "max_piping_iterations": 50,
                     "desired_iterations": 4,
                     "max_radius_factor": 20.0,
                     "min_radius_factor": 0.5,
                     "search_neighbours_step": false,
                     "body_domain_sub_model_part_list": [],
                     "loads_sub_model_part_list": [],
-                    "loads_variable_list" : []
+                    "loads_variable_list" : [],
+                    "rebuild_level": 2
                 }  )" );
 
             // Validate agains defaults -- this also ensures no type mismatch
