@@ -26,6 +26,15 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 2
         self.assert_linear_elastic_block(simulation, top_node_nbrs, n_dim)
 
+    def test_triangle_3n_rebuild_level_0(self):
+        test_name = 'test_triangle_3n_rebuild_0'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+
+        top_node_nbrs = [0, 1, 5]
+        n_dim = 2
+        self.assert_linear_elastic_block(simulation, top_node_nbrs, n_dim)
+
     def test_triangle_6n(self):
         test_name = 'test_triangle_6n'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))

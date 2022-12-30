@@ -40,13 +40,16 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::EquationIdVector(
     }
 
     IndexType local_index = 0;
-    for (const auto& r_node : GetGeometry()) {
-        rResult[local_index++] = r_node.GetDof(VELOCITY_X).EquationId();
-        rResult[local_index++] = r_node.GetDof(VELOCITY_Y).EquationId();
+    const auto& r_geometry = GetGeometry();
+    const unsigned int v_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int p_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    for (const auto& r_node : r_geometry) {
+        rResult[local_index++] = r_node.GetDof(VELOCITY_X, v_pos).EquationId();
+        rResult[local_index++] = r_node.GetDof(VELOCITY_Y, v_pos + 1).EquationId();
         if constexpr (TDim == 3) {
-            rResult[local_index++] = r_node.GetDof(VELOCITY_Z).EquationId();
+            rResult[local_index++] = r_node.GetDof(VELOCITY_Z, v_pos + 2).EquationId();
         }
-        rResult[local_index++] = r_node.GetDof(PRESSURE).EquationId();
+        rResult[local_index++] = r_node.GetDof(PRESSURE, p_pos).EquationId();
     }
 }
 
@@ -60,13 +63,16 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::GetDofList(
     }
 
     IndexType local_index = 0;
-    for (const auto& r_node : GetGeometry()) {
-        rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_X);
-        rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Y);
+    const auto &r_geometry = GetGeometry();
+    const unsigned int v_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int p_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    for (const auto& r_node : r_geometry) {
+        rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_X, v_pos);
+        rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Y, v_pos + 1);
         if constexpr (TDim == 3) {
-            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Z);
+            rConditionDofList[local_index++] = r_node.pGetDof(VELOCITY_Z, v_pos + 2);
         }
-        rConditionDofList[local_index++] = r_node.pGetDof(PRESSURE);
+        rConditionDofList[local_index++] = r_node.pGetDof(PRESSURE, p_pos);
     }
 }
 
@@ -221,7 +227,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateRightHand
         noalias(rRightHandSideVector) += rhs_gauss;
     }
 
-    // Add the wall law contribution    
+    // Add the wall law contribution
     constexpr SizeType n_wall_models = sizeof...(TWallModel);
     static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
     if (this->Is(WALL) && n_wall_models != 0) {
@@ -245,25 +251,18 @@ int NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const Process
         return check;
     } else {
         // Checks on nodes
-        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for (const auto& r_node : this->GetGeometry())
-        {
-            if(r_node.SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR << "Missing VELOCITY variable on solution step data for node " << r_node.Id() << "." << std::endl;
-            if(r_node.SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_ERROR << "Missing PRESSURE variable on solution step data for node " << r_node.Id() << "." << std::endl;
-            if(r_node.SolutionStepsDataHas(MESH_VELOCITY) == false)
-                KRATOS_ERROR << "Missing MESH_VELOCITY variable on solution step data for node " << r_node.Id() << "." << std::endl;
-            if(r_node.SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR << "Missing ACCELERATION variable on solution step data for node " << r_node.Id() << "." << std::endl;
-            if(r_node.SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-                KRATOS_ERROR << "Missing EXTERNAL_PRESSURE variable on solution step data for node " << r_node.Id() << "." << std::endl;
-            if(r_node.HasDofFor(VELOCITY_X) == false ||
-               r_node.HasDofFor(VELOCITY_Y) == false ||
-               r_node.HasDofFor(VELOCITY_Z) == false)
-                KRATOS_ERROR << "Missing VELOCITY component degree of freedom on node " << r_node.Id() << "." << std::endl;
-            if(r_node.HasDofFor(PRESSURE) == false)
-                KRATOS_ERROR << "Missing PRESSURE component degree of freedom on node " << r_node.Id() << "." << std::endl;
+        // Check that the element's nodes contain all required SolutionStepData and Degrees Of Freedom variables
+        for (const auto& r_node : this->GetGeometry()) {
+            // Check variables
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_node)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(EXTERNAL_PRESSURE, r_node)
+            // Check DOFs
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(PRESSURE, r_node)
         }
 
         // Check that parents have been computed
@@ -275,7 +274,7 @@ int NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const Process
         // If provided, check wall law
         constexpr SizeType n_wall_models = sizeof...(TWallModel);
         static_assert(n_wall_models < 2, "More than one template wall model argument in 'NavierStokesWallCondition'.");
-        if (n_wall_models != 0) {
+        if constexpr (n_wall_models != 0) {
             ((check = WallModelCheckCall<TWallModel>(rCurrentProcessInfo)), ...);
         }
 
