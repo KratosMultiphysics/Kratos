@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_DEFINE_H_INCLUDED )
-#define  KRATOS_DEFINE_H_INCLUDED
+#pragma once
 
 /* System includes */
 #include <stdexcept>
@@ -22,7 +21,7 @@
 
 /* Project includes */
 #include "includes/kratos_export_api.h"
-#include "includes/shared_pointers.h"
+#include "includes/smart_pointers.h"
 #include "includes/exception.h"
 
 // Defining the OS
@@ -729,21 +728,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<ConstitutiveLaw >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-#if __cplusplus >= 201402L
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
-#elif __GNUC__
-#define KRATOS_DEPRECATED __attribute__((deprecated))
-#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
-#elif defined(_MSC_VER)
-#define KRATOS_DEPRECATED __declspec(deprecated)
-#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
-#else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define KRATOS_DEPRECATED
-#define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
-#endif
-
 
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
@@ -755,7 +741,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic push) \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic ignored "-Wdeprecated-declarations")
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUG__) && !defined(__INTEL_COMPILER)
 #define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic push) \
@@ -764,6 +750,8 @@ KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic ignored "-Wdeprecated-decla
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(push))\
 __pragma(warning(disable: 4996))
+#else
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 // The following block defines the macro KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING which ends the scope for
@@ -771,12 +759,14 @@ __pragma(warning(disable: 4996))
 #if defined(__clang__)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("clang diagnostic pop")
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUG__) && !defined(__INTEL_COMPILER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("GCC diagnostic pop")
 #elif defined(_MSC_VER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(pop))
+#else
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 
@@ -812,10 +802,7 @@ namespace Kratos
 }  /* namespace Kratos.*/
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
-	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
+    Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
 
 #define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType) \
-	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
-
-
-#endif /* KRATOS_DEFINE_H_INCLUDED  defined */
+    Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));

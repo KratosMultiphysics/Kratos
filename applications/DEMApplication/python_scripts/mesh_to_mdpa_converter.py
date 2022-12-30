@@ -7,17 +7,28 @@ mdpa_namefile = sys.argv[2] + '.mdpa'
 SpheresMesh = open(mesh_namefile, 'r')
 SpheresMdpa = open(mdpa_namefile, 'w')
 
+'''
+If triaxial test, then Test_type = 1
+If BTS test, then Test_type = 2
+If SP, then Test_type = 3
+'''
+Test_type = 3
 top = 0.0
 bottom = 0.0
 radius = 0.0
-Triaxial = False
+internal_tol_factor = 2.0
+external_tol_factor = 1.0
+mean_particle_radius = 2e-3
+# Ring dimensions
+internal_radius = 0.1
+external_radius = 0.15
 
-# Test type
-if Triaxial:
+# Test type: Triaxial or BTS
+if Test_type == 1:
     top = 0.002771549
     bottom = 0.0
     radius = 0.0006907713
-else:
+elif Test_type == 2:
     top = 0.0008956682
     bottom = 0.0
     radius = 0.001222598
@@ -33,6 +44,7 @@ element_list = []
 radius_list = []
 props_list = []
 zeros_list = []
+skin_list = []
 
 for Line in SpheresMesh:
 
@@ -50,21 +62,30 @@ for Line in SpheresMesh:
         data[2] = float(data[2])
         data[3] = float(data[3])
         
-        if Triaxial:
+        if Test_type == 1:
             if data[2] > top:
                 continue
             if data[2] < bottom:
                 continue
             if (data[1] * data[1] + data[3] * data[3] > radius * radius):
                 continue
-        else:
+        elif Test_type == 2:
             if data[3] > top:
                 continue
             if data[3] < bottom:
                 continue
             if (data[1] * data[1] + data[2] * data[2] > radius * radius):
                 continue
-                
+        else:
+            if (data[1] * data[1] + data[2] * data[2] > external_radius * external_radius):
+                continue
+            if (data[1] * data[1] + data[2] * data[2] < (internal_radius + mean_particle_radius) * (internal_radius + mean_particle_radius)):
+                continue
+            if (data[1] * data[1] + data[2] * data[2] > (external_radius - external_tol_factor * mean_particle_radius) * (external_radius - external_tol_factor * mean_particle_radius)):
+                skin_list.append(data[0])
+            if (data[1] * data[1] + data[2] * data[2] < (internal_radius + internal_tol_factor * mean_particle_radius) * (internal_radius + internal_tol_factor * mean_particle_radius)):
+                skin_list.append(data[0])
+            
         node_list.append(data[0])
         element_list.append(data[0])
         coord_x_list.append(data[1])
@@ -76,7 +97,7 @@ for Line in SpheresMesh:
         element_section_started = True
         continue
     
-    if element_section_started: # and not element_section_finished:
+    if element_section_started:
         if Line.startswith('End Elements'):
             break
         data = Line.split(" ")
@@ -85,7 +106,10 @@ for Line in SpheresMesh:
         data[3] = int(data[3])
         if data[0] in element_list:
             radius_list.append(data[2])
-            props_list.append(data[3])
+            if Test_type < 3:
+                props_list.append(data[3])
+            else:
+                props_list.append(1)
 
 zeros_list = [int(i) for i in zeros_list]
 
@@ -142,8 +166,12 @@ for i in range(len(node_list)):
     SpheresMdpa.write("%i %i %i\n" % (node_list[i], zeros_list[i], props_list[i]))
     
 SpheresMdpa.write('''End NodalData\n
-Begin NodalData SKIN_SPHERE
-End NodalData\n
+Begin NodalData SKIN_SPHERE\n''')
+if Test_type == 3:
+    for i in range(len(skin_list)):
+        SpheresMdpa.write("%i %i %i\n" % (skin_list[i], zeros_list[i], props_list[i]))
+
+SpheresMdpa.write('''End NodalData\n
 Begin SubModelPart PartsCont_dem // Group dem // Subtree PartsCont
     Begin SubModelPartNodes\n''')
 

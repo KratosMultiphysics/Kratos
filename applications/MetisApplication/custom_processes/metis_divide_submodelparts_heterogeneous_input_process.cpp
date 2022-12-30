@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_processes/metis_divide_submodelparts_heterogeneous_input_process.h"
+#include "custom_utilities/legacy_partitioning_utilities.h" // TODO remove
 
 namespace Kratos {
 
@@ -75,7 +76,7 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
             idxtype* node_connectivities = 0;
 
 
-            ConvertKratosToCSRFormat(reduced_kratos_format_node_connectivities, &node_indices, &node_connectivities);
+            LegacyPartitioningUtilities::ConvertKratosToCSRFormat(reduced_kratos_format_node_connectivities, &node_indices, &node_connectivities);
 
             PartitionNodes(reduced_kratos_format_node_connectivities.size(), node_indices, node_connectivities, submodelpart_partition_nodes);
 

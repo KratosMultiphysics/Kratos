@@ -12,14 +12,12 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
-#define  KRATOS_MODEL_PART_IO_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
+#include <filesystem>
 #include <fstream>
-#include <set>
-#include <typeinfo>
+#include <string>
 #include <unordered_set>
 
 // External includes
@@ -27,7 +25,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
-#include "utilities/timer.h"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -84,9 +81,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filenames.
+    /// Constructor with filename.
     ModelPartIO(
-        std::string const& Filename,
+        std::filesystem::path const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Constructor with stream.
@@ -447,8 +444,7 @@ private:
 
     SizeType mNumberOfLines;
 
-    std::string mBaseFilename;
-    std::string mFilename;
+    std::filesystem::path mBaseFilename;
     Flags mOptions;
 
     Kratos::shared_ptr<std::iostream> mpStream;
@@ -606,6 +602,19 @@ private:
     void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+    void DivideInputToPartitionsImpl(
+        OutputFilesContainerType& rOutputFiles,
+        SizeType NumberOfPartitions,
+        GraphType const& rDomainsColoredGraph,
+        PartitionIndicesType const& rNodesPartitions,
+        // PartitionIndicesType const& rGeometriesPartitions,
+        PartitionIndicesType const& rElementsPartitions,
+        PartitionIndicesType const& rConditionsPartitions,
+        PartitionIndicesContainerType const& rNodesAllPartitions,
+        // PartitionIndicesContainerType const& rGeometriesAllPartitions,
+        PartitionIndicesContainerType const& rElementsAllPartitions,
+        PartitionIndicesContainerType const& rConditionsAllPartitions);
 
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
@@ -800,5 +809,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_IO_H_INCLUDED  defined

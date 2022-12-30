@@ -22,6 +22,9 @@ scripts/*.bat
 build/*
 bin/*
 
+# Autocopied file
+kratos/scripts/wheels/README.md
+
 # Times files
 *.time
 
