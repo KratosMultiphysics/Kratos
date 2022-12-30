@@ -119,13 +119,6 @@ protected:
     double mA1;
 
     ///@}
-    ///@name Protected Operations
-    ///@{
-
-    double CalculateEffectiveViscosity(
-        const ProcessInfo& rCurrentProcessInfo);
-
-    ///@}
 };
 
 ///@}
