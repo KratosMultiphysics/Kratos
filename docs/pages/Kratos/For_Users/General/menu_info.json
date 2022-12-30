@@ -1,6 +1,6 @@
 {
     "custom_entries": [
-        "../../../../index.md",
+        "../../../index.md",
         "Overview.md",
         "Management_Structure.md",
         "General_Structure.md",
