@@ -379,100 +379,98 @@ void SkinDetectionProcess<TDim>::FilterMPIInterfaceNodes(
     HashMapVectorIntType& rInverseFaceMap
     )
 {
-    if (rSetNodeIdsInterface.size() > 0) {
-        // First determine with the nodes in the MPI interface wich faces are potentially removable
-        std::vector<VectorIndexType> faces_to_remove;
-        bool to_remove;
-        for (auto& r_map : rInverseFaceMap) {
-            to_remove = true;
-            const VectorIndexType& r_vector_ids = r_map.first;
-            const VectorIndexType& r_nodes_face = r_map.second;
-            for (auto& r_index : r_nodes_face) {
-                if (rSetNodeIdsInterface.find(r_index) == rSetNodeIdsInterface.end()) {
-                    to_remove = false;
-                    continue;
-                }
-            }
-            if (to_remove) {
-                faces_to_remove.push_back(r_vector_ids);
-            }            
-        }
-
-        /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
-        
-        // First we determine the rank and the size of the world
-        const auto& r_communicator = mrModelPart.GetCommunicator();
-        const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-        // const auto rank = r_data_communicator.Rank();
-        // const auto world_size = r_data_communicator.Size();
-        const auto& r_neighbour_indices = r_communicator.NeighbourIndices();
-        std::vector<int> neighbour_indices;
-        for (auto& r_index : r_neighbour_indices) {
-            if (r_index >= 0) {
-                neighbour_indices.push_back(r_index);
+    // First determine with the nodes in the MPI interface wich faces are potentially removable
+    std::vector<VectorIndexType> faces_to_remove;
+    bool to_remove;
+    for (auto& r_map : rInverseFaceMap) {
+        to_remove = true;
+        const VectorIndexType& r_vector_ids = r_map.first;
+        const VectorIndexType& r_nodes_face = r_map.second;
+        for (auto& r_index : r_nodes_face) {
+            if (rSetNodeIdsInterface.find(r_index) == rSetNodeIdsInterface.end()) {
+                to_remove = false;
+                continue;
             }
         }
+        if (to_remove) {
+            faces_to_remove.push_back(r_vector_ids);
+        }            
+    }
 
-        // We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
-        {
-            // Define the send tag
-            const int tag_send = 1;
-
-            // We generate the hash of the faces to use the communicator to send
-            std::unordered_map<std::size_t, bool> faces_mpi_counter;
-            std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
-            std::vector<std::size_t> faces_to_remove_hash;
-            VectorIndexHasher<std::vector<std::size_t>> vector_hasher;
-            faces_to_remove_hash.reserve(faces_to_remove.size());
-            for (auto& r_face_to_remove : faces_to_remove) {
-                const std::size_t hash_face = vector_hasher(r_face_to_remove);
-                faces_to_remove_hash.push_back(hash_face);
-                faces_mpi_counter.insert({hash_face, false});
-                faces_hash_map.insert({hash_face, r_face_to_remove});
-            }
-
-            // We send the list of the faces to be removed from the current ramk to the neighbour ranks
-            for (auto& r_destination_rank : neighbour_indices) {
-                // We send the faces_to_remove_hash to the other processes
-                r_data_communicator.Send(faces_to_remove_hash, r_destination_rank, tag_send);
-            }
-
-            // Now we receive the faces_to_remove from the rest of the processes
-            for (auto& r_origin_rank : neighbour_indices) {
-                std::vector<std::size_t> rec_faces_to_remove_hash;
-                r_data_communicator.Recv(rec_faces_to_remove_hash, r_origin_rank, tag_send);
-
-                // Update the faces to be removed
-                for (auto& r_hash_hash : rec_faces_to_remove_hash) {
-                    auto it_find_face = faces_mpi_counter.find(r_hash_hash);
-                    if (it_find_face != faces_mpi_counter.end()) {
-                        it_find_face->second = true;
-                    }
-                }
-            }
-
-            // Now we create the vector of ids to be removed
-            std::vector<std::size_t> final_faces_to_remove;
-            for (auto& r_face_pair : faces_mpi_counter) {
-                if (r_face_pair.second) {
-                    final_faces_to_remove.push_back(r_face_pair.first);
-                }
-            }
-
-            // Finally filter the faces to be removed
-            faces_to_remove.clear();
-            for (auto& r_face_to_remove : final_faces_to_remove) {
-                auto it_find_face = faces_hash_map.find(r_face_to_remove);
-                if (it_find_face != faces_hash_map.end()) {
-                    faces_to_remove.push_back(it_find_face->second);
-                }
-            }
+    /* Not all the faces are going to be removed, only the ones which are repeated in different processes. So we need to filter then. */
+    
+    // First we determine the rank and the size of the world
+    const auto& r_communicator = mrModelPart.GetCommunicator();
+    const auto& r_data_communicator = r_communicator.GetDataCommunicator();
+    // const auto rank = r_data_communicator.Rank();
+    // const auto world_size = r_data_communicator.Size();
+    const auto& r_neighbour_indices = r_communicator.NeighbourIndices();
+    std::vector<int> neighbour_indices;
+    for (auto& r_index : r_neighbour_indices) {
+        if (r_index >= 0) {
+            neighbour_indices.push_back(r_index);
         }
+    }
 
-        // Finally we remove the MPi interface faces
+    // We define a scope, so everything will be removed at the end, except the clean up of the faces_to_remove
+    {
+        // Define the send tag
+        const int tag_send = 1;
+
+        // We generate the hash of the faces to use the communicator to send
+        std::unordered_map<std::size_t, bool> faces_mpi_counter;
+        std::unordered_map<std::size_t, VectorIndexType> faces_hash_map;
+        std::vector<std::size_t> faces_to_remove_hash;
+        VectorIndexHasher<std::vector<std::size_t>> vector_hasher;
+        faces_to_remove_hash.reserve(faces_to_remove.size());
         for (auto& r_face_to_remove : faces_to_remove) {
-            rInverseFaceMap.erase(r_face_to_remove);
+            const std::size_t hash_face = vector_hasher(r_face_to_remove);
+            faces_to_remove_hash.push_back(hash_face);
+            faces_mpi_counter.insert({hash_face, false});
+            faces_hash_map.insert({hash_face, r_face_to_remove});
         }
+
+        // We send the list of the faces to be removed from the current ramk to the neighbour ranks
+        for (auto& r_destination_rank : neighbour_indices) {
+            // We send the faces_to_remove_hash to the other processes
+            r_data_communicator.Send(faces_to_remove_hash, r_destination_rank, tag_send);
+        }
+
+        // Now we receive the faces_to_remove from the rest of the processes
+        for (auto& r_origin_rank : neighbour_indices) {
+            std::vector<std::size_t> rec_faces_to_remove_hash;
+            r_data_communicator.Recv(rec_faces_to_remove_hash, r_origin_rank, tag_send);
+
+            // Update the faces to be removed
+            for (auto& r_hash_hash : rec_faces_to_remove_hash) {
+                auto it_find_face = faces_mpi_counter.find(r_hash_hash);
+                if (it_find_face != faces_mpi_counter.end()) {
+                    it_find_face->second = true;
+                }
+            }
+        }
+
+        // Now we create the vector of ids to be removed
+        std::vector<std::size_t> final_faces_to_remove;
+        for (auto& r_face_pair : faces_mpi_counter) {
+            if (r_face_pair.second) {
+                final_faces_to_remove.push_back(r_face_pair.first);
+            }
+        }
+
+        // Finally filter the faces to be removed
+        faces_to_remove.clear();
+        for (auto& r_face_to_remove : final_faces_to_remove) {
+            auto it_find_face = faces_hash_map.find(r_face_to_remove);
+            if (it_find_face != faces_hash_map.end()) {
+                faces_to_remove.push_back(it_find_face->second);
+            }
+        }
+    }
+
+    // Finally we remove the MPi interface faces
+    for (auto& r_face_to_remove : faces_to_remove) {
+        rInverseFaceMap.erase(r_face_to_remove);
     }
 }
 
