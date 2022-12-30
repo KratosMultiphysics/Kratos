@@ -334,8 +334,6 @@ void VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         // get surface properties from condition
         const PropertiesType& r_cond_properties = this->GetProperties();
         const double beta = r_cond_properties.GetValue(WALL_SMOOTHNESS_BETA);
-        const double y_plus_limit = r_cond_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
-        const double inv_kappa = 1.0 / kappa;
 
         array_1d<double, 3> wall_velocity;
 

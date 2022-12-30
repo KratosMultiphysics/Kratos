@@ -49,7 +49,6 @@ void KElementData<TDim>::Check(
 
     const auto& r_geometry = rElement.GetGeometry();
     const auto& r_properties = rElement.GetProperties();
-    const int number_of_nodes = r_geometry.PointsNumber();
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
