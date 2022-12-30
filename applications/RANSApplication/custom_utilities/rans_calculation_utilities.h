@@ -105,7 +105,7 @@ void CalculateYPlusAndUtau(
     const int MaxIterations = 20,
     const double Tolerance = 1e-6);
 
-double CalculateWallHeight(
+double KRATOS_API(RANS_APPLICATION) CalculateWallHeight(
     const ConditionType& rCondition,
     const array_1d<double, 3>& rNormal);
 
