@@ -153,7 +153,7 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,closest_element) :
     # Find the PROJECTION for each of the surrogate nodes on the closest skin element
     # 1.0.1 Initialize a matrix with the coordinates of the projections
     projection_surr_nodes = [[0 for _ in range(2)] for _ in range(tot_sur_nodes)]
-    # file_tre = open("projection_surr_nodes.txt", "w")
+    file_tre = open("projection_surr_nodes.txt", "w")
     # 1.1 Run over each surrogate node take the closest skin element
     i = 0
     for node in model_part.Nodes :
@@ -233,12 +233,12 @@ def Find_projections(model_part,skin_model_part,tot_sur_nodes,closest_element) :
                 else :
                     # We have found the correct projection
                     print('Trovata proiezione nel secondo elemento più vicino del nodo : ', node.Id)
-            # file_tre.write(str(projection_surr_nodes[i][0]))
-            # file_tre.write('  ')
-            # file_tre.write(str(projection_surr_nodes[i][1]))
-            # file_tre.write('\n')
+            file_tre.write(str(projection_surr_nodes[i][0]))
+            file_tre.write('  ')
+            file_tre.write(str(projection_surr_nodes[i][1]))
+            file_tre.write('\n')
             i = i + 1
-    # file_tre.close()
+    file_tre.close()
     print("--> %s seconds for Find_projections" % (time.time() - start_time))
     return projection_surr_nodes
 
@@ -480,10 +480,10 @@ def ComputeGradientCoefficients (sub_model_part_fluid, model,surrogate_sub_model
     """)
 
     # CALCOLO DEI COEFFICIENTI PER IL CALCOLO DEL GRADIENTE
-    a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtilityCopy(model,Parameters)
+    a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtilityCopy2(model,Parameters)
     # a = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(model,Parameters)
     result = a.SetSurrogateBoundaryNodalGradientWeights()
-    result2 = a.NodalGradientWeightsForLonelyNodes()
+    # result2 = a.NodalGradientWeightsForLonelyNodes()
 
     # CHECK IF THE ARE VERY_PROBLEMATIC ELEMENTS
     number_very_problematic = 0
@@ -498,9 +498,10 @@ def ComputeGradientCoefficients (sub_model_part_fluid, model,surrogate_sub_model
                     
 
     print('Number of surr nodes : ', len(surrogate_sub_model_part.Nodes))
-    print('Number of result2 : ', len(result2)- number_very_problematic)
+    # print('Number of result2 : ', len(result2)- number_very_problematic)
     print('Number of VERY_PROBLEMATIC nodes : ', number_very_problematic)
-    return result, result2
+    # return result, result2
+    return result
 
 def Compute_T_matrix (result, node, projection_surr_nodes, i) :
     my_result = result[node.Id]
@@ -520,6 +521,7 @@ def Compute_T_matrix (result, node, projection_surr_nodes, i) :
 
 def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_element, projection_surr_nodes, T, node, j) :
     my_result = result[node.Id]
+    # print(node.Id)
     DofMasterVector = []
     if node.IsNot(SLAVE) :
         CoeffVector = KratosMultiphysics.Vector(len(my_result)-1)
@@ -532,7 +534,9 @@ def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_eleme
     i = 0
     k = 0
     Coeff_Slave = 0
+    # print("node ->", node.Id)
     for key, value in my_result.items() :
+        # print(key)
         node_master = main_model_part.GetNode(key)
         if node.IsNot(SLAVE) :
             # Need to find the "node" term and bring it to the left-hand-side
@@ -555,5 +559,8 @@ def Impose_MPC_Globally (main_model_part, result, skin_model_part, closest_eleme
     CoeffMatrix = KratosMultiphysics.Matrix(np.array(CoeffVector).reshape(1,-1))
     DofSlaveVector = [node.GetDof(KratosMultiphysics.TEMPERATURE)]
     # Create the constraint
+    # print("-----------------------")
+    # print(node.Id)
     main_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", j, DofMasterVector, DofSlaveVector, CoeffMatrix, ConstantVector)
+    
     return 0 

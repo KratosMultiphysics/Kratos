@@ -25,15 +25,15 @@
 #include "utilities/rbf_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/shifted_boundary_meshless_interface_utility_copy.h"
+#include "utilities/shifted_boundary_meshless_interface_utility_copy2.h"
 
 namespace Kratos
 {
 
 namespace
 {
-    using GeometryType = ShiftedBoundaryMeshlessInterfaceUtilityCopy::GeometryType;
-    using ModifiedShapeFunctionsFactoryType = ShiftedBoundaryMeshlessInterfaceUtilityCopy::ModifiedShapeFunctionsFactoryType;
+    using GeometryType = ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GeometryType;
+    using ModifiedShapeFunctionsFactoryType = ShiftedBoundaryMeshlessInterfaceUtilityCopy2::ModifiedShapeFunctionsFactoryType;
 
     /**
      * @brief Check if current geometry is split
@@ -123,7 +123,7 @@ namespace
     }
 }
 
-    ShiftedBoundaryMeshlessInterfaceUtilityCopy::ShiftedBoundaryMeshlessInterfaceUtilityCopy(
+    ShiftedBoundaryMeshlessInterfaceUtilityCopy2::ShiftedBoundaryMeshlessInterfaceUtilityCopy2(
         Model& rModel,
         Parameters ThisParameters)
     {
@@ -181,7 +181,7 @@ namespace
         mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
     };
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateExtensionOperator()
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::CalculateExtensionOperator()
     {
         if (mExtensionOperator == ExtensionOperator::GradientBased) {
             CalculateGradientBasedConformingExtensionBasis();
@@ -194,7 +194,7 @@ namespace
         }
     }
 
-    const Parameters ShiftedBoundaryMeshlessInterfaceUtilityCopy::GetDefaultParameters() const
+    const Parameters ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GetDefaultParameters() const
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
@@ -209,7 +209,7 @@ namespace
         return default_parameters;
     }
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateGradientBasedConformingExtensionBasis()
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::CalculateGradientBasedConformingExtensionBasis()
     {
         // Get DOMAIN_SIZE
         const auto& r_process_info = mpModelPart->GetProcessInfo();
@@ -481,7 +481,7 @@ namespace
         }
     }
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateMeshlessBasedConformingExtensionBasis()
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::CalculateMeshlessBasedConformingExtensionBasis()
     {
         // Set the required interface flags
         // SetInterfaceFlags();             // OOOOOOOOOOCCHIOOOOOOOOO
@@ -676,7 +676,7 @@ namespace
         }
     }
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateMeshlessBasedNonConformingExtensionBasis()
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::CalculateMeshlessBasedNonConformingExtensionBasis()
     {
         // Set the required interface flags
         // SetInterfaceFlags();             // OOOOOOOOOOCCHIOOOOOOOOO
@@ -767,7 +767,7 @@ namespace
         }
     }
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::SetInterfaceFlags()
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::SetInterfaceFlags()
     {
         // Initialize flags to false
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
@@ -831,7 +831,7 @@ namespace
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtilityCopy::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy::GetMLSShapeFunctionsAndGradientsFunction() const
+    ShiftedBoundaryMeshlessInterfaceUtilityCopy2::MLSShapeFunctionsAndGradientsFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GetMLSShapeFunctionsAndGradientsFunction() const
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -861,7 +861,7 @@ namespace
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtilityCopy::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy::GetMLSShapeFunctionsFunction() const
+    ShiftedBoundaryMeshlessInterfaceUtilityCopy2::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GetMLSShapeFunctionsFunction() const
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
@@ -891,14 +891,14 @@ namespace
         }
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtilityCopy::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy::GetRBFShapeFunctionsFunction() const
+    ShiftedBoundaryMeshlessInterfaceUtilityCopy2::MeshlessShapeFunctionsFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GetRBFShapeFunctionsFunction() const
     {
         return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
             RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);
         };
     }
 
-    ShiftedBoundaryMeshlessInterfaceUtilityCopy::ElementSizeFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy::GetElementSizeFunction(const GeometryType& rGeometry)
+    ShiftedBoundaryMeshlessInterfaceUtilityCopy2::ElementSizeFunctionType ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GetElementSizeFunction(const GeometryType& rGeometry)
     {
         switch (rGeometry.GetGeometryType()) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
@@ -910,7 +910,7 @@ namespace
         }
     }
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::SetSplitElementSupportCloud(
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::SetSplitElementSupportCloud(
         const Element& rSplitElement,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
@@ -995,7 +995,7 @@ namespace
         }
     }
 
-    void ShiftedBoundaryMeshlessInterfaceUtilityCopy::SetNegativeNodeSupportCloud(
+    void ShiftedBoundaryMeshlessInterfaceUtilityCopy2::SetNegativeNodeSupportCloud(
         const NodeType& rNegativeNode,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
@@ -1081,7 +1081,7 @@ namespace
         });
     }
 
-    double ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateKernelRadius(
+    double ShiftedBoundaryMeshlessInterfaceUtilityCopy2::CalculateKernelRadius(
         const Matrix& rCloudCoordinates,
         const array_1d<double,3>& rOrigin)
     {
@@ -1092,7 +1092,7 @@ namespace
         return std::sqrt(squared_rad);
     }
 
-    std::size_t ShiftedBoundaryMeshlessInterfaceUtilityCopy::GetRequiredNumberOfPoints()
+    std::size_t ShiftedBoundaryMeshlessInterfaceUtilityCopy2::GetRequiredNumberOfPoints()
     {
         const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
         switch (n_dim) {
@@ -1130,7 +1130,521 @@ namespace
     //////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
-    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtilityCopy::SetSurrogateBoundaryNodalGradientWeights()
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtilityCopy2::SetSurrogateBoundaryNodalGradientWeights()
+    {
+        std::unordered_map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
+        int number_2nd_level = 0 ;
+        int number_3rd_level = 0 ;
+        int number_4th_level = 0 ;
+        for (auto& r_bd_node : mpModelPart->Nodes()) {
+            auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
+            if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {
+                // KRATOS_WATCH(r_bd_node.Id())
+                // 1.1 Check if there is at least one available element for compute the gradient
+                // There are available elements? Let's count them
+                int count_avail_elements = 0 ;        
+                // Get the neighbours elements 
+                auto& r_elem_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_ELEMENTS);
+                // Count how many of them are available for MPC
+                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                    if (p_elem_neigh->IsNot(INTERFACE)) {
+                        if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
+                            count_avail_elements = count_avail_elements + 1 ; 
+                        }
+                    }
+                }
+                // KRATOS_WATCH(count_avail_elements)
+                if (count_avail_elements > 0) {
+                    // Easiest case
+                    // Set an auxilary map to calculate the current node nodal gradient contributions
+                    std::map<std::size_t, Vector> neigh_dn_dx_map;
+                    // Calculate the nodal gradient coefficients in the ACTIVE elements neighbouring current node
+                    double w_total = 0.0;
+                    int count = 0 ;
+                    auto& r_elem_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_ELEMENTS);
+                    for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                        auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                        if (p_elem_neigh->IsNot(INTERFACE)) {
+                            if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
+                                count = count + 1 ;
+                                // Calculate the current element weight
+                                const auto& r_geom = p_elem_neigh->GetGeometry();
+                                const std::size_t n_nodes = r_geom.PointsNumber();
+                                const double w = r_geom.DomainSize() / n_nodes;
+                                w_total += w;
+                                // Calculate the current element nodal gradient
+                                // Note that in here we assume that the gradient is constant within the element (simplex geometries)
+                                ShapeFunctionsGradientsType grad_N;
+                                r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
+                                // Save the current element nodal weights
+                                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                                    std::size_t aux_id = r_geom[i_node].Id();
+                                    const Vector r_node_dn_dx = row(grad_N[0], i_node);
+                                    auto it_found = neigh_dn_dx_map.find(aux_id);
+                                    if (it_found != neigh_dn_dx_map.end()) {
+                                        auto& r_val = it_found->second;
+                                        r_val += w*r_node_dn_dx;
+                                    } else {
+                                        neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    // Divide current coefficients by the total weight
+                    for (auto& neigh_data : neigh_dn_dx_map) {
+                        auto& r_val = neigh_data.second;
+                        r_val /= w_total;
+                    }
+                    // Update the surrogate nodes data
+                    sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
+                } else {
+                    // KRATOS_WATCH("second level neighbours nodes")
+                    r_bd_node.Set(SLAVE, true); 
+                    // Need to pass to "second level" neighbours nodes
+                    // Get the neighbours nodes available -> Not BOUNDARY and DISTANCE > 0
+                    auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
+                    // Initializa the pointers for the neighbours that have available elements
+                    Geometry<Node<3>>::PointsArrayType r_node_neighS;
+                    int count_available_neigh_node = 0 ;
+                    for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
+                        auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
+                        double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
+                        if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY)) {
+                            auto& r_node_neighbour = *p_node_neigh  ;
+                            // Check if around these neighbours nodes there are available elements
+                            int count_avail_elements_2nd = 0 ;        
+                            // Get the neighbours elements of this neighbour node
+                            auto& r_elem_neigh_vect = r_node_neighbour.GetValue(NEIGHBOUR_ELEMENTS);
+                            // Count how many of them are available for MPC
+                            for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                                auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                                if (p_elem_neigh->IsNot(BOUNDARY) && p_elem_neigh->Is(MARKER)) {
+                                    count_avail_elements_2nd = count_avail_elements_2nd + 1 ; 
+                                }
+                            }
+                            // KRATOS_WATCH(count_avail_elements_2nd)
+                            if (count_avail_elements_2nd > 0) {
+                                count_available_neigh_node = count_available_neigh_node + 1 ; 
+                                // Add this node to the one ok for the calculation of the gradient
+                                r_node_neighS.push_back(p_node_neigh);
+                                // KRATOS_WATCH(r_node_neighS)
+                            }
+                        }       
+                    }
+                    // KRATOS_WATCH(r_node_neighS)
+                    // KRATOS_WATCH(count_available_neigh_node)
+                    // Se ho elementi disponibili -> Calcolo la map
+                    if (count_available_neigh_node > 0) {
+                        // auto& p_node_neigh_vect_TOT = r_node_neighS[0].GetValue(NEIGHBOUR_NODES);
+                        // for (int i = 1 ; i < r_node_neighS.size() ; i++ ) {
+                        //     auto& r_node_i = r_node_neighS[i] ;
+                        //     KRATOS_WATCH(r_node_i.Id())
+                        //     auto& r_node_neigh_vect_i = r_node_i.GetValue(NEIGHBOUR_NODES);
+                        //     for(auto& it : r_node_neigh_vect_i.GetContainer()) {
+                        //         p_node_neigh_vect_TOT.push_back(it);
+                        //     } 
+                        // }
+                        // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                        // // Unique
+                        // p_node_neigh_vect_TOT.Unique() ;    
+                        // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                        // // shrink_to_fit
+                        // p_node_neigh_vect_TOT.shrink_to_fit() ;
+                        // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                        double w_total = 0.0;
+                        // Set an auxilary map to calculate the current node nodal gradient contributions
+                        std::map<std::size_t, Vector> neigh_dn_dx_map;
+                        // for (std::size_t i_neigh = 0; i_neigh < p_node_neigh_vect_TOT.size(); ++i_neigh) {     
+                        for (int i = 0 ; i < r_node_neighS.size() ; i++ ) {     
+                            // auto p_node_neigh = p_node_neigh_vect_TOT(i_neigh).get();
+                            // auto& r_node_ = *p_node_neigh  ;
+                            // KRATOS_WATCH(r_node_neighS[i].Id())
+                            auto p_node_neigh = &r_node_neighS[i];
+                            // KRATOS_WATCH(r_node_.Id())
+                            double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
+                            if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY) ) {
+                                auto& r_node = *p_node_neigh ;
+                                // KRATOS_WATCH(r_node.Id())
+                                auto& r_elem_neigh_vect = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+                                // Inizio calcolo coefficienti
+                                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();   
+                                    if (p_elem_neigh->IsNot(BOUNDARY)) {
+                                        if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
+                                            // Calculate the current element weight
+                                            const auto& r_geom = p_elem_neigh->GetGeometry();
+                                            const std::size_t n_nodes = r_geom.PointsNumber();
+                                            // const double w = r_geom.DomainSize() / n_nodes;
+                                            auto center_coord = r_geom.Center();
+                                            const double w = 1/( (center_coord.X()-r_bd_node.X())*(center_coord.X()-r_bd_node.X()) + (center_coord.Y()-r_bd_node.Y())*(center_coord.Y()-r_bd_node.Y()) ) ;
+                                            w_total += w;
+                                            // Calculate the current element nodal gradient
+                                            // Note that in here we assume that the gradient is constant within the element (simplex geometries)
+                                            ShapeFunctionsGradientsType grad_N;
+                                            r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
+                                            // Save the current element nodal weights
+                                            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                                                std::size_t aux_id = r_geom[i_node].Id();
+                                                // KRATOS_WATCH(r_geom[i_node].Id())
+                                                const Vector r_node_dn_dx = row(grad_N[0], i_node);
+                                                auto it_found = neigh_dn_dx_map.find(aux_id);
+                                                if (it_found != neigh_dn_dx_map.end()) {
+                                                    auto& r_val = it_found->second;
+                                                    r_val += w * r_node_dn_dx;
+                                                } else {
+                                                    neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Divide current coefficients by the total weight
+                        for (auto& neigh_data : neigh_dn_dx_map) {
+                            auto& r_val = neigh_data.second;
+                            r_val /= w_total;
+                        }
+                        // Update the surrogate nodes data
+                        sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
+                        number_2nd_level = number_2nd_level + 1 ;
+                    } else {
+                        KRATOS_WATCH("third level neigh nodes !")
+                        // KRATOS_WATCH(r_bd_node.Id())
+                        // Non ho elementi disponibili attorno ai vicini dei vicini --> LO IMPOSTO SLAVE
+                        r_bd_node.Set(SLAVE, true); 
+                        // Need to search the neighbours of the neighbours
+                        // KRATOS_WATCH("Need to search the neighbours of the neighbours")
+                        auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
+                        Geometry<Node<3>>::PointsArrayType r_node_neighSS;
+                        int count_available_neigh_node = 0 ;
+                        for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
+                            // Generico vicino di r_bd_node
+                            auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
+                            auto& r_node_ss = *p_node_neigh ;
+                            // Per ogni vicino trovo i suoi vicini
+                            auto& r_node_neigh_vect_ss = r_node_ss.GetValue(NEIGHBOUR_NODES);
+                            // Per ognuno di questi vicini controllo se hanno elementi disponibili
+                            for (std::size_t i_neigh_ss = 0; i_neigh_ss < r_node_neigh_vect_ss.size(); ++i_neigh_ss) {
+                                // Generico vicino dei vicini
+                                auto p_node_neigh_ss = r_node_neigh_vect_ss(i_neigh_ss).get();
+                                double &phi_distance = p_node_neigh_ss -> GetSolutionStepValue(DISTANCE);
+                                if (phi_distance > 0 && p_node_neigh_ss->IsNot(BOUNDARY)) {
+                                    auto& r_node_neighbour = *p_node_neigh_ss  ;
+                                    // Check if around these neighbours nodes there are available elements
+                                    int count_avail_elements_3rd = 0 ;        
+                                    // Get the neighbours elements of this neighbour-neighbour node
+                                    auto& r_elem_neigh_vect = r_node_neighbour.GetValue(NEIGHBOUR_ELEMENTS);
+                                    // Count how many of them are available for MPC
+                                    for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                                        auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                                        if (p_elem_neigh->IsNot(BOUNDARY) && p_elem_neigh->Is(MARKER)) {
+                                            count_avail_elements_3rd = count_avail_elements_3rd + 1 ; 
+                                        }
+                                    }
+                                    // KRATOS_WATCH(count_avail_elements_3rd)
+                                    if (count_avail_elements_3rd > 0) {
+                                        count_available_neigh_node = count_available_neigh_node + 1 ; 
+                                        // Add this node to the one ok for the calculation of the gradient
+                                        auto& r_node_ = *p_node_neigh_ss ;
+                                        // KRATOS_WATCH(r_node_.Id())
+                                        // Non voglio due nodi uguali altrimenti non funziona bene Unique
+                                        int diverso = 0 ;
+                                        for (int i=0 ; i < r_node_neighSS.size() ; i ++) {
+                                            if (r_node_.Id() != r_node_neighSS[i].Id()) {
+                                                diverso = diverso + 1 ;
+                                            }
+                                        }
+                                        if (diverso == r_node_neighSS.size()) {
+                                            r_node_neighSS.push_back(p_node_neigh_ss);
+                                            // KRATOS_WATCH(r_node_.Id())
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                        // KRATOS_WATCH(r_node_neighSS)
+                        // KRATOS_WATCH("HO UN NODO VERY PROBLEMATIC")
+                        // KRATOS_WATCH(count_available_neigh_node)
+
+                        if (count_available_neigh_node > 0) {
+                            // // Need to collect all the neighbours
+                            // auto& p_node_neigh_vect_TOT = r_node_neighSS[0].GetValue(NEIGHBOUR_NODES);
+                            // for (int i = 1 ; i < r_node_neighSS.size() ; i++ ) {
+                            //     auto& r_node_i = r_node_neighSS[i] ;
+                            //     auto& r_node_neigh_vect_i = r_node_i.GetValue(NEIGHBOUR_NODES);
+                            //     for(auto& it : r_node_neigh_vect_i.GetContainer()) {
+                            //         p_node_neigh_vect_TOT.push_back(it);
+                            //     } 
+                            // }
+                            // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                            // // Unique
+                            // p_node_neigh_vect_TOT.Unique() ;    
+                            // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                            // // shrink_to_fit
+                            // p_node_neigh_vect_TOT.shrink_to_fit() ;
+                            // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+
+                            // Set an auxilary map to calculate the current node nodal gradient contributions
+                            std::map<std::size_t, Vector> neigh_dn_dx_map;
+                            double w_total = 0.0;
+                            // for (std::size_t i_neigh = 0; i_neigh < p_node_neigh_vect_TOT.size(); ++i_neigh) { 
+                            for (int i = 0 ; i < r_node_neighSS.size() ; i++ ) {    
+                                // auto p_node_neigh = p_node_neigh_vect_TOT(i_neigh).get();
+                                // KRATOS_WATCH(r_node_neighSS[i].Id())
+                                auto p_node_neigh = &r_node_neighSS[i];
+                                double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
+                                if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY) ) {
+                                    auto& r_node = *p_node_neigh ;
+                                    // KRATOS_WATCH(r_node.Id())
+                                    auto& r_elem_neigh_vect = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+                                    // Inizio calcolo coefficienti
+                                    for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                                        auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                                        if (p_elem_neigh->IsNot(BOUNDARY)) {
+                                            if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
+                                                // Calculate the current element weight
+                                                const auto& r_geom = p_elem_neigh->GetGeometry();
+                                                const std::size_t n_nodes = r_geom.PointsNumber();
+                                                // const double w = r_geom.DomainSize() / n_nodes;
+                                                auto center_coord = r_geom.Center();
+                                                // KRATOS_WATCH(r_geom)
+                                                const double w = 1/( (center_coord.X()-r_bd_node.X())*(center_coord.X()-r_bd_node.X()) + (center_coord.Y()-r_bd_node.Y())*(center_coord.Y()-r_bd_node.Y()) ) ;
+                                                w_total += w;
+                                                // Calculate the current element nodal gradient
+                                                // Note that in here we assume that the gradient is constant within the element (simplex geometries)
+                                                ShapeFunctionsGradientsType grad_N;
+                                                r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
+                                                // Save the current element nodal weights
+                                                for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                                                    std::size_t aux_id = r_geom[i_node].Id();
+                                                    // KRATOS_WATCH(r_geom[i_node].Id())
+                                                    const Vector r_node_dn_dx = row(grad_N[0], i_node);
+                                                    auto it_found = neigh_dn_dx_map.find(aux_id);
+                                                    if (it_found != neigh_dn_dx_map.end()) {
+                                                        auto& r_val = it_found->second;
+                                                        r_val += w * r_node_dn_dx;
+                                                    } else {
+                                                        neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Divide current coefficients by the total weight
+                            for (auto& neigh_data : neigh_dn_dx_map) {
+                                auto& r_val = neigh_data.second;
+                                r_val /= w_total;
+                            }
+                            // Update the surrogate nodes data
+                            sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
+                            number_3rd_level = number_3rd_level + 1 ;
+                            // exit(0) ;
+                        } else {
+                            KRATOS_WATCH("Need a fourth level neigh nodes  ")
+                            auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
+                            Geometry<Node<3>>::PointsArrayType r_node_neighSSS;
+                            // For each 1 level neigh node
+                            int count_available_neigh_node = 0 ;
+                            for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
+                                // Generico vicino di r_bd_node
+                                auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
+                                auto& r_node_ss = *p_node_neigh ;
+                                // Per ogni vicino trovo i suoi vicini
+                                auto& r_node_neigh_vect_ss = r_node_ss.GetValue(NEIGHBOUR_NODES);
+                                // Mi serve un loop addizionale per trovare i vicini di quest'ultimi
+                                for (std::size_t i_neigh_ss = 0; i_neigh_ss < r_node_neigh_vect_ss.size(); ++i_neigh_ss) {
+                                    auto p_node_neigh_s = r_node_neigh_vect_ss(i_neigh_ss).get();
+                                    auto& r_node_sss = *p_node_neigh_s ;
+                                    // Per ognuno di loro trovo i suoi vicini
+                                    auto& r_node_neigh_vect_sss = r_node_sss.GetValue(NEIGHBOUR_NODES);
+                                    // Per ognuno di questi vicini controllo se hanno elementi disponibili
+                                    for (std::size_t i_neigh_sss = 0; i_neigh_sss < r_node_neigh_vect_sss.size(); ++i_neigh_sss) {
+                                        // Generico vicino dei vicini
+                                        auto p_node_neigh_ss = r_node_neigh_vect_sss(i_neigh_sss).get();
+                                        double &phi_distance = p_node_neigh_ss -> GetSolutionStepValue(DISTANCE);
+                                        if (phi_distance > 0 && p_node_neigh_ss->IsNot(BOUNDARY)) {
+                                            auto& r_node_neighbour = *p_node_neigh_ss  ;
+                                            // Check if around these neighbours nodes there are available elements
+                                            int count_avail_elements_4rd = 0 ;        
+                                            // Get the neighbours elements of this neighbour-neighbour node
+                                            auto& r_elem_neigh_vect = r_node_neighbour.GetValue(NEIGHBOUR_ELEMENTS);
+                                            // Count how many of them are available for MPC
+                                            for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                                                auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                                                if (p_elem_neigh->IsNot(BOUNDARY) && p_elem_neigh->Is(MARKER)) {
+                                                    count_avail_elements_4rd = count_avail_elements_4rd + 1 ; 
+                                                }
+                                            }
+                                            // KRATOS_WATCH(count_avail_elements_4rd)
+                                            if (count_avail_elements_4rd > 0) {
+                                                count_available_neigh_node = count_available_neigh_node + 1 ; 
+                                                // Add this node to the one ok for the calculation of the gradient
+                                                auto& r_node_ = *p_node_neigh_ss ;
+                                                // Non voglio due nodi uguali altrimenti non funziona bene Unique
+                                                int diverso = 0 ;
+                                                for (int i=0 ; i < r_node_neighSSS.size() ; i ++) {
+                                                    if (r_node_.Id() != r_node_neighSSS[i].Id()) {
+                                                        diverso = diverso + 1 ;
+                                                    }
+                                                }
+                                                if (diverso == r_node_neighSSS.size()) {
+                                                    r_node_neighSSS.push_back(p_node_neigh_ss);
+                                                    // KRATOS_WATCH(r_node_.Id())
+                                                } 
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            KRATOS_WATCH(r_node_neighSSS)
+                            // KRATOS_WATCH("VERY_VERY_PROBLEMATIC NODE")
+                            // KRATOS_WATCH(count_available_neigh_node)
+                            if (count_available_neigh_node > 0) {
+                                // Need to collect all the neighbours
+                                // auto& p_node_neigh_vect_TOT = r_node_neighSSS[0].GetValue(NEIGHBOUR_NODES);
+                                // for (int i = 1 ; i < r_node_neighSSS.size() ; i++ ) {
+                                //     auto& r_node_i = r_node_neighSSS[i] ;
+                                //     auto& r_node_neigh_vect_i = r_node_i.GetValue(NEIGHBOUR_NODES);
+                                //     for(auto& it : r_node_neigh_vect_i.GetContainer()) {
+                                //         p_node_neigh_vect_TOT.push_back(it);
+                                //     } 
+                                // }
+                                // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                                // Unique
+                                // p_node_neigh_vect_TOT.Unique() ;    
+                                // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+                                // shrink_to_fit
+                                // p_node_neigh_vect_TOT.shrink_to_fit() ;
+                                // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
+            
+                                // Set an auxilary map to calculate the current node nodal gradient contributions
+                                std::map<std::size_t, Vector> neigh_dn_dx_map;
+                                double w_total = 0.0;
+                                for (int i = 0 ; i < r_node_neighSSS.size() ; i++ ) {  
+                                // for (std::size_t i_neigh = 0; i_neigh < p_node_neigh_vect_TOT.size(); ++i_neigh) {   
+                                    // auto p_node_neigh = p_node_neigh_vect_TOT(i_neigh).get();
+                                    auto p_node_neigh = &r_node_neighSSS[i] ;
+                                    // auto& r_node_ = *p_node_neigh  ;
+                                    // KRATOS_WATCH(r_node_.Id())
+                                    double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
+                                    if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY) ) {
+                                        auto& r_node = *p_node_neigh ;
+                                        auto& r_elem_neigh_vect = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+                                        // Inizio calcolo coefficienti
+                                        for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
+                                            auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
+                                            if (p_elem_neigh->IsNot(BOUNDARY)) {
+                                                if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
+                                                    // Calculate the current element weight
+                                                    const auto& r_geom = p_elem_neigh->GetGeometry();
+                                                    const std::size_t n_nodes = r_geom.PointsNumber();
+                                                    // const double w = r_geom.DomainSize() / n_nodes;
+                                                    auto center_coord = r_geom.Center();
+                                                    const double w = 1/( (center_coord.X()-r_bd_node.X())*(center_coord.X()-r_bd_node.X()) + (center_coord.Y()-r_bd_node.Y())*(center_coord.Y()-r_bd_node.Y()) ) ;
+                                                    w_total += w;
+                                                    // Calculate the current element nodal gradient
+                                                    // Note that in here we assume that the gradient is constant within the element (simplex geometries)
+                                                    ShapeFunctionsGradientsType grad_N;
+                                                    r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+                                                    // Save the current element nodal weights
+                                                    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+                                                        std::size_t aux_id = r_geom[i_node].Id();
+                                                        // KRATOS_WATCH(r_geom[i_node].Id())
+                                                        const Vector r_node_dn_dx = row(grad_N[0], i_node);
+                                                        auto it_found = neigh_dn_dx_map.find(aux_id);
+                                                        if (it_found != neigh_dn_dx_map.end()) {
+                                                            auto& r_val = it_found->second;
+                                                            r_val += w * r_node_dn_dx;
+                                                        } else {
+                                                            neigh_dn_dx_map.insert(std::make_pair(aux_id, w * r_node_dn_dx));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // Divide current coefficients by the total weight
+                                for (auto& neigh_data : neigh_dn_dx_map) {
+                                    auto& r_val = neigh_data.second;
+                                    r_val /= w_total;
+                                }
+                                // Update the surrogate nodes data
+                                sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
+                                number_4th_level = number_4th_level + 1 ;
+                            } else {
+                                KRATOS_WATCH("Need 5th level neigh research....")
+                                exit(0) ;
+                            }
+                            // exit(0) ;
+                        }
+                    }
+                }
+            }
+            // if (r_bd_node.Id() == 72448) {
+            //     KRATOS_WATCH("WHAT IS HAPPENING?")
+            //     exit(0) ;
+            // }
+        }
+        KRATOS_WATCH(number_2nd_level)
+        KRATOS_WATCH(number_3rd_level)
+        KRATOS_WATCH(number_4th_level)
+        return sur_bd_nodes_map;
+    }
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //________________________________________________________________________________________________________________
+    //________________________________________________________________________________________________________________
+    //__________________________________NodalGradientWeightsForLonelyNodes_______________________________________
+    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtilityCopy2::NodalGradientWeightsForLonelyNodes()
     {
         std::unordered_map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
         for (auto& r_bd_node : mpModelPart->Nodes()) {
@@ -1274,308 +1788,6 @@ namespace
 
                 // Update the surrogate nodes data
                 sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
-            }
-        }
-        return sur_bd_nodes_map;
-    }
-
-    
-    //________________________________________________________________________________________________________________
-    //________________________________________________________________________________________________________________
-    //__________________________________NodalGradientWeightsForLonelyNodes_______________________________________
-    std::unordered_map<std::size_t, std::map<std::size_t, Vector>> ShiftedBoundaryMeshlessInterfaceUtilityCopy::NodalGradientWeightsForLonelyNodes()
-    {
-        std::unordered_map<std::size_t, std::map<std::size_t, Vector>> sur_bd_nodes_map;
-        for (auto& r_bd_node : mpModelPart->Nodes()) {
-            auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
-            if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {
-                // Calculate the nodal gradient coefficients in the MARKER elements neighbouring current node
-                // There are available elements? Let's count them
-                int count = 0 ;        
-                // Get the neighbours elements 
-                auto& r_elem_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_ELEMENTS);
-                // Count how many of them are available for MPC
-                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                    if (p_elem_neigh->IsNot(INTERFACE)) {
-                        if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
-                            count = count + 1 ; 
-                        }
-                    }
-                }
-                KRATOS_WATCH(count)
-                KRATOS_WATCH(r_bd_node.Id())
-                // The node is either PROBLEMATIC or VERY_PROBLEMATIC
-                if (count == 0) { // There are no available elements around the surrogate node
-                    // KRATOS_WATCH(r_bd_node.Id())
-                    // KRATOS_WATCH("Eccone uno senza <gradiente> !! ")
-                    // Get the neighbours nodes of this surrogate node
-                    auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
-                    // Need to add a if loop for check that the node is not a VERY_PROBLEMATIC one
-                    int count_neigh_nodes = 0 ; // Count the neighbours nodes that have DISTANCE > 0 
-                    for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
-                        auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
-                        double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
-                        if (phi_distance > 0) {
-                            count_neigh_nodes = count_neigh_nodes + 1 ;
-                        }
-                    }
-                    KRATOS_WATCH(count_neigh_nodes)
-                    if (count_neigh_nodes < 3) {
-                        KRATOS_WATCH("VERY_PROBLEMATIC node")
-                        if (count_neigh_nodes < 2) {
-                            KRATOS_WATCH("DAMN PROBLEMATIC node ?")
-                            exit(0) ;
-                        }
-                        int temp = 0 ; // Variable to find the two admissible neigh nodes
-                        auto p_node_neigh1 = r_node_neigh_vect(1).get();
-                        auto p_node_neigh2 = r_node_neigh_vect(1).get(); 
-                        if (r_node_neigh_vect.size() == 0 ) {
-                            KRATOS_WATCH("r_node_neigh_vect.size() == 0 !!! STOP") 
-                            exit(0) ;
-                        }
-                        for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
-                            auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
-                            double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
-                            if (phi_distance > 0) { 
-                                if (temp == 0) {
-                                    p_node_neigh1 = p_node_neigh ;
-                                    temp = 1 ;
-                                }else{
-                                    p_node_neigh2 = p_node_neigh ;
-                                }  
-                            }
-                        }
-                        auto& r_node1 = *p_node_neigh1 ; 
-                        auto& r_node2 = *p_node_neigh2 ;
-                        KRATOS_WATCH(r_node1)
-                        KRATOS_WATCH(r_node2)
-                        // Cerchiamo i vicini dei vicini
-                        auto& r_node_neigh_vect_TOT = r_node1.GetValue(NEIGHBOUR_NODES);
-                        auto& r_node_neigh_vect_2 = r_node2.GetValue(NEIGHBOUR_NODES);
-                        KRATOS_WATCH(r_node_neigh_vect_TOT.size())
-                        KRATOS_WATCH(r_node_neigh_vect_2.size()) 
-                        // push_back
-                        for(auto& it : r_node_neigh_vect_2.GetContainer()) {
-                            r_node_neigh_vect_TOT.push_back(it);
-                        }     
-                        KRATOS_WATCH(r_node_neigh_vect_TOT.size())
-                        // Unique
-                        r_node_neigh_vect_TOT.Unique() ;    
-                        KRATOS_WATCH(r_node_neigh_vect_TOT.size())
-                        // shrink_to_fit
-                        r_node_neigh_vect_TOT.shrink_to_fit() ;
-                        KRATOS_WATCH(r_node_neigh_vect_TOT.size())
-                        
-                        // Inizio processo per calcolo gradiente
-                        for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect_TOT.size(); ++i_neigh) { 
-                            auto p_node_neigh = r_node_neigh_vect_TOT(i_neigh).get();
-                            double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
-                            KRATOS_WATCH(phi_distance)
-                            if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY) ) {
-                                auto& r_node = *p_node_neigh ;
-                                KRATOS_WATCH(r_node.Id())
-                                double w_total = 0.0;
-                                auto& r_elem_neigh_vect = r_node.GetValue(NEIGHBOUR_ELEMENTS);
-                                // Set an auxilary map to calculate the current node nodal gradient contributions
-                                std::map<std::size_t, Vector> neigh_dn_dx_map;
-                                // Inizio calcolo coefficienti
-                                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                                    if (p_elem_neigh->IsNot(BOUNDARY)) {
-                                        if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
-                                            // Calculate the current element weight
-                                            const auto& r_geom = p_elem_neigh->GetGeometry();
-                                            const std::size_t n_nodes = r_geom.PointsNumber();
-                                            // const double w = r_geom.DomainSize() / n_nodes;
-                                            auto center_coord = r_geom.Center();
-                                            const double w = 1/( (center_coord.X()-r_bd_node.X())*(center_coord.X()-r_bd_node.X()) + (center_coord.Y()-r_bd_node.Y())*(center_coord.Y()-r_bd_node.Y()) ) ;
-                                            w_total += w;
-                                            // Calculate the current element nodal gradient
-                                            // Note that in here we assume that the gradient is constant within the element (simplex geometries)
-                                            ShapeFunctionsGradientsType grad_N;
-                                            r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
-
-                                            // Save the current element nodal weights
-                                            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                                                std::size_t aux_id = r_geom[i_node].Id();
-                                                const Vector r_node_dn_dx = row(grad_N[0], i_node);
-                                                auto it_found = neigh_dn_dx_map.find(aux_id);
-                                                if (it_found != neigh_dn_dx_map.end()) {
-                                                    auto& r_val = it_found->second;
-                                                    r_val += w * r_node_dn_dx;
-                                                } else {
-                                                    neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                // Divide current coefficients by the total weight
-                                for (auto& neigh_data : neigh_dn_dx_map) {
-                                    auto& r_val = neigh_data.second;
-                                    r_val /= w_total;
-                                    KRATOS_WATCH(r_val)
-                                }
-                                // Update the surrogate nodes data
-                                sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
-                            }
-                        }
-                        KRATOS_WATCH(r_bd_node.Id())
-                        // if (r_bd_node.Id() == 21232) {
-                        //     exit(0) ; 
-                        // }
-                        
-                    //  STARDARD PROBLEMATIC Node --> ha 3 vicini, but just one not(BOUNDARY)
-                    } else {          
-                        for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
-                            auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
-                            auto& r_node = *p_node_neigh ;
-                            KRATOS_WATCH(r_node.Id())
-                            double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
-                            if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY) ) {
-                                // I get the "internal" node & // Find the node
-                                auto& r_node = *p_node_neigh ;
-                                KRATOS_WATCH(r_node.Id())
-                                // Compute the gradient at this node, without using the elements that
-                                // have at least one surrogate node, i.e. without using the INTERFACE elements
-                                //_______________________________________________________________________________
-                                // Calculate the nodal gradient coefficients in the MARKER elements neighbouring current node
-                                double w_total = 0.0;
-                                auto& r_elem_neigh_vect = r_node.GetValue(NEIGHBOUR_ELEMENTS);
-                                // Set an auxilary map to calculate the current node nodal gradient contributions
-                                std::map<std::size_t, Vector> neigh_dn_dx_map;
-                                // In the case of concave skin_model_part can happend that zero of the elements around 
-                                // the "internal" node is available for compute the gradient --> CONCAVE_PROBLEMATIC node
-                                // Add a check
-                                int count_concave = 0 ;
-                                for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                                    auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                                    if (p_elem_neigh->IsNot(BOUNDARY)) {
-                                        if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
-                                            count_concave = count_concave + 1 ;
-                                            // Calculate the current element weight
-                                            const auto& r_geom = p_elem_neigh->GetGeometry();
-                                            const std::size_t n_nodes = r_geom.PointsNumber();
-                                            // const double w = r_geom.DomainSize() / n_nodes;
-                                            auto center_coord = r_geom.Center();
-                                            const double w = 1/( (center_coord.X()-r_bd_node.X())*(center_coord.X()-r_bd_node.X()) + (center_coord.Y()-r_bd_node.Y())*(center_coord.Y()-r_bd_node.Y()) ) ;
-                                            w_total += w;
-                                            // Calculate the current element nodal gradient
-                                            // Note that in here we assume that the gradient is constant within the element (simplex geometries)
-                                            ShapeFunctionsGradientsType grad_N;
-                                            r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
-
-                                            // Save the current element nodal weights
-                                            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                                                std::size_t aux_id = r_geom[i_node].Id();
-                                                const Vector r_node_dn_dx = row(grad_N[0], i_node);
-                                                auto it_found = neigh_dn_dx_map.find(aux_id);
-                                                if (it_found != neigh_dn_dx_map.end()) {
-                                                    auto& r_val = it_found->second;
-                                                    r_val += w * r_node_dn_dx;
-                                                } else {
-                                                    neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                // just if the node is not a CONCAVE_PROBLEMATIC node
-                                if (count_concave !=0 ) {
-                                    // Divide current coefficients by the total weight
-                                    for (auto& neigh_data : neigh_dn_dx_map) {
-                                        auto& r_val = neigh_data.second;
-                                        r_val /= w_total;
-                                    
-                                    }
-                                    // Update the surrogate nodes data
-                                    sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
-                                }
-                                // Check if there are CONCAVE_PROBLEMATIC nodes :
-                                if (count_concave == 0) {
-                                    KRATOS_WATCH("CONCAVE_PROBLEMATIC node")
-                                    KRATOS_WATCH(r_bd_node.Id())
-                                    // KRATOS_WATCH(r_node.Id())
-                                    // Get the neighbours node of the previous candidate r_node
-                                    auto& r_node_neigh_vect = r_node.GetValue(NEIGHBOUR_NODES);
-                                    // Count how many available nodes there are
-                                    int count_neigh_nodes = 0 ; 
-                                    // Count the neighbours nodes that have DISTANCE > 0 & that are not BOUNDARY
-                                    for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
-                                        auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
-                                        double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
-                                        if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY)) {
-                                            count_neigh_nodes = count_neigh_nodes + 1 ;
-                                            // Get the available node
-                                            auto& r_node_concave = *p_node_neigh ;
-                                            // KRATOS_WATCH(r_node_concave.Id())
-                                            // Iniziamo a calcolare il gradiente
-                                            double w_total = 0.0;
-                                            auto& r_elem_neigh_vect = r_node_concave.GetValue(NEIGHBOUR_ELEMENTS);
-                                            std::map<std::size_t, Vector> neigh_dn_dx_map;
-                                            // Count available elements
-                                            int count_avail_elements = 0 ;
-                                            for (std::size_t i_neigh = 0; i_neigh < r_elem_neigh_vect.size(); ++i_neigh) {
-                                                auto p_elem_neigh = r_elem_neigh_vect(i_neigh).get();
-                                                if (p_elem_neigh->IsNot(BOUNDARY)) {
-                                                    if (p_elem_neigh != nullptr && p_elem_neigh->Is(MARKER)) {
-                                                        count_avail_elements = count_avail_elements + 1 ;
-                                                        const auto& r_geom = p_elem_neigh->GetGeometry();
-                                                        const std::size_t n_nodes = r_geom.PointsNumber();
-                                                        // const double w = r_geom.DomainSize() / n_nodes;
-                                                        auto center_coord = r_geom.Center();
-                                                        const double w = 1/( (center_coord.X()-r_bd_node.X())*(center_coord.X()-r_bd_node.X()) + (center_coord.Y()-r_bd_node.Y())*(center_coord.Y()-r_bd_node.Y()) ) ;
-                                                        w_total += w;
-                                                        ShapeFunctionsGradientsType grad_N;
-                                                        r_geom.ShapeFunctionsIntegrationPointsGradients(grad_N, GeometryData::IntegrationMethod::GI_GAUSS_1);
-                                                        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                                                            std::size_t aux_id = r_geom[i_node].Id();
-                                                            const Vector r_node_dn_dx = row(grad_N[0], i_node);
-                                                            auto it_found = neigh_dn_dx_map.find(aux_id);
-                                                            if (it_found != neigh_dn_dx_map.end()) {
-                                                                auto& r_val = it_found->second;
-                                                                r_val += w * r_node_dn_dx;
-                                                            } else {
-                                                                neigh_dn_dx_map.insert(std::make_pair(aux_id, w*r_node_dn_dx));
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            KRATOS_WATCH(count_avail_elements)
-                                            if (count_avail_elements < 1) {
-                                                KRATOS_WATCH("Nessun elemento vicino al candidato è utilizzabile")
-                                                exit(0) ;
-                                            }
-                                            // Solo per CONCAVE_PROBLEMATIC node
-                                            // Divide current coefficients by the total weight
-                                            for (auto& neigh_data : neigh_dn_dx_map) {
-                                                auto& r_val = neigh_data.second;
-                                                r_val /= w_total;
-                                            }
-                                            // Update the surrogate nodes data
-                                            sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
-                                        }
-                                    }
-                                    KRATOS_WATCH(count_neigh_nodes)
-                                    if (count_neigh_nodes == 1) {
-                                        KRATOS_WATCH("Tutto bene il concave problematic node")
-                                    } else {
-                                        if (count_neigh_nodes > 1) {
-                                            KRATOS_WATCH("Ci sono due vicini disponibili, quale scelgo?")
-                                        }
-                                        KRATOS_WATCH("Bel problema... The Concave problematic is super problematic")
-                                        exit(0) ;
-                                    }
-                                }
-
-                                
-
-                            }  
-                        }      
-                    }
-                }
             }
         }
         return sur_bd_nodes_map;
