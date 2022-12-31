@@ -21,10 +21,10 @@
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
+#include "containers/indirect_scalar_variable.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/indirect_scalar_variables.h"
 
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
@@ -166,6 +166,8 @@ void  AddContainersToPython(pybind11::module& m)
     ;
 
     py::class_<IndirectScalarVariable>(m, "IndirectScalarVariable")
+    .def(py::init<>())
+    .def(py::init<const Variable<double>&>())
     .def("GetVariable", &IndirectScalarVariable::GetVariable)
     .def("IsZeroVariable", &IndirectScalarVariable::IsZeroVariable)
     .def("SetValue", [](IndirectScalarVariable& rSelf, Node<3>& rNode, const double Value) { rSelf(rNode) =  Value; })
@@ -456,20 +458,6 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_NEIGHBOUR_ELEMENTS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UPDATE_SENSITIVITIES )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_SHAPE_DERIVATIVE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_SCALAR_ZERO )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_1_X )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_1_Y )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_1_Z )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_2_X )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_2_Y )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_2_Z )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_3_X )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_3_Y )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_VECTOR_3_Z )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_AUX_ADJOINT_VECTOR_1_X )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_AUX_ADJOINT_VECTOR_1_Y )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_AUX_ADJOINT_VECTOR_1_Z )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_ADJOINT_SCALAR_1 )
 
     //for electric application
 
