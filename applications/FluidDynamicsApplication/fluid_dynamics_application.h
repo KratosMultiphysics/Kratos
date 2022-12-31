@@ -99,6 +99,7 @@
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 // Wall laws
+#include "custom_conditions/wall_laws/linear_log_wall_law.h"
 #include "custom_conditions/wall_laws/navier_slip_wall_law.h"
 
 // Adjoint fluid elements
@@ -402,6 +403,8 @@ private:
     const NavierStokes<3> mNavierStokes3D;
     const NavierStokesWallCondition<2,2> mNavierStokesWallCondition2D;
     const NavierStokesWallCondition<3,3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>> mNavierStokesLinearLogWallCondition2D;
+    const NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>> mNavierStokesLinearLogWallCondition3D;
     const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
     const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
 
