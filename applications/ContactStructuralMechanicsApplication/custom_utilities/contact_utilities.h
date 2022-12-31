@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_CONTACT_UTILITIES)
-#define KRATOS_CONTACT_UTILITIES
+#pragma once
 
 // System includes
 
@@ -226,7 +225,7 @@ public:
                 const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
                 for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                     tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
-            } else { // We consider the tangent direction as auxiliar
+            } else { // We consider the tangent direction as auxiliary
                 const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
                 array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
@@ -322,4 +321,3 @@ private:
 };// class ContactUtilities
 
 }
-#endif /* KRATOS_CONTACT_UTILITIES defined */

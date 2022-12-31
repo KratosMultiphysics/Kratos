@@ -203,7 +203,7 @@ private:
         double errtol = BaseType::mBNorm*BaseType::GetTolerance();
 
 
-        VectorType r(rB);
+        const VectorType& r(rB);
         VectorType w(r);
 
 

@@ -3,9 +3,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-# Other imports
-import sys
-
 # Import the base structural analysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 

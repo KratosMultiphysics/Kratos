@@ -65,7 +65,6 @@ for dim in dim_vector:
     vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
     p = DefineVector('p',nnodes)                # Pressure
-    pn = DefineVector('pn',nnodes)              # Previous step Pressure
     penr= DefineVector('penr',nnodes)	        # Enriched Pressure
 
     ## Test functions definition
