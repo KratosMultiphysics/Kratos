@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_INDIRECT_SCALAR_VARIABLE_H)
-#define KRATOS_INDIRECT_SCALAR_VARIABLE_H
+#pragma once
 
 // System includes
 #include <string>
@@ -215,5 +214,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_INDIRECT_SCALAR_VARIABLE_H
