@@ -181,7 +181,7 @@ private:
     // because static block threadprivate in windows omp is only supported
     // for static objects made of the class.
 #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
-    std::vector<double> mDefaultValues;
+    static std::vector<double> mDefaultValues;
 #elif defined(KRATOS_SMP_OPENMP)
     static double mDefaultValue;
     #pragma omp threadprivate (mDefaultValue)
