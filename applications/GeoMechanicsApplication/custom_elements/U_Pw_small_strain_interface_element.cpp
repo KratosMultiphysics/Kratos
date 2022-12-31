@@ -1443,6 +1443,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient = 1.0;
+    rVariables.IncrementOfSuction = 0.0;
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::InitializeElementVariables()") << std::endl;
 
@@ -2259,7 +2260,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     rVariables.DerivativeOfSaturation = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
     rVariables.RelativePermeability = mRetentionLawVector[GPoint]->CalculateRelativePermeability(rRetentionParameters);
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
-
+    rVariables.IncrementOfSuction = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(rRetentionParameters);
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateRetentionResponse()") << std::endl;
 
     KRATOS_CATCH( "" )

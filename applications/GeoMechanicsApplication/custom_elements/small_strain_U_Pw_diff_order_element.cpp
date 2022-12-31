@@ -1,3 +1,6 @@
+
+
+
 // KRATOS___
 //     //   ) )
 //    //         ___      ___
@@ -313,13 +316,15 @@ void SmallStrainUPwDiffOrderElement::
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
+         // retention law
+        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
+
         //compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
-        // retention law
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
+       
     }
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeSolutionStep()") << std::endl;
@@ -792,6 +797,10 @@ void SmallStrainUPwDiffOrderElement::
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
+         // retention law
+        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
+        
+        
         //compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
@@ -800,8 +809,7 @@ void SmallStrainUPwDiffOrderElement::
             mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
                                                            mStateVariablesFinalized[GPoint] );
 
-        // retention law
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
+       
     }
 
     const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
@@ -1075,7 +1083,8 @@ void SmallStrainUPwDiffOrderElement::
              rVariable == EFFECTIVE_SATURATION ||
              rVariable == BISHOP_COEFFICIENT ||
              rVariable == DERIVATIVE_OF_SATURATION ||
-             rVariable == RELATIVE_PERMEABILITY )
+             rVariable == RELATIVE_PERMEABILITY ||
+             rVariable ==  INCREMENT_OF_SUCTION)
     {
         //Element variables
         ElementVariables Variables;
@@ -1098,6 +1107,7 @@ void SmallStrainUPwDiffOrderElement::
             if (rVariable == BISHOP_COEFFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            if (rVariable == INCREMENT_OF_SUCTION )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(RetentionParameters);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
         const double NumericalLimit = std::numeric_limits<double>::epsilon();
@@ -1325,6 +1335,14 @@ void SmallStrainUPwDiffOrderElement::
             //Compute infinitessimal strain
             this->CalculateStrain(Variables, GPoint);
 
+            this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+
+            //send the retention variables to constitutive model
+            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation);
+            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation);
+            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction);
+            
+            
             //set gauss points variables to constitutivelaw parameters
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
@@ -1335,7 +1353,8 @@ void SmallStrainUPwDiffOrderElement::
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
-            this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+            
+
 
             noalias(TotalStressVector) = mStressVector[GPoint];
             noalias(TotalStressVector) +=  PORE_PRESSURE_SIGN_FACTOR
@@ -1453,6 +1472,9 @@ void SmallStrainUPwDiffOrderElement::
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(rGeom, rProp, rCurrentProcessInfo);
+
     //Create constitutive law parameters:
     ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -1461,8 +1483,7 @@ void SmallStrainUPwDiffOrderElement::
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(rGeom, rProp, rCurrentProcessInfo);
+
 
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
@@ -1476,6 +1497,13 @@ void SmallStrainUPwDiffOrderElement::
         //Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);
 
+         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+
+
+         //send the retention variables to constitutive model
+         mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation);
+         mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation);
+         mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction);
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
@@ -1483,7 +1511,7 @@ void SmallStrainUPwDiffOrderElement::
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+       
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
@@ -1673,7 +1701,8 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient = 1.0;
-
+    rVariables.IncrementOfSuction = 0.0;
+    
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeElementVariables") << std::endl;
     KRATOS_CATCH( "" )
 }
@@ -2685,6 +2714,7 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.DerivativeOfSaturation = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
     rVariables.RelativePermeability = mRetentionLawVector[GPoint]->CalculateRelativePermeability(rRetentionParameters);
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
+    rVariables.IncrementOfSuction = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(rRetentionParameters);
 
     KRATOS_CATCH( "" )
 }

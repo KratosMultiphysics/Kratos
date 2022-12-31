@@ -203,6 +203,7 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
+        double IncrementOfSuction;
         double Density;
 
         //Properties and processinfo variables

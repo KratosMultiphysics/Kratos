@@ -590,6 +590,7 @@ void TransientPwElement<TDim,TNumNodes>::
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient = 1.0;
+    rVariables.IncrementOfSuction = 0.0;
 
     // KRATOS_INFO("1-TransientPwElement::InitializeElementVariables()") << std::endl;
 

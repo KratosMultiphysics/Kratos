@@ -853,6 +853,12 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &r
    // KRATOS_INFO("mDeltaStrainVector") << mDeltaStrainVector << std::endl;
    // KRATOS_INFO("mStateVariablesFinalized") << mStateVariablesFinalized << std::endl;
    // KRATOS_INFO("deltaTime") << deltaTime << std::endl;
+    for ( unsigned int i=0;i<VOIGT_SIZE_3D;++i) 
+      {mStressAndUnsatVector[i] = mStressVectorFinalized[i];}
+   
+    mStressAndUnsatVector[6] = DEGREE_OF_SATURATION;
+    mStressAndUnsatVector[7] = DERIVATIVE_OF_SATURATION; 
+    mStressAndUnsatVector[8] = INCREMENT_OF_SUCTION;
 
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(pIDTask, &modelNumber, &isUndr,
@@ -1331,7 +1337,21 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<Vector>& rThisVariable,
          }
       }
    }
+   else if (rThisVariable == DEGREE_OF_SATURATION)
+   {
+      mDegreeOfSaturaion[1] = rValue[1];
+   }
+   else if (rThisVariable == DERIVATIVE_OF_SATURATION)
+   {
+      mDerivativeOfSaturation[1] = rValue[1];
 
+   }
+   else if (rThisVariable == INCREMENT_OF_SUCTION)
+   {
+      mIncrementOfSuction[1] = rValue[1];
+
+   }
+   
    // KRATOS_INFO("12-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 
 }

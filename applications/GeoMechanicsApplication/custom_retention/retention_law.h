@@ -500,6 +500,8 @@ public:
 
     virtual double CalculateBishopCoefficient(Parameters &rParameters);
 
+    virtual double CalculateIncrementOfSuction(Parameters &rParameters);
+
     /**
      * This is to be called at the very beginning of the calculation
      * (e.g. from InitializeElement) in order to initialize all relevant

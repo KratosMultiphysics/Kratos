@@ -123,6 +123,8 @@ public:
 
     double CalculateBishopCoefficient(Parameters &rParameters) override;
 
+    double CalculateIncrementOfSuction(Parameters &rParameters) override;
+
     void Finalize(Parameters &rParameters) override;
 
     void FinalizeSolutionStep(Parameters &rParameters) override;

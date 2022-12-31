@@ -109,6 +109,17 @@ double SaturatedLaw::
 }
 
 //-------------------------------------------------------------------------------------------------
+
+double SaturatedLaw::
+    CalculateIncrementOfSuction(Parameters &rParameters)
+{
+    KRATOS_TRY;
+
+    return 0.0;
+
+    KRATOS_CATCH("")
+}
+//-------------------------------------------------------------------------------------------------
 double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
                                      const Variable<double>& rThisVariable,
                                      double& rValue)
@@ -133,7 +144,10 @@ double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
         rValue = this->CalculateRelativePermeability(rParameterValues);
         return rValue;
     }
-
+    else if (rThisVariable == INCREMENT_OF_SUCTION) {
+        rValue = this->CalculateIncrementOfSuction(rParameterValues);
+        return rValue;
+    }
     return rValue;
 }
 

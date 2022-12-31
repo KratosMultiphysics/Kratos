@@ -377,6 +377,13 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       ///@{
       array_1d<double, VOIGT_SIZE_3D> mStressVector;
       array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+      array_1d<double, 9> mStressAndUnsatVector;
+
+      array_1d<double, 1> mDegreeOfSaturaion;
+      array_1d<double, 1> mDerivativeOfSaturation;
+      array_1d<double, 1> mIncrementOfSuction;
+
+
 
       array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
       array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
@@ -503,6 +510,9 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.save("StressVectorFinalized",      mStressVectorFinalized);
          rSerializer.save("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
+         rSerializer.save("DegreeOfSaturaion",          mDegreeOfSaturaion);
+         rSerializer.save("DerivativeOfSaturation",     mDerivativeOfSaturation);
+         rSerializer.save("IncrementOfSuction",         mIncrementOfSuction);
       }
 
       virtual void load(Serializer& rSerializer) override
@@ -513,6 +523,10 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.load("StressVectorFinalized",      mStressVectorFinalized);
          rSerializer.load("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.load("StateVariablesFinalized",    mStateVariablesFinalized);
+         rSerializer.load("DegreeOfSaturaion",          mDegreeOfSaturaion);
+         rSerializer.load("DerivativeOfSaturation",     mDerivativeOfSaturation);
+         rSerializer.load("IncrementOfSuction",         mIncrementOfSuction);
+
       }
 
       ///@}

@@ -153,6 +153,29 @@ double VanGenuchtenLaw::
 }
 
 //-------------------------------------------------------------------------------------------------
+double VanGenuchtenLaw::
+    CalculateIncrementOfSuction(Parameters &rParameters)
+{
+  KRATOS_TRY;
+     const double &p = rParameters.GetFluidPressure();
+     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
+     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+
+    if (p > 0.0 && p > pb )
+    
+    {
+        double IncSuction=p-Lastp;
+      
+        return IncSuction;
+    }
+    else
+    {
+        return 0.0;
+    }
+    KRATOS_CATCH("")
+}
+//-------------------------------------------------------------------------------------------------
+
 double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
                                         const Variable<double>& rThisVariable,
                                         double& rValue)
@@ -171,6 +194,9 @@ double& VanGenuchtenLaw::CalculateValue(RetentionLaw::Parameters& rParameterValu
         return rValue;
     } else if (rThisVariable == RELATIVE_PERMEABILITY) {
         rValue = this->CalculateRelativePermeability(rParameterValues);
+        return rValue;
+    }else if (rThisVariable == INCREMENT_OF_SUCTION) {
+        rValue = this->CalculateIncrementOfSuction(rParameterValues);
         return rValue;
     }
 
@@ -191,7 +217,7 @@ void VanGenuchtenLaw::
 void VanGenuchtenLaw::
     Initialize(Parameters &rParameters)
 {
-    // nothing is needed
+    Lastp = rParameters.GetFluidPressure();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -212,7 +238,7 @@ void VanGenuchtenLaw::
 void VanGenuchtenLaw::
     FinalizeSolutionStep(Parameters &rParameters)
 {
-    // nothing is needed
+   Lastp = rParameters.GetFluidPressure();
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -186,6 +186,7 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
+        double IncrementOfSuction;
 
         // needed for updated Lagrangian:
         double detJ;

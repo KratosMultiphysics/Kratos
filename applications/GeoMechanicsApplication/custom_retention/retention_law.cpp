@@ -437,6 +437,17 @@ double RetentionLaw::CalculateBishopCoefficient(Parameters &rParameters)
 }
 
 //-------------------------------------------------------------------------------------------------
+double RetentionLaw::CalculateIncrementOfSuction(Parameters &rParameters)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling CalculateIncrementOfSuction function from base class ... illegal operation!!"
+                 << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//-------------------------------------------------------------------------------------------------
 void RetentionLaw::
     InitializeMaterial(const Properties& rMaterialProperties,
                        const GeometryType& rElementGeometry,

@@ -322,7 +322,28 @@ if (p > 0.0 && p > pb )
 
     KRATOS_CATCH("")
 }
+//-------------------------------------------------------------------------------------------------
+double BrooksCoreyLaw::
+    CalculateIncrementOfSuction(Parameters &rParameters)
+{
+  KRATOS_TRY;
+     const double &p = rParameters.GetFluidPressure();
+     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
+     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
 
+    if (p > 0.0 && p > pb )
+    
+    {
+        double IncSuction=p-Lastp;
+      
+        return IncSuction;
+    }
+    else
+    {
+        return 0.0;
+    }
+    KRATOS_CATCH("")
+}
 //-------------------------------------------------------------------------------------------------
 double& BrooksCoreyLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
                                         const Variable<double>& rThisVariable,
@@ -353,7 +374,11 @@ double& BrooksCoreyLaw::CalculateValue(RetentionLaw::Parameters& rParameterValue
         rValue = this->CalculateRelativePermeability(rParameterValues);
         return rValue;
     }
-
+     else if (rThisVariable == INCREMENT_OF_SUCTION)
+    {
+        rValue = this->CalculateIncrementOfSuction(rParameterValues);
+        return rValue;
+    }
     return( rValue );
 }
 

@@ -112,6 +112,16 @@ double SaturatedBelowPhreaticLevelLaw::
 }
 
 //-------------------------------------------------------------------------------------------------
+double SaturatedBelowPhreaticLevelLaw::
+    CalculateIncrementOfSuction(Parameters &rParameters)
+{
+    KRATOS_TRY;
+
+    return 0.0;
+
+    KRATOS_CATCH("")
+}
+//-------------------------------------------------------------------------------------------------
 double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
                                         const Variable<double>& rThisVariable,
                                         double& rValue)
@@ -130,6 +140,9 @@ double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters&
         return rValue;
     } else if (rThisVariable == RELATIVE_PERMEABILITY) {
         rValue = this->CalculateRelativePermeability(rParameterValues);
+        return rValue;
+    }else if (rThisVariable == INCREMENT_OF_SUCTION) {
+        rValue = this->CalculateIncrementOfSuction(rParameterValues);
         return rValue;
     }
 
