@@ -1338,9 +1338,9 @@ void SmallStrainUPwDiffOrderElement::
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
             //send the retention variables to constitutive model
-            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,rVariables.DegreeOfSaturation);
-            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,rVariables.DerivativeOfSaturation);
-            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,rVariables.IncrementOfSuction);
+            mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation[GPoint]);
+            mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation[GPoint]);
+            mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction[GPoint]);
             
             
             //set gauss points variables to constitutivelaw parameters
@@ -1501,9 +1501,9 @@ void SmallStrainUPwDiffOrderElement::
 
 
          //send the retention variables to constitutive model
-         mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,rVariables.DegreeOfSaturation);
-         mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,rVariables.DerivativeOfSaturation);
-         mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,rVariables.IncrementOfSuction);
+         mConstitutiveLawVector[GPoint]->SetValue( DEGREE_OF_SATURATION,Variables.DegreeOfSaturation[GPoint]);
+         mConstitutiveLawVector[GPoint]->SetValue( DERIVATIVE_OF_SATURATION,Variables.DerivativeOfSaturation[GPoint]);
+         mConstitutiveLawVector[GPoint]->SetValue( INCREMENT_OF_SUCTION,Variables.IncrementOfSuction[GPoint]);
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
