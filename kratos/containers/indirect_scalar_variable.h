@@ -70,6 +70,9 @@ public:
         : mrVariable(Variable<double>::StaticObject()),
           mIsZeroVariable(true)
     {
+        #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
+            mDefaultValues.resize(OpenMPUtils::GetNumThreads());
+        #endif
     }
 
     /**
@@ -129,9 +132,13 @@ public:
     inline double& operator()(NodeType& rNode) const
     {
         #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
-            const int k = OpenMPUtils::ThisThread();
-            mDefaultValues[k] = 0.0;
-            return  mIsZeroVariable ? mDefaultValues[k] : rNode.FastGetSolutionStepValue(mrVariable);
+            if (mIsZeroVariable) {
+                double& default_value = mDefaultValues[OpenMPUtils::ThisThread()];
+                default_value = 0.0;
+                return default_value;
+            } else {
+                return rNode.FastGetSolutionStepValue(mrVariable);
+            }
         #else
             mDefaultValue = 0.0;
             return  mIsZeroVariable ? mDefaultValue : rNode.FastGetSolutionStepValue(mrVariable);
@@ -151,9 +158,13 @@ public:
     inline double& operator()(NodeType& rNode, const IndexType Step) const
     {
         #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
-            const int k = OpenMPUtils::ThisThread();
-            mDefaultValues[k] = 0.0;
-            return  mIsZeroVariable ? mDefaultValues[k] : rNode.FastGetSolutionStepValue(mrVariable, Step);
+            if (mIsZeroVariable) {
+                double& default_value = mDefaultValues[OpenMPUtils::ThisThread()];
+                default_value = 0.0;
+                return default_value;
+            } else {
+                return rNode.FastGetSolutionStepValue(mrVariable, Step);
+            }
         #else
             mDefaultValue = 0.0;
             return  mIsZeroVariable ? mDefaultValue : rNode.FastGetSolutionStepValue(mrVariable, Step);
@@ -170,7 +181,7 @@ private:
     // because static block threadprivate in windows omp is only supported
     // for static objects made of the class.
 #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
-    static std::vector<double> mDefaultValues;
+    std::vector<double> mDefaultValues;
 #elif defined(KRATOS_SMP_OPENMP)
     static double mDefaultValue;
     #pragma omp threadprivate (mDefaultValue)
