@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "containers/indirect_scalar_variable.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 
@@ -34,50 +35,56 @@ KRATOS_TEST_CASE_IN_SUITE(IndirectScalarVariable, KratosCoreFastSuite) {
     r_model_part.AddNodalSolutionStepVariable(PRESSURE);
 
     // non const check
-    auto& r_node_1 = *r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
-
-    // const check
-    const auto& r_const_node_1 = r_node_1;
+    for (IndexType i = 1; i <= 100; ++i){
+        r_model_part.CreateNewNode(i, 1.0, 0.0, 0.0);
+    }
 
     // creating indirect variables
     IndirectScalarVariable indirect_pressure(PRESSURE);
     IndirectScalarVariable indirect_zero;
 
-    indirect_pressure(r_node_1, 0) = 1.0;
-    indirect_pressure(r_node_1, 1) = -1.0;
-    indirect_zero(r_node_1, 0) = 1.0;
-    indirect_zero(r_node_1, 1) = -1.0;
+    block_for_each(r_model_part.Nodes(), [&](auto& rNode){
+        indirect_pressure(rNode, 0) = 1.0;
+        indirect_pressure(rNode, 1) = -1.0;
+        indirect_zero(rNode, 0) = 1.0;
+        indirect_zero(rNode, 1) = -1.0;
 
-    indirect_pressure(r_node_1, 0) += 10.0;
-    indirect_pressure(r_node_1, 1) += 10.0;
-    indirect_zero(r_node_1, 0) += 10.0;
-    indirect_zero(r_node_1, 1) += 10.0;
+        indirect_pressure(rNode, 0) += 10.0;
+        indirect_pressure(rNode, 1) += 10.0;
+        indirect_zero(rNode, 0) += 10.0;
+        indirect_zero(rNode, 1) += 10.0;
 
-    indirect_pressure(r_node_1, 0) += indirect_zero(r_node_1, 0);
-    indirect_pressure(r_node_1, 1) += indirect_zero(r_node_1, 0);
-    indirect_zero(r_node_1, 0) += indirect_zero(r_node_1, 0);
-    indirect_zero(r_node_1, 1) += indirect_zero(r_node_1, 0);
+        indirect_pressure(rNode, 0) += indirect_zero(rNode, 0);
+        indirect_pressure(rNode, 1) += indirect_zero(rNode, 0);
+        indirect_zero(rNode, 0) += indirect_zero(rNode, 0);
+        indirect_zero(rNode, 1) += indirect_zero(rNode, 0);
 
-    indirect_pressure(r_node_1, 0) += indirect_pressure(r_node_1, 0);
-    indirect_pressure(r_node_1, 1) += indirect_pressure(r_node_1, 0);
-    indirect_zero(r_node_1, 0) += indirect_pressure(r_node_1, 0);
-    indirect_zero(r_node_1, 1) += indirect_pressure(r_node_1, 0);
+        indirect_pressure(rNode, 0) += indirect_pressure(rNode, 0);
+        indirect_pressure(rNode, 1) += indirect_pressure(rNode, 0);
+        indirect_zero(rNode, 0) += indirect_pressure(rNode, 0);
+        indirect_zero(rNode, 1) += indirect_pressure(rNode, 0);
+    });
 
-    KRATOS_CHECK_EQUAL(indirect_pressure(r_node_1, 0), 22.0);
-    KRATOS_CHECK_EQUAL(indirect_pressure(r_node_1, 1), 31.0);
-    KRATOS_CHECK_EQUAL(indirect_zero(r_node_1, 0), 0.0);
-    KRATOS_CHECK_EQUAL(indirect_zero(r_node_1, 1), 0.0);
+    block_for_each(r_model_part.Nodes(), [&](auto& rNode) {
+        KRATOS_CHECK_EQUAL(indirect_pressure(rNode, 0), 22.0);
+        KRATOS_CHECK_EQUAL(indirect_pressure(rNode, 1), 31.0);
+        KRATOS_CHECK_EQUAL(indirect_zero(rNode, 0), 0.0);
+        KRATOS_CHECK_EQUAL(indirect_zero(rNode, 1), 0.0);
+    });
 
-    KRATOS_CHECK_EQUAL(indirect_pressure(r_const_node_1), 22.0);
-    KRATOS_CHECK_EQUAL(indirect_pressure(r_const_node_1, 1), 31.0);
-    KRATOS_CHECK_EQUAL(indirect_zero(r_const_node_1), 0.0);
-    KRATOS_CHECK_EQUAL(indirect_zero(r_const_node_1, 1), 0.0);
+    block_for_each(r_model_part.Nodes(), [&](const auto& rNode){
+        KRATOS_CHECK_EQUAL(indirect_pressure(rNode), 22.0);
+        KRATOS_CHECK_EQUAL(indirect_pressure(rNode, 1), 31.0);
+        KRATOS_CHECK_EQUAL(indirect_zero(rNode), 0.0);
+        KRATOS_CHECK_EQUAL(indirect_zero(rNode, 1), 0.0);
+    });
 
-    KRATOS_CHECK_EQUAL(indirect_zero(r_node_1, 1) * indirect_pressure(r_node_1), 0.0);
-    KRATOS_CHECK_EQUAL(indirect_pressure(r_node_1, 1) * indirect_pressure(r_node_1), 682.0);
-
-    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(PRESSURE), 22.0);
-    KRATOS_CHECK_EQUAL(r_node_1.FastGetSolutionStepValue(PRESSURE, 1), 31.0);
+    block_for_each(r_model_part.Nodes(), [&](const auto& rNode){
+        KRATOS_CHECK_EQUAL(indirect_zero(rNode, 1) * indirect_pressure(rNode), 0.0);
+        KRATOS_CHECK_EQUAL(indirect_pressure(rNode, 1) * indirect_pressure(rNode), 682.0);
+        KRATOS_CHECK_EQUAL(rNode.FastGetSolutionStepValue(PRESSURE), 22.0);
+        KRATOS_CHECK_EQUAL(rNode.FastGetSolutionStepValue(PRESSURE, 1), 31.0);
+    });
 }
 
 }
