@@ -151,12 +151,8 @@ private:
 
     // these members are required for objects created with the default constructor
 #ifdef KRATOS_SMP_OPENMP
-    #ifdef KRATOS_COMPILED_IN_WINDOWS
-        __declspec(thread) static double mDefaultValue;
-    #else
-        static double mDefaultValue;
-        #pragma omp threadprivate(mDefaultValue)
-    #endif
+    static double mDefaultValue;
+    #pragma omp threadprivate (mDefaultValue)
 #elif defined(KRATOS_SMP_CXX11)
     static thread_local mDefaultValue;
 #else
