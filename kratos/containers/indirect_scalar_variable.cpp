@@ -25,7 +25,7 @@ namespace Kratos
 {
 
 #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
-    // do nothing
+    std::vector<double> IndirectScalarVariable::mDefaultValues = std::vector<double>(OpenMPUtils::GetNumThreads(), 0.0);
 #elif defined(KRATOS_SMP_CXX11)
     thread_local double IndirectScalarVariable::mDefaultValue = 0.0;
 #else

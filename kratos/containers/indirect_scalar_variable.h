@@ -70,9 +70,6 @@ public:
         : mrVariable(Variable<double>::StaticObject()),
           mIsZeroVariable(true)
     {
-        #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
-            mDefaultValues.resize(OpenMPUtils::GetNumThreads());
-        #endif
     }
 
     /**
