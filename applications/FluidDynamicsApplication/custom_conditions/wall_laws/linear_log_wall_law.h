@@ -83,10 +83,6 @@ public:
 
     ///@}
     ///@name Operators
-    ///@{
-
-
-    ///@}
     ///@name Operations
     ///@{
 
