@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <vector>
 
 // External includes
 
@@ -22,6 +23,9 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "containers/variable.h"
+#if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
+    #include "utilities/openmp_utils.h"
+#endif
 
 // Application includes
 
@@ -124,8 +128,14 @@ public:
 
     inline double& operator()(NodeType& rNode) const
     {
-        mDefaultValue = 0.0;
-        return  mIsZeroVariable ? mDefaultValue : rNode.FastGetSolutionStepValue(mrVariable);
+        #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
+            const int k = OpenMPUtils::ThisThread();
+            mDefaultValues[k] = 0.0;
+            return  mIsZeroVariable ? mDefaultValues[k] : rNode.FastGetSolutionStepValue(mrVariable);
+        #else
+            mDefaultValue = 0.0;
+            return  mIsZeroVariable ? mDefaultValue : rNode.FastGetSolutionStepValue(mrVariable);
+        #endif
     }
 
     inline double operator()(const NodeType& rNode) const
@@ -140,8 +150,14 @@ public:
 
     inline double& operator()(NodeType& rNode, const IndexType Step) const
     {
-        mDefaultValue = 0.0;
-        return  mIsZeroVariable ? mDefaultValue : rNode.FastGetSolutionStepValue(mrVariable, Step);
+        #if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
+            const int k = OpenMPUtils::ThisThread();
+            mDefaultValues[k] = 0.0;
+            return  mIsZeroVariable ? mDefaultValues[k] : rNode.FastGetSolutionStepValue(mrVariable, Step);
+        #else
+            mDefaultValue = 0.0;
+            return  mIsZeroVariable ? mDefaultValue : rNode.FastGetSolutionStepValue(mrVariable, Step);
+        #endif
     }
 
     ///@}
@@ -150,11 +166,16 @@ private:
     ///@{
 
     // these members are required for objects created with the default constructor
-#ifdef KRATOS_SMP_OPENMP
+    // special care has been taken to the case OMP in windows
+    // because static block threadprivate in windows omp is only supported
+    // for static objects made of the class.
+#if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
+    static std::vector<double> mDefaultValues;
+#elif defined(KRATOS_SMP_OPENMP)
     static double mDefaultValue;
     #pragma omp threadprivate (mDefaultValue)
 #elif defined(KRATOS_SMP_CXX11)
-    static thread_local mDefaultValue;
+    static thread_local double mDefaultValue;
 #else
     static double mDefaultValue;
 #endif

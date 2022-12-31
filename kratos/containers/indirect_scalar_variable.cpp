@@ -24,8 +24,10 @@
 namespace Kratos
 {
 
-#ifdef KRATOS_SMP_CXX11
-    thread_local IndirectScalarVariable::mDefaultValue = 0.0;
+#if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_COMPILED_IN_WINDOWS)
+    IndirectScalarVariable::mDefaultValues.resize(OpenMPUtils::GetNumThreads());
+#elif defined(KRATOS_SMP_CXX11)
+    thread_local double IndirectScalarVariable::mDefaultValue = 0.0;
 #else
     double IndirectScalarVariable::mDefaultValue = 0.0;
 #endif
