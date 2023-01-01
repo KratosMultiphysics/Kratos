@@ -2057,7 +2057,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     rVariables.DerivativeOfSaturation = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
     rVariables.RelativePermeability = mRetentionLawVector[GPoint]->CalculateRelativePermeability(rRetentionParameters);
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
-
+    rVariables.IncrementOfSuction = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(rRetentionParameters);
     KRATOS_CATCH( "" )
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
