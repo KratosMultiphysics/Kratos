@@ -46,13 +46,13 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     if (mInterfaceInfos.size() > 0) {
         rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
 
-        if (rOriginIds.size()      != 1) rOriginIds.resize(1);
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
 
         std::vector<int> nearest_neighbor_id;
         double nearest_neighbor_distance;
         mInterfaceInfos[0]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
         mInterfaceInfos[0]->GetValue(nearest_neighbor_distance, MapperInterfaceInfo::InfoType::Dummy);
+        rOriginIds = nearest_neighbor_id;
 
         for (std::size_t i=1; i<mInterfaceInfos.size(); ++i) {
             // no check if this InterfaceInfo is an approximation is necessary
@@ -63,11 +63,10 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             if (distance < nearest_neighbor_distance) {
                 nearest_neighbor_distance = distance;
                 mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
-                rOriginIds.resize(nearest_neighbor_id.size());
                 rOriginIds = nearest_neighbor_id;
             } else if (distance == nearest_neighbor_distance) {
                 mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
-                rOriginIds.insert(rOriginIds.end(), nearest_neighbor_id.begin(), nearest_neighbor_id.end());
+                rOriginIds.insert(rOriginIds.end(), nearest_neighbor_id.begin(), nearest_neighbor_id.end()); // appending to end
             }
         }
 
