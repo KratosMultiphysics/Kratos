@@ -9,27 +9,17 @@
 # TRILINOS_FOUND       - Do not attempt to use if "no" or undefined.
 #
 # Required packages are:
-# - Epetra, Teuchos
+# - Epetra, Teuchos, AztecOO, Ifpack
 #
 
 # Only find if TrilinosApplication is in the list of applications
 STRING(FIND "$ENV{KRATOS_APPLICATIONS}" "TrilinosApplication" index)
 IF (${index} GREATER -1)
     # First we try to find using the interface provided by CMake and Trilinos
-    FIND_PACKAGE(Trilinos QUIET COMPONENTS Epetra Teuchos)
+    FIND_PACKAGE(Trilinos QUIET COMPONENTS Epetra Teuchos Ifpack AztecOO)
 
     # If found
     IF (Trilinos_FOUND)
-        LIST(FIND Trilinos_PACKAGE_LIST Epetra package_index)
-        IF (${package_index} EQUAL -1)
-            MESSAGE(FATAL_ERROR "Epetra package is required by TrilinosApplication")
-        ENDIF (${package_index} EQUAL -1)
-
-        LIST(FIND Trilinos_PACKAGE_LIST Teuchos package_index)
-        IF (${package_index} EQUAL -1)
-            MESSAGE(FATAL_ERROR "Teuchos package is required by TrilinosApplication")
-        ENDIF (${package_index} EQUAL -1)
-
         SET(TRILINOS_INCLUDE_DIR ${Trilinos_INCLUDE_DIRS})
         SET(TRILINOS_LIBRARIES "")
         FOREACH(trilinos_lib ${Trilinos_LIBRARIES})
