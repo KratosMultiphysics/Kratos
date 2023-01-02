@@ -31,7 +31,10 @@ void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rI
 
     if (neighbor_distance < mNearestNeighborDistance) {
         mNearestNeighborDistance = neighbor_distance;
-        mNearestNeighborId = rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+        mNearestNeighborId.resize(1);
+        mNearestNeighborId[0] = rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+    } else if (neighbor_distance == mNearestNeighborDistance) {
+        mNearestNeighborId.push_back(rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID));
     }
 }
 
@@ -46,7 +49,7 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         if (rOriginIds.size()      != 1) rOriginIds.resize(1);
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
 
-        int nearest_neighbor_id;
+        std::vector<int> nearest_neighbor_id;
         double nearest_neighbor_distance;
         mInterfaceInfos[0]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
         mInterfaceInfos[0]->GetValue(nearest_neighbor_distance, MapperInterfaceInfo::InfoType::Dummy);
@@ -60,11 +63,11 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             if (distance < nearest_neighbor_distance) {
                 nearest_neighbor_distance = distance;
                 mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
-                rOriginIds.resize(1);
-                rOriginIds[0] = nearest_neighbor_id;
+                rOriginIds.resize(nearest_neighbor_id.size());
+                rOriginIds = nearest_neighbor_id;
             } else if (distance == nearest_neighbor_distance) {
                 mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
-                rOriginIds.push_back(nearest_neighbor_id);
+                rOriginIds.insert(rOriginIds.end(), nearest_neighbor_id.begin(), nearest_neighbor_id.end());
             }
         }
 
