@@ -1071,7 +1071,7 @@ void ModelPartIO::DivideInputToPartitionsImpl(
         else if(word == "Nodes")
             DivideNodesBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions);
         // else if(word == "Geometries")
-            // DivideGeometriesBlock(rOutputFiles, GeometriesAllPartitions);
+            // DivideGeometriesBlock(rOutputFiles, rPartitioningInfo.GeometriesAllPartitions);
         else if(word == "Elements")
             DivideElementsBlock(rOutputFiles, rPartitioningInfo.ElementsAllPartitions);
         else if(word == "Conditions")
