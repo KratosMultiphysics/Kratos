@@ -20,10 +20,15 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
+# Lists
+if(POLICY CMP0057)
+  cmake_policy(SET CMP0057 NEW)
+endif(POLICY CMP0057)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_PATCH_VERSION 2)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -221,7 +226,7 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # After all the compiler check we can print the final flags
 message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-  
+
 # Old non-compatible versions of VS
 if(${MSVC})
   if(${MSVC_TOOLSET_VERSION} LESS 141)
@@ -291,8 +296,8 @@ endif(NOT DEFINED KRATOS_ENABLE_LTO)
 message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 6))
-    message( FATAL_ERROR "Kratos only supports Python version 3.6 and above")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 8))
+    message( FATAL_ERROR "Kratos only supports Python version 3.8 and above")
 endif()
 set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
@@ -383,6 +388,12 @@ if(Boost_VERSION_STRING VERSION_LESS 1.70)
   message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
 else()
   add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
+# std::atomic_ref is part of C++20, hence using boost::atomic_ref
+# boost::atomic_ref has full support from version 1.74
+if((KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11") AND (CMAKE_CXX_STANDARD LESS 20) AND (Boost_VERSION_STRING VERSION_LESS 1.74))
+  message(FATAL_ERROR "Kratos requires at least boost version 1.74 when using C++11 for shared memory parallelization and compiling with C++17")
 endif ()
 
 ##*****************************
@@ -588,12 +599,15 @@ message("***********************************************************************
 message("")
 
 message("List of upcoming API-breaking and behavior changes:")
+message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
+# Compiling the clipper library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
@@ -616,6 +630,7 @@ install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 # Install core files for the KratosMultiphysics python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry.py" "KratosMultiphysics/python_registry.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

@@ -65,6 +65,7 @@
 #include "utilities/rve_periodicity_utility.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
+#include "utilities/shifted_boundary_meshless_interface_utility.h"
 #include "utilities/particles_utilities.h"
 
 namespace Kratos {
@@ -734,6 +735,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        // TODO: I would remove unsigned int if using std::size_t
         .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<2,true>)
         .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<3,true>)
         .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<2,false>)
@@ -782,6 +784,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");
     fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
+
+    py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
+    ;
 }
 
 } // namespace Python.

@@ -117,11 +117,15 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    // Navier-Stokes symbolic elements
-    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))), //TODO: Legacy to be removed
+    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))), //TODO: Legacy to be removed
+    // Navier-Stokes wall conditions
     mNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    mNavierStokesLinearLogWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+    mNavierStokesLinearLogWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    mNavierStokesNavierSlipWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+    mNavierStokesNavierSlipWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -141,8 +145,13 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTwoFluidNavierStokesAlphaMethod3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoFluidNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mTwoFluidNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mQSVMSAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mQSVMSAdjoint2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mQSVMSAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mQSVMSAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     // Adjoint fluid conditions
     mAdjointMonolithicWallCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mAdjointMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
@@ -161,16 +170,20 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DIVERGENCE);
     KRATOS_REGISTER_VARIABLE(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)
 
-    // KRATOS_REGISTER_VARIABLE(Y_WALL);
     KRATOS_REGISTER_VARIABLE(SUBSCALE_PRESSURE);
     KRATOS_REGISTER_VARIABLE(C_DES);
-    // KRATOS_REGISTER_VARIABLE(C_SMAGORINSKY);
-    KRATOS_REGISTER_VARIABLE(CHARACTERISTIC_VELOCITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(COARSE_VELOCITY);
 
     KRATOS_REGISTER_VARIABLE(VOLUME_ERROR);
     KRATOS_REGISTER_VARIABLE(FIC_BETA);
+
+    // Wall modelling
+    KRATOS_REGISTER_VARIABLE(SLIP_TANGENTIAL_CORRECTION_SWITCH)
+
+    // Outlet inflow contribution
+    KRATOS_REGISTER_VARIABLE(CHARACTERISTIC_VELOCITY);
+    KRATOS_REGISTER_VARIABLE(OUTLET_INFLOW_CONTRIBUTION_SWITCH)
 
     // Adjoint variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_FLUID_VECTOR_1)
@@ -235,6 +248,12 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( SURFACE_TENSION_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( SURFACE_TENSION )
     KRATOS_REGISTER_VARIABLE( CURVATURE )
+
+    // Derivative variables
+    KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS( STRAIN_RATE_2D )
+    KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS( STRAIN_RATE_3D )
+    KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS( VELOCITY_GRADIENT_TENSOR )
+    KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY_GRADIENT_TENSOR )
 
     // Two-phase flow momentum correction
     KRATOS_REGISTER_VARIABLE( MOMENTUM_CORRECTION )
@@ -345,8 +364,14 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit3D4N",mCompressibleNavierStokesExplicit3D4N);
 
     // Adjoint elements
-    KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);
-    KRATOS_REGISTER_ELEMENT("VMSAdjointElement3D", mVMSAdjointElement3D);
+    KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);   // old naming convention
+    KRATOS_REGISTER_ELEMENT("VMSAdjointElement3D", mVMSAdjointElement3D);   // old naming convention
+    KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D3N", mVMSAdjointElement2D);
+    KRATOS_REGISTER_ELEMENT("VMSAdjointElement3D4N", mVMSAdjointElement3D);
+    KRATOS_REGISTER_ELEMENT("QSVMSAdjoint2D3N", mQSVMSAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("QSVMSAdjoint2D4N", mQSVMSAdjoint2D4N);
+    KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D4N", mQSVMSAdjoint3D4N);
+    KRATOS_REGISTER_ELEMENT("QSVMSAdjoint3D8N", mQSVMSAdjoint3D8N);
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D2N", mWallCondition2D);  //this is the name the element should have according to the naming convention
@@ -365,6 +390,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D", mMonolithicWallCondition3D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D2N", mNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D3N", mNavierStokesWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesLinearLogWallCondition2D2N", mNavierStokesLinearLogWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesLinearLogWallCondition3D3N", mNavierStokesLinearLogWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition2D2N", mNavierStokesNavierSlipWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesNavierSlipWallCondition3D3N", mNavierStokesNavierSlipWallCondition3D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition2D2N", mTwoFluidNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition3D3N", mTwoFluidNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N", mEmbeddedAusasNavierStokesWallCondition2D);

@@ -10,17 +10,14 @@
 //
 //  Main authors:    Alejandro Cornejo
 //
-//
 
-#if !defined(KRATOS_ADVANCED_CONSTITUTIVE_LAW_UTILITIES)
-#define KRATOS_ADVANCED_CONSTITUTIVE_LAW_UTILITIES
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "includes/constitutive_law.h"
@@ -56,7 +53,6 @@ namespace Kratos
  * @details The methods are static, so it can be called without constructing the class
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo
- * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
@@ -165,9 +161,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         double& rJ2
         )
     {
-        if (Dimension == 3) {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
+        noalias(rDeviator) = rStressVector;
+        const double p_mean = I1 / 3.0;
+        if constexpr (Dimension == 3) {
             for (IndexType i = 0; i < Dimension; ++i)
                 rDeviator[i] -= p_mean;
             rJ2 = 0.0;
@@ -176,8 +172,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
             for (IndexType i = Dimension; i < 6; ++i)
                 rJ2 += std::pow(rDeviator[i], 2);
         } else {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
             for (IndexType i = 0; i < Dimension; ++i)
                 rDeviator[i] -= p_mean;
             rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
@@ -262,7 +256,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * @param rStrainVector The strain vector
      */
     static Matrix ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector);
-
 
     /**
      * @brief Calculation of the Almansi strain vector
@@ -359,13 +352,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double PlasticConsistencyFactorIncrement
         );
 
-
     /**
      * @brief This computes the Fp from F and Fe
+     * @param rF The total def gradient tensor
+     * @param rFp The plastic def gradient tensor
      */
     static Matrix CalculatePlasticDeformationGradientFromElastic(
-        const MatrixType &rF,
-        const MatrixType &rFp);
+        const MatrixType& rF,
+        const MatrixType& rFp
+        );
 
     /**
      * @brief This updates the exponential elastic deformation gradient
@@ -379,7 +374,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const MatrixType& rTrialFe,
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe);
+        const MatrixType& rRe
+        );
 
     /**
      * @brief This computes the plastic strain from Fp
@@ -387,8 +383,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * @param rPlasticStrainVector The plastic strain vector
      */
     static void CalculatePlasticStrainFromFp(
-        const MatrixType &rFp,
-        Vector &rPlasticStrainVector);
+        const MatrixType& rFp,
+        Vector& rPlasticStrainVector
+        );
 
     /**
      * @brief This computes the elastic deformation gradient
@@ -436,8 +433,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
     /**
      * @brief This computes the rotation matrix for the 2nd Euler angle
@@ -445,8 +442,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
     /**
      * @brief This computes the rotation matrix for the 3rd Euler angle
@@ -454,8 +451,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
     /**
      * @brief This computes the total rotation matrix
@@ -471,109 +468,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
-
-    /**
-     * @brief This converts the
-     * 3x3 rotation matrix to the 6x6
-     * Cook et al., "Concepts and applications
-     * of finite element analysis"
-     */
-    static void CalculateRotationOperatorVoigt(
-        const BoundedMatrixType &rOldOperator,
-        BoundedMatrixVoigtType &rNewOperator
-    );
-
-    /**
-     * @brief This computes a material property according to a certain
-     * nodal TEMPERATURE table
-     */
-    static double GetValueFromTable(
-        const Variable<double>& rIndependentVariable,
-        const Variable<double>& rDependentVariable,
-        ConstitutiveLaw::Parameters& rParameters
-        )
-    {
-        // Get material properties from constitutive law parameters
-        const Properties& r_properties = rParameters.GetMaterialProperties();
-
-        // Get geometry and Gauss points data
-        const auto& r_geometry = rParameters.GetElementGeometry();
-        const auto& r_N        = rParameters.GetShapeFunctionsValues();
-
-        // Compute the independent variable at the Gauss point
-        double independent_at_gauss = 0.0;
-        for (std::size_t i = 0; i < r_N.size(); ++i) {
-            const double val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
-            independent_at_gauss += val * r_N[i];
-        }
-
-        // Retrieve the dependent variable from the table
-        const auto& r_table = r_properties.GetTable(rIndependentVariable, rDependentVariable);
-        return r_table.GetValue(independent_at_gauss);
-    }
-
-    /**
-     * @brief This retrieves an interpolated nodal variable to a GP
-     */
-    static double CalculateInGaussPoint(
-        const Variable<double>& rVariableInput,
-        ConstitutiveLaw::Parameters& rParameters,
-        unsigned int step = 0
-        )
-    {
-        return CalculateInGaussPoint(rVariableInput, rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues());
-    }
-
-    /**
-     * @brief This retrieves an interpolated nodal variable to a GP
-     */
-    static double CalculateInGaussPoint(
-        const Variable<double>& rVariableInput,
-        const GeometryType& rGeometry,
-        const Vector& rShapeFunctionsValues,
-        unsigned int step = 0
-        )
-    {
-
-        const std::size_t number_of_nodes = rGeometry.size();
-        double result = 0;
-
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            result += rShapeFunctionsValues[i] * rGeometry[i].FastGetSolutionStepValue(rVariableInput, step);
-        }
-        return result;
-    }
-
-    /**
-     * @brief This substracts the thermal strain contribution to a vector
-     */
-    static void SubstractThermalStrain(
-        ConstitutiveLaw::StrainVectorType& rStrainVector,
-        const double ReferenceTemperature,
-        ConstitutiveLaw::Parameters& rParameters
-        )
-    {
-        const auto &r_properties = rParameters.GetMaterialProperties();
-        double alpha;
-        BoundedVectorType thermal_strain = ZeroVector(VoigtSize);
-        const double current_temperature_gp = CalculateInGaussPoint(TEMPERATURE, rParameters);
-
-        if (r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT))
-            alpha = GetValueFromTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT, rParameters);
-        else
-            alpha = r_properties[THERMAL_EXPANSION_COEFFICIENT];
-
-        alpha *= (current_temperature_gp - ReferenceTemperature);
-        for (IndexType i = 0; i < Dimension; ++i)
-            thermal_strain(i) = 1.0;
-        noalias(rStrainVector) -= thermal_strain*alpha;
-    }
-
-
-private:
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
-#endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */
