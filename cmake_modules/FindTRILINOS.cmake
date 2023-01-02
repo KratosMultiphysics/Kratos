@@ -9,34 +9,13 @@
 # TRILINOS_FOUND       - Do not attempt to use if "no" or undefined.
 #
 # Required packages are:
-# - Epetra, Teuchos, AztecOO, Ifpack
+# - Epetra, Teuchos
 #
 
 # Only find if TrilinosApplication is in the list of applications
 STRING(FIND "$ENV{KRATOS_APPLICATIONS}" "TrilinosApplication" index)
 IF (${index} GREATER -1)
-    # First we try to find using the interface provided by CMake and Trilinos
-    FIND_PACKAGE(Trilinos QUIET COMPONENTS Epetra Teuchos Ifpack AztecOO)
-
-    # If found
-    IF (Trilinos_FOUND)
-        SET(TRILINOS_INCLUDE_DIR ${Trilinos_INCLUDE_DIRS})
-        SET(TRILINOS_LIBRARIES "")
-        FOREACH(trilinos_lib ${Trilinos_LIBRARIES})
-            FIND_LIBRARY(TRILINOS_LIBRARY_${trilinos_lib}
-                NAMES ${trilinos_lib}
-                HINTS ${Trilinos_LIBRARY_DIRS}
-                NO_DEFAULT_PATH
-                NO_CMAKE_ENVIRONMENT_PATH
-                NO_CMAKE_PATH
-                NO_SYSTEM_ENVIRONMENT_PATH
-                NO_CMAKE_SYSTEM_PATH
-                NO_CMAKE_FIND_ROOT_PATH
-                )
-            LIST(APPEND TRILINOS_LIBRARIES ${TRILINOS_LIBRARY_${trilinos_lib}})
-        ENDFOREACH(trilinos_lib ${Trilinos_LIBRARIES})
-        SET(TRILINOS_FOUND TRUE)
-    ELSE (Trilinos_FOUND) # Otherwize
+    IF (TRILINOS_LIBRARY_DIR OR TRILINOS_INCLUDE_DIR OR TRILINOS_ROOT)
         # Manual setting if the TRILINOS_ROOT is set
         IF (TRILINOS_ROOT)
             SET(TRILINOS_INCLUDE_DIR "${TRILINOS_ROOT}/include")
@@ -245,7 +224,42 @@ IF (${index} GREATER -1)
             SET(HAVE_ZOLTAN YES)
             find_package_handle_standard_args(ZOLTAN DEFAULT_MSG ZOLTAN_LIBRARY)
         ENDIF(ZOLTAN_INCLUDE_PATH AND ZOLTAN_LIBRARY)
-    ENDIF (Trilinos_FOUND)
+    ELSE (TRILINOS_LIBRARY_DIR OR TRILINOS_INCLUDE_DIR OR TRILINOS_ROOT)
+        # First we try to find using the interface provided by CMake and Trilinos
+        FIND_PACKAGE(Trilinos)
+
+        # If found
+        IF (Trilinos_FOUND)
+            LIST(FIND Trilinos_PACKAGE_LIST Epetra package_index)
+            IF (${package_index} EQUAL -1)
+                MESSAGE(FATAL_ERROR "Epetra package is required by TrilinosApplication")
+            ENDIF (${package_index} EQUAL -1)
+
+            LIST(FIND Trilinos_PACKAGE_LIST Teuchos package_index)
+            IF (${package_index} EQUAL -1)
+                MESSAGE(FATAL_ERROR "Teuchos package is required by TrilinosApplication")
+            ENDIF (${package_index} EQUAL -1)
+
+            SET(TRILINOS_INCLUDE_DIR ${Trilinos_INCLUDE_DIRS})
+            SET(TRILINOS_LIBRARIES "")
+            FOREACH(trilinos_lib ${Trilinos_LIBRARIES})
+                FIND_LIBRARY(TRILINOS_LIBRARY_${trilinos_lib}
+                    NAMES ${trilinos_lib}
+                    HINTS ${Trilinos_LIBRARY_DIRS}
+                    NO_DEFAULT_PATH
+                    NO_CMAKE_ENVIRONMENT_PATH
+                    NO_CMAKE_PATH
+                    NO_SYSTEM_ENVIRONMENT_PATH
+                    NO_CMAKE_SYSTEM_PATH
+                    NO_CMAKE_FIND_ROOT_PATH
+                    )
+                LIST(APPEND TRILINOS_LIBRARIES ${TRILINOS_LIBRARY_${trilinos_lib}})
+            ENDFOREACH(trilinos_lib ${Trilinos_LIBRARIES})
+            SET(TRILINOS_FOUND TRUE)
+        ELSE (Trilinos_FOUND) # Not found. This will raise an error
+            SET(TRILINOS_FOUND FALSE)
+        ENDIF (Trilinos_FOUND)
+    ENDIF (TRILINOS_LIBRARY_DIR OR TRILINOS_INCLUDE_DIR OR TRILINOS_ROOT)
 
     IF(TRILINOS_FOUND)
         MESSAGE(STATUS "Trilinos packages found.")
