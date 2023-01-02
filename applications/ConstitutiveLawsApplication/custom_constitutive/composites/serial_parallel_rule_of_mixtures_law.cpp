@@ -961,13 +961,22 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
     Vector& rValue
     )
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else {
-        return rValue;
+    const bool matrix_has = mpMatrixConstitutiveLaw->Has(rThisVariable);
+    const bool fiber_has = mpFiberConstitutiveLaw->Has(rThisVariable);
+    const SizeType voigt_size = GetStrainSize();
+    rValue.resize(GetStrainSize(), false);
+    rValue.clear();
+    if (matrix_has && fiber_has) {
+        Vector r_vector_matrix(voigt_size), r_vector_fiber(voigt_size);
+        mpMatrixConstitutiveLaw->GetValue(rThisVariable, r_vector_matrix);
+        mpFiberConstitutiveLaw->GetValue(rThisVariable, r_vector_fiber);
+        noalias(rValue) = mFiberVolumetricParticipation * r_vector_fiber + (1.0 - mFiberVolumetricParticipation) * r_vector_matrix;
+    } else if (matrix_has && !fiber_has) {
+        mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (!matrix_has && fiber_has) {
+        mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     }
+    return rValue;
 }
 
 /***********************************************************************************/
