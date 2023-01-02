@@ -985,11 +985,6 @@ private:
             // Compute material reponse
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
-            // rotate to local axes strain/F
-            if (IsElementRotated)
-                RotateToLocalAxes(rValues, rThisKinematicVariables);
-
-            // Tis will be printed in local axes
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }
     }
