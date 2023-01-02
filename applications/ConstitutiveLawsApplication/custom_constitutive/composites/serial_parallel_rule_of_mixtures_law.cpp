@@ -933,7 +933,13 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         double damage_fiber, damage_matrix;
         mpFiberConstitutiveLaw->GetValue(DAMAGE, damage_fiber);
         mpMatrixConstitutiveLaw->GetValue(DAMAGE, damage_matrix);
-        rValue = std::max(damage_fiber, damage_matrix);
+        rValue = mFiberVolumetricParticipation * damage_fiber + (1.0 - mFiberVolumetricParticipation) * damage_matrix;
+        return rValue;
+    } else if (rThisVariable == PLASTIC_DISSIPATION && mpFiberConstitutiveLaw->Has(rThisVariable) && mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        double plastic_dissipation_fiber, plastic_dissipation_matrix;
+        mpFiberConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_fiber);
+        mpMatrixConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_matrix);
+        rValue = mFiberVolumetricParticipation * plastic_dissipation_fiber + (1.0 - mFiberVolumetricParticipation) * plastic_dissipation_matrix;
         return rValue;
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
