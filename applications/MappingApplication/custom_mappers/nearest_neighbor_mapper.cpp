@@ -43,9 +43,6 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     if (mInterfaceInfos.size() > 0) {
         rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
 
-        if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != 1) {
-            rLocalMappingMatrix.resize(1, 1, false);
-        }
         if (rOriginIds.size()      != 1) rOriginIds.resize(1);
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
 
@@ -63,11 +60,22 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             if (distance < nearest_neighbor_distance) {
                 nearest_neighbor_distance = distance;
                 mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
+                rOriginIds.resize(1);
+                rOriginIds[0] = nearest_neighbor_id;
+            } else if (distance == nearest_neighbor_distance) {
+                mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
+                rOriginIds.push_back(nearest_neighbor_id);
             }
         }
 
-        rLocalMappingMatrix(0,0) = 1.0;
-        rOriginIds[0] = nearest_neighbor_id;
+        if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != rOriginIds.size()) {
+            rLocalMappingMatrix.resize(1, rOriginIds.size(), false);
+        }
+        const double mapping_weight = 1.0/rOriginIds.size();
+        for (IndexType i=0; i<rOriginIds.size(); ++i) {
+            rLocalMappingMatrix(0,i) = mapping_weight;
+        }
+
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
     }
