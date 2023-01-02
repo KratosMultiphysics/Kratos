@@ -16,7 +16,7 @@
 STRING(FIND "$ENV{KRATOS_APPLICATIONS}" "TrilinosApplication" index)
 IF (${index} GREATER -1)
     # First we try to find using the interface provided by CMake and Trilinos
-    FIND_PACKAGE(Trilinos QUIET)
+    FIND_PACKAGE(Trilinos QUIET COMPONENTS Epetra Teuchos)
 
     # If found
     IF (Trilinos_FOUND)
