@@ -118,21 +118,6 @@ class AnalysesController:
             raise RuntimeError("AnalysesController: Try to get an analysis {} which does not exist.".format(analysis_name))
         else:
             return self.analyses[analysis_name]
-    # --------------------------------------------------------------------------
-    def GetAnalysisModelPartsName(self,analysis_name):
-        if not analysis_name in self.analyses.keys():
-            raise RuntimeError("AnalysesController: Try to get an analysis {} which does not exist.".format(analysis_name))
-        else:
-            for analysis_settings in self.analyses_settings:
-                if analysis_settings["name"].GetString() == analysis_name:
-                    return analysis_settings["settings"]["model_parts"].GetStringArray()
-
-    # --------------------------------------------------------------------------
-    def GetAnalysisModelParts(self,analysis_name):
-        if not analysis_name in self.analyses.keys():
-            raise RuntimeError("AnalysesController: Try to get an analysis {} which does not exist.".format(analysis_name))
-        else:
-            return self.analyses_root_model_parts[analysis_name]
 
     # --------------------------------------------------------------------------
     def RunAnalysis(self,analysis_name):
