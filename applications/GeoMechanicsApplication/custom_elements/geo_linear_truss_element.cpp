@@ -129,8 +129,8 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
         ConstitutiveLaw::Parameters Values(this->GetGeometry(),
                                            this->GetProperties(),
                                            rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
+        Vector temp_strain = ZeroVector(mStressVectorSize);
+        Vector temp_stress = ZeroVector(mStressVectorSize);
         temp_strain[0] = this->CalculateLinearStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
@@ -158,8 +158,8 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
                                        this->GetProperties(),
                                        rCurrentProcessInfo);
 
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+    Vector temp_strain = ZeroVector(mStressVectorSize);
+    Vector temp_stress = ZeroVector(mStressVectorSize);
     temp_strain[0] = this->CalculateLinearStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
