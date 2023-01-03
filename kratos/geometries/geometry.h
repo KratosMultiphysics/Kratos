@@ -3296,7 +3296,7 @@ public:
         Jacobian(rResult, ThisMethod); //this will be overwritten
 
         double detJ;
-        Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
+        Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
             MathUtils<double>::GeneralizedInvertMatrix(rResult[pnt], Jinv, detJ);
             noalias(rResult[pnt]) = Jinv;
