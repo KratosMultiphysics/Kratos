@@ -106,9 +106,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
     // It already works with nodes, which could be approximations for other mappers
     KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetIsApproximation());
 
-    int found_id;
+    std::vector<int> found_id(1);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
@@ -146,9 +146,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
 
     KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
 
-    int found_id;
+    std::vector<int> found_id(1);
     nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
@@ -192,9 +192,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
 
     KRATOS_CHECK_EQUAL(nearest_neighbor_info_new.GetLocalSystemIndex(), source_local_sys_idx);
 
-    int found_id;
+    std::vector<int> found_id(1);
     nearest_neighbor_info_new.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found);
 
     double neighbor_dist;
     nearest_neighbor_info_new.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
