@@ -263,7 +263,20 @@ double GeoTrussElementLinearBase<TDim,TNumNodes>::CalculateLinearStrain()
     this->CreateTransformationMatrix(transformation_matrix);
 
     current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
-    const double length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+
+    double length_0;
+    if constexpr (TDim == 2)
+    {
+        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    } else if constexpr (TDim == 3)
+    {
+        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    }
+    else // 1D
+    {
+        length_0 = std::abs(this->GetGeometry()[1]->GetInitialPosition().Coordinates()[0] - this->GetGeometry()[0]->GetInitialPosition().Coordinates()[0]);
+    }
+    
     const double e = (current_disp[TDim]-current_disp[0])/length_0;
 
     return e;

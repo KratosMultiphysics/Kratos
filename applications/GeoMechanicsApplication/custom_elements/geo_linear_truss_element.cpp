@@ -118,7 +118,7 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
     }
 
     if (rVariable == FORCE) {
-        BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
+        BoundedVector<double, 3> truss_forces = ZeroVector(3);
         const double A = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
