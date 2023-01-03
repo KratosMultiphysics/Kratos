@@ -29,8 +29,6 @@
 <script src="{{ "js/toc.js" }}"></script>
 <script src="{{ "js/customscripts.js" }}"></script>
 
-<link rel="shortcut icon" href="{{ "images/favicon.ico"  }}">
-
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
@@ -41,8 +39,6 @@
 <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ "/feed.xml" | prepend: site.url }}">
 
 <!-- Add favicon -->
-<link rel="shortcut icon" 
-      type="image/png" 
-      href="{{ '/favicon.png' | relative_url }}" >
+<link rel="shortcut icon" type="image/png" href="{{ '{{site.url}}/favicon.png' }}" >
 
 {% comment %} Copyright 2021 Google LLC {% endcomment %}
