@@ -37,7 +37,7 @@ def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, object_ty
         module = import_module(module_name)
         retrieved_object = getattr(module, class_name)(model, parameters["settings"])
         if not isinstance(retrieved_object, object_type):
-            raise TypeError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not of the required type \"{object_type.__name__}\".")
+            raise ImportError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not of the required type \"{object_type.__name__}\".")
         else:
             return retrieved_object
     except AttributeError:
