@@ -186,11 +186,17 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues)
 {
-    mDeterminantF0                = 1;
-    mInverseDeformationGradientF0 = IdentityMatrix(3);
-    mElasticLeftCauchyGreen       = IdentityMatrix(3);
 
-    mPlasticRegion = 0;
+    if ( rProps[IS_RESTARTED] != NULL )
+    {
+        if (!rProps[IS_RESTARTED]){
+            mDeterminantF0                = 1;
+            mInverseDeformationGradientF0 = IdentityMatrix(3);
+            mElasticLeftCauchyGreen       = IdentityMatrix(3);
+
+            mPlasticRegion = 0;
+        }
+    }
 
     mpMPMFlowRule->InitializeMaterial(mpYieldCriterion, mpHardeningLaw, rProps);
 }

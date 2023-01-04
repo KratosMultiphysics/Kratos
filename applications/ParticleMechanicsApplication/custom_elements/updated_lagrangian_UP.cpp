@@ -141,6 +141,8 @@ void UpdatedLagrangianUP::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         // Initialize constitutive law and materials
         InitializeMaterial();
+    } else {
+        InitializeMaterialRestart();
     }
 
     KRATOS_CATCH( "" )

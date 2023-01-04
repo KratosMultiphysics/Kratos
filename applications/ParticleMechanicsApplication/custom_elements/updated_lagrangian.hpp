@@ -597,6 +597,11 @@ protected:
      */
     virtual void InitializeMaterial ();
 
+    /**
+     * Initialize Material Properties on the Constitutive Law when restarting
+     */
+    virtual void InitializeMaterialRestart ();
+
 
     /**
      * Reset the Constitutive Law Parameters

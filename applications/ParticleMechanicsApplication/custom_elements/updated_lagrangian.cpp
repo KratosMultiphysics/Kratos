@@ -153,6 +153,8 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         // Initialize constitutive law and materials
         InitializeMaterial();
+    } else {
+        InitializeMaterialRestart();
     }
 
     KRATOS_CATCH( "" )
@@ -1018,6 +1020,14 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     mMP.displacement += delta_xg;
 
     KRATOS_CATCH( "" )
+}
+
+
+void UpdatedLagrangian::InitializeMaterialRestart()
+{
+    GetProperties().SetValue(IS_RESTARTED, true);
+    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N);
 }
 
 
