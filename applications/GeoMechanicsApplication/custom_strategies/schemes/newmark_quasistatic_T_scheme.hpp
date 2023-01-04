@@ -141,7 +141,7 @@ protected:
 
     // ============================================================================================
     // ============================================================================================
-    virtual inline void SetTimeFactors(ModelPart& rModelPart)
+    virtual inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
