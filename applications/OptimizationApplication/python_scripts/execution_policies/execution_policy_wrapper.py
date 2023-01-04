@@ -12,6 +12,7 @@ from importlib import import_module
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
 
 def RetrieveClass(module_full_path_with_class_name: str):
@@ -54,6 +55,8 @@ class ExecutionPolicyWrapper:
         # create execution policy
         execution_policy_type = RetrieveClass(parameters["execution_policy_type"].GetString())
         self.__execution_policy = execution_policy_type(model, parameters["execution_policy_settings"])
+        if not isinstance(self.__execution_policy, ExecutionPolicy):
+            raise RuntimeError(f"{self.__execution_policy.__class__.__name__} is not derrived from ExecutionPolicy.")
 
     def Initialize(self, optimization_info: dict):
         self.__execution_policy.Initialize(optimization_info)

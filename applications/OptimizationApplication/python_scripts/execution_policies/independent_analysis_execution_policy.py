@@ -9,15 +9,17 @@
 # ==============================================================================
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import RetrieveClass
 
-class IndependentAnalysisExecutionPolicy:
+class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+        super().__init__(model, parameters)
+
         default_settings = Kratos.Parameters("""{
             "analysis_type"      : "PLEASE_PROVIDE_FULL_MODULE_PATH.CLASS_NAME_WITH_RUN_METHOD",
             "analysis_parameters": {}
         }""")
-        self.model = model
 
         parameters.ValidateAndAssignDefaults(default_settings)
         self.analysis_class = RetrieveClass(parameters["analysis_type"].GetString())

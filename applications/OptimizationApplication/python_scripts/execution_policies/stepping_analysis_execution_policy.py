@@ -10,10 +10,12 @@
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import RetrieveClass
 
-class SteppingAnalysisExecutionPolicy:
+class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+        super().__init__(model, parameters)
 
         default_settings = Kratos.Parameters("""{
             "analysis_type"      : "PLEASE_PROVIDE_FULL_MODULE_PATH.CLASS_NAME_WITH_RUN_METHOD",
@@ -21,8 +23,6 @@ class SteppingAnalysisExecutionPolicy:
             "analysis_parameters": {}
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
-        self.parameters = parameters
-        self.model = model
 
         self.model_parts = []
 
