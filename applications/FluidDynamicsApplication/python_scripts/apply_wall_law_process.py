@@ -13,7 +13,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         "linear_log" : "NavierStokesLinearLogWallCondition"
     }
 
-    class __navier_slip_helper():
+    class navier_slip_helper():
         @classmethod
         def GetWallModelDefaultSettings(cls):
             wall_model_default_settings = KratosMultiphysics.Parameters("""{
@@ -36,7 +36,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                         node.SetValue(KratosCFD.SLIP_LENGTH, slip_length)
                 ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.SLIP_LENGTH)
 
-    class __linear_log_helper():
+    class linear_log_helper():
         @classmethod
         def GetWallModelDefaultSettings(cls):
             wall_model_default_settings = KratosMultiphysics.Parameters("""{
@@ -76,11 +76,12 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
         # Set the wall model helper class (see above)
-        helper_class_name = f"__{wall_model_name}_helper"
+        wall_model_name = Settings["wall_model_name"].GetString()
+        helper_class_name = f"{wall_model_name}_helper"
         if not hasattr(self, helper_class_name):
             err_msg = f"Wrong wall model helper class name '{helper_class_name}'. Expected in this case is '__{wall_model_name}_helper'. Check your implementation."
             raise Exception(err_msg)
-        self.wall_model_helper = helper_class_name()
+        self.wall_model_helper = getattr(self, helper_class_name)()
 
         # Validate the wall model settings with the corresponding wall model defaults
         Settings["wall_model_settings"].ValidateAndAssignDefaults(self.wall_model_helper.GetWallModelDefaultSettings())
@@ -100,7 +101,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         # Get data from settings
-        model_part =  self.Model[self.settings["model_part_name"].GetString()]
+        model_part =  self.model[self.settings["model_part_name"].GetString()]
         wall_model_name = self.settings["wall_model_name"].GetString()
 
         # Get the condition registry name
@@ -109,7 +110,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         for condition in model_part.Conditions:
             pts_num = condition.PointsNumber()
             break
-        model_part.GetCommunicator().GetDataCommunicator().MaxAll(pts_num)
+        pts_num = model_part.GetCommunicator().GetDataCommunicator().MaxAll(pts_num)
         domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         cond_aux_name = self.__wall_model_condition_name_map[wall_model_name]
         cond_reg_name = f"{cond_aux_name}{domain_size}D{pts_num}N"
@@ -122,11 +123,11 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             aux_cond_data_map[condition.Id] = (condition.GetGeometry(), condition.Properties)
         # 2. Remove current conditions
         # Note that in here we need to assume that no submodelpart is hanging from this one as the hierarchical structure would be destroyed
-        if model_part.NumberOfSubModelParts != 0:
+        if model_part.NumberOfSubModelParts() != 0:
             raise Exception(f"Wall model part '{model_part.FullName}' has submodelparts.")
         KratosMultiphysics.AuxiliarModelPartUtilities(model_part).RemoveConditionsAndBelongings(KratosMultiphysics.TO_ERASE)
         # 3. Create new wall law conditions from the data map info
-        for key, value in aux_cond_data_map:
+        for key, value in aux_cond_data_map.items():
             model_part.CreateNewCondition(cond_reg_name, key, value[0], value[1])
 
         # Set the SLIP flag in the wall model part nodes and calculate the nodal normals
@@ -144,4 +145,6 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         # If required (e.g. moving boundaries) recalculate the nodal normals
         if self.settings["calculate_normals_at_each_step"].GetBool():
-            self.ExecuteInitialize()
+            model_part = self.model.GetSubModelPart(self.settings["model_part_name"].GetString())
+            domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(model_part, domain_size) #FIXME: This may interact with the nodal normals of slip boundaries (e.g. floor-wall in a 3D channel)
