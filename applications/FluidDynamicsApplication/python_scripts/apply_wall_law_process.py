@@ -34,6 +34,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                 for condition in ModelPart.Conditions:
                     for node in condition.GetNodes:
                         node.SetValue(KratosCFD.SLIP_LENGTH, slip_length)
+                ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.SLIP_LENGTH)
 
     class __linear_log_helper():
         @classmethod
@@ -56,6 +57,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                 for condition in ModelPart.Conditions:
                     for node in condition.GetNodes:
                         node.SetValue(KratosCFD.Y_WALL, y_wall)
+                ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.Y_WALL)
 
     def __init__(self, Model, Settings):
         # Call base class constructor
