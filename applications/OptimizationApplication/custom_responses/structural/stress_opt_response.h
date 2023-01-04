@@ -20,6 +20,7 @@
 // ------------------------------------------------------------------------------
 #include "custom_responses/response.h"
 #include "custom_elements/adjoint_small_displacement_element.h"
+#include "custom_elements/adjoint_shell_element.h"
 
 // ==============================================================================
 
@@ -160,6 +161,10 @@ public:
             p_adj_model_part = &(root_model_part.CreateSubModelPart(adj_model_part_name));
             mpADJModelParts.push_back(p_adj_model_part);
 
+            mShellElem = true;
+            if(eval_model_part.ElementsBegin()->GetGeometry().LocalSpaceDimension()>2)
+                mShellElem = false;
+
             // adding nodes
             for(auto& node : eval_model_part.Nodes())
                 p_adj_model_part->AddNode(&node);
@@ -169,7 +174,12 @@ public:
 
             for (int i = 0; i < (int)eval_model_part.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = eval_model_part.ElementsBegin() + i;
-                Element::Pointer p_element = new AdjointSmallDisplacementElement(it->Id(), it->pGetGeometry(), eval_model_part.pGetElement(it->Id()));
+                Element::Pointer p_element;
+                if(mShellElem)
+                    p_element = new AdjointShellElement(it->Id(), it->pGetGeometry(), eval_model_part.pGetElement(it->Id()));
+                else
+                    p_element = new AdjointSmallDisplacementElement(it->Id(), it->pGetGeometry(), eval_model_part.pGetElement(it->Id()));
+
                 rmesh_elements.push_back(p_element);
             }             
         }
@@ -197,6 +207,26 @@ public:
                     node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
                     auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
                     node_i_adj_dis = 0.0;
+                }
+                if(mShellElem){
+                    node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                    if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_X"))){
+                        node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                        auto& node_i_adj_rot = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                        node_i_adj_rot = 0.0;
+                    }
+                    node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                    if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_Y"))){
+                        node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                        auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                        node_i_adj_dis = 0.0;
+                    }
+                    node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                    if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_Z"))){
+                        node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                        auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                        node_i_adj_dis = 0.0;
+                    }                    
                 }                                
             }
         }
@@ -257,30 +287,20 @@ public:
     // --------------------------------------------------------------------------
     double CalculateElementStress(Element& elem_i, const ProcessInfo &rCurrentProcessInfo){        
 
-        if(elem_i.GetProperties().Has(E_PR)){
-            double e_max = elem_i.GetProperties().GetValue(E_MAX);
-            double e_min = elem_i.GetProperties().GetValue(E_MIN);
-            double e_pr = elem_i.GetProperties().GetValue(E_PR);
-            double e_pe = elem_i.GetProperties().GetValue(E_PE);
-            double re_pr = e_min + std::pow((e_pr-e_min)/(e_max-e_min),mStressPenaltyFactor) * (e_max-e_min);
-            elem_i.GetProperties().SetValue(YOUNG_MODULUS,re_pr);
-        }
-
         std::vector<double> gp_weights_vector;
-        elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);        
         std::vector<double> stress_gp_vector;
- 
-        if(mYieldStressType=="PK2_TENS" || mYieldStressType=="PK2_COMP"){
-            std::vector<Vector> PK2_stress_gp_vector;
-            elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, PK2_stress_gp_vector, rCurrentProcessInfo);
-            stress_gp_vector.resize(gp_weights_vector.size());
-            for(IndexType i = 0; i < gp_weights_vector.size(); i++)
-                stress_gp_vector[i] = PK2_stress_gp_vector[i][0] + PK2_stress_gp_vector[i][1] + PK2_stress_gp_vector[i][2]; 
-        }            
-        else if(mYieldStressType=="VON_MISES")
-            elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, rCurrentProcessInfo); 
-
-
+        
+        if(mYieldStressType=="VON_MISES"){
+            if(mShellElem){
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS_MIDDLE_SURFACE"), stress_gp_vector, rCurrentProcessInfo);
+                gp_weights_vector.resize(stress_gp_vector.size(),elem_i.GetGeometry().Area()/stress_gp_vector.size());
+            }
+            else{
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, rCurrentProcessInfo);
+                elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
+            }  
+        }
+             
         double elem_value = 0.0;
         for(IndexType i = 0; i < gp_weights_vector.size(); i++){
             double gp_stress = stress_gp_vector[i];
@@ -293,91 +313,140 @@ public:
             elem_value += gp_weights_vector[i] * (1.0/(1+std::exp(pow_val))) * std::pow(ratio,mHeavisidePenaltyFactor);
         }
 
-        if(elem_i.GetProperties().Has(E_PE)){
-            double e_pe = elem_i.GetProperties().GetValue(E_PE);
-            elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
-        }
-
         return elem_value;          
     }
     // --------------------------------------------------------------------------
     double CalculateValue() override {
-        double intg_stress = 0.0;     
+        double intg_stress = 0.0; 
+        double tot_vol = 0.0;    
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             const ProcessInfo &CurrentProcessInfo = r_eval_object.GetProcessInfo();
             const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
             // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+            #pragma omp parallel for reduction(+:intg_stress,tot_vol)
             for (auto& elem_i : r_eval_object.Elements())
             {
                 const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
-                if(element_is_active)
+                if(element_is_active){
                     intg_stress += CalculateElementStress(elem_i,CurrentProcessInfo);
+                    if(mShellElem)
+                        tot_vol += elem_i.GetGeometry().Area();
+                    else
+                        tot_vol += elem_i.GetGeometry().Volume();
+                }
             }
         }
-        return intg_stress;
-    };    
+        return intg_stress/tot_vol;
+    };
+
+    void ComputeElementSensitivitiesPrefacs(std::vector<double> & prefacs, const std::vector<double> & stress_gp_vector, const std::vector<Matrix> & stress_gp_tensor){
+
+        if(mYieldStressType=="VON_MISES"){
+            prefacs.resize(stress_gp_vector.size(),0.0);
+
+            for(IndexType k = 0; k < stress_gp_vector.size(); ++k)
+            {
+                const Matrix & PK2_k = stress_gp_tensor[k];
+                double radicant = 0.0;
+                radicant += PK2_k(0,0)*PK2_k(0,0) + PK2_k(1,1)*PK2_k(1,1) + PK2_k(2,2)*PK2_k(2,2);
+                radicant -= PK2_k(0,0)*PK2_k(1,1) + PK2_k(0,0)*PK2_k(2,2) + PK2_k(1,1)*PK2_k(2,2);
+                radicant += 3*PK2_k(0,1)*PK2_k(0,1) + 3*PK2_k(0,2)*PK2_k(0,2) + 3*PK2_k(1,2)*PK2_k(1,2);
+                prefacs[k] = 0.5/std::sqrt(radicant);
+            } 
+        }
+    }
+
+    double ComputeAggregationFunctionDerivative(double gp_stress){
+
+        double ratio = gp_stress/mYieldStressLimit;
+        double pow_val = -2.0 * mBeta * (ratio-1); 
+        if(pow_val>700)
+            pow_val = 700;
+        if(pow_val<-700) 
+            pow_val = -700;                            
+        
+        //derivative of heaviside
+        double heav_derv_mult = std::pow(ratio,mHeavisidePenaltyFactor);
+        heav_derv_mult *=  (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val)));
+        heav_derv_mult *= std::exp(pow_val);
+        heav_derv_mult *= 2 * mBeta;
+        heav_derv_mult /= mYieldStressLimit;
+
+        //derivative of penalty term
+        double penal_derv_mult = 0;
+        if(mHeavisidePenaltyFactor>0)
+            penal_derv_mult += (1.0/(1+std::exp(pow_val))) * (mHeavisidePenaltyFactor) * std::pow(ratio,mHeavisidePenaltyFactor-1) / mYieldStressLimit;
+
+        return heav_derv_mult+penal_derv_mult;
+
+    }    
 
     void ComputeAdjointRHS(ModelPart* mpADJModelPart){
 
         VariableUtils().SetHistoricalVariableToZero(ADJOINT_RHS, mpADJModelPart->Nodes());
+        if(mShellElem)
+            VariableUtils().SetHistoricalVariableToZero(ADJOINT_RHS_ROT, mpADJModelPart->Nodes());
+
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             const ProcessInfo &rCurrentProcessInfo = r_eval_object.GetProcessInfo();
             const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
             for (auto& elem_i : r_eval_object.Elements())
             {
-                if(elem_i.GetProperties().Has(E_PR)){
-                    double e_max = elem_i.GetProperties().GetValue(E_MAX);
-                    double e_min = elem_i.GetProperties().GetValue(E_MIN);
-                    double e_pr = elem_i.GetProperties().GetValue(E_PR);
-                    double e_pe = elem_i.GetProperties().GetValue(E_PE);
-                    double re_pr = e_min + std::pow((e_pr-e_min)/(e_max-e_min),mStressPenaltyFactor) * (e_max-e_min);
-                    elem_i.GetProperties().SetValue(YOUNG_MODULUS,re_pr);
-                }  
 
                 std::vector<double> gp_weights_vector;
-                elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
-                const unsigned int number_integration_points = gp_weights_vector.size();        
                 std::vector<double> stress_gp_vector;
-                std::vector<Matrix> stress_gp_tensor;
-                std::vector<double> von_mises_sensitivity_prefactors(number_integration_points);               
-        
-                if(mYieldStressType=="PK2_TENS" || mYieldStressType=="PK2_COMP"){
-                    std::vector<Vector> PK2_stress_gp_vector;
-                    elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, PK2_stress_gp_vector, rCurrentProcessInfo);
-                    stress_gp_vector.resize(gp_weights_vector.size());
-                    for(IndexType i = 0; i < gp_weights_vector.size(); i++)
-                        stress_gp_vector[i] = PK2_stress_gp_vector[i][0] + PK2_stress_gp_vector[i][1] + PK2_stress_gp_vector[i][2]; 
-                }            
-                else if(mYieldStressType=="VON_MISES"){
-                    elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, rCurrentProcessInfo); 
-                    elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_gp_tensor, rCurrentProcessInfo);
-                    for(IndexType k = 0; k < number_integration_points; ++k)
-                    {
-                        Matrix & PK2_k = stress_gp_tensor[k];
-                        double radicant = 0.0;
-                        radicant += PK2_k(0,0)*PK2_k(0,0) + PK2_k(1,1)*PK2_k(1,1) + PK2_k(2,2)*PK2_k(2,2);
-                        radicant -= PK2_k(0,0)*PK2_k(1,1) + PK2_k(0,0)*PK2_k(2,2) + PK2_k(1,1)*PK2_k(2,2);
-                        radicant += 3*PK2_k(0,1)*PK2_k(0,1) + 3*PK2_k(0,2)*PK2_k(0,2) + 3*PK2_k(1,2)*PK2_k(1,2);
-                        von_mises_sensitivity_prefactors[k] = 0.5/std::sqrt(radicant);
-                    }                    
-                }
+                std::vector<double> sensitivity_prefactors;
+                std::vector<Matrix> stress_gp_tensor;           
                     
-
 
                 // Some working variables
                 const SizeType num_nodes = elem_i.GetGeometry().PointsNumber();
                 const SizeType dimension = elem_i.GetGeometry().WorkingSpaceDimension();
-                const SizeType num_dofs_per_node = dimension;
-                const SizeType num_dofs = num_nodes * num_dofs_per_node;
-                
+                SizeType num_dofs_per_node;
+                if(mShellElem)
+                    num_dofs_per_node = 2 * dimension;
+                else
+                    num_dofs_per_node = dimension;
+
+                const SizeType num_dofs = num_nodes * num_dofs_per_node;                
+                       
+
+                               
+                if(mYieldStressType=="VON_MISES"){
+                    if(mShellElem){
+                        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS_MIDDLE_SURFACE"), stress_gp_vector, rCurrentProcessInfo); 
+                        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_MIDDLE_SURFACE"), stress_gp_tensor, rCurrentProcessInfo);
+                        gp_weights_vector.resize(stress_gp_vector.size(),elem_i.GetGeometry().Area()/stress_gp_vector.size());
+                    }
+                    else{
+                        elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get("VON_MISES_STRESS"), stress_gp_vector, rCurrentProcessInfo); 
+                        elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_gp_tensor, rCurrentProcessInfo);
+                        elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
+                    }
+
+                    ComputeElementSensitivitiesPrefacs(sensitivity_prefactors,stress_gp_vector,stress_gp_tensor);
+                }
+
+                const unsigned int number_integration_points = gp_weights_vector.size(); 
+                    
 
                 // Build vector of variables containing the DOF-variables of the primal problem
                 std::vector<const Variable<double>*> primal_solution_variable_list {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+                if(mShellElem){
+                    primal_solution_variable_list.push_back(&ROTATION_X);
+                    primal_solution_variable_list.push_back(&ROTATION_Y);
+                    primal_solution_variable_list.push_back(&ROTATION_Z);
+                }
 
                 // Build vector of variables containing the ADJOINT_RHS
-                std::vector<const Variable<double>*> adj_rhs_variable_list {&ADJOINT_RHS_X, &ADJOINT_RHS_Y, &ADJOINT_RHS_Z};                
+                std::vector<const Variable<double>*> adj_rhs_variable_list {&ADJOINT_RHS_X, &ADJOINT_RHS_Y, &ADJOINT_RHS_Z};
+                if(mShellElem){
+                    adj_rhs_variable_list.push_back(&ADJOINT_RHS_ROT_X);
+                    adj_rhs_variable_list.push_back(&ADJOINT_RHS_ROT_Y);
+                    adj_rhs_variable_list.push_back(&ADJOINT_RHS_ROT_Z);
+                }                
 
                 // Store primal results and initialize deformation
                 Vector initial_state_variables;
@@ -403,37 +472,15 @@ public:
                         double gp_sensitivity = 0.0;
                         for(IndexType k = 0; k < number_integration_points; ++k){
                             double gp_stress = stress_gp_vector[k];
-                            double ratio = gp_stress/mYieldStressLimit;
-                            double pow_val = -2.0 * mBeta * (ratio-1); 
-                            if(pow_val>700)
-                                pow_val = 700;
-                            if(pow_val<-700) 
-                                pow_val = -700;                            
-                            
-                            //derivative of heaviside
-                            double heav_derv_mult = std::pow(ratio,mHeavisidePenaltyFactor);
-                            heav_derv_mult *=  (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val)));
-                            heav_derv_mult *= std::exp(pow_val);
-                            heav_derv_mult *= 2 * mBeta;
-                            heav_derv_mult /= mYieldStressLimit;
+                            double agg_der = ComputeAggregationFunctionDerivative(gp_stress);
 
-                            // std::cout<<"gp_stress: "<<gp_stress<<", ratio: "<<ratio<<", pow_val: "<<pow_val<<", std::pow(ratio,mHeavisidePenaltyFactor): "<<std::pow(ratio,mHeavisidePenaltyFactor)<<std::endl;
-
-                            //derivative of penalty term
-                            double penal_derv_mult = 0;
-                            if(mHeavisidePenaltyFactor>0)
-                                penal_derv_mult += (1.0/(1+std::exp(pow_val))) * (mHeavisidePenaltyFactor) * std::pow(ratio,mHeavisidePenaltyFactor-1) / mYieldStressLimit;
-
-                            if(mYieldStressType=="PK2_TENS" || mYieldStressType=="PK2_COMP"){
-                                std::vector<Vector> partial_stress_derivatives;
-                                elem_i.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, partial_stress_derivatives, rCurrentProcessInfo);
-                                gp_sensitivity += gp_weights_vector[k] * (heav_derv_mult + penal_derv_mult) * (partial_stress_derivatives[k][0] + partial_stress_derivatives[k][1] + partial_stress_derivatives[k][2]);
-                                // std::cout<<"heav_derv_mult: "<<heav_derv_mult<<", penal_derv_mult: "<<penal_derv_mult<<", partial_stress_derivatives[k]: "<<partial_stress_derivatives[k]<<std::endl;
-                            }                                
-                            else if(mYieldStressType=="VON_MISES"){
+                            if(mYieldStressType=="VON_MISES"){
 
                                 std::vector<Matrix> partial_stress_derivatives;
-                                elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, partial_stress_derivatives, rCurrentProcessInfo);
+                                if(mShellElem)
+                                    elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_MIDDLE_SURFACE"), partial_stress_derivatives, rCurrentProcessInfo);
+                                else
+                                    elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, partial_stress_derivatives, rCurrentProcessInfo);
 
                                 double sensitivity_entry_k = 0.0;
                                 Matrix & PK2_k = stress_gp_tensor[k];
@@ -455,9 +502,9 @@ public:
                                 sensitivity_entry_k += 6*PK2_k(0,2)*partial_stress_derivatives[k](0,2);
                                 sensitivity_entry_k += 6*PK2_k(1,2)*partial_stress_derivatives[k](1,2);
 
-                                sensitivity_entry_k *= von_mises_sensitivity_prefactors[k];
+                                sensitivity_entry_k *= sensitivity_prefactors[k];
                                 sensitivity_entry_k *= gp_weights_vector[k];
-                                sensitivity_entry_k *= (heav_derv_mult + penal_derv_mult);
+                                sensitivity_entry_k *= agg_der;
                                 gp_sensitivity += sensitivity_entry_k;
                             }
                         }
@@ -473,12 +520,6 @@ public:
                     const IndexType index = i * num_dofs_per_node;
                     for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
                         elem_i.GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
-                }
-
-                // Recall young modulus
-                if(elem_i.GetProperties().Has(E_PE)){
-                    double e_pe = elem_i.GetProperties().GetValue(E_PE);
-                    elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
                 }
 
             }
@@ -527,8 +568,8 @@ public:
 			for (auto& cond_i : controlled_model_part.Conditions()){
 				const bool cond_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
 				if(cond_is_active){
-                    if(control_type=="shape")
-                        CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);                                              
+                    // if(control_type=="shape")
+                    //     CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);                                              
                 }
             }
 
@@ -816,7 +857,11 @@ public:
         const GeometryType &rgeom = elem_i.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
         const unsigned int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
-        const unsigned int local_size = num_nodes * dimension;
+        unsigned int local_size;
+        if(mShellElem)
+            local_size = num_nodes * 2 * dimension;
+        else
+            local_size = num_nodes * dimension;
 
         if (rAdjoints.size() != local_size)
             rAdjoints.resize(local_size, false);
@@ -829,6 +874,14 @@ public:
             rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
         rAdjoints[index++] =
             rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
+            if(mShellElem){
+                rAdjoints[index++] =
+                    rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                rAdjoints[index++] =
+                    rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                rAdjoints[index++] =
+                    rgeom[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));                
+            }
         }
     }
 
@@ -947,6 +1000,7 @@ private:
     double mStressPenaltyFactor;
     double mHeavisidePenaltyFactor;
     std::string mYieldStressType;
+    bool mShellElem;
     
 
     ///@}

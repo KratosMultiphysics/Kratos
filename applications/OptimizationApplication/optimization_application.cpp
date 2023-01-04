@@ -177,7 +177,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);   
 
         // Adjoint RHS
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);     
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS_ROT);     
 
         // Thickness optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzSurfThickness3D3N", mHelmholtzSurfThickness3D3N);        

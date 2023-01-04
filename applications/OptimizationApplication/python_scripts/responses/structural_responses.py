@@ -42,11 +42,15 @@ class StressResponseFunction(BaseResponseFunction):
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
                 raise RuntimeError("StressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
-        
+
+        self.analysis_model_part.AddNodalSolutionStepVariable(KSM.ADJOINT_DISPLACEMENT)
+        self.analysis_model_part.AddNodalSolutionStepVariable(KOA.ADJOINT_RHS)
+        if self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("ROTATION")):
+            self.analysis_model_part.AddNodalSolutionStepVariable(KOA.ADJOINT_RHS_ROT)
+            self.analysis_model_part.AddNodalSolutionStepVariable(KSM.ADJOINT_ROTATION)       
+
         # add vars
         for control_type in self.control_types:
-            self.analysis_model_part.AddNodalSolutionStepVariable(KSM.ADJOINT_DISPLACEMENT)
-            self.analysis_model_part.AddNodalSolutionStepVariable(KOA.ADJOINT_RHS)
             if control_type == "shape":
                 self.response_settings["gradient_settings"].AddString("shape_gradient_field_name",self.gradients_variables[control_type])
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
@@ -57,19 +61,7 @@ class StressResponseFunction(BaseResponseFunction):
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as python_linear_solver_factory
         self.adj_solver_settings = KM.Parameters("""{
-                        "solver_type" : "amgcl",
-                        "smoother_type":"ilu0",
-                        "krylov_type": "gmres",
-                        "coarsening_type": "aggregation",
-                        "max_iteration": 200,
-                        "provide_coordinates": false,
-                        "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
-                        "tolerance": 1e-7,
-                        "scaling": false,
-                        "block_size": 1,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 5000
+            "solver_type" : "LinearSolversApplication.pardiso_lu"
                 }""")
         self.linear_solvers = []
         root_model_parts = []
