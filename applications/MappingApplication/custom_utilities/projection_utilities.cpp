@@ -99,8 +99,8 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
     } else {
         // projection is ouside the line, searching the closest point
         pairing_index = PairingIndex::Closest_Point;
-        const double dist_1 = MapperUtilities::ComputeDistance(rPointToProject, rGeometry[0]);
-        const double dist_2 = MapperUtilities::ComputeDistance(rPointToProject, rGeometry[1]);
+        const double dist_1 = rPointToProject.Distance(rGeometry[0]);
+        const double dist_2 = rPointToProject.Distance(rGeometry[1]);
 
         rEquationIds.resize(1);
         if (dist_1 < dist_2) {
@@ -195,7 +195,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
 
-        rProjectionDistance = MapperUtilities::ComputeDistance(rPointToProject, rGeometry.Center());
+        rProjectionDistance = rPointToProject.Distance(rGeometry.Center());
         rProjectionDistance /= rGeometry.Volume(); // Normalize Distance by Volume
 
     } else if (!ComputeApproximation) {
@@ -206,7 +206,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
 
-        rProjectionDistance = MapperUtilities::ComputeDistance(rPointToProject, rGeometry.Center());
+        rProjectionDistance = rPointToProject.Distance(rGeometry.Center());
         rProjectionDistance /= rGeometry.Volume(); // Normalize Distance by Volume
 
     } else { // inter-/extrapolation failed, trying to project on "subgeometries"
@@ -280,7 +280,7 @@ bool ComputeProjection(const GeometryType& rGeometry,
         rProjectionDistance = std::numeric_limits<double>::max();
         rPairingIndex = PairingIndex::Closest_Point;
         for (const auto& r_node : rGeometry.Points()) {
-            const double dist = MapperUtilities::ComputeDistance(rPointToProject, r_node);
+            const double dist = rPointToProject.Distance(r_node);
             if (dist < rProjectionDistance) {
                 rProjectionDistance = dist;
                 KRATOS_DEBUG_ERROR_IF_NOT(r_node.Has(INTERFACE_EQUATION_ID)) << r_node << " does not have an \"INTERFACE_EQUATION_ID\"" << std::endl;

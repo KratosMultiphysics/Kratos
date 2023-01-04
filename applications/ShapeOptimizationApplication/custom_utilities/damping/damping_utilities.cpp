@@ -163,9 +163,9 @@ void DampingUtilities::DampNodalVariable( const Variable<array_3d> &rNodalVariab
         const array_3d& damping_factor = rNode.GetValue(DAMPING_FACTOR);
         array_3d& nodalVariable = rNode.FastGetSolutionStepValue(rNodalVariable);
 
-        // nodalVariable[0] *= damping_factor[0];
-        // nodalVariable[1] *= damping_factor[1];
-        // nodalVariable[2] *= damping_factor[2];
+        nodalVariable[0] *= damping_factor[0];
+        nodalVariable[1] *= damping_factor[1];
+        nodalVariable[2] *= damping_factor[2];
     });
 }
 
