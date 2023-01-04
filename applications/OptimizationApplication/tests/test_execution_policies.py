@@ -14,12 +14,14 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
     def test_IndependentAnalysisExecutionPolicy(self):
         parameters = Kratos.Parameters("""{
             "name"                     : "test",
-            "execution_policy_type"    : "KratosMultiphysics.OptimizationApplication.execution_policies.independent_analysis_execution_policy.IndependentAnalysisExecutionPolicy",
             "execution_policy_settings": {
-                "analysis_type"      : "KratosMultiphysics.multistage_analysis.MultistageAnalysis",
-                "analysis_parameters": {
-                    "stages": [],
-                    "execution_list":[]
+                "class_name": "IndependentAnalysisExecutionPolicy",
+                "class_settings": {
+                    "analysis_type"      : "KratosMultiphysics.multistage_analysis.MultistageAnalysis",
+                    "analysis_parameters": {
+                        "stages": [],
+                        "execution_list":[]
+                    }
                 }
             }
         }""")

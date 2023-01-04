@@ -23,12 +23,34 @@ def RetrieveClass(module_full_path_with_class_name: str):
     module = import_module(".".join(data[:-1]))
     return getattr(module, data[-1])
 
+def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters):
+    default_settings = Kratos.Parameters("""{
+        "module_path"   : "",
+        "class_name"    : "",
+        "class_settings": {}
+    }""")
+    parameters.ValidateAndAssignDefaults(default_settings)
+
+    class_name = parameters["class_name"].GetString()
+    python_file_name = ''.join(['_' + c.lower() if c.isupper() else c for c in class_name]).lstrip('_')
+
+    module_name = parameters["module_path"].GetString()
+    if module_name != "":
+        module_name += "."
+    module_name += python_file_name
+
+    module = import_module(module_name)
+    return getattr(module, parameters["class_name"].GetString())(model, parameters["class_settings"])
+
 class ExecutionPolicyWrapper:
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
         default_parameters = Kratos.Parameters("""{
             "name"                     : "",
-            "execution_policy_type"    : "EXECUTION_POLICY_MODULE_FULL_NAME.EXECUTION_POLICY_CLASS_NAME",
-            "execution_policy_settings": {},
+            "execution_policy_settings": {
+                "module_path"   : "KratosMultiphysics.OptimizationApplication.execution_policies",
+                "class_name"    : "PleaseProvideClassName",
+                "class_settings": {}
+            },
             "pre_operations"           : [],
             "post_operations"          : [],
             "log_in_file"              : false,
@@ -53,8 +75,8 @@ class ExecutionPolicyWrapper:
         self.__list_of_post_operations = factory.ConstructListOfItems(parameters["post_operations"])
 
         # create execution policy
-        execution_policy_type = RetrieveClass(parameters["execution_policy_type"].GetString())
-        self.__execution_policy = execution_policy_type(model, parameters["execution_policy_settings"])
+        parameters["execution_policy_settings"].ValidateAndAssignDefaults(default_parameters["execution_policy_settings"])
+        self.__execution_policy = RetrieveObject(model, parameters["execution_policy_settings"])
         if not isinstance(self.__execution_policy, ExecutionPolicy):
             raise RuntimeError(f"{self.__execution_policy.__class__.__name__} is not derrived from ExecutionPolicy.")
 
