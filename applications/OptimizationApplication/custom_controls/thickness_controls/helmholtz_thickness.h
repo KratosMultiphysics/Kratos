@@ -132,6 +132,7 @@ public:
 
         physical_thicknesses =  mTechniqueSettings["physical_thicknesses"].GetVector();
         initial_thickness = mTechniqueSettings["initial_thickness"].GetDouble();
+        SIMP_pow_fac = mTechniqueSettings["SIMP_power_fac"].GetInt();
         beta = mTechniqueSettings["beta_settings"]["initial_value"].GetDouble();
         adaptive_beta = mTechniqueSettings["beta_settings"]["adaptive"].GetBool();
         beta_fac = mTechniqueSettings["beta_settings"]["increase_fac"].GetDouble();
@@ -269,6 +270,7 @@ protected:
     std::vector<Properties::Pointer> mpVMModelPartsProperties;    
     Parameters mTechniqueSettings;
     double beta;
+    int SIMP_pow_fac;
     bool adaptive_beta;
     double beta_fac;
     double max_beta;
@@ -489,8 +491,8 @@ private:
                 const auto& filtered_thick = node_i.FastGetSolutionStepValue(FT);
                 auto& thickness = node_i.FastGetSolutionStepValue(PT);
                 auto& thickness_der = node_i.FastGetSolutionStepValue(D_PT_D_FT);
-                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta);
-                thickness_der = FirstFilterDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta);
+                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
+                thickness_der = ProjectionDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
             }
         }
 
@@ -505,27 +507,13 @@ private:
                     elem_i_thicknes += it->GetGeometry()[node_element].FastGetSolutionStepValue(PT);
                 elem_i_thicknes /= it->GetGeometry().size();
 
-                double T_min,T_max;
-
-                for(int i=0;i<physical_thicknesses.size()-1;i++){
-                    if(elem_i_thicknes>=physical_thicknesses[i] && elem_i_thicknes<=physical_thicknesses[i+1]){
-                        T_min = physical_thicknesses[i];
-                        T_max = physical_thicknesses[i+1];
-                        break;
-                    }
-                }           
-                double penal_elem_i_thickness = T_min + std::pow((elem_i_thicknes-T_min)/(T_max-T_min),3.0) * (T_max-T_min); 
-                it->GetProperties().SetValue(THICKNESS,penal_elem_i_thickness);
-                it->GetProperties().SetValue(T_MIN,T_min);
-                it->GetProperties().SetValue(T_MAX,T_max);
-                it->GetProperties().SetValue(T_PR,elem_i_thicknes);
-                it->GetProperties().SetValue(T_PE,penal_elem_i_thickness);
+                it->GetProperties().SetValue(THICKNESS,elem_i_thicknes);
             }
         }
     }
 
 
-    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
+    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta, int penal_fac = 1){
 
         double x1,x2,y1,y2;
         int index_x1 = 0;
@@ -568,7 +556,7 @@ private:
             y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
         }
 
-        return (y2-y1)/(1+std::exp(pow_val)) + y1;
+        return (y2-y1)/(std::pow(1+std::exp(pow_val),penal_fac)) + y1;
     }
 
 
@@ -602,7 +590,7 @@ private:
         return x;
     }
 
-    double FirstFilterDerivative(double x,Vector x_limits,Vector y_limits,double beta){
+    double ProjectionDerivative(double x,Vector x_limits,Vector y_limits,double beta,int penal_fac = 1){
 
         double dfdx = 0;
         double x1,x2,y1,y2;
@@ -631,7 +619,7 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
-        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
+        double dydx = (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
 
         if (y2<y1)
             dydx *=-1;
