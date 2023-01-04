@@ -10,45 +10,42 @@
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy import ExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy import RetrieveClass
+from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy_wrapper import RetrieveClass
 
-class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
+class SteppingAnalysisExecutionPolicy:
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        super().__init__(model, parameters)
 
         default_settings = Kratos.Parameters("""{
-            "analysis_name"      : "PLEASE_PROVIDE_FULL_MODULE_PATH.CLASS_NAME_WITH_RUN_METHOD",
+            "analysis_type"      : "PLEASE_PROVIDE_FULL_MODULE_PATH.CLASS_NAME_WITH_RUN_METHOD",
             "model_part_names"   : [],
             "analysis_parameters": {}
         }""")
-        self.parameters["settings"].ValidateAndAssignDefaults(default_settings)
+        parameters.ValidateAndAssignDefaults(default_settings)
+        self.parameters = parameters
+        self.model = model
 
-        self.analysis_class = RetrieveClass(self.parameters["settings"]["analysis_name"].GetString())
-        self.analysis_parameters = self.parameters["settings"]["analysis_parameters"]
         self.model_parts = []
 
-    def Initialize(self, _: dict):
-        self.analysis_parameters = self.analysis_parameters.Clone()
-        self.analysis = self.analysis_class(self.model, self.analysis_parameters)
-
+        analysis_class = RetrieveClass(parameters["analysis_type"].GetString())
+        self.analysis = analysis_class(self.model, parameters["analysis_parameters"])
         if not isinstance(self.analysis, AnalysisStage):
             raise RuntimeError(f"The analysis class {self.analysis.__class__.__name__} is not derrived from AnalysisStage.")
 
+    def Initialize(self, _: dict):
         self.analysis.Initialize()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
 
-    def RunAnalysis(self, _: dict):
+    def Execute(self, _: dict):
         time_before_analysis = []
         step_before_analysis = []
         delta_time_before_analysis = []
 
         for model_part in self.model_parts:
-            time_before_analysis.append(model_part.ProcessInfo(Kratos.TIME))
-            step_before_analysis.append(model_part.ProcessInfo(Kratos.STEP))
-            delta_time_before_analysis.append(model_part.ProcessInfo(Kratos.DELTA_TIME))
+            time_before_analysis.append(model_part.ProcessInfo[Kratos.TIME])
+            step_before_analysis.append(model_part.ProcessInfo[Kratos.STEP])
+            delta_time_before_analysis.append(model_part.ProcessInfo[Kratos.DELTA_TIME])
 
         # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
         for index, model_part in enumerate(self.model_parts):
