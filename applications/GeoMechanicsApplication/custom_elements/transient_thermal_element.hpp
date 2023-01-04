@@ -145,32 +145,15 @@ namespace Kratos
         void EquationIdVector(EquationIdVectorType & rResult,
             const ProcessInfo & rCurrentProcessInfo) const override;
 
-        void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
-        void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
+        void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+        void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-        
-        void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
-        void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
-        void GetValuesVector(Vector& rValues, int Step) const;
-        void GetFirstDerivativesVector(Vector& rValues, int Step) const;
-        void GetSecondDerivativesVector(Vector& rValues, int Step) const;
+        void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+        void GetValuesVector(Vector& rValues, int Step) const override;
+        void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
+        void GetSecondDerivativesVector(Vector& rValues, int Step) const override;
 
-
-        // Turn back information as a string.
-        //std::string Info() const override
-        //{
-        //    std::stringstream buffer;
-        //    buffer << "transient Pw flow Element #" << this->Id() << "\nRetention law: " << mRetentionLawVector[0]->Info();
-        //    return buffer.str();
-        //}
-
-        // Print information about this object.
-        //void PrintInfo(std::ostream & rOStream) const override
-        //{
-        //    rOStream << "transient Pw flow Element #" << this->Id() << "\nRetention law: " << mRetentionLawVector[0]->Info();
-        //}
-
-        
 
     protected:
 
@@ -220,12 +203,12 @@ namespace Kratos
             const ElementVariables& rVariables);
 
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateThermalDispersionMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
 
-        void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+        void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const;
 
