@@ -13,7 +13,7 @@
         "analyses": [
             {
                 "name": "shell_static",
-                "execution_policy_type": "KratosMultiphysics.OptimizationApplication.utilities.execution_policies.stepping_analysis_execution_policy.SteppingAnalysisExecutionPolicy",
+                "execution_policy_type": "KratosMultiphysics.OptimizationApplication.execution_policies.stepping_analysis_execution_policy.SteppingAnalysisExecutionPolicy",
                 "execution_policy_settings": {
                     "analysis_type": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis.StructuralMechanicsAnalysis",
                     "model_part_names": [

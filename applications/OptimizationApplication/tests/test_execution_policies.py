@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 
 class TestExecutionPolicies(kratos_unittest.TestCase):
     @classmethod
@@ -14,7 +14,7 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
     def test_IndependentAnalysisExecutionPolicy(self):
         parameters = Kratos.Parameters("""{
             "name"                     : "test",
-            "execution_policy_type"    : "KratosMultiphysics.OptimizationApplication.utilities.execution_policies.independent_analysis_execution_policy.IndependentAnalysisExecutionPolicy",
+            "execution_policy_type"    : "KratosMultiphysics.OptimizationApplication.execution_policies.independent_analysis_execution_policy.IndependentAnalysisExecutionPolicy",
             "execution_policy_settings": {
                 "analysis_type"      : "KratosMultiphysics.multistage_analysis.MultistageAnalysis",
                 "analysis_parameters": {

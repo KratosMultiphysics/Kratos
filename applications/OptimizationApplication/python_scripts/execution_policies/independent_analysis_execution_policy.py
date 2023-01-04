@@ -9,7 +9,7 @@
 # ==============================================================================
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy_wrapper import RetrieveClass
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import RetrieveClass
 
 class IndependentAnalysisExecutionPolicy:
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):

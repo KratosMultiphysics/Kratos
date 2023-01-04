@@ -10,7 +10,7 @@
 # ==============================================================================
 
 # additional imports
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 # ==============================================================================
