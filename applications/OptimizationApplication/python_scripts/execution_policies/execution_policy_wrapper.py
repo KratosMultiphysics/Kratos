@@ -15,41 +15,33 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import FileLogger
 
-def RetrieveClass(module_full_path_with_class_name: str):
-    data = module_full_path_with_class_name.split(".")
-    if len(data) < 2:
-        raise RuntimeError(f"Please provide module name with the class name. [ provided name = \"{module_full_path_with_class_name}\" ]")
-
-    module = import_module(".".join(data[:-1]))
-    return getattr(module, data[-1])
-
 def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters):
     default_settings = Kratos.Parameters("""{
-        "module_path"   : "",
-        "class_name"    : "",
-        "class_settings": {}
+        "module"  : "",
+        "type"    : "",
+        "settings": {}
     }""")
     parameters.ValidateAndAssignDefaults(default_settings)
 
-    class_name = parameters["class_name"].GetString()
+    class_name = parameters["type"].GetString()
     python_file_name = ''.join(['_' + c.lower() if c.isupper() else c for c in class_name]).lstrip('_')
 
-    module_name = parameters["module_path"].GetString()
+    module_name = parameters["module"].GetString()
     if module_name != "":
         module_name += "."
     module_name += python_file_name
 
     module = import_module(module_name)
-    return getattr(module, parameters["class_name"].GetString())(model, parameters["class_settings"])
+    return getattr(module, class_name)(model, parameters["settings"])
 
 class ExecutionPolicyWrapper:
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
         default_parameters = Kratos.Parameters("""{
             "name"                     : "",
             "execution_policy_settings": {
-                "module_path"   : "KratosMultiphysics.OptimizationApplication.execution_policies",
-                "class_name"    : "PleaseProvideClassName",
-                "class_settings": {}
+                "module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
+                "type"    : "PleaseProvideClassName",
+                "settings": {}
             },
             "pre_operations"           : [],
             "post_operations"          : [],
