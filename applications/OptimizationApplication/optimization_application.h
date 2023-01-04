@@ -27,18 +27,6 @@
 // ------------------------------------------------------------------------------
 #include "includes/kratos_application.h"
 
-/* ELEMENTS */
-#include "custom_elements/helmholtz_surf_shape_element.h"
-#include "custom_elements/helmholtz_surf_thickness_element.h"
-#include "custom_elements/helmholtz_bulk_shape_element.h"
-#include "custom_elements/helmholtz_bulk_element.h"
-
-/* ADJOINT ELEMENTS */
-#include "custom_elements/adjoint_small_displacement_element.h"
-
-/* CONDITIONS */
-#include "custom_conditions/helmholtz_surf_shape_condition.h"
-
 // ==============================================================================
 
 namespace Kratos
@@ -198,19 +186,6 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
-		/* ELEMENTS */
-
-		const HelmholtzSurfShapeElement mHelmholtzSurfShape3D3N;
-		const HelmholtzSurfThicknessElement mHelmholtzSurfThickness3D3N;
-		const HelmholtzBulkShapeElement mHelmholtzBulkShape3D4N;
-		const HelmholtzBulkElement mHelmholtzBulkTopology3D4N;
-
-		/* ADJ ELEMENTS */
-		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;
-
-		/* CONDITIONS*/
-		// Surface conditions
-		const HelmholtzSurfShapeCondition mHelmholtzSurfShapeCondition3D3N;
 
 		///@}
 		///@name Private Operators

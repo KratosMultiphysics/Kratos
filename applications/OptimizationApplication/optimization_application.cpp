@@ -33,15 +33,7 @@
 namespace Kratos
 {
     KratosOptimizationApplication::KratosOptimizationApplication() :
-        KratosApplication("OptimizationApplication"),  
-        /* ELEMENTS */
-        mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        mHelmholtzSurfThickness3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
-        /* CONDITIONS */            
-        mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))              
+        KratosApplication("OptimizationApplication")             
     {}
 
  	void KratosOptimizationApplication::Register()
@@ -165,26 +157,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(E_MAX);  
         KRATOS_REGISTER_VARIABLE(E_PR);
         KRATOS_REGISTER_VARIABLE(E_PE);                      
-
-        // Shape optimization elements
-        KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N); 
-        KRATOS_REGISTER_ELEMENT("HelmholtzBulkShape3D4N", mHelmholtzBulkShape3D4N);
-
-        // Topology optimization elements 
-        KRATOS_REGISTER_ELEMENT("HelmholtzBulkTopology3D4N", mHelmholtzBulkTopology3D4N);
-
-        // Adjoint elements 
-        KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);   
-
-        // Adjoint RHS
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS_ROT);     
-
-        // Thickness optimization elements
-        KRATOS_REGISTER_ELEMENT("HelmholtzSurfThickness3D3N", mHelmholtzSurfThickness3D3N);        
-
-        // Shape optimization conditions
-        KRATOS_REGISTER_CONDITION("HelmholtzSurfShapeCondition3D3N", mHelmholtzSurfShapeCondition3D3N); 
 
         // KRATOS_REGISTER_VARIABLE(TEST_MAP);
  	}
