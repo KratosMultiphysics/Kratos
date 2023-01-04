@@ -19,12 +19,6 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/hexahedra_3d_8.h"
-#include "geometries/hexahedra_3d_27.h"
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
 
@@ -158,7 +152,10 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(E_PR);
         KRATOS_REGISTER_VARIABLE(E_PE);                      
 
-        // KRATOS_REGISTER_VARIABLE(TEST_MAP);
+        // Adjoint RHS
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS_ROT);     
+
  	}
 
 }  // namespace Kratos.
