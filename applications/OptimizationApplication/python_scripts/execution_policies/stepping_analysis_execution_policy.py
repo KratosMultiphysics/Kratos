@@ -28,9 +28,7 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model_parts = []
-        self.analysis = RetrieveObject(self.model, parameters["analysis_settings"])
-        if not isinstance(self.analysis, AnalysisStage):
-            raise RuntimeError(f"The analysis class {self.analysis.__class__.__name__} is not derrived from AnalysisStage.")
+        self.analysis = RetrieveObject(self.model, parameters["analysis_settings"], AnalysisStage)
 
     def Initialize(self, _: dict):
         self.analysis.Initialize()
