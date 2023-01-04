@@ -1,7 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-
-from KratosMultiphysics import assign_vector_by_direction_process
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def Factory(Settings, Model):
     if not isinstance(Settings, KratosMultiphysics.Parameters):
@@ -14,6 +12,50 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         "navier_slip" : "NavierStokesNavierSlipWallCondition",
         "linear_log" : "NavierStokesLinearLogWallCondition"
     }
+
+    class __navier_slip_helper():
+        @classmethod
+        def GetWallModelDefaultSettings(cls):
+            wall_model_default_settings = KratosMultiphysics.Parameters("""{
+                "slip_length" : 0.0
+            }""")
+            return wall_model_default_settings
+
+        @classmethod
+        def InitializeWallModelValues(cls, ModelPart, Settings):
+            # Assign slip length to nodes
+            slip_length = Settings["slip_lenght"].GetDouble()
+            if not slip_length > 1.0e-12:
+                # If provided value is zero, warn the user to set the SLIP_LENGTH manually
+                warn_msg = f"'slip_length' value found is zero. Positive non-zero value is expected to be set for 'SLIP_LENGTH' at the non-historical nodal database."
+                KratosMultiphysics.Logger.PrintWarning(warn_msg)
+            else:
+                # If there is a provided value, assign it to the nodes
+                for condition in ModelPart.Conditions:
+                    for node in condition.GetNodes:
+                        node.SetValue(KratosCFD.SLIP_LENGTH, slip_length)
+
+    class __linear_log_helper():
+        @classmethod
+        def GetWallModelDefaultSettings(cls):
+            wall_model_default_settings = KratosMultiphysics.Parameters("""{
+                "y_wall" : 0.0
+            }""")
+            return wall_model_default_settings
+
+        @classmethod
+        def InitializeWallModelValues(cls, ModelPart, Settings):
+            # Assign slip length to nodes
+            y_wall = Settings["y_wall"].GetDouble()
+            if not y_wall > 1.0e-12:
+                # If provided value is zero, warn the user to set the Y_WALL manually
+                warn_msg = f"'y_wall' value found is zero. Positive non-zero value is expected to be set for 'Y_WALL' at the non-historical nodal database."
+                KratosMultiphysics.Logger.PrintWarning(warn_msg)
+            else:
+                # If there is a provided value, assign it to the nodes
+                for condition in ModelPart.Conditions:
+                    for node in condition.GetNodes:
+                        node.SetValue(KratosCFD.Y_WALL, y_wall)
 
     def __init__(self, Model, Settings):
         # Call base class constructor
@@ -31,7 +73,17 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                 err_msg += f"\n\t-'{wall_model_name}'"
             raise Exception(err_msg)
 
-        # Save member variables
+        # Set the wall model helper class (see above)
+        helper_class_name = f"__{wall_model_name}_helper"
+        if not hasattr(self, helper_class_name):
+            err_msg = f"Wrong wall model helper class name '{helper_class_name}'. Expected in this case is '__{wall_model_name}_helper'. Check your implementation."
+            raise Exception(err_msg)
+        self.wall_model_helper = helper_class_name()
+
+        # Validate the wall model settings with the corresponding wall model defaults
+        Settings["wall_model_settings"].ValidateAndAssignDefaults(self.wall_model_helper.GetWallModelDefaultSettings())
+
+        # Save auxiliary member variables
         self.model = Model
         self.settings = Settings
 
@@ -45,8 +97,9 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         return default_settings
 
     def ExecuteInitialize(self):
-        # Get wall model part
+        # Get data from settings
         model_part =  self.Model[self.settings["model_part_name"].GetString()]
+        wall_model_name = self.settings["wall_model_name"].GetString()
 
         # Get the condition registry name
         # Note that in here we are assuming a unique condition geometry in model part
@@ -56,7 +109,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             break
         model_part.GetCommunicator().GetDataCommunicator().MaxAll(pts_num)
         domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        cond_aux_name = self.__wall_model_condition_name_map[self.settings["wall_model_name"].GetString()]
+        cond_aux_name = self.__wall_model_condition_name_map[wall_model_name]
         cond_reg_name = f"{cond_aux_name}{domain_size}D{pts_num}N"
 
         # Substitute current conditions by the corresponding ones implementing the wall model
@@ -83,8 +136,8 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         # This is required in order to add the wall model contribution within the condition implementation
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.WALL, True, model_part.Conditions)
 
-        # Set the wall law required data
-        #TODO: Create helper classes similar to what we do in the elements
+        # Initialize the corresponding wall model values using the wall model helper class (see above)
+        self.wall_model_helper.InitializeWallModelValues(model_part, self.settings["wall_model_settings"])
 
     def ExecuteInitializeSolutionStep(self):
         # If required (e.g. moving boundaries) recalculate the nodal normals
