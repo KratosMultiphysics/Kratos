@@ -140,8 +140,10 @@ void UpdatedLagrangianUP::Initialize(const ProcessInfo& rCurrentProcessInfo)
         mDeformationGradientF0 = IdentityMatrix(dimension);
 
         // Initialize constitutive law and materials
+        GetProperties().SetValue(IS_RESTARTED, false);
         InitializeMaterial();
     } else {
+        GetProperties().SetValue(IS_RESTARTED, true);
         InitializeMaterialRestart();
     }
 
