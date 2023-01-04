@@ -62,7 +62,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                     
     void CalculateRHS(VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo);
+                      const ProcessInfo& CurrentProcessInfo) override;
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
 

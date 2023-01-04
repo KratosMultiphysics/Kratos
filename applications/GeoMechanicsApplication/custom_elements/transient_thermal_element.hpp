@@ -210,7 +210,7 @@ namespace Kratos
         void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
         void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-        GeometryData::IntegrationMethod GetIntegrationMethod() const;
+        GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     private:
 

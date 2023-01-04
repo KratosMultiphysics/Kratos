@@ -197,7 +197,6 @@ namespace Kratos
         KRATOS_TRY
     	// KRATOS_INFO("0-TransientThermalElement::Initialize()") << this->Id() << std::endl;
         //
-    	const PropertiesType& Prop = this->GetProperties();
         const GeometryType& rGeom = this->GetGeometry();
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
         //
@@ -309,10 +308,6 @@ namespace Kratos
         //
         if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
         //
-        //Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        //
         // KRATOS_INFO("1-TransientThermalElement::InitializeSolutionStep()") << std::endl;
         KRATOS_CATCH("");
     }
@@ -346,13 +341,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-    	// KRATOS_INFO("0-TransientThermalElement::FinalizeSolutionStep()") << std::endl;
-        //
-        // Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        //
-        // KRATOS_INFO("1-TransientThermalElement::FinalizeSolutionStep()") << std::endl;
+        // nothing
         KRATOS_CATCH("")
     }
 
@@ -370,7 +359,6 @@ namespace Kratos
     	// KRATOS_INFO("0-TransientThermalElement::CalculateAll()") << std::endl;
         //
     	//Previous definitions
-    	const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
         const unsigned int NumGPoints = IntegrationPoints.size();
