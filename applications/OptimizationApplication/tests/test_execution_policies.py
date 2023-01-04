@@ -5,8 +5,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.independent_analysis_execution_policy import IndependentAnalysisExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.utilities.execution_policies.stepping_analysis_execution_policy import SteppingAnalysisExecutionPolicy
 
 class TestExecutionPolicies(kratos_unittest.TestCase):
     @classmethod
