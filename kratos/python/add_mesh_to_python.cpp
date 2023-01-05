@@ -466,6 +466,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
+    .def("PointsNumber", [](Element& rThis){return rThis.GetGeometry().PointsNumber();})
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
@@ -600,6 +601,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< std::string > >)
 
+    .def("PointsNumber", [](Condition& rThis){return rThis.GetGeometry().PointsNumber();})
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
 
