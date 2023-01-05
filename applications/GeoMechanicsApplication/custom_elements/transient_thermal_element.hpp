@@ -135,18 +135,11 @@ namespace Kratos
 
         void Initialize(const ProcessInfo & rCurrentProcessInfo) override;
 
-        void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
-
-        void FinalizeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
-
         void GetDofList(DofsVectorType & rElementalDofList,
             const ProcessInfo & rCurrentProcessInfo) const override;
 
         void EquationIdVector(EquationIdVectorType & rResult,
             const ProcessInfo & rCurrentProcessInfo) const override;
-
-        void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-        void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
         void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;

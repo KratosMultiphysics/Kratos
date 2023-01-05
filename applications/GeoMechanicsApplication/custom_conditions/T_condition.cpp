@@ -27,7 +27,8 @@ Condition::Pointer TCondition<TDim,TNumNodes>::Create(
     return Condition::Pointer(new TCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::GetDofList(
     DofsVectorType& rConditionDofList,
@@ -48,7 +49,8 @@ void TCondition<TDim,TNumNodes>::GetDofList(
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
@@ -74,8 +76,8 @@ void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------
-
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
@@ -88,7 +90,8 @@ void TCondition<TDim,TNumNodes>::CalculateLeftHandSide(
     KRATOS_CATCH("");
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim, TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
@@ -108,7 +111,8 @@ void TCondition<TDim, TNumNodes>::CalculateRightHandSide(
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
@@ -131,7 +135,8 @@ void TCondition<TDim,TNumNodes>::EquationIdVector(
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
@@ -141,7 +146,8 @@ void TCondition<TDim,TNumNodes>::CalculateAll(
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::CalculateRHS(
     VectorType& rRightHandSideVector,
@@ -154,7 +160,8 @@ void TCondition<TDim,TNumNodes>::CalculateRHS(
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template class TCondition<2,1>;
 template class TCondition<2,2>;
 template class TCondition<3,1>;

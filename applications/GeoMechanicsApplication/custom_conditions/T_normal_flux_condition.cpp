@@ -20,6 +20,8 @@
 namespace Kratos
 {
 
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TNormalFluxCondition<TDim,TNumNodes>::Create(
     IndexType NewId,NodesArrayType const& ThisNodes,
@@ -28,8 +30,8 @@ Condition::Pointer TNormalFluxCondition<TDim,TNumNodes>::Create(
     return Condition::Pointer(new TNormalFluxCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
     VectorType& rRightHandSideVector,
@@ -77,9 +79,8 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
     }
 }
 
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
@@ -92,38 +93,40 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
                                                 rVariables.TVector);
 }
 
-
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template< >
 void TNormalFluxCondition<2, 2>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
     const Matrix& Jacobian,
     const double& Weight)
 {
-    double dx_dxi = Jacobian(0, 0);
-    double dy_dxi = Jacobian(1, 0);
+    const double dx_dxi = Jacobian(0, 0);
+    const double dy_dxi = Jacobian(1, 0);
 
-    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
 
     rIntegrationCoefficient = ds * Weight;
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template< >
 void TNormalFluxCondition<2, 3>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
     const Matrix& Jacobian,
     const double& Weight)
 {
-    double dx_dxi = Jacobian(0, 0);
-    double dy_dxi = Jacobian(1, 0);
+    const double dx_dxi = Jacobian(0, 0);
+    const double dy_dxi = Jacobian(1, 0);
 
-    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
 
     rIntegrationCoefficient = ds * Weight;
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template< >
 void TNormalFluxCondition<3, 3>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
@@ -138,14 +141,15 @@ void TNormalFluxCondition<3, 3>::CalculateIntegrationCoefficient(
 
     NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
 
-    double dA = sqrt(NormalVector[0] * NormalVector[0]
+    const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
         + NormalVector[1] * NormalVector[1]
         + NormalVector[2] * NormalVector[2]);
 
     rIntegrationCoefficient = dA * Weight;
 }
 
-//----------------------------------------------------------------------------------------
+// ============================================================================================
+// ============================================================================================
 template< >
 void TNormalFluxCondition<3, 4>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
@@ -160,16 +164,15 @@ void TNormalFluxCondition<3, 4>::CalculateIntegrationCoefficient(
 
     NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
 
-    double dA = sqrt(NormalVector[0] * NormalVector[0]
+    const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
         + NormalVector[1] * NormalVector[1]
         + NormalVector[2] * NormalVector[2]);
 
     rIntegrationCoefficient = dA * Weight;
 }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+// ============================================================================================
+// ============================================================================================
 template class TNormalFluxCondition<2,2>;
 template class TNormalFluxCondition<2,3>;
 template class TNormalFluxCondition<3,3>;
