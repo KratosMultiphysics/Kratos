@@ -152,10 +152,8 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
         mDeformationGradientF0 = IdentityMatrix(dimension);
 
         // Initialize constitutive law and materials
-        GetProperties().SetValue(IS_RESTARTED, false);
         InitializeMaterial();
     } else {
-        GetProperties().SetValue(IS_RESTARTED, true);
         InitializeMaterialRestart();
     }
 
@@ -1027,8 +1025,9 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
 void UpdatedLagrangian::InitializeMaterialRestart()
 {
-    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
-    mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N);
+    Vector N_dummy = row(GetGeometry().ShapeFunctionsValues(), 0);
+    N_dummy[0] = -888;
+    mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N_dummy);
 }
 
 
