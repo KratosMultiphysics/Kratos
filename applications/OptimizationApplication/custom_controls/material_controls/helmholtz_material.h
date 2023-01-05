@@ -620,10 +620,10 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
-        double dydx = (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
+        double dydx = (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
 
-        if (y2<y1)
-            dydx *=-1;
+        // if (y2<y1)
+        //     dydx *=-1;
 
         return dydx;
 
