@@ -24,7 +24,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         @classmethod
         def InitializeWallModelValues(cls, ModelPart, Settings):
             # Assign slip length to nodes
-            slip_length = Settings["slip_lenght"].GetDouble()
+            slip_length = Settings["slip_length"].GetDouble()
             if not slip_length > 1.0e-12:
                 # If provided value is zero, warn the user to set the SLIP_LENGTH manually
                 warn_msg = f"'slip_length' value found is zero. Positive non-zero value is expected to be set for 'SLIP_LENGTH' at the non-historical nodal database."
@@ -32,7 +32,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             else:
                 # If there is a provided value, assign it to the nodes
                 for condition in ModelPart.Conditions:
-                    for node in condition.GetNodes:
+                    for node in condition.GetNodes():
                         node.SetValue(KratosCFD.SLIP_LENGTH, slip_length)
                 ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.SLIP_LENGTH)
 
@@ -55,7 +55,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             else:
                 # If there is a provided value, assign it to the nodes
                 for condition in ModelPart.Conditions:
-                    for node in condition.GetNodes:
+                    for node in condition.GetNodes():
                         node.SetValue(KratosCFD.Y_WALL, y_wall)
                 ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.Y_WALL)
 
@@ -120,12 +120,14 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         aux_cond_data_map = {}
         for condition in model_part.Conditions:
             condition.Set(KratosMultiphysics.TO_ERASE,True)
-            aux_cond_data_map[condition.Id] = (condition.GetGeometry(), condition.Properties)
+            aux_ids = [node.Id for node in condition.GetNodes()]
+            aux_props = condition.Properties
+            aux_cond_data_map[condition.Id] = (aux_ids, aux_props)
         # 2. Remove current conditions
         # Note that in here we need to assume that no submodelpart is hanging from this one as the hierarchical structure would be destroyed
         if model_part.NumberOfSubModelParts() != 0:
             raise Exception(f"Wall model part '{model_part.FullName}' has submodelparts.")
-        KratosMultiphysics.AuxiliarModelPartUtilities(model_part).RemoveConditionsAndBelongings(KratosMultiphysics.TO_ERASE)
+        model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
         # 3. Create new wall law conditions from the data map info
         for key, value in aux_cond_data_map.items():
             model_part.CreateNewCondition(cond_reg_name, key, value[0], value[1])
