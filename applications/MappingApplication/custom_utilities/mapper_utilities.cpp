@@ -55,10 +55,10 @@ double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer)
 {
     // Loop through each edge of a geometrical entity ONCE
     return block_for_each<MaxReduction<double>>(rEntityContainer, [](const typename TContainer::value_type& rEntity){
-        for (std::size_t i = 0; i < (rEntity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < rEntity.GetGeometry().size(); ++j) {
-                return ComputeDistance(rEntity.GetGeometry()[i].Coordinates(),
-                                       rEntity.GetGeometry()[j].Coordinates());
+        const auto& r_geometry = rEntity.GetGeometry();
+        for (std::size_t i = 0; i < (r_geometry.size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < r_geometry.size(); ++j) {
+                return r_geometry[i].Distance(r_geometry[j]);
             }
         }
         return 0.0; // in case the geometry is a point
