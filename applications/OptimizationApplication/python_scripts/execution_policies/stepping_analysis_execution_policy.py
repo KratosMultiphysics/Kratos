@@ -28,13 +28,16 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model_parts = []
-        self.analysis = RetrieveObject(self.model, parameters["analysis_settings"], AnalysisStage)
+        self.__analysis = RetrieveObject(self.model, parameters["analysis_settings"], AnalysisStage)
 
     def Initialize(self, _: dict):
-        self.analysis.Initialize()
+        self.__analysis.Initialize()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
+
+    def InitializeIteration(self, _: dict):
+        pass
 
     def Execute(self, _: dict):
         time_before_analysis = []
@@ -52,13 +55,13 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index] - 1)
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
 
-        self.analysis.time = self.analysis._GetSolver().AdvanceInTime(self.analysis.time)
-        self.analysis.InitializeSolutionStep()
-        self.analysis._GetSolver().Predict()
-        self.analysis._GetSolver().SolveSolutionStep()
+        self.__analysis.time = self.__analysis._GetSolver().AdvanceInTime(self.__analysis.time)
+        self.__analysis.InitializeSolutionStep()
+        self.__analysis._GetSolver().Predict()
+        self.__analysis._GetSolver().SolveSolutionStep()
 
-        self.analysis.FinalizeSolutionStep()
-        self.analysis.OutputSolutionStep()
+        self.__analysis.FinalizeSolutionStep()
+        self.__analysis.OutputSolutionStep()
 
         # Clear results or modifications on model parts
         for index, model_part in enumerate(self.model_parts):
@@ -66,5 +69,12 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index])
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_analysis[index])
 
+    def FinalizeIteration(self, _: dict):
+        pass
 
+    def Finalize(self, _: dict):
+        pass
+
+    def GetAnalysis(self, _: dict):
+        return self.__analysis
 

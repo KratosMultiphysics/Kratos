@@ -78,19 +78,17 @@ class ExecutionPolicyWrapper:
             "pre_operations"           : [],
             "post_operations"          : [],
             "log_in_file"              : false,
-            "log_file_name"            : ""
+            "echo_level"               : 0
         }""")
         parameters.ValidateAndAssignDefaults(default_parameters)
 
-        self.__log_file_name = parameters["log_file_name"].GetString()
         self.__log_in_file = parameters["log_in_file"].GetBool()
         self.__name = parameters["name"].GetString()
+        self.__echo_level = parameters["echo_level"].GetInt()
+        self.__is_executed = False
 
         if self.__name == "":
             raise RuntimeError(f"Execution policies should be given a non-empty name. Followings are the corresponding execution policy settings:\n{parameters}")
-
-        if self.__log_in_file and self.__log_file_name == "":
-            raise RuntimeError(f"Logger file name is empty for execution policy. Please provide \"log_file_name\" or make \"log_in_file\" to false.")
 
         factory = KratosModelParametersFactory(model)
 
@@ -105,12 +103,26 @@ class ExecutionPolicyWrapper:
     def Initialize(self, optimization_info: dict):
         self.__execution_policy.Initialize(optimization_info)
 
+    def InitializeIteration(self, optimization_info: dict):
+        self.__is_executed = False
+        self.__execution_policy.InitializeIteration(optimization_info)
+
     def Execute(self, optimization_info: dict):
-        if self.__log_in_file:
-            with FileLogger(self.__log_file_name):
+        if not self.__is_executed:
+            if self.__log_in_file:
+                with FileLogger(self.__name + ".log"):
+                    self.__ExecuteWithoutFileLogger(optimization_info)
+            else:
                 self.__ExecuteWithoutFileLogger(optimization_info)
         else:
-            self.__ExecuteWithoutFileLogger(optimization_info)
+            if self.__echo_level > 1:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Skipping execution of {self.__name} because it has already executed for this iteration.")
+
+    def FinalizeIteration(self, optimization_info: dict):
+        self.__execution_policy.FinalizeIteration(optimization_info)
+
+    def Finalize(self, optimization_info: dict):
+        self.__execution_policy.Finalize(optimization_info)
 
     def GetExecutionPolicy(self):
         return self.__execution_policy
