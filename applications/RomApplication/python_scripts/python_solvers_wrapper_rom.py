@@ -58,7 +58,11 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception(err_msg)
 
     module_full = 'KratosMultiphysics.RomApplication.' + solver_module_name
-    solver = import_module(module_full).CreateSolver(model, solver_settings)
+
+    if (solver_type == "ale_fluid" or solver_type == "Ale_fluid"):
+        solver = import_module(module_full).CreateSolver(model, solver_settings,parallelism)
+    else:
+        solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
 

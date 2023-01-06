@@ -31,7 +31,7 @@ class ROMSolver(StaticMechanicalSolver):
         {
             "rom_settings": {
             "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
-            "number_of_rom_dofs": 3
+            "number_of_rom_dofs": []
             }
         }
         """)
@@ -39,7 +39,7 @@ class ROMSolver(StaticMechanicalSolver):
         return default_settings
 
     def AddVariables(self):
-        super(ROMSolver, self).AddVariables() #Adding nodal area variable
+        super().AddVariables() #Adding nodal area variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateBuilderAndSolver(self):

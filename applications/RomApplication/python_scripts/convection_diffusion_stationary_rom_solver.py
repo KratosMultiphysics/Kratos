@@ -39,7 +39,7 @@ class ROMSolver(ConvectionDiffusionStationarySolver):
         return default_settings
 
     def AddVariables(self):
-        super(ROMSolver, self).AddVariables() #Adding nodal area variable
+        super().AddVariables() #Adding nodal area variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateBuilderAndSolver(self):

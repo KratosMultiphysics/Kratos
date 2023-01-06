@@ -25,7 +25,10 @@
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
-#include "custom_utilities/rom_auxiliary_utilities.h"
+#include "custom_utilities/hrom_model_part_utility.h"
+#include "custom_utilities/rom_bases.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos {
 namespace Python {
@@ -40,17 +43,46 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
-    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
+    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer, RomBases>()) //
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
     ;
 
-    class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
-        .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
-        .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
-        .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
-        .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
-        .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
-        ;
+    class_<HromModelPartUtility, typename HromModelPartUtility::Pointer>(m, "HromModelPartUtility")
+    .def(init<ModelPart&,ModelPart&, Vector, Vector>()) //
+    .def("DoSomethig",&HromModelPartUtility::DoSomethig) //
+    ;
+
+    class_<RomBases, typename RomBases::Pointer>(m, "RomBases")
+    .def(init<>()) //
+    .def("AddBasis",&RomBases::AddBasis) //
+    .def("GetBasis",&RomBases::GetBasis) //
+    ;
+
+    class_<RomBasis, typename RomBasis::Pointer>(m, "RomBasis")
+    .def(init<>()) //
+    .def("SetNodalBasis",&RomBasis::SetNodalBasis) //
+    .def("GetNodalBasis",&RomBasis::GetNodalBasis) //
+    ;
+
+    class_<DistanceToClusters, typename DistanceToClusters::Pointer>(m, "DistanceToClusters")
+    .def(init<int>()) //
+    .def("SetZEntry",&DistanceToClusters::SetZEntry) //
+    .def("SetWEntry",&DistanceToClusters::SetWEntry) //
+    .def("GetWEntry",&DistanceToClusters::GetWEntry) //
+    .def("GetZMatrix",&DistanceToClusters::GetZMatrix) //
+    .def("UpdateCurrentCluster",&DistanceToClusters::UpdateCurrentCluster) //
+    .def("UpdateZMatrix",&DistanceToClusters::UpdateZMatrix) //
+    .def("GetCurrentCluster",&DistanceToClusters::GetCurrentCluster) //
+    ;
+
+    class_<MultipleBasesManager, typename MultipleBasesManager::Pointer>(m, "MultipleBasesManager")
+    .def(init<int>()) //
+    .def("HardSetCurrentCluster",&MultipleBasesManager::HardSetCurrentCluster) //
+    .def("GetCurrentCluster",&MultipleBasesManager::GetCurrentCluster) //
+    ;
+
+;
+
 }
 
 } // namespace Python.
