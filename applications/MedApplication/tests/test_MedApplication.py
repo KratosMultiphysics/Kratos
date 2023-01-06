@@ -40,7 +40,7 @@ def AssembleTestSuites():
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    nightSuite.addTests(nightSuite)
+    allSuite.addTests(nightSuite)
 
     return suites
 
