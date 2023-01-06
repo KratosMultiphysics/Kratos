@@ -24,6 +24,8 @@
 
 namespace Kratos {
 
+namespace {
+
 static const std::map<GeometryData::KratosGeometryType, med_geometry_type> KratosToMedGeometryType {
     { GeometryData::KratosGeometryType::Kratos_Point2D,          MED_POINT1 },
     { GeometryData::KratosGeometryType::Kratos_Point3D,          MED_POINT1 },
@@ -59,25 +61,26 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
     { GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    MED_HEXA27 }
 };
 
-auto GetReorderFunction(const med_geometry_type MedGeomType)
+void CheckConnectivitiesSize(
+    const std::size_t ExpectedSize,
+    const std::vector<med_int>& Conns)
 {
-    auto check_size[](
-        const std::size_t ExpectedSize,
-        const std::vector<med_int>& Connectivities) {
-            KRATOS_DEBUG_ERROR_IF_NOT(Connectivities.size() == ExpectedSize) << "Connectivities must have a size of " << ExpectedSize << ", but have " << Connectivities.size() << "!" << std::endl;
-    };
+    KRATOS_DEBUG_ERROR_IF_NOT(Conns.size() == ExpectedSize) << "Connectivities must have a size of " << ExpectedSize << ", but have " << Conns.size() << "!" << std::endl;
+};
 
+std::function<void(std::vector<med_int>&)> GetReorderFunction(const med_geometry_type MedGeomType)
+{
     switch (MedGeomType)
     {
     case MED_TRIA3:
         return [](std::vector<med_int>& Connectivities){
-            check_size(3, Connectivities);
+            CheckConnectivitiesSize(3, Connectivities);
             std::swap(Connectivities[1], Connectivities[2]);
         };
 
     case MED_QUAD4:
         return [](std::vector<med_int>& Connectivities){
-            check_size(4, Connectivities);
+            CheckConnectivitiesSize(4, Connectivities);
             std::swap(Connectivities[1], Connectivities[3]);
         };
 
@@ -88,6 +91,7 @@ auto GetReorderFunction(const med_geometry_type MedGeomType)
     }
 }
 
+}
 
 class MedModelPartIO::MedFileHandler
 {
@@ -273,6 +277,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     // TODO find better solution than to copy
     const std::vector<double> vec_nodal_coords(nodal_coords.begin(), nodal_coords.end());
 
+    // add check and warning if ModelPart is empty
     err = MEDmeshNodeCoordinateWr(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(),
@@ -282,11 +287,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         MED_FULL_INTERLACE,
         rThisModelPart.NumberOfNodes(),
         vec_nodal_coords.data());
-
-
-
-
-
 
     if (rThisModelPart.NumberOfGeometries() > 0) {
         std::string geometry_name;
@@ -302,42 +302,45 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         using ConnectivitiesVector = std::vector<ConnectivitiesType>;
 
         ConnectivitiesVector connectivities;
-
-
+        connectivities.reserve(rThisModelPart.NumberOfGeometries()/3); // assuming that three different types of geometries exist
 
         auto write_geometries = [this](
             const GeometryData::KratosGeometryType GeomType,
             const std::size_t NumberOfPoints,
-            const ConnectivitiesVector& Connectivities) {
+            ConnectivitiesVector& Connectivities) {
 
-                const auto med_geom_type = KratosToMedGeometryType[GeomType];
-                const auto reorder_fct = GetReorderFunction(med_geom_type)
+                const auto med_geom_type = KratosToMedGeometryType.at(GeomType);
+                const auto reorder_fct = GetReorderFunction(med_geom_type);
 
                 auto GetMedConnectivities = [&reorder_fct](
-                    const ConnectivitiesVector& Connectivities,
-                    const std::size_t NumberOfPoints){
+                    const std::size_t NumberOfPoints,
+                    ConnectivitiesVector& Connectivities) {
+
                     std::vector<med_int> med_conn(Connectivities.size() * NumberOfPoints);
 
-
-                    IndexPartition(Connectivities.size()).for_each([&med_conn, NumberOfPoints, &reorder_fct](const std::size_t i){
+                    // flatten an reorder the connectivities
+                    IndexPartition(Connectivities.size()).for_each([&](const std::size_t i) {
                         reorder_fct(Connectivities[i]);
-                        for (std::size_t p=0; p<NumberOfPoints; ++p) {
-                            med_conn[i*NumberOfPoints+p] = Connectivities[i][p];
-                        }
+                        // for (std::size_t p=0; p<NumberOfPoints; ++p) {
+                        //     med_conn[i*NumberOfPoints+p] = Connectivities[i][p];
+                        // }
+
+                        std::copy(Connectivities[i].begin(), Connectivities[i].end(), med_conn.begin()+(i*NumberOfPoints));
                     });
 
                     return med_conn;
                 };
 
-            std::vector<med_int> med_conn = GetMedConnectivities(Connectivities);
+            const std::vector<med_int> med_conn = GetMedConnectivities(NumberOfPoints, Connectivities);
 
-            if  ( MEDmeshElementConnectivityWr (
+            if (MEDmeshElementConnectivityWr (
                 mpFileHandler->GetFileHandle(),
-                mpFileHandler->GetMeshName(),  MED_NO_DT ,  MED_NO_IT , 0.0,  MED_CELL ,  MED_QUAD4 ,
-                                        MED_NODAL ,  MED_FULL_INTERLACE , Connectivities.size(), med_conn.data()) < 0) {
-                                            KRATOS_ERROR << "Writing failed!" << std::endl;
-            // MESSAGE ( "ERROR : quadrangular cells connectivity ..." );
-            // goto  ERROR;
+                mpFileHandler->GetMeshName(),
+                MED_NO_DT, MED_NO_IT , 0.0,
+                MED_CELL, med_geom_type ,
+                MED_NODAL, MED_FULL_INTERLACE,
+                Connectivities.size(), med_conn.data()) < 0) {
+                    KRATOS_ERROR << "Writing failed!" << std::endl;
             }
         };
 
@@ -363,7 +366,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         }
 
         // write the last batch of geometries
-        write_geometries(geom_type_current, connectivities);
+        write_geometries(geom_type_current, n_points_current, connectivities);
     }
 
     KRATOS_CATCH("")
@@ -384,9 +387,9 @@ void MedModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions,
     std::stringbuf dummy_strbuf;
     auto dummy_stream(Kratos::make_shared<std::iostream>(&dummy_strbuf));
 
-    // ModelPartIO(dummy_stream).DivideInputToPartitions(
-    //     NumberOfPartitions,
-    //     rPartitioningInfo);
+    ModelPartIO(dummy_stream).DivideInputToPartitions(
+        NumberOfPartitions,
+        rPartitioningInfo);
 }
 
 void MedModelPartIO::DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
@@ -397,10 +400,10 @@ void MedModelPartIO::DivideInputToPartitions(Kratos::shared_ptr<std::iostream> *
     std::stringbuf dummy_strbuf;
     auto dummy_stream(Kratos::make_shared<std::iostream>(&dummy_strbuf));
 
-    // ModelPartIO(dummy_stream).DivideInputToPartitions(
-    //     pStreams,
-    //     NumberOfPartitions,
-    //     rPartitioningInfo);
+    ModelPartIO(dummy_stream).DivideInputToPartitions(
+        pStreams,
+        NumberOfPartitions,
+        rPartitioningInfo);
 }
 
 int MedModelPartIO::GetNumberOfMedMeshes() const
