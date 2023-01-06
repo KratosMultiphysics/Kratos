@@ -1,7 +1,6 @@
-# Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import the tests of test-classes to create the suites
 import test_med_model_part_io
 
 def AssembleTestSuites():
@@ -43,6 +42,7 @@ def AssembleTestSuites():
     allSuite.addTests(nightSuite)
 
     return suites
+
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssembleTestSuites())
