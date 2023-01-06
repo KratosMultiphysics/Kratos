@@ -37,14 +37,17 @@ class FileLogger:
 
 class TimeLogger:
     """@brief A context responsible for outputing execution times."""
-    def __init__(self, topic: str, entry_msg: str, exit_msg: str):
+    def __init__(self, topic: str, entry_msg: str, exit_msg: str, print_info: bool = True):
         self.topic = topic
         self.entry_msg = entry_msg
         self.exit_msg = exit_msg
+        self.print_info = print_info
 
     def __enter__(self):
-        Kratos.Logger.PrintInfo(self.topic, self.entry_msg)
-        self.start_time = timer.time()
+        if self.print_info:
+            Kratos.Logger.PrintInfo(self.topic, self.entry_msg)
+            self.start_time = timer.time()
 
     def __exit__(self, exit_type, exit_value, exit_traceback):
-        Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:d} s.]".format(self.exit_msg, round(timer.time() - self.start_time)))
+        if self.print_info:
+            Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:d} s.]".format(self.exit_msg, round(timer.time() - self.start_time)))
