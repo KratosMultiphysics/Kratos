@@ -490,9 +490,13 @@ private:
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_thick = node_i.FastGetSolutionStepValue(FT);
                 auto& thickness = node_i.FastGetSolutionStepValue(PT);
+                auto& p_thickness = node_i.FastGetSolutionStepValue(PPT);
                 auto& thickness_der = node_i.FastGetSolutionStepValue(D_PT_D_FT);
-                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
-                thickness_der = ProjectionDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
+                auto& p_thickness_der = node_i.FastGetSolutionStepValue(D_PPT_D_FT);
+                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,1);
+                p_thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
+                thickness_der = ProjectionDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,1);
+                p_thickness_der = ProjectionDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
             }
         }
 
@@ -503,11 +507,17 @@ private:
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 double elem_i_thicknes = 0.0;
-                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++)
+                double elem_i_p_thicknes = 0.0;
+                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++){
                     elem_i_thicknes += it->GetGeometry()[node_element].FastGetSolutionStepValue(PT);
+                    elem_i_p_thicknes += it->GetGeometry()[node_element].FastGetSolutionStepValue(PPT);
+                }
+                    
                 elem_i_thicknes /= it->GetGeometry().size();
+                elem_i_p_thicknes /= it->GetGeometry().size();
 
-                it->GetProperties().SetValue(THICKNESS,elem_i_thicknes);
+                it->GetProperties().SetValue(THICKNESS,elem_i_p_thicknes);
+                it->GetProperties().SetValue(PT,elem_i_thicknes);
             }
         }
     }
@@ -546,15 +556,20 @@ private:
         
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
 
-        if(index_x1>0){
-            double prev_x1,prev_x2,prev_y1,prev_y2;
-            prev_x1 = x_limits[index_x1-1];
-            prev_x2 = x_limits[index_x1];
-            prev_y1 = y_limits[index_x1-1];
-            prev_y2 = y_limits[index_x1];
-            double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
-            y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
-        }
+        if(pow_val>700)
+            pow_val = 700;
+        if(pow_val<-700) 
+            pow_val = -700;        
+
+        // if(index_x1>0){
+        //     double prev_x1,prev_x2,prev_y1,prev_y2;
+        //     prev_x1 = x_limits[index_x1-1];
+        //     prev_x2 = x_limits[index_x1];
+        //     prev_y1 = y_limits[index_x1-1];
+        //     prev_y2 = y_limits[index_x1];
+        //     double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
+        //     y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
+        // }
 
         return (y2-y1)/(std::pow(1+std::exp(pow_val),penal_fac)) + y1;
     }
@@ -619,10 +634,16 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
-        double dydx = (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
 
-        if (y2<y1)
-            dydx *=-1;
+        if(pow_val>700)
+            pow_val = 700;
+        if(pow_val<-700) 
+            pow_val = -700;
+
+        double dydx = (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
+
+        // if (y2<y1)
+        //     dydx *=-1;
 
         return dydx;
 

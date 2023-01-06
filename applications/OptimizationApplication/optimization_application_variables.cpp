@@ -85,11 +85,13 @@ namespace Kratos
 
     // thickness control
     KRATOS_CREATE_VARIABLE(double,PT);
+    KRATOS_CREATE_VARIABLE(double,PPT);
     KRATOS_CREATE_VARIABLE(double,FT);        
     KRATOS_CREATE_VARIABLE(double,CT);
     KRATOS_CREATE_VARIABLE(double,D_CT);  
     KRATOS_CREATE_VARIABLE(double,D_PT);
-    KRATOS_CREATE_VARIABLE(double,D_PT_D_FT);   
+    KRATOS_CREATE_VARIABLE(double,D_PT_D_FT); 
+    KRATOS_CREATE_VARIABLE(double,D_PPT_D_FT);  
 
     // density control
     KRATOS_CREATE_VARIABLE(double,PD);

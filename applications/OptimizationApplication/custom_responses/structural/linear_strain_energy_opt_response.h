@@ -406,9 +406,9 @@ public:
 
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-            const auto& d_pt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PT_D_FT);
+            const auto& d_ppt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PPT_D_FT);
             #pragma omp atomic
-            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_pt_d_ft * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_ppt_d_ft * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
         }    
     };
 
