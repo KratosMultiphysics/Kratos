@@ -1,0 +1,256 @@
+
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
+
+# Import KratosUnittest
+import KratosMultiphysics.KratosUnittest as kratos_unittest
+from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
+
+class TestMassReponseFunctionBase(kratos_unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+
+        cls.response_function = MassResponseFunction(cls.model, cls.GetParameters())
+        cls.CreateElements()
+
+        cls.response_function.Initialize({})
+        cls.response_function.Check({})
+        cls.response_function.InitializeIteration({})
+        cls.ref_value = cls.response_function.CalculateValue({})
+        cls.response_function.CalculateSensitivity({})
+
+    def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, precision):
+        ref_value = response_function.CalculateValue({})
+        for entity in entities:
+            v = sensitivity_method(entity)
+            update_method(entity, delta)
+            value = response_function.CalculateValue({})
+            sensitivity = (value - ref_value)/delta
+            update_method(entity, -delta)
+            self.assertAlmostEqual(v, sensitivity, precision)
+
+    def _UpdateProperties(self, variable, entity, delta):
+        entity.Properties[variable] += delta
+
+    def _UpdateNodalPositions(self, direction, entity, delta):
+        if direction == 0:
+            entity.X += delta
+        if direction == 1:
+            entity.Y += delta
+        if direction == 2:
+            entity.Z += delta
+
+class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
+    @classmethod
+    def GetParameters(cls):
+        return Kratos.Parameters("""{
+            "name"                      : "test",
+            "model_part_name"           : "test",
+            "sensitivity_variable_names": [
+                "SHAPE_SENSITIVITY",
+                "DENSITY_SENSITIVITY",
+                "CROSS_AREA_SENSITIVITY"
+            ]
+        }""")
+
+    @classmethod
+    def CreateElements(cls):
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 4.0, 4.0, 0.0)
+
+        for i in range(2):
+            node_ids = [(i % 3) + 1, ((i + 1) % 3) + 1]
+            properties = cls.model_part.CreateNewProperties(i)
+            properties[Kratos.DENSITY] = 2.0 * (i + 1)
+            properties[Kratos.CROSS_AREA] = 3.0 * (i + 1)
+            cls.model_part.CreateNewElement("Element2D2N", i, node_ids, properties)
+
+    def test_CalculateValue(self):
+        self.assertAlmostEqual(self.ref_value, 126, 12)
+
+    def test_CalculateShapeSensitivity(self):
+        # calculate nodal shape sensitivities
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
+            lambda x, y: self._UpdateNodalPositions(0, x, y),
+            1e-6,
+            4)
+
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
+            lambda x, y: self._UpdateNodalPositions(1, x, y),
+            1e-6,
+            4)
+
+    def test_CalculateDensitySensitivity(self):
+        # calculate element density sensitivity
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Elements,
+            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
+            1e-6,
+            6)
+
+    def test_CalculateCrossAreaSensitivity(self):
+        # calculate element cross area sensitivity
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Elements,
+            lambda x: x.GetValue(KratosOA.CROSS_AREA_SENSITIVITY),
+            lambda x, y: self._UpdateProperties(Kratos.CROSS_AREA, x, y),
+            1e-6,
+            6)
+
+class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
+    @classmethod
+    def GetParameters(cls):
+        return Kratos.Parameters("""{
+            "name"                      : "test",
+            "model_part_name"           : "test",
+            "sensitivity_variable_names": [
+                "SHAPE_SENSITIVITY",
+                "DENSITY_SENSITIVITY",
+                "THICKNESS_SENSITIVITY"
+            ]
+        }""")
+
+    @classmethod
+    def CreateElements(cls):
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        cls.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        properties = cls.model_part.CreateNewProperties(1)
+        properties[Kratos.DENSITY] = 2.0
+        properties[Kratos.THICKNESS] = 3.0
+        cls.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
+
+        properties = cls.model_part.CreateNewProperties(2)
+        properties[Kratos.DENSITY] = 4.0
+        properties[Kratos.THICKNESS] = 6.0
+        cls.model_part.CreateNewElement("Element2D3N", 2, [4, 1, 3], properties)
+
+    def test_CalculateValue(self):
+        self.assertAlmostEqual(self.ref_value, 15, 12)
+
+    def test_CalculateShapeSensitivity(self):
+        # calculate nodal shape sensitivities
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
+            lambda x, y: self._UpdateNodalPositions(0, x, y),
+            1e-6,
+            4)
+
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
+            lambda x, y: self._UpdateNodalPositions(1, x, y),
+            1e-6,
+            4)
+
+    def test_CalculateDensitySensitivity(self):
+        # calculate element density sensitivity
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Elements,
+            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
+            1e-6,
+            6)
+
+    def test_CalculateThicknessSensitivity(self):
+        # calculate element cross area sensitivity
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Elements,
+            lambda x: x.GetValue(KratosOA.THICKNESS_SENSITIVITY),
+            lambda x, y: self._UpdateProperties(Kratos.THICKNESS, x, y),
+            1e-7,
+            6)
+
+class TestMassResponseFunctionSolids(TestMassReponseFunctionBase):
+    @classmethod
+    def GetParameters(cls):
+        return Kratos.Parameters("""{
+            "name"                      : "test",
+            "model_part_name"           : "test",
+            "sensitivity_variable_names": [
+                "SHAPE_SENSITIVITY",
+                "DENSITY_SENSITIVITY"
+            ]
+        }""")
+
+    @classmethod
+    def CreateElements(cls):
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 2.0, 2.0, 0.0)
+        cls.model_part.CreateNewNode(4, 2.0, 2.0, 1.0)
+        cls.model_part.CreateNewNode(5, 2.0, 2.0, -1.0)
+
+        properties = cls.model_part.CreateNewProperties(1)
+        properties[Kratos.DENSITY] = 2.0
+        cls.model_part.CreateNewElement("Element3D4N", 1, [1, 2, 3, 4], properties)
+
+        properties = cls.model_part.CreateNewProperties(2)
+        properties[Kratos.DENSITY] = 4.0
+        cls.model_part.CreateNewElement("Element3D4N", 2, [5, 1, 2, 3], properties)
+
+    def test_CalculateValue(self):
+        v = 0.0
+        for element in self.model_part.Elements:
+            v += element.GetGeometry().DomainSize() * element.Properties[Kratos.DENSITY]
+        self.assertAlmostEqual(self.ref_value, v, 12)
+
+    def test_CalculateShapeSensitivity(self):
+        # calculate nodal shape sensitivities
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
+            lambda x, y: self._UpdateNodalPositions(0, x, y),
+            1e-6,
+            4)
+
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
+            lambda x, y: self._UpdateNodalPositions(1, x, y),
+            1e-6,
+            4)
+
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Nodes,
+            lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Z),
+            lambda x, y: self._UpdateNodalPositions(2, x, y),
+            1e-6,
+            4)
+
+    def test_CalculateDensitySensitivity(self):
+        # calculate element density sensitivity
+        self._CheckSensitivity(
+            self.response_function,
+            self.model_part.Elements,
+            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
+            1e-6,
+            6)
+
+
+if __name__ == "__main__":
+    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
+    kratos_unittest.main()
