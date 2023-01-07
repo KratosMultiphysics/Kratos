@@ -3,6 +3,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.MedApplication as KratosMed
 
+from pathlib import Path
+
+
+
+def GetMedPath(med_path):
+    return Path(__file__).absolute().parent / "med_files" / med_path / "mesh.med"
+
+
 class TestMedModelPartIO(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -12,8 +20,8 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         self.mp_write = self.model.CreateModelPart("write")
 
     def test_empty_med_file(self):
-        med_io = KratosMed.MedModelPartIO("med_files/empty/mesh.med")
-        med_io.ReadModelPart(self.mp_read_1)
+        med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath("empty"))
+        med_io_read_1.ReadModelPart(self.mp_read_1)
 
         self.assertEqual(self.mp_read_1.NumberOfNodes(), 0)
 
