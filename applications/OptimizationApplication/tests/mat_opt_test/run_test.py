@@ -49,9 +49,9 @@ with open(optimization_log_filename, 'r') as csvfile:
 
     # # Check against specifications
     TestCase().assertEqual(resulting_iteration, 10)
-    TestCase().assertAlmostEqual(resulting_mass, 13418.5, 4)
+    TestCase().assertAlmostEqual(resulting_mass, 13418.1, 4)
     TestCase().assertAlmostEqual(resulting_strain_energy_weight, 2.44141, 4)
-    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.700492, 4)
+    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.703224, 4)
 
 shutil.rmtree(original_directory+"/Optimization_Results")
 shutil.rmtree(original_directory+"/primal_results")

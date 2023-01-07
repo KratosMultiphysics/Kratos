@@ -56,18 +56,18 @@
                         "technique"       : "helmholtz_thickness",
                         "controlling_objects" : ["shell"],
                         "technique_settings"       : {
-                            "filter_radius"              : 0.5,
+                            "filter_radius"              : 0.2,
                             "initial_thickness":0.07,
                             "physical_thicknesses": [0.01,0.02,0.04,0.06,0.08,0.1],
                             "beta_settings": {
-                                "initial_value" : 5,
-                                "max_value" : 30,
-                                "adaptive" : true,
+                                "initial_value" : 10,
+                                "max_value" : 25,
+                                "adaptive" : false,
                                 "increase_fac" : 1.5,
                                 "update_period" : 30
                             },
-                            "fixed_model_parts": ["shell.top_edge"],
-                            "fixed_model_parts_thicknesses": [0.01],                            
+                            "fixed_model_parts": [],
+                            "fixed_model_parts_thicknesses": [],                            
                             "linear_solver_settings" : {
                                 "solver_type" : "amgcl",
                                 "smoother_type":"ilu0",
@@ -82,7 +82,7 @@
                                 "block_size": 1,
                                 "use_block_matrices_if_possible" : true,
                                 "coarse_enough" : 5000
-                            }                            
+                            }                             
                         }                                
                     }                    
                 }                                                              
@@ -103,7 +103,7 @@
                         "algorithm" : "gradient_projection",
                         "algorithm_settings" : {
                             "max_iterations"     : 10,
-                            "projection_step_size" : 2.5,
+                            "projection_step_size" : 0.1,
                             "correction_step_size" : 0.1
                         }                      
                     }
