@@ -6,10 +6,16 @@ import KratosMultiphysics.MedApplication as KratosMed
 class TestMedModelPartIO(KratosUnittest.TestCase):
 
     def setUp(self):
-        pass
+        self.model = KM.Model()
+        self.mp_read_1 = self.model.CreateModelPart("read_1")
+        self.mp_read_2 = self.model.CreateModelPart("read_2")
+        self.mp_write = self.model.CreateModelPart("write")
 
     def test_empty_med_file(self):
-        raise NotImplementedError
+        med_io = KratosMed.MedModelPartIO("med_files/empty/mesh.med")
+        med_io.ReadModelPart(self.mp_read_1)
+
+        self.assertEqual(self.mp_read_1.NumberOfNodes(), 0)
 
     def test_only_nodes(self):
         raise NotImplementedError
