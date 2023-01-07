@@ -106,7 +106,7 @@ public:
         KRATOS_ERROR_IF(Options.Is(IO::APPEND)) << "Appending to med files is not supported!" << std::endl;
         KRATOS_ERROR_IF(Options.Is(IO::READ) && Options.Is(IO::WRITE)) << "Either reading OR writing is possible, not both!" << std::endl;
 
-        const bool mIsReadMode = !Options.Is(IO::WRITE);
+        mIsReadMode = Options.IsNot(IO::WRITE);
 
         // Set the mode (consistent with ModelPartIO)
         // read only by default, unless other settings are specified

@@ -98,7 +98,7 @@ public:
      * @brief This method writes the nodes from an array of nodes
      * @param rThisNodes The array of nodes to be written
      */
-    void WriteNodes(NodesContainerType const& rThisNodes) override;
+    // void WriteNodes(NodesContainerType const& rThisNodes) override;
 
     /**
      * @brief This method writes an array of geometries
