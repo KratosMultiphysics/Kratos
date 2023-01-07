@@ -4,7 +4,6 @@
 ### This file is generated automatically by SALOME v9.6.0 with dump python functionality
 ###
 
-import sys
 import salome
 
 salome.salome_init()

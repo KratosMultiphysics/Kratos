@@ -4,13 +4,11 @@
 ### This file is generated automatically by SALOME v9.6.0 with dump python functionality
 ###
 
-import sys
 import salome
 
 salome.salome_init()
 import salome_notebook
 notebook = salome_notebook.NoteBook()
-sys.path.insert(0, r'/home/philipp/software/Kratos_master/applications/MedApplication/tests/med_files/hexahedral_8N')
 
 ###
 ### GEOM component
