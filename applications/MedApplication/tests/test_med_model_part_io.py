@@ -3,12 +3,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.MedApplication as KratosMed
 
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
+
 from pathlib import Path
 
 
 
-def GetMedPath(med_path):
-    return Path(__file__).absolute().parent / "med_files" / med_path / "mesh.med"
+def GetMedPath(med_path, med_name="mesh.med"):
+    return Path(__file__).absolute().parent / "med_files" / med_path / med_name
 
 
 class TestMedModelPartIO(KratosUnittest.TestCase):
@@ -17,16 +19,39 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         self.model = KM.Model()
         self.mp_read_1 = self.model.CreateModelPart("read_1")
         self.mp_read_2 = self.model.CreateModelPart("read_2")
-        self.mp_write = self.model.CreateModelPart("write")
 
-    def test_empty_med_file(self):
-        med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath("empty"))
+    def _execute_tests(self, med_path, check_fct):
+        med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath(med_path))
         med_io_read_1.ReadModelPart(self.mp_read_1)
 
-        self.assertEqual(self.mp_read_1.NumberOfNodes(), 0)
+        with self.subTest("check_model_part"):
+            check_fct(self.mp_read_1)
+
+        with self.subTest("read_write_read"):
+            med_temp_path = GetMedPath(med_path, "temp.med")
+            DeleteFileIfExisting(med_temp_path) # make sure there are no leftovers from previous tests
+            self.addCleanup(DeleteFileIfExisting, med_temp_path) # clean up after test
+
+            med_io_write = KratosMed.MedModelPartIO(med_temp_path, KM.IO.WRITE)
+            med_io_write.WriteModelPart(self.mp_read_1)
+
+            med_io_read_2 = KratosMed.MedModelPartIO(med_temp_path, KM.IO.READ)
+            med_io_read_2.ReadModelPart(self.mp_read_2)
+
+            KratosMed.MedTestingUtilities.CheckModelPartsAreEqual(self.mp_read_1, self.mp_read_2)
+
+    def test_empty_med_file(self):
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 0)
+
+        self._execute_tests("empty", mp_check_fct)
 
     def test_only_nodes(self):
-        raise NotImplementedError
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 4)
+            # TODO check also the coords
+
+        self._execute_tests("only_nodes", mp_check_fct)
 
     def test_nodes_with_sub_meshes(self):
         raise NotImplementedError
