@@ -199,60 +199,29 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Erase(const Variable<double>& rV)
-    {
-        mData.Erase(rV);
-    }
-
     template<class TVariableType>
     void Erase(const TVariableType& rV)
     {
         mData.Erase(rV);
     }
 
-    virtual double& GetValue(const Variable<double>& rV)
-    {
-        return mData.GetValue(rV);
-    }
-
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV)
     {
-        return mData.GetValue(rV);
-    }
-
-    virtual double const& GetValue(const Variable<double>& rV) const
-    {
-        return mData.GetValue(rV);
+        return GetContainer(rV).GetValue(rV);
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rV) const
     {
-        return mData.GetValue(rV);
-    }
-
-    virtual double& GetValue(const Variable<double>& rV, NodeType& rThisNode)
-    {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV);
+        return GetContainer(rV).GetValue(rV);
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode)
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV);
-    }
-
-    virtual double const& GetValue(const Variable<double>& rV, NodeType const& rThisNode) const
-    {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
+        if(GetContainer(rV).Has(rV))
+            return GetContainer(rV).GetValue(rV);
 
         return rThisNode.GetValue(rV);
     }
@@ -260,33 +229,17 @@ public:
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode) const
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
+        if(GetContainer(rV).Has(rV))
+            return GetContainer(rV).GetValue(rV);
 
         return rThisNode.GetValue(rV);
-    }
-
-    virtual double& GetValue(const Variable<double>& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
-    {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV, SolutionStepIndex);
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV, SolutionStepIndex);
-    }
-
-    virtual double const& GetValue(const Variable<double>& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
-    {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
+        if(GetContainer(rV).Has(rV))
+            return GetContainer(rV).GetValue(rV);
 
         return rThisNode.GetValue(rV, SolutionStepIndex);
     }
@@ -294,24 +247,19 @@ public:
     template<class TVariableType>
     typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
+        if(GetContainer(rV).Has(rV))
+            return GetContainer(rV).GetValue(rV);
 
         return rThisNode.GetValue(rV, SolutionStepIndex);
-    }
-
-    virtual void SetValue(Variable<double> const& rV, double const rValue)
-    {
-        mData.SetValue(rV, rValue);
     }
 
     template<class TVariableType>
     void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
     {
-        mData.SetValue(rV, rValue);
+        GetContainer(rV).SetValue(rV, rValue);
     }
 
-    virtual bool HasVariables() const
+    bool HasVariables() const
     {
         return !mData.IsEmpty();
     }
@@ -518,15 +466,10 @@ public:
     ///@name Inquiry
     ///@{
 
-    virtual bool Has(Variable<double> const& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-
     template<class TVariableType>
     bool Has(TVariableType const& rThisVariable) const
     {
-        return mData.Has(rThisVariable);
+        return GetContainer(rThisVariable).Has(rThisVariable);
     }
 
     template<class TXVariableType, class TYVariableType>
@@ -632,6 +575,16 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    virtual inline ContainerType& GetContainer(const VariableData& rVariableData)
+    {
+        return mData;
+    }
+
+    virtual inline const ContainerType& GetContainer(const VariableData& rVariableData) const
+    {
+        return mData;
+    }
 
     ///@}
     ///@name Serialization
