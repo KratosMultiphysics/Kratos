@@ -8,12 +8,15 @@ def Factory(Settings, Model):
 
 class ApplyWallLawProcess(KratosMultiphysics.Process):
 
-    __wall_model_condition_name_map = {
-        "navier_slip" : "NavierStokesNavierSlipWallCondition",
-        "linear_log" : "NavierStokesLinearLogWallCondition"
-    }
+    @classmethod
+    def _GetHelperClassSuffix(self):
+        return "_monolithic_helper"
 
-    class navier_slip_helper():
+    class navier_slip_monolithic_helper():
+        @classmethod
+        def GetConditionName(cls):
+            return "NavierStokesNavierSlipWallCondition"
+
         @classmethod
         def GetWallModelDefaultSettings(cls):
             wall_model_default_settings = KratosMultiphysics.Parameters("""{
@@ -36,7 +39,11 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
                         node.SetValue(KratosCFD.SLIP_LENGTH, slip_length)
                 ModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.SLIP_LENGTH)
 
-    class linear_log_helper():
+    class linear_log_monolithic_helper():
+        @classmethod
+        def GetConditionName(self):
+            return "NavierStokesLinearLogWallCondition"
+
         @classmethod
         def GetWallModelDefaultSettings(cls):
             wall_model_default_settings = KratosMultiphysics.Parameters("""{
@@ -71,17 +78,13 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             raise Exception("Empty 'model_part_name'. Provide a valid one.")
         if not Settings["wall_model_name"].GetString():
             err_msg = "Empty 'wall_model_name'. Available options are:"
-            for wall_model_name in self.__wall_model_condition_name_map.keys():
+            for wall_model_name in self.__GetAvailableModelsList():
                 err_msg += f"\n\t-'{wall_model_name}'"
             raise Exception(err_msg)
 
         # Set the wall model helper class (see above)
         wall_model_name = Settings["wall_model_name"].GetString()
-        helper_class_name = f"{wall_model_name}_helper"
-        if not hasattr(self, helper_class_name):
-            err_msg = f"Wrong wall model helper class name '{helper_class_name}'. Expected in this case is '__{wall_model_name}_helper'. Check your implementation."
-            raise Exception(err_msg)
-        self.wall_model_helper = getattr(self, helper_class_name)()
+        self.wall_model_helper = self.__CreateWallModelHelperInstance(wall_model_name, self._GetHelperClassSuffix())
 
         # Validate the wall model settings with the corresponding wall model defaults
         Settings["wall_model_settings"].ValidateAndAssignDefaults(self.wall_model_helper.GetWallModelDefaultSettings())
@@ -102,7 +105,6 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # Get data from settings
         model_part =  self.model[self.settings["model_part_name"].GetString()]
-        wall_model_name = self.settings["wall_model_name"].GetString()
 
         # Get the condition registry name
         # Note that in here we are assuming a unique condition geometry in model part
@@ -112,25 +114,15 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             break
         pts_num = model_part.GetCommunicator().GetDataCommunicator().MaxAll(pts_num)
         domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        cond_aux_name = self.__wall_model_condition_name_map[wall_model_name]
-        cond_reg_name = f"{cond_aux_name}{domain_size}D{pts_num}N"
+        cond_reg_name = f"{self.wall_model_helper.GetConditionName()}{domain_size}D{pts_num}N"
 
         # Substitute current conditions by the corresponding ones implementing the wall model
-        # 1. Save current condition data in a map such that Id : (geometry, properties)
-        aux_cond_data_map = {}
-        for condition in model_part.Conditions:
-            condition.Set(KratosMultiphysics.TO_ERASE,True)
-            aux_ids = [node.Id for node in condition.GetNodes()]
-            aux_props = condition.Properties
-            aux_cond_data_map[condition.Id] = (aux_ids, aux_props)
-        # 2. Remove current conditions
-        # Note that in here we need to assume that no submodelpart is hanging from this one as the hierarchical structure would be destroyed
-        if model_part.NumberOfSubModelParts() != 0:
-            raise Exception(f"Wall model part '{model_part.FullName}' has submodelparts.")
-        model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
-        # 3. Create new wall law conditions from the data map info
-        for key, value in aux_cond_data_map.items():
-            model_part.CreateNewCondition(cond_reg_name, key, value[0], value[1])
+        replace_settings = KratosMultiphysics.Parameters("""{
+            "element_name" : "",
+            "condition_name" : ""
+        }""")
+        replace_settings["condition_name"].SetString(cond_reg_name)
+        KratosMultiphysics.ReplaceElementsAndConditionsProcess(model_part, replace_settings).Execute()
 
         # Set the SLIP flag in the wall model part nodes and calculate the nodal normals
         # This is required in order to impose the no penetration condition by the rotating schemes
@@ -150,3 +142,18 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             model_part = self.model.GetSubModelPart(self.settings["model_part_name"].GetString())
             domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(model_part, domain_size) #FIXME: This may interact with the nodal normals of slip boundaries (e.g. floor-wall in a 3D channel)
+
+    def __GetAvailableModelsList(self):
+        available_models = []
+        for attribute_name in dir(self):
+            if self._GetHelperClassSuffix() in attribute_name:
+                available_models.append(attribute_name.split(self._GetHelperClassSuffix())[0])
+                # available_models.append(attribute_name.removesuffix(self._GetHelperClassSuffix())) #TODO: Use this after Python 3.9
+        return available_models
+
+    def __CreateWallModelHelperInstance(self, WallModelName, HelperSuffix):
+        helper_class_name = f"{WallModelName}{HelperSuffix}"
+        if not hasattr(self, helper_class_name):
+            err_msg = f"Wrong wall model helper class name '{helper_class_name}'. Check your implementation."
+            raise Exception(err_msg)
+        return getattr(self, helper_class_name)()
