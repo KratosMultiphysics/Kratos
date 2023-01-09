@@ -19,7 +19,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
-#include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
@@ -34,7 +33,7 @@ using PointIterator = PointVector::iterator;                                    
 using DistanceVector = std::vector<double>;                                                                \
 using DistanceIterator = DistanceVector::iterator;                                                         \
 using BucketType = Bucket<3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>; \
-using KDTree = Tree<KDTreePartition<BucketType>>;                                                          
+using KDTree = Tree<KDTreePartition<BucketType>>;
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -43,7 +42,7 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
     ModelPart& rFirstModelPart,
     ModelPart& rSecondModelPart,
     Parameters ThisParameters
-    ) : mr3DModelPart(Determine3DModelPart(rFirstModelPart, rSecondModelPart)),     
+    ) : mr3DModelPart(Determine3DModelPart(rFirstModelPart, rSecondModelPart)),
         mr1DModelPart(Determine1DModelPart(rFirstModelPart, rSecondModelPart)),
         mThisParameters(ThisParameters)
 {
@@ -142,7 +141,7 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
             }
         }
     }
-    
+
     // Clear VISITED flag
     block_for_each(r_aux_model_part_3D.Elements(), [](Element& rElement){
         rElement.Reset(VISITED);
