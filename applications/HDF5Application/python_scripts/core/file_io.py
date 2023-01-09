@@ -135,7 +135,7 @@ class _FilenameGetterWithDirectoryInitialization(object):
 
     def _InitializeDirectory(self, file_name):
         dirname = Path(file_name).absolute().parent
-        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(dirname))
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(dirname)
 
 def Create(settings, data_comm):
     '''Return the IO object specified by the setting 'io_type'.
