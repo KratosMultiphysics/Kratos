@@ -195,7 +195,7 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
 
 def debug_vtk(model, list_names):
     import KratosMultiphysics.vtk_output_process as vtk_output_process
-    
+
     for name in list_names:
         vtk_output_parameters = KratosMultiphysics.Parameters("""{
             "Parameters" : {
