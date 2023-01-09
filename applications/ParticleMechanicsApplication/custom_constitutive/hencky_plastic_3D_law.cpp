@@ -186,8 +186,15 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues)
 {
+    bool restarted = false;
 
-    if (rShapeFunctionsValues(0) != -888 ){
+    if (rShapeFunctionsValues.size() > 0){
+        if (rShapeFunctionsValues(0) != -888 ){
+            restarted = true;
+        }
+    }
+
+    if (!restarted){
         mDeterminantF0                = 1;
         mInverseDeformationGradientF0 = IdentityMatrix(3);
         mElasticLeftCauchyGreen       = IdentityMatrix(3);

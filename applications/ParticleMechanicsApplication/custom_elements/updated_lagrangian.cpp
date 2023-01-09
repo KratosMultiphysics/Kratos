@@ -1029,7 +1029,8 @@ void UpdatedLagrangian::InitializeMaterialRestart()
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
-        Vector N_dummy = row(GetGeometry().ShapeFunctionsValues(), 0);
+        Vector N_dummy;
+        N_dummy.resize(1);
         N_dummy(0) = -888;
         mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N_dummy);
     }
