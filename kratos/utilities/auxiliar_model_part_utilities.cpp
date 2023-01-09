@@ -402,7 +402,6 @@ void AuxiliarModelPartUtilities::RemoveNodesFromSubModePartsWithoutCorresponding
             r_sub_model_part.RemoveNodes(TO_ERASE);
         }
     }
-    variable_utils.ResetFlag(TO_ERASE, mrModelPart.Nodes());
 }
 
 /***********************************************************************************/
