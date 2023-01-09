@@ -48,7 +48,7 @@ class ExecuteOperationProcess(Kratos.Process):
     def GetDefaultParameters(self):
         return Kratos.Parameters("""
                 {
-                    "help"              : "This process ex",
+                    "help"              : "This process executes given operation at chosen execution points.",
                     "operation_name"    : "",
                     "operation_settings": {},
                     "execution_points"  : [],
