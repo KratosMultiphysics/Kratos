@@ -27,7 +27,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             slip_length = Settings["slip_length"].GetDouble()
             if not slip_length > 1.0e-12:
                 # If provided value is zero, warn the user to set the SLIP_LENGTH manually
-                warn_msg = f"'slip_length' value found is zero. Positive non-zero value is expected to be set for 'SLIP_LENGTH' at the non-historical nodal database."
+                warn_msg = "'slip_length' value found is zero. Positive non-zero value is expected to be set for 'SLIP_LENGTH' at the non-historical nodal database."
                 KratosMultiphysics.Logger.PrintWarning(warn_msg)
             else:
                 # If there is a provided value, assign it to the nodes
@@ -50,7 +50,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
             y_wall = Settings["y_wall"].GetDouble()
             if not y_wall > 1.0e-12:
                 # If provided value is zero, warn the user to set the Y_WALL manually
-                warn_msg = f"'y_wall' value found is zero. Positive non-zero value is expected to be set for 'Y_WALL' at the non-historical nodal database."
+                warn_msg = "'y_wall' value found is zero. Positive non-zero value is expected to be set for 'Y_WALL' at the non-historical nodal database."
                 KratosMultiphysics.Logger.PrintWarning(warn_msg)
             else:
                 # If there is a provided value, assign it to the nodes
@@ -108,7 +108,7 @@ class ApplyWallLawProcess(KratosMultiphysics.Process):
         # Note that in here we are assuming a unique condition geometry in model part
         pts_num = 0
         for condition in model_part.Conditions:
-            pts_num = condition.PointsNumber()
+            pts_num = condition.GetGeometry().PointsNumber()
             break
         pts_num = model_part.GetCommunicator().GetDataCommunicator().MaxAll(pts_num)
         domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
