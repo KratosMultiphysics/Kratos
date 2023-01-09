@@ -58,14 +58,16 @@ namespace Kratos
 	{
 		BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-		mStrainOld = ZeroVector(GetStrainSize());
-		mEquivalentPlasticStrainOld = 0.0;
-		mPlasticStrainRateOld = 0.0;
-		mEnergyInternal = 0.0;
-		mEnergyDissipated = 0.0;
-		mTemperatureOld = rMaterialProperties[TEMPERATURE];
-		mGammaOld = 1e-8;
-		mHardeningRatio = 1.0;
+		if (rShapeFunctionsValues(0) != -888 ){
+			mStrainOld = ZeroVector(GetStrainSize());
+			mEquivalentPlasticStrainOld = 0.0;
+			mPlasticStrainRateOld = 0.0;
+			mEnergyInternal = 0.0;
+			mEnergyDissipated = 0.0;
+			mTemperatureOld = rMaterialProperties[TEMPERATURE];
+			mGammaOld = 1e-8;
+			mHardeningRatio = 1.0;
+		}
 
 		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) {
 			KRATOS_WARNING("Johnson Cook Material Model") << " Taylor Quinney Coefficient set to 0, ignoring thermal effects" << std::endl;

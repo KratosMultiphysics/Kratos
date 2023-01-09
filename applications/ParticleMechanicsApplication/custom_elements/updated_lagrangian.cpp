@@ -1025,9 +1025,18 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
 void UpdatedLagrangian::InitializeMaterialRestart()
 {
-    Vector N_dummy = row(GetGeometry().ShapeFunctionsValues(), 0);
-    N_dummy[0] = -888;
-    mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N_dummy);
+    KRATOS_TRY
+
+    if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+    {
+        Vector N_dummy = row(GetGeometry().ShapeFunctionsValues(), 0);
+        N_dummy(0) = -888;
+        mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N_dummy);
+    }
+    else
+        KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
+    
+    KRATOS_CATCH( "" )
 }
 
 
