@@ -484,18 +484,6 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     endif(tetgen_FOUND)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
-# Checking if the MPI specific apps are compiled
-SET(LIST_OF_MPI_SPECIFIC_APPS TrilinosApplication)
-FOREACH(APPLICATION_MPI ${LIST_OF_MPI_SPECIFIC_APPS})
-    STRING(FIND "$ENV{KRATOS_APPLICATIONS}" ${APPLICATION_MPI} index)
-    IF (${index} GREATER -1)
-        if(${USE_MPI} MATCHES OFF )
-            SET(USE_MPI ON)
-            MESSAGE(WARNING "${APPLICATION_MPI} application requires of USE_MPI. Setting to ON")
-        ENDIF(${USE_MPI} MATCHES OFF )
-    ENDIF (${index} GREATER -1)
-ENDFOREACH(APPLICATION_MPI ${LIST_OF_MPI_SPECIFIC_APPS})
-
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
