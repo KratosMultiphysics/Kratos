@@ -431,7 +431,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
 
     // version with reductions
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        block_for_each<SumReduction<double>>(data_vector, [](double& item){
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = block_for_each<SumReduction<double>>(data_vector, [](double& item){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
         });
@@ -450,7 +451,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
 
     // version with reduction and TLS
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
         });
@@ -477,7 +479,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
 
     // version with reductions
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
         [&](unsigned int i){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
@@ -500,7 +503,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
 
     // version with reduction and TLS
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
         [&](unsigned int i, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
