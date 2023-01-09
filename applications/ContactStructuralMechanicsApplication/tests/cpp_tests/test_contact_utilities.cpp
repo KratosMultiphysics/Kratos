@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -21,42 +21,38 @@
 #include "utilities/cpp_tests_utilities.h"
 #include "custom_utilities/contact_utilities.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-    namespace Testing
-    {
-        /**
-         * Checks the correct work of the contact utilities
-         */
-        KRATOS_TEST_CASE_IN_SUITE(CheckModelPartHasRotationDoF, KratosContactStructuralMechanicsFastSuite)
-        {
-            Model current_model;
+/**
+* Checks the correct work of the contact utilities
+*/
+KRATOS_TEST_CASE_IN_SUITE(CheckModelPartHasRotationDoF, KratosContactStructuralMechanicsFastSuite)
+{
+    Model current_model;
 
-            ModelPart& r_model_part = current_model.CreateModelPart("Main");
-            r_model_part.SetBufferSize(2);
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    r_model_part.SetBufferSize(2);
 
-            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            r_model_part.AddNodalSolutionStepVariable(ROTATION);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(ROTATION);
 
-            auto& r_process_info = r_model_part.GetProcessInfo();
-            r_process_info.SetValue(DOMAIN_SIZE, 2);
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info.SetValue(DOMAIN_SIZE, 2);
 
-            CppTestsUtilities::Create2DGeometry(r_model_part);
+    CppTestsUtilities::Create2DGeometry(r_model_part);
 
-            VariableUtils().AddDof(DISPLACEMENT_X, r_model_part);
-            VariableUtils().AddDof(DISPLACEMENT_Y, r_model_part);
-            VariableUtils().AddDof(DISPLACEMENT_Z, r_model_part);
+    VariableUtils().AddDof(DISPLACEMENT_X, r_model_part);
+    VariableUtils().AddDof(DISPLACEMENT_Y, r_model_part);
+    VariableUtils().AddDof(DISPLACEMENT_Z, r_model_part);
 
-            // Check there is not rotation
-            KRATOS_CHECK_IS_FALSE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
+    // Check there is not rotation
+    KRATOS_CHECK_IS_FALSE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
 
-            VariableUtils().AddDof(ROTATION_X, r_model_part);
-            VariableUtils().AddDof(ROTATION_Y, r_model_part);
-            VariableUtils().AddDof(ROTATION_Z, r_model_part);
+    VariableUtils().AddDof(ROTATION_X, r_model_part);
+    VariableUtils().AddDof(ROTATION_Y, r_model_part);
+    VariableUtils().AddDof(ROTATION_Z, r_model_part);
 
-            // Check there is not rotation
-            KRATOS_CHECK(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
-        }
-
-    } // namespace Testing
-}  // namespace Kratos.
+    // Check there is not rotation
+    KRATOS_CHECK(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
+}
+}  // namespace Kratos::Testing.

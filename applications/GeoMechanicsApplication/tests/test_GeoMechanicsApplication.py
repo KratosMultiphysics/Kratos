@@ -30,7 +30,8 @@ from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
 from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
 from test_consecutive_pipe_lines import TestConsecutivePipeLines
-
+from test_line_loads import KratosGeoMechanicsLineLoadTests
+from test_element_lab import KratosGeoMechanicsLabElementTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -50,17 +51,20 @@ def AssembleTestSuites():
     # - testSmallExample
 
     small_test_cases = [
-        KratosGeoMechanicsGeneralTests,
-        KratosGeoMechanicsExcavationTests,
-        KratosGeoMechanicsInterfaceTests,
-        KratosGeoMechanicsResetDisplacementTests,
-        KratosGeoMechanicsSoilStructureInteractionTests,
-        KratosGeoMechanicsWaterPressureTests,
-        KratosGeoMechanicsElementTypeTests,
-        KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
-        KratosGeoMechanicsSoilWeightTests,
-        KratosGeoMechanicsSettlementTests,
-        KratosGeoMechanicsCurvedBeamElementTests]
+                        KratosGeoMechanicsGeneralTests,
+                        KratosGeoMechanicsExcavationTests,
+                        KratosGeoMechanicsInterfaceTests,
+                        KratosGeoMechanicsResetDisplacementTests,
+                        KratosGeoMechanicsSoilStructureInteractionTests,
+                        KratosGeoMechanicsWaterPressureTests,
+                        KratosGeoMechanicsElementTypeTests,
+                        KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
+                        KratosGeoMechanicsSoilWeightTests,
+                        KratosGeoMechanicsSettlementTests,
+                        KratosGeoMechanicsLineLoadTests,
+                        KratosGeoMechanicsCurvedBeamElementTests,
+                        KratosGeoMechanicsLabElementTests
+                        ]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
@@ -68,19 +72,23 @@ def AssembleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [KratosGeoMechanicsDynamicsTests,
+    night_test_cases = [ 
+                        KratosGeoMechanicsDynamicsTests,
                         KratosGeoMechanicsAbsorbingBoundaryColumnTests,
                         TestSellmeijersRule,
-                        TestElementaryGroundWaterFlow]
+                        TestElementaryGroundWaterFlow
+                        ]
     night_test_cases.extend(small_test_cases)
 
     # Create an array with all long tests only for validations
-    valid_test_cases = [TestConsecutivePipeLines,
+    valid_test_cases = [
+                        TestConsecutivePipeLines,
                         KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests,
                         KratosGeoMechanicsBenchmarkSet1,
                         KratosGeoMechanicsBenchmarkSet2,
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
-                        TestSellmeijersRuleValidation]
+                        TestSellmeijersRuleValidation
+                        ]
 
     # Create an array that contains all the tests from every testCase
     # in the list:
