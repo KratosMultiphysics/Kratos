@@ -376,7 +376,7 @@ void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels(cons
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveNodesFromSubModePartsWithoutCorrespondingEntities()
+void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
 {
     VariableUtils variable_utils;
     for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {

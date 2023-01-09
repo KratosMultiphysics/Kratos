@@ -79,7 +79,7 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None,
     model_part_import_util.ImportModelPart()
     model_part_import_util.CreateCommunicators()
     if clean_orphan_nodes:
-        Kratos.AuxiliarModelPartUtilities(model_part).RemoveNodesFromSubModePartsWithoutCorrespondingEntities()
+        Kratos.AuxiliarModelPartUtilities(model_part).RemoveOrphanNodesFromSubModelParts()
 
 def PrintTestHeader(application):
     Kratos.Logger.Flush()

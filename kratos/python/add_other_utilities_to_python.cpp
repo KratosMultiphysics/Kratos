@@ -410,7 +410,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag);})
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
-        .def("RemoveNodesFromSubModePartsWithoutCorrespondingEntities", &Kratos::AuxiliarModelPartUtilities::RemoveNodesFromSubModePartsWithoutCorrespondingEntities)
+        .def("RemoveOrphanNodesFromSubModelParts", &Kratos::AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts)
         ;
 
     // Sparse matrix multiplication utility
