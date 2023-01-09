@@ -12,6 +12,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.OptimizationApplication.controls.thickness.thickness_control import ThicknessControl
+from KratosMultiphysics.OptimizationApplication.controls.thickness.thickness_control import ThicknessControl
 
 class HelmholtzThickness(ThicknessControl):
 
@@ -20,19 +21,13 @@ class HelmholtzThickness(ThicknessControl):
         self.technique_settings = self.settings["technique_settings"]
 
         self.default_technique_settings = KM.Parameters("""{
-                    "automatic_filter_size" : true,
                     "filter_radius" : 0.000000000001,
-                    "beta_settings": {
-                        "initial_value" : 25,
-                        "max_value" : 25,
-                        "adaptive" : false,
-                        "increase_fac" : 1.5,
-                        "update_period" : 20
-                    },
+                    "beta_settings": {},
                     "initial_thickness":0.000001,
                     "physical_thicknesses": [],
                     "fixed_model_parts": [],
-                    "fixed_model_parts_thicknesses": [],    
+                    "fixed_model_parts_thicknesses": [],
+                    "utilities": [],   
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -50,8 +45,7 @@ class HelmholtzThickness(ThicknessControl):
                     }
                 }""")
 
-        self.technique_settings.RecursivelyValidateAndAssignDefaults(self.default_technique_settings)
-
+        self.technique_settings.ValidateAndAssignDefaults(self.default_technique_settings)
 
         # add vars
         for model_part_name in self.controlling_objects:
@@ -71,16 +65,29 @@ class HelmholtzThickness(ThicknessControl):
 
         self.helmholtz_thickness_control = KOA.HelmholtzThickness(self.name,self.model,self.linear_solvers,self.settings)
 
+        # add utils
+        self.utils = []
+        if self.technique_settings["utilities"].size():
+            for itr in range(self.technique_settings["utilities"].size()):
+                util_settings = self.technique_settings["utilities"][itr]
+                util_type = util_settings["type"].GetString()
+                if  util_type== "plane_symmetry" or util_type== "axis_symmetry":
+                    for model_part_name in self.controlling_objects:
+                        self.utils.append(KOA.SymmetryUtility(util_settings["name"].GetString(),self.model.GetModelPart(model_part_name),util_settings))
+
     def Initialize(self):
         super().Initialize()
         self.helmholtz_thickness_control.Initialize()
+        for util in self.utils:
+            util.Initialize()
     
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
+        for util in self.utils:
+            util.ApplyOnScalarField(derivative_variable_name)
         self.helmholtz_thickness_control.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
-        pass
-        # self.helmholtz_thickness_control.MapControlUpdate(KOA.D_CX,KOA.D_X) 
+        pass 
 
     def Update(self):
         self.helmholtz_thickness_control.Update() 
