@@ -93,212 +93,217 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const double max_stress = mMaxStress;
-    const double min_stress = mMinStress;
-    bool max_indicator = mMaxDetected;
-    bool min_indicator = mMinDetected;
-    double fatigue_reduction_factor = mFatigueReductionFactor;
-    double reversion_factor_relative_error = mReversionFactorRelativeError;
-    double max_stress_relative_error = mMaxStressRelativeError;
-    unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
-    unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
-    double B0 = mFatigueReductionParameter;
-    double previous_max_stress = mPreviousMaxStress;
-    double previous_min_stress = mPreviousMinStress;
-    double wohler_stress = mWohlerStress;
-    bool new_cycle = false;
-    double s_th = mFatigueLimit;
-    double cycles_to_failure = mCyclesToFailure;
-    bool advance_in_time_process_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-    double c_factor = mCFactor;
+    // //FATIGUE CASES
+    // const double max_stress = mMaxStress;
+    // const double min_stress = mMinStress;
+    // bool max_indicator = mMaxDetected;
+    // bool min_indicator = mMinDetected;
+    // double fatigue_reduction_factor = mFatigueReductionFactor;
+    // double reversion_factor_relative_error = mReversionFactorRelativeError;
+    // double max_stress_relative_error = mMaxStressRelativeError;
+    // unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
+    // unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
+    // double B0 = mFatigueReductionParameter;
+    // double previous_max_stress = mPreviousMaxStress;
+    // double previous_min_stress = mPreviousMinStress;
+    // double wohler_stress = mWohlerStress;
+    // bool new_cycle = false;
+    // double s_th = mFatigueLimit;
+    // double cycles_to_failure = mCyclesToFailure;
+    // bool advance_in_time_process_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
+    // double c_factor = mCFactor;
 
-    // bool no_linearity_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
-    const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
-    const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
-    const double damage = mDamage;
-    const double plastic_dissipation = mPlasticDissipation;
-    const double new_load_bock_damage = mNewLoadBlockDamage;
-    const double new_load_bock_plastic_dissipation = mNewLoadBlockPlasticDissipation;
-    const double new_load_block_fatigue_reduction_factor = mNewLoadBlockFatigueReductionFactor;
+    // // bool no_linearity_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
+    // const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
+    // const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
+    // const double damage = mDamage;
+    // const double plastic_dissipation = mPlasticDissipation;
+    // const double new_load_bock_damage = mNewLoadBlockDamage;
+    // const double new_load_bock_plastic_dissipation = mNewLoadBlockPlasticDissipation;
+    // const double new_load_block_fatigue_reduction_factor = mNewLoadBlockFatigueReductionFactor;
 
-    if (new_model_part) {
-        max_indicator = false; //New model part indicates restarting the cycle counter.
-        min_indicator = false;
-        cycles_to_failure = 0.0; //Each time that a new load block is detected the most restrictive case (ULCF) is considered.
-                                                    //The behaviour will be updated depending on the Nf value after a cycle.
-        // mFirstCycleOfANewLoad = true;
-    }
+    // if (new_model_part) {
+    //     max_indicator = false; //New model part indicates restarting the cycle counter.
+    //     min_indicator = false;
+    //     cycles_to_failure = 0.0; //Each time that a new load block is detected the most restrictive case (ULCF) is considered.
+    //                                                 //The behaviour will be updated depending on the Nf value after a cycle.
+    //     // mFirstCycleOfANewLoad = true;
+    // }
 
-    auto& r_material_properties = rValues.GetMaterialProperties();
-    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-    const auto& r_props_isotropic_damage_cl = *(it_cl_begin);
-    const auto& r_props_plasticity_cl = *(it_cl_begin + 1);
-    ConstitutiveLaw::Parameters values_fatigue  = rValues;
-    ConstitutiveLaw::Parameters values_damage_component  = rValues;
-    ConstitutiveLaw::Parameters values_plasticity_component = rValues;
-    values_damage_component.SetMaterialProperties(r_props_isotropic_damage_cl);
-    values_plasticity_component.SetMaterialProperties(r_props_plasticity_cl);
+    // auto& r_material_properties = rValues.GetMaterialProperties();
+    // const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    // const auto& r_props_isotropic_damage_cl = *(it_cl_begin);
+    // const auto& r_props_plasticity_cl = *(it_cl_begin + 1);
+    // ConstitutiveLaw::Parameters values_fatigue  = rValues;
+    // ConstitutiveLaw::Parameters values_damage_component  = rValues;
+    // ConstitutiveLaw::Parameters values_plasticity_component = rValues;
+    // values_damage_component.SetMaterialProperties(r_props_isotropic_damage_cl);
+    // values_plasticity_component.SetMaterialProperties(r_props_plasticity_cl);
 
-    //Checking which material has the fatigue properties
-    if (r_props_isotropic_damage_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
-        values_fatigue.SetMaterialProperties(r_props_isotropic_damage_cl);
-    } else if (r_props_plasticity_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
-        values_fatigue.SetMaterialProperties(r_props_plasticity_cl);
-    } else {
-        KRATOS_ERROR << "Fatigue properties not defined" << std::endl;
-    }
+    // //Checking which material has the fatigue properties
+    // if (r_props_isotropic_damage_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
+    //     values_fatigue.SetMaterialProperties(r_props_isotropic_damage_cl);
+    // } else if (r_props_plasticity_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
+    //     values_fatigue.SetMaterialProperties(r_props_plasticity_cl);
+    // } else {
+    //     KRATOS_ERROR << "Fatigue properties not defined" << std::endl;
+    // }
 
-    if (max_indicator && min_indicator && current_load_type) {
-        if (mFirstCycleOfANewLoad) {
-            const SizeType fatigue_parameters_size = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size();
-            if (fatigue_parameters_size == 8) {
-                c_factor = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
-            } else if (fatigue_parameters_size == 9) {
-                c_factor = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * max_stress + values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
-            }
-        }
-        //Checking if there is any no-linearity accumulation
-        mAcumulatedDamageCurrentCycle = (damage - mPreviousCycleDamage > machine_tolerance) ? true : false;
-        mAcumulatedPlasticityCurrentCycle = (plastic_dissipation - mPreviousCyclePlasticDissipation > machine_tolerance) ? true : false;
+    // if (max_indicator && min_indicator && current_load_type) {
+    //     if (mFirstCycleOfANewLoad) {
+    //         const SizeType fatigue_parameters_size = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size();
+    //         if (fatigue_parameters_size == 8) {
+    //             c_factor = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
+    //         } else if (fatigue_parameters_size == 9) {
+    //             c_factor = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7] * max_stress + values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
+    //         }
+    //     }
+    //     //Checking if there is any no-linearity accumulation
+    //     mAcumulatedDamageCurrentCycle = (damage - mPreviousCycleDamage > machine_tolerance) ? true : false;
+    //     mAcumulatedPlasticityCurrentCycle = (plastic_dissipation - mPreviousCyclePlasticDissipation > machine_tolerance) ? true : false;
 
-        const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-        double alphat;
+    //     const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
+    //     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+    //     double alphat;
 
-        double ultimate_stress = CalculateUltimateStress(values_damage_component.GetMaterialProperties(), values_plasticity_component.GetMaterialProperties());
-        //Check to ensure that we are working in a feasible stress regime
-        // KRATOS_ERROR_IF(mMaxStressDamageBranch > ultimate_stress || mMaxStressPlasticityBranch > ultimate_stress) << "Component cycle stresses outside the composite stress regime" << std::endl;
+    //     double ultimate_stress = CalculateUltimateStress(values_damage_component.GetMaterialProperties(), values_plasticity_component.GetMaterialProperties());
+    //     //Check to ensure that we are working in a feasible stress regime
+    //     // KRATOS_ERROR_IF(mMaxStressDamageBranch > ultimate_stress || mMaxStressPlasticityBranch > ultimate_stress) << "Component cycle stresses outside the composite stress regime" << std::endl;
 
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
-            max_stress,
-            reversion_factor,
-            values_fatigue.GetMaterialProperties(),
-            B0,
-            s_th,
-            alphat,
-            cycles_to_failure,
-            ultimate_stress,
-            c_factor);
+    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+    //         max_stress,
+    //         reversion_factor,
+    //         values_fatigue.GetMaterialProperties(),
+    //         B0,
+    //         s_th,
+    //         alphat,
+    //         cycles_to_failure,
+    //         ultimate_stress,
+    //         c_factor);
 
-        double betaf = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
-        if (std::abs(min_stress) < 0.001) {
-            reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
-        } else {
-            reversion_factor_relative_error = std::abs((reversion_factor - previous_reversion_factor) / reversion_factor);
-        }
-        if (std::abs(max_stress) < 0.001) {
-            max_stress_relative_error = std::abs(max_stress - previous_max_stress);
-        } else {
-            max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
-        }
-        if (mFirstCycleOfANewLoad && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
-            local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf * c_factor)))) + 1;
-        }
+    //     double betaf = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+    //     if (std::abs(min_stress) < 0.001) {
+    //         reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
+    //     } else {
+    //         reversion_factor_relative_error = std::abs((reversion_factor - previous_reversion_factor) / reversion_factor);
+    //     }
+    //     if (std::abs(max_stress) < 0.001) {
+    //         max_stress_relative_error = std::abs(max_stress - previous_max_stress);
+    //     } else {
+    //         max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
+    //     }
+    //     if (mFirstCycleOfANewLoad && global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
+    //         local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf * c_factor)))) + 1;
+    //     }
 
-        global_number_of_cycles++;
+    //     global_number_of_cycles++;
 
-        //The local_number_of_cycles are only updated when fred degradation is expected, i.e. HCF and LCF. ULCF showing no plasticity neither damage accumulation are also counting Nlocal cycles
-        local_number_of_cycles = ((!mAcumulatedDamageCurrentCycle && !mAcumulatedPlasticityCurrentCycle) || cycles_to_failure > 1.0e3) ? local_number_of_cycles + 1.0 : local_number_of_cycles;
+    //     //The local_number_of_cycles are only updated when fred degradation is expected, i.e. HCF and LCF. ULCF showing no plasticity neither damage accumulation are also counting Nlocal cycles
+    //     local_number_of_cycles = ((!mAcumulatedDamageCurrentCycle && !mAcumulatedPlasticityCurrentCycle) || cycles_to_failure > 1.0e3) ? local_number_of_cycles + 1.0 : local_number_of_cycles;
 
-        //Idfentifying the number of cycles that iniciate the no-linearities (either damage or plasticity)
-        const double cycles_to_failure_damage = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
-            cycles_to_failure,
-            mMaxStressDamageBranch,
-            values_fatigue.GetMaterialProperties(),
-            (1.0 - damage) * mIsotropicDamageThreshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
-            s_th,
-            ultimate_stress, //Composite ultimate stress which is the one used to compute the original number of cycles to failure
-            c_factor);
-        const double cycles_to_failure_plasticity = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
-            cycles_to_failure,
-            mMaxStressPlasticityBranch,
-            values_fatigue.GetMaterialProperties(),
-            mPlasticityThreshold / fatigue_reduction_factor, //Plasticity threshold with no influence of fatigue, only damage no-linearity
-            s_th,
-            ultimate_stress, //Composite ultimate stress which is the one used to compute the original number of cycles to failure
-            c_factor);
-        cycles_to_failure = std::min(cycles_to_failure_damage, cycles_to_failure_plasticity);
+    //     //Idfentifying the number of cycles that iniciate the no-linearities (either damage or plasticity)
+    //     const double cycles_to_failure_damage = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+    //         cycles_to_failure,
+    //         mMaxStressDamageBranch,
+    //         values_fatigue.GetMaterialProperties(),
+    //         (1.0 - damage) * mIsotropicDamageThreshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
+    //         s_th,
+    //         ultimate_stress, //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+    //         c_factor);
+    //     const double cycles_to_failure_plasticity = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+    //         cycles_to_failure,
+    //         mMaxStressPlasticityBranch,
+    //         values_fatigue.GetMaterialProperties(),
+    //         mPlasticityThreshold / fatigue_reduction_factor, //Plasticity threshold with no influence of fatigue, only damage no-linearity
+    //         s_th,
+    //         ultimate_stress, //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+    //         c_factor);
+    //     cycles_to_failure = std::min(cycles_to_failure_damage, cycles_to_failure_plasticity);
 
-        new_cycle = true;
-        max_indicator = false;
-        min_indicator = false;
-        previous_max_stress = max_stress;
-        previous_min_stress = min_stress;
+    //     new_cycle = true;
+    //     max_indicator = false;
+    //     min_indicator = false;
+    //     previous_max_stress = max_stress;
+    //     previous_min_stress = min_stress;
 
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
-                                                                                        max_stress,
-                                                                                        local_number_of_cycles,
-                                                                                        global_number_of_cycles,
-                                                                                        B0,
-                                                                                        s_th,
-                                                                                        alphat,
-                                                                                        fatigue_reduction_factor,
-                                                                                        wohler_stress,
-                                                                                        ultimate_stress,
-                                                                                        c_factor);
-        mFirstCycleOfANewLoad = false;
-    }
-    mCyclesToFailure = cycles_to_failure;
+    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
+    //                                                                                     max_stress,
+    //                                                                                     local_number_of_cycles,
+    //                                                                                     global_number_of_cycles,
+    //                                                                                     B0,
+    //                                                                                     s_th,
+    //                                                                                     alphat,
+    //                                                                                     fatigue_reduction_factor,
+    //                                                                                     wohler_stress,
+    //                                                                                     ultimate_stress,
+    //                                                                                     c_factor);
+    //     mFirstCycleOfANewLoad = false;
+    // }
+    // mCyclesToFailure = cycles_to_failure;
 
-    if (advance_in_time_process_applied && current_load_type) {
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-        double alphat;
-        double ultimate_stress = CalculateUltimateStress(values_damage_component.GetMaterialProperties(), values_plasticity_component.GetMaterialProperties());
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
-            max_stress,
-            reversion_factor,
-            values_fatigue.GetMaterialProperties(),
-            B0,
-            s_th,
-            alphat,
-            cycles_to_failure,
-            ultimate_stress,
-            c_factor);
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
-                                                                                        max_stress,
-                                                                                        local_number_of_cycles,
-                                                                                        global_number_of_cycles,
-                                                                                        B0,
-                                                                                        s_th,
-                                                                                        alphat,
-                                                                                        fatigue_reduction_factor,
-                                                                                        wohler_stress,
-                                                                                        ultimate_stress,
-                                                                                        c_factor);
-    }
-    mNumberOfCyclesGlobal = global_number_of_cycles;
-    mNumberOfCyclesLocal = local_number_of_cycles;
-    mReversionFactorRelativeError = reversion_factor_relative_error;
-    mMaxStressRelativeError = max_stress_relative_error;
-    mMaxDetected = max_indicator;
-    mMinDetected = min_indicator;
-    mFatigueReductionParameter = B0;
-    mPreviousMaxStress = previous_max_stress;
-    mPreviousMinStress = previous_min_stress;
-    mFatigueReductionFactor = fatigue_reduction_factor;
-    mWohlerStress = wohler_stress;
-    mNewCycleIndicator = new_cycle;
-    mFatigueLimit = s_th;
-    mCFactor = c_factor;
+    // if (advance_in_time_process_applied && current_load_type) {
+    //     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+    //     double alphat;
+    //     double ultimate_stress = CalculateUltimateStress(values_damage_component.GetMaterialProperties(), values_plasticity_component.GetMaterialProperties());
+    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+    //         max_stress,
+    //         reversion_factor,
+    //         values_fatigue.GetMaterialProperties(),
+    //         B0,
+    //         s_th,
+    //         alphat,
+    //         cycles_to_failure,
+    //         ultimate_stress,
+    //         c_factor);
+    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
+    //                                                                                     max_stress,
+    //                                                                                     local_number_of_cycles,
+    //                                                                                     global_number_of_cycles,
+    //                                                                                     B0,
+    //                                                                                     s_th,
+    //                                                                                     alphat,
+    //                                                                                     fatigue_reduction_factor,
+    //                                                                                     wohler_stress,
+    //                                                                                     ultimate_stress,
+    //                                                                                     c_factor);
+    // }
+    // mNumberOfCyclesGlobal = global_number_of_cycles;
+    // mNumberOfCyclesLocal = local_number_of_cycles;
+    // mReversionFactorRelativeError = reversion_factor_relative_error;
+    // mMaxStressRelativeError = max_stress_relative_error;
+    // mMaxDetected = max_indicator;
+    // mMinDetected = min_indicator;
+    // mFatigueReductionParameter = B0;
+    // mPreviousMaxStress = previous_max_stress;
+    // mPreviousMinStress = previous_min_stress;
+    // mFatigueReductionFactor = fatigue_reduction_factor;
+    // mWohlerStress = wohler_stress;
+    // mNewCycleIndicator = new_cycle;
+    // mFatigueLimit = s_th;
+    // mCFactor = c_factor;
 
-    //Adapting the volumetric participation to the type of load that is being applied
-    mIsotrpicDamageVolumetricParticipation = VolumetricParticipationUpdate(
-        current_load_type, cycles_to_failure,
-        damage, plastic_dissipation, fatigue_reduction_factor,
-        new_load_bock_damage, new_load_bock_plastic_dissipation, new_load_block_fatigue_reduction_factor,
-        values_plasticity_component);
+    // //Adapting the volumetric participation to the type of load that is being applied
+    // mIsotrpicDamageVolumetricParticipation = VolumetricParticipationUpdate(
+    //     current_load_type, cycles_to_failure,
+    //     damage, plastic_dissipation, fatigue_reduction_factor,
+    //     new_load_bock_damage, new_load_bock_plastic_dissipation, new_load_block_fatigue_reduction_factor,
+    //     values_plasticity_component);
 
 
-    if (new_model_part) {   //Updating the reference values. This needs to be changed by the end of the method because the calculation of the volumetric participation here is done
-                            //with results of the non-linear indicators from previous step and so the volumetric participation computed here corresponds to the one for previous step
-        mReferenceDamage = damage;
-        mReferencePlasticStrain = mPlasticStrain;
+    // if (new_model_part) {   //Updating the reference values. This needs to be changed by the end of the method because the calculation of the volumetric participation here is done
+    //                         //with results of the non-linear indicators from previous step and so the volumetric participation computed here corresponds to the one for previous step
+    //     mReferenceDamage = damage;
+    //     mReferencePlasticStrain = mPlasticStrain;
 
-        mNewLoadBlockDamage = damage;
-        mNewLoadBlockPlasticDissipation = plastic_dissipation;
-        mNewLoadBlockFatigueReductionFactor = fatigue_reduction_factor;
-        mNewLoadBlockVolumetricParticipation = mIsotrpicDamageVolumetricParticipation; // is not necessary to prevent here the d=0 && kp=0 case.
-    }
+    //     mNewLoadBlockDamage = damage;
+    //     mNewLoadBlockPlasticDissipation = plastic_dissipation;
+    //     mNewLoadBlockFatigueReductionFactor = fatigue_reduction_factor;
+    //     mNewLoadBlockVolumetricParticipation = mIsotrpicDamageVolumetricParticipation; // is not necessary to prevent here the d=0 && kp=0 case.
+    // }
+
+
+    //LOADING-UNLOADING CASE
+
 }
 
 /***********************************************************************************/

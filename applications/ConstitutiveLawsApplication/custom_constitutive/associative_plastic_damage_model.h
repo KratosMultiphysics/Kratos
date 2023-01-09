@@ -502,15 +502,26 @@ public:
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
-        // const double initial_proportion = 0.0;
+
+        // const double initial_proportion = -2.0;
         // const double final_proportion = 2.0;
         // rPlasticDamageParameters.PlasticDamageProportion = initial_proportion * (1.0 - rPlasticDamageParameters.TotalDissipation) + final_proportion * rPlasticDamageParameters.TotalDissipation;
-        // if(rPlasticDamageParameters.PlasticDamageProportion < 0.0){
-        //     rPlasticDamageParameters.PlasticDamageProportion = 0.0;
-        // } else if(rPlasticDamageParameters.PlasticDamageProportion > 1.0){
-        //     rPlasticDamageParameters.PlasticDamageProportion = 1.0;
+        // if(rPlasticDamageParameters.PlasticDamageProportion < 0.1){
+        //     rPlasticDamageParameters.PlasticDamageProportion = 0.1;
+        // } else if(rPlasticDamageParameters.PlasticDamageProportion > 0.95){
+        //     rPlasticDamageParameters.PlasticDamageProportion = 0.95;
         // }
-        // KRATOS_WATCH(rPlasticDamageParameters.PlasticDamageProportion)
+        // rPlasticDamageParameters.PlasticDamageProportion = 0.1;
+
+        // const double initial_proportion = 0.9;
+        // const double final_proportion = 0.1;
+        // if(rPlasticDamageParameters.TotalDissipation < 0.4){
+        //     rPlasticDamageParameters.PlasticDamageProportion = initial_proportion;
+        // } else {
+        //     rPlasticDamageParameters.PlasticDamageProportion = final_proportion;
+        // }
+        // rPlasticDamageParameters.PlasticDamageProportion = 0.99;
+        KRATOS_WATCH(rPlasticDamageParameters.PlasticDamageProportion)
     }
 
     /**

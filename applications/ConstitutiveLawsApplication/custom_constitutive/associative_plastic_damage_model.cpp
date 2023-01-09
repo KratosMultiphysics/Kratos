@@ -163,7 +163,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
             MathUtils<double>::InvertMatrix(temp, plastic_damage_parameters.ConstitutiveMatrix, det);
         } else {
             CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-        }        
+        }
     noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
         r_strain_vector - plastic_damage_parameters.PlasticStrain);
 
@@ -294,6 +294,7 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFu
     {
         const auto &r_mat_properties = rValues.GetMaterialProperties();
         const double chi = rPDParameters.PlasticDamageProportion;
+        // const double chi = 0.5;
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
         double K0;
@@ -315,6 +316,7 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFu
     ResidualFunctionType function_derivative = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters& rValues, PlasticDamageParameters &rPDParameters) {
         const auto &r_mat_properties = rValues.GetMaterialProperties();
         const double chi = rPDParameters.PlasticDamageProportion;
+        // const double chi = 0.5;
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
         double K0;
@@ -441,6 +443,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
         switch (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::LinearSoftening: {
                     const double chi = rPDParameters.PlasticDamageProportion;
+                    // const double chi = 0.5;
                     double K0;
                     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
                     rPDParameters.Threshold = K0 * (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)) - chi) / (2.0 * (1.0 - chi));
@@ -468,6 +471,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                 const double limit_factor = 1.0-1.0e-15;
                 rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters, max_threshold*limit_factor);
                 rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters, max_threshold*limit_factor);
+                break;
+            }
+            case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints: {
+                ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
+                ResidualFunctionType function_derivative = ExponentialSofteningImplicitFunctionDerivative();
+                rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
+                rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
                 break;
             }
             default: {

@@ -679,6 +679,7 @@ CalculateDamageParameters(
     this->CalculateIndicatorsFactors(rParameters.StressVector, tensile_indicator_factor, compression_indicator_factor, suma, principal_stresses);
 
     auto& r_matProps = rValues.GetMaterialProperties();
+    const double young_modulus = r_matProps[YOUNG_MODULUS];
     const bool has_symmetric_yield_stress = r_matProps.Has(YIELD_STRESS);
     const double yield_compression = has_symmetric_yield_stress ? r_matProps[YIELD_STRESS] : r_matProps[YIELD_STRESS_COMPRESSION];
     const double yield_tension = has_symmetric_yield_stress ? r_matProps[YIELD_STRESS] : r_matProps[YIELD_STRESS_TENSION];
@@ -702,12 +703,20 @@ CalculateDamageParameters(
 
     Vector slopes(2), thresholds(2);
     // Tension
+    // LINEAR
     thresholds[0] = yield_tension * (1.0 - rParameters.DamageDissipation);
     slopes[0] = -yield_tension;
+    //inverse potential
+    thresholds[0] = yield_tension * std::pow((1.0 - rParameters.DamageDissipation),(0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension * yield_tension / young_modulus));
+    slopes[0] = - (0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension / young_modulus) * std::pow((1.0 - rParameters.DamageDissipation),- (0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension * yield_tension / young_modulus));
 
     // Compression
+    // LINEAR
     thresholds[1] = yield_compression * (1.0 - rParameters.DamageDissipation);
     slopes[1] = -yield_compression;
+    //inverse potential
+    thresholds[0] = yield_compression * std::pow((1.0 - rParameters.DamageDissipation),(0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression * yield_compression / young_modulus));
+    slopes[0] = - (0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression / young_modulus) * std::pow((1.0 - rParameters.DamageDissipation),- (0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression * yield_compression / young_modulus));
 
     rParameters.DamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
     const double hsigr = rParameters.DamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);
