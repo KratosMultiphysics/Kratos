@@ -1,8 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# other imports
-from importlib import import_module
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -21,35 +19,20 @@ class OutputProcessWithController(KratosMultiphysics.OutputProcess):
         self.params = params
         self.model = model
         self.params.ValidateAndAssignDefaults(default_settings)
-        self.controller = self._CreateInstance(self.params["controller_settings"])
-        self.print_process = self._CreateInstance(self.params["print_process_settings"])
+        controller_name = self.params["controller_settings"]["name"].GetString()
+        controller_prototype = KratosMultiphysics.Registry[f"{controller_name}.Prototype"]
+        output_process_name = self.params["output_settings"]["name"].GetString()
+        output_settings_prototype = KratosMultiphysics.Registry[f"{output_process_name}.Prototype"]
+
+        self.controller = controller_prototype.Create(self.model, self.params["controller_settings"]["parameters"])
+        self.print_process = output_settings_prototype.Create(self.model, self.params["output_settings"]["parameters"])
 
     @classmethod
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters('''{
             "controller_settings" : {},
-            "print_process_settings" : {}
+            "output_settings" : {}
         }''')
-
-    def _CreateInstance(self, settings):
-        if not settings.Has("python_module"):
-            raise NameError('"python_module" must be defined in your parameters. Check ams_output_process settings')
-        python_module_name = settings["python_module"].GetString()
-
-        if not settings.Has("kratos_module"):
-            raise NameError('"kratos_module" must be defined in your parameters. Check ams_output_process settings')
-
-        if not settings.Has("Parameters"):
-            settings.AddEmptyValue("Parameters")
-
-        kratos_module_name = settings["kratos_module"].GetString()
-        if not kratos_module_name.startswith("KratosMultiphysics"):
-            kratos_module_name = "KratosMultiphysics." + kratos_module_name
-
-        full_module_name = kratos_module_name + "." + python_module_name
-        python_module = import_module(full_module_name)
-
-        return python_module.Factory(settings, self.model)
 
     def ExecuteInitialize(self):
         self.print_process.ExecuteInitialize()
