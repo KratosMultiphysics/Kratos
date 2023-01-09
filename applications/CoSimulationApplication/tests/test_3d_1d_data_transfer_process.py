@@ -82,7 +82,7 @@ class Test3D1DDataTransferProcessBlock(KratosUnittest.TestCase):
         check_results(self.current_model, result_file, "Block")
 
         # # Debug
-        # debug_vtk(self.current_model, ["Block", "Line"])
+        debug_vtk(self.current_model, ["Block", "Line"])
 
     @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_block_from_3d_to_1d(self):
@@ -169,7 +169,7 @@ class Test3D1DDataTransferProcessTorus(KratosUnittest.TestCase):
         check_results(self.current_model, result_file, "Torus")
 
         # # Debug
-        # debug_vtk(self.current_model, ["Torus", "Circle"])
+        debug_vtk(self.current_model, ["Torus", "Circle"])
 
     @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_torus_from_3d_to_1d(self):
