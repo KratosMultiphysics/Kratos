@@ -292,7 +292,7 @@ public:
     /**
      * @brief This method removed nodes from submodelparts not contained neither in the elements or conditions
      */
-    void RemoveNodesFromSubModePartsWithoutCorrespondingEntities();
+    void RemoveOrphanNodesFromSubModelParts();
 
     /// To Export a Scalar data (Double/int/...)
     template<class TContainerType>

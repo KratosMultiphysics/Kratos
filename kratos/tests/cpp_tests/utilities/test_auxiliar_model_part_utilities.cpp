@@ -242,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 2);
 
     auto utilities = AuxiliarModelPartUtilities(r_model_part);
-    utilities.RemoveNodesFromSubModePartsWithoutCorrespondingEntities();
+    utilities.RemoveOrphanNodesFromSubModelParts();
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 0);
 
@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
 
-    utilities.RemoveNodesFromSubModePartsWithoutCorrespondingEntities();
+    utilities.RemoveOrphanNodesFromSubModelParts();
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
