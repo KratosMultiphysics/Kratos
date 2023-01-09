@@ -627,11 +627,14 @@ private:
     // Vector mGc;
     // Vector minitial_threshold;
     // Vector mthreshold;
-    Vector mdelamination_damage;
-    Vector m_mode_mix_factor;
+    Vector mdelamination_damage_mode_one;
+    Vector mdelamination_damage_mode_two;
+    Vector mthreshold_mode_one;
+    Vector mthreshold_mode_two;
+    // Vector m_mode_mix_factor;
     // Vector mAParameter;
     // Vector mDamageIndicator;
-    Vector mstatus_coeff;
+    // Vector mstatus_coeff;
     // double mT_eq = 0;                                        // Equivalent Stress
     // double mDamageIndicator = 1;                             // Onset of Damage
     // double mGc = 0;                                          // Mix Mode Energy Release Rate

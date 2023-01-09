@@ -71,11 +71,14 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const TractionSeparationL
     //   mGc(rOther.mGc),
     //   minitial_threshold(rOther.minitial_threshold),
     //   mthreshold(rOther.mthreshold),
-      mdelamination_damage(rOther.mdelamination_damage),
-      m_mode_mix_factor(rOther.m_mode_mix_factor),
+      mdelamination_damage_mode_one(rOther.mdelamination_damage_mode_one),
+      mdelamination_damage_mode_two(rOther.mdelamination_damage_mode_two),
+      mthreshold_mode_one(rOther.mthreshold_mode_one),
+      mthreshold_mode_two(rOther.mthreshold_mode_two)
+    //   m_mode_mix_factor(rOther.m_mode_mix_factor),
     //   mAParameter(rOther.mAParameter),
     //   mDamageIndicator(rOther.mDamageIndicator),
-      mstatus_coeff(rOther.mstatus_coeff)
+    //   mstatus_coeff(rOther.mstatus_coeff)
 {
 }
 
@@ -242,6 +245,14 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR) {
         return true;
     }
+
+    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
+        return true;
+    }
+
+    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
+        return true;
+    }
     
     return has;
 }
@@ -388,11 +399,27 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
     //     rValue += aux_value * factor;
     // }
 
-    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR) {
+    // if (rThisVariable == DELAMINATION_DAMAGE_VECTOR) {
+        
+    //     rValue.resize(mCombinationFactors.size()+1, false);
+        
+    //     noalias(rValue) = mdelamination_damage;
+    //     return rValue;
+    // }
+
+    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
         
         rValue.resize(mCombinationFactors.size()+1, false);
         
-        noalias(rValue) = mdelamination_damage;
+        noalias(rValue) = mdelamination_damage_mode_one;
+        return rValue;
+    }
+
+    if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
+        
+        rValue.resize(mCombinationFactors.size()+1, false);
+        
+        noalias(rValue) = mdelamination_damage_mode_two;
         return rValue;
     }
     
@@ -945,10 +972,10 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     //         mDamageIndicator[i] = 1;
     //     }
 
-    mstatus_coeff.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
-            mstatus_coeff[i] = 1;
-        }
+    // mstatus_coeff.resize(mConstitutiveLaws.size()-1, false);
+    // for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+    //         mstatus_coeff[i] = 1;
+    //     }
     
     // mGc.resize(mConstitutiveLaws.size()-1, false);
     // noalias(mGc) = ZeroVector(mConstitutiveLaws.size()-1);
@@ -956,11 +983,24 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     // minitial_threshold.resize(mConstitutiveLaws.size()-1, false);
     // noalias(minitial_threshold) = ZeroVector(mConstitutiveLaws.size()-1);
 
-    mdelamination_damage.resize(mConstitutiveLaws.size()+1, false);
-    noalias(mdelamination_damage) = ZeroVector(mConstitutiveLaws.size()+1);
+    mdelamination_damage_mode_one.resize(mConstitutiveLaws.size()+1, false);
+    noalias(mdelamination_damage_mode_one) = ZeroVector(mConstitutiveLaws.size()+1);
 
-    m_mode_mix_factor.resize(mConstitutiveLaws.size()-1, false);
-    noalias(m_mode_mix_factor) = ZeroVector(mConstitutiveLaws.size()-1);
+    mdelamination_damage_mode_two.resize(mConstitutiveLaws.size()+1, false);
+    noalias(mdelamination_damage_mode_two) = ZeroVector(mConstitutiveLaws.size()+1);
+
+    mthreshold_mode_one.resize(mConstitutiveLaws.size()-1, false);
+    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+            mthreshold_mode_one[i] = rMaterialProperties[INTERFACIAL_NORMAL_STRENGTH];
+        }
+
+    mthreshold_mode_two.resize(mConstitutiveLaws.size()-1, false);
+    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+            mthreshold_mode_two[i] = rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
+        }
+
+    // m_mode_mix_factor.resize(mConstitutiveLaws.size()-1, false);
+    // noalias(m_mode_mix_factor) = ZeroVector(mConstitutiveLaws.size()-1);
 
     // mAParameter.resize(mConstitutiveLaws.size()-1, false);
     // noalias(mAParameter) = ZeroVector(mConstitutiveLaws.size()-1);
@@ -1046,6 +1086,11 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             interfacial_stress[i].resize(3, false);
         }
 
+        std::vector<bool> negative_interfacial_stress_indicator(mConstitutiveLaws.size()+1);
+        for (int i=0; i < mConstitutiveLaws.size()+1; ++i) {
+            negative_interfacial_stress_indicator[i] = false;
+        }
+
 
         for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
 
@@ -1072,36 +1117,57 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
 
+        const double tolerance = std::numeric_limits<double>::epsilon();
         // Vector Gc(mConstitutiveLaws.size()-1);
         // Vector initial_threshold(mConstitutiveLaws.size()-1);
         // Vector threshold(mConstitutiveLaws.size()-1);
-        Vector delamination_damage(mConstitutiveLaws.size()+1);
-        Vector mode_mix_factor(mConstitutiveLaws.size()-1);
-        Vector negative_interfacial_stress_index(mConstitutiveLaws.size()+1);
-        noalias(negative_interfacial_stress_index) = ZeroVector(mConstitutiveLaws.size()+1);
+        Vector delamination_damage_mode_one(mConstitutiveLaws.size()+1);
+        Vector delamination_damage_mode_two(mConstitutiveLaws.size()+1);
+        Vector threshold_mode_one(mConstitutiveLaws.size()-1);
+        Vector threshold_mode_two(mConstitutiveLaws.size()-1);
+        // Vector mode_mix_factor(mConstitutiveLaws.size()-1);
         // Vector AParameter(mConstitutiveLaws.size()-1);
         // Vector DamageIndicator(mConstitutiveLaws.size()-1);
-        Vector status_coeff(mConstitutiveLaws.size()-1);
+        // Vector status_coeff(mConstitutiveLaws.size()-1);
 
         // noalias(Gc) = mGc;
         // noalias(initial_threshold) = minitial_threshold;
         // noalias(threshold) = mthreshold;
-        noalias(delamination_damage) = mdelamination_damage;
-        noalias(mode_mix_factor) = m_mode_mix_factor;
+        noalias(delamination_damage_mode_one) = mdelamination_damage_mode_one;
+        noalias(delamination_damage_mode_two) = mdelamination_damage_mode_two;
+        noalias(threshold_mode_one) = mthreshold_mode_one;
+        noalias(threshold_mode_two) = mthreshold_mode_two;
+        // noalias(mode_mix_factor) = m_mode_mix_factor;
         // noalias(AParameter) = mAParameter;
         // noalias(DamageIndicator) = mDamageIndicator;
-        noalias(status_coeff) = mstatus_coeff;
+        // noalias(status_coeff) = mstatus_coeff;
 
 
         for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
-            interfacial_stress[i][0] = (MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5)); // interfacial normal stress
+            // interfacial_stress[i][0] = (MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5)); // interfacial normal stress
+            interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
-            
-            if ((layer_stress[i][2] + layer_stress[i+1][2] * 0.5) < 0.0) {
-                negative_interfacial_stress_index [i+1] = 1.0;
+
+            Vector interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
+            Vector interfacial_stress_vector_mode_two = ZeroVector(VoigtSize);
+
+            interfacial_stress_vector_mode_one[2] = interfacial_stress[i][0];
+
+            interfacial_stress_vector_mode_two[4] = interfacial_stress[i][1];
+            interfacial_stress_vector_mode_two[5] = interfacial_stress[i][2];
+
+            // const double equivalent_stress_mode_one = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(interfacial_stress_vector_mode_one);
+            // const double equivalent_stress_mode_two = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(interfacial_stress_vector_mode_two);
+
+            const double equivalent_stress_mode_one = interfacial_stress[i][0];
+            const double equivalent_stress_mode_two = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+
+            if ((layer_stress[i][2] + layer_stress[i+1][2] * 0.5) < tolerance) {
+                negative_interfacial_stress_indicator[i+1] = true;
             }
+            
 
             // Von mises equivalent stress
             Vector interfacial_stress_vector = ZeroVector(VoigtSize);
@@ -1128,35 +1194,57 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double Gi = r_material_properties[SHEAR_INTERAFCE_MODULUS]; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
             // const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
-            const double characteristic_length = 0.000165;
-            const double tolerance = std::numeric_limits<double>::epsilon();
+            const double characteristic_length = 0.000165 / 2.0;
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
-            double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+            // double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // double T_eq = std::sqrt(3.0 * J2);
-            const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+            // const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // const double mode_mix_factor = std::pow(T_shear / T_eq,2.0);
             // const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
             // const double mode_mix_factor = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
             // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor[i], Eta));
-            const double initial_threshold = 50000000;
-            const double threshold = status_coeff[i] * initial_threshold;
-            const double F = T_eq - threshold;
-            if (F > tolerance) {
-                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
+            // const double initial_threshold = 50000000;
+            // const double threshold = status_coeff[i] * initial_threshold;
+            
+            const double F_mode_one = equivalent_stress_mode_one - threshold_mode_one[i];
+            if (F_mode_one > tolerance) {
+                // const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
                 // const double Gc = GIIc;
-                const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
+                // const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
                 // const double K = Gi;
                 // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
-                // const double AParameter = 1.00 / (Gc * K / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
-                const double AParameter = 0.092;
-                KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
+                const double AParameter_mode_one = 1.00 / (GIc * Ei / (characteristic_length * std::pow(T0n, 2)) - 0.5); // Exponential
+                // const double AParameter_mode_one = 0.1;
+                KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "AParameter_mode_one is negative." << std::endl;
 
                 // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
-                delamination_damage[i+1] = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
-                    (1.0 - T_eq / initial_threshold)); // Exponential
+                delamination_damage_mode_one[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
+                    (1.0 - equivalent_stress_mode_one / T0n)); // Exponential
 
-                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.99999) ? 0.99999 : delamination_damage[i+1];
-                delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
+                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_one[i+1]; // 0.99999
+                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] < 0.0) ? 0.0 : delamination_damage_mode_one[i+1];
+
+                // KRATOS_ERROR_IF(delamination_damage[i+1] < mdelamination_damage[i+1]) << "AParameter is negative." << std::endl;
+                // const double time = rValues.GetProcessInfo()[TIME];  DELTA_TIME
+            }
+
+            const double F_mode_two = equivalent_stress_mode_two - threshold_mode_two[i];
+            if (F_mode_two > tolerance) {
+                // const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
+                // const double Gc = GIIc;
+                // const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
+                // const double K = Gi;
+                // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
+                const double AParameter_mode_two = 1.00 / (GIIc * Gi / (characteristic_length * std::pow(T0s, 2)) - 0.5); // Exponential
+                // const double AParameter_mode_two = 0.04;
+                KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "AParameter_mode_two is negative." << std::endl;
+
+                // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
+                delamination_damage_mode_two[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
+                    (1.0 - equivalent_stress_mode_two / T0s)); // Exponential
+
+                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_two[i+1];
+                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] < 0.0) ? 0.0 : delamination_damage_mode_two[i+1];
 
                 // KRATOS_ERROR_IF(delamination_damage[i+1] < mdelamination_damage[i+1]) << "AParameter is negative." << std::endl;
                 // const double time = rValues.GetProcessInfo()[TIME];  DELTA_TIME
@@ -1166,48 +1254,41 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
 
         for(int i=0; i < mConstitutiveLaws.size(); ++i) {
-            double layer_damage_variable = 0;
-            if (delamination_damage[i+1] > delamination_damage[i]) {
-                layer_damage_variable = delamination_damage[i+1];
+            double layer_damage_variable_mode_one = 0;
+            double layer_damage_variable_mode_two = 0;
+            double maximum_damage = 0;
+
+            if (delamination_damage_mode_one[i+1] > delamination_damage_mode_one[i]) {
+                layer_damage_variable_mode_one = delamination_damage_mode_one[i+1];
             } else {
-                layer_damage_variable = delamination_damage[i];
+                layer_damage_variable_mode_one = delamination_damage_mode_one[i];
             }
-            delamination_damage_affected_stress_matrix[i][0] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][0];
-            delamination_damage_affected_stress_matrix[i][1] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][1];
-            // delamination_damage_affected_stress_matrix[i][2] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][2];
-            delamination_damage_affected_stress_matrix[i][3] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][3];
-            delamination_damage_affected_stress_matrix[i][4] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][4];
-            delamination_damage_affected_stress_matrix[i][5] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][5];
 
-            if (negative_interfacial_stress_index [i] != 1.0 && negative_interfacial_stress_index [i+1] != 1.0) {
-                delamination_damage_affected_stress_matrix[i][2] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][2];
+            if (delamination_damage_mode_two[i+1] > delamination_damage_mode_two[i]) {
+                layer_damage_variable_mode_two = delamination_damage_mode_two[i+1];
+            } else {
+                layer_damage_variable_mode_two = delamination_damage_mode_two[i];
             }
+
+            if (layer_damage_variable_mode_one > layer_damage_variable_mode_two) {
+                maximum_damage = layer_damage_variable_mode_one;
+            } else {
+                maximum_damage = layer_damage_variable_mode_two;
+            }
+
+            delamination_damage_affected_stress_matrix[i][2] *= ((1.0-layer_damage_variable_mode_one));
+            delamination_damage_affected_stress_matrix[i][4] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+            delamination_damage_affected_stress_matrix[i][5] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+            delamination_damage_affected_stress_matrix[i][0] *= 1.0;
+            delamination_damage_affected_stress_matrix[i][1] *= 1.0;
+            delamination_damage_affected_stress_matrix[i][3] *= 1.0;
+
+
+            // if (negative_interfacial_stress_indicator[i] == false && negative_interfacial_stress_indicator[i+1] == false) {
+            //     delamination_damage_affected_stress_matrix[i][2] *= ((1.0-layer_damage_variable_mode_one));
+            // }
         }
-        // Calculating output stresses
-
-        // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
-
-        //     Properties& r_prop             = *(it_prop_begin + i);
-        //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        //     const double factor            = mCombinationFactors[i];
-
-        //     std::vector<double> layer_damage_vector(6);
-        //     layer_damage_vector = {1,
-        //                             1,
-        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-        //                             1,
-        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1])};
-
-        //     auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
-        //     auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
-        //     auxiliar_stress_vector[2] += factor * layer_damage_vector[2] * layer_stress[i][2];
-        //     auxiliar_stress_vector[3] += factor * layer_damage_vector[3] * layer_stress[i][3];
-        //     auxiliar_stress_vector[4] += factor * layer_damage_vector[4] * layer_stress[i][4];
-        //     auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
-        // }
-
-        // double damage_coeff = 1;
+        
 
         for(int i=0; i < mConstitutiveLaws.size(); ++i) {
             const double factor = mCombinationFactors[i];
@@ -1763,7 +1844,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
     
     // Finalizing delamination damage
 
-
     KRATOS_TRY;
 
     // Get Values to compute the constitutive law:
@@ -1821,6 +1901,11 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             interfacial_stress[i].resize(3, false);
         }
 
+        std::vector<bool> negative_interfacial_stress_indicator(mConstitutiveLaws.size()+1);
+        for (int i=0; i < mConstitutiveLaws.size()+1; ++i) {
+            negative_interfacial_stress_indicator[i] = false;
+        }
+
 
         for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
 
@@ -1835,7 +1920,6 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
             rValues.SetMaterialProperties(r_prop);
             p_law->CalculateMaterialResponsePK2(rValues);
-            // p_law->FinalizeMaterialResponsePK2(rValues);
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
@@ -1844,41 +1928,61 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             // noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             p_law->FinalizeMaterialResponsePK2(rValues);
-
+            
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
 
+        const double tolerance = std::numeric_limits<double>::epsilon();
         // Vector Gc(mConstitutiveLaws.size()-1);
         // Vector initial_threshold(mConstitutiveLaws.size()-1);
         // Vector threshold(mConstitutiveLaws.size()-1);
-        Vector delamination_damage(mConstitutiveLaws.size()+1);
-        Vector mode_mix_factor(mConstitutiveLaws.size()-1);
-        Vector negative_interfacial_stress_index(mConstitutiveLaws.size()+1);
-        noalias(negative_interfacial_stress_index) = ZeroVector(mConstitutiveLaws.size()+1);
+        Vector delamination_damage_mode_one(mConstitutiveLaws.size()+1);
+        Vector delamination_damage_mode_two(mConstitutiveLaws.size()+1);
+        Vector threshold_mode_one(mConstitutiveLaws.size()-1);
+        Vector threshold_mode_two(mConstitutiveLaws.size()-1);
+        // Vector mode_mix_factor(mConstitutiveLaws.size()-1);
         // Vector AParameter(mConstitutiveLaws.size()-1);
         // Vector DamageIndicator(mConstitutiveLaws.size()-1);
-        Vector status_coeff(mConstitutiveLaws.size()-1);
+        // Vector status_coeff(mConstitutiveLaws.size()-1);
 
         // noalias(Gc) = mGc;
         // noalias(initial_threshold) = minitial_threshold;
         // noalias(threshold) = mthreshold;
-        noalias(delamination_damage) = mdelamination_damage;
-        noalias(mode_mix_factor) = m_mode_mix_factor;
+        noalias(delamination_damage_mode_one) = mdelamination_damage_mode_one;
+        noalias(delamination_damage_mode_two) = mdelamination_damage_mode_two;
+        noalias(threshold_mode_one) = mthreshold_mode_one;
+        noalias(threshold_mode_two) = mthreshold_mode_two;
+        // noalias(mode_mix_factor) = m_mode_mix_factor;
         // noalias(AParameter) = mAParameter;
         // noalias(DamageIndicator) = mDamageIndicator;
-        noalias(status_coeff) = mstatus_coeff;
+        // noalias(status_coeff) = mstatus_coeff;
 
 
         for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
-            interfacial_stress[i][0] = (MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5)); // interfacial normal stress
+            // interfacial_stress[i][0] = (MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5)); // interfacial normal stress
+            interfacial_stress[i][0] = MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
 
-            if ((layer_stress[i][2] + layer_stress[i+1][2] * 0.5) < 0.0) {
-                negative_interfacial_stress_index [i+1] = 1.0;
+            Vector interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
+            Vector interfacial_stress_vector_mode_two = ZeroVector(VoigtSize);
+
+            interfacial_stress_vector_mode_one[2] = interfacial_stress[i][0];
+
+            interfacial_stress_vector_mode_two[4] = interfacial_stress[i][1];
+            interfacial_stress_vector_mode_two[5] = interfacial_stress[i][2];
+
+            // const double equivalent_stress_mode_one = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(interfacial_stress_vector_mode_one);
+            // const double equivalent_stress_mode_two = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(interfacial_stress_vector_mode_two);
+
+            const double equivalent_stress_mode_one = interfacial_stress[i][0];
+            const double equivalent_stress_mode_two = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+
+            if ((layer_stress[i][2] + layer_stress[i+1][2] * 0.5) < tolerance) {
+                negative_interfacial_stress_indicator[i+1] = true;
             }
 
             // Von mises equivalent stress
@@ -1906,90 +2010,103 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
             const double Gi = r_material_properties[SHEAR_INTERAFCE_MODULUS]; // Shear modulus of the interface
             // const double characteristic_length = 0.0003; // Characteristic Length of the Cohesive Part
             // const double characteristic_length = 0.25 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
-            const double characteristic_length = 0.000165;
-            const double tolerance = std::numeric_limits<double>::epsilon();
+            const double characteristic_length = 0.000165 / 2;
             // const double Fd = std::pow(interfacial_stress[i][0]/T0n,2.0)+std::pow(interfacial_stress[i][1]/T0s,2.0)+std::pow(interfacial_stress[i][2]/T0t,2.0); // Damage Initiation Criterion
-            double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+            // double T_eq = std::sqrt(std::pow(interfacial_stress[i][0],2.0)+std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // double T_eq = std::sqrt(3.0 * J2);
-            const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
+            // const double T_shear = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
             // const double mode_mix_factor = std::pow(T_shear / T_eq,2.0);
             // const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
             // const double mode_mix_factor = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
             // const double initial_threshold = std::sqrt(std::pow(T0n,2.0) + (std::pow(T0s,2.0) - std::pow(T0n,2.0)) * std::pow(mode_mix_factor[i], Eta));
-            const double initial_threshold = 50000000;
-            const double threshold = status_coeff[i] * initial_threshold;
-            const double F = T_eq - threshold;
-            if (F > tolerance) {
-                const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
-                // const double Gc = GIIc; // Benzeggagh-Kenane (B-K) Law
-                const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
+            // const double initial_threshold = 50000000;
+            // const double threshold = status_coeff[i] * initial_threshold;
+
+            const double F_mode_one = equivalent_stress_mode_one - threshold_mode_one[i];
+            if (F_mode_one > tolerance) {
+                // const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
+                // const double Gc = GIIc;
+                // const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
                 // const double K = Gi;
                 // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
-                // const double AParameter = 1.00 / (Gc * K / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
-                const double AParameter = 0.092;
-                KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
+                const double AParameter_mode_one = 1.00 / (GIc * Ei / (characteristic_length * std::pow(T0n, 2)) - 0.5); // Exponential
+                // const double AParameter_mode_one = 0.1;
+                KRATOS_ERROR_IF(AParameter_mode_one < 0.0) << "AParameter_mode_one is negative." << std::endl;
 
                 // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
-                delamination_damage[i+1] = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
-                    (1.0 - T_eq / initial_threshold)); // Exponential
+                delamination_damage_mode_one[i+1] = 1.0 - (T0n / equivalent_stress_mode_one) * std::exp(AParameter_mode_one *
+                    (1.0 - equivalent_stress_mode_one / T0n)); // Exponential
 
-                delamination_damage[i+1] = (delamination_damage[i+1] >= 0.99999) ? 0.99999 : delamination_damage[i+1]; //0.98
-                delamination_damage[i+1] = (delamination_damage[i+1] < 0.0) ? 0.0 : delamination_damage[i+1];
+                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_one[i+1];
+                delamination_damage_mode_one[i+1] = (delamination_damage_mode_one[i+1] < 0.0) ? 0.0 : delamination_damage_mode_one[i+1];
 
-                mdelamination_damage[i+1] = delamination_damage[i+1];
-                mstatus_coeff[i] = T_eq / initial_threshold;
+                mdelamination_damage_mode_one[i+1] = delamination_damage_mode_one[i+1];
+                mthreshold_mode_one[i] = equivalent_stress_mode_one;
+
             }
-            const double beta_factor = T_shear / (T_shear + interfacial_stress[i][0]);
-            m_mode_mix_factor[i] = (beta_factor * beta_factor) / (1 + 2 * beta_factor * beta_factor - 2 * beta_factor);
-            // const double time = rValues.GetProcessInfo()[DELTA_TIME];
-            // KRATOS_WATCH(time);
+
+            const double F_mode_two = equivalent_stress_mode_two - threshold_mode_two[i];
+            if (F_mode_two > tolerance) {
+                // const double Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor[i], Eta); // Benzeggagh-Kenane (B-K) Law
+                // const double Gc = GIIc;
+                // const double K = Ei + (Gi - Ei) * std::pow(mode_mix_factor[i], Eta);
+                // const double K = Gi;
+                // const double AParameter = -std::pow(initial_threshold, 2) / (2.0 * K * Gc / characteristic_length); // Linear
+                const double AParameter_mode_two = 1.00 / (GIIc * Gi / (characteristic_length * std::pow(T0s, 2)) - 0.5); // Exponential
+                // const double AParameter_mode_two = 0.04;
+                KRATOS_ERROR_IF(AParameter_mode_two < 0.0) << "AParameter_mode_two is negative." << std::endl;
+
+                // delamination_damage[i+1] = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
+                delamination_damage_mode_two[i+1] = 1.0 - (T0s / equivalent_stress_mode_two) * std::exp(AParameter_mode_two *
+                    (1.0 - equivalent_stress_mode_two / T0s)); // Exponential
+
+                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] >= 0.99999) ? 0.99999 : delamination_damage_mode_two[i+1];
+                delamination_damage_mode_two[i+1] = (delamination_damage_mode_two[i+1] < 0.0) ? 0.0 : delamination_damage_mode_two[i+1];
+
+                mdelamination_damage_mode_two[i+1] = delamination_damage_mode_two[i+1];
+                mthreshold_mode_two[i] = equivalent_stress_mode_two;
+              
+            }
 
             // End damage calculation
         }
 
         for(int i=0; i < mConstitutiveLaws.size(); ++i) {
-            double layer_damage_variable = 0;
-            if (delamination_damage[i+1] > delamination_damage[i]) {
-                layer_damage_variable = delamination_damage[i+1];
+            double layer_damage_variable_mode_one = 0;
+            double layer_damage_variable_mode_two = 0;
+            double maximum_damage = 0;
+
+            if (delamination_damage_mode_one[i+1] > delamination_damage_mode_one[i]) {
+                layer_damage_variable_mode_one = delamination_damage_mode_one[i+1];
             } else {
-                layer_damage_variable = delamination_damage[i];
+                layer_damage_variable_mode_one = delamination_damage_mode_one[i];
             }
-            delamination_damage_affected_stress_matrix[i][0] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][0];
-            delamination_damage_affected_stress_matrix[i][1] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][1];
-            // delamination_damage_affected_stress_matrix[i][2] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][2];
-            delamination_damage_affected_stress_matrix[i][3] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][3];
-            delamination_damage_affected_stress_matrix[i][4] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][4];
-            delamination_damage_affected_stress_matrix[i][5] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][5];
 
-            if (negative_interfacial_stress_index [i] != 1.0 && negative_interfacial_stress_index [i+1] != 1.0) {
-                delamination_damage_affected_stress_matrix[i][2] = (1-layer_damage_variable) * delamination_damage_affected_stress_matrix[i][2];
+            if (delamination_damage_mode_two[i+1] > delamination_damage_mode_two[i]) {
+                layer_damage_variable_mode_two = delamination_damage_mode_two[i+1];
+            } else {
+                layer_damage_variable_mode_two = delamination_damage_mode_two[i];
             }
+
+            if (layer_damage_variable_mode_one > layer_damage_variable_mode_two) {
+                maximum_damage = layer_damage_variable_mode_one;
+            } else {
+                maximum_damage = layer_damage_variable_mode_two;
+            }
+
+            delamination_damage_affected_stress_matrix[i][2] *= ((1.0-layer_damage_variable_mode_one));
+            delamination_damage_affected_stress_matrix[i][4] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+            delamination_damage_affected_stress_matrix[i][5] *= ((1.0-layer_damage_variable_mode_one) * (1.0-layer_damage_variable_mode_two));
+            delamination_damage_affected_stress_matrix[i][0] *= 1.0;
+            delamination_damage_affected_stress_matrix[i][1] *= 1.0;
+            delamination_damage_affected_stress_matrix[i][3] *= 1.0;
+
+
+            // if (negative_interfacial_stress_indicator[i] == false && negative_interfacial_stress_indicator[i+1] == false) {
+            //     delamination_damage_affected_stress_matrix[i][2] *= ((1.0-layer_damage_variable_mode_one));
+            // }
         }
-        // Calculating output stresses
-
-        // for(int i=0; i < mConstitutiveLaws.size(); ++i) {
-
-        //     Properties& r_prop             = *(it_prop_begin + i);
-        //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        //     const double factor            = mCombinationFactors[i];
-
-        //     std::vector<double> layer_damage_vector(6);
-        //     layer_damage_vector = {1,
-        //                             1,
-        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-        //                             1,
-        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1]),
-        //                             (1-delamination_damage[i])*(1-delamination_damage[i+1])};
-
-        //     auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
-        //     auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
-        //     auxiliar_stress_vector[2] += factor * layer_damage_vector[2] * layer_stress[i][2];
-        //     auxiliar_stress_vector[3] += factor * layer_damage_vector[3] * layer_stress[i][3];
-        //     auxiliar_stress_vector[4] += factor * layer_damage_vector[4] * layer_stress[i][4];
-        //     auxiliar_stress_vector[5] += factor * layer_damage_vector[5] * layer_stress[i][5];
-        // }
-
-        // double damage_coeff = 1;
+        
 
         for(int i=0; i < mConstitutiveLaws.size(); ++i) {
             const double factor = mCombinationFactors[i];
@@ -1998,24 +2115,11 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
         auxiliar_stress_vector = delamination_damage_affected_stress_vector;
 
-        // auxiliar_stress_vector[0] = damage_coeff * undamaged_auxiliar_stress_vector[0];
-        // auxiliar_stress_vector[1] = damage_coeff * undamaged_auxiliar_stress_vector[1];
-        // auxiliar_stress_vector[2] = damage_coeff * undamaged_auxiliar_stress_vector[2];
-        // auxiliar_stress_vector[3] = damage_coeff * undamaged_auxiliar_stress_vector[3];
-        // auxiliar_stress_vector[4] = damage_coeff * undamaged_auxiliar_stress_vector[4];
-        // auxiliar_stress_vector[5] = damage_coeff * undamaged_auxiliar_stress_vector[5];
-
-
-
-        // End calculating output stresses
-
-
-
-        // KRATOS_WATCH(status_coeff);
+        // KRATOS_WATCH(delamination_damage);
         
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
-        
+
 
         // Previous flags restored
         r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -2025,8 +2129,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(Parameters& rVal
 
     KRATOS_CATCH("");
 
-
-
+    
     // End finalizing delamination damage
 
     //

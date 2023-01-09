@@ -990,7 +990,10 @@ class ResidualBasedNewtonRaphsonStrategy
             EchoInfo(iteration_number);
 
             // Updating the results stored in the database
+            TSparseSpace::InplaceMult(rDx, 1.0);
             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+
+
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
