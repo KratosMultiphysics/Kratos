@@ -145,7 +145,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         }
     }
 
-    if (!AllVisited) {
+    if (AllVisited) {
+        // if all conditions are found, no need for further checks:
+        return;
+    } else {
         // Now try point loads:
         for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
             const auto &rGeometryElement = itElem->GetGeometry();
@@ -187,6 +190,61 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     for (auto& rCond : mrModelPart.Conditions()) {
         if (rCond.IsNot(VISITED)) {
             AllVisited = false;
+            break;
+        }
+    }
+
+    if (AllVisited) {
+        // if all conditions are found, no need for further checks:
+        return;
+    } else {
+        // check edges of 3D geometries:
+        // Now loop over all elements and check if one of the faces is in the "FacesMap"
+        for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
+            const auto &rGeometryElement = itElem->GetGeometry();
+            if (rGeometryElement.LocalSpaceDimension() == 3) {
+                const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
+
+                for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
+                    DenseVector<int> EdgeIds(rBoundaryGeometries[iEdge].size());
+
+                    // edges for 3D elements
+                    for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
+                        EdgeIds[iNode] = rBoundaryGeometries[iEdge][iNode].Id();
+                    }
+
+                    hashmap::iterator itFace = FacesMap.find(EdgeIds);
+                    // There might be a need to check this for different types of 3D elements
+                    // as the ordering numbers might be inconsistent
+
+                    if (itFace != FacesMap.end()) {
+                        // condition is found!
+                        // but check if there are more than one condition on the element
+                        std::pair <hashmap::iterator, hashmap::iterator> ret;
+                        ret = FacesMap.equal_range(itFace->first);
+                        for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
+                            std::vector<Condition::Pointer>& ListConditions = it->second;
+
+                            GlobalPointersVector< Element > VectorOfNeighbours;
+                            VectorOfNeighbours.resize(1);
+                            VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
+
+                            for (Condition::Pointer pCondition : ListConditions) {
+                                pCondition->Set(VISITED,true);
+                                pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
+    AllVisited = true;
+    for (auto& rCond : mrModelPart.Conditions()) {
+        if (rCond.IsNot(VISITED)) {
+            AllVisited = false;
             KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
         }
     }
@@ -195,7 +253,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     KRATOS_CATCH("")
 }
-
 
 //-------------------------------------------------------------------------------------------------
 hashmap::iterator FindNeighbourElementsOfConditionsProcess::

@@ -28,7 +28,7 @@ endif(POLICY CMP0057)
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_PATCH_VERSION 2)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -293,7 +293,7 @@ else(NOT DEFINED KRATOS_ENABLE_LTO)
     endif()
 endif(NOT DEFINED KRATOS_ENABLE_LTO)
 
-message("AR VERSION: ${CMAKE_AR}")
+message(STATUS "AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 8))
@@ -312,9 +312,9 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install path" FORCE)
-    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
 else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
@@ -326,14 +326,14 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 # default to OpenMP
 if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
-  message("\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
+  message(STATUS "\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
   SET(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP")
 endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 
 if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
   find_package(OpenMP)
   if (OPENMP_FOUND)
-    message("Using OpenMP for shared memory parallelization")
+    message(STATUS "Using OpenMP for shared memory parallelization")
     add_definitions( -DKRATOS_SMP_OPENMP )
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -346,13 +346,13 @@ if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
   endif (OPENMP_FOUND)
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
-  message("Using C++11 for shared memory parallelization")
+  message(STATUS "Using C++11 for shared memory parallelization")
   add_definitions( -DKRATOS_SMP_CXX11 )
-  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+  message(WARNING "Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   add_definitions( -DKRATOS_SMP_NONE )
-  message("Shared memory parallelization is disabled!")
+  message(STATUS "Shared memory parallelization is disabled!")
 
 else()
   message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
@@ -388,6 +388,12 @@ if(Boost_VERSION_STRING VERSION_LESS 1.70)
   message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
 else()
   add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
+# std::atomic_ref is part of C++20, hence using boost::atomic_ref
+# boost::atomic_ref has full support from version 1.74
+if((KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11") AND (CMAKE_CXX_STANDARD LESS 20) AND (Boost_VERSION_STRING VERSION_LESS 1.74))
+  message(FATAL_ERROR "Kratos requires at least boost version 1.74 when using C++11 for shared memory parallelization and compiling with C++17")
 endif ()
 
 ##*****************************
@@ -478,6 +484,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     endif(tetgen_FOUND)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
+# Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
   find_package(TRILINOS QUIET)
@@ -523,10 +530,8 @@ else()
     message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
-##echo user options
-message( " ")
-message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
-message( " ")
+## Echo user options
+message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
@@ -546,7 +551,7 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
 # Configure kratos applications
-message("-- Configuring applications (ENV):")
+message(STATUS "Configuring applications (ENV):")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
@@ -559,10 +564,10 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
         if(NOT TARGET Kratos${APPLICATION_NAME})
-            message("Adding application '${APPLICATION_PATH}'")
+            message("\tAdding application '${APPLICATION_PATH}'")
             add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
         else(NOT TARGET Kratos${APPLICATION_NAME})
-            message("[Warning] Application '${APPLICATION_PATH}' was already added")
+            message(WARNING "[Warning] Application '${APPLICATION_PATH}' was already added")
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
@@ -571,34 +576,30 @@ endif(DEFINED ENV{KRATOS_APPLICATIONS})
 add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
 add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
 
-message("")
-message("***********************************************************************")
-message("")
-message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:")
-message("")
+message("\n***********************************************************************\n")
+message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:\n")
 foreach(individual_app_name ${LIST_OF_APPLICATIONS_TO_BE_COMPILED})
   message("        ${individual_app_name}")
 endforeach()
-message("")
-message("        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:")
-message("")
+message("\n        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:\n")
 get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 foreach(individual_app_name ${local_list})
     if(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
         message("        ${individual_app_name}")
     endif(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
 endforeach()
-message("")
-message("***********************************************************************")
-message("")
+message("\n***********************************************************************\n")
 
-message("List of upcoming API-breaking and behavior changes:")
+message("\nList of upcoming API-breaking and behavior changes:")
+message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
+# Compiling the clipper library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

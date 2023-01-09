@@ -379,6 +379,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
     }
     else if(rVariable == STATE_VARIABLE)
     {
+        // NOTE: this variable is not printed, and thus we don't transform the values from Lobatto to Gauss points
+
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
@@ -401,9 +403,19 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         {
             GPValues[i] = mInitialGap[i] + GPAuxValues[i][TDim-1];
 
-            if(GPValues[i] < MinimumJointWidth)
-            {
-                GPValues[i] = MinimumJointWidth;
+            // No contact
+            if(GPValues[i] > 0.0) {
+                if(GPValues[i] < MinimumJointWidth)
+                {
+                    GPValues[i] = MinimumJointWidth;
+                }
+            } else {
+                // Contact
+                if(std::abs(GPValues[i]) < MinimumJointWidth){
+                    GPValues[i] = MinimumJointWidth;
+                } else {
+                    GPValues[i] = -GPValues[i];
+                }
             }
         }
 
@@ -443,7 +455,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         if(rVariable == FLUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
             //Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -510,7 +521,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         {
             //Defining necessary variables
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -569,7 +579,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         {
             //Defining necessary variables
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -624,7 +633,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         else if(rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
         {
             //Defining necessary variables
-            const GeometryType& Geom = this->GetGeometry();
             const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
             array_1d<double,TNumNodes*TDim> DisplacementVector;
             PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -649,7 +657,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         else if(rVariable == LOCAL_FLUID_FLUX_VECTOR)
         {
             const PropertiesType& Prop = this->GetProperties();
-            const GeometryType& Geom = this->GetGeometry();
             const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
             //Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -745,7 +752,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 
         if(rVariable == PERMEABILITY_MATRIX)
         {
-            const GeometryType& Geom = this->GetGeometry();
             const PropertiesType& Prop = this->GetProperties();
 
             //Defining the shape functions container
@@ -786,7 +792,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         }
         else if(rVariable == LOCAL_PERMEABILITY_MATRIX)
         {
-            const GeometryType& Geom = this->GetGeometry();
             const PropertiesType& Prop = this->GetProperties();
 
             //Defining the shape functions container
@@ -822,6 +827,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
                 noalias(GPValues[GPoint]) = LocalPermeabilityMatrix;
             }
         }
+        
         //Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
@@ -1225,6 +1231,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<
     Vx[1] *= inv_norm_x;
 
     //Rotation Matrix
+    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
 
@@ -1351,9 +1358,19 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateJointWidth(double&
 {
     rJointWidth = mInitialGap[GPoint] + NormalRelDisp;
 
-    if(rJointWidth < MinimumJointWidth)
-    {
-        rJointWidth = MinimumJointWidth;
+    // No contact
+    if(rJointWidth > 0.0) {
+        if(rJointWidth < MinimumJointWidth)
+        {
+            rJointWidth = MinimumJointWidth;
+        }
+    } else {
+        // Contact
+        if(std::abs(rJointWidth) < MinimumJointWidth){
+            rJointWidth = MinimumJointWidth;
+        } else {
+            rJointWidth = -rJointWidth;
+        }
     }
 }
 
@@ -1367,29 +1384,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
 
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // No contact between interfaces
 
-    // Initially open joint
-    if(mIsOpen[GPoint]==true)
-    {
+    // No contact
+    if(rJointWidth > 0.0) {
         if(rJointWidth < MinimumJointWidth)
         {
-            rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
-            rNormalRelDisp = rJointWidth - MinimumJointWidth;
             rJointWidth = MinimumJointWidth;
         }
-    }
-    // Initially closed joint
-    else
-    {
-        if(rJointWidth < 0.0)
-        {
-            rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
-            rNormalRelDisp = rJointWidth;
+    } else {
+        // Contact
+        if(std::abs(rJointWidth) < MinimumJointWidth){
             rJointWidth = MinimumJointWidth;
+        } else {
+            rJointWidth = -rJointWidth;
         }
-        else if(rJointWidth < MinimumJointWidth)
-        {
-            rJointWidth = MinimumJointWidth;
-        }
+        rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
     }
 }
 
@@ -1894,7 +1902,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMat
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
                                         BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing in rVariables.ConstitutiveMatrix
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix);
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
@@ -1906,6 +1916,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMat
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);
@@ -1969,6 +1980,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorTy
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
     noalias(rVariables.UVector) = -1.0*prod(rVariables.UDimMatrix,rVariables.StressVector)*rVariables.IntegrationCoefficient;
@@ -1993,6 +2005,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
 {
+    // Note. We actually have B matrix here, but we cancel its rVariables.JointWidth with the one missing next to rVariables.IntegrationCoefficient
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
     noalias(rVariables.UVector) = prod(rVariables.UDimMatrix,rVariables.VoigtVector);

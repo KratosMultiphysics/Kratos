@@ -40,6 +40,11 @@ endif(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
 # Including the amgcl, which is header only
 include_directories("../../external_libraries")
 
+# CHecking MPI is included
+IF (NOT ${USE_MPI} OR NOT DEFINED USE_MPI)
+    MESSAGE(FATAL_ERROR "TrilinosApplication requires MPI, please ser ON USE_MPI")
+ENDIF (NOT ${USE_MPI} OR NOT DEFINED USE_MPI)
+
 # Sources for the Trilinos application core
 set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp

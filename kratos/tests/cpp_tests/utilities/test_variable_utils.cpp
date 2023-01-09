@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                  Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -146,6 +147,60 @@ namespace Testing
             KRATOS_CHECK_VECTOR_NEAR(r_condition.GetValue(VELOCITY), ZeroVector(3), tolerance);
             KRATOS_CHECK_VECTOR_NEAR(r_condition.GetValue(DISPLACEMENT), ZeroVector(3), tolerance);
             KRATOS_CHECK_MATRIX_NEAR(r_condition.GetValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VariableUtilsEraseNonHistoricalVariableConditions, KratosCoreFastSuite)
+    {
+        // Set auxilary elemental structure
+        Model test_model;
+        auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+        for (std::size_t i = 0; i < 6; ++i) {
+            r_test_model_part.CreateNewNode(i,0.0,0.0,0.0);
+        }
+        auto p_prop = Kratos::make_shared<Properties>(0);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",1,{{1,2}},p_prop);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",2,{{2,3}},p_prop);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",3,{{3,4}},p_prop);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",4,{{4,5}},p_prop);
+
+        // Set some values to zero in the non-historical database
+        VariableUtils::SetNonHistoricalVariablesToZero(r_test_model_part.Conditions(), PRESSURE, TEMPERATURE);
+
+        // Erase some values in the non-historical database
+        VariableUtils().EraseNonHistoricalVariable(TEMPERATURE, r_test_model_part.Conditions());
+
+        // Values are properly allocated
+        for (const auto& r_condition : r_test_model_part.Conditions()) {
+            KRATOS_CHECK(r_condition.Has(PRESSURE));
+            KRATOS_CHECK_IS_FALSE(r_condition.Has(TEMPERATURE));
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(VariableUtilsClearNonHistoricalDataConditions, KratosCoreFastSuite)
+    {
+        // Set auxilary elemental structure
+        Model test_model;
+        auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+        for (std::size_t i = 0; i < 6; ++i) {
+            r_test_model_part.CreateNewNode(i,0.0,0.0,0.0);
+        }
+        auto p_prop = Kratos::make_shared<Properties>(0);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",1,{{1,2}},p_prop);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",2,{{2,3}},p_prop);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",3,{{3,4}},p_prop);
+        r_test_model_part.CreateNewCondition("LineCondition2D2N",4,{{4,5}},p_prop);
+
+        // Set some values to zero in the non-historical database
+        VariableUtils::SetNonHistoricalVariablesToZero(r_test_model_part.Conditions(), PRESSURE, TEMPERATURE);
+
+        // Erase some values in the non-historical database
+        VariableUtils().ClearNonHistoricalData(r_test_model_part.Conditions());
+
+        // Values are properly allocated
+        for (const auto& r_condition : r_test_model_part.Conditions()) {
+            KRATOS_CHECK_IS_FALSE(r_condition.Has(PRESSURE));
+            KRATOS_CHECK_IS_FALSE(r_condition.Has(TEMPERATURE));
         }
     }
 
