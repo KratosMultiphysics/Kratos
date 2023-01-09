@@ -107,7 +107,7 @@ public:
      * @param rPath                               Path
      * @return std::vector<std::filesystem::path> List of files and folders in rPath
      */
-    static [[nodiscard]] std::vector<std::filesystem::path> ListDirectory(const std::filesystem::path& rPath);
+    [[nodiscard]] static std::vector<std::filesystem::path> ListDirectory(const std::filesystem::path& rPath);
 
     /**
      * @brief Create directories in MPI, when sometimes filesystems are slow. Intended to be called by all ranks (that make use of this directory). It returns only after the folder exists
@@ -124,7 +124,7 @@ public:
      *  @note The existence of the final result is not checked and is up to the user.
      *  @note The input is returned if it is not a symlink.
      */
-    static [[nodiscard]] std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
+    [[nodiscard]] static std::filesystem::path ResolveSymlinks(const std::filesystem::path& rPath);
 
 }; // class FilesystemExtensions
 
