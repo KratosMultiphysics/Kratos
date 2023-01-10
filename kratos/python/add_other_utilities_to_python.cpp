@@ -782,8 +782,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, false>)
         ;
 
-    auto fs_extensions = m.def_submodule("FilesystemExtensions");
-    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
+
+    py::class_<FilesystemExtensions>(m, "FilesystemExtensions")
+        .def_static("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories )
+        ;
 
     py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
         .def(py::init<Model&, Parameters>())
