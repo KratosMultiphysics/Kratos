@@ -81,7 +81,7 @@ public:
 
         PointerVector< Element > New_Elements;
         New_Elements.reserve(20);
-        
+
         // Initial renumber of nodes and elemetns
         //TODO : DIFFERENCE WITH BASE CLASS 1
         mPreviousRefinementLevel=0;
@@ -156,12 +156,7 @@ public:
         
         
         if (RefineOnReference) {
-            block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
-                const array_1d<double, 3 > & disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                rNode.X() = rNode.X0() + disp[0];
-                rNode.Y() = rNode.Y0() + disp[1];
-                rNode.Z() = rNode.Z0() + disp[2];
-            });
+            VariableUtils().UpdateCurrentPosition(mModelPart.Nodes(),DISPLACEMENT,0);
         }
 
         UpdateSubModelPartNodes(mModelPart);

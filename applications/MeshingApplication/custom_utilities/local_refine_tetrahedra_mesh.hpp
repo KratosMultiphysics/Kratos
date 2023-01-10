@@ -5,12 +5,12 @@
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Co-authors:      Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH)
@@ -57,14 +57,13 @@ public:
     ///@{
 
     /// Default constructors
-    LocalRefineTetrahedraMesh(ModelPart& model_part) : LocalRefineGeometryMesh(model_part)
+    LocalRefineTetrahedraMesh(ModelPart& rModelPart) : LocalRefineGeometryMesh(rModelPart)
     {
 
     }
 
     /// Destructor
-    ~LocalRefineTetrahedraMesh()
-    = default;
+    ~LocalRefineTetrahedraMesh() = default;
 
     ///@}
     ///@name Operators
@@ -227,7 +226,7 @@ public:
       //probably it'd be good to move this to github
       it->SetValue(SPLIT_ELEMENT,false);
 
-	  if (create_element == true)
+	  if (create_element)
 	  {
 	      to_be_deleted++;
 
@@ -495,59 +494,40 @@ public:
 
     /**
     * Updates recursively the conditions in the submodelpars
-    * @param NewConditions: list of conds
-    * @return this_model_part: The model part of the model (it is the input too)
+    * @param rNewConditions: list of conds
+    * @return rModelPart: The model part of the model (it is the input too)
     */
-    void UpdateSubModelPartConditions(ModelPart& this_model_part, PointerVector< Condition >& NewConditions)
-      {
-                for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-                    iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
-                {
-                    unsigned int to_be_deleted = 0;
-                    NewConditions.clear();
+    void UpdateSubModelPartConditions(ModelPart& rModelPart, PointerVector< Condition >& rNewConditions) {
+        for (auto it_sub_model_part = rModelPart.SubModelPartsBegin(); it_sub_model_part != rModelPart.SubModelPartsEnd(); it_sub_model_part++) {
+            unsigned int to_be_deleted = 0;
+            rNewConditions.clear();
 
-                    // Create list of new conditions in SubModelPart
-                    // Count how many conditions will be removed
-                    for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
-                            iCond != iSubModelPart->ConditionsEnd(); iCond++)
-                    {
-                        if( iCond->GetValue(SPLIT_ELEMENT) )
-                        {
-                            to_be_deleted++;
-                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
-
-                            for ( auto iChild = rChildConditions.ptr_begin();
-                                    iChild != rChildConditions.ptr_end(); iChild++ )
-                            {
-                                NewConditions.push_back((*iChild)->shared_from_this());
-                            }
-                        }
-                    }
-
-                    // Add new conditions to SubModelPart
-                    iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
-                    for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
-                            it_new != NewConditions.end(); it_new++)
-                    {
-                        iSubModelPart->Conditions().push_back(*(it_new.base()));
-                    }
-
-                    // Delete old conditions
-                    iSubModelPart->Conditions().Sort();
-                    iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
-                    /*
-                    KRATOS_WATCH(iSubModelPart->Info());
-                    KRATOS_WATCH(to_be_deleted);
-                    KRATOS_WATCH(iSubModelPart->Conditions().size());
-                    KRATOS_WATCH(this_model_part.Conditions().size());
-                    */
-                    if (NewConditions.size() > 0)
-                    {
-                        UpdateSubModelPartConditions(this_model_part, NewConditions);
+            // Create list of new conditions in SubModelPart
+            // Count how many conditions will be removed
+            for (auto it_cond = it_sub_model_part->ConditionsBegin(); it_cond != it_sub_model_part->ConditionsEnd(); it_cond++) {
+                if( it_cond->GetValue(SPLIT_ELEMENT) ) {
+                    to_be_deleted++;
+                    auto& rChildConditions = it_cond->GetValue(NEIGHBOUR_CONDITIONS);
+                    for ( auto iChild = rChildConditions.ptr_begin(); iChild != rChildConditions.ptr_end(); iChild++ ) {
+                        rNewConditions.push_back((*iChild)->shared_from_this());
                     }
                 }
+            }
 
-      }
+            // Add new conditions to SubModelPart
+            it_sub_model_part->Conditions().reserve( it_sub_model_part->Conditions().size() + rNewConditions.size() );
+            for (auto it_new = rNewConditions.begin(); it_new != rNewConditions.end(); it_new++) {
+                it_sub_model_part->Conditions().push_back(*(it_new.base()));
+            }
+
+            // Delete old conditions
+            it_sub_model_part->Conditions().Sort();
+            it_sub_model_part->Conditions().erase(it_sub_model_part->Conditions().end() - to_be_deleted, it_sub_model_part->Conditions().end());
+            if (rNewConditions.size() > 0) {
+                UpdateSubModelPartConditions(rModelPart, rNewConditions);
+            }
+        }
+    }
 
     /***********************************************************************************/
     /***********************************************************************************/
