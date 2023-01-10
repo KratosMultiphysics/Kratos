@@ -382,7 +382,6 @@ void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
     for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
         if (r_sub_model_part.NumberOfNodes() > 0) {
             auto& r_array_nodes = r_sub_model_part.Nodes();
-            variable_utils.ResetFlag(TO_ERASE, r_array_nodes);
             variable_utils.SetFlag(TO_ERASE, true, r_array_nodes);
             // Check orphans nodes
             if (r_sub_model_part.NumberOfElements() > 0 || r_sub_model_part.NumberOfConditions() > 0 || r_sub_model_part.NumberOfGeometries() > 0) {
