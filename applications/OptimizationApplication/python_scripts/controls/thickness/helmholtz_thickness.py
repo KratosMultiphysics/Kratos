@@ -71,7 +71,7 @@ class HelmholtzThickness(ThicknessControl):
             for itr in range(self.technique_settings["utilities"].size()):
                 util_settings = self.technique_settings["utilities"][itr]
                 util_type = util_settings["type"].GetString()
-                if  util_type== "plane_symmetry" or util_type== "axis_symmetry":
+                if  util_type== "plane_symmetry" or util_type== "rotational_symmetry":
                     for model_part_name in self.controlling_objects:
                         self.utils.append(KOA.SymmetryUtility(util_settings["name"].GetString(),self.model.GetModelPart(model_part_name),util_settings))
 

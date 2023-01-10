@@ -97,7 +97,7 @@ public:
         std::vector<std::pair <NodeTypePointer,NodeTypePointer>> Map;
 	};  
 
- 	struct AxisSymmetryData{
+ 	struct RotationalSymmetryData{
 		// point on the axis
         array_1d<double,3> Point;
 		// angle
@@ -220,7 +220,7 @@ private:
     ModelPart& mrModelPart;
     Parameters mSymmetrySettings;
     bool mAxisSymmetry=false;
-    AxisSymmetryData mAxisSymmetryData;
+    RotationalSymmetryData mRotationalSymmetryData;
     bool mPlaneSymmetry=false;
     PlaneSymmetryData mPlaneSymmetryData;
 
