@@ -74,8 +74,10 @@ void SymmetryUtility::Initialize()
     KDTree search_tree(mListOfNodesInModelPart.begin(), mListOfNodesInModelPart.end(), bucket_size);
 
     if(mAxisSymmetry){
-        mAxisSymmetryData.Map.resize(mrModelPart.Nodes().size());
-        int counter = 0;
+
+        #pragma omp declare reduction (merge : std::vector<std::pair <NodeTypePointer,NodeVector>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))        
+        std::vector<std::pair <NodeTypePointer,NodeVector>>& rMap = mAxisSymmetryData.Map;
+        #pragma omp parallel for reduction(merge: rMap)
         for (auto& r_node : mrModelPart.Nodes()){
             int num_rotations = (360.0/mAxisSymmetryData.Angle);
             NodeVector p_neighbor_rot_nodes;
@@ -86,23 +88,25 @@ void SymmetryUtility::Initialize()
                NodeTypePointer p_neighbor_rot_node = search_tree.SearchNearestPoint(*p_rot_node, distance);
                p_neighbor_rot_nodes[r_i-1] = p_neighbor_rot_node;
             }
-
-            mAxisSymmetryData.Map[counter] = p_neighbor_rot_nodes;
-            counter++;
+            std::pair <NodeTypePointer,NodeVector> nodes_pair;
+            nodes_pair = std::make_pair(mrModelPart.pGetNode(r_node.Id()),p_neighbor_rot_nodes);
+            rMap.push_back(nodes_pair); 
         }
     }
+
     if(mPlaneSymmetry){
-        mPlaneSymmetryData.Map.resize(mrModelPart.Nodes().size());
-        int counter = 0;
-        // #pragma omp parallel for reduction(+:counter)
+        #pragma omp declare reduction (merge : std::vector<std::pair <NodeTypePointer,NodeTypePointer>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))        
+        std::vector<std::pair <NodeTypePointer,NodeTypePointer>>& rMap = mPlaneSymmetryData.Map;
+        #pragma omp parallel for reduction(merge: rMap)
         for (auto& r_node : mrModelPart.Nodes()){
             NodeTypePointer p_ref_node = GetReflectedNode(r_node);
             double distance;
             NodeTypePointer p_neighbor_ref_node = search_tree.SearchNearestPoint(*p_ref_node, distance);
-            mPlaneSymmetryData.Map[counter] =  p_neighbor_ref_node;
-            counter ++;          
+            std::pair <NodeTypePointer,NodeTypePointer> nodes_pair;
+            nodes_pair = std::make_pair(mrModelPart.pGetNode(r_node.Id()),p_neighbor_ref_node);
+            rMap.push_back(nodes_pair);          
         }
-    }
+    }    
 
 }
 
@@ -222,38 +226,57 @@ void SymmetryUtility::ApplyOnVectorField( const Variable<array_3d> &rNodalVariab
 }
 
 void SymmetryUtility::ApplyOnScalarField( const Variable<double> &rNodalVariable )
-{
-    Vector aux_field = ZeroVector(mrModelPart.Nodes().size());
+{    
 
     if(mAxisSymmetry){        
-        int counter = 0;
-        for (auto& r_node : mrModelPart.Nodes()){
-            for(int p_rot_c= 0; p_rot_c<mAxisSymmetryData.Map[counter].size();p_rot_c++)
-                aux_field[counter] += mAxisSymmetryData.Map[counter][p_rot_c]->FastGetSolutionStepValue(rNodalVariable);                
-;    
-            counter ++;          
+        std::vector<double> aux;
+        #pragma omp parallel
+        {
+            std::vector<double> aux_private;
+            #pragma omp for nowait schedule(static)
+            for(auto& r_pair : mAxisSymmetryData.Map) {
+                double val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
+                for(int n_c = 0; n_c<r_pair.second.size();n_c++)                
+                    val += r_pair.second[n_c]->FastGetSolutionStepValue(rNodalVariable);
+                val /= (r_pair.second.size()+1);
+                aux_private.push_back(val);
+            }
+            #pragma omp for schedule(static) ordered
+            for(int i=0; i<omp_get_num_threads(); i++) {
+                #pragma omp ordered
+                aux.insert(aux.end(), aux_private.begin(), aux_private.end());
+            }
         }
-        counter = 0;
-        for (auto& r_node : mrModelPart.Nodes()){
-            r_node.FastGetSolutionStepValue(rNodalVariable) += aux_field[counter];
-            r_node.FastGetSolutionStepValue(rNodalVariable) /= (mAxisSymmetryData.Map[counter].size()+1);
-            counter ++;          
-        }
+
+        #pragma omp parallel for 
+        for(int i=0;i<aux.size();i++)
+            mAxisSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
     }
 
+    if(mPlaneSymmetry){  
 
-    if(mPlaneSymmetry){        
-        int counter = 0;
-        for (auto& r_node : mrModelPart.Nodes()){
-            aux_field[counter] = mPlaneSymmetryData.Map[counter]->FastGetSolutionStepValue(rNodalVariable);
-            counter ++;          
+        std::vector<double> aux;
+        #pragma omp parallel
+        {
+            std::vector<double> aux_private;
+            #pragma omp for nowait schedule(static)
+            for(auto& r_pair : mPlaneSymmetryData.Map) {
+                double val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
+                val += r_pair.second->FastGetSolutionStepValue(rNodalVariable);
+                val /= 2.0;
+                aux_private.push_back(val);
+            }
+            #pragma omp for schedule(static) ordered
+            for(int i=0; i<omp_get_num_threads(); i++) {
+                #pragma omp ordered
+                aux.insert(aux.end(), aux_private.begin(), aux_private.end());
+            }
         }
-        counter = 0;
-        for (auto& r_node : mrModelPart.Nodes()){
-            r_node.FastGetSolutionStepValue(rNodalVariable) += aux_field[counter];
-            r_node.FastGetSolutionStepValue(rNodalVariable) /= 2.0;
-            counter ++;          
-        }
+
+        #pragma omp parallel for 
+        for(int i=0;i<aux.size();i++)
+            mPlaneSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
+        
     }
 
 }

@@ -94,7 +94,7 @@ public:
         //Reflection Matrix
         Matrix ReflectionMatrix;
         // map
-        NodeVector Map;
+        std::vector<std::pair <NodeTypePointer,NodeTypePointer>> Map;
 	};  
 
  	struct AxisSymmetryData{
@@ -105,7 +105,7 @@ public:
         // axis
         array_1d<double,3> Axis;
         // map 
-        std::vector<NodeVector> Map;
+        std::vector<std::pair <NodeTypePointer,NodeVector>> Map;
 	};  
 
 
