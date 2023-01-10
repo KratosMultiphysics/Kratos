@@ -55,9 +55,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef std::vector<Matrix> Matrix_Order_Tensor;
+    typedef std::vector<Vector> Vector_Order_Tensor;
+    typedef std::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
@@ -128,8 +128,8 @@ public:
     virtual void CreateListOfNewNodes(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord,
-            boost::numeric::ublas::vector<int> &List_New_Nodes,
-            boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node
+            std::vector<int> &List_New_Nodes,
+            std::vector<array_1d<int, 2 > >& Position_Node
 					 );
 
     /**
@@ -142,8 +142,8 @@ public:
 
     virtual void CalculateCoordinateAndInsertNewNodes(
             ModelPart& this_model_part,
-            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
-            const boost::numeric::ublas::vector<int> &List_New_Nodes
+            const std::vector<array_1d<int, 2 > >& Position_Node,
+            const std::vector<int> &List_New_Nodes
 							  );
 
     /**

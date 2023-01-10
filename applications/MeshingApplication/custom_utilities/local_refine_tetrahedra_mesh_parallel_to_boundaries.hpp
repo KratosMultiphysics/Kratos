@@ -4,21 +4,25 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH_PARALLEL_TO_BOUNDARIES)
-#define  KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH_PARALLEL_TO_BOUNDARIES
+#pragma once
 
 // NOTE: Before compute the remeshing it is necessary to compute the neighbours
 
 // System includes
 
-/* Project includes */
+// External includes
+
+// Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
+
+// Applicaion includes
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 
 
@@ -68,15 +72,12 @@ public:
     {
         KRATOS_TRY;
 
-        if (RefineOnReference)
-        {
-            KRATOS_ERROR_IF_NOT(mModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)) << "Missing DISPLACEMENT variable on solution step data." ;
-        }
+        KRATOS_ERROR_IF(RefineOnReference && !mModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)) << "Missing DISPLACEMENT variable on solution step data." ;
 
         compressed_matrix<int> Coord;                                              // The matrix that stores all the index of the geometry
-        boost::numeric::ublas::vector<int> List_New_Nodes;                         // The news nodes
-        boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
+        std::vector<int> List_New_Nodes;                         // The news nodes
+        std::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
+        std::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
 
         PointerVector< Element > New_Elements;
         New_Elements.reserve(20);
@@ -93,27 +94,19 @@ public:
                     mPreviousRefinementLevel=node_refinement_level;
         }
         mCurrentRefinementLevel = mPreviousRefinementLevel+1;
-	
-	    id = 1;
-        for (ModelPart::ElementsContainerType::iterator it = mModelPart.ElementsBegin(); it != mModelPart.ElementsEnd(); it++)
-        {
-        it->SetId(id++);
-        }
 
-        id = 1;
-        for (ModelPart::ConditionsContainerType::iterator it = mModelPart.ConditionsBegin(); it != mModelPart.ConditionsEnd(); it++)
-        {
-        it->SetId(id++);
-        }
-	
-        if (RefineOnReference)
-        {
-            block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
-            {
-                rNode.X() = rNode.X0();
-                rNode.Y() = rNode.Y0();
-                rNode.Z() = rNode.Z0();
-            });
+        IndexPartition<std::size_t>(mModelPart.NumberOfElements()).for_each([&](std::size_t index){
+            auto it_elem = mModelPart.ElementsBegin() + index;
+            it_elem->SetId(index+1);
+        });
+
+        IndexPartition<std::size_t>(mModelPart.NumberOfConditions()).for_each([&](std::size_t index){
+            auto it_cond = mModelPart.ConditionsBegin() + index;
+            it_cond->SetId(index+1);
+        });
+
+        if (RefineOnReference) {
+            VariableUtils().UpdateCurrentToInitialConfiguration(mModelPart.Nodes());
         }
 
         this->ResetFatherNodes(mModelPart); 
@@ -202,16 +195,11 @@ public:
     ) override
     {
         KRATOS_TRY;
-	
-        ElementsArrayType& rElements = this_model_part.Elements();
-        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
-        ElementsArrayType::iterator it_end   = rElements.ptr_end();
-
-        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+        for (auto& r_elem: this_model_part.Elements())
         {
-            if (it->GetValue(SPLIT_ELEMENT))
+            if (r_elem.GetValue(SPLIT_ELEMENT))
             {
-                Element::GeometryType& geom = it->GetGeometry(); // Nodes of the element
+                Element::GeometryType& geom = r_elem.GetGeometry(); // Nodes of the element
                 for (unsigned int i = 0; i < geom.size(); i++)
                 {
                     int index_i = geom[i].Id() - 1;
@@ -231,13 +219,9 @@ public:
         }
 
         //unmarking edges belonging to the edges of conditions (skin) to avoid refining edges
-        ConditionsArrayType& rConditions = this_model_part.Conditions();
-        ConditionsArrayType::iterator it_begin_cond = rConditions.ptr_begin();
-        ConditionsArrayType::iterator it_end_cond   = rConditions.ptr_end();
-
-        for (ConditionsArrayType::iterator it = it_begin_cond; it != it_end_cond; ++it)
+        for (auto& rCond : this_model_part.Conditions())
         {
-            Condition::GeometryType& geom = it->GetGeometry(); // Nodes of the condition
+            Condition::GeometryType& geom = rCond.GetGeometry(); // Nodes of the condition
             for (unsigned int i = 0; i < geom.size(); i++)
             {
                     int index_i = geom[i].Id() - 1;
@@ -265,17 +249,17 @@ public:
         {
             
             added_nodes=false;
-            for (auto iNode = rModelPart.Nodes().ptr_begin();
-                    iNode != rModelPart.Nodes().ptr_end(); iNode++)
+            for (auto it_node = rModelPart.Nodes().ptr_begin();
+                    it_node != rModelPart.Nodes().ptr_end(); it_node++)
             {
-                GlobalPointersVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);
+                GlobalPointersVector< Node<3> > &rFatherNodes = (*it_node)->GetValue(FATHER_NODES);
                 unsigned int ParentCount = rFatherNodes.size();
 
-                if (ParentCount > 0 && (*iNode)->GetValue(REFINEMENT_LEVEL)==mCurrentRefinementLevel)
+                if (ParentCount > 0 && (*it_node)->GetValue(REFINEMENT_LEVEL)==mCurrentRefinementLevel)
                 {
                     unsigned int ParentsInSubModelPart = 0;
 
-                    for ( GlobalPointersVector< Node<3> >::iterator iParent = rFatherNodes.begin();
+                    for (auto iParent = rFatherNodes.begin();
                             iParent != rFatherNodes.end(); iParent++)
                     {
                         unsigned int ParentId = iParent->Id();
@@ -286,7 +270,7 @@ public:
 
                     if ( ParentCount == ParentsInSubModelPart )
                     {
-                        iSubModelPart->AddNode( *iNode );
+                        iSubModelPart->AddNode( *it_node );
                         added_nodes=true;
                     }
                 }
@@ -362,5 +346,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH_PARALLEL_TO_BOUNDARIES  defined
