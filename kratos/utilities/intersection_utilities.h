@@ -317,23 +317,23 @@ public:
                     if (is_inside_projected(r_edge, rLinePoint1)) { // Is inside the line
                         if (rSolution == 0) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
                             noalias(rIntersectionPoint1) = rLinePoint1;
-                            rsolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                            rSolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
                         } else {
                             if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
                                 noalias(rIntersectionPoint2) = rLinePoint1;
-                                rsolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
                                 break;
                             }
                         }
                     } else { // Is in the border of the line
                         if (rSolution == 0) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
                             noalias(rIntersectionPoint1) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
-                            rsolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                            rSolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
                         } else {
                             noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
                             if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                                 noalias(rIntersectionPoint2) = intersection_point;
-                                rsolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
                                 break;
                             }
                         }
@@ -343,14 +343,14 @@ public:
                         if (is_inside_projected(r_edge, rLinePoint2)) { // Is inside the line
                             if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) { // Must be different from the first one
                                 noalias(rIntersectionPoint2) = rLinePoint2;
-                                rsolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
                                 break;
                             }
                         } else { // Is in the border of the line
                             noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint2) <  norm_2(r_edge_point_2 - rLinePoint2) ? r_edge_point_1 : r_edge_point_2;
                             if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                                 noalias(rIntersectionPoint2) = intersection_point;
-                                rsolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
                                 break;
                             }
                         }
@@ -361,11 +361,11 @@ public:
             } else { // Direct intersection
                 if (rSolution == 0) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
                     noalias(rIntersectionPoint1) = intersection_point;
-                    rsolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                    rSolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
                 } else {
                     if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
                         noalias(rIntersectionPoint2) = intersection_point;
-                        rsolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                        rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
                         break;
                     }
                 }
