@@ -223,6 +223,10 @@ public:
 
 	  }
 
+      //TODO: CHANGE RESPECT TO BASE CLASS: ( FLUID SOLVER MIGHT HAVE CHANGED THIS)
+      //probably it'd be good to move this to github
+      it->SetValue(SPLIT_ELEMENT,false);
+
 	  if (create_element == true)
 	  {
 	      to_be_deleted++;
@@ -300,10 +304,22 @@ public:
       // Now update the elements in SubModelParts
       if (NewElements.size() > 0)
       {
+          UpdateSubModelPartElements(this_model_part, NewElements);
+      }
+
+    }
+
+    /**
+    * Updates recursively the elements in the submodelpars
+    * @param NewElements: list of elems
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartElements(ModelPart& this_model_part, PointerVector< Element >& NewElements)
+      {
           for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
                   iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
           {
-              to_be_deleted = 0;
+              unsigned int to_be_deleted = 0;
               NewElements.clear();
 
               // Create list of new elements in SubModelPart
@@ -335,15 +351,23 @@ public:
               // Delete old elements
               iSubModelPart->Elements().Sort();
               iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
-
+              /*
               KRATOS_WATCH(iSubModelPart->Info());
               KRATOS_WATCH(to_be_deleted);
               KRATOS_WATCH(iSubModelPart->Elements().size());
               KRATOS_WATCH(this_model_part.Elements().size());
+              */
+
+            //NEXT LEVEL
+            if (NewElements.size() > 0)
+            {
+               ModelPart &rSubModelPart = *iSubModelPart;
+               UpdateSubModelPartElements(rSubModelPart,NewElements);
+            }
+
+
           }
       }
-    }
-
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -462,10 +486,24 @@ public:
             // Now update the conditions in SubModelParts
             if (NewConditions.size() > 0)
             {
+                UpdateSubModelPartConditions(this_model_part, NewConditions);
+            }
+        }
+        KRATOS_CATCH("");
+    }
+
+
+    /**
+    * Updates recursively the conditions in the submodelpars
+    * @param NewConditions: list of conds
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartConditions(ModelPart& this_model_part, PointerVector< Condition >& NewConditions)
+      {
                 for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
-                        iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+                    iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
                 {
-                    to_be_deleted = 0;
+                    unsigned int to_be_deleted = 0;
                     NewConditions.clear();
 
                     // Create list of new conditions in SubModelPart
@@ -497,16 +535,19 @@ public:
                     // Delete old conditions
                     iSubModelPart->Conditions().Sort();
                     iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
-
+                    /*
                     KRATOS_WATCH(iSubModelPart->Info());
                     KRATOS_WATCH(to_be_deleted);
                     KRATOS_WATCH(iSubModelPart->Conditions().size());
                     KRATOS_WATCH(this_model_part.Conditions().size());
+                    */
+                    if (NewConditions.size() > 0)
+                    {
+                        UpdateSubModelPartConditions(this_model_part, NewConditions);
+                    }
                 }
-            }
-        }
-        KRATOS_CATCH("");
-    }
+
+      }
 
     /***********************************************************************************/
     /***********************************************************************************/
@@ -594,103 +635,9 @@ public:
 	  aux[9] = Coord(index_2, index_3);
       }
 
-      // Edge 01
-      if (aux[4] < 0)
-      {
-	  if (index_0 > index_1)
-	  {
-	    edge_ids[0] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[0] = 1;
-	  }
-      }
-      else
-      {
-	  edge_ids[0] = 4;
-      }
-
-      // Edge 02
-      if (aux[5] < 0)
-	  if (index_0 > index_2)
-	  {
-	    edge_ids[1] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[1] = 2;
-	  }
-      else
-      {
-	  edge_ids[1] = 5;
-      }
-
-      // Edge 03
-      if (aux[6] < 0)
-      {
-	  if (index_0 > index_3)
-	  {
-	    edge_ids[2] = 0;
-	  }
-	  else
-	  {
-	    edge_ids[2] = 3;
-	  }
-      }
-      else
-      {
-	  edge_ids[2] = 6;
-      }
-
-      // Edge 12
-      if (aux[7] < 0)
-      {
-	  if (index_1 > index_2)
-	  {
-	    edge_ids[3] = 1;
-	  }
-	  else
-	  {
-	    edge_ids[3] = 2;
-	  }
-      }
-      else
-      {
-	  edge_ids[3] = 7;
-      }
-
-      // Edge 13
-      if (aux[8] < 0)
-	  if (index_1 > index_3)
-	  {
-	    edge_ids[4] = 1;
-	  }
-	  else
-	  {
-	    edge_ids[4] = 3;
-	  }
-      else
-      {
-	  edge_ids[4] = 8;
-      }
-
-      // Edge 23
-      if (aux[9] < 0)
-      {
-	  if (index_2 > index_3)
-	  {
-	    edge_ids[5] = 2;
-	  }
-	  else
-	  {
-	    edge_ids[5] = 3;
-	  }
-      }
-      else
-      {
-	  edge_ids[5] = 9;
-      }
+      TetrahedraSplit::TetrahedraSplitMode(
+        aux.data(),
+        edge_ids);
     }
 
     /***********************************************************************************/

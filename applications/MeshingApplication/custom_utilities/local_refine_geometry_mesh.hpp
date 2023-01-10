@@ -91,7 +91,7 @@ public:
     * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
     */
 
-    void LocalRefineMesh(
+    virtual void LocalRefineMesh(
             bool refine_on_reference,
             bool interpolate_internal_variables);
 
