@@ -1,7 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics import kratos_utilities
 from  KratosMultiphysics.deprecation_management import DeprecationManager
-import os
 
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):

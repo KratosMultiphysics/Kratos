@@ -736,6 +736,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        // TODO: I would remove unsigned int if using std::size_t
         .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<2,true>)
         .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<3,true>)
         .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<2,false>)
