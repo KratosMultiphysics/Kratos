@@ -258,8 +258,6 @@ public:
     //have to override because we need the refinement level in the ifs ( (*iNode)->GetValue(REFINEMENT_LEVEL)==mcurrent_refinement_level )
     void UpdateSubModelPartNodes(ModelPart &rModelPart) override
     {
-        KRATOS_WATCH(rModelPart.Name())
-
         bool added_nodes=false;
 
         for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
