@@ -70,7 +70,6 @@ DataTransfer3D1DProcess::DataTransfer3D1DProcess(
     KRATOS_KDTREE_POINTELEMENT_DEFINITION
 
     // Some auxiliary values
-    const double tolerance = 1.0e-16;
     const IndexType allocation_size = ThisParameters["search_parameters"]["allocation_size"].GetInt();                 // Allocation size for the vectors and max number of potential results
     const double search_factor = ThisParameters["search_parameters"]["search_factor"].GetDouble();                     // The search factor to be considered
     const double search_increment_factor = ThisParameters["search_parameters"]["search_increment_factor"].GetDouble(); // The search increment factor to be considered
