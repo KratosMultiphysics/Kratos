@@ -247,7 +247,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.ReadModelParts()
 
         self.SetMaterials()
-        
+
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
