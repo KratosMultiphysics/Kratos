@@ -2110,16 +2110,21 @@ namespace Kratos {
     double ExplicitSolverStrategy::RVEComputeTotalSurface(void) {
       double surface = 0.0;
 
-      if (mRVE_Dimension == 2) { // Perimeter
-        double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
-        double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
-        surface   = 2.0 * (dX + dY);
-      }
-      else if (mRVE_Dimension == 3) {
-        double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
-        double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
-        double dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
-        surface   = 2.0 * (dX*dY + dX*dZ + dY*dZ);
+      if (mRVE_WallXMin.size() > 0 || mRVE_WallXMax.size() > 0 ||
+          mRVE_WallYMin.size() > 0 || mRVE_WallYMax.size() > 0 ||
+          mRVE_WallZMin.size() > 0 || mRVE_WallZMax.size() > 0)
+      {
+        if (mRVE_Dimension == 2) { // Perimeter
+          double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+          double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+          surface = 2.0 * (dX + dY);
+        }
+        else if (mRVE_Dimension == 3) {
+          double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+          double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+          double dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+          surface = 2.0 * (dX * dY + dX * dZ + dY * dZ);
+        }
       }
 
       return surface;
