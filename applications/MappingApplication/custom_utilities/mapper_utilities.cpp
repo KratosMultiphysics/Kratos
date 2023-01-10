@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/stream_serializer.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 
@@ -54,10 +55,10 @@ double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer)
 {
     // Loop through each edge of a geometrical entity ONCE
     return block_for_each<MaxReduction<double>>(rEntityContainer, [](const typename TContainer::value_type& rEntity){
-        for (std::size_t i = 0; i < (rEntity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < rEntity.GetGeometry().size(); ++j) {
-                return ComputeDistance(rEntity.GetGeometry()[i].Coordinates(),
-                                       rEntity.GetGeometry()[j].Coordinates());
+        const auto& r_geometry = rEntity.GetGeometry();
+        for (std::size_t i = 0; i < (r_geometry.size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < r_geometry.size(); ++j) {
+                return r_geometry[i].Distance(r_geometry[j]);
             }
         }
         return 0.0; // in case the geometry is a point
@@ -328,7 +329,7 @@ void RestoreCurrentConfiguration(ModelPart& rModelPart)
 
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             noalias(rNode.Coordinates()) = rNode.GetValue(CURRENT_COORDINATES);
-            rNode.Data().Erase(CURRENT_COORDINATES);
+            rNode.GetData().Erase(CURRENT_COORDINATES);
         });
     }
 
@@ -361,7 +362,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             const auto& rp_local_sys = rMapperLocalSystems[i_local_sys];
 
-            if (!rp_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
+            if (!rp_local_sys->IsDoneSearching()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
                 if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!

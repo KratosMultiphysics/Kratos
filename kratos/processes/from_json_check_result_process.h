@@ -22,7 +22,6 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/result_dabatase.h"
-#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -258,7 +257,7 @@ protected:
      * @param rCheckCounter The check counter
      */
     void CheckNodeValues(IndexType& rCheckCounter);
-    
+
     /**
      * @brief This method check the nodal historical values
      * @param rCheckCounter The check counter

@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_utilities/active_set_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "utilities/atomic_utilities.h"
 
@@ -35,32 +36,27 @@ std::size_t ComputePenaltyFrictionlessActiveSet(ModelPart& rModelPart)
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+            if (rNode.Is(SLAVE)) {
+                const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
+                const double augmented_normal_pressure = epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
 
-        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
-
-        #pragma omp parallel for reduction(+:is_converged)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            if (it_node->Is(SLAVE)) {
-                const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
-                const double augmented_normal_pressure = epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-
-                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
                 if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                    if (it_node->IsNot(ACTIVE)) {
-                        it_node->Set(ACTIVE, true);
-                        is_converged += 1;
+                    if (rNode.IsNot(ACTIVE)) {
+                        rNode.Set(ACTIVE, true);
+                        return 1;
                     }
                 } else {
-                    if (it_node->Is(ACTIVE)) {
-                        it_node->Set(ACTIVE, false);
-                        is_converged += 1;
+                    if (rNode.Is(ACTIVE)) {
+                        rNode.Set(ACTIVE, false);
+                        return 1;
                     }
                 }
             }
-        }
+            return 0;
+        });
     }
 
     return is_converged;
@@ -75,7 +71,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
     const SizeType EchoLevel
     )
 {
-    // Auxiliar zero array
+    // Auxiliary zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // Defining the convergence
@@ -188,33 +184,28 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+            if (rNode.Is(SLAVE)) {
+                const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
+                const double augmented_normal_pressure = scale_factor * rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
 
-        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
-
-        #pragma omp parallel for reduction(+:is_converged)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            if (it_node->Is(SLAVE)) {
-                const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
-                const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-
-                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
                 if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                    if (it_node->IsNot(ACTIVE)) {
-                        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = augmented_normal_pressure/scale_factor;
-                        it_node->Set(ACTIVE, true);
-                        is_converged += 1;
+                    if (rNode.IsNot(ACTIVE)) {
+                        rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = augmented_normal_pressure/scale_factor;
+                        rNode.Set(ACTIVE, true);
+                        return 1;
                     }
                 } else {
-                    if (it_node->Is(ACTIVE)) {
-                        it_node->Set(ACTIVE, false);
-                        is_converged += 1;
+                    if (rNode.Is(ACTIVE)) {
+                        rNode.Set(ACTIVE, false);
+                        return 1;
                     }
                 }
             }
-        }
+            return 0;
+        });
     }
 
     return is_converged;
@@ -236,37 +227,33 @@ std::size_t ComputeALMFrictionlessComponentsActiveSet(ModelPart& rModelPart)
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
 
-        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+            if (rNode.Is(SLAVE)) {
+                const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
 
-        #pragma omp parallel for reduction(+:is_converged)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            if (it_node->Is(SLAVE)) {
-                const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
-
-                const array_1d<double,3>& r_lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const array_1d<double,3>& r_nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                const array_1d<double,3>& r_lagrange_multiplier = rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3>& r_nodal_normal = rNode.FastGetSolutionStepValue(NORMAL);
                 const double normal_r_lagrange_multiplier = inner_prod(r_nodal_normal, r_lagrange_multiplier);
 
-                const double augmented_normal_pressure = scale_factor * normal_r_lagrange_multiplier + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
+                const double augmented_normal_pressure = scale_factor * normal_r_lagrange_multiplier + epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
 
-                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
                 if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                    if (it_node->IsNot(ACTIVE)) {
-                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor;
-                        it_node->Set(ACTIVE, true);
-                        is_converged += 1;
+                    if (rNode.IsNot(ACTIVE)) {
+                        noalias(rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor;
+                        rNode.Set(ACTIVE, true);
+                        return 1;
                     }
                 } else {
-                    if (it_node->Is(ACTIVE)) {
-                        it_node->Set(ACTIVE, false);
-                        is_converged += 1;
+                    if (rNode.Is(ACTIVE)) {
+                        rNode.Set(ACTIVE, false);
+                        return 1;
                     }
                 }
             }
-        }
+            return 0;
+        });
     }
 
     return is_converged;
@@ -281,7 +268,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
     const SizeType EchoLevel
     )
 {
-    // Auxiliar zero array
+    // Auxiliary zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // Defining the convergence

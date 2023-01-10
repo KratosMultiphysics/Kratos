@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ class EigenSolver {
 
             S.compute(
                     MatrixType(
-                        Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, ptrdiff_t>(
+                        Eigen::Map<Eigen::SparseMatrix<value_type, Eigen::RowMajor, ptrdiff_t>>(
                             backend::rows(A), backend::cols(A), backend::nonzeros(A),
                             const_cast<ptr_type*>(backend::ptr_data(A)),
                             const_cast<col_type*>(backend::col_data(A)),

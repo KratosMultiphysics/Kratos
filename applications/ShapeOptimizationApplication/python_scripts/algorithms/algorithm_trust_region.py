@@ -8,8 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -78,6 +76,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+        self.model_part_controller.InitializeDamping()
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
@@ -200,7 +199,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
         # Damping
-        self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(nodal_variable)
 
         # Mapping
         nodal_variable_mapped = KM.KratosGlobals.GetVariable("DF1DX_MAPPED")
@@ -209,7 +208,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
         # Damping
-        self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
+        self.model_part_controller.DampNodalUpdateVariableIfSpecified(nodal_variable_mapped)
 
         # Process constraint gradients
         for itr in range(self.constraints.size()):
@@ -226,7 +225,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
             # Damping
-            self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
+            self.model_part_controller.DampNodalSensitivityVariableIfSpecified(nodal_variable)
 
             # Mapping
             nodal_variable_mapped = KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
@@ -234,7 +233,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
             # Damping
-            self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
+            self.model_part_controller.DampNodalUpdateVariableIfSpecified(nodal_variable_mapped)
 
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):

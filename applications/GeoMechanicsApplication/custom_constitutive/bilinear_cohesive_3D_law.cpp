@@ -56,7 +56,7 @@ void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
 int BilinearCohesive3DLaw::
     Check(const Properties& rMaterialProperties,
           const GeometryType& rElementGeometry,
-          const ProcessInfo& rCurrentProcessInfo)
+          const ProcessInfo& rCurrentProcessInfo) const
 {
     // Verify ProcessInfo variables
     // Verify Properties variables

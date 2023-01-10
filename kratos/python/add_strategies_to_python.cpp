@@ -25,17 +25,19 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
+#include "utilities/variable_utils.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_bfecc.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-//#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
+#include "solving_strategies/strategies/arc_length_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -180,16 +182,7 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            int numNodes = static_cast<int>(rNodes.size());
-
-            #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
-            {
-                auto itNode = rNodes.begin() + i;
-
-                noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
-                noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
-            }
+            VariableUtils().UpdateCurrentPosition(rNodes, DISPLACEMENT);
         }
 
         template< typename TSpaceType >
@@ -433,7 +426,7 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
+            typedef typename ModelPart::DofsArrayType DofsArrayType;
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
@@ -457,7 +450,7 @@ namespace Kratos
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
-                .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
+                .def("GetDofSet",  [](BuilderAndSolverType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
                 .def("ResizeAndInitializeVectors", &BuilderAndSolverType::ResizeAndInitializeVectors)
                 .def("InitializeSolutionStep", &BuilderAndSolverType::InitializeSolutionStep)
@@ -472,7 +465,6 @@ namespace Kratos
                 ;
 
             // Explicit builder
-            typedef typename ModelPart::DofsArrayType DofsArrayType;
             typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
             py::class_<ExplicitBuilderType, typename ExplicitBuilderType::Pointer>(m, "ExplicitBuilder")
@@ -586,6 +578,8 @@ namespace Kratos
             py::class_<ImplicitSolvingStrategyType, typename ImplicitSolvingStrategyType::Pointer, BaseSolvingStrategyType>(m,"ImplicitSolvingStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, bool >())
+                .def("SetStiffnessMatrixIsBuilt", &ImplicitSolvingStrategyType::SetStiffnessMatrixIsBuilt)
+                .def("GetStiffnessMatrixIsBuilt", &ImplicitSolvingStrategyType::GetStiffnessMatrixIsBuilt)
                 ;
 
             typedef ExplicitSolvingStrategy< SparseSpaceType, LocalSpaceType > BaseExplicitSolvingStrategyType;
@@ -596,6 +590,27 @@ namespace Kratos
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
             py::class_<ExplicitSolvingStrategyRungeKutta4Type, typename ExplicitSolvingStrategyRungeKutta4Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta4")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyRungeKutta3TVD< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta3TVDType;
+            py::class_<ExplicitSolvingStrategyRungeKutta3TVDType, typename ExplicitSolvingStrategyRungeKutta3TVDType::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta3TVD")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyRungeKutta1< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta1Type;
+            py::class_<ExplicitSolvingStrategyRungeKutta1Type, typename ExplicitSolvingStrategyRungeKutta1Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta1")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyBFECC< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyBFECCType;
+            py::class_<ExplicitSolvingStrategyBFECCType, typename ExplicitSolvingStrategyBFECCType::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyBFECC")
                 .def(py::init<ModelPart&, bool, int>())
                 .def(py::init<ModelPart&, Parameters>())
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
@@ -642,6 +657,13 @@ namespace Kratos
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
                 .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                ;
+
+            // ARC-LENGTH
+            typedef ArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthStrategyStrategyType;
+            py::class_< ArcLengthStrategyStrategyType, typename ArcLengthStrategyStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
+                (m,"ArcLengthStrategy")
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

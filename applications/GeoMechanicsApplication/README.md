@@ -31,9 +31,13 @@ conditions)
 
 - 2D and 3D truss and cable elements
 
-- Reading and using dll/so of User Defined Soil Models (UDSM) based on PLAXIS forrmat
+- 2D curved beam elemens with 3 nodes
 
-- Reading and using dll/so of UMAT based on ABAQUS forrmat
+- 1D, 2D and 3D steady-state and transient groundwater flow elements
+
+- Loading User Defined Soil Models (UDSM) dll/so, written in PLAXIS forrmat
+
+- Loading User Materials (UMAT) dll/so, written in ABAQUS forrmat
 
 ### How to compile Geo-Mechanics Application
 
@@ -53,4 +57,10 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 ~~~
 
-*Note*: For the moment, MPI does not work.
+#### Note: 
+- MPI has not been tested and does not work.
+
+- The UMAT/UDSM constitutive models are not included in this repository. Some practical constitutive models can be found at https://soilmodels.com/ or https://github.com/Vahid-Galavi/GeoMaterials.
+
+
+

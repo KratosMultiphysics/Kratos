@@ -52,10 +52,10 @@ namespace Kratos
     constexpr SizeType VOIGT_SIZE_2D_INTERFACE    = 2;
     constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
 
-    // direction indices (3D):
-    enum indexDimension3D: int{ INDEX_X,
-                                INDEX_Y,
-                                INDEX_Z };
+    // DOF indices (3D):
+    enum indexDOF3D: int{ INDEX_X,
+                          INDEX_Y,
+                          INDEX_Z };
 
     // stress/strain vector indices (3D):
     enum indexStress3D: int{ INDEX_3D_XX,
@@ -90,6 +90,15 @@ namespace Kratos
     enum indexStress3DInterface: int{ INDEX_3D_INTERFACE_XZ,
                                       INDEX_3D_INTERFACE_YZ,
                                       INDEX_3D_INTERFACE_ZZ };
+
+    // stress/strain vector indices 2D beam:
+    enum indexStress2DBeam: int{ INDEX_2D_BEAM_XX,
+                                 INDEX_2D_BEAM_YY,
+                                 INDEX_2D_BEAM_XY };
+    // DOF indices 2D beam:
+    enum indexDOF2DBeam: int{ INDEX_2D_BEAM_X,
+                              INDEX_2D_BEAM_Y,
+                              INDEX_2D_BEAM_T };
 
 }
 

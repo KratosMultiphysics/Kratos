@@ -23,6 +23,7 @@
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -229,12 +230,12 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     output_file_name += ".vtk";
 
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        const std::string output_path = mOutputSettings["output_path"].GetString();
+        const std::filesystem::path output_path = mOutputSettings["output_path"].GetString();
 
         // Create folder if it doesn't exist before
         FilesystemExtensions::MPISafeCreateDirectories(output_path);
 
-        output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
+        output_file_name = (output_path / output_file_name).string();
     }
 
     return output_file_name;
@@ -1021,7 +1022,7 @@ void VtkOutput::WritePropertiesIdsToFile(
 template<typename TContainerType>
 void VtkOutput::WriteIdsToFile(
     const TContainerType& rContainer,
-    const std::string DataName,
+    const std::string& DataName,
     std::ofstream& rFileStream) const
 {
     rFileStream << DataName << " 1 "

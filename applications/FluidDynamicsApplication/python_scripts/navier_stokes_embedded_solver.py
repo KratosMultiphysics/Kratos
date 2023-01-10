@@ -195,7 +195,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "max_iteration": 1000
             },
             "embedded_nodal_variable_settings": {
-                "gradient_penalty_coefficient": 0.0,
+                "gradient_penalty_coefficient": 1.0e-3,
                 "linear_solver_settings": {
                     "preconditioner_type": "amg",
                     "solver_type": "amgcl",
@@ -357,11 +357,17 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def AddDofs(self):
-        super(NavierStokesEmbeddedMonolithicSolver, self).AddDofs()
+        # Add formulation DOFs and reactions
+        super().AddDofs()
+
+        # Add mesh motion problem DOFs for the FM-ALE algorithm
         if self._FmAleIsActive():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.main_model_part)
+            dofs_and_reactions_to_add = []
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_X", "MESH_REACTION_X"])
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Y", "MESH_REACTION_Y"])
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Z", "MESH_REACTION_Z"])
+            KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-ALE DOFs added correctly.")
 
     def PrepareModelPart(self):
@@ -417,53 +423,48 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Compute the BDF coefficients
-            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # Compute the BDF coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-            # If required, compute the nodal neighbours
-            if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
-                (self.find_nodal_neighbours_process).Execute()
+        # If required, compute the nodal neighbours
+        if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
+            (self.find_nodal_neighbours_process).Execute()
 
-            # Set the virtual mesh values from the background mesh
-            self.__SetVirtualMeshValues()
+        # Set the virtual mesh values from the background mesh
+        self.__SetVirtualMeshValues()
 
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Correct the distance field
-            # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
-            # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
-            self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        # Correct the distance field
+        # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
+        # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
+        self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
-            # Perform the FM-ALE operations
-            # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
-            self.__DoFmAleOperations()
+        # Perform the FM-ALE operations
+        # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
+        self.__DoFmAleOperations()
 
-            # Call the base SolveSolutionStep to solve the embedded CFD problem
-            is_converged = super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
+        # Call the base SolveSolutionStep to solve the embedded CFD problem
+        is_converged = super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
 
-            # Undo the FM-ALE virtual mesh movement
-            self.__UndoFMALEOperations()
+        # Undo the FM-ALE virtual mesh movement
+        self.__UndoFMALEOperations()
 
-            # Restore the fluid node fixity to its original status
-            # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
-            # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
-            self.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        # Restore the fluid node fixity to its original status
+        # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
+        # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
+        self.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
-            return is_converged
-        else:
-            return True
+        return is_converged
 
     def FinalizeSolutionStep(self):
         # Call the base solver FinalizeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).FinalizeSolutionStep()
 
         # Do the FM-ALE end of step operations
-        if self._TimeBufferIsInitialized():
-            self.__UpdateFMALEStepCounter()
+        self.__UpdateFMALEStepCounter()
 
     #TODO: THIS COULD BE SAFELY REMOVED ONCE WE OLD EMBEDDED ELEMENTS ARE REMOVED
     def _SetPhysicalProperties(self):

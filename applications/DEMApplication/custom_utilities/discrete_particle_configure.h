@@ -181,12 +181,7 @@ public:
     ///@name Operators
     ///@{
 
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    //******************************************************************************************************************
+//******************************************************************************************************************
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {
@@ -231,7 +226,7 @@ public:
         SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
         SphericParticle* p_particle2 = static_cast<SphericParticle*>(&*rObj_2);
         const double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
-        const bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
+        const bool intersect         = floatle(distance_2, std::pow(radius_sum, 2));
         return intersect;
     }
 

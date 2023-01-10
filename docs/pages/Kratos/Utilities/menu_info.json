@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "kratos_core_utilities",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "title": "sidebar",
+        "product": "Kratos Utilities"
+    }
+}

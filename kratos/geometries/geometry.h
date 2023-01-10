@@ -17,10 +17,10 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GEOMETRY_H_INCLUDED )
-#define  KRATOS_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
+#include <typeinfo>
 
 // External includes
 
@@ -238,7 +238,7 @@ public:
     }
 
     /// Standard Constructor with a Name
-    Geometry(std::string GeometryName)
+    Geometry(const std::string& GeometryName)
         : mId(GenerateId(GeometryName))
         , mpGeometryData(&GeometryDataInstance())
     {
@@ -322,7 +322,7 @@ public:
     }
 
     Geometry(
-        std::string GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
         : mId(GenerateId(GeometryName))
@@ -732,6 +732,69 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if two GeometryType have the same type
+     * @return True if the objects are the same type, false otherwise
+     */
+    inline static bool HasSameType(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
+        return (typeid(rLHS) == typeid(rRHS));
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same type (pointer version)
+     * @return True if the objects are the same type, false otherwise
+     */
+    inline static bool HasSameType(
+        const GeometryType * rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameType(*rLHS, *rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same geometry type
+     * @return True if the geometries are the same type, false otherwise
+     */
+    inline static bool HasSameGeometryType(const GeometryType& rLHS, const GeometryType& rRHS) {
+        return (rLHS.GetGeometryType() == rRHS.GetGeometryType());
+    }
+
+    /**
+     * @brief Checks if two GeometryType have the same geometry type (pointer version)
+     * @return True if the geometries are the same type, false otherwise
+     */
+    inline static bool HasSameGeometryType(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameGeometryType(*rLHS, *rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType are the same
+     * @return True if the object is the same, false otherwise
+     */
+    inline static bool IsSame(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
+        return GeometryType::HasSameType(rLHS, rRHS) && GeometryType::HasSameGeometryType(rLHS, rRHS);
+    }
+
+    /**
+     * @brief Checks if two GeometryType are the same (pointer version)
+     * @return True if the object is the same, false otherwise
+     */
+    inline static bool IsSame(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
+        return GeometryType::HasSameType(*rLHS, *rRHS) && GeometryType::HasSameGeometryType(*rLHS, *rRHS);
+    }
 
     bool empty() const
     {
@@ -1220,6 +1283,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
+    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     inline SizeType Dimension() const
     {
         return mpGeometryData->Dimension();
@@ -1278,56 +1342,54 @@ public:
      * @see DomainSize()
      */
     virtual double Length() const {
-      KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns length, for two dimensional it gives area
-     * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
-     *
+    /** 
+     * @brief This method calculate and return area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns length, for two dimensional it gives area and for three dimensional geometries it gives surface area.
+     * @return double value contains area or surface area.
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
     virtual double Area() const {
-      KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return volume of this
-     * geometry. For one and two dimensional geometry it returns
-     * zero and for three dimensional it gives volume of geometry.
-     *
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
-     *
      * @see Length()
      * @see Area()
      * @see DomainSize()
      */
     virtual double Volume() const {
-      KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    /** 
+     * @brief This method calculate and return length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
-     *
      * @see Length()
      * @see Area()
      * @see Volume()
      */
     virtual double DomainSize() const {
-      KRATOS_ERROR << "Calling base class 'DomainSize' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        const SizeType local_dimension = this->LocalSpaceDimension();
+        if (local_dimension == 1) { // 1D geometry
+            return this->Length();
+        } else if (local_dimension == 2) { // 2D geometry
+            return this->Area();
+        } else { // 3D geometry
+            return this->Volume();
+        }
+        return 0.0;
     }
 
     /** This method calculates and returns the minimum edge.
@@ -1339,8 +1401,8 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** This method calculates and returns the maximum edge.
@@ -2349,11 +2411,27 @@ public:
     void GlobalCoordinates(
         CoordinatesArrayType& rResult,
         IndexType IntegrationPointIndex
-    ) const
+        ) const
+    {
+        this->GlobalCoordinates(rResult, IntegrationPointIndex, GetDefaultIntegrationMethod());
+    }
+
+    /**
+    * @brief This method provides the global coordinates to the corresponding integration point
+    * @param rResult The global coordinates
+    * @param IntegrationPointIndex The index of the integration point
+    * @param ThisMethod The integration method
+    * @return The global coordinates
+    */
+    void GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        IndexType IntegrationPointIndex,
+        const IntegrationMethod ThisMethod
+        ) const
     {
         noalias(rResult) = ZeroVector(3);
 
-        const Matrix& N = this->ShapeFunctionsValues();
+        const Matrix& N = this->ShapeFunctionsValues(ThisMethod);
 
         for (IndexType i = 0; i < this->size(); i++)
             noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
@@ -3668,15 +3746,11 @@ public:
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
-        Matrix J(this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
-        double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ ) {
             if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
-            this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::InvertMatrix(J, Jinv, DetJ);
+            this->InverseOfJacobian(Jinv,pnt, ThisMethod);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
         }
     }
@@ -3704,15 +3778,14 @@ public:
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
-        Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
+        Matrix J(this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
         double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ ) {
             if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
+            MathUtils<double>::GeneralizedInvertMatrix(J, Jinv, DetJ);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
             rDeterminantsOfJacobian[pnt] = DetJ;
         }
@@ -3749,7 +3822,7 @@ public:
         std::stringstream buffer;
         buffer << "Geometry # "
             << std::to_string(mId) << ": "
-            << Dimension() << " dimensional geometry in "
+            << LocalSpaceDimension() << "-dimensional geometry in "
             << WorkingSpaceDimension() << "D space";
 
         return buffer.str();
@@ -4237,5 +4310,3 @@ const GeometryDimension Geometry<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_H_INCLUDED  defined

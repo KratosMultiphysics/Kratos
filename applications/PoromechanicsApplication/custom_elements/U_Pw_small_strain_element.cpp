@@ -59,7 +59,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
         KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element", this->Id() )
     if ( PERMEABILITY_XY.Key() == 0 || Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if(TDim > 2)
+    if constexpr (TDim > 2)
     {
         if ( PERMEABILITY_ZZ.Key() == 0 || Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element", this->Id() )
@@ -568,11 +568,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize( NumGPoints, false );
+
     if(rVariable == VON_MISES_STRESS)
     {
         //Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
@@ -629,10 +633,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize( NumGPoints );
+
     if(rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
         //Defining the shape functions, the jacobian and the shape functions local gradients Containers
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
@@ -668,9 +676,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         }
     } else if(rVariable == WATER_PRESSURE_GRADIENT) {
 
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
-
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
 
@@ -703,11 +708,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize( NumGPoints );
+
     if(rVariable == EFFECTIVE_STRESS_TENSOR)
     {
         //Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
@@ -755,9 +764,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     else if(rVariable == TOTAL_STRESS_TENSOR)
     {
         //Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
@@ -830,8 +837,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     else if(rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
     {
         //Defining necessary variables
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
         const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
@@ -855,8 +860,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
     }
     else if(rVariable == PERMEABILITY_MATRIX)
     {
-        const unsigned int NumGPoints = this->GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
@@ -899,6 +902,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;

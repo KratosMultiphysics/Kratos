@@ -191,6 +191,11 @@ namespace Python
 
           return matrix;
         }));
+
+
+        py::implicitly_convertible<py::buffer, DenseMatrix<double>>();
+
+
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());

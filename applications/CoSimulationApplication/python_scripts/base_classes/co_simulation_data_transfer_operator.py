@@ -8,10 +8,11 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
     """Baseclass for the data transfer operators used for CoSimulation
     It transfers data from one interface to another. This can e.g. be mapping or a copy of values.
     """
-    def __init__(self, settings):
+    def __init__(self, settings, parent_coupled_solver_data_communicator):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
         self.echo_level = self.settings["echo_level"].GetInt()
+        self.data_communicator = parent_coupled_solver_data_communicator
         self.__checked_combinations = []
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):

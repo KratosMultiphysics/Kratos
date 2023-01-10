@@ -54,11 +54,11 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         scheme_type = self.settings["scheme_type"].GetString()
 
         if( self.dynamic_settings["rayleigh_damping"].GetBool() == True ):
-            self.main_model_part.ProcessInfo[KratosFemDem.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-            self.main_model_part.ProcessInfo[KratosFemDem.RAYLEIGH_BETA]  = self.dynamic_settings["rayleigh_beta"].GetDouble()
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA]  = self.dynamic_settings["rayleigh_beta"].GetDouble()
         else:
-            self.main_model_part.ProcessInfo[KratosFemDem.RAYLEIGH_ALPHA] = 0.0
-            self.main_model_part.ProcessInfo[KratosFemDem.RAYLEIGH_BETA]  = 0.0
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA]  = 0.0
 
         if(scheme_type == "Newmark"):
             damp_factor_m = 0.0

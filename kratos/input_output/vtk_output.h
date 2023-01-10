@@ -433,7 +433,7 @@ protected:
     {
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
             for (const auto& r_data_comp : rData) {
-                rFileStream << r_data_comp << " ";
+                rFileStream << float(r_data_comp) << " ";
             }
         } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
             for (const auto& r_data_comp : rData ) {
@@ -478,7 +478,7 @@ private:
     template<typename TContainerType>
     void WriteIdsToFile(
         const TContainerType& rContainer,
-        const std::string DataName,
+        const std::string& DataName,
         std::ofstream& rFileStream) const;
 
 

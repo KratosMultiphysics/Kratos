@@ -7,7 +7,7 @@
 //                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Co-authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
@@ -24,6 +24,12 @@
 #include "includes/kratos_application.h"
 
 /* ELEMENTS */
+
+/* 0D elements */
+#include "custom_elements/nodal_concentrated_element.hpp"
+
+/* Mass elements */
+#include "custom_elements/mass_element.h"
 
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
@@ -52,8 +58,6 @@
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
-#include "custom_elements/nodal_concentrated_element.hpp"
-#include "custom_elements/mass_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element_3D2N.hpp"
@@ -73,6 +77,8 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
@@ -305,9 +311,11 @@ private:
     const SmallDisplacement mSmallDisplacement2D8N;
     const SmallDisplacement mSmallDisplacement2D9N;
     const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D5N;
     const SmallDisplacement mSmallDisplacement3D6N;
     const SmallDisplacement mSmallDisplacement3D8N;
     const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D13N;
     const SmallDisplacement mSmallDisplacement3D15N;
     const SmallDisplacement mSmallDisplacement3D20N;
     const SmallDisplacement mSmallDisplacement3D27N;
@@ -319,6 +327,16 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
+    const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
+
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D10N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D8N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D20N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
@@ -339,9 +357,11 @@ private:
     const TotalLagrangian mTotalLagrangian2D8N;
     const TotalLagrangian mTotalLagrangian2D9N;
     const TotalLagrangian mTotalLagrangian3D4N;
+    const TotalLagrangian mTotalLagrangian3D5N;
     const TotalLagrangian mTotalLagrangian3D6N;
     const TotalLagrangian mTotalLagrangian3D8N;
     const TotalLagrangian mTotalLagrangian3D10N;
+    const TotalLagrangian mTotalLagrangian3D13N;
     const TotalLagrangian mTotalLagrangian3D15N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
@@ -359,9 +379,11 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D8N;
     const UpdatedLagrangian mUpdatedLagrangian2D9N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
+    const UpdatedLagrangian mUpdatedLagrangian3D5N;
     const UpdatedLagrangian mUpdatedLagrangian3D6N;
     const UpdatedLagrangian mUpdatedLagrangian3D8N;
     const UpdatedLagrangian mUpdatedLagrangian3D10N;
+    const UpdatedLagrangian mUpdatedLagrangian3D13N;
     const UpdatedLagrangian mUpdatedLagrangian3D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D20N;
     const UpdatedLagrangian mUpdatedLagrangian3D27N;

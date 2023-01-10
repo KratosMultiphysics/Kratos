@@ -177,6 +177,17 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * @brief Access for variables on Integration points
+     * @param rVariable Te specified vector variable
+     * @param rOutput Where to store the itegrated values for the specified variable
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate(
+        const Variable<array_1d<double,3>>& rVariable,
+        array_1d<double,3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate the conditional contribution to the problem
      * @param rRightHandSideVector Conditional right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the condition
@@ -199,14 +210,14 @@ public:
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
 
     ///@}
     ///@name Input and output
@@ -256,23 +267,26 @@ protected:
     struct ConditionData
     {
         bool integrate_by_parts;
-        double gravity;
-        double height;
-        double length;
         double stab_factor;
         double relative_dry_height;
+        double length;
+        double gravity;
+
+        double depth;
+        double height;
         array_1d<double,3> velocity;
-        array_1d<double,3> normal;
 
-        BoundedMatrix<double,3,3> A1;
-        BoundedMatrix<double,3,3> A2;
-        array_1d<double,3> b1;
-        array_1d<double,3> b2;
+        double v_neumann;
+        double h_dirichlet;
+        array_1d<double,3> flux;
 
+        array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+
+        array_1d<double,3> normal;
     };
  
     ///@}
@@ -283,11 +297,7 @@ protected:
 
     virtual LocalVectorType GetUnknownVector(ConditionData& rData);
 
-    void CalculateGeometryData(
-        Vector &rGaussWeights,
-        Matrix &rNContainer) const;
-
-    void InitializeData(
+    virtual void InitializeData(
         ConditionData& rData,
         const ProcessInfo& rProcessInfo);
 
@@ -296,12 +306,15 @@ protected:
         const IndexType PointIndex,
         const array_1d<double,TNumNodes>& rN);
 
-    void AddWaveTerms(
-        LocalMatrixType& rMatrix,
-        LocalVectorType& rVector,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight = 1.0);
+    static void CalculateGeometryData(
+        const GeometryType& rGeometry,
+        Vector &rGaussWeights,
+        Matrix &rNContainer);
+
+    static const array_1d<double,3> VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const array_1d<double,TNumNodes>& rN);
+
 
     void AddFluxTerms(
         LocalVectorType& rVector,
@@ -314,8 +327,6 @@ protected:
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight);
-
-    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
 
     ///@}
 

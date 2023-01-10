@@ -9,7 +9,14 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
-        pass
+        self.tolerances = {
+            "relative" : 1e-6,
+            "absolute" : {
+                "displacement" : 1e-6,
+                "stress"       : 1e2,
+                "strain"       : 1e-2
+            }
+        }
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -78,8 +85,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             b[1] = -0.2e-10
             b[2] = 0.7e-10
 
-
-
         return A,b
 
     def _solve(self,mp):
@@ -118,7 +123,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-
     def _check_results(self,mp,A,b):
 
         ##check that the results are exact on the nodes
@@ -136,10 +140,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
                 if abs(u[i]) > 0.0:
-                    error = (d[i] - u[i])/u[i]
-                    if error > 1.0e-6:
-                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
-                    self.assertLess(error, 1.0e-6)
+                    error = abs((d[i] - u[i])/u[i])
+                    self.assertLess(error, self.tolerances["relative"], msg=f"NODE {node.Id}: Component {coor_list[i]}: {u[i]} {d[i]} Error: {error}")
+                else:
+                    self.assertLess(abs(d[i]), self.tolerances["absolute"]["displacement"])
 
     def _check_outputs(self,mp,A,dim):
 
@@ -190,7 +194,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for strain in out:
                 for i in range(len(reference_strain)):
                     if abs(strain[i]) > 0.0:
-                        self.assertLess((reference_strain[i] - strain[i])/strain[i], 1.0e-6)
+                        if abs(reference_strain[i]) > 0.0:
+                            self.assertLess(abs((reference_strain[i] - strain[i])/reference_strain[i]), self.tolerances["relative"])
+                        else:
+                            self.assertLess(abs(strain[i]), self.tolerances["absolute"]["strain"])
 
         # Finally compute stress
         if(dim == 2):
@@ -220,7 +227,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for stress in out:
                 for i in range(len(reference_stress)):
                     if abs(stress[i]) > 0.0:
-                        self.assertLess((reference_stress[i] - stress[i])/stress[i], 1.0e-6)
+                        if abs(reference_stress[i]) > 0.0: 
+                            self.assertLess(abs((reference_stress[i] - stress[i])/reference_stress[i]), self.tolerances["relative"])
+                        else:
+                            self.assertLess(abs(stress[i]), self.tolerances["absolute"]["stress"])
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
@@ -575,6 +585,49 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._check_outputs(mp,A,dim)
 
         #self.__post_process(mp)
+
+
+    def test_SmallDisplacementElement_3D_pyramid(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        # Create nodes
+        mp.CreateNewNode(1, 0.00000,  0.00000,  0.00000)
+        mp.CreateNewNode(2, 1.00000,  0.00000,  0.00000)
+        mp.CreateNewNode(3, 1.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(4, 0.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(5, 0.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(6, 1.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(7, 1.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(8, 0.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(9, 0.50000,  0.50000,  0.50000)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        # Create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8])
+
+        # Create Element
+        el1 = mp.CreateNewElement("SmallDisplacementElement3D5N", 1,[1,2,3,4,9], mp.GetProperties()[1])
+        el2 = mp.CreateNewElement("SmallDisplacementElement3D5N", 2,[8,7,6,5,9], mp.GetProperties()[1])
+        el3 = mp.CreateNewElement("SmallDisplacementElement3D5N", 3,[5,6,2,1,9], mp.GetProperties()[1])
+        el4 = mp.CreateNewElement("SmallDisplacementElement3D5N", 4,[7,8,4,3,9], mp.GetProperties()[1])
+        el5 = mp.CreateNewElement("SmallDisplacementElement3D5N", 5,[6,7,3,2,9], mp.GetProperties()[1])
+        el6 = mp.CreateNewElement("SmallDisplacementElement3D5N", 6,[1,4,8,5,9], mp.GetProperties()[1])
+
+        self.assertAlmostEqual(el1.GetGeometry().Volume() + el2.GetGeometry().Volume() + el3.GetGeometry().Volume() + el4.GetGeometry().Volume() + el5.GetGeometry().Volume() + el6.GetGeometry().Volume(), 1.0)
+
+        A,b = self._define_movement(dim)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
 
     def test_SmallDisplacementElement_3D_prism(self):
         dim = 3

@@ -18,6 +18,7 @@
 #include "includes/parallel_environment.h"
 #include "input_output/logger.h"
 #include "input_output/file_logger_output.h"
+#include "input_output/logger_table_output.h"
 
 
 namespace Kratos {
@@ -170,6 +171,10 @@ void  AddLoggerToPython(pybind11::module& m) {
 
     py::class_<FileLoggerOutput, Kratos::shared_ptr<FileLoggerOutput>, LoggerOutput>(m,"FileLoggerOutput")
     .def(py::init<std::string>())
+    ;
+
+    py::class_<LoggerTableOutput, Kratos::shared_ptr<LoggerTableOutput>, LoggerOutput>(m,"LoggerTableOutput")
+    .def(py::init<Parameters>())
     ;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");

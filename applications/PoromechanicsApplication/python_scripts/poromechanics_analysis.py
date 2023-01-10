@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import time as timer
 import os
@@ -22,14 +21,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         self.initial_time = timer.perf_counter()
 
         ## Import parallel modules if needed
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration.")
-        else:
-            from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
-            poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration.")
+        from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
+        poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration.")
 
         # Initialize Fracture Propagation Utility if necessary
         if parameters["problem_data"]["fracture_utility"].GetBool():

@@ -313,7 +313,7 @@ private:
                 it->Id(), it->pGetGeometry(), it->pGetProperties()));
 
         // Optimize communicaton plan
-        ParallelFillCommunicator CommunicatorGeneration(*mpmesh_model_part);
+        ParallelFillCommunicator CommunicatorGeneration(*mpmesh_model_part, mrReferenceModelPart.GetCommunicator().GetDataCommunicator());
         CommunicatorGeneration.Execute();
     }
 

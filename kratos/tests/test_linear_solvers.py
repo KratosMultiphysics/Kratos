@@ -173,61 +173,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    def test_superlu(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type" : "ExternalSolversApplication.super_lu",
-                        "scaling": false
-                    },
-                    {
-                        "solver_type" : "ExternalSolversApplication.super_lu_iterative",
-                        "scaling": false
-                    },
-                    {
-                        "solver_type" : "ExternalSolversApplication.super_lu_iterative",
-                        "scaling": true
-                    }
-                ]
-            }
-            """)
-
-    ##@KratosUnittest.skipUnless(hasattr(KratosMultiphysics,  "PastixSolver"), "Pastix solver is not included in the compilation of the External Solvers Application")
-    def test_pastix(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-        except:
-            self.skipTest("ExternalSolversApplication is not available")
-
-        if( not hasattr(KratosMultiphysics.ExternalSolversApplication,  "PastixSolver") ):
-            self.skipTest("Pastix solver is not included in the compilation of the External Solvers Application")
-
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type" : "ExternalSolversApplication.pastix",
-                        "solution_method": "Direct",
-                            "tolerance":1e-6,
-                            "max_iteration":100,
-                            "gmres_krylov_space_dimension":100,
-                            "ilu_level_of_fill":1,
-                            "is_symmetric":false,
-                            "verbosity":0,
-                            "scaling": false,
-                            "block_size": 1,
-                        "use_block_matrices_if_possible" : true
-                    }
-                ]
-            }
-            """)
-
     def test_bicgstab_iluk(self):
         self._RunParametrized("""
             {

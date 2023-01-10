@@ -60,6 +60,8 @@ class MacDonaldTransitionBenchmark(MacDonaldShockBenchmark):
             return self.h0
 
     def _CreateListOfBoundaryConditionsProcesses(self):
+        benchmark_settings = self.settings["benchmark_settings"]
+
         self.upstream_settings = KM.Parameters("""{
             "process_name" : "ApplyConstantVectorValueProcess",
             "Parameters"   : {
@@ -68,7 +70,7 @@ class MacDonaldTransitionBenchmark(MacDonaldShockBenchmark):
                 "is_fixed_y"      : true,
                 "direction"       : [1.0, 0.0, 0.0]}
         }""")
-        self.upstream_settings["Parameters"].AddValue("model_part_name", self.benchmark_settings["upstream_model_part"])
+        self.upstream_settings["Parameters"].AddValue("model_part_name", benchmark_settings["upstream_model_part"])
         self.upstream_settings["Parameters"].AddDouble("modulus", self.q)
 
         list_of_bc_processes = []

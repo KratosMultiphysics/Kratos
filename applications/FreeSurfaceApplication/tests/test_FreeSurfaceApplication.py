@@ -27,8 +27,8 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosFreeSurfaceGeneralTests('testReservoir2D'))
-    smallSuite.addTest(KratosFreeSurfaceGeneralTests('testReservoir3D'))
+    smallSuite.addTest(KratosFreeSurfaceGeneralTests('test_reservoir_2d'))
+    smallSuite.addTest(KratosFreeSurfaceGeneralTests('test_reservoir_3d'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

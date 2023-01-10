@@ -22,6 +22,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_ramm_arc_length_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
 //builders and solvers
 
@@ -36,22 +37,18 @@
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
-
-namespace Kratos
-{
-
-namespace Python
-{
-
-using namespace pybind11;
+namespace Kratos {
+namespace Python {
 
 void AddCustomStrategiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector>           LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType >                             BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType >                ConvergenceCriteriaType;
@@ -62,48 +59,55 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
     typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
     typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
+    
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
+    typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticUPwScheme")
-    .def(init<  double, double, double >());
+    py::class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticUPwScheme", py::module_local())
+    .def(py::init<  double, double, double >());
 
-    class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticDampedUPwScheme")
-    .def(init<  double, double, double >());
+    py::class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticDampedUPwScheme", py::module_local())
+    .def(py::init<  double, double, double >());
 
-    class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkDynamicUPwScheme")
-    .def(init<  double, double, double >());
+    py::class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkDynamicUPwScheme", py::module_local())
+    .def(py::init<  double, double, double >());
 
-    class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
+    py::class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticPwScheme")
-    .def(init<  double >());
+    .def(py::init<  double >());
 
-    class_< BackwardEulerQuasistaticUPwSchemeType, typename BackwardEulerQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
+    py::class_< BackwardEulerQuasistaticUPwSchemeType, typename BackwardEulerQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
     (m, "BackwardEulerQuasistaticUPwScheme")
-    .def(init< >());
+    .def(py::init< >());
 
-    class_< BackwardEulerQuasistaticPwSchemeType, typename BackwardEulerQuasistaticPwSchemeType::Pointer, BaseSchemeType >
+    py::class_< BackwardEulerQuasistaticPwSchemeType, typename BackwardEulerQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "BackwardEulerQuasistaticPwScheme")
-    .def(init< >());
+    .def(py::init< >());
 
-    class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
+    py::class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsNewtonRaphsonStrategy")
-    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
-    class_< GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
+    py::class_< GeoMechanicsNewtonRaphsonErosionProcessStrategyType, typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType >
+    (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
+    .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+
+    py::class_< GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsRammArcLengthStrategy")
-    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
     .def("UpdateLoads",&GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
 
 }
 
-}  // namespace Python.
+} // Namespace Python.
 } // Namespace Kratos

@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <regex>
 
 // External includes
 #include "tinyexpr/tinyexpr/tinyexpr.h"
@@ -22,6 +23,30 @@
 
 namespace Kratos
 {
+
+// A check only to check that the x is not part of exp
+inline bool CheckThereIsNotx(const std::string& rString)
+{
+    const auto first_x = rString.find(std::string("x"));
+    if (first_x != std::string::npos) {
+        const std::string exp_string = "exp";
+        const char e_char = exp_string[0];
+        const char x_char = exp_string[1];
+        const char p_char = exp_string[2];
+        for(std::size_t i = first_x; i < rString.size(); ++i) {
+            if(rString[i] == x_char) {
+                if (!(rString[i - 1] == e_char && rString[i + 1] == p_char)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFunctionBody)
     : mFunctionBody(rFunctionBody)
@@ -36,14 +61,8 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-    if (mFunctionBody.find(std::string("x")) == std::string::npos &&
-        mFunctionBody.find(std::string("y")) == std::string::npos &&
-        mFunctionBody.find(std::string("z")) == std::string::npos &&
-        mFunctionBody.find(std::string("X")) == std::string::npos &&
-        mFunctionBody.find(std::string("Y")) == std::string::npos &&
-        mFunctionBody.find(std::string("Z")) == std::string::npos) {
-        mDependsOnSpace = false;
-    }
+    const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
+    mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
 }
 
 /***********************************************************************************/
@@ -152,11 +171,24 @@ void BasicGenericFunctionUtility::InitializeParser()
         /* Store variable names and pointers. */
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
+        auto fct_checker = [](const bool IsValid, const std::string& rFunction, const int ErrPos){
+            if (IsValid) return;
+
+            std::stringstream ss;
+            ss << "\nParsing error in function: " << rFunction << '\n';
+            ss <<   "Error occurred near here : ";
+            for(int i=0; i<ErrPos-1; ++i) ss << ' ';
+            ss << "^ (char ["<< ErrPos-1 << "])\n";
+            ss << "Check your locale (e.g. if \".\" or \",\" is used as decimal point)";
+
+            KRATOS_ERROR << ss.str() << std::endl;
+        };
+
         /* Compile the expression with variables. */
         const bool python_like_ternary = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
         if (!python_like_ternary) {
             mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << mFunctionBody << std::endl;
+            fct_checker(mpTinyExpr[0], mFunctionBody, err);
         } else { // Ternary operator
             mpTinyExpr.resize(3, nullptr);
             std::string condition, first_function, second_function;
@@ -175,10 +207,10 @@ void BasicGenericFunctionUtility::InitializeParser()
 
             // Parsing the functions
             mpTinyExpr[1] = te_compile(first_function.c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << first_function << std::endl;
+            fct_checker(mpTinyExpr[1], first_function, err);
 
             mpTinyExpr[2] = te_compile(second_function.c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << second_function << std::endl;
+            fct_checker(mpTinyExpr[2], second_function, err);
 
             // Parsing the condition
             if (StringUtilities::ContainsPartialString(condition, "==")) {
@@ -212,7 +244,7 @@ void BasicGenericFunctionUtility::InitializeParser()
             } else {
                 KRATOS_ERROR << "Cannot identify condition: " << condition << std::endl;
             }
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << condition << std::endl;
+            fct_checker(mpTinyExpr[0], condition, err);
         }
     }
 }

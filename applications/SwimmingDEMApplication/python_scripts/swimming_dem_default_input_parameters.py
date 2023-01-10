@@ -47,6 +47,10 @@ def GetDefaultInputParameters():
                 "time_averaging_type" : 0
             },
 
+            "gentle_coupling_initiation": {
+                "initiation_interval": 0
+            },
+
             "backward_coupling" : {
                 "backward_time_interval" : 1,
                 "meso_scale_length" : 0.2,

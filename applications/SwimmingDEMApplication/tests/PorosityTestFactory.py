@@ -12,6 +12,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
 import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 # This utility will control the execution scope
+
+debug_mode=False
 class controlledExecutionScope:
     def __init__(self, scope):
         self.currentPath = os.getcwd()
@@ -44,33 +46,12 @@ class PorosityConservationTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-
-# General test factory
-class TestFactory(KratosUnittest.TestCase):
-
-    def setUp(self):
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Setting parameters
-
-            with open(self.file_parameters,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-            # Create Model
-            model = KratosMultiphysics.Model()
-
-            self.test = SwimmingDEMAnalysis(model, parameters)
-
-    def test_execution(self):
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Run()
-
-    def tearDown(self):
-        pass
-
 class PorosityConservationAnalysis(SwimmingDEMAnalysis, DEM_procedures.Procedures):
 
     def __init__(self, model, parameters):
         super().__init__(model, parameters)
+        if not debug_mode:
+            parameters['sdem_output_processes'] = KratosMultiphysics.Parameters("""{}""")
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'porosity_tests/porosity_conservation/')
 
     def FinalizeSolutionStep(self):

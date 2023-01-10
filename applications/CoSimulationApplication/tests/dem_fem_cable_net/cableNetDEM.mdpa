@@ -33,6 +33,10 @@ Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: STONE
   1
   2
   End SubModelPartNodes
+  Begin SubModelPartElements
+  1
+  2
+  End SubModelPartElements
 End SubModelPart
 
 Begin Table 0 TIME VELOCITY

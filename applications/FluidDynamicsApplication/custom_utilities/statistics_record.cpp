@@ -19,6 +19,7 @@
 #include "containers/variable.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 #include "statistics_record.h"
 #include "statistics_data.h"
@@ -59,7 +60,7 @@ void StatisticsRecord::AddHigherOrderStatistic(StatisticsSampler::Pointer pResul
 
 void StatisticsRecord::InitializeStorage(ModelPart::ElementsContainerType& rElements)
 {
-    mUpdateBuffer.resize(OpenMPUtils::GetNumThreads());
+    mUpdateBuffer.resize(ParallelUtilities::GetNumThreads());
     #pragma omp parallel
     {
         unsigned int k = OpenMPUtils::ThisThread();

@@ -100,8 +100,8 @@ private:
                          const int NumberOfEigenvalues,
                          const double EigenValueSolution) const;
 
-    void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const;
+    void GetVariables(std::vector<const Variable<double>*>& rRequestedDoubleResults,
+                      std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) const;
 
     ///@}
 

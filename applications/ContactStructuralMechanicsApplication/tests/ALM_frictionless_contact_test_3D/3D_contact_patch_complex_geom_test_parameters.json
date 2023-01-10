@@ -26,7 +26,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
@@ -46,7 +45,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
@@ -58,7 +56,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,null],
@@ -72,7 +69,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "constrained"     : false,
@@ -87,7 +83,6 @@
             "help"          : "This process computes the contact between different surfaces",
             "process_name"  : "ALMContactProcess",
             "Parameters"    : {
-                "mesh_id"                   : 0,
                 "contact_model_part"        : { "0" : ["CONTACT_Contact_Auto1"]},
                 "model_part_name"           : "Structure",
                 "assume_master_slave"       : { "0" : ["Parts_Parts_Auto1"]},

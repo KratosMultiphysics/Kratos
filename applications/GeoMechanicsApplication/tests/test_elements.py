@@ -1,9 +1,6 @@
 import sys
 import os
 
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -22,6 +19,15 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_triangle_3n(self):
         test_name = 'test_triangle_3n'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+
+        top_node_nbrs = [0, 1, 5]
+        n_dim = 2
+        self.assert_linear_elastic_block(simulation, top_node_nbrs, n_dim)
+
+    def test_triangle_3n_rebuild_level_0(self):
+        test_name = 'test_triangle_3n_rebuild_0'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
@@ -115,12 +121,12 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         if n_dim >= 3:
             total_stresses_zz = [integration_point[2,2] for element in total_stresses for integration_point in element]
 
-        efective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        efective_stresses_xx = [integration_point[0,0] for element in efective_stresses for integration_point in element]
+        effective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
+        effective_stresses_xx = [integration_point[0,0] for element in effective_stresses for integration_point in element]
         if n_dim >= 2:
-            efective_stresses_yy = [integration_point[1,1] for element in efective_stresses for integration_point in element]
+            effective_stresses_yy = [integration_point[1,1] for element in effective_stresses for integration_point in element]
         if n_dim >= 3:
-            efective_stresses_zz = [integration_point[2,2] for element in efective_stresses for integration_point in element]
+            effective_stresses_zz = [integration_point[2,2] for element in effective_stresses for integration_point in element]
 
         displacements = test_helper.get_displacement(simulation)
         x_displacements = [displacement[0] for displacement in displacements]
@@ -148,10 +154,10 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
             if n_dim >= 3:
                 self.assertAlmostEqual(0.0, total_stresses_zz[idx])
 
-            self.assertAlmostEqual(0.0, efective_stresses_xx[idx])
-            self.assertAlmostEqual(-1e4, efective_stresses_yy[idx])
+            self.assertAlmostEqual(0.0, effective_stresses_xx[idx])
+            self.assertAlmostEqual(-1e4, effective_stresses_yy[idx])
             if n_dim >= 3:
-                self.assertAlmostEqual(0.0, efective_stresses_zz[idx])
+                self.assertAlmostEqual(0.0, effective_stresses_zz[idx])
 
             self.assertAlmostEqual(0.0, green_lagrange_strains_xx[idx])
             self.assertAlmostEqual(-0.00033333, green_lagrange_strains_yy[idx])
@@ -170,9 +176,4 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(0.0, z_displacement)
 
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsElementTypeTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    KratosUnittest.main()

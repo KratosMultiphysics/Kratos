@@ -176,7 +176,10 @@ public:
 
     // Constructor using an array of nodes with properties
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
-    {};
+    {
+        // This is needed to prevent uninitialised integration method in inactive elements
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    };
 
     // Copy constructor
     BaseSolidElement(BaseSolidElement const& rOther)
@@ -271,6 +274,32 @@ public:
     {
         return mThisIntegrationMethod;
     }
+
+    /**
+    * element can be integrated using the GP provided by the geometry or custom ones
+    * by default, the base element will use the standard integration provided by the geom
+    * @return bool to select if use/not use GPs given by the geometry
+    */
+    bool virtual UseGeometryIntegrationMethod() const
+    {
+        return true;
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
+    {
+        return GetGeometry().IntegrationPoints();
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().IntegrationPoints(ThisMethod);
+    }
+
+    const virtual Matrix& ShapeFunctionsValues(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().ShapeFunctionsValues(ThisMethod);
+    }
+
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -745,7 +774,8 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2,
+        const bool IsElementRotated = true
         );
 
     /**
@@ -881,6 +911,32 @@ protected:
     */
     void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
+    /**
+     * @brief This method checks is an element has to be rotated
+     * according to a set of local axes
+     */
+    bool IsElementRotated() const;
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * global to local coordinates
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToLocalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * local de global
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToGlobalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -950,31 +1006,11 @@ private:
     }
 
     /**
-     * @brief This method rotates the F or strain according to local axis from
-     * global to local coordinates
-     * @param rValues The constitutive laws parameters
-     */
-    void RotateToLocalAxes(ConstitutiveLaw::Parameters &rValues);
-
-    /**
-     * @brief This method rotates the F or strain according to local axis from
-     * local de global
-     * @param rValues The constitutive laws parameters
-     */
-    void RotateToGlobalAxes(ConstitutiveLaw::Parameters &rValues);
-
-    /**
      * @brief This method builds the rotation matrices and local axes
      */
     void BuildRotationSystem(
         BoundedMatrix<double, 3, 3> &rRotationMatrix,
         const SizeType StrainSize);
-
-    /**
-     * @brief This method checks is an element has to be rotated
-     * according to a set of local axes
-     */
-    bool IsElementRotated() const;
 
     /**
      * @brief This method computes directly in the CL
@@ -991,6 +1027,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
+        const bool is_rotated = IsElementRotated();
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
         const SizeType number_of_nodes = GetGeometry().size();
@@ -1017,6 +1054,10 @@ private:
 
             // Compute material reponse
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+
+            // rotate to local axes strain/F
+            if (is_rotated)
+                RotateToLocalAxes(Values, this_kinematic_variables);
 
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }

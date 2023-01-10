@@ -18,12 +18,24 @@ class AdjointFluidSolver(FluidSolver):
         self.min_buffer_size = 2
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
+        dofs_to_add = []
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_Y")
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_to_add.append("ADJOINT_FLUID_SCALAR_1")
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_to_add, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_Y")
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_list.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_list.append("ADJOINT_FLUID_SCALAR_1")
+
+        return dofs_list
 
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
@@ -62,7 +74,7 @@ class AdjointFluidSolver(FluidSolver):
         ## Complete the element name
         # TODO: EXPORT THE ADJOINT FOLLOWING THE CONVENTION. ONCE THIS IS DONE WE CAN USE THE FUNCTION IN THE BASE CLASS
         if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D"
+            new_elem_name = f"{self.element_name}{int(domain_size)}D{int(elem_num_nodes)}N"
         else:
             raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
 
@@ -81,10 +93,22 @@ class AdjointFluidSolver(FluidSolver):
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
     def _ComputeDeltaTime(self):
+        """This function returns the delta time
+        Note that the adjoint fluid analysis does not support the automatic time stepping
+        Also note that as it requires to go backwards in time, here we return minus the user time step
+        """
         if self.settings["time_stepping"]["automatic_time_step"].GetBool():
             raise Exception("Automatic time stepping is not supported by adjoint fluid solver.")
 
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        if delta_time > 0.0:
+            # Expected positive time_step is reversed to advance backwards in time
+            delta_time *= -1.0
+        else:
+            # TODO: Remove this check after the backwards compatibility period
+            # In order to keep backwards compatibility, we throw a warning if a negative time_step is provided
+            KratosMultiphysics.Logger.PrintWarning("Setting a negative 'time_step' is no longer needed by 'AdjointFluidSolver'.")
+
         return delta_time
 
     def _SetNodalProperties(self):

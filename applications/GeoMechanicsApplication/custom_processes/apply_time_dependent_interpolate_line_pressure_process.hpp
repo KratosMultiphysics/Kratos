@@ -24,7 +24,8 @@
 namespace Kratos
 {
 
-class ApplyTimeDependentInterpolateLinePressureProcess : public ApplyConstantInterpolateLinePressureProcess
+class ApplyTimeDependentInterpolateLinePressureProcess :
+    public ApplyConstantInterpolateLinePressureProcess
 {
 
 public:
@@ -40,7 +41,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -59,37 +60,39 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes != 0)
-        {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
-            #pragma omp parallel for
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                    const double pressure = CalculatePressure(rNode);
 
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        if (mIsFixedProvided) rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                    if (mIsFixed) rNode.Fix(var);
+                    else if (mIsFixedProvided) rNode.Free(var);
 
-                double pressure= CalculatePressure(it);
+                    const double pressure = CalculatePressure(rNode);
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
-                }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.

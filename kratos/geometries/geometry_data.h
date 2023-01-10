@@ -101,6 +101,7 @@ public:
         Kratos_Nurbs,
         Kratos_Brep,
         Kratos_Quadrature_Geometry,
+        Kratos_Composite,
         Kratos_generic_family,
         NumberOfGeometryFamilies // Note that this entry needs to be always the last to be used as geometry families counter
     };
@@ -143,6 +144,7 @@ public:
         Kratos_Brep_Surface,
         Kratos_Brep_Curve_On_Surface,
         Kratos_Quadrature_Point_Geometry,
+        Kratos_Coupling_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
         Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
         NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter
@@ -348,6 +350,12 @@ public:
         mGeometryShapeFunctionContainer = rGeometryShapeFunctionContainer;
     }
 
+    /// Returns the GeometryShapeFunctionContainer.
+    const GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer() const
+    {
+        return mGeometryShapeFunctionContainer;
+    }
+
     ///@}
     ///@name Informations
     ///@{
@@ -359,6 +367,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
+    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     SizeType Dimension() const
     {
         return mpGeometryDimension->Dimension();
@@ -730,8 +739,7 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
-        rOStream << "    working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
+        rOStream << "    Working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
         rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
 

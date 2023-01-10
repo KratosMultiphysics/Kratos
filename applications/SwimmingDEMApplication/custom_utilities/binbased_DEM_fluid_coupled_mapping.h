@@ -11,7 +11,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "includes/define.h"
@@ -128,15 +128,19 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 // 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
-BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
+BinBasedDEMFluidCoupledMapping(Parameters& rParameters, SpatialSearch::Pointer pSpSearch=NULL)
                              : mMustCalculateMaxNodalArea(true),
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
-                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
+                               mGentleCouplingInitiationInterval(mFluidDeltaTime),
+                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0),
+                               mpSpSearch(pSpSearch)
 {
     Parameters default_parameters( R"(
         {
+            "gentle_coupling_initiation": {
+            },
             "backward_coupling": {},
             "forward_coupling" : {},
             "coupling_type": 1,
@@ -150,10 +154,10 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     mCouplingType = rParameters["coupling_type"].GetInt();
     mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
+    mGentleCouplingInitiationInterval = rParameters["gentle_coupling_initiation"]["initiation_interval"].GetDouble();
     mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
     mpBodyForcePerUnitMassVariable = &( KratosComponents< Variable<array_1d<double,3>> >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString()) );
-
-    if (TDim == 3){
+    if constexpr (TDim == 3){
         mParticlesPerDepthDistance = 1;
     }
 
@@ -339,6 +343,7 @@ double mFluidDeltaTime;
 double mFluidLastCouplingFromDEMTime;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
+double mGentleCouplingInitiationInterval;
 int mCouplingType;
 int mTimeAveragingType;
 int mViscosityModificationType;
@@ -350,6 +355,7 @@ VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
+SpatialSearch::Pointer mpSpSearch;
 
 FluidFieldUtility mFlowField;
 
@@ -376,6 +382,7 @@ void InterpolateOtherFluidVariables(ModelPart& r_dem_model_part, ModelPart& r_fl
 void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void RecalculateDistances(ModelPart& r_dem_model_part);
+void UpdateGentleCouplingInitiationCoefficients(ModelPart& r_dem_model_part);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const Vector& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);

@@ -59,6 +59,7 @@ public:
         rParameters["third_reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
+        mIsFixedProvided = rParameters.Has("is_fixed");
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -93,52 +94,36 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        if (mrModelPart.NumberOfNodes() > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            Vector3 Coordinates;
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;
 
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
-
-                noalias(Coordinates) = it->Coordinates();
+            block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode){
+                if (mIsFixed) rNode.Fix(var);
+                else if (mIsFixedProvided) rNode.Free(var);
 
                 double distance = 0.0;
                 double d = 0.0;
-                for (unsigned int j=0; j < Coordinates.size(); ++j)
-                {
-                    distance += mNormalVector[j]*Coordinates[j];
+                for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                    distance += mNormalVector[j]*rNode.Coordinates()[j];
                     d += mNormalVector[j]*direction[j];
                 }
                 distance = -(distance - mEqRHS) / d;
                 const double pressure = mSpecificWeight * distance;
 
-                if (pressure > 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
+                if (pressure > 0.0) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = 0.0;
                 }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-            }
+            });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -167,6 +152,7 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsFixedProvided;
     unsigned int mGravityDirection;
     double mSpecificWeight;
     Vector3 mFirstReferenceCoordinate;

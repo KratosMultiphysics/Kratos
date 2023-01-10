@@ -26,7 +26,6 @@ namespace Kratos
 namespace Testing
 {
     // Tolerance
-    static constexpr double tolerance = 1.0e-6;
     static constexpr double tolerance_pqmpm_weight = 1.0e-4;
 
     void PrepareModelPart(

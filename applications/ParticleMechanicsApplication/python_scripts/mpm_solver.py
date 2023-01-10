@@ -58,6 +58,7 @@ class MPMSolver(PythonSolver):
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
+            "stabilization"                      : "ppp",
             "compressible"                       : true,
             "axis_symmetric_flag"                : false,
             "consistent_mass_matrix"             : false,
@@ -211,6 +212,14 @@ class MPMSolver(PythonSolver):
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, True)
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, False)
+        stabilization          = self.settings["stabilization"].GetString()
+        if pressure_dofs:
+            if (stabilization=="none"):
+                stabilization_type = 0
+                KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: No stabilization considered for a mixed formulation.")
+            elif (stabilization =="ppp"): #Polynomial Pressure Projection stabilization
+                stabilization_type = 1
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.STABILIZATION_TYPE, stabilization_type)
 
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
@@ -391,13 +400,11 @@ class MPMSolver(PythonSolver):
     def _CreateNewtonRaphsonStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         solution_scheme = self._GetSolutionScheme()
-        linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriteria()
         builder_and_solver = self._GetBuilderAndSolver()
         reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
         return KratosParticle.MPMResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                         solution_scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         self.settings["max_iteration"].GetInt(),

@@ -11,20 +11,20 @@
 //                   Denis Demidov
 //
 
-#if !defined(KRATOS_REDUCTION_UTILITIES_H_INCLUDED )
-#define  KRATOS_REDUCTION_UTILITIES_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <tuple>
 #include <limits>
 #include <algorithm>
+#include <mutex>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -145,8 +145,39 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
-        mValue = std::max(mValue,rOther.mValue);
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        LocalReduce(rOther.mValue);
+    }
+};
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
+template<class TDataType, class TReturnType = TDataType>
+class AbsMaxReduction
+{
+public:
+    typedef TDataType   value_type;
+    typedef TReturnType return_type;
+
+    TReturnType mValue = std::numeric_limits<TReturnType>::lowest(); // deliberately making the member value public, to allow one to change it as needed
+
+    /// access to reduced value
+    TReturnType GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const TDataType value){
+        mValue = (std::abs(mValue) < std::abs(value)) ? value : mValue;
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
+    {
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -176,8 +207,41 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
-        mValue = std::min(mValue,rOther.mValue);
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        LocalReduce(rOther.mValue);
+    }
+};
+
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
+
+template<class TDataType, class TReturnType = TDataType>
+class AbsMinReduction
+{
+public:
+    typedef TDataType   value_type;
+    typedef TReturnType return_type;
+
+    TReturnType mValue = std::numeric_limits<TReturnType>::max(); // deliberately making the member value public, to allow one to change it as needed
+
+    /// access to reduced value
+    TReturnType GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const TDataType value){
+        mValue = (std::abs(mValue) < std::abs(value)) ? mValue : value;
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
+    {
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -208,7 +272,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
     }
 };
@@ -282,5 +346,3 @@ struct CombinedReduction {
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REDUCTION_UTILITIES_H_INCLUDED  defined

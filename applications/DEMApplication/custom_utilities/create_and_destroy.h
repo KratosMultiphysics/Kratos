@@ -42,6 +42,7 @@ public:
         typedef Configure::IteratorType                     ParticleIterator;
         typedef PointerVectorSet<Element, IndexedObject>    ElementsContainerType;
         typedef ModelPart::ElementsContainerType            ElementsArrayType;
+        typedef ModelPart::NodesContainerType               NodesArrayType;
         unsigned int mMaxNodeId;
 
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
@@ -49,7 +50,11 @@ public:
     /// Default constructor
     ParticleCreatorDestructor();
 
+    ParticleCreatorDestructor(Parameters settings);
+
     ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher);
+
+    ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher, Parameters settings);
 
     /// Destructor
     virtual ~ParticleCreatorDestructor();
@@ -243,18 +248,32 @@ public:
                                          double scale_factor,
                                          bool automatic);
 
+    template<class TParticleType>
+    bool CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time);
+
+    template<class TParticleType>
     void DestroyParticles(ModelPart& r_model_part);
+
     void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
-    void DestroyParticles(ModelPart::MeshType& rMesh);
+
+    template<class TParticleType>
+    void DestroyParticles(ModelPart::MeshType& rMesh, const double current_time);
     void DestroyContactElements(ModelPart& r_model_part);
+    void MarkIsolatedParticlesForErasing(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
     void RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart);
+
+    template<class TParticleType>
     void MarkDistantParticlesForErasing(ModelPart& r_model_part);
     void MarkParticlesForErasingGivenScalarVariableValue(ModelPart& r_model_part, const Variable<double>& rVariable, double value, double tol);
     void MarkParticlesForErasingGivenVectorVariableModulus(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& rVariable, double value, double tol);
+
+    template<class TParticleType>
     void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3> low_point, array_1d<double, 3> high_point);
     void MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius);
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
+
+    template<class TParticleType>
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
     void MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part);
     void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
@@ -297,9 +316,10 @@ private:
     array_1d<double, 3 > mStrictLowPoint;
     double mDiameter;
     double mStrictDiameter;
-    double mScaleFactor;
+    double mScaleFactor=1.0;
     bool mDoSearchNeighbourElements;
     AnalyticWatcher::Pointer mpAnalyticWatcher;
+    Parameters mSettings;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable);
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable);
@@ -308,6 +328,19 @@ private:
     ParticleCreatorDestructor & operator=(ParticleCreatorDestructor const& rOther);
 
 }; // Class ParticleCreatorDestructor
+
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart&);
+extern template bool KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::CheckParticlePreservationCriteria<SphericParticle>(const Element::Pointer, const double);
+extern template bool KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::CheckParticlePreservationCriteria<Cluster3D>(const Element::Pointer, const double);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart::MeshType&, const double);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart::MeshType&, const double);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkDistantParticlesForErasing<SphericParticle>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkDistantParticlesForErasing<Cluster3D>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>(ModelPart&);
+extern template void KRATOS_API(DEM_APPLICATION) ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>(ModelPart&);
 
 } // namespace Kratos
 

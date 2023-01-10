@@ -37,6 +37,11 @@
             "dynamic_tau": 1.0,
             "mass_source": true
         },
+        "levelset_convection_settings": {
+            "element_settings" : {
+                "dynamic_tau" : 1.0
+            }
+        },
         "time_stepping"  : {
             "automatic_time_step" 	: false,
             "time_step"           	: 0.1

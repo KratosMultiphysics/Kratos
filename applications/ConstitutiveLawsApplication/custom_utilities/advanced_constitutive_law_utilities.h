@@ -10,17 +10,14 @@
 //
 //  Main authors:    Alejandro Cornejo
 //
-//
 
-#if !defined(KRATOS_ADVANCED_CONSTITUTIVE_LAW_UTILITIES)
-#define KRATOS_ADVANCED_CONSTITUTIVE_LAW_UTILITIES
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
@@ -55,7 +52,6 @@ namespace Kratos
  * @details The methods are static, so it can be called without constructing the class
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo
- * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
@@ -164,9 +160,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         double& rJ2
         )
     {
-        if (Dimension == 3) {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
+        noalias(rDeviator) = rStressVector;
+        const double p_mean = I1 / 3.0;
+        if constexpr (Dimension == 3) {
             for (IndexType i = 0; i < Dimension; ++i)
                 rDeviator[i] -= p_mean;
             rJ2 = 0.0;
@@ -175,8 +171,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
             for (IndexType i = Dimension; i < 6; ++i)
                 rJ2 += std::pow(rDeviator[i], 2);
         } else {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
             for (IndexType i = 0; i < Dimension; ++i)
                 rDeviator[i] -= p_mean;
             rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
@@ -195,15 +189,19 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
     /**
      * @brief This method computes the first vector
-     * @param rFirstVector The first vector
+     * to be used in the derivative of the yield surface
+     * @param rFirstVector The first vector is the
+     * d(I1)/d(Stress)
      */
     static void CalculateFirstVector(BoundedVectorType& rFirstVector);
 
     /**
-     * @brief This method computes the second vector
+     * @brief This method computes the first vector
+     * to be used in the derivative of the yield surface
      * @param rDeviator The deviator of the stress
      * @param J2 The resultant J2 stress
-     * @param rSecondVector The second vector
+     * @param rSecondVector The second vector is
+     * 1/(2*sqrt(J2))*d(J2)/d(Stress)
      */
     static void CalculateSecondVector(
         const BoundedVectorType& rDeviator,
@@ -213,9 +211,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
     /**
      * @brief This method computes the third vector
+     * to be used in the derivative of the yield surface
      * @param rDeviator The deviator of the stress
      * @param J2 The resultant J2 stress
-     * @param rThirdVector The third vector
+     * @param rThirdVector The third vector is
+     * d(J3)/d(Stress)
      * @todo Adapt for 2D dimension
      */
     static void CalculateThirdVector(
@@ -255,7 +255,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * @param rStrainVector The strain vector
      */
     static Matrix ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector);
-
 
     /**
      * @brief Calculation of the Almansi strain vector
@@ -352,13 +351,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double PlasticConsistencyFactorIncrement
         );
 
-
     /**
      * @brief This computes the Fp from F and Fe
+     * @param rF The total def gradient tensor
+     * @param rFp The plastic def gradient tensor
      */
     static Matrix CalculatePlasticDeformationGradientFromElastic(
-        const MatrixType &rF,
-        const MatrixType &rFp);
+        const MatrixType& rF,
+        const MatrixType& rFp
+        );
 
     /**
      * @brief This updates the exponential elastic deformation gradient
@@ -372,7 +373,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const MatrixType& rTrialFe,
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe);
+        const MatrixType& rRe
+        );
 
     /**
      * @brief This computes the plastic strain from Fp
@@ -380,8 +382,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * @param rPlasticStrainVector The plastic strain vector
      */
     static void CalculatePlasticStrainFromFp(
-        const MatrixType &rFp,
-        Vector &rPlasticStrainVector);
+        const MatrixType& rFp,
+        Vector& rPlasticStrainVector
+        );
 
     /**
      * @brief This computes the elastic deformation gradient
@@ -429,8 +432,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
     /**
      * @brief This computes the rotation matrix for the 2nd Euler angle
@@ -438,8 +441,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
     /**
      * @brief This computes the rotation matrix for the 3rd Euler angle
@@ -447,8 +450,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
     /**
      * @brief This computes the total rotation matrix
@@ -464,22 +467,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        BoundedMatrix<double, 3, 3> &rRotationOperator
-    );
-
-    /**
-     * @brief This converts the
-     * 3x3 rotation matrix to the 6x6
-     * Cook et al., "Concepts and applications
-     * of finite element analysis"
-     */
-    static void CalculateRotationOperatorVoigt(
-        const BoundedMatrixType &rOldOperator,
-        BoundedMatrixVoigtType &rNewOperator
-    );
-
-private:
+        BoundedMatrix<double, 3, 3>& rRotationOperator
+        );
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
-#endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */

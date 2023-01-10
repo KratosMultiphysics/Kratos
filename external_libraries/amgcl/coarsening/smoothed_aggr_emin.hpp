@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -90,6 +90,8 @@ struct smoothed_aggr_emin {
         >
     transfer_operators(const Matrix &A) {
         typedef typename backend::value_type<Matrix>::type Val;
+        typedef typename backend::col_type<Matrix>::type   Col;
+        typedef typename backend::ptr_type<Matrix>::type   Ptr;
         typedef ptrdiff_t Idx;
 
         AMGCL_TIC("aggregates");
@@ -103,7 +105,7 @@ struct smoothed_aggr_emin {
                 );
 
         // Filter the system matrix
-        backend::crs<Val> Af;
+        backend::crs<Val, Col, Ptr> Af;
         Af.set_size(rows(A), cols(A));
         Af.ptr[0] = 0;
 

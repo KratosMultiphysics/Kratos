@@ -18,7 +18,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -50,6 +50,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::mIsInitialised;
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,6 +105,10 @@ public:
                                       std::vector<array_1d<double,3>>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
+                                      std::vector<Vector> &rOutput,
+                                      const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
@@ -133,12 +138,14 @@ protected:
     {
         ///Properties variables
         bool IgnoreUndrained;
+        bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
         double SolidDensity;
         double Density;
         double Porosity;
+        double PermeabilityUpdateFactor;
 
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -163,13 +170,15 @@ protected:
         BoundedMatrix<double, TDim, TNumNodes*TDim> Nu;
         array_1d<double, TDim> BodyAcceleration;
         array_1d<double, TDim> SoilGamma;
-        double IntegrationCoefficient;
 
         ///Constitutive Law parameters
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
+        Matrix GradNpTInitialConfiguration;
+
         Matrix F;
         double detF;
         Vector detJContainer;
@@ -182,9 +191,13 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
+        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
-        double detJ0;
+        double detJ;
+        double detJInitialConfiguration;
+        double IntegrationCoefficient;
+        double IntegrationCoefficientInitialConfiguration;
 
         //Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
@@ -204,7 +217,7 @@ protected:
 
     void SaveGPStress( Matrix &rStressContainer,
                        const Vector &StressVector,
-                       const unsigned int &GPoint );
+                       unsigned int GPoint );
 
     void ExtrapolateGPValues( const Matrix &StressContainer);
 
@@ -229,15 +242,16 @@ protected:
     void SetRetentionParameters(const ElementVariables &rVariables,
                                 RetentionLaw::Parameters &rRetentionParameters);
 
-    virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
+    virtual void CalculateKinematics( ElementVariables &rVariables, unsigned int PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient=false );
 
+    void CalculatePermeabilityUpdateFactor( ElementVariables &rVariables);
+
     virtual void CalculateBMatrix( Matrix &rB,
                                    const Matrix &GradNpT,
                                    const Vector &Np );
-
 
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
@@ -299,25 +313,32 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
-    virtual void CalculateStrain( ElementVariables &rVariables );
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables &rVariables, unsigned int GPoint );
+    virtual void CalculateDeformationGradient( ElementVariables& rVariables,
+                                               unsigned int GPoint );
 
     void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
     void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
     void InitializeNodalVolumeAccelerationVariables( ElementVariables &rVariables );
 
     void InitializeProperties( ElementVariables &rVariables );
-    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+    double CalculateFluidPressure( const ElementVariables &rVariables);
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
 
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables &rVariables);
-    void CalculateSoilDensity(ElementVariables &rVariables);
+    virtual void CalculateSoilDensity(ElementVariables &rVariables);
+
+    virtual void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
+                                                          ElementVariables& rVariables,
+                                                          unsigned int GPoint );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

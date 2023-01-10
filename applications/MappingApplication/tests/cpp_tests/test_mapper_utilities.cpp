@@ -477,7 +477,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found_3);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_1);
+    const double dist_1_1 = coords_1.Distance(*interface_node_1);
 
     p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1);
     p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2);
@@ -491,7 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     p_nearest_neighbor_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
 
-    const double dist_2_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_2);
+    const double dist_2_2 = coords_2.Distance(*interface_node_2);
 
     p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1);
     p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2);
@@ -503,7 +503,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     p_nearest_neighbor_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
 
-    const double dist_3_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_3);
+    const double dist_3_3 = coords_3.Distance(*interface_node_3);
 
     p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1);
     p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2);
@@ -676,6 +676,21 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_RestoreCurrentConfiguration, KratosMap
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), (r_node.Y0()-0.125));
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), (r_node.Z0()+0.33));
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointsAreCollinear, KratosMappingApplicationSerialTestSuite)
+{
+    Point p1(0,0,0);
+    Point p2(1,0,0);
+    Point p3(2,0,0);
+    Point p4(2,1,0);
+
+    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p1,p2,p3));
+    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p2,p3,p1));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p2,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p3,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
+    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
 }
 
 }  // namespace Testing

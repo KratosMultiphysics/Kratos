@@ -25,12 +25,12 @@ def CreatePredictors(predictor_settings_list, solvers, parent_echo_level):
         predictors.append(CreatePredictor(predictor_settings, solver))
     return predictors
 
-def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_echo_level):
+def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers, parent_data_communicator, parent_echo_level):
     convergence_accelerators = []
     for conv_acc_settings in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
-        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver))
+        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver, parent_data_communicator))
 
     return convergence_accelerators
 
@@ -46,18 +46,18 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
 
     return convergence_criteria
 
-def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_coupled_solver_process_info, parent_echo_level):
+def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_coupled_solver_process_info, parent_data_communicator, parent_echo_level):
     coupling_operations = {}
     for coupling_operation_name, coupling_operation_settings in coupling_operations_settings_dict.items():
         AddEchoLevelToSettings(coupling_operation_settings, parent_echo_level)
-        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers, parent_coupled_solver_process_info)
+        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers, parent_coupled_solver_process_info, parent_data_communicator)
 
     return coupling_operations
 
-def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_echo_level):
+def CreateDataTransferOperators(data_transfer_operators_settings_dict, parent_data_communicator, parent_echo_level):
     data_transfer_operators = {}
     for data_transfer_operators_name, data_transfer_operators_settings in data_transfer_operators_settings_dict.items():
         AddEchoLevelToSettings(data_transfer_operators_settings, parent_echo_level)
-        data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_settings)
+        data_transfer_operators[data_transfer_operators_name] = CreateDataTransferOperator(data_transfer_operators_settings, parent_data_communicator)
 
     return data_transfer_operators

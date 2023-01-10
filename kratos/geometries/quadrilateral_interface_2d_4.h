@@ -1388,7 +1388,7 @@ GeometryData QuadrilateralInterface2D4<TPointType>::msGeometryData(
 
 template<class TPointType>
 const GeometryDimension QuadrilateralInterface2D4<TPointType>::msGeometryDimension(
-    2, 2, 1);
+    2, 2, 2);
 
 }// namespace Kratos.
 

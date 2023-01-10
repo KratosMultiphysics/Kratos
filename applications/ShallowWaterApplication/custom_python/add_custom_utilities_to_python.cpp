@@ -18,11 +18,10 @@
 
 // Project includes
 #include "add_custom_utilities_to_python.h"
-#include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
-#include "custom_utilities/bfecc_convection_utility.h"
-#include "custom_utilities/move_mesh_utility.h"
+#include "custom_utilities/move_shallow_mesh_utility.h"
+#include "custom_utilities/derivatives_recovery_utility.h"
 
 
 namespace Kratos
@@ -62,22 +61,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
-        .def(py::init<ModelPart& , Parameters >())
-        .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
-        .def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
-        .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
-        .def("PreReseed", &MoveShallowWaterParticleUtility<2>::PreReseed)
-        .def("PostReseed", &MoveShallowWaterParticleUtility<2>::PostReseed)
-        .def("ResetBoundaryConditions", &MoveShallowWaterParticleUtility<2>::ResetBoundaryConditions)
-        .def("TransferLagrangianToEulerian",&MoveShallowWaterParticleUtility<2>::TransferLagrangianToEulerian)
-        .def("CalculateVelOverElemSize", &MoveShallowWaterParticleUtility<2>::CalculateVelOverElemSize)
-        .def("CalculateDeltaVariables", &MoveShallowWaterParticleUtility<2>::CalculateDeltaVariables)
-        .def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
-        .def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
-        .def("ExecuteParticlesPrintingTool", &MoveShallowWaterParticleUtility<2>::ExecuteParticlesPrintingTool)
-        ;
-
     py::class_< ShallowWaterUtilities > (m, "ShallowWaterUtilities")
         .def(py::init<>())
         .def("ComputeFreeSurfaceElevation", &ShallowWaterUtilities::ComputeFreeSurfaceElevation)
@@ -91,14 +74,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
-        .def("SmoothTemporalVariable", &ShallowWaterUtilities::SmoothTemporalVariable<double>)
-        .def("SmoothTemporalVariable", &ShallowWaterUtilities::SmoothTemporalVariable<array_1d<double,3>>)
+        .def("SmoothHistoricalVariable", &ShallowWaterUtilities::SmoothHistoricalVariable<double>)
+        .def("SmoothHistoricalVariable", &ShallowWaterUtilities::SmoothHistoricalVariable<array_1d<double,3>>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
         .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
         .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
+        .def("OffsetMeshZCoordinate", &ShallowWaterUtilities::OffsetMeshZCoordinate)
         .def("SwapYZCoordinates", &ShallowWaterUtilities::SwapYZCoordinates)
         .def("SwapY0Z0Coordinates", &ShallowWaterUtilities::SwapY0Z0Coordinates)
         .def("SwapYZComponents", &ShallowWaterUtilities::SwapYZComponents)
@@ -129,23 +113,46 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &EstimateTimeStepUtility::Execute)
         ;
 
-    py::class_< BFECCConvectionUtility<2> > (m, "BFECCConvectionUtility")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, Parameters>())
-        .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<double>,double>)
-        .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>,array_1d<double,3>>)
-        .def("UpdateSearchDatabase", &BFECCConvectionUtility<2>::UpdateSearchDatabase)
-        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
-        .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
-        .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
+    py::class_<MoveShallowMeshUtility>(m, "MoveShallowMeshUtility")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Check", &MoveShallowMeshUtility::Check)
+        .def("Initialize", &MoveShallowMeshUtility::Initialize)
+        .def("MoveMesh", &MoveShallowMeshUtility::MoveMesh)
+        .def("MapResults", &MoveShallowMeshUtility::MapResults)
         ;
 
-    py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Check", &MoveMeshUtility::Check)
-        .def("Initialize", &MoveMeshUtility::Initialize)
-        .def("MoveMesh", &MoveMeshUtility::MoveMesh)
-        .def("MapResults", &MoveMeshUtility::MapResults)
+    py::class_<DerivativesRecoveryUtility<2>>(m, "DerivativesRecoveryUtility2D")
+        .def_static("Check", &DerivativesRecoveryUtility<2>::Check)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<2>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<2>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<2>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<array_1d<double,3>>& rOriginVariable,
+            const Variable<array_1d<double,3>>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        ;
+
+    py::class_<DerivativesRecoveryUtility<3>>(m, "DerivativesRecoveryUtility3D")
+        .def_static("Check", &DerivativesRecoveryUtility<3>::Check)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<3>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<3>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<3>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<array_1d<double,3>>& rOriginVariable,
+            const Variable<array_1d<double,3>>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
         ;
 
 }

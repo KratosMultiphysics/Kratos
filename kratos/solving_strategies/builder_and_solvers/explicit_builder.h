@@ -106,10 +106,6 @@ public:
     /// Definition of the DoF vector type
     typedef ModelPart::DofsVectorType DofsVectorType;
 
-    /// The definition of the DoF objects
-    typedef typename DofsArrayType::iterator DofIteratorType;
-    typedef typename DofsArrayType::const_iterator DofConstantIteratorType;
-
     /// The definition of the DoF set type
     typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
 

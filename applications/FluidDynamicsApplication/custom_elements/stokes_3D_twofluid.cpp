@@ -20,7 +20,7 @@ void Stokes3DTwoFluid::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,
 
 
         //compute an equivalent tau by Bitrans*c*Bi
-        const double tau_denom =             (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
+        const double tau_denom = (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
 
         const double tau1 = 1.0/(tau_denom*rho);
         const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho);
@@ -1044,7 +1044,7 @@ void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs
         const array_1d<double,nnodes>& N = data.N;
 
         //compute an equivalent tau by Bitrans*c*Bi
-        const double tau_denom =             (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
+        const double tau_denom = (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
 
         const double tau1 = 1.0/(tau_denom*rho);
         const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho);
@@ -1234,7 +1234,7 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
         const array_1d<double,nnodes>& N = data.N;
 
         //compute an equivalent tau by Bitrans*c*Bi
-        const double tau_denom =             (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
+        const double tau_denom = (C(3,3) + C(4,4) + C(5,5))*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2) + pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2) + pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2) + pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2));
 
         const double tau1 = 1.0/(tau_denom*rho);
 
@@ -1476,4 +1476,5 @@ rhs_ee[3]=-crhs_ee3*(DNenr_3_0*crhs_ee0 + DNenr_3_1*crhs_ee1 + DNenr_3_2*crhs_ee
 
 
     }
+
 }

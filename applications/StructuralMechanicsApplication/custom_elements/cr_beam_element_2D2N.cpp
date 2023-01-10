@@ -669,10 +669,7 @@ BoundedVector<double, CrBeamElement2D2N::msLocalSize>
 CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
 {
     KRATOS_TRY;
-    // calculate t
-
-    BoundedVector<double, msLocalSize> deformation_stresses =
-        ZeroVector(msLocalSize);
+    // calculate the deformation parameters
 
     BoundedVector<double, msLocalSize> deformation_modes =
         CalculateDeformationParameters();
@@ -683,7 +680,7 @@ CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
         CreateElementStiffnessMatrix_Kd_geo();
     BoundedMatrix<double, msLocalSize, msLocalSize> K_d = K_d_mat + K_d_geo;
 
-    deformation_stresses = prod(K_d, deformation_modes);
+    BoundedVector<double, msLocalSize> deformation_stresses = prod(K_d, deformation_modes);
 
     return deformation_stresses;
     KRATOS_CATCH("")
@@ -969,6 +966,36 @@ int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 
     KRATOS_CATCH("")
+}
+
+const Parameters CrBeamElement2D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["MOMENT","FORCE","INTEGRATION_COORDINATES"],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["BeamConstitutiveLaw"],
+            "dimension"   : ["2D"],
+            "strain_size" : [3]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a 2D non-linear beam formulation."
+    })");
+
+    return specifications;
 }
 
 void CrBeamElement2D2N::save(Serializer& rSerializer) const

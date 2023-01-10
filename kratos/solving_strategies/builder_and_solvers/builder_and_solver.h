@@ -106,10 +106,6 @@ public:
     /// Definition of the DoF array type
     typedef ModelPart::DofsArrayType DofsArrayType;
 
-    /// The definition of the DoF objects
-    typedef typename DofsArrayType::iterator DofIterator;
-    typedef typename DofsArrayType::const_iterator DofConstantIterator;
-
     /// The containers of the entities
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
@@ -510,6 +506,14 @@ public:
      * @brief It allows to get the list of Dofs from the element
      */
     virtual DofsArrayType& GetDofSet()
+    {
+        return mDofSet;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    virtual const DofsArrayType& GetDofSet() const
     {
         return mDofSet;
     }

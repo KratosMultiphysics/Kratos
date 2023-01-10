@@ -5,28 +5,26 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborators:    Vicente Mataix Ferrandiz
-//                    Pablo Becker
+//  Collaborators:   Vicente Mataix Ferrandiz
+//                   Pablo Becker
 //
 
-#if !defined(KRATOS_MATH_UTILS )
-#define  KRATOS_MATH_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 #include <cmath>
 #include <type_traits>
 
-/* External includes */
+// External includes
 
-/* External includes */
+// Project includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -106,28 +104,13 @@ public:
     }
 
     /**
-     * @brief This function calculates the number of elements between first and last.
-     * @param rFirstData First element
-     * @param rSecondData Second element
-     * @return Distance Number of elements
-     */
-    static TDataType Distance(
-        const TDataType& rFirstData,
-        const TDataType& rSecondData
-        )
-    {
-        return rFirstData.Distance(rSecondData);
-    }
-
-    /**
      * @brief In geometry, Heron's formula (sometimes called Hero's formula), named after Hero of Alexandria, gives the area of a triangle by requiring no arbitrary choice of side as base or vertex as origin, contrary to other formulas for the area of a triangle, such as half the base times the height or half the norm of a cross product of two sides.
      * @param a First length
      * @param b Second length
      * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
-
-    template<bool check>// = false>
+    template<bool TCheck>// = false>
     static inline double Heron(
         double a,
         double b,
@@ -136,7 +119,7 @@ public:
     {
         const double s = 0.5 * (a + b + c);
         const double A2 = s * (s - a) * (s - b) * (s - c);
-        if(check) {
+        if constexpr(TCheck) {
             if(A2 < 0.0) {
                 KRATOS_ERROR << "The square of area is negative, probably the triangle is in bad shape:" << A2 << std::endl;
             } else {
@@ -264,14 +247,14 @@ public:
         /* Compute Determinant of the matrix */
         rInputMatrixDet = Det(rInputMatrix);
 
-        if(TDim == 1) {
+        if constexpr (TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
-        } else if (TDim == 2) {
+        } else if constexpr (TDim == 2) {
             InvertMatrix2(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             InvertMatrix3(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 4) {
+        } else if constexpr (TDim == 4) {
             InvertMatrix4(rInputMatrix, inverted_matrix, rInputMatrixDet);
         } else {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
@@ -325,25 +308,30 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
+    template<class TMatrix1, class TMatrix2>
     static void GeneralizedInvertMatrix(
-        const MatrixType& rInputMatrix,
-        MatrixType& rInvertedMatrix,
-        TDataType& rInputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size_1 = rInputMatrix.size1();
         const SizeType size_2 = rInputMatrix.size2();
 
         if (size_1 == size_2) {
-            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet, Tolerance);
         } else if (size_1 < size_2) { // Right inverse
             if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
                 rInvertedMatrix.resize(size_2, size_1, false);
             }
             const Matrix aux = prod(rInputMatrix, trans(rInputMatrix));
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(trans(rInputMatrix), auxInv);
         } else { // Left inverse
@@ -352,7 +340,7 @@ public:
             }
             const Matrix aux = prod(trans(rInputMatrix), rInputMatrix);
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(auxInv, trans(rInputMatrix));
         }
@@ -391,6 +379,8 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -1981,11 +1971,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MATH_UTILS  defined */

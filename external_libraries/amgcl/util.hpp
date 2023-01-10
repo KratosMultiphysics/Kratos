@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -226,6 +226,7 @@ class iterator_range {
         typedef Iterator iterator;
         typedef Iterator const_iterator;
         typedef typename std::iterator_traits<Iterator>::value_type value_type;
+        typedef typename std::iterator_traits<Iterator>::reference reference;
 
         iterator_range(Iterator b, Iterator e)
             : b(b), e(e) {}
@@ -242,11 +243,7 @@ class iterator_range {
             return e;
         }
 
-        const value_type& operator[](size_t i) const {
-            return b[i];
-        }
-
-        value_type& operator[](size_t i) {
+        reference operator[](size_t i) const {
             return b[i];
         }
     private:

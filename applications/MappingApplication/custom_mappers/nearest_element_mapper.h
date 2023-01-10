@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED )
-#define  KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,7 +22,6 @@
 // Project includes
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/projection_utilities.h"
-
 
 namespace Kratos
 {
@@ -92,6 +90,8 @@ public:
         rValue = (int)mPairingIndex;
     }
 
+    std::size_t GetNumSearchResults() const { return mNumSearchResults; }
+
 private:
 
     std::vector<int> mNodeIds;
@@ -99,6 +99,7 @@ private:
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
     double mLocalCoordTol; // this is not needed after searching, hence no need to serialize it
+    std::size_t mNumSearchResults = 0;
 
     void SaveSearchResult(const InterfaceObject& rInterfaceObject,
                           const bool ComputeApproximation);
@@ -112,6 +113,7 @@ private:
         rSerializer.save("SFValues", mShapeFunctionValues);
         rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
         rSerializer.save("PairingIndex", (int)mPairingIndex);
+        rSerializer.save("NumSearchResults", mNumSearchResults);
     }
 
     void load(Serializer& rSerializer) override
@@ -123,6 +125,7 @@ private:
         int temp;
         rSerializer.load("PairingIndex", temp);
         mPairingIndex = (ProjectionUtilities::PairingIndex)temp;
+        rSerializer.load("NumSearchResults", mNumSearchResults);
     }
 
 };
@@ -140,6 +143,7 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
     }
 
@@ -151,6 +155,8 @@ public:
     void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
 
     void SetPairingStatusForPrinting() override;
+
+    bool IsDoneSearching() const override;
 
 private:
     NodePointerType mpNode;
@@ -300,5 +306,3 @@ private:
 }; // Class NearestElementMapper
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED  defined
