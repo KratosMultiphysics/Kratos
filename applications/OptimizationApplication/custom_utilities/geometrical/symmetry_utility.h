@@ -247,6 +247,7 @@ private:
     ///@{
     NodeTypePointer GetRotatedNode(NodeType& rNode, double angle);
     NodeTypePointer GetReflectedNode(NodeType& rNode);
+    void GetRotationMatrix(double angle, Matrix& rRotMat);
 
 
     ///@}
