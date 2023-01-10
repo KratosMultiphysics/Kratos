@@ -78,7 +78,7 @@ class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
             DN_DX_container)
 
         # Save the obtained results in TEMPERATURE variable and visualize
-        output_results = True
+        output_results = False
         if output_results:
             i = 0
             for node in self.main_model_part.Nodes:
