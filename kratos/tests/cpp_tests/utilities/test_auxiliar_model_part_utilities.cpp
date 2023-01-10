@@ -254,12 +254,13 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
 
     utilities.RemoveOrphanNodesFromSubModelParts();
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
 
     // Replace element by geometry
     r_sub.AddNode(r_model_part.pGetNode(4));
@@ -269,10 +270,11 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1); 
-    
+
     utilities.RemoveOrphanNodesFromSubModelParts();
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
 }
 
