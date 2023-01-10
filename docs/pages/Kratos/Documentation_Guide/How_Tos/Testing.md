@@ -1,9 +1,9 @@
 ---
 title: Documentation testing and updating
-keywords: 
+keywords:
 tags: [Testing.md]
 sidebar: documentation_guide
-summary: 
+summary:
 ---
 
 
@@ -18,20 +18,15 @@ Followings needs to be installed in your system to locally test the changes you 
 
 ## Testing locally
 
-The whole kratos documentation can be hosted in your local machine so that you acn visualize the changes you made by using any browser of your choice.
+The whole kratos documentation can be hosted in your local machine so that you can visualize the changes you made by using any browser of your choice.
 
 1. goto the "docs" folder
 2. python process_pages.py -t local
-3. jekyll serve
+3. goto "scripts" folder in "docs".
+4. execute "build_site.sh"
+5. Then navidate to "docs/_site/Page_files"
+6. jekyll serve
 
 The last command will host the webpage under the address "http://127.0.0.1:4000". So now you can visualize the documentation with your local changes by browsing the above address using any browser.
 
-## Submitting content to repository
-
-Please make sure you only have changes to the folder "docs/pages". All the other folders/files will be changed accordingly based on the content provided in the "docs/pages" folder. Then run the following command (without `-t local` option)
-
-```bash
-    python process_pages.py
-```
-
-This will generate the files which needs to be submitted to the github repository so the changes made can be visualized automatically.
+The generated html files for the whole web page can be found in "docs/_site/Page_files/_site" folder.
