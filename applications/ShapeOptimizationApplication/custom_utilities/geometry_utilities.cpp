@@ -32,6 +32,7 @@
 #include "utilities/element_size_calculator.h"
 #include "utilities/atomic_utilities.h"
 #include "geometries/geometry_data.h"
+#include "processes/calculate_nodal_area_process.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -315,6 +316,27 @@ void GeometryUtilities::ComputeVolumeShapeDerivatives(
     mrModelPart.GetCommunicator().AssembleCurrentData(rDerivativeVariable);
 
     KRATOS_CATCH("");
+}
+
+void GeometryUtilities::CalculateNodalAreasFromConditions()
+{
+    KRATOS_TRY
+
+    this->CalculateAreaNormalsFromConditions();
+
+
+    //resetting the nodal area
+    VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, mrModelPart.Nodes());
+
+    //calculating the normals and summing up at nodes
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    {
+        const array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
+        rNode.FastGetSolutionStepValue(NODAL_AREA) = MathUtils<double>::Norm3(normal);
+
+    });
+
+    KRATOS_CATCH("")
 }
 
 void GeometryUtilities::CalculateAreaNormalsFromConditions()

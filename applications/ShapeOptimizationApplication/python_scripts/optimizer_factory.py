@@ -75,11 +75,18 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
         # sensitivity heatmap
+        model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_WEIGHTED)
+        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_WEIGHTED_MAPPED)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2)
         model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
         for itr in range(1,number_of_constraints+1):
-            nodal_variable = KM.KratosGlobals.GetVariable("HEATMAP_DC"+str(itr)+"DX")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"HEATMAP_DC{(itr)}DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX_WEIGHTED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX_WEIGHTED_MAPPED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
 
     def __AddVariablesToBeUsedByDesignVariables(self):

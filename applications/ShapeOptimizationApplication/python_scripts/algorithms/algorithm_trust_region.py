@@ -405,7 +405,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __LogCurrentOptimizationStep(self, additional_values_to_log):
         if self.data_logger.SensitivityHeatmapLogging():
-            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.opt_iteration)
+            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.opt_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.opt_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.opt_iteration)
 

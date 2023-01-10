@@ -352,7 +352,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["max_norm_objective_gradient"] = max_norm_objective_gradient
 
                 if self.data_logger.SensitivityHeatmapLogging():
-                    ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, total_iteration, design_variable_name="ALPHA", design_variable_dimension=1)
+                    ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, total_iteration, self.mapper, design_variable_name="ALPHA", design_variable_dimension=1)
 
                 self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(total_iteration)

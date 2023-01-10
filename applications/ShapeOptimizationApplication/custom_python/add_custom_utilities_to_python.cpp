@@ -206,6 +206,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ========================================================================
     py::class_<GeometryUtilities >(m, "GeometryUtilities")
         .def(py::init<ModelPart&>())
+        .def("CalculateNodalAreasFromConditions", &GeometryUtilities::CalculateNodalAreasFromConditions)
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
         .def("ProjectNodalVariableOnDirection", &GeometryUtilities::ProjectNodalVariableOnDirection)
