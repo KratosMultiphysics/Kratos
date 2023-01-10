@@ -24,6 +24,7 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
         if not settings.Has("3d_1d_data_transfer_settings"):
             raise Exception('No "3d_1d_data_transfer_settings" provided!')
         super().__init__(settings, parent_coupled_solver_data_communicator)
+        self.origin_is_3d = None
         self.__data_transfer_process = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
