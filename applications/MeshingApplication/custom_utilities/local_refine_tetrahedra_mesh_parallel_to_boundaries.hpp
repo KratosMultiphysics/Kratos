@@ -53,7 +53,7 @@ public:
     ///@{
 
     /// Default constructors
-    LocalRefineTetrahedraMeshParallelToBoundaries(ModelPart& model_part) : LocalRefineTetrahedraMesh(model_part)
+    LocalRefineTetrahedraMeshParallelToBoundaries(ModelPart& rModelPart) : LocalRefineTetrahedraMesh(rModelPart)
     {
 
     }
@@ -66,8 +66,8 @@ public:
     ///@name Operators
     ///@{
     void LocalRefineMesh(
-            bool RefineOnReference,
-            bool InterpolateInternalVariables
+        bool RefineOnReference,
+        bool InterpolateInternalVariables
     ) override
     {
         KRATOS_TRY;
@@ -86,12 +86,12 @@ public:
         //TODO : DIFFERENCE WITH BASE CLASS 1
         mPreviousRefinementLevel=0;
         unsigned int id = 1;
-        for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++)
-        {
+        for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++) {
             it->SetId(id++);
             int node_refinement_level = it->GetValue(REFINEMENT_LEVEL);
-            if(node_refinement_level>mPreviousRefinementLevel)
-                    mPreviousRefinementLevel=node_refinement_level;
+            if(node_refinement_level>mPreviousRefinementLevel) {
+                mPreviousRefinementLevel=node_refinement_level;
+            }
         }
         mCurrentRefinementLevel = mPreviousRefinementLevel+1;
 
@@ -115,11 +115,11 @@ public:
         //using the conditions to mark the boundary with the flag boundary
         //note that we DO NOT add the conditions to the model part
         // we also temporarily substract -100 to be able to spot the new ones:
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
-        {
+        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
             rNode.GetValue(REFINEMENT_LEVEL)-=100;
             rNode.Set(BOUNDARY,false);
         });
+
         block_for_each(mModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
             Geometry< Node<3> >& geom = rCondition.GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
@@ -145,8 +145,7 @@ public:
         RenumeringElementsAndNodes(mModelPart, New_Elements);
 
         //TODO : DIFFERENCE WITH BASE CLASS 3. fixing refinement level on new and old nodes:
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
-        {
+        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
             if(!rNode.Has(REFINEMENT_LEVEL)){
                 rNode.SetValue(REFINEMENT_LEVEL,mCurrentRefinementLevel);
             }
@@ -156,10 +155,8 @@ public:
         });
         
         
-        if (RefineOnReference)
-        {
-            block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
-            {
+        if (RefineOnReference) {
+            block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
                 const array_1d<double, 3 > & disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
                 rNode.X() = rNode.X0() + disp[0];
                 rNode.Y() = rNode.Y0() + disp[1];
@@ -180,8 +177,7 @@ public:
 
     void ResetFatherNodes(ModelPart &rModelPart) override
     {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
-        {
+        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
             if(rNode.GetValue(REFINEMENT_LEVEL)==0){
                 GlobalPointersVector<Node<3>> empty_father_vector;
                 rNode.SetValue(FATHER_NODES, empty_father_vector);
@@ -190,28 +186,22 @@ public:
     }
 
     void SearchEdgeToBeRefined(
-            ModelPart& this_model_part,
-            compressed_matrix<int>& Coord
+            ModelPart& rThisModelPart,
+            compressed_matrix<int>& rCoord
     ) override
     {
         KRATOS_TRY;
-        for (auto& r_elem: this_model_part.Elements())
-        {
-            if (r_elem.GetValue(SPLIT_ELEMENT))
-            {
-                Element::GeometryType& geom = r_elem.GetGeometry(); // Nodes of the element
-                for (unsigned int i = 0; i < geom.size(); i++)
-                {
-                    int index_i = geom[i].Id() - 1;
-                    bool is_boundary_i = geom[i].Is(BOUNDARY);
-                    for (unsigned int j = 0; j < geom.size(); j++)
-                    {
-                        int index_j = geom[j].Id() - 1;
-                        bool is_boundary_j = geom[j].Is(BOUNDARY);
-                        //if (index_j > index_i && is_boundary_j!=is_boundary_i) //old version, only edges that join internal and external nodes
-                        if (index_j > index_i && (is_boundary_j||is_boundary_i)) // new version, for single elem in thickness meshes
-                        {
-                            Coord(index_i, index_j) = -2;
+        for (auto& r_elem: rThisModelPart.Elements()) {
+            if (r_elem.GetValue(SPLIT_ELEMENT)) {
+                Element::GeometryType& r_geom = r_elem.GetGeometry(); // Nodes of the element
+                for (unsigned int i = 0; i < r_geom.size(); i++) {
+                    int index_i = r_geom[i].Id() - 1;
+                    bool is_boundary_i = r_geom[i].Is(BOUNDARY);
+                    for (unsigned int j = 0; j < r_geom.size(); j++) {
+                        int index_j = r_geom[j].Id() - 1;
+                        bool is_boundary_j = r_geom[j].Is(BOUNDARY);
+                        if (index_j > index_i && (is_boundary_j||is_boundary_i)) {
+                            rCoord(index_i, index_j) = -2;
                         }
                     }
                 }
@@ -219,20 +209,16 @@ public:
         }
 
         //unmarking edges belonging to the edges of conditions (skin) to avoid refining edges
-        for (auto& rCond : this_model_part.Conditions())
-        {
-            Condition::GeometryType& geom = rCond.GetGeometry(); // Nodes of the condition
-            for (unsigned int i = 0; i < geom.size(); i++)
-            {
-                    int index_i = geom[i].Id() - 1;
-                    for (unsigned int j = 0; j < geom.size(); j++)
-                    {
-                        int index_j = geom[j].Id() - 1;
-                        if (index_j > index_i) 
-                        {
-                            Coord(index_i, index_j) = -1;
-                        }
+        for (auto& r_cond : rThisModelPart.Conditions()) {
+            auto& r_geom = r_cond.GetGeometry(); // Nodes of the condition
+            for (unsigned int i = 0; i < r_geom.size(); i++) {
+                int index_i = r_geom[i].Id() - 1;
+                for (unsigned int j = 0; j < r_geom.size(); j++) {
+                    int index_j = r_geom[j].Id() - 1;
+                    if (index_j > index_i)  {
+                        rCoord(index_i, index_j) = -1;
                     }
+                }
             }
         }
 
@@ -244,40 +230,32 @@ public:
     {
         bool added_nodes=false;
 
-        for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
-                iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++)
-        {
-            
+        for (ModelPart::SubModelPartIterator it_submodel_part = rModelPart.SubModelPartsBegin();
+                it_submodel_part != rModelPart.SubModelPartsEnd(); it_submodel_part++) {
             added_nodes=false;
             for (auto it_node = rModelPart.Nodes().ptr_begin();
-                    it_node != rModelPart.Nodes().ptr_end(); it_node++)
-            {
-                GlobalPointersVector< Node<3> > &rFatherNodes = (*it_node)->GetValue(FATHER_NODES);
-                unsigned int ParentCount = rFatherNodes.size();
-
-                if (ParentCount > 0 && (*it_node)->GetValue(REFINEMENT_LEVEL)==mCurrentRefinementLevel)
-                {
+                    it_node != rModelPart.Nodes().ptr_end(); it_node++) {
+                auto &r_father_nodes = (*it_node)->GetValue(FATHER_NODES);
+                unsigned int ParentCount = r_father_nodes.size();
+                if (ParentCount > 0 && (*it_node)->GetValue(REFINEMENT_LEVEL)==mCurrentRefinementLevel) {
                     unsigned int ParentsInSubModelPart = 0;
 
-                    for (auto iParent = rFatherNodes.begin();
-                            iParent != rFatherNodes.end(); iParent++)
-                    {
-                        unsigned int ParentId = iParent->Id();
-                        ModelPart::NodeIterator iFound = iSubModelPart->Nodes().find( ParentId );
-                        if ( iFound != iSubModelPart->NodesEnd() )
+                    for (auto it_parent = r_father_nodes.begin(); it_parent != r_father_nodes.end(); it_parent++) {
+                        unsigned int parent_id = it_parent->Id();
+                        ModelPart::NodeIterator iFound = it_submodel_part->Nodes().find( parent_id );
+                        if ( iFound != it_submodel_part->NodesEnd() ) {
                             ParentsInSubModelPart++;
+                        }
                     }
 
-                    if ( ParentCount == ParentsInSubModelPart )
-                    {
-                        iSubModelPart->AddNode( *it_node );
+                    if ( ParentCount == ParentsInSubModelPart ) {
+                        it_submodel_part->AddNode( *it_node );
                         added_nodes=true;
                     }
                 }
             }
-            if(added_nodes)
-            {
-                 ModelPart &rSubModelPart = *iSubModelPart;
+            if(added_nodes) {
+                 ModelPart &rSubModelPart = *it_submodel_part;
                  UpdateSubModelPartNodes(rSubModelPart);
             }    
         }
