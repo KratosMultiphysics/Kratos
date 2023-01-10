@@ -2212,7 +2212,7 @@ namespace Kratos {
         const int number_of_particles = (int)mListOfSphericParticles.size();
         for (int i = 0; i < number_of_particles; i++) {
           const int contacts = mListOfSphericParticles[i]->mCoordNum;
-          mRVE_FileCoordinates << contacts << " ";
+          mRVE_FileContactNumber << contacts << " ";
         }
         mRVE_FileContactNumber << std::endl;
       }
