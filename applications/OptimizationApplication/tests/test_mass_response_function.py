@@ -5,6 +5,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
+from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
 
 class TestMassReponseFunctionBase(kratos_unittest.TestCase):
     @classmethod
@@ -15,18 +16,20 @@ class TestMassReponseFunctionBase(kratos_unittest.TestCase):
         cls.response_function = MassResponseFunction(cls.model, cls.GetParameters())
         cls.CreateElements()
 
-        cls.response_function.Initialize({})
-        cls.response_function.Check({})
-        cls.response_function.InitializeIteration({})
-        cls.ref_value = cls.response_function.CalculateValue({})
-        cls.response_function.CalculateSensitivity({})
+        cls.response_function.Initialize()
+        cls.response_function.Check()
+        cls.response_function.InitializeSolutionStep()
+        cls.ref_value = cls.response_function.CalculateValue()
+
+    def _CalculateSensitivity(self, sensitivity_variable, sensitivity_container_type: ContainerEnum):
+        self.response_function.CalculateSensitivity(sensitivity_variable, self.model_part, sensitivity_container_type)
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, precision):
-        ref_value = response_function.CalculateValue({})
+        ref_value = response_function.CalculateValue()
         for entity in entities:
             v = sensitivity_method(entity)
             update_method(entity, delta)
-            value = response_function.CalculateValue({})
+            value = response_function.CalculateValue()
             sensitivity = (value - ref_value)/delta
             update_method(entity, -delta)
             self.assertAlmostEqual(v, sensitivity, precision)
@@ -46,13 +49,8 @@ class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "name"                      : "test",
-            "model_part_name"           : "test",
-            "sensitivity_variable_names": [
-                "SHAPE_SENSITIVITY",
-                "DENSITY_SENSITIVITY",
-                "CROSS_AREA_SENSITIVITY"
-            ]
+            "name"           : "test",
+            "model_part_name": "test"
         }""")
 
     @classmethod
@@ -72,6 +70,7 @@ class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 126, 12)
 
     def test_CalculateShapeSensitivity(self):
+        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerEnum.NODES)
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
             self.response_function,
@@ -90,6 +89,8 @@ class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
+        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+
         # calculate element density sensitivity
         self._CheckSensitivity(
             self.response_function,
@@ -100,6 +101,8 @@ class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
             6)
 
     def test_CalculateCrossAreaSensitivity(self):
+        self._CalculateSensitivity(KratosOA.CROSS_AREA_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+
         # calculate element cross area sensitivity
         self._CheckSensitivity(
             self.response_function,
@@ -113,13 +116,8 @@ class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "name"                      : "test",
-            "model_part_name"           : "test",
-            "sensitivity_variable_names": [
-                "SHAPE_SENSITIVITY",
-                "DENSITY_SENSITIVITY",
-                "THICKNESS_SENSITIVITY"
-            ]
+            "name"           : "test",
+            "model_part_name": "test"
         }""")
 
     @classmethod
@@ -143,6 +141,8 @@ class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 15, 12)
 
     def test_CalculateShapeSensitivity(self):
+        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerEnum.NODES)
+
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
             self.response_function,
@@ -161,6 +161,8 @@ class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
+        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+
         # calculate element density sensitivity
         self._CheckSensitivity(
             self.response_function,
@@ -171,6 +173,8 @@ class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
             6)
 
     def test_CalculateThicknessSensitivity(self):
+        self._CalculateSensitivity(KratosOA.THICKNESS_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+
         # calculate element cross area sensitivity
         self._CheckSensitivity(
             self.response_function,
@@ -184,12 +188,8 @@ class TestMassResponseFunctionSolids(TestMassReponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "name"                      : "test",
-            "model_part_name"           : "test",
-            "sensitivity_variable_names": [
-                "SHAPE_SENSITIVITY",
-                "DENSITY_SENSITIVITY"
-            ]
+            "name"           : "test",
+            "model_part_name": "test"
         }""")
 
     @classmethod
@@ -215,6 +215,7 @@ class TestMassResponseFunctionSolids(TestMassReponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, v, 12)
 
     def test_CalculateShapeSensitivity(self):
+        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerEnum.NODES)
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
             self.response_function,
@@ -241,6 +242,8 @@ class TestMassResponseFunctionSolids(TestMassReponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
+        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+
         # calculate element density sensitivity
         self._CheckSensitivity(
             self.response_function,
