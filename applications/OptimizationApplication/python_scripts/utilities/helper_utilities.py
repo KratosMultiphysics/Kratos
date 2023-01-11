@@ -2,8 +2,9 @@ from importlib import import_module
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 
-def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, object_type = object):
+def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo, object_type = object):
     default_settings = Kratos.Parameters("""{
         "module"  : "",
         "type"    : "",
@@ -22,7 +23,7 @@ def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, object_ty
 
     try:
         module = import_module(module_name)
-        retrieved_object = getattr(module, class_name)(model, parameters["settings"])
+        retrieved_object = getattr(module, class_name)(model, parameters["settings"], optimization_info)
         if not isinstance(retrieved_object, object_type):
             raise ImportError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not of the required type \"{object_type.__name__}\".")
         else:
