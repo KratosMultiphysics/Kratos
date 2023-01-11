@@ -2,7 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -43,7 +42,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],

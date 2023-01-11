@@ -32,7 +32,6 @@ class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
