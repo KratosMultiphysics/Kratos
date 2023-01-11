@@ -53,9 +53,11 @@ public:
     ///@{
 
     /// Default constructors
-    LocalRefineTetrahedraMeshParallelToBoundaries(ModelPart& rModelPart) : LocalRefineTetrahedraMesh(rModelPart)
+    explicit LocalRefineTetrahedraMeshParallelToBoundaries(ModelPart& rModelPart)
+     : LocalRefineTetrahedraMesh(rModelPart),
+       mPreviousRefinementLevel(0),
+       mCurrentRefinementLevel(0)
     {
-
     }
 
     /// Destructor
@@ -86,7 +88,7 @@ public:
         //TODO : DIFFERENCE WITH BASE CLASS 1
         mPreviousRefinementLevel=0;
         unsigned int id = 1;
-        for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++) {
+        for (auto it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); ++it) {
             it->SetId(id++);
             int node_refinement_level = it->GetValue(REFINEMENT_LEVEL);
             if(node_refinement_level>mPreviousRefinementLevel) {
@@ -225,25 +227,25 @@ public:
     {
         bool added_nodes=false;
 
-        for (ModelPart::SubModelPartIterator it_submodel_part = rModelPart.SubModelPartsBegin();
+        for (auto it_submodel_part = rModelPart.SubModelPartsBegin();
                 it_submodel_part != rModelPart.SubModelPartsEnd(); it_submodel_part++) {
             added_nodes=false;
             for (auto it_node = rModelPart.Nodes().ptr_begin();
                     it_node != rModelPart.Nodes().ptr_end(); it_node++) {
                 auto &r_father_nodes = (*it_node)->GetValue(FATHER_NODES);
-                unsigned int ParentCount = r_father_nodes.size();
-                if (ParentCount > 0 && (*it_node)->GetValue(REFINEMENT_LEVEL)==mCurrentRefinementLevel) {
-                    unsigned int ParentsInSubModelPart = 0;
+                unsigned int parent_count = r_father_nodes.size();
+                if (parent_count > 0 && (*it_node)->GetValue(REFINEMENT_LEVEL)==mCurrentRefinementLevel) {
+                    unsigned int parents_in_submodel_part = 0;
 
                     for (auto it_parent = r_father_nodes.begin(); it_parent != r_father_nodes.end(); it_parent++) {
                         unsigned int parent_id = it_parent->Id();
                         ModelPart::NodeIterator iFound = it_submodel_part->Nodes().find( parent_id );
                         if ( iFound != it_submodel_part->NodesEnd() ) {
-                            ParentsInSubModelPart++;
+                            parents_in_submodel_part++;
                         }
                     }
 
-                    if ( ParentCount == ParentsInSubModelPart ) {
+                    if ( parent_count == parents_in_submodel_part ) {
                         it_submodel_part->AddNode( *it_node );
                         added_nodes=true;
                     }
@@ -252,7 +254,7 @@ public:
             if(added_nodes) {
                  ModelPart &rSubModelPart = *it_submodel_part;
                  UpdateSubModelPartNodes(rSubModelPart);
-            }    
+            }
         }
     }
 

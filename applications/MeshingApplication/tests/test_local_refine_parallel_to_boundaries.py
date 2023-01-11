@@ -6,9 +6,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os
 
-# Import stuff
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
-
 class TestLocalRefineParallelToBoundaries(KratosUnittest.TestCase):
 
     def _ComputeVolume(self,Elements):
@@ -41,7 +38,7 @@ class TestLocalRefineParallelToBoundaries(KratosUnittest.TestCase):
             elem.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
 
         #refining
-        refiner = KratosMultiphysics.MeshingApplication.LocalRefineTetrahedraMeshParallelToBoundaries(main_model_part)
+        refiner = MeshingApplication.LocalRefineTetrahedraMeshParallelToBoundaries(main_model_part)
         refine_on_reference = False
         interpolate_internal_variables = True
         refiner.LocalRefineMesh( refine_on_reference, interpolate_internal_variables)
@@ -58,31 +55,31 @@ class TestLocalRefineParallelToBoundaries(KratosUnittest.TestCase):
         #the initial geometry was a cube with 3X3x3 tets, identical size
         #one of the sides of the cube does not have BCs, so that side will be refined.
         #in the remaning 5 faces, where triangles are presents, their edges are not cut, so the original number of BCs is kept
-        ''' 
-        gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISTANCE"]
-                                            }
-                                        }
-                                        """)
-                                    )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
-        '''
+        # gid_output = GiDOutputProcess(main_model_part,
+        #                             "gid_output",
+        #                             KratosMultiphysics.Parameters("""
+        #                                 {
+        #                                     "result_file_configuration" : {
+        #                                         "gidpost_flags": {
+        #                                             "GiDPostMode": "GiD_PostBinary",
+        #                                             "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                             "WriteConditionsFlag": "WriteConditions",
+        #                                             "MultiFileFlag": "SingleFile"
+        #                                         },
+        #                                         "nodal_results"       : ["DISTANCE"]
+        #                                     }
+        #                                 }
+        #                                 """)
+        #                             )
+
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
+
 
 
 if __name__ == '__main__':
