@@ -242,9 +242,9 @@ protected:
         Matrix TensorIdentityMatrix;
 
         //Variables for OSGS variable
-        Vector GPResidualU;
-        double GPResidualP;
-        
+        Vector ResProjDisplGP;
+        double ResProjPressGP;
+
         //Modulus
         double ShearModulus;
         double BulkModulus;

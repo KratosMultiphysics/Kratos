@@ -191,6 +191,10 @@ void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVari
     rVariables.Identity = IdentityMatrix(dimension);
     rVariables.TensorIdentityMatrix = ZeroMatrix(voigt_dimension,voigt_dimension);
 
+    // Set variables for OSGS stabilization
+    rVariables.ResProjDisplGP = ZeroVector(dimension);
+    rVariables.ResProjPressGP = 0;
+
     KRATOS_CATCH( "" )
 
 }
@@ -318,6 +322,23 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
         : false;
 
     //if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+
+
+    // Compute Residual Projection in integration points
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 3)
+    {
+        array_1d<double, 3 > nodal_resprojdispl = ZeroVector(3);
+        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        {
+            rVariables.ResProjPressGP += r_N(0,j) * r_geometry[j].FastGetSolutionStepValue(RESPROJ_PRESS);
+
+            nodal_resprojdispl= r_geometry[j].FastGetSolutionStepValue(RESPROJ_DISPL,0);
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                rVariables.ResProjDisplGP[k] += r_N(0, j) * nodal_resprojdispl[k];
+            }
+        }
+    }
 
 
     // Compute Shear modulus and Bulk Modulus
@@ -599,10 +620,10 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
         unsigned int index_up = dimension * i + i;
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf1(i) * rIntegrationWeight;
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim]) * Testf2(indexi)  * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf1(i) * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) -VolumetricStrainFunction ) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) -VolumetricStrainFunction + rVariables.ResProjPressGP) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             indexi++;
         }
     }
@@ -632,10 +653,10 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-           rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime]) * rIntegrationWeight;
+           rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] + rVariables.DynamicRHS[idime] + rVariables.ResProjDisplGP[idime]) * rIntegrationWeight;
         }
 
-        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
+        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction + rVariables.ResProjPressGP) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
@@ -934,9 +955,9 @@ void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vecto
 {
 
     GeometryType& r_geometry = this->GetGeometry();
-    const unsigned int dimension        = r_geometry.WorkingSpaceDimension();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = rVolumeForce[k] - rVariables.PressureGradient[k];
+    for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = rVolumeForce[k] + rVariables.PressureGradient[k];
     rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
 
 }
