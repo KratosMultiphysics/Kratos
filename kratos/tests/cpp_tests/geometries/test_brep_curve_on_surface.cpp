@@ -84,7 +84,6 @@ namespace Testing {
             p_surface, p_curve);
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), 1);
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), 1);
 
@@ -104,7 +103,6 @@ namespace Testing {
 
         auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(brep_curve_on_surface);
 
-        KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), brep_curve_on_surface_2.Dimension());
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), brep_curve_on_surface_2.WorkingSpaceDimension());
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), brep_curve_on_surface_2.LocalSpaceDimension());
 

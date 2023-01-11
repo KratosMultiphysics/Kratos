@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -260,6 +260,10 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::pat
 
             if(act_it.value().is_object()) {
                 s.emplace(&act_it.value(), act_it.value().begin());
+            } else if (act_it.value().is_array()) {
+                for (auto it : act_it.value().items()) {
+                    SolveIncludes(it.value(), rFileName, rIncludeSequence);
+                }
             } else if (act_it.key() == "@include_json") {
                 // Check whether the included file exists
                 const std::string included_file_path_string = *act_it;
@@ -478,6 +482,20 @@ Parameters Parameters::AddEmptyValue(const std::string& rEntry)
 bool Parameters::RemoveValue(const std::string& rEntry)
 {
     return static_cast<bool>(mpValue->erase(rEntry));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::RemoveValues(const std::vector<std::string>& rEntries)
+{
+    for (const auto& r_entry : rEntries) {
+        if (!this->Has(r_entry)) return false;
+    }
+    for (const auto& r_entry : rEntries) {
+        this->RemoveValue(r_entry);
+    }
+    return true;
 }
 
 /***********************************************************************************/
@@ -1083,6 +1101,27 @@ void Parameters::Append(const Parameters& rValue)
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
     nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString(), nullptr, true, true));
     mpValue->push_back(j_object);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::CopyValuesFromExistingParameters(
+    const Parameters OriginParameters,
+    const std::vector<std::string>& rListParametersToCopy
+    )
+{
+    for (const auto& r_value_name : rListParametersToCopy) {
+        if (OriginParameters.Has(r_value_name)) {
+            if (this->Has(r_value_name)) {
+                KRATOS_ERROR << r_value_name << " already defined in destination (check keyword is not duplicated in the list) Parameters:\n\n" << this->PrettyPrintJsonString() << std::endl;
+            } else {
+                this->AddValue(r_value_name, OriginParameters[r_value_name]);
+            }
+        } else {
+            KRATOS_ERROR << r_value_name << " not defined in origin Parameters:\n\n" << OriginParameters.PrettyPrintJsonString() << std::endl;
+        }
+    }
 }
 
 /***********************************************************************************/

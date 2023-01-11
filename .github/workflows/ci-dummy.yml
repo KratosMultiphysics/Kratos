@@ -1,6 +1,6 @@
 name: CI
 
-# this is required to satisfy the required checks ba replacing them with dummy checks
+# this is required to satisfy the required checks by replacing them with dummy checks
 # see https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/troubleshooting-required-status-checks#handling-skipped-but-required-checks
 
 on:
@@ -16,6 +16,8 @@ on:
       - '.github/workflows/nightly_build.yml'
       - 'kratos/templates/**'
       - 'kratos/python_scripts/application_generator/**'
+      - 'docs/**'
+      - '.github/workflows/jekyll-gh-pages.yml'
 
 permissions:
   contents: read
