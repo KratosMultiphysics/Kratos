@@ -699,12 +699,12 @@ public:
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
-        double e_max = elem_i.GetProperties().GetValue(E_MAX);
-        double e_min = elem_i.GetProperties().GetValue(E_MIN);
-        double e_pr = elem_i.GetProperties().GetValue(E_PR);
-        double e_pe = elem_i.GetProperties().GetValue(E_PE);
-        double re_pr = e_min + mStressPenaltyFactor * std::pow((e_pr-e_min)/(e_max-e_min),mStressPenaltyFactor-1) * (e_max-e_min);
-        elem_i.GetProperties().SetValue(YOUNG_MODULUS,re_pr);        
+        // double e_max = elem_i.GetProperties().GetValue(E_MAX);
+        // double e_min = elem_i.GetProperties().GetValue(E_MIN);
+        // double e_pr = elem_i.GetProperties().GetValue(E_PR);
+        // double e_pe = elem_i.GetProperties().GetValue(E_PE);
+        // double re_pr = e_min + mStressPenaltyFactor * std::pow((e_pr-e_min)/(e_max-e_min),mStressPenaltyFactor-1) * (e_max-e_min);
+        // elem_i.GetProperties().SetValue(YOUNG_MODULUS,re_pr);        
 
         std::vector<double> gp_weights_vector;
         elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);        
@@ -739,7 +739,7 @@ public:
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * elem_sens / number_of_nodes;
         }
 
-        elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+        // elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
 
     };    
 
@@ -826,13 +826,10 @@ public:
 
 
         Vector d_RHS_d_E;
-        double e_max = elem_i.GetProperties().GetValue(E_MAX);
-        double e_min = elem_i.GetProperties().GetValue(E_MIN);
-        double e_pr = elem_i.GetProperties().GetValue(E_PR);
-        double e_pe = elem_i.GetProperties().GetValue(E_PE);
+        double e_curr = elem_i.GetProperties().GetValue(YOUNG_MODULUS);
         elem_i.GetProperties().SetValue(YOUNG_MODULUS,1.0);
         elem_i.CalculateRightHandSide(d_RHS_d_E,rCurrentProcessInfo);
-        elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+        elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_curr);
 
 
         // Vector d_RHS_d_D;
@@ -844,7 +841,7 @@ public:
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
-            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * (e_min + 3 * std::pow((e_pr-e_min)/(e_max-e_min),2.0) * (e_max-e_min)) * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
 
             // const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
             // r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pd_d_fd * inner_prod(d_RHS_d_D,lambda);
