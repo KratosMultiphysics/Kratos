@@ -93,6 +93,7 @@
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
+#include "custom_conditions/moving_load_condition.h"
 
 /* Adding the displacement-based SBM condition */
 #include "custom_conditions/displacement_shifted_boundary_condition.h"
@@ -473,6 +474,12 @@ private:
 
     // SBM displacement conditions
     const DisplacementShiftedBoundaryCondition mDisplacementShiftedBoundaryCondition;
+
+    // Moving load
+    const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;
+    const MovingLoadCondition<2, 3> mMovingLoadCondition2D3N;
+    const MovingLoadCondition<3, 2> mMovingLoadCondition3D2N;
+    const MovingLoadCondition<3, 3> mMovingLoadCondition3D3N;
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
