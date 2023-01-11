@@ -3,13 +3,14 @@ from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import RetrieveObject
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
 from KratosMultiphysics.OptimizationApplication.responses.response_function import GetSensitivityContainer
 
 class ResponseFunctionBaseWrapper(ABC):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_parameters = self.GetDefaultParameters()
         parameters.ValidateAndAssignDefaults(default_parameters)
 
@@ -24,7 +25,7 @@ class ResponseFunctionBaseWrapper(ABC):
         response_function_settings.AddString("module", parameters["module"])
         response_function_settings.AddString("type", parameters["type"])
         response_function_settings.AddString("settings", parameters["settings"])
-        self.response_function: ResponseFunction = RetrieveObject(self.model, response_function_settings, ResponseFunction)
+        self.response_function: ResponseFunction = RetrieveObject(self.model, response_function_settings, optimization_info, ResponseFunction)
 
         # response storage
         self.response_value = None
@@ -84,7 +85,7 @@ class ResponseFunctionBaseWrapper(ABC):
         return self._StandardizeValue(self.GetValue())
 
     def GetStandardizedSensitivitydef(self, sensitivity_variable, sensitivity_model_part: Kratos.ModelPart, sensitivity_container_type: ContainerEnum):
-        return self._StandardizeSensitivity(self.GetSensitivity(sensitivity_variable, sensitivity_model_part, sensitivity_container_type)))
+        return self._StandardizeSensitivity(self.GetSensitivity(sensitivity_variable, sensitivity_model_part, sensitivity_container_type))
 
     @abstractmethod
     def _StandardizeValue(self, value):
@@ -108,8 +109,10 @@ class ResponseFunctionBaseWrapper(ABC):
 
 
 class ObjectiveResponseFunctionWrapper(ResponseFunctionBaseWrapper):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        super().__init__(model, parameters)
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
+
+        self.scaling = parameters["scaling"].GetDouble()
 
         self.objective = parameters["objective"].GetString()
         match self.objective:
@@ -126,6 +129,7 @@ class ObjectiveResponseFunctionWrapper(ResponseFunctionBaseWrapper):
             "module"   : "",
             "type"     : "",
             "objective": "",
+            "scaling"  : 1.0,
             "settings" : {}
         }""")
 
@@ -133,23 +137,27 @@ class ObjectiveResponseFunctionWrapper(ResponseFunctionBaseWrapper):
         return True
 
     def _StandardizeValue(self, value):
-        return value * self.standardization_value
+        return value * self.standardization_value * self.scaling
 
     def _StandardizeSensitivity(self, sensitivities):
-        return sensitivities * self.standardization_value
+        return sensitivities * self.standardization_value * self.scaling
 
     def GetInfo(self, spacing: str) -> str:
         info  = f"{spacing}response name              : {self.name}\n"
         info += f"{spacing}response type              : {self.response_function.__class__.__name__}\n"
         info += f"{spacing}response objective         : {self.objective}\n"
         info += f"{spacing}response value             : {self.GetValue()}\n"
+        info += f"{spacing}response value             : {self.GetValue()}\n"
         info += f"{spacing}standardized response value: {self.GetStandardizedValue()}\n"
         return info
 
 
 class ConstraintResponseFunctionWrapper(ResponseFunctionBaseWrapper):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        super().__init__(model, parameters)
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
+
+        self.scaling = parameters["scaling"].GetDouble()
+        self.ref_scaling = parameters["ref_scaling"].GetDouble()
 
         self.ref_type = parameters["ref_type"].GetString()
         match self.ref_type:
@@ -171,13 +179,15 @@ class ConstraintResponseFunctionWrapper(ResponseFunctionBaseWrapper):
 
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "name"      : "",
-            "module"    : "",
-            "type"      : "",
-            "constraint": "",
-            "ref_type"  : "",
-            "ref_value" : 0.0,
-            "settings"  : {}
+            "name"       : "",
+            "module"     : "",
+            "type"       : "",
+            "scaling"    : 1.0,
+            "constraint" : "",
+            "ref_type"   : "",
+            "ref_value"  : 0.0,
+            "ref_scaling": 1.0,
+            "settings"   : {}
         }""")
 
     def IsActive(self) -> bool:
@@ -186,18 +196,19 @@ class ConstraintResponseFunctionWrapper(ResponseFunctionBaseWrapper):
     def _StandardizeValue(self, value):
         if self.reference_value is None:
             self.reference_value = self.GetValue()
-        return self.standardization_value * (value - self.reference_value)
+        return self.standardization_value * (value - self.reference_value * self.ref_scaling) * self.scaling
 
     def _StandardizeSensitivity(self, sensitivities):
-        return sensitivities * self.standardization_value
+        return sensitivities * self.standardization_value * self.scaling
 
     def GetInfo(self, spacing: str) -> str:
-        info  = f"{spacing}response name              : {self.name}\n"
-        info += f"{spacing}response type              : {self.response_function.__class__.__name__}\n"
-        info += f"{spacing}response constraint        : {self.ref_type}\n"
-        info += f"{spacing}response value             : {self.GetValue()}\n"
-        info += f"{spacing}response reference value   : {self.reference_value}\n"
-        info += f"{spacing}standardized response value: {self.GetStandardizedValue()}\n"
+        info  = f"{spacing}constraint name                  : {self.name}\n"
+        info += f"{spacing}constraint type                  : {self.response_function.__class__.__name__}\n"
+        info += f"{spacing}constraint constraint            : {self.ref_type}\n"
+        info += f"{spacing}constraint value                 : {self.GetValue()}\n"
+        info += f"{spacing}constraint value                 : {self.GetValue()}\n"
+        info += f"{spacing}constraint scaled reference value: {self.reference_value * self.ref_scaling}\n"
+        info += f"{spacing}standardized constraint value: {self.GetStandardizedValue()}\n"
         return info
 
 

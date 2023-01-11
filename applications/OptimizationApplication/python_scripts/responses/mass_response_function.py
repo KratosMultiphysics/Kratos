@@ -10,14 +10,15 @@
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
 from KratosMultiphysics.OptimizationApplication.responses.response_function import GetSensitivityContainer
 
 
 class MassResponseFunction(ResponseFunction):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        super().__init__(model, parameters)
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
 
         default_settings = Kratos.Parameters("""{
             "name"           : "",

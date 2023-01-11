@@ -13,6 +13,7 @@ from abc import abstractmethod
 from enum import Enum
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 
 class ContainerEnum(Enum):
     NODES = 1
@@ -33,9 +34,10 @@ def GetSensitivityContainer(model_part: Kratos.ModelPart, container_type: Contai
             raise RuntimeError("Unsupported container type requested.")
 
 class ResponseFunction(ABC):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         self.model = model
         self.parameters = parameters
+        self.optimization_info = optimization_info
 
     def Initialize(self):
         pass
