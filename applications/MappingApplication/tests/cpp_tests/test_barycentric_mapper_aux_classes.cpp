@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
-    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
     KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
@@ -145,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
-    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
     KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
@@ -179,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
-    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
     KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 
