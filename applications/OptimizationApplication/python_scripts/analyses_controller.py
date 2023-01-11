@@ -42,31 +42,31 @@ class AnalysesController:
 
     # --------------------------------------------------------------------------
     def GetAnalysis(self, execution_policy_name: str):
-        return self.GetExecutionPolicyWrapper(execution_policy_name).GetExecutionPolicy().GetAnalysis({})
+        return self.GetExecutionPolicyWrapper(execution_policy_name).GetExecutionPolicy().GetAnalysis()
 
     # --------------------------------------------------------------------------
     def Initialize(self):
         for execution_policy_wrapper in self.execution_policy_wrappers.values():
             execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
-                execution_policy_wrapper.Initialize({})
+                execution_policy_wrapper.Initialize()
 
     def InitializeIteration(self):
         for execution_policy_wrapper in self.execution_policy_wrappers.values():
             execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing iteration {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
-                execution_policy_wrapper.InitializeIteration({})
+                execution_policy_wrapper.InitializeIteration()
 
     # --------------------------------------------------------------------------
     def RunAnalysis(self, execution_policy_name: str):
         with TimeLogger(self.__class__.__name__, f"Starting {execution_policy_name}...", f"Finished execution of {execution_policy_name}."):
-            self.GetExecutionPolicyWrapper(execution_policy_name).Execute({})
+            self.GetExecutionPolicyWrapper(execution_policy_name).Execute()
 
     def FinalizeIteration(self):
         for execution_policy_wrapper in self.execution_policy_wrappers.values():
             execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing iteration {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
-                execution_policy_wrapper.FinalizeIteration({})
+                execution_policy_wrapper.FinalizeIteration()
 
     # --------------------------------------------------------------------------
     def RunAll(self):

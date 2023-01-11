@@ -30,12 +30,12 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
             }
         }""")
         execution_policy = ExecutionPolicyWrapper(self.model, parameters)
-        execution_policy.Initialize({})
-        execution_policy.InitializeIteration({})
-        execution_policy.Execute({})
-        self.assertTrue(isinstance(execution_policy.GetExecutionPolicy().GetAnalysis({}), MultistageAnalysis))
-        execution_policy.FinalizeIteration({})
-        execution_policy.Finalize({})
+        execution_policy.Initialize()
+        execution_policy.InitializeIteration()
+        execution_policy.Execute()
+        self.assertTrue(isinstance(execution_policy.GetExecutionPolicy().GetAnalysis(), MultistageAnalysis))
+        execution_policy.FinalizeIteration()
+        execution_policy.Finalize()
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

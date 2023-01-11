@@ -18,22 +18,22 @@ class ExecutionPolicy(ABC):
         self.model = model
         self.parameters = parameters
 
-    def Initialize(self, optimization_info: dict):
+    def Initialize(self):
         pass
 
-    def InitializeIteration(self, optimization_info: dict):
+    def InitializeIteration(self):
         pass
 
-    def FinalizeIteration(self, optimization_info: dict):
+    def FinalizeIteration(self):
         pass
 
-    def Finalize(self, optimization_info: dict):
-        pass
-
-    @abstractmethod
-    def Execute(self, optimization_info: dict):
+    def Finalize(self):
         pass
 
     @abstractmethod
-    def GetAnalysis(self, optimization_info: dict):
+    def Execute(self):
+        pass
+
+    @abstractmethod
+    def GetAnalysis(self):
         pass

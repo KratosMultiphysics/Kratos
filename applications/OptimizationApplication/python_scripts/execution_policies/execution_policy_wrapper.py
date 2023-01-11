@@ -100,29 +100,29 @@ class ExecutionPolicyWrapper:
         parameters["execution_policy_settings"].ValidateAndAssignDefaults(default_parameters["execution_policy_settings"])
         self.__execution_policy = RetrieveObject(model, parameters["execution_policy_settings"], ExecutionPolicy)
 
-    def Initialize(self, optimization_info: dict):
-        self.__execution_policy.Initialize(optimization_info)
+    def Initialize(self):
+        self.__execution_policy.Initialize()
 
-    def InitializeIteration(self, optimization_info: dict):
+    def InitializeIteration(self):
         self.__is_executed = False
-        self.__execution_policy.InitializeIteration(optimization_info)
+        self.__execution_policy.InitializeIteration()
 
-    def Execute(self, optimization_info: dict):
+    def Execute(self):
         if not self.__is_executed:
             if self.__log_in_file:
                 with FileLogger(self.__name + ".log"):
-                    self.__ExecuteWithoutFileLogger(optimization_info)
+                    self.__ExecuteWithoutFileLogger()
             else:
-                self.__ExecuteWithoutFileLogger(optimization_info)
+                self.__ExecuteWithoutFileLogger()
         else:
             if self.__echo_level > 1:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Skipping execution of {self.__name} because it has already executed for this iteration.")
 
-    def FinalizeIteration(self, optimization_info: dict):
-        self.__execution_policy.FinalizeIteration(optimization_info)
+    def FinalizeIteration(self):
+        self.__execution_policy.FinalizeIteration()
 
-    def Finalize(self, optimization_info: dict):
-        self.__execution_policy.Finalize(optimization_info)
+    def Finalize(self):
+        self.__execution_policy.Finalize()
 
     def GetExecutionPolicy(self):
         return self.__execution_policy
@@ -130,9 +130,9 @@ class ExecutionPolicyWrapper:
     def GetName(self):
         return self.__name
 
-    def __ExecuteWithoutFileLogger(self, optimization_info: dict):
+    def __ExecuteWithoutFileLogger(self):
         self.__RunPreExecutionPolicyOperations()
-        self.__execution_policy.Execute(optimization_info)
+        self.__execution_policy.Execute()
         self.__RunPostExecutionPolicyOperations()
 
     def __RunPreExecutionPolicyOperations(self):

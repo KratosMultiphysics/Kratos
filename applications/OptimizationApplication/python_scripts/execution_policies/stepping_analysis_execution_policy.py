@@ -30,16 +30,13 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         self.model_parts = []
         self.__analysis = RetrieveObject(self.model, parameters["analysis_settings"], AnalysisStage)
 
-    def Initialize(self, _: dict):
+    def Initialize(self):
         self.__analysis.Initialize()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
 
-    def InitializeIteration(self, _: dict):
-        pass
-
-    def Execute(self, _: dict):
+    def Execute(self):
         time_before_analysis = []
         step_before_analysis = []
         delta_time_before_analysis = []
@@ -69,12 +66,6 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index])
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_analysis[index])
 
-    def FinalizeIteration(self, _: dict):
-        pass
-
-    def Finalize(self, _: dict):
-        pass
-
-    def GetAnalysis(self, _: dict):
+    def GetAnalysis(self):
         return self.__analysis
 
