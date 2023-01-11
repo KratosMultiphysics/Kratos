@@ -24,14 +24,14 @@ class ExecutionPolicy(ABC):
     def InitializeIteration(self, optimization_info: dict):
         pass
 
-    @abstractmethod
-    def Execute(self, optimization_info: dict):
-        pass
-
     def FinalizeIteration(self, optimization_info: dict):
         pass
 
     def Finalize(self, optimization_info: dict):
+        pass
+
+    @abstractmethod
+    def Execute(self, optimization_info: dict):
         pass
 
     @abstractmethod
