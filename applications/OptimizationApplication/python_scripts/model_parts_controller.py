@@ -24,25 +24,25 @@ class ModelPartsController:
         self.model = model
 
         default_settings = KM.Parameters("""
-        {            
+        {
             "name"       : "MODEL_PART_NAME",
             "type"     : "mdpa",
             "settings"              : {
                 "domain_size"           : 3,
                 "input_filename" : "MODEL_PART_FILENAME"
             }
-        }""")      
+        }""")
 
         for itr in range(self.model_parts_settings.size()):
             for key in default_settings.keys():
                 if not self.model_parts_settings[itr].Has(key):
-                    raise RuntimeError("ModelPartsController: Required setting '{}' missing in 'model_part Nr.{}'!".format(key,itr+1))  
+                    raise RuntimeError("ModelPartsController: Required setting '{}' missing in 'model_part Nr.{}'!".format(key,itr+1))
             self.model_parts_settings[itr].ValidateAndAssignDefaults(default_settings)
             for key in default_settings["settings"].keys():
                 if not self.model_parts_settings[itr]["settings"].Has(key):
-                    raise RuntimeError("ModelPartsController: Required setting '{}' missing in 'model_import_settings' of 'model_part Nr.{}' !".format(key,itr+1))             
-            self.model_parts_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"]) 
-  
+                    raise RuntimeError("ModelPartsController: Required setting '{}' missing in 'model_import_settings' of 'model_part Nr.{}' !".format(key,itr+1))
+            self.model_parts_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])
+
         self.root_model_part_name_filename_map={}
         self.name_root_model_part_map={}
         for model_part_settings in self.model_parts_settings:
@@ -52,13 +52,13 @@ class ModelPartsController:
             if input_type != "mdpa":
                 raise RuntimeError("The model part "+format(model_part_name)+" for the optimization has to be read from the mdpa file!")
             if model_part_name in self.root_model_part_name_filename_map.keys():
-                raise RuntimeError("ModelPartsController: there are duplicated model parts !") 
+                raise RuntimeError("ModelPartsController: there are duplicated model parts !")
             if input_filename in self.root_model_part_name_filename_map.values():
-                raise RuntimeError("ModelPartsController: there are duplicated input files !")                
+                raise RuntimeError("ModelPartsController: there are duplicated input files !")
             optimization_model_part = self.model.CreateModelPart(model_part_name)
             optimization_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, model_part_settings["settings"]["domain_size"].GetInt())
             self.root_model_part_name_filename_map[model_part_name] = input_filename
-            self.name_root_model_part_map[model_part_name] = optimization_model_part             
+            self.name_root_model_part_map[model_part_name] = optimization_model_part
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -78,7 +78,7 @@ class ModelPartsController:
     def CheckIfRootModelPartsExist(self,root_model_parts_name,raise_error=True):
         if type(root_model_parts_name) is not list:
             raise RuntimeError("ModelPartsController: CheckIfRootModelPartsExist requires list of model parts")
-        
+
         if_exist = True
         for root_model_part_name in root_model_parts_name:
             extracted_root_model_part_name = root_model_part_name.split(".")[0]
@@ -91,12 +91,6 @@ class ModelPartsController:
 
         return if_exist
     # --------------------------------------------------------------------------
-    def GetModelPart(self, model_part_name):
-        if not model_part_name in self.model.GetModelPartNames():
-            raise RuntimeError("ModelPartsController: Try to get model part {} which does not exist.".format(model_part_name))
-        else:
-            return self.model.GetModelPart(model_part_name)
-    # --------------------------------------------------------------------------
     def GetRootModelPart(self, root_model_part_name):
         extracted_root_model_part_name = root_model_part_name.split(".")[0]
         if not extracted_root_model_part_name in self.name_root_model_part_map.keys():
@@ -104,24 +98,10 @@ class ModelPartsController:
         else:
             return self.name_root_model_part_map[extracted_root_model_part_name]
     # --------------------------------------------------------------------------
-    def GetRootModelParts(self, root_model_parts_name):
-        if type(root_model_parts_name) is not list:
-            raise RuntimeError("ModelPartsController: GetRootModelParts requires list of model parts name")
-        list_root_model_parts = []
-        for root_model_part_name in root_model_parts_name:
-            extracted_root_model_part_name = root_model_part_name.split(".")[0]
-            if not extracted_root_model_part_name in self.name_root_model_part_map.keys():
-                raise RuntimeError("ModelPartsController: GetRootModelParts: Root model part {} does not exist!".format(extracted_root_model_part_name))
-            else:
-                list_root_model_parts.append(self.name_root_model_part_map[extracted_root_model_part_name])
-
-        return list_root_model_parts
-            
-    # --------------------------------------------------------------------------
     def UpdateTimeStep(self, step):
         for root_model_part in self.name_root_model_part_map.values():
             root_model_part.CloneTimeStep(step)
-            root_model_part.ProcessInfo.SetValue(KM.STEP, step)            
+            root_model_part.ProcessInfo.SetValue(KM.STEP, step)
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
         for root_model in self.name_root_model_part_map.values():
