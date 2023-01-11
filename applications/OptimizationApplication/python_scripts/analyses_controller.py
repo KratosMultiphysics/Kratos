@@ -28,10 +28,10 @@ class AnalysesController:
         self.execution_policy_wrappers = {}
         for execution_policy_settings in self.execution_policies_settings:
             execution_policy_wrapper = ExecutionPolicyWrapper(self.model, execution_policy_settings)
-            if not execution_policy_wrapper.GetExecutionPolicyName() in self.execution_policy_wrappers.keys():
-                self.execution_policy_wrappers[execution_policy_wrapper.GetExecutionPolicyName()] = execution_policy_wrapper
+            if not execution_policy_wrapper.GetName() in self.execution_policy_wrappers.keys():
+                self.execution_policy_wrappers[execution_policy_wrapper.GetName()] = execution_policy_wrapper
             else:
-                raise RuntimeError(f"Found already existing exeuction policy with the name \"{execution_policy_wrapper.GetExecutionPolicyName()}\". Please provide unique names.")
+                raise RuntimeError(f"Found already existing exeuction policy with the name \"{execution_policy_wrapper.GetName()}\". Please provide unique names.")
 
     # --------------------------------------------------------------------------
     def GetExecutionPolicyWrapper(self, execution_policy_name: str):
@@ -47,13 +47,13 @@ class AnalysesController:
     # --------------------------------------------------------------------------
     def Initialize(self):
         for execution_policy_wrapper in self.execution_policy_wrappers.values():
-            execution_policy_name = execution_policy_wrapper.GetExecutionPolicyName()
+            execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
                 execution_policy_wrapper.Initialize({})
 
     def InitializeIteration(self):
         for execution_policy_wrapper in self.execution_policy_wrappers.values():
-            execution_policy_name = execution_policy_wrapper.GetExecutionPolicyName()
+            execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing iteration {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
                 execution_policy_wrapper.InitializeIteration({})
 
@@ -64,7 +64,7 @@ class AnalysesController:
 
     def FinalizeIteration(self):
         for execution_policy_wrapper in self.execution_policy_wrappers.values():
-            execution_policy_name = execution_policy_wrapper.GetExecutionPolicyName()
+            execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing iteration {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
                 execution_policy_wrapper.FinalizeIteration({})
 

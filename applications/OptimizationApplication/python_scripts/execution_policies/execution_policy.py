@@ -18,11 +18,9 @@ class ExecutionPolicy(ABC):
         self.model = model
         self.parameters = parameters
 
-    @abstractmethod
     def Initialize(self, optimization_info: dict):
         pass
 
-    @abstractmethod
     def InitializeIteration(self, optimization_info: dict):
         pass
 
@@ -30,11 +28,9 @@ class ExecutionPolicy(ABC):
     def Execute(self, optimization_info: dict):
         pass
 
-    @abstractmethod
     def FinalizeIteration(self, optimization_info: dict):
         pass
 
-    @abstractmethod
     def Finalize(self, optimization_info: dict):
         pass
 

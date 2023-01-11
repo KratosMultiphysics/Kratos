@@ -127,7 +127,7 @@ class ExecutionPolicyWrapper:
     def GetExecutionPolicy(self):
         return self.__execution_policy
 
-    def GetExecutionPolicyName(self):
+    def GetName(self):
         return self.__name
 
     def __ExecuteWithoutFileLogger(self, optimization_info: dict):
