@@ -1,7 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception(
@@ -11,7 +10,6 @@ def Factory(settings, Model):
 
 
 # All the processes python processes should be derived from "Process"
-
 
 def components_to_functions(vect):
     """Receives a vector and converts its components to functions. Components can be
@@ -41,7 +39,6 @@ def components_to_functions(vect):
             raise Exception(msg)
         v.append(function)
     return v
-
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
 
@@ -106,7 +103,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         ncols = aux_matrix[0].size()
         self.imposed_deformation_gradient = KratosMultiphysics.Matrix(nrows, ncols)
 
-
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
 
@@ -142,7 +138,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
                         )
 
             self.SetInitialState()
-
 
     def SetInitialState(self):
         """This method creates the c++ process and sets each entity

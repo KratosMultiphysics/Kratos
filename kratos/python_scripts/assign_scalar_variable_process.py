@@ -72,7 +72,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
+        self.mesh = self.model_part.GetMesh()
         self.is_fixed = settings["constrained"].GetBool()
 
         self.value_is_numeric = False
