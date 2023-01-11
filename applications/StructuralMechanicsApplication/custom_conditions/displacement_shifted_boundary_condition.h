@@ -76,6 +76,8 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -131,6 +133,20 @@ protected:
 
 private:
 
+    ///@name Serialization
+    ///@{
+
+    void CalculateBtransCProjectionLinearisation(
+        const Matrix& rC,
+        const Matrix& rB,
+        const array_1d<double, 3>& rUnitNormal,
+        Matrix& rAuxMat);
+
+    void CalculateAuxShapeFunctionsMatrix(
+        const Vector& rN,
+        Matrix& rAuxMat);
+
+    ///@}
     ///@name Serialization
     ///@{
 
