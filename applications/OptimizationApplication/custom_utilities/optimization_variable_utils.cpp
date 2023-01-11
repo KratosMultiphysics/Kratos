@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 license: HDF5Application/license.txt
 //
-//  Main author:     Reza Najian Asl, https://github.com/RezaNajian
-//                   Suneth Warnakulasuriya
+//  Main author:     Suneth Warnakulasuriya
 //
 
 // System includes
