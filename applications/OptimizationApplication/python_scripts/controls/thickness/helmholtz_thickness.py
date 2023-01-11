@@ -12,7 +12,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.OptimizationApplication.controls.thickness.thickness_control import ThicknessControl
-from KratosMultiphysics.OptimizationApplication.controls.thickness.thickness_control import ThicknessControl
 
 class HelmholtzThickness(ThicknessControl):
 
@@ -87,7 +86,7 @@ class HelmholtzThickness(ThicknessControl):
         self.helmholtz_thickness_control.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
-        pass 
+        pass
 
     def Update(self):
         self.helmholtz_thickness_control.Update() 

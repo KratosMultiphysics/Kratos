@@ -102,17 +102,17 @@ class ImplicitVertexMorphing(ShapeControl):
                 util_type = util_settings["type"].GetString()
                 if  util_type== "plane_symmetry" or util_type== "rotational_symmetry":
                     for model_part_name in self.controlling_objects:
-                        self.utils.append(KOA.SymmetryUtility(util_settings["name"].GetString(),self.model.GetModelPart(model_part_name),util_settings))        
+                        self.utils.append(KOA.SymmetryUtility(util_settings["name"].GetString(),self.model.GetModelPart(model_part_name),util_settings))
 
     def Initialize(self):
         super().Initialize()
         self.implicit_vertex_morphing.Initialize()
         for util in self.utils:
-            util.Initialize()        
+            util.Initialize()
     
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         for util in self.utils:
-            util.ApplyOnVectorField(derivative_variable_name)        
+            util.ApplyOnVectorField(derivative_variable_name)
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):

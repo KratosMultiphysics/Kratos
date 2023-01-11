@@ -17,8 +17,6 @@ class SymmetryUtilitiesTest(TestCase):
             model_part_io = KM.ModelPartIO("hexagon")
             model_part_io.ReadModelPart(model_part)
 
-        
-
         # plane symmetry test for scalar and vector field
         plane_symm_settings = KM.Parameters("""
         {
@@ -43,9 +41,9 @@ class SymmetryUtilitiesTest(TestCase):
         self.assertAlmostEqual(s, 0.5, 7)
         # reset values
         model_part.Nodes[17].SetSolutionStepValue(KOA.CX, [1.0, 0.0, 1.0])
-        model_part.Nodes[17].SetSolutionStepValue(KOA.CT, 1.0)        
+        model_part.Nodes[17].SetSolutionStepValue(KOA.CT, 1.0)
         model_part.Nodes[14].SetSolutionStepValue(KOA.CX, [0.0, 0.0, 0.0])
-        model_part.Nodes[14].SetSolutionStepValue(KOA.CT, 0.0)         
+        model_part.Nodes[14].SetSolutionStepValue(KOA.CT, 0.0)
         
         
         
@@ -64,14 +62,14 @@ class SymmetryUtilitiesTest(TestCase):
         """)
 
         rot_symm_util = KOA.SymmetryUtility("rot_z",model_part,rot_symm_settings)
-        rot_symm_util.Initialize() 
+        rot_symm_util.Initialize()
         
         rot_symm_util.ApplyOnVectorField(KOA.CX)
         rot_symm_util.ApplyOnScalarField(KOA.CT)
         v = model_part.Nodes[13].GetSolutionStepValue(KOA.CX)
         s = model_part.Nodes[13].GetSolutionStepValue(KOA.CT)
         self.assertVectorAlmostEqual(v, [-0.0833333, 0.144338, 0.166667], 5)
-        self.assertAlmostEqual(s, 0.166667, 5)        
+        self.assertAlmostEqual(s, 0.166667, 5)
 
 
 
