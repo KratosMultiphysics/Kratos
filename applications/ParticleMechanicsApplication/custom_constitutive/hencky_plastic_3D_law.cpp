@@ -189,7 +189,7 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
     bool restarted = false;
 
     if (rShapeFunctionsValues.size() > 0){
-        if (rShapeFunctionsValues(0) != -888 ){
+        if (rShapeFunctionsValues(0) == -888 ){
             restarted = true;
         }
     }

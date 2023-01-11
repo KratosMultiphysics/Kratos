@@ -61,7 +61,7 @@ namespace Kratos
 		bool restarted = false;
 
 		if (rShapeFunctionsValues.size() > 0){
-			if (rShapeFunctionsValues(0) != -888 ){
+			if (rShapeFunctionsValues(0) == -888 ){
 				restarted = true;
 			}
 		}
