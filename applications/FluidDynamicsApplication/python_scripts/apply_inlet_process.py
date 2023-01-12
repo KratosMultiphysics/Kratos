@@ -6,8 +6,10 @@ from KratosMultiphysics import assign_vector_by_direction_process
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("ApplyInletProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return ApplyInletProcess(Model, settings["Parameters"])
-
 
 class ApplyInletProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):

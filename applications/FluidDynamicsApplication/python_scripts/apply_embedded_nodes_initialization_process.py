@@ -4,6 +4,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("ApplyEmbeddedNodesInitializationProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return ApplyEmbeddedNodesInitializationProcess(Model, settings["Parameters"])
 
 class ApplyEmbeddedNodesInitializationProcess(KratosMultiphysics.Process):
@@ -25,7 +28,6 @@ class ApplyEmbeddedNodesInitializationProcess(KratosMultiphysics.Process):
 
         self.EmbeddedNodesInitializationProcess = KratosFluid.EmbeddedNodesInitializationProcess(self.fluid_model_part,
                                                                                                  self.max_iteration)
-
 
     def ExecuteInitializeSolutionStep(self):
         self.EmbeddedNodesInitializationProcess.ExecuteInitializeSolutionStep()

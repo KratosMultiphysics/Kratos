@@ -6,8 +6,10 @@ def Factory(settings, Model):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("SetInitialStateProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return SetInitialStateProcess(Model, settings["Parameters"])
-
 
 # All the processes python processes should be derived from "Process"
 

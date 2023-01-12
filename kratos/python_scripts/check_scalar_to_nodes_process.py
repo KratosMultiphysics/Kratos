@@ -7,8 +7,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("CheckScalarToNodesProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return CheckScalarToNodesProcess(Model, settings["Parameters"])
-
 
 class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase):
     """This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart

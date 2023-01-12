@@ -7,6 +7,9 @@ import math
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionToEntityProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return AssignVectorByDirectionToEntityProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"

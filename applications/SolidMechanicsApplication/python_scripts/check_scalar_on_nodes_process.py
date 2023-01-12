@@ -16,8 +16,10 @@ class aux_object_cpp_callback:
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if settings["Parameters"].Has("mesh_id"):
+        settings["Parameters"].RemoveValue("mesh_id")
+        KratosMultiphysics.Logger.PrintWarning("CheckScalarOnNodesProcess", "mesh_id is a legacy setting. Please remove mesh_id from your parameters")
     return CheckScalarOnNodesProcess(Model, settings["Parameters"])
-
 
 ## All the processes python should be derived from "Process"
 class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
