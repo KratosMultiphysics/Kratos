@@ -410,6 +410,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag);})
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
+        .def("RemoveOrphanNodesFromSubModelParts", &Kratos::AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts)
         ;
 
     // Sparse matrix multiplication utility
@@ -735,6 +736,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        // TODO: I would remove unsigned int if using std::size_t
         .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<2,true>)
         .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<3,true>)
         .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<2,false>)
@@ -781,8 +783,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, false>)
         ;
 
-    auto fs_extensions = m.def_submodule("FilesystemExtensions");
-    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
+
+    py::class_<FilesystemExtensions>(m, "FilesystemExtensions")
+        .def_static("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories )
+        ;
 
     py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
         .def(py::init<Model&, Parameters>())

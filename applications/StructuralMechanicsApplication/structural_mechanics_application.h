@@ -77,6 +77,7 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */
@@ -91,6 +92,7 @@
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
+#include "custom_conditions/moving_load_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -327,6 +329,9 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
 
+    const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
+    const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
+
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D4N;
@@ -459,6 +464,12 @@ private:
 
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;
+
+    // Moving load
+    const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;
+    const MovingLoadCondition<2, 3> mMovingLoadCondition2D3N;
+    const MovingLoadCondition<3, 2> mMovingLoadCondition3D2N;
+    const MovingLoadCondition<3, 3> mMovingLoadCondition3D3N;
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
