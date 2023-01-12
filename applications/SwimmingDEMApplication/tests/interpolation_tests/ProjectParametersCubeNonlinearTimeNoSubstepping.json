@@ -70,7 +70,6 @@
         "help" : "",
         "process_name" : "FromAnalyticCheckResultProcess",
         "Parameters" : {
-            "mesh_id" : 1,
             "model_part_name" : "SpheresPart",
             "variable_name" : "FLUID_VEL_PROJECTED",
             "interval" : [0.1, 1e30],

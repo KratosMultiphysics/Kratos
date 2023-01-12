@@ -62,7 +62,6 @@
                     "kratos_module": "KratosMultiphysics",
                     "python_module": "assign_vector_variable_to_conditions_process",
                     "Parameters": {
-                        "mesh_id": 0,
                         "model_part_name": "IgaModelPart.Load_4",
                         "variable_name": "LINE_LOAD",
                         "value": [ 1, 0, 0 ],

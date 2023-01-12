@@ -38,7 +38,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,true],
@@ -51,7 +50,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_XZ_sym",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
@@ -64,7 +62,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_YZ_sym",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
@@ -77,7 +74,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_XZ_sym",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
@@ -90,7 +86,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_YZ_sym",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
@@ -106,7 +101,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Surface",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 90.0,
