@@ -252,7 +252,7 @@ public:
      * @param Epsilon The tolerance
      */
     template <class TGeometryType, class TCoordinatesType>
-    static void ComputeTriangleLineIntersectionInTheSamePlane(
+    static int ComputeTriangleLineIntersectionInTheSamePlane( //static IntersectionUtilitiesTetrahedraLineIntersectionStatus ComputeTriangleLineIntersectionInTheSamePlane(
         const TGeometryType& rTriangleGeometry,
         const TCoordinatesType& rLinePoint1,
         const TCoordinatesType& rLinePoint2,
@@ -371,6 +371,8 @@ public:
                 }
             }
         }
+
+        return rSolution;
     }
 
     /**
