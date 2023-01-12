@@ -85,6 +85,5 @@ class KratosModelParametersFactory(object):
 
         for item in items_list:
             constructed_items.append(self.ConstructItem(item))
-            
 
         return constructed_items
