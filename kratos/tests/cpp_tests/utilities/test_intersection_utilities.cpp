@@ -685,7 +685,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(intersection, 0);//KRATOS_CHECK_EQUAL(intersection, IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ComputeTetrahedraLineIntersection4, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ComputeTetrahedraLineIntersection5, KratosCoreFastSuite)
     {
         Point point_1 = Point(-10.0, -10.0, -10.0);
         Point point_2 = Point(100.0, 100.0, 100.0);
