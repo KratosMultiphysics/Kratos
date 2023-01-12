@@ -85,9 +85,6 @@ class StressResponseFunction(BaseResponseFunction):
     def GetVariableName(self):
         return  self.variable
 
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
-
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
@@ -192,9 +189,6 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
     def GetVariableName(self):
         return  self.variable
 
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
-
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
@@ -282,9 +276,6 @@ class MassResponseFunction(BaseResponseFunction):
 
     def GetVariableName(self):
         return  self.variable
-
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
 
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:

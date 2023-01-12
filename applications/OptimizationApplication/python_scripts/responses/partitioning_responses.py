@@ -18,13 +18,13 @@ class InterfaceResponseFunction(BaseResponseFunction):
         self.gradients_variables = {"material":"D_INTERFACE_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("InterfaceResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("InterfaceResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("InterfaceResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("InterfaceResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
-        
+
         root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
         for evaluated_model_part in self.evaluated_model_parts:
             if evaluated_model_part.split(".")[0] != root_model_part_name:
@@ -40,13 +40,11 @@ class InterfaceResponseFunction(BaseResponseFunction):
     def GetVariableName(self):
         return  self.variable
 
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
 
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("InterfaceResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("InterfaceResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -58,7 +56,7 @@ class InterfaceResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("InterfaceResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("InterfaceResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("InterfaceResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
 
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
@@ -79,8 +77,8 @@ class InterfaceResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("InterfaceResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()              
-        Logger.PrintInfo("InterfaceResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("InterfaceResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 class PartitionMassResponseFunction(BaseResponseFunction):
 
@@ -94,13 +92,13 @@ class PartitionMassResponseFunction(BaseResponseFunction):
         self.gradients_variables = {"material":"D_PARTITION_MASS_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("PartitionMassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("PartitionMassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
-        
+
         root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
         for evaluated_model_part in self.evaluated_model_parts:
             if evaluated_model_part.split(".")[0] != root_model_part_name:
@@ -116,13 +114,10 @@ class PartitionMassResponseFunction(BaseResponseFunction):
     def GetVariableName(self):
         return  self.variable
 
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
-
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -134,7 +129,7 @@ class PartitionMassResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("PartitionMassResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("PartitionMassResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("PartitionMassResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
 
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
@@ -155,8 +150,8 @@ class PartitionMassResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("PartitionMassResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()              
-        Logger.PrintInfo("PartitionMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")          
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("PartitionMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 class PartitionMassResponseFunction(BaseResponseFunction):
 
@@ -170,13 +165,13 @@ class PartitionMassResponseFunction(BaseResponseFunction):
         self.gradients_variables = {"material":"D_PARTITION_MASS_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("PartitionMassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("PartitionMassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
-        
+
         root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
         for evaluated_model_part in self.evaluated_model_parts:
             if evaluated_model_part.split(".")[0] != root_model_part_name:
@@ -192,13 +187,10 @@ class PartitionMassResponseFunction(BaseResponseFunction):
     def GetVariableName(self):
         return  self.variable
 
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
-
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("PartitionMassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -210,7 +202,7 @@ class PartitionMassResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("PartitionMassResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("PartitionMassResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("PartitionMassResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
 
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
@@ -231,8 +223,8 @@ class PartitionMassResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("PartitionMassResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()              
-        Logger.PrintInfo("PartitionMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")          
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("PartitionMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 class PartitionInterfaceStressResponseFunction(BaseResponseFunction):
 
@@ -246,13 +238,13 @@ class PartitionInterfaceStressResponseFunction(BaseResponseFunction):
         self.gradients_variables = {"material":"D_STRESS_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("PartitionInterfaceStressResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("PartitionInterfaceStressResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("PartitionInterfaceStressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("PartitionInterfaceStressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
-        
+
         root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
         for evaluated_model_part in self.evaluated_model_parts:
             if evaluated_model_part.split(".")[0] != root_model_part_name:
@@ -268,13 +260,10 @@ class PartitionInterfaceStressResponseFunction(BaseResponseFunction):
     def GetVariableName(self):
         return  self.variable
 
-    def GetGradientsVariablesName(self):
-        return self.gradients_variables
-
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("PartitionInterfaceStressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("PartitionInterfaceStressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -286,7 +275,7 @@ class PartitionInterfaceStressResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("PartitionInterfaceStressResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("PartitionInterfaceStressResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("PartitionInterfaceStressResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
 
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
@@ -307,5 +296,5 @@ class PartitionInterfaceStressResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("PartitionInterfaceStressResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()              
-        Logger.PrintInfo("PartitionInterfaceStressResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")           
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("PartitionInterfaceStressResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")

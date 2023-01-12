@@ -290,7 +290,7 @@ class ResponsesController:
     def GetResponseGradientVariableNameForType(self, response_name, control_type, raise_error=True):
         if raise_error:
             if response_name not in self.responses.keys():
-                raise RuntimeError("ResponsesController:GetGradientsVariablesName: response {} does not exist".format(response_name))
+                raise RuntimeError("ResponsesController:GetResponseGradientVariableNameForType: response {} does not exist".format(response_name))
         return self.responses[response_name].GetGradientVariableNameForType(control_type)
 
 
