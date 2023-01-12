@@ -73,7 +73,7 @@ public:
 
         rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-        mmesh_id = rParameters["mesh_id"].GetInt();
+        mmesh_id = 0;
         mvariable_name = rParameters["variable_name"].GetString();
         this->Set( VARIABLE_IS_FIXED, rParameters["is_fixed"].GetBool());
 
@@ -218,7 +218,6 @@ public:
         const Parameters default_parameters( R"(
         {
             "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-            "mesh_id": 0,
             "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
             "is_fixed": false,
             "value" : 1.0

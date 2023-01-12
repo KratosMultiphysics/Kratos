@@ -33,7 +33,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the entities belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -76,7 +75,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component X
         x_params.AddValue("model_part_name",settings["model_part_name"])
-        x_params.AddValue("mesh_id",settings["mesh_id"])
         x_params.AddValue("interval",settings["interval"])
         x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
         x_params.AddValue("local_axes",settings["local_axes"])
@@ -84,7 +82,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component Y
         y_params.AddValue("model_part_name",settings["model_part_name"])
-        y_params.AddValue("mesh_id",settings["mesh_id"])
         y_params.AddValue("interval",settings["interval"])
         y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
         y_params.AddValue("local_axes",settings["local_axes"])
@@ -92,7 +89,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component Z
         z_params.AddValue("model_part_name",settings["model_part_name"])
-        z_params.AddValue("mesh_id",settings["mesh_id"])
         z_params.AddValue("interval",settings["interval"])
         z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
         z_params.AddValue("local_axes",settings["local_axes"])

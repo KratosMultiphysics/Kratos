@@ -14,7 +14,6 @@ class ApplyNoSlipProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "VELOCITY",
                 "interval"             : [0.0, 1e30],
@@ -28,7 +27,6 @@ class ApplyNoSlipProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.vector_process = AssignVectorVariableProcess(Model, settings)
-
 
     def ExecuteInitializeSolutionStep(self):
         self.vector_process.ExecuteInitializeSolutionStep()

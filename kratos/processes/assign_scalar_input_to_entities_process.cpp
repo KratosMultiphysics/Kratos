@@ -123,7 +123,6 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDe
     const Parameters default_parameters( R"(
     {
         "model_part_name"    : "MODEL_PART_NAME",
-        "mesh_id"            : 0,
         "variable_name"      : "VARIABLE_NAME",
         "file"               : "",
         "transfer_algorithm" : "nearest_neighbour"

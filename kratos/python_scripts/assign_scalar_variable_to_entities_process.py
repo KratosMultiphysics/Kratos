@@ -66,7 +66,6 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         # Set parameters of the processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", settings["model_part_name"])
-        params.AddValue("mesh_id", settings["mesh_id"])
         params.AddValue("value", settings["value"])
         params.AddValue("variable_name", settings["variable_name"])
 

@@ -35,7 +35,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
         default_parameters = KM.Parameters("""
         {
             "help"                           :"This class is used in order to compute automatically the Rayleigh damping parameters computing in first place the eigenvalues of the system",
-            "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
             "echo_level"                     : 0,
             "write_on_properties"            : true,

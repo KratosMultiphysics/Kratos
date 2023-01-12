@@ -33,7 +33,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -75,7 +74,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             if not settings["value"][indice].IsNull():
                 i_params = KratosMultiphysics.Parameters("{}")
                 i_params.AddValue("model_part_name",settings["model_part_name"])
-                i_params.AddValue("mesh_id",settings["mesh_id"])
                 i_params.AddEmptyValue("constrained").SetBool(settings["constrained"][indice].GetBool())
                 i_params.AddValue("interval",settings["interval"])
                 i_params.AddValue("value",settings["value"][indice])

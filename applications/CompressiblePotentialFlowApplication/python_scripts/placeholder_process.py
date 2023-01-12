@@ -14,7 +14,6 @@ class PlaceholderProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"                   : 0,
                 "model_part_name"           : "please specify the model part that contains the body nodes and conditions"
             }
             """)

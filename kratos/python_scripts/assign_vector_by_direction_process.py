@@ -33,7 +33,6 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the nodes belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -77,7 +76,6 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         list_params = [x_params, y_params, z_params]
         for i_dir, var_string in enumerate(["_X", "_Y", "_Z"]):
             list_params[i_dir].AddValue("model_part_name",settings["model_part_name"])
-            list_params[i_dir].AddValue("mesh_id",settings["mesh_id"])
             list_params[i_dir].AddValue("constrained",settings["constrained"])
             list_params[i_dir].AddValue("interval",settings["interval"])
             list_params[i_dir].AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + var_string)

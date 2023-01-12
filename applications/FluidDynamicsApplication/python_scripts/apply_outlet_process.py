@@ -17,7 +17,6 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"            : 0,
             "model_part_name"    : "",
             "variable_name"      : "PRESSURE",
             "constrained"        : true,

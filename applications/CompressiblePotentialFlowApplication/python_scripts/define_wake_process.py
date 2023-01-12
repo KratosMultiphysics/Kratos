@@ -15,7 +15,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"                   : 0,
                 "model_part_name"           : "please specify the model part that contains the kutta nodes",
                 "fluid_part_name"           : "MainModelPart",
                 "direction"                 : [1.0,0.0,0.0],

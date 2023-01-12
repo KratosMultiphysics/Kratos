@@ -13,7 +13,6 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "avoid_recomputing_normals": true
             }  """ )
 
