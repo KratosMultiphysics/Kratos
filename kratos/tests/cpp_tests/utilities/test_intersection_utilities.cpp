@@ -707,7 +707,9 @@ namespace Testing {
         point_2.Z() = 125.0;
         intersection = IntersectionUtilities::ComputeTetrahedraLineIntersection(tetrahedra, point_1.Coordinates(), point_2.Coordinates(), intersection_point1, intersection_point2);
         KRATOS_CHECK_EQUAL(intersection, 4);//KRATOS_CHECK_EQUAL(intersection, IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE);
+        array_1d<double,3> expected_intersection_point1 = ZeroVector(3);
         expected_intersection_point1[0] = 0.789579;
+        expected_intersection_point1[1] = 0.25;
         expected_intersection_point1[2] = 98.9604;
         KRATOS_CHECK_VECTOR_NEAR(intersection_point1, expected_intersection_point1, 1.0e-4);
         KRATOS_CHECK_VECTOR_EQUAL(intersection_point2, point_1.Coordinates());
