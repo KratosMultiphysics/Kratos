@@ -204,26 +204,28 @@ public:
             rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
 			rAlphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
-            // rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
-			// rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
+            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
+			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
         // const double MinStress = MaxStress * ReversionFactor;
-        if (std::abs(ReversionFactor) < 1.0 && MaxStress > rSth && MaxStress <= ultimate_stress) {
-          
-            rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
-            if (std::isnan(rN_f)){
-                rN_f = 1.0e15;
-                }           
-            rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+        if (MaxStress > rSth && MaxStress <= ultimate_stress) {
+          if(std::abs(ReversionFactor) < 1.001){
+                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
+                if (std::isnan(rN_f)){
+                    rN_f = 1.0e15;
+                    }           
+                rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
 
-            if (softening_type == curve_by_points) {
-                rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
-                }
-        }else{
-            // rN_f = 1.0e15;
-            // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+                if (softening_type == curve_by_points) {
+                    rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
+                    }
+                      
+            }else{
+                rN_f = 1.0e15;
+                // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+            }
         }
     }
     
@@ -270,17 +272,21 @@ public:
                 }
             }
             rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
-            if (std::abs(ReversionFactor) > 1.0){
+            if (std::abs(ReversionFactor) > 0.999){
                 rWohlerStress = 1.0;
             } 
         }
               
-        if (std::abs(ReversionFactor) < 1.0 && MaxStress > Sth) {
-            rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
+        if (MaxStress > Sth) {
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF))));
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
-        } else{
-            rFatigueReductionFactor = 1.0;
-        }
+            // if(std::abs(ReversionFactor) < 1.001){
+            //     rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
+            //     rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
+            // }else{
+            //     rFatigueReductionFactor = 1.0;
+            // }
+        } 
     }
 
     ///@}
