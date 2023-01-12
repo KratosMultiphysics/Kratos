@@ -34,7 +34,7 @@
 #include "custom_elements/helmholtz_bulk_element.h"
 
 /* ADJOINT ELEMENTS */
-#include "custom_elements/adjoint_small_displacement_element.h"
+#include "custom_elements/adjoint_solid_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/helmholtz_surf_shape_condition.h"

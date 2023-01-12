@@ -260,6 +260,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADJOINT_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_ADJOINT_SHELL_ELEMENT_H_INCLUDED  defined
 
 

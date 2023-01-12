@@ -34,10 +34,10 @@ class ShapeControl():
             self.vector_fields.append("AUXILIARY_FIELD")
         
 
-        # self.vector_fields.append("ADJOINT_DISPLACEMENT")
-        # self.vector_fields.append("ADJOINT_ROTATION")
-        # self.vector_fields.append("ADJOINT_RHS")
-        # self.vector_fields.append("ADJOINT_RHS_ROT")
+        self.vector_fields.append("ADJOINT_DISPLACEMENT")
+        self.vector_fields.append("ADJOINT_ROTATION")
+        self.vector_fields.append("ADJOINT_RHS")
+        self.vector_fields.append("ADJOINT_RHS_ROT")
 
         self.output_names = self.vector_fields + self.scalar_fields
 

@@ -10,8 +10,8 @@
 //  Main authors:    Reza Najian Asl
 //
 
-#if !defined(KRATOS_ADJOINT_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
-#define  KRATOS_ADJOINT_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED )
+#define  KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -52,26 +52,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class AdjointSmallDisplacementElement
+class AdjointSolidElement
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AdjointSmallDisplacementElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointSmallDisplacementElement);
+    /// Counted pointer of AdjointSolidElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointSolidElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, Element::Pointer pPrimal);
-    // AdjointSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    AdjointSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, Element::Pointer pPrimal);
+    // AdjointSolidElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~AdjointSmallDisplacementElement();
+    virtual ~AdjointSolidElement();
 
 
     ///@}
@@ -166,7 +166,7 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    AdjointSmallDisplacementElement() : Element()
+    AdjointSolidElement() : Element()
     {
     }
 
@@ -221,15 +221,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //AdjointSmallDisplacementElement& operator=(const AdjointSmallDisplacementElement& rOther);
+    //AdjointSolidElement& operator=(const AdjointSolidElement& rOther);
 
     /// Copy constructor.
-    //AdjointSmallDisplacementElement(const AdjointSmallDisplacementElement& rOther);
+    //AdjointSolidElement(const AdjointSolidElement& rOther);
 
 
     ///@}
 
-}; // Class AdjointSmallDisplacementElement
+}; // Class AdjointSolidElement
 
 ///@}
 
@@ -244,11 +244,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    AdjointSmallDisplacementElement& rThis);
+				    AdjointSolidElement& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const AdjointSmallDisplacementElement& rThis)
+				    const AdjointSolidElement& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -260,6 +260,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADJOINT_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_ADJOINT_SOLID_ELEMENT_H_INCLUDED  defined
 
 

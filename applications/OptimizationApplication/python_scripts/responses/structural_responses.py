@@ -63,16 +63,11 @@ class StressResponseFunction(BaseResponseFunction):
         self.adj_solver_settings = KM.Parameters("""{
             "solver_type" : "LinearSolversApplication.pardiso_lu"
                 }""")
-        self.linear_solvers = []
-        root_model_parts = []
-        for model_part_name in self.evaluated_model_parts:
-            extracted_root_model_part_name = model_part_name.split(".")[0]
-            if not extracted_root_model_part_name in root_model_parts:
-                root_model_parts.append(extracted_root_model_part_name)
-                self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.adj_solver_settings))
+
+        self.adjoint_linear_solver = python_linear_solver_factory.ConstructSolver(self.adj_solver_settings)
 
         # create response
-        self.response_function = KOA.StressOptResponse(response_name,model,self.response_settings,self.linear_solvers)
+        self.response_function = KOA.StressOptResponse(response_name,model,self.response_settings, self.adjoint_linear_solver)
 
     def GetVariableName(self):
         return  self.variable

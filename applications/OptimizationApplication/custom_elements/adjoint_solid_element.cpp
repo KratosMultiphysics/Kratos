@@ -17,7 +17,7 @@
 
 
 // Project includes
-#include "custom_elements/adjoint_small_displacement_element.h"
+#include "custom_elements/adjoint_solid_element.h"
 #include "optimization_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -28,7 +28,7 @@ namespace Kratos
 
 //************************************************************************************
 //************************************************************************************
-AdjointSmallDisplacementElement::AdjointSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, Element::Pointer pPrimal)
+AdjointSolidElement::AdjointSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, Element::Pointer pPrimal)
     : Element(NewId, pGeometry)
 {
     mpPrimalElement = pPrimal;
@@ -36,30 +36,30 @@ AdjointSmallDisplacementElement::AdjointSmallDisplacementElement(IndexType NewId
 
 //************************************************************************************
 //************************************************************************************
-// AdjointSmallDisplacementElement::AdjointSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+// AdjointSolidElement::AdjointSolidElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 //     : Element(NewId, pGeometry, pProperties)
 // {
 //     const Element& rElem = KratosComponents<Element>::Get("SmallDisplacementElement3D4N");
 //     mpPrimalElement = rElem.Create(NewId, pGeometry, pProperties);
 // }
 
-// Element::Pointer AdjointSmallDisplacementElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+// Element::Pointer AdjointSolidElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 // {
-//     return Kratos::make_intrusive<AdjointSmallDisplacementElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+//     return Kratos::make_intrusive<AdjointSolidElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 // }
 
-// Element::Pointer AdjointSmallDisplacementElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+// Element::Pointer AdjointSolidElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
 // {
-//     return Kratos::make_intrusive<AdjointSmallDisplacementElement>(NewId, pGeom, pProperties);
+//     return Kratos::make_intrusive<AdjointSolidElement>(NewId, pGeom, pProperties);
 // }
 
-AdjointSmallDisplacementElement::~AdjointSmallDisplacementElement()
+AdjointSolidElement::~AdjointSolidElement()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-void AdjointSmallDisplacementElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void AdjointSolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -104,7 +104,7 @@ void AdjointSmallDisplacementElement::CalculateLocalSystem(MatrixType& rLeftHand
 
 //******************************************************************************
 //******************************************************************************
-void AdjointSmallDisplacementElement::GetValuesVector(VectorType &rValues,
+void AdjointSolidElement::GetValuesVector(VectorType &rValues,
                                             int Step) const {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
@@ -140,7 +140,7 @@ void AdjointSmallDisplacementElement::GetValuesVector(VectorType &rValues,
 
 //************************************************************************************
 //************************************************************************************
-void AdjointSmallDisplacementElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
@@ -148,7 +148,7 @@ void AdjointSmallDisplacementElement::CalculateLeftHandSide(MatrixType& rLeftHan
 
 //************************************************************************************
 //************************************************************************************
-void AdjointSmallDisplacementElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -156,7 +156,7 @@ void AdjointSmallDisplacementElement::CalculateRightHandSide(VectorType& rRightH
 
 //************************************************************************************
 //************************************************************************************
-void AdjointSmallDisplacementElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+void AdjointSolidElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -188,7 +188,7 @@ void AdjointSmallDisplacementElement::EquationIdVector(EquationIdVectorType& rRe
 
 //************************************************************************************
 //************************************************************************************
-void AdjointSmallDisplacementElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
+void AdjointSolidElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_TRY;
@@ -217,7 +217,7 @@ void AdjointSmallDisplacementElement::GetDofList(DofsVectorType& rElementalDofLi
 
 //************************************************************************************
 //************************************************************************************
-int AdjointSmallDisplacementElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int AdjointSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

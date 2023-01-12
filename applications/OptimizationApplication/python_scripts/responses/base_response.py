@@ -19,6 +19,7 @@ class BaseResponseFunction:
         self.analysis_model_part = None
         if not response_analysis == None:
             self.analysis_model_part = self.analysis._GetSolver().GetComputingModelPart()
+            self.response_settings.AddString("analysis_model_part",self.analysis_model_part.Name)
 
         self.evaluated_model_parts = response_settings["evaluated_objects"].GetStringArray()
         self.controlled_model_parts = response_settings["controlled_objects"].GetStringArray()

@@ -80,7 +80,7 @@ void  AddCustomResponsesToPython(pybind11::module& m)
         ;   
 
     py::class_<StressOptResponse >(m, "StressOptResponse")
-        .def(py::init<std::string, Model&, Parameters&, std::vector<LinearSolverType::Pointer>&>())
+        .def(py::init<std::string, Model&, Parameters&, LinearSolverType::Pointer>())
         .def("Initialize", &StressOptResponse::Initialize)
         .def("CalculateValue", &StressOptResponse::CalculateValue)
         .def("CalculateGradient", &StressOptResponse::CalculateGradient)        
