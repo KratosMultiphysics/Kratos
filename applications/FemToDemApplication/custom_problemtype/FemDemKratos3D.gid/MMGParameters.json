@@ -1,5 +1,4 @@
 {
-            "mesh_id"                          : 0,
             "filename"                         : "CorrectedVersion",
             "model_part_name"                  : "Structure",
             "strategy"                         : "Hessian",

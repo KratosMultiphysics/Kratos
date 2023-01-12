@@ -48,7 +48,6 @@
             "kratos_module"         : "KratosMultiphysics",
             "process_name"          : "AssignVectorByDirectionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.AutomaticInlet2D_Inlet",
                 "variable_name"   : "VELOCITY",
                 "modulus"         : "2*0.06067*(1-cos(pi*t/10))*y*(1-y)",
@@ -61,7 +60,6 @@
             "kratos_module"         : "KratosMultiphysics",
             "process_name"          : "AssignVectorByDirectionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.AutomaticInlet2D_Inlet",
                 "variable_name"   : "VELOCITY",
                 "modulus"         : "4*0.06067*y*(1-y)",
