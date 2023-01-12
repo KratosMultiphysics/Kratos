@@ -687,13 +687,13 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(ComputeTetrahedraLineIntersection5, KratosCoreFastSuite)
     {
-        Point point_1 = Point(-10.0, -10.0, -10.0);
-        Point point_2 = Point(100.0, 100.0, 100.0);
+        Point point_1 = Point(0.0, 0.25, 1.25);
+        Point point_2 = Point(1.0, 0.25, 1.25);
 
-        Point::Pointer p_point_3 = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
-        Point::Pointer p_point_4 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
-        Point::Pointer p_point_5 = Kratos::make_shared<Point>(0.0, 1.0, 0.0);
-        Point::Pointer p_point_6 = Kratos::make_shared<Point>(0.0, 0.0, 1.0);
+        Point::Pointer p_point_3 = Kratos::make_shared<Point>(-10.0, -10.0, -10.0);
+        Point::Pointer p_point_4 = Kratos::make_shared<Point>(100.0, 0.0, 0.0);
+        Point::Pointer p_point_5 = Kratos::make_shared<Point>(0.0, 100.0, 0.0);
+        Point::Pointer p_point_6 = Kratos::make_shared<Point>(0.0, 0.0, 100.0);
         Tetrahedra3D4<Point> tetrahedra(p_point_3, p_point_4, p_point_5, p_point_6);
 
         // Intersecting line (totally inside)
