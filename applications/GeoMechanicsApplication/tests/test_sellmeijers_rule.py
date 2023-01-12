@@ -79,5 +79,9 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         critical_head_found, length = self.critical_head_loop(file_path, kappa, d70, Hn, 'linear')
         self.results = {"value_name": name, "test_result_h": Hc, "kratos_results_h": critical_head_found,
                         "equivalent_software_h": Hn, "kratos_results_l": length, "equivalent_software_l": length_n}
+        print(self.results)
         self.assertAlmostEqual(Hn, critical_head_found, 1,
                                f"Critical head kratos: {critical_head_found}, old geo flow {Hn}")
+
+if __name__ == '__main__':
+    KratosUnittest.main()

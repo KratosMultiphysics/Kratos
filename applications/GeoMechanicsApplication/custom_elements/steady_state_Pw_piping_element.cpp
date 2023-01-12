@@ -3,7 +3,7 @@
 //    //         ___      ___
 //   //  ____  //___) ) //   ) )
 //  //    / / //       //   / /
-// ((____/ / ((____   ((___/ /  MECHANICS
+// ((____/ / ((____   ((___/ /  
 //
 //  License:         geo_mechanics_application/license.txt
 //
@@ -12,7 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
-#include <cmath>
+#include <math.h>
 namespace Kratos
 {
 
@@ -76,7 +76,7 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
     SteadyStatePwInterfaceElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    this->CalculateLength(this->GetGeometry());
+    this->CalculateLengthSlope(this->GetGeometry());
 
     // initialse pipe parameters if not initalised, (important for staged analysis. 
     if (!this->pipe_initialised)
@@ -98,23 +98,28 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 
 template< >
-void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
+void SteadyStatePwPipingElement<2, 4>::CalculateLengthSlope(const GeometryType& Geom)
 {
-    // currently length is only calculated in x direction
     KRATOS_TRY
-        this->SetValue(PIPE_ELEMENT_LENGTH, std::abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
+
+	double dx = Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0];
+    double dy = Geom.GetPoint(1)[1] - Geom.GetPoint(0)[1];
+
+	this->SetValue(PIPE_ELEMENT_LENGTH, sqrt(pow(dx, 2) + pow(dy, 2)));
+    this->SetValue(PIPE_ELEMENT_SLOPE, atan(dy / dx));
+    
 	KRATOS_CATCH("")
 }
 
 template< >
-void SteadyStatePwPipingElement<3, 6>::CalculateLength(const GeometryType& Geom)
+void SteadyStatePwPipingElement<3, 6>::CalculateLengthSlope(const GeometryType& Geom)
 {
-    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
+    KRATOS_ERROR << " Length/Slope of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
 }
 template< >
-void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
+void SteadyStatePwPipingElement<3, 8>::CalculateLengthSlope(const GeometryType& Geom)
 {
-    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
+    KRATOS_ERROR << " Length/Slope of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -262,18 +267,19 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 }
 
 template< >
-double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
+double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
 {
+    double length = this->GetValue(PIPE_ELEMENT_LENGTH);
 	return abs((Geom[3].FastGetSolutionStepValue(WATER_PRESSURE) + Geom[0].FastGetSolutionStepValue(WATER_PRESSURE))/2 
-        - (Geom[2].GetSolutionStepValue(WATER_PRESSURE)+ Geom[1].GetSolutionStepValue(WATER_PRESSURE))/2) / dx;
+        - (Geom[2].GetSolutionStepValue(WATER_PRESSURE)+ Geom[1].GetSolutionStepValue(WATER_PRESSURE))/2) / length;
 }
 template< >
-double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
+double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
 {
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
 }
 template< >
-double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
+double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
 {
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
@@ -304,25 +310,23 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(co
 /// <param name="Geom"></param>
 /// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
-double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length)
+double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom)
 {
     const double modelFactor = Prop[PIPE_MODEL_FACTOR];
     const double eta = Prop[PIPE_ETA];
     const double theta = Prop[PIPE_THETA];
     const double SolidDensity = Prop[DENSITY_SOLID];
     const double FluidDensity = Prop[DENSITY_WATER];
- 
+    const double pipeSlope = this->GetValue(PIPE_ELEMENT_SLOPE);
+
     // calculate pressure gradient over element
-    double dpdx = CalculateWaterPressureGradient(Prop, Geom, pipe_length);
+    double dpdxy = CalculateWaterPressureGradient(Prop, Geom);
 
     // calculate particle diameter
     double particle_d = CalculateParticleDiameter(Prop);
-    
-    // todo calculate slope of pipe, currently pipe is assumed to be horizontal
-    const double pipeSlope = 0;
 
-    // return infinite when dpdx is 0
-    if (dpdx < std::numeric_limits<double>::epsilon())
+    // return infinite when dpdxy is 0
+    if (dpdxy < std::numeric_limits<double>::epsilon())
     { 
         return 1e10;
     }
@@ -331,23 +335,12 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
 	
-    return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
+
+    // does the pipeSlope also need to be in the cos term ???
+	return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdxy;
 
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-bool SteadyStatePwPipingElement<TDim, TNumNodes>:: InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom)
-{
-	// Calculation if Element in Equilibrium
-    //double pipeEquilibriumPipeHeight = CalculateEquilibriumPipeHeight(Prop, Geom);
-
-	// Logic if in equilibrium
-	
-    const bool inEquilibrium = false;
-	return inEquilibrium;
-
-}
-	
 template class SteadyStatePwPipingElement<2,4>;
 template class SteadyStatePwPipingElement<3,6>;
 template class SteadyStatePwPipingElement<3,8>;

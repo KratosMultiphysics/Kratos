@@ -93,13 +93,11 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
+    double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom);
 
-    double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
+    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom);
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
-
-    void CalculateLength(const GeometryType& Geom);
+    void CalculateLengthSlope(const GeometryType& Geom);
 
 protected:
     

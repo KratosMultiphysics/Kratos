@@ -390,38 +390,38 @@ private:
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements)
                 {
-                	auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
+                    SteadyStatePwPipingElement<2, 4>* pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
 
                     // get open pipe element geometry and properties
-                    auto& Geom = OpenPipeElement->GetGeometry();
-                    auto& prop = OpenPipeElement->GetProperties();
+                    auto& Geom = pElement->GetGeometry();
+                    auto& prop = pElement->GetProperties();
 
                     // calculate equilibrium pipe height and get current pipe height
-                    double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
-                    double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
+                    double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom);
+                    double current_height = pElement->GetValue(PIPE_HEIGHT);
 
                     // set erosion on true if current pipe height is greater than the equilibirum height
                     if (current_height > eq_height)
                     {
-                        OpenPipeElement->SetValue(PIPE_EROSION, true);
+                        pElement->SetValue(PIPE_EROSION, true);
                     }
 
                     // check this if statement, I dont understand the check for pipe erosion
-                    if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax))
+                    if (((!pElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax))
                     {
-                        OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT) + da);
+                        pElement->SetValue(PIPE_HEIGHT, pElement->GetValue(PIPE_HEIGHT) + da);
                         equilibrium = false;
                     }
 
                     // check if equilibrium height and current pipe heights are diverging, stop picard iterations if this is the case and set pipe height on zero
-                    if (!OpenPipeElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT)))
+                    if (!pElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > pElement->GetValue(DIFF_PIPE_HEIGHT)))
                     {
                         equilibrium = true;
-                        OpenPipeElement->SetValue(PIPE_HEIGHT, small_pipe_height);
+                        pElement->SetValue(PIPE_HEIGHT, small_pipe_height);
                     }
 
                     // calculate difference between equilibrium height and current pipe height
-                    OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
+                    pElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
 
                 }
                 // increment piping iteration number
