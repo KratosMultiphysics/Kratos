@@ -227,17 +227,6 @@ class ResponsesController:
             raise RuntimeError("ResponsesController:GetResponseAnalysis: Try to get analysis of response {} which does not exist ".format(response_name))
 
         return self.responses_analyses[response_name]
-    # --------------------------------------------------------------------------
-    def GetResponsesAnalyses(self,responses_name):
-        if type(responses_name) is not list:
-            raise RuntimeError("ResponsesController:GetResponsesAnalyses requires list of response names")
-
-        analyses_list = []
-        for response_name in responses_name:
-            if self.responses_analyses[response_name] != None:
-                analyses_list.append(self.responses_analyses[response_name])
-
-        return list(set(analyses_list)) # here we remove duplicates
 
     # --------------------------------------------------------------------------
     def CalculateResponseGradientsForTypesAndObjects(self,response_name,control_types,controlled_objects,raise_error=True):
