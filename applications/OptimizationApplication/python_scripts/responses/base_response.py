@@ -47,9 +47,6 @@ class BaseResponseFunction:
     def CalculateGradientsForTypeAndObjects(self,control_type,controlled_objects,raise_error=True):
         raise RuntimeError("BaseResponseFunction:CalculateGradientsForTypeAndObjects: Not implemeted ! ")
 
-    def GetType(self):
-        raise RuntimeError("BaseResponseFunction:GetValue: Not implemeted ! ")
-
     def GetVariableName(self):
         raise RuntimeError("BaseResponseFunction:GetVariableName: Not implemeted ! ")
 
