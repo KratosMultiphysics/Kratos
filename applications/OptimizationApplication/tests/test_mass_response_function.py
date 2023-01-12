@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.optimization_info import Optimiz
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
 
-class TestMassReponseFunctionBase(kratos_unittest.TestCase):
+class TestMassResponseFunctionBase(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -46,7 +46,7 @@ class TestMassReponseFunctionBase(kratos_unittest.TestCase):
         if direction == 2:
             entity.Z += delta
 
-class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
+class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
@@ -112,7 +112,7 @@ class TestMassResponseFunctionBeams(TestMassReponseFunctionBase):
             1e-6,
             6)
 
-class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
+class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
@@ -183,7 +183,7 @@ class TestMassResponseFunctionShells(TestMassReponseFunctionBase):
             1e-7,
             6)
 
-class TestMassResponseFunctionSolids(TestMassReponseFunctionBase):
+class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
