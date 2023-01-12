@@ -171,68 +171,72 @@ public:
         auto primal_model_part_name = mrResponseSettings["analysis_model_part"].GetString();
         ModelPart& primal_model_part = mrModel.GetModelPart(primal_model_part_name);
         ModelPart& root_model_part = primal_model_part.GetRootModelPart();
-        std::string adj_model_part_name =  root_model_part.Name()+"_STRESS_ADJOINT";
-        mpADJModelPart = &(root_model_part.CreateSubModelPart(adj_model_part_name));
+        std::string adj_model_part_name =  root_model_part.Name()+"_ADJOINT";
+        if(root_model_part.HasSubModelPart(adj_model_part_name))
+            mpADJModelPart = &(root_model_part.GetSubModelPart(adj_model_part_name));
+        else{
+            mpADJModelPart = &(root_model_part.CreateSubModelPart(adj_model_part_name));
 
-        // adding nodes
-        for(auto& node : primal_model_part.Nodes())
-            mpADJModelPart->AddNode(&node);
+            // adding nodes
+            for(auto& node : primal_model_part.Nodes())
+                mpADJModelPart->AddNode(&node);
 
-        // adding elements
-        ModelPart::ElementsContainerType &rmesh_elements = mpADJModelPart->Elements();   
+            // adding elements
+            ModelPart::ElementsContainerType &rmesh_elements = mpADJModelPart->Elements();   
 
-        for (int i = 0; i < (int)primal_model_part.Elements().size(); i++) {
-            ModelPart::ElementsContainerType::iterator it = primal_model_part.ElementsBegin() + i;
-            Element::Pointer p_element;
-            if(mIfShell)
-                p_element = new AdjointShellElement(it->Id(), it->pGetGeometry(), primal_model_part.pGetElement(it->Id()));
-            else
-                p_element = new AdjointSolidElement(it->Id(), it->pGetGeometry(), primal_model_part.pGetElement(it->Id()));
+            for (int i = 0; i < (int)primal_model_part.Elements().size(); i++) {
+                ModelPart::ElementsContainerType::iterator it = primal_model_part.ElementsBegin() + i;
+                Element::Pointer p_element;
+                if(mIfShell)
+                    p_element = new AdjointShellElement(it->Id(), it->pGetGeometry(), primal_model_part.pGetElement(it->Id()));
+                else
+                    p_element = new AdjointSolidElement(it->Id(), it->pGetGeometry(), primal_model_part.pGetElement(it->Id()));
 
-            rmesh_elements.push_back(p_element);
-        }            
-              
-        // now add dofs and apply D BC
-        for(auto& node_i : mpADJModelPart->Nodes())
-        {
-            node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
-            if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("DISPLACEMENT_X"))){
-                node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
-                auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
-                node_i_adj_dis = 0.0;
-            }
-            node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
-            if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("DISPLACEMENT_Y"))){
-                node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
-                auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
-                node_i_adj_dis = 0.0;
-            }
-            node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
-            if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("DISPLACEMENT_Z"))){
-                node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
-                auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
-                node_i_adj_dis = 0.0;
-            }
-            if(mIfShell){
-                node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
-                if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_X"))){
-                    node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
-                    auto& node_i_adj_rot = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
-                    node_i_adj_rot = 0.0;
-                }
-                node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
-                if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_Y"))){
-                    node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
-                    auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                rmesh_elements.push_back(p_element);
+            }            
+                
+            // now add dofs and apply D BC
+            for(auto& node_i : mpADJModelPart->Nodes())
+            {
+                node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
+                if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("DISPLACEMENT_X"))){
+                    node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
+                    auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_X"));
                     node_i_adj_dis = 0.0;
                 }
-                node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
-                if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_Z"))){
-                    node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
-                    auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
+                if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("DISPLACEMENT_Y"))){
+                    node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
+                    auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Y"));
                     node_i_adj_dis = 0.0;
-                }                    
-            }                                
+                }
+                node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
+                if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("DISPLACEMENT_Z"))){
+                    node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
+                    auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_DISPLACEMENT_Z"));
+                    node_i_adj_dis = 0.0;
+                }
+                if(mIfShell){
+                    node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                    if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_X"))){
+                        node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                        auto& node_i_adj_rot = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_X"));
+                        node_i_adj_rot = 0.0;
+                    }
+                    node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                    if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_Y"))){
+                        node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                        auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Y"));
+                        node_i_adj_dis = 0.0;
+                    }
+                    node_i.AddDof(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                    if(node_i.IsFixed(KratosComponents<Variable<double>>::Get("ROTATION_Z"))){
+                        node_i.Fix(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                        auto& node_i_adj_dis = node_i.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get("ADJOINT_ROTATION_Z"));
+                        node_i_adj_dis = 0.0;
+                    }                    
+                }                                
+            }
         }
 
         // create strategy
@@ -596,6 +600,11 @@ public:
                 grad_field_name = mrResponseSettings["gradient_settings"]["material_gradient_field_name"].GetString();
                 VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                
             }
+            else if(control_type=="thickness"){
+                grad_field_name = mrResponseSettings["gradient_settings"]["thickness_gradient_field_name"].GetString();
+                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());                
+            }            
+
 
             //elems
             #pragma omp parallel for
@@ -605,7 +614,9 @@ public:
                     if(control_type=="shape")
                         CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
                     if(control_type=="material")
-                        CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                              
+                        CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
+                    if(control_type=="thickness")
+                        CalculateElementThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);                                                                      
                 }
             }
 
@@ -626,7 +637,9 @@ public:
                     if(control_type=="shape")
                         CalculateElementObjShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
                     if(control_type=="material")
-                        CalculateElementObjMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);                                               
+                        CalculateElementObjMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
+                    if(control_type=="thickness")
+                        CalculateElementObjThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);                                                                       
                 }
             }
         }
@@ -711,6 +724,36 @@ public:
 
     };
 
+    void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        Vector u;
+        Vector lambda;
+        
+        // Get state solution
+        const auto& rConstElemRef = elem_i;
+        rConstElemRef.GetValuesVector(u,0);
+
+        // Get adjoint variables (Corresponds to 1/2*u)
+        lambda = 0.5*u;
+
+        Vector d_RHS_d_T;
+        double curr_t = elem_i.GetProperties().GetValue(THICKNESS);
+        elem_i.GetProperties().SetValue(THICKNESS,1.0);
+        elem_i.CalculateRightHandSide(d_RHS_d_T,rCurrentProcessInfo);
+        elem_i.GetProperties().SetValue(THICKNESS,curr_t);
+
+
+        for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+            const auto& d_ppt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PPT_D_FT);
+            #pragma omp atomic
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_ppt_d_ft * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
+        }    
+    };    
+
     void CalculateElementObjShapeGradients(Element& elem_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
         // We get the element geometry
@@ -776,6 +819,25 @@ public:
         }
 
     };
+
+    void CalculateElementObjThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+
+        // We get the element geometry
+        auto& r_this_geometry = elem_i.GetGeometry();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+
+        double curr_thickness = elem_i.GetProperties().GetValue(PT);
+        elem_i.GetProperties().SetValue(PT,1.0);
+        double elem_thick_grad = CalculateElementValue(elem_i,rCurrentProcessInfo);
+        elem_i.GetProperties().SetValue(PT,curr_thickness);
+
+        for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+            const auto& d_ppt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PPT_D_FT);
+            #pragma omp atomic
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_ppt_d_ft * elem_thick_grad / number_of_nodes;
+        }
+
+    };    
 
     void CalculateElementObjMaterialGradients(Element& elem_i, std::string material_gradien_name, const ProcessInfo &rCurrentProcessInfo){
         KRATOS_TRY;

@@ -174,8 +174,8 @@ class ResponsesController:
                                     index_2 = controlled_objects2.index(control_obj)
                                     type_1 = control_types1[index_1]
                                     type_2 = control_types2[index_2]
-                                    if type_1 == type_2:
-                                        raise RuntimeError("ResponsesController: found dependencies between Response {} and Response {}".format(response_name1,response_name2))
+                                    # if type_1 == type_2:
+                                    #     raise RuntimeError("ResponsesController: found dependencies between Response {} and Response {}".format(response_name1,response_name2))
 
 
     # --------------------------------------------------------------------------

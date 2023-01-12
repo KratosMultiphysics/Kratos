@@ -209,11 +209,11 @@ public:
                     if (objective_controlled_object_size==3){
                         const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(objective_control_gradient_name));
                         for(int i=0; i<objective_controlled_object_size; i++)
-                            mObjectiveGradients[objective_controlled_object_start_index+objective_controlled_object_size*node_index+i] = nodal_gradient(i) * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
+                            mObjectiveGradients[objective_controlled_object_start_index+objective_controlled_object_size*node_index+i] += nodal_gradient(i) * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
                     }
                     else if (objective_controlled_object_size==1) {
                         const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(objective_control_gradient_name));
-                        mObjectiveGradients[objective_controlled_object_start_index+node_index] = nodal_gradient * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
+                        mObjectiveGradients[objective_controlled_object_start_index+node_index] += nodal_gradient * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
                     } 
                     node_index++;
                 }             

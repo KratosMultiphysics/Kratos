@@ -23,7 +23,6 @@ class StressResponseFunction(BaseResponseFunction):
     def __init__(self,response_name, response_settings,response_analysis,model):
 
         self.type = "stress"
-        self.variable = "STRESS"
         super().__init__(response_name, response_settings, model, response_analysis)
 
         if not self.response_settings.Has("gradient_settings"):
@@ -33,8 +32,21 @@ class StressResponseFunction(BaseResponseFunction):
         else:
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
-        self.supported_control_types = ["shape","material"]
-        self.gradients_variables = {"shape":"D_STRESS_D_X","material":"D_STRESS_D_FD"}     
+        if not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_1_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_1_D_FT"))):
+            self.variable = "STRESS_1"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_2_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_2_D_FT"))):
+            self.variable = "STRESS_2"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_3_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_3_D_FT"))):
+            self.variable = "STRESS_3"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_4_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_4_D_FT"))):
+            self.variable = "STRESS_4"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_5_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_5_D_FT"))):
+            self.variable = "STRESS_5"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_6_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRESS_6_D_FT"))):
+            self.variable = "STRESS_6"                                                
+
+        self.supported_control_types = ["shape","thickness","material"]
+        self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_"+self.variable+"_D_FT","material":"D_"+self.variable+"_D_FD"}    
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StressResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -57,6 +69,9 @@ class StressResponseFunction(BaseResponseFunction):
             if control_type == "material":
                 self.response_settings["gradient_settings"].AddString("material_gradient_field_name",self.gradients_variables[control_type])
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+            if control_type == "thickness":
+                self.response_settings["gradient_settings"].AddString("thickness_gradient_field_name",self.gradients_variables[control_type])
+                self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))                
 
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as python_linear_solver_factory
@@ -148,12 +163,18 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         else:
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
-        if not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_1_D_X")):
+        if not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_1_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_1_D_FT"))):
             self.variable = "STRAIN_ENERGY_1"
-        elif not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_2_D_X")):
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_2_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_2_D_FT"))):
             self.variable = "STRAIN_ENERGY_2"
-        elif not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_3_D_X")):
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_3_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_3_D_FT"))):
             self.variable = "STRAIN_ENERGY_3"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_4_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_4_D_FT"))):
+            self.variable = "STRAIN_ENERGY_4"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_5_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_5_D_FT"))):
+            self.variable = "STRAIN_ENERGY_5"
+        elif not (self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_6_D_X")) or self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_6_D_FT"))):
+            self.variable = "STRAIN_ENERGY_6"                                                
 
         self.supported_control_types = ["shape","thickness","material"]
         self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_"+self.variable+"_D_FT","material":"D_"+self.variable+"_D_FD"}         

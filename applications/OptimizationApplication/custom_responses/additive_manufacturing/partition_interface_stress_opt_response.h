@@ -146,7 +146,7 @@ public:
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const ProcessInfo &CurrentProcessInfo = controlled_model_part.GetProcessInfo();
-            VariableUtils().SetHistoricalVariableToZero(D_STRESS_D_FD, controlled_model_part.Nodes());
+            VariableUtils().SetHistoricalVariableToZero(D_STRESS_1_D_FD, controlled_model_part.Nodes());
 
             #pragma omp parallel for
 			for (auto& elem_i : controlled_model_part.Elements()){
@@ -169,7 +169,7 @@ public:
                     for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
                         const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
                         #pragma omp atomic
-                        r_this_geometry[i_node].FastGetSolutionStepValue(D_STRESS_D_FD) += d_pd_d_fd * elem_sens / number_of_nodes;
+                        r_this_geometry[i_node].FastGetSolutionStepValue(D_STRESS_1_D_FD) += d_pd_d_fd * elem_sens / number_of_nodes;
                     }                                              
                 }
             }
