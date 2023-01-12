@@ -31,18 +31,18 @@ class StressResponseFunction(BaseResponseFunction):
             self.gradient_settings.AddString("gradient_mode","semi_analytic")
             self.gradient_settings.AddDouble("step_size",1e-6)
         else:
-            self.gradient_settings = self.response_settings["gradient_settings"]     
+            self.gradient_settings = self.response_settings["gradient_settings"]
 
         self.supported_control_types = ["shape","material"]
-        self.gradients_variables = {"shape":"D_STRESS_D_X","material":"D_STRESS_D_FD"}     
+        self.gradients_variables = {"shape":"D_STRESS_D_X","material":"D_STRESS_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("StressResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("StressResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("StressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
-        
+                raise RuntimeError("StressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
+
         # add vars
         for control_type in self.control_types:
             self.analysis_model_part.AddNodalSolutionStepVariable(KSM.ADJOINT_DISPLACEMENT)
@@ -91,7 +91,7 @@ class StressResponseFunction(BaseResponseFunction):
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("StressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("StressResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -103,12 +103,8 @@ class StressResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("StressResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("StressResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("StressResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
-
-    def GetValue(self):
-        self.value = self.response_function.CalculateValue()
-        return self.value        
 
     def CalculateGradients(self):
         Logger.PrintInfo("StressResponseFunction", "Starting gradient calculation for response ", self.name)
@@ -132,10 +128,10 @@ class StressResponseFunction(BaseResponseFunction):
                 if not found:
                     raise RuntimeError("StressResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
-        Logger.PrintInfo("StressResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)        
+        Logger.PrintInfo("StressResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()                                
-        Logger.PrintInfo("StressResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s") 
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("StressResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================
 class StrainEnergyResponseFunction(BaseResponseFunction):
@@ -159,7 +155,7 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             self.gradient_settings.AddString("gradient_mode","semi_analytic")
             self.gradient_settings.AddDouble("step_size",1e-6)
         else:
-            self.gradient_settings = self.response_settings["gradient_settings"]     
+            self.gradient_settings = self.response_settings["gradient_settings"]
 
         if not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_1_D_X")):
             self.variable = "STRAIN_ENERGY_1"
@@ -169,15 +165,15 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             self.variable = "STRAIN_ENERGY_3"
 
         self.supported_control_types = ["shape","thickness","material"]
-        self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_"+self.variable+"_D_FT","material":"D_"+self.variable+"_D_FD"}         
+        self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_"+self.variable+"_D_FT","material":"D_"+self.variable+"_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
-        
+                raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
+
         # add vars
         for control_type in self.control_types:
             if control_type == "shape":
@@ -202,7 +198,7 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -214,12 +210,8 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("StrainEnergyResponse:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("StrainEnergyResponse:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("StrainEnergyResponse:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
-
-    def GetValue(self):
-        self.value = self.response_function.CalculateValue()
-        return self.value        
 
     def CalculateGradients(self):
         Logger.PrintInfo("StrainEnergyResponse", "Starting gradient calculation for response ", self.name)
@@ -243,10 +235,10 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
                 if not found:
                     raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
-        Logger.PrintInfo("StrainEnergyResponse", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)        
+        Logger.PrintInfo("StrainEnergyResponse", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()                                
-        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 
 class MassResponseFunction(BaseResponseFunction):
@@ -262,19 +254,19 @@ class MassResponseFunction(BaseResponseFunction):
             self.gradient_settings.AddString("gradient_mode","semi_analytic")
             self.gradient_settings.AddDouble("step_size",1e-6)
         else:
-            self.gradient_settings = self.response_settings["gradient_settings"]     
+            self.gradient_settings = self.response_settings["gradient_settings"]
 
         self.supported_control_types = ["shape","thickness","material"]
         self.gradients_variables = {"shape":"D_MASS_D_X","thickness":"D_MASS_D_FT","material":"D_MASS_D_FD"}
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("MassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("MassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("MassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("MassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
-        
+
         root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
         for evaluated_model_part in self.evaluated_model_parts:
             if evaluated_model_part.split(".")[0] != root_model_part_name:
@@ -287,7 +279,7 @@ class MassResponseFunction(BaseResponseFunction):
         for control_type in self.control_types:
             self.root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
-        
+
     def GetVariableName(self):
         return  self.variable
 
@@ -297,7 +289,7 @@ class MassResponseFunction(BaseResponseFunction):
     def GetGradientVariableNameForType(self,control_type, raise_error=True):
         if raise_error:
             if not control_type in self.supported_control_types:
-                raise RuntimeError("MassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+                raise RuntimeError("MassResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
 
         return self.gradients_variables[control_type]
 
@@ -309,7 +301,7 @@ class MassResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("MassResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
         self.value = self.response_function.CalculateValue()
-        Logger.PrintInfo("MassResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
+        Logger.PrintInfo("MassResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
 
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
@@ -330,6 +322,5 @@ class MassResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("MassResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-        self.response_function.CalculateGradient()               
-        Logger.PrintInfo("MassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
-       
+        self.response_function.CalculateGradient()
+        Logger.PrintInfo("MassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
