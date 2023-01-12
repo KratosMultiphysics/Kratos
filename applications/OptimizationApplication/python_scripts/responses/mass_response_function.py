@@ -21,12 +21,10 @@ class MassResponseFunction(ResponseFunction):
         super().__init__(model, parameters, optimization_info)
 
         default_settings = Kratos.Parameters("""{
-            "name"           : "",
             "model_part_name": "PLEASE_PROVIDE_A_MODEL_PART_NAME"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
         self.model_part = self.model[parameters["model_part_name"].GetString()]
-        self.name = parameters["name"].GetString()
 
     def Check(self):
         data_communicator = self.model_part.GetCommunicator().GetDataCommunicator()
@@ -39,9 +37,6 @@ class MassResponseFunction(ResponseFunction):
 
         if not KratosOA.OptimizationVariableUtils.AreAllEntitiesOfSameGeometryType(self.model_part.Elements, data_communicator):
             raise RuntimeError(f"{self.model_part.FullName()} has elements with different geometry types. Please break down this response to SumResponseFunction where each sub response function only has elements with one geometry type.")
-
-    def GetResponseFunctionName(self):
-        return self.name
 
     def CalculateValue(self) -> float:
         return KratosOA.MassResponseUtilities.CalculateMass(self.model_part)

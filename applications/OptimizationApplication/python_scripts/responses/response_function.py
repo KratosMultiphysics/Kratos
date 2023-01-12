@@ -56,10 +56,6 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetResponseFunctionName(self):
-        pass
-
-    @abstractmethod
     def CalculateValue(self) -> float:
         pass
 
