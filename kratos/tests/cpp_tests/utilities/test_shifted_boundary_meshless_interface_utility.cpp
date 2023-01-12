@@ -22,7 +22,6 @@
 #include "processes/generic_find_elements_neighbours_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
-#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos::Testing
 {
