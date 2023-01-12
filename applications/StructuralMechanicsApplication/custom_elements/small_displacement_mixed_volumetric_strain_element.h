@@ -10,8 +10,7 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -312,6 +311,15 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+     * @param rMassMatrix The elemental mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -686,5 +694,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED  defined

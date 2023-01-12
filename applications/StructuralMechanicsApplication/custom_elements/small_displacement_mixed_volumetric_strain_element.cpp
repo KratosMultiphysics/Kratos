@@ -17,6 +17,7 @@
 // Project includes
 #include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/integration_utilities.h"
 #include "utilities/math_utils.h"
 #include "includes/checks.h"
 
@@ -729,6 +730,79 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainElement::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    const SizeType dim = r_geom.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geom.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+
+    // Clear matrix
+    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size) {
+        rMassMatrix.resize(matrix_size, matrix_size, false);
+    }
+    rMassMatrix.clear();
+
+    // Checking for density
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY needs to be provided for the calculation of the MassMatrix!" << std::endl;
+
+    // Calculate the mass matrix (lumped or consistent)
+    const double density = r_prop[DENSITY];
+    const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    const double aux_rho_thickness = density * thickness;
+    const bool compute_lumped_mass_matrix = r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
+    
+    if (compute_lumped_mass_matrix) {
+        // Calculate the nodal lumped mass values
+        Vector lumped_mass_vector;
+        const double total_mass = r_geom.DomainSize() * aux_rho_thickness;
+        lumped_mass_vector = total_mass * r_geom.LumpingFactors(lumped_mass_vector);
+
+        // Assemble nodal values
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            const double aux = lumped_mass_vector[i_node];
+            for (IndexType d = 0; d < dim; ++d) {
+                rMassMatrix(i_node * block_size + d, i_node * block_size + d) = aux;
+            }
+        }
+    } else {
+        Matrix J0(dim, dim);
+        const auto& r_integration_method = this->GetIntegrationMethod();
+        const auto& r_N_container = r_geom.ShapeFunctionsValues(r_integration_method);
+        const auto& r_integration_points = r_geom.IntegrationPoints(r_integration_method);
+        const SizeType n_gauss = r_integration_points.size();
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate current integration point weight
+            // Note that this includes the density and the thickness
+            GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_integration_points[i_gauss], J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
+            const double w_gauss = aux_rho_thickness * detJ0 * r_integration_points[i_gauss].Weight();
+
+            // Asseble nodal contributions
+            const auto &r_N = row(r_N_container, i_gauss);
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
+                    const double aux = r_N[i_node] * r_N[j_node] * w_gauss;
+                    for (IndexType d = 0; d < dim; ++d) {
+                        rMassMatrix(i_node*block_size +d, j_node*block_size + d) += aux;
+                    }
+                }
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
