@@ -103,12 +103,6 @@ class StressResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("StressResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
 
-    def CalculateGradients(self):
-        Logger.PrintInfo("StressResponseFunction", "Starting gradient calculation for response ", self.name)
-        startTime = timer.time()
-        self.response_function.CalculateGradient()
-        Logger.PrintInfo("StressResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
-
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
 
         if raise_error:
@@ -206,12 +200,6 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         self.value = self.response_function.CalculateValue()
         Logger.PrintInfo("StrainEnergyResponse:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
         return self.value
-
-    def CalculateGradients(self):
-        Logger.PrintInfo("StrainEnergyResponse", "Starting gradient calculation for response ", self.name)
-        startTime = timer.time()
-        self.response_function.CalculateGradient()
-        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
     def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
 
