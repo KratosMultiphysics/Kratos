@@ -49,7 +49,6 @@ namespace Kratos
             p_elem_prop->SetValue(DENSITY_SOLID, 2650);
             p_elem_prop->SetValue(DENSITY_WATER, 1000);
 
-            p_elem_prop->SetValue(PIPE_ELEMENT_LENGTH, 0.5);
             p_elem_prop->SetValue(PIPE_MODIFIED_D, false);
             p_elem_prop->SetValue(PIPE_MODEL_FACTOR, 1);
 
@@ -59,8 +58,8 @@ namespace Kratos
 
             // Create the test piping element nodes
             auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.0, 0.1, 0.0);
+            auto p_node_2 = r_model_part.CreateNewNode(2, 0.5, 0.0, 0.0);
+            auto p_node_3 = r_model_part.CreateNewNode(3, 0.5, 0.1, 0.0);
             auto p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.1, 0.0);
 
             array_1d<double, 3> gravity_array;
@@ -165,7 +164,7 @@ namespace Kratos
             auto PipeEl = static_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
 
             // calculate water pressure gradient
-            double expected_gradient = PipeEl->CalculateWaterPressureGradient(*p_elem_prop, Geom);
+            double expected_gradient = PipeEl->CalculateWaterPressureGradient(Geom);
 
             // assert gradient
             // expected gradient should be 2. Test is failing on purpose to check CI

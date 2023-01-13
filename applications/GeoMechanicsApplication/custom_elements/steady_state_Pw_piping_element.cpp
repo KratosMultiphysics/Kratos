@@ -267,19 +267,19 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 }
 
 template< >
-double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const GeometryType& Geom)
 {
     double length = this->GetValue(PIPE_ELEMENT_LENGTH);
 	return abs((Geom[3].FastGetSolutionStepValue(WATER_PRESSURE) + Geom[0].FastGetSolutionStepValue(WATER_PRESSURE))/2 
         - (Geom[2].GetSolutionStepValue(WATER_PRESSURE)+ Geom[1].GetSolutionStepValue(WATER_PRESSURE))/2) / length;
 }
 template< >
-double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const GeometryType& Geom)
 {
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
 }
 template< >
-double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const GeometryType& Geom)
 {
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
@@ -320,7 +320,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     const double pipeSlope = this->GetValue(PIPE_ELEMENT_SLOPE);
 
     // calculate pressure gradient over element
-    double dpdxy = CalculateWaterPressureGradient(Prop, Geom);
+    double dpdxy = CalculateWaterPressureGradient(Geom);
 
     // calculate particle diameter
     double particle_d = CalculateParticleDiameter(Prop);
