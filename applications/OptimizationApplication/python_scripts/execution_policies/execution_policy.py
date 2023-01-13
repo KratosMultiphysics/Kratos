@@ -21,10 +21,10 @@ class ExecutionPolicy(ABC):
     def Initialize(self):
         pass
 
-    def InitializeIteration(self):
+    def InitializeSolutionStep(self):
         pass
 
-    def FinalizeIteration(self):
+    def FinalizeSolutionStep(self):
         pass
 
     def Finalize(self):

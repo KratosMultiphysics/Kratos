@@ -31,10 +31,10 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
         }""")
         execution_policy = ExecutionPolicyWrapper(self.model, parameters)
         execution_policy.Initialize()
-        execution_policy.InitializeIteration()
+        execution_policy.InitializeSolutionStep()
         execution_policy.Execute()
         self.assertTrue(isinstance(execution_policy.GetExecutionPolicy().GetAnalysis(), MultistageAnalysis))
-        execution_policy.FinalizeIteration()
+        execution_policy.FinalizeSolutionStep()
         execution_policy.Finalize()
 
 if __name__ == "__main__":

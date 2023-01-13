@@ -103,9 +103,9 @@ class ExecutionPolicyWrapper:
     def Initialize(self):
         self.__execution_policy.Initialize()
 
-    def InitializeIteration(self):
+    def InitializeSolutionStep(self):
         self.__is_executed = False
-        self.__execution_policy.InitializeIteration()
+        self.__execution_policy.InitializeSolutionStep()
 
     def Execute(self):
         if not self.__is_executed:
@@ -118,13 +118,13 @@ class ExecutionPolicyWrapper:
             if self.__echo_level > 1:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Skipping execution of {self.__name} because it has already executed for this iteration.")
 
-    def FinalizeIteration(self):
-        self.__execution_policy.FinalizeIteration()
+    def FinalizeSolutionStep(self):
+        self.__execution_policy.FinalizeSolutionStep()
 
     def Finalize(self):
         self.__execution_policy.Finalize()
 
-    def GetExecutionPolicy(self):
+    def GetExecutionPolicy(self) -> ExecutionPolicy:
         return self.__execution_policy
 
     def GetName(self):
