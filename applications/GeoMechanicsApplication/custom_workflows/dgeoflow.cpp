@@ -118,8 +118,9 @@ namespace Kratos
     {
 
         KRATOS_INFO("Execution") << "Setting Up Execution" << std::endl;
-
-        application.Register();
+        
+        if (!KratosComponents<VariableData>::Has("DENSITY_WATER")) application.RegisterKratosCore();
+    	application.Register();
 
         Kratos::OpenMPUtils::SetNumThreads(1);
         if (this->GetEchoLevel() > 0)
@@ -600,7 +601,8 @@ namespace Kratos
                                      GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                                      double time, double delta_time, double number_iterations)
     {
-        // Initialize
+
+    	// Initialize
         for (auto process : processes)
         {
             process->ExecuteInitialize();
