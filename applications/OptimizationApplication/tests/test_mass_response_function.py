@@ -63,7 +63,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             node_ids = [(i % 3) + 1, ((i + 1) % 3) + 1]
             properties = cls.model_part.CreateNewProperties(i)
             properties[Kratos.DENSITY] = 2.0 * (i + 1)
-            properties[Kratos.CROSS_AREA] = 3.0 * (i + 1)
+            properties[KratosOA.CROSS_AREA] = 3.0 * (i + 1)
             cls.model_part.CreateNewElement("Element2D2N", i, node_ids, properties)
 
     def test_CalculateValue(self):
@@ -108,7 +108,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             self.response_function,
             self.model_part.Elements,
             lambda x: x.GetValue(KratosOA.CROSS_AREA_SENSITIVITY),
-            lambda x, y: self._UpdateProperties(Kratos.CROSS_AREA, x, y),
+            lambda x, y: self._UpdateProperties(KratosOA.CROSS_AREA, x, y),
             1e-6,
             6)
 

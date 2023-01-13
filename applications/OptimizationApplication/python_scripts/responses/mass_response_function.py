@@ -32,7 +32,7 @@ class MassResponseFunction(ResponseFunction):
             raise RuntimeError(f"Some elements' properties in {self.model_part.FullName()} does not have DENSITY variable.")
 
         if KratosOA.OptimizationVariableUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, Kratos.THICKNESS, data_communicator) and \
-           KratosOA.OptimizationVariableUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, Kratos.CROSS_AREA, data_communicator):
+           KratosOA.OptimizationVariableUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, KratosOA.CROSS_AREA, data_communicator):
            raise RuntimeError(f"{self.model_part.FullName()} has elements consisting THICKNESS and CROSS_AREA. Please break down this response to SumResponseFunction where each sub response function only has elements with either THICKNESS or CROSS_AREA.")
 
         if not KratosOA.OptimizationVariableUtils.AreAllEntitiesOfSameGeometryType(self.model_part.Elements, data_communicator):
