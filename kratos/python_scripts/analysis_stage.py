@@ -156,7 +156,7 @@ class AnalysisStage(object):
             NUM_OF_FAILED_INTEGRATION_POINTS = 0
             for x in damage:
                 for y in x:
-                    if y >= 3.0:
+                    if y >= 0.9999:
                         NUM_OF_FAILED_INTEGRATION_POINTS = NUM_OF_FAILED_INTEGRATION_POINTS + 1
                         break
 
