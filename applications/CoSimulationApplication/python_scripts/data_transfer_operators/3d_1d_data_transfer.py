@@ -109,7 +109,6 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
                 "origin_variables"         : [],
                 "destination_variables"    : [],
                 "debug_mode"               : false,
-                "extrapolate_values"       : false,
                 "swap_sign"                : false,
                 "interpolate_parameters"   : {
                     "data_transfer_3d_1d_type" : "nearest_element",
