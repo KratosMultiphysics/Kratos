@@ -587,18 +587,26 @@ public:
     */
     double AverageEdgeLength() const override 
     {
-        return (MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)) +
-            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)) +
-            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(3)) +
-            MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)) +
-            MathUtils<double>::Norm3(this->GetPoint(4)-this->GetPoint(5)) +
-            MathUtils<double>::Norm3(this->GetPoint(5)-this->GetPoint(6)) +
-            MathUtils<double>::Norm3(this->GetPoint(6)-this->GetPoint(7)) +
-            MathUtils<double>::Norm3(this->GetPoint(7)-this->GetPoint(4)) +
-            MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(4)) +
-            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(5)) +
-            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(6)) +
-            MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(7))) /12.0;
+        const TPointType& p0 = this->GetPoint(0);
+        const TPointType& p1 = this->GetPoint(1);
+        const TPointType& p2 = this->GetPoint(2);
+        const TPointType& p3 = this->GetPoint(3);
+        const TPointType& p4 = this->GetPoint(4);
+        const TPointType& p5 = this->GetPoint(5);
+        const TPointType& p6 = this->GetPoint(6);
+        const TPointType& p7 = this->GetPoint(7);
+        return (MathUtils<double>::Norm3(p0-p1) +
+            MathUtils<double>::Norm3(p1-p2) +
+            MathUtils<double>::Norm3(p2-p3) +
+            MathUtils<double>::Norm3(p3-p0) +
+            MathUtils<double>::Norm3(p4-p5) +
+            MathUtils<double>::Norm3(p5-p6) +
+            MathUtils<double>::Norm3(p6-p7) +
+            MathUtils<double>::Norm3(p7-p4) +
+            MathUtils<double>::Norm3(p0-p4) +
+            MathUtils<double>::Norm3(p1-p5) +
+            MathUtils<double>::Norm3(p2-p6) +
+            MathUtils<double>::Norm3(p3-p7)) /12.0;
     }
 
     ///@}
