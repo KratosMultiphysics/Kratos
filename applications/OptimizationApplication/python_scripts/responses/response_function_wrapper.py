@@ -22,9 +22,9 @@ class ResponseFunctionBaseWrapper(ABC):
 
         # create the response function
         response_function_settings = Kratos.Parameters("""{}""")
-        response_function_settings.AddString("module", parameters["module"])
-        response_function_settings.AddString("type", parameters["type"])
-        response_function_settings.AddString("settings", parameters["settings"])
+        response_function_settings.AddString("module", parameters["module"].GetString())
+        response_function_settings.AddString("type", parameters["type"].GetString())
+        response_function_settings.AddValue("settings", parameters["settings"])
         self.response_function: ResponseFunction = RetrieveObject(self.model, response_function_settings, optimization_info, ResponseFunction)
 
         # response storage
@@ -51,7 +51,7 @@ class ResponseFunctionBaseWrapper(ABC):
         return self.name
 
     def GetValue(self):
-        if self.response_value is not None:
+        if self.response_value is None:
             self.response_value = self.response_function.CalculateValue()
 
         return self.response_value
@@ -212,10 +212,10 @@ class ConstraintResponseFunctionWrapper(ResponseFunctionBaseWrapper):
         return info
 
 
-def CreateResponseFunctionWrapper(model: Kratos.Model, parameters: Kratos.Parameters):
+def CreateResponseFunctionWrapper(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
     if parameters.Has("objective"):
-        return ObjectiveResponseFunctionWrapper(model, parameters)
+        return ObjectiveResponseFunctionWrapper(model, parameters, optimization_info)
     elif parameters.Has("constraint"):
-        return ConstraintResponseFunctionWrapper(model, parameters)
+        return ConstraintResponseFunctionWrapper(model, parameters, optimization_info)
     else:
         raise RuntimeError(f"Either \"objective\" or \"constraint\" should be present to differentiate responses in response settings. The provided response settinsg: \n{str(parameters)}")
