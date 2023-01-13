@@ -580,6 +580,27 @@ public:
         return edges;
     }
 
+    /** This method calculates and returns the average edge length of the geometry
+    *
+    * @return double value with the average edge length
+    *
+    */
+    double AverageEdgeLength() const override 
+    {
+        return (MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)) +
+            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)) +
+            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(3)) +
+            MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)) +
+            MathUtils<double>::Norm3(this->GetPoint(4)-this->GetPoint(5)) +
+            MathUtils<double>::Norm3(this->GetPoint(5)-this->GetPoint(6)) +
+            MathUtils<double>::Norm3(this->GetPoint(6)-this->GetPoint(7)) +
+            MathUtils<double>::Norm3(this->GetPoint(7)-this->GetPoint(4)) +
+            MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(4)) +
+            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(5)) +
+            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(6)) +
+            MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(7))) /12.0;
+    }
+
     ///@}
     ///@name Face
     ///@{
