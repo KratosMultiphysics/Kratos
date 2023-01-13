@@ -31,6 +31,7 @@
 #include "custom_responses/additive_manufacturing/partition_mass_opt_response.h"
 #include "custom_responses/additive_manufacturing/partition_interface_stress_opt_response.h"
 #include "custom_responses/general/mass_response_utilities.h"
+#include "custom_responses/structural/linear_strain_energy_response_utilities.h"
 
 // ==============================================================================
 
@@ -100,6 +101,12 @@ void  AddCustomResponsesToPython(pybind11::module& m)
         .def_static("CalculateMassDensitySensitivity", &MassResponseUtilities::CalculateMassDensitySensitivity)
         .def_static("CalculateMassThicknessSensitivity", &MassResponseUtilities::CalculateMassThicknessSensitivity)
         .def_static("CalculateMassCrossAreaSensitivity", &MassResponseUtilities::CalculateMassCrossAreaSensitivity)
+        ;
+
+    py::class_<LinearStrainEnergyResponseUtilities >(m, "LinearStrainEnergyResponseUtilities")
+        .def_static("CalculateStrainEnergy", &LinearStrainEnergyResponseUtilities::CalculateStrainEnergy)
+        .def_static("CalculateStrainEnergyShapeSensitivity", &LinearStrainEnergyResponseUtilities::CalculateStrainEnergyShapeSensitivity)
+        .def_static("CalculateStrainEnergyElementPropertiesSensitivity", &LinearStrainEnergyResponseUtilities::CalculateStrainEnergyElementPropertiesSensitivity)
         ;
 
 }
