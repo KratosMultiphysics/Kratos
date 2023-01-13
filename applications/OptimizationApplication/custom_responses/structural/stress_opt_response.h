@@ -22,6 +22,10 @@
 #include "custom_elements/adjoint_solid_element.h"
 #include "custom_elements/adjoint_shell_element.h"
 
+// External includes
+#include "custom_external_libraries/autodiff/forward/dual.hpp"
+using namespace autodiff;
+
 // ==============================================================================
 
 namespace Kratos
@@ -55,6 +59,16 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) StressOptResponse : public Response
 public:
     ///@name Type Definitions
     ///@{
+
+    struct StressComps
+    {
+        dual sxx;
+        dual syy;
+        dual szz;
+        dual sxy;
+        dual sxz;
+        dual syz;
+    };    
     
     /// Pointer definition of StressOptResponse
     KRATOS_CLASS_POINTER_DEFINITION(StressOptResponse);
@@ -85,9 +99,10 @@ public:
 
             mYieldStressType = mrResponseSettings["yield_stress_type"].GetString();
             if(!(mYieldStressType=="VON_MISES_STRESS" || mYieldStressType=="VON_MISES_STRESS_BOTTOM_SURFACE" || mYieldStressType=="VON_MISES_STRESS_TOP_SURFACE" \
-                || mYieldStressType=="VON_MISES_STRESS_MIDDLE_SURFACE"))
+                || mYieldStressType=="VON_MISES_STRESS_MIDDLE_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS_TOP_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS_MIDDLE_SURFACE" \ 
+                || mYieldStressType=="MAX_PRINCIPAL_STRESS_BOTTOM_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS"))
                 KRATOS_ERROR << "StressOptResponse: "<<mYieldStressType<<" is not supported and available yield_stress_types are VON_MISES_STRESS, VON_MISES_STRESS_BOTTOM_SURFACE,\n"<< \
-                "VON_MISES_STRESS_TOP_SURFACE, and VON_MISES_STRESS_MIDDLE_SURFACE !! "<< std::endl;
+                "VON_MISES_STRESS_TOP_SURFACE, MAX_PRINCIPAL_STRESS_TOP_SURFACE, MAX_PRINCIPAL_STRESS_MIDDLE_SURFACE, MAX_PRINCIPAL_STRESS_BOTTOM_SURFACE, MAX_PRINCIPAL_STRESS, and VON_MISES_STRESS_MIDDLE_SURFACE !! "<< std::endl;
 
             if(!mrResponseSettings.Has("yield_stress_limit"))
                 KRATOS_ERROR << "StressOptResponse: yield_stress_limit should be provided in the stress response settings !! " << std::endl; 
@@ -293,7 +308,9 @@ public:
 
         std::vector<double> gp_weights_vector;
         std::vector<double> value_gp_vector;
-        ComputeValuesAtGPs(elem_i,value_gp_vector,rCurrentProcessInfo);
+        std::vector<StressComps> stress_gp_tensor;
+        ComputeStressTensorAtGPs(elem_i,stress_gp_tensor,rCurrentProcessInfo);
+        ComputeValuesAtGPs(elem_i,stress_gp_tensor,value_gp_vector,rCurrentProcessInfo);
         ComputeIntegrationWeightsAtGPs(elem_i,gp_weights_vector,rCurrentProcessInfo);
                      
         double elem_value = 0.0;
@@ -334,23 +351,6 @@ public:
         }
         return intg_stress/tot_vol;
     };
-
-    void ComputeElementSensitivitiesPrefacs(std::vector<double> & prefacs, const std::vector<double> & stress_gp_vector, const std::vector<Matrix> & stress_gp_tensor){
-
-        if(mYieldStressType.find("VON_MISES") != std::string::npos){
-            prefacs.resize(stress_gp_vector.size(),0.0);
-
-            for(IndexType k = 0; k < stress_gp_vector.size(); ++k)
-            {
-                const Matrix & PK2_k = stress_gp_tensor[k];
-                double radicant = 0.0;
-                radicant += PK2_k(0,0)*PK2_k(0,0) + PK2_k(1,1)*PK2_k(1,1) + PK2_k(2,2)*PK2_k(2,2);
-                radicant -= PK2_k(0,0)*PK2_k(1,1) + PK2_k(0,0)*PK2_k(2,2) + PK2_k(1,1)*PK2_k(2,2);
-                radicant += 3*PK2_k(0,1)*PK2_k(0,1) + 3*PK2_k(0,2)*PK2_k(0,2) + 3*PK2_k(1,2)*PK2_k(1,2);
-                prefacs[k] = 0.5/std::sqrt(radicant);
-            } 
-        }
-    }
 
     void ComputeAggregationFunctionDerivative(const std::vector<double> & val_at_gp, const std::vector<double> & gp_int_w, std::vector<double> & der_at_gp){
 
@@ -423,25 +423,84 @@ public:
 
     }
 
-    void ComputeValuesAtGPs(Element& elem_i,std::vector<double>& value_gp_vector, const ProcessInfo &rCurrentProcessInfo){
-        //compute values at GPs
-        if(mYieldStressType.find("VON_MISES") != std::string::npos)
-            elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<double>>::Get(mYieldStressType), value_gp_vector, rCurrentProcessInfo);
+    void ComputeValuesAndDerivativesAtGPs(Element& elem_i, const std::vector<StressComps>& stress_gp_tensor, std::vector<double>& value_gp_vector, std::vector<Vector> & value_der_wrt_str_gp_vetor, const ProcessInfo &rCurrentProcessInfo){
+
+        //compute values and dervs at GPs
+        for(int gp_i=0;gp_i<stress_gp_tensor.size();gp_i++){
+            if(mYieldStressType.find("VON_MISES") != std::string::npos){
+                   StressComps k_stress_comps = stress_gp_tensor[gp_i];
+                   dual value_at_gp = VonMisesAtGP(k_stress_comps); 
+                   Vector der = ZeroVector(6); 
+                   der[0] = derivative(VonMisesAtGP, wrt(k_stress_comps.sxx), at(k_stress_comps)); 
+                   der[1] = derivative(VonMisesAtGP, wrt(k_stress_comps.syy), at(k_stress_comps));
+                   der[2] = derivative(VonMisesAtGP, wrt(k_stress_comps.szz), at(k_stress_comps));
+                   der[3] = derivative(VonMisesAtGP, wrt(k_stress_comps.sxy), at(k_stress_comps));
+                   der[4] = derivative(VonMisesAtGP, wrt(k_stress_comps.sxz), at(k_stress_comps));
+                   der[5] = derivative(VonMisesAtGP, wrt(k_stress_comps.syz), at(k_stress_comps));
+                   value_gp_vector.push_back(double(value_at_gp));
+                   value_der_wrt_str_gp_vetor.push_back(der);
+            }
+            else if(mYieldStressType.find("MAX_PRINCIPAL") != std::string::npos){
+                   StressComps k_stress_comps = stress_gp_tensor[gp_i];
+                   dual value_at_gp = MaxPrincipalAtGP(k_stress_comps); 
+                   Vector der = ZeroVector(6); 
+                   der[0] = derivative(MaxPrincipalAtGP, wrt(k_stress_comps.sxx), at(k_stress_comps)); 
+                   der[1] = derivative(MaxPrincipalAtGP, wrt(k_stress_comps.syy), at(k_stress_comps));
+                   der[2] = derivative(MaxPrincipalAtGP, wrt(k_stress_comps.szz), at(k_stress_comps));
+                   der[3] = derivative(MaxPrincipalAtGP, wrt(k_stress_comps.sxy), at(k_stress_comps));
+                   der[4] = derivative(MaxPrincipalAtGP, wrt(k_stress_comps.sxz), at(k_stress_comps));
+                   der[5] = derivative(MaxPrincipalAtGP, wrt(k_stress_comps.syz), at(k_stress_comps));
+                   value_gp_vector.push_back(double(value_at_gp));
+                   value_der_wrt_str_gp_vetor.push_back(der);
+            }                               
+        }
     }
 
-    void ComputeStressTensorAtGPs(Element& elem_i,std::vector<Matrix>& stress_gp_tensor, const ProcessInfo &rCurrentProcessInfo){
+   void ComputeValuesAtGPs(Element& elem_i, const std::vector<StressComps>& stress_gp_tensor, std::vector<double>& value_gp_vector, const ProcessInfo &rCurrentProcessInfo){
 
+        //compute values and dervs at GPs
+        for(int gp_i=0;gp_i<stress_gp_tensor.size();gp_i++){
+            if(mYieldStressType.find("VON_MISES") != std::string::npos){
+                   StressComps k_stress_comps = stress_gp_tensor[gp_i];
+                   dual value_at_gp = VonMisesAtGP(k_stress_comps); 
+                   value_gp_vector.push_back(double(value_at_gp));
+            } 
+            else if(mYieldStressType.find("MAX_PRINCIPAL") != std::string::npos){
+                   StressComps k_stress_comps = stress_gp_tensor[gp_i];
+                   dual value_at_gp = MaxPrincipalAtGP(k_stress_comps);
+                   value_gp_vector.push_back(double(value_at_gp));             
+            }                              
+        }
+    }    
+
+    void ComputeStressTensorAtGPs(Element& elem_i,std::vector<StressComps>& stress_gp_tensor, const ProcessInfo &rCurrentProcessInfo){
+
+        std::vector<Matrix> tmp_stress_gp_tensor;
         //compute stress matrix at GPs
         if(mIfShell){
             if (mYieldStressType.find("MIDDLE_SURFACE") != std::string::npos)
-                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_MIDDLE_SURFACE"), stress_gp_tensor, rCurrentProcessInfo);
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_MIDDLE_SURFACE"), tmp_stress_gp_tensor, rCurrentProcessInfo);
             if (mYieldStressType.find("TOP_SURFACE") != std::string::npos)
-                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_TOP_SURFACE"), stress_gp_tensor, rCurrentProcessInfo);
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_TOP_SURFACE"), tmp_stress_gp_tensor, rCurrentProcessInfo);
             if (mYieldStressType.find("BOTTOM_SURFACE") != std::string::npos)
-                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_BOTTOM_SURFACE"), stress_gp_tensor, rCurrentProcessInfo);          
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_BOTTOM_SURFACE"), tmp_stress_gp_tensor, rCurrentProcessInfo);          
         }
         else
-            elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_gp_tensor, rCurrentProcessInfo);
+            elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, tmp_stress_gp_tensor, rCurrentProcessInfo);
+
+
+        // now fill 
+        for(int k=0;k<tmp_stress_gp_tensor.size();k++){
+
+            StressComps k_stress_comps;
+            k_stress_comps.sxx = tmp_stress_gp_tensor[k](0,0);
+            k_stress_comps.syy = tmp_stress_gp_tensor[k](1,1);
+            k_stress_comps.szz = tmp_stress_gp_tensor[k](2,2);
+            k_stress_comps.sxy = tmp_stress_gp_tensor[k](0,1);
+            k_stress_comps.sxz = tmp_stress_gp_tensor[k](0,2);
+            k_stress_comps.syz = tmp_stress_gp_tensor[k](1,2);
+            stress_gp_tensor.push_back(k_stress_comps);
+        }
     }
 
     void ComputeIntegrationWeightsAtGPs(Element& elem_i, std::vector<double>& gp_weights_vector, const ProcessInfo &rCurrentProcessInfo){
@@ -455,37 +514,89 @@ public:
             elem_i.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, gp_weights_vector, rCurrentProcessInfo);
     }        
 
-    double ComputeTotalDerivativeAtGp(int k, const std::vector<Matrix>&  stress_gp_tensor, const std::vector<Matrix> & partial_stress_derivatives, const std::vector<double> sensitivity_prefactors){
+    static dual VonMisesAtGP(const StressComps & stress_comps){
+        dual vm = pow((stress_comps.sxx - stress_comps.syy),2);
+        vm += pow((stress_comps.syy - stress_comps.szz),2);
+        vm += pow((stress_comps.szz - stress_comps.sxx),2);
+        vm *= 0.5;
+        vm += 3 * pow((stress_comps.sxy),2);
+        vm += 3 * pow((stress_comps.sxz),2);
+        vm += 3 * pow((stress_comps.syz),2);
+        vm = sqrt(vm);
+        return vm;
+    }    
 
-        double gp_sensitivity = 0.0;
+    static dual MaxPrincipalAtGP(const StressComps & stress_comps){
 
-        if(mYieldStressType.find("VON_MISES") != std::string::npos){
+        dual to_return = 0;
+        dual I1, I2, I3;
+        dual a, b, c;
+        dual norm = pow(stress_comps.sxx,2) + pow(stress_comps.syy,2) + pow(stress_comps.szz,2);
+        norm += pow(stress_comps.sxy,2) + pow(stress_comps.sxz,2) + pow(stress_comps.syz,2);
+        norm = sqrt(norm);
 
-            const Matrix & PK2_k = stress_gp_tensor[k];
+        StressComps norm_stress_comps;
+        norm_stress_comps.sxx = stress_comps.sxx;
+        norm_stress_comps.syy = stress_comps.syy;
+        norm_stress_comps.szz = stress_comps.szz;
+        norm_stress_comps.sxy = stress_comps.sxy;
+        norm_stress_comps.sxz = stress_comps.syz;
+        norm_stress_comps.syz = stress_comps.sxz;
+        
+        static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+        if (norm < tolerance) norm = 1.0;
 
-            gp_sensitivity += 2*PK2_k(0,0)*partial_stress_derivatives[k](0,0);
-            gp_sensitivity += 2*PK2_k(1,1)*partial_stress_derivatives[k](1,1);
-            gp_sensitivity += 2*PK2_k(2,2)*partial_stress_derivatives[k](2,2);
+        norm_stress_comps.sxx /= norm;
+        norm_stress_comps.syy /= norm;
+        norm_stress_comps.szz /= norm;
+        norm_stress_comps.sxy /= norm;
+        norm_stress_comps.sxz /= norm;
+        norm_stress_comps.syz /= norm;
 
-            gp_sensitivity -= PK2_k(1,1)*partial_stress_derivatives[k](0,0);
-            gp_sensitivity -= PK2_k(0,0)*partial_stress_derivatives[k](1,1);
 
-            gp_sensitivity -= PK2_k(0,0)*partial_stress_derivatives[k](2,2);
-            gp_sensitivity -= PK2_k(2,2)*partial_stress_derivatives[k](0,0);
+        I1 = norm_stress_comps.sxx + norm_stress_comps.syy +norm_stress_comps.szz; 
 
-            gp_sensitivity -= PK2_k(1,1)*partial_stress_derivatives[k](2,2);
-            gp_sensitivity -= PK2_k(2,2)*partial_stress_derivatives[k](1,1);
+        I2 = (norm_stress_comps.sxx + norm_stress_comps.szz) * norm_stress_comps.syy + norm_stress_comps.sxx * norm_stress_comps.szz +
+        -norm_stress_comps.sxy * norm_stress_comps.sxy - norm_stress_comps.sxz * norm_stress_comps.sxz - norm_stress_comps.syz * norm_stress_comps.syz; 
 
-            gp_sensitivity += 6*PK2_k(0,1)*partial_stress_derivatives[k](0,1);
-            gp_sensitivity += 6*PK2_k(0,2)*partial_stress_derivatives[k](0,2);
-            gp_sensitivity += 6*PK2_k(1,2)*partial_stress_derivatives[k](1,2);
+        I3 = (norm_stress_comps.syy * norm_stress_comps.szz - norm_stress_comps.sxz * norm_stress_comps.sxz) * norm_stress_comps.sxx -
+                norm_stress_comps.syy * norm_stress_comps.syz * norm_stress_comps.syz - norm_stress_comps.szz * norm_stress_comps.sxy * norm_stress_comps.sxy +
+                2.0 * norm_stress_comps.sxy * norm_stress_comps.sxz * norm_stress_comps.syz;    
 
-            gp_sensitivity *= sensitivity_prefactors[k];
+        dual II1 = pow(I1, 2);
+
+        dual R = (2.0 * II1 * I1 - 9.0 * I2 * I1 + 27.0 * I3) / 54.0;
+        dual Q = (3.0 * I2 - II1) / 9.0;             
+
+        if (abs(Q) > tolerance) {
+            dual cos_phi = R / (sqrt(-pow(Q, 3)));
+            if (cos_phi >= 1.0)
+                cos_phi = 1.0;
+            else if (cos_phi <= -1.0)
+                cos_phi = -1.0;
+            dual phi = acos(cos_phi);
+            dual phi_3 = phi / 3.0;
+
+            dual aux1 = 2.0 * sqrt(-Q);
+            dual aux2 = I1 / 3.0;
+            dual deg_120 = 2.0 / 3.0 * 3.14159265359;             
+
+            for (IndexType j = 0; j < 3; ++j){
+                if(norm * (aux2 + aux1 * cos(phi_3 + deg_120 * j))>to_return)
+                    to_return = norm * (aux2 + aux1 * cos(phi_3 + deg_120 * j));
+            } 
+        } else {
+                if(stress_comps.sxx>to_return)
+                    to_return = stress_comps.sxx;                
+                if(stress_comps.syy>to_return)
+                    to_return = stress_comps.syy;
+                if(stress_comps.szz>to_return)
+                    to_return = stress_comps.szz;
         }
 
-        return gp_sensitivity;
+        return to_return;
 
-    }    
+    }        
 
     void ComputeAdjointRHS(ModelPart* mpADJModelPart){        
 
@@ -520,13 +631,13 @@ public:
 
                 std::vector<double> gp_weights_vector;
                 std::vector<double> value_gp_vector;
+                std::vector<Vector> value_der_wrt_str_gp_vetor;
                 std::vector<double> sensitivity_prefactors;
                 std::vector<double> aggregation_der_gp_vetor;
-                std::vector<Matrix> stress_gp_tensor; 
-                ComputeValuesAtGPs(*p_elem,value_gp_vector,rCurrentProcessInfo);
+                std::vector<StressComps> stress_gp_tensor; 
                 ComputeStressTensorAtGPs(*p_elem,stress_gp_tensor,rCurrentProcessInfo);
+                ComputeValuesAndDerivativesAtGPs(*p_elem,stress_gp_tensor,value_gp_vector,value_der_wrt_str_gp_vetor,rCurrentProcessInfo);             
                 ComputeIntegrationWeightsAtGPs(*p_elem,gp_weights_vector,rCurrentProcessInfo);
-                ComputeElementSensitivitiesPrefacs(sensitivity_prefactors,value_gp_vector,stress_gp_tensor);
                 ComputeAggregationFunctionDerivative(value_gp_vector,gp_weights_vector,aggregation_der_gp_vetor); 
 
                 std::vector<const Variable<double>*> primal_solution_variable_list,adj_rhs_variable_list;
@@ -553,11 +664,17 @@ public:
                         double gp_sensitivity = 0.0;
                         for(IndexType k = 0; k < aggregation_der_gp_vetor.size(); ++k){
 
-                            std::vector<Matrix> partial_stress_derivatives;
+                            std::vector<StressComps> partial_stress_derivatives;
                             ComputeStressTensorAtGPs(*p_elem,partial_stress_derivatives,rCurrentProcessInfo);
 
                             double agg_der = aggregation_der_gp_vetor[k];
-                            double sensitivity_entry_k = ComputeTotalDerivativeAtGp(k,stress_gp_tensor,partial_stress_derivatives,sensitivity_prefactors);
+                            double sensitivity_entry_k = 0;                            
+                            sensitivity_entry_k += value_der_wrt_str_gp_vetor[k][0] * double(partial_stress_derivatives[k].sxx);
+                            sensitivity_entry_k += value_der_wrt_str_gp_vetor[k][1] * double(partial_stress_derivatives[k].syy);
+                            sensitivity_entry_k += value_der_wrt_str_gp_vetor[k][2] * double(partial_stress_derivatives[k].szz);
+                            sensitivity_entry_k += value_der_wrt_str_gp_vetor[k][3] * double(partial_stress_derivatives[k].sxy);
+                            sensitivity_entry_k += value_der_wrt_str_gp_vetor[k][4] * double(partial_stress_derivatives[k].sxz);
+                            sensitivity_entry_k += value_der_wrt_str_gp_vetor[k][5] * double(partial_stress_derivatives[k].syz);
                             sensitivity_entry_k *= agg_der;
                             gp_sensitivity += sensitivity_entry_k;
                         }

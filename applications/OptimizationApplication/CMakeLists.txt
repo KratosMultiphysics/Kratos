@@ -6,6 +6,7 @@ message("**** configuring KratosOptimizationApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
