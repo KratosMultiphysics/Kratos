@@ -887,7 +887,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE
             //==========================================================================================================================================
-            if (mRVESolve && data_buffer.mIndentation > 0.0) {
+            if (mRVESolve && mWall == 0 && data_buffer.mIndentation > 0.0) {
               mCoordNum++;
 
               // Branch vector
@@ -915,7 +915,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
               mRoseDiagram(0,idx_xy)++;
               mRoseDiagram(1,idx_az)++;
 
-              if (GetId() < data_buffer.mpOtherParticle->GetId()) { // Unique contacts (each binary contact evaluated only once)
+              if (GetId() < data_buffer.mpOtherParticle->GetId() || data_buffer.mpOtherParticle->mWall > 0) { // Unique contacts (each binary contact evaluated only once)
                 mNumContacts++;
 
                 // Overlap volume
@@ -949,6 +949,10 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                 array_1d<double, 3>& coordinates_2 = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
                 std::vector<double> chain{ coordinates_1[0], coordinates_1[1], coordinates_1[2], coordinates_2[0], coordinates_2[1], coordinates_2[2], force };
                 mForceChain.insert(mForceChain.end(), chain.begin(), chain.end());
+
+                // Add wall forces in case of particle walls
+                if (data_buffer.mpOtherParticle->mWall > 0)
+                  mWallForces += force;
 
                 // Stiffness
                 const double kn = mDiscontinuumConstitutiveLaw->mKn;
@@ -1192,14 +1196,13 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             //==========================================================================================================================================
             // HIERARCHICAL MULTISCALE RVE
             //==========================================================================================================================================
-            if (mRVESolve && indentation > 0.0) {
+            if (mRVESolve && mWall == 0 && indentation > 0.0) {
               mInner = false;
               mCoordNum++;
               mNumContacts++;
               const int dim = r_process_info[DOMAIN_SIZE];
 
               // Branch vector
-              // ATTENTION: Assuming twice the radius for the branch vector!
               const double r = GetRadius();
               const double d = r - indentation;
               const double normal[3] = { -data_buffer.mLocalCoordSystem[2][0], -data_buffer.mLocalCoordSystem[2][1], -data_buffer.mLocalCoordSystem[2][2] };

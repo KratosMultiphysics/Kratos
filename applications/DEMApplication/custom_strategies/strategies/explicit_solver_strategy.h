@@ -284,12 +284,15 @@ namespace Kratos {
         //==========================================================================================================================================
 
         // Properties
+        bool   mRVE_FlatWalls;          // Flag for flat rigid walls
         bool   mRVE_Solve;              // Flag for evaluating RVE in current step
         bool   mRVE_Compress;           // Flag for evaluating RVE in current step
         int    mRVE_FreqWrite = 1;      // Frequency for writing results as a multiplication factor of the evaluating frequency
         int    mRVE_Dimension;          // RVE dimension: 2D or 3D
-        int    mRVE_NumContacts;        // Total number of contacts in RVE
+        int    mRVE_NumParticles;       // Total number of particles inside RVE (does not consider wall particles)
         int    mRVE_NumParticlesInner;  // Total number of inner particles (not in contact with walls)
+        int    mRVE_NumParticlesWalls;  // Total number of wall particles
+        int    mRVE_NumContacts;        // Total number of contacts in RVE
         double mRVE_AvgCoordNum;        // Average coordination number per particle
         double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
         double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
@@ -302,12 +305,19 @@ namespace Kratos {
         double mRVE_WallForces;         // Total force applied by walls (normal only)
         double mRVE_WallStress;         // Total stress applied by walls (normal only)
 
-        std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE walls in negative X direction
-        std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE walls in positive X direction
-        std::vector<DEMWall*> mRVE_WallYMin; // Vector of RVE walls in negative Y direction
-        std::vector<DEMWall*> mRVE_WallYMax; // Vector of RVE walls in positive Y direction
-        std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE walls in negative Z direction
-        std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE walls in positive Z direction
+        std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE flat walls in negative X direction
+        std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE flat walls in positive X direction
+        std::vector<DEMWall*> mRVE_WallYMin; // Vector of RVE flat walls in negative Y direction
+        std::vector<DEMWall*> mRVE_WallYMax; // Vector of RVE flat walls in positive Y direction
+        std::vector<DEMWall*> mRVE_WallZMin; // Vector of RVE flat walls in negative Z direction
+        std::vector<DEMWall*> mRVE_WallZMax; // Vector of RVE flat walls in positive Z direction
+
+        std::vector<SphericParticle*> mRVE_WallParticleXMin; // Vector of RVE particle walls in negative X direction
+        std::vector<SphericParticle*> mRVE_WallParticleXMax; // Vector of RVE particle walls in positive X direction
+        std::vector<SphericParticle*> mRVE_WallParticleYMin; // Vector of RVE particle walls in negative Y direction
+        std::vector<SphericParticle*> mRVE_WallParticleYMax; // Vector of RVE particle walls in positive Y direction
+        std::vector<SphericParticle*> mRVE_WallParticleZMin; // Vector of RVE particle walls in negative Z direction
+        std::vector<SphericParticle*> mRVE_WallParticleZMax; // Vector of RVE particle walls in positive Z direction
 
         std::vector<double> mRVE_ForceChain; // Vector of force chains coordinates: [x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, x1,y1,z1,x2,y2,z2,F, ...]
         Matrix mRVE_RoseDiagram;             // Rose diagram of contacts: Row 1 = angle ranges in plane XY; Row 2 = azimute ranges wrt to plane XY;
@@ -337,9 +347,11 @@ namespace Kratos {
         void Finalize                  (void);
         void RVEFinalize               (void);
 
-        void RVEAssembleWallVectors   (void);
-        void RVEAssembleWallVectors2D (void);
-        void RVEAssembleWallVectors3D (void);
+        void RVEAssembleWallVectors             (void);
+        void RVEAssembleWallVectors2D_Flat      (void);
+        void RVEAssembleWallVectors3D_Flat      (void);
+        void RVEAssembleWallVectors2D_Particles (void);
+        void RVEAssembleWallVectors3D_Particles (void);
 
         double RVEComputeTotalSurface   (void);
         double RVEComputeTotalVolume    (void);

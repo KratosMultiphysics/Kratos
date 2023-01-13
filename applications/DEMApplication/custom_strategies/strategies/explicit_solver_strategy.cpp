@@ -1806,16 +1806,26 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEInitialize(void) {
-      ModelPart&   r_dem_model_part = GetModelPart();
-      ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
+      ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
+      ModelPart& r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
 
       // Initialize properties
+      mRVE_FlatWalls  = r_conditions.size() > 0;
       mRVE_Compress   = true;
       mRVE_FreqWrite *= r_process_info[RVE_EVAL_FREQ];
       mRVE_Dimension  = r_process_info[DOMAIN_SIZE];
 
       // Assemble vectors of wall elements
       RVEAssembleWallVectors();
+
+      // Number of wall particles
+      if (mRVE_FlatWalls)
+        mRVE_NumParticlesWalls = 0;
+      else
+        mRVE_NumParticlesWalls = mRVE_WallParticleXMin.size() + mRVE_WallParticleXMax.size() + mRVE_WallParticleYMin.size() + mRVE_WallParticleYMax.size() + mRVE_WallParticleZMin.size() + mRVE_WallParticleZMax.size();
+
+      mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
 
       // Open files
       RVEOpenFiles();
@@ -1860,36 +1870,43 @@ namespace Kratos {
       const int dim  = mRVE_Dimension;
       const int dim2 = mRVE_Dimension * mRVE_Dimension;
 
-      p_particle->mInner         = true;
-      p_particle->mCoordNum      = 0;
-      p_particle->mNumContacts   = 0;
-      p_particle->mVolOverlap    = 0.0;
-      p_particle->mWallForces    = 0.0;
-      p_particle->mRoseDiagram   = ZeroMatrix(2,40);
-      p_particle->mFabricTensor  = ZeroMatrix(dim,dim);
-      p_particle->mCauchyTensor  = ZeroMatrix(dim,dim);
-      p_particle->mTangentTensor = ZeroMatrix(dim2,dim2);
-      p_particle->mForceChain.clear();
+      if (p_particle->mWall == 0) {
+        p_particle->mInner         = true;
+        p_particle->mCoordNum      = 0;
+        p_particle->mNumContacts   = 0;
+        p_particle->mVolOverlap    = 0.0;
+        p_particle->mWallForces    = 0.0;
+        p_particle->mRoseDiagram   = ZeroMatrix(2, 40);
+        p_particle->mFabricTensor  = ZeroMatrix(dim, dim);
+        p_particle->mCauchyTensor  = ZeroMatrix(dim, dim);
+        p_particle->mTangentTensor = ZeroMatrix(dim2, dim2);
+        p_particle->mForceChain.clear();
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEExecuteParticlePos(SphericParticle* p_particle) {
       if (!mRVE_Solve) return;
 
-      mRVE_NumContacts   += p_particle->mNumContacts;
-      mRVE_AvgCoordNum   += p_particle->mCoordNum;
-      mRVE_VolSolid      += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
-      mRVE_WallForces    += p_particle->mWallForces;
-      mRVE_RoseDiagram   += p_particle->mRoseDiagram;
-      mRVE_FabricTensor  += p_particle->mFabricTensor;
-      mRVE_CauchyTensor  += p_particle->mCauchyTensor;
-      mRVE_TangentTensor += p_particle->mTangentTensor;
-      mRVE_ForceChain.insert(mRVE_ForceChain.end(), p_particle->mForceChain.begin(), p_particle->mForceChain.end());
+      if (p_particle->mWall == 0) {
+        mRVE_NumContacts   += p_particle->mNumContacts;
+        mRVE_AvgCoordNum   += p_particle->mCoordNum;
+        mRVE_VolSolid      += RVEComputeParticleVolume(p_particle) - p_particle->mVolOverlap;
+        mRVE_WallForces    += p_particle->mWallForces;
+        mRVE_RoseDiagram   += p_particle->mRoseDiagram;
+        mRVE_FabricTensor  += p_particle->mFabricTensor;
+        mRVE_CauchyTensor  += p_particle->mCauchyTensor;
+        mRVE_TangentTensor += p_particle->mTangentTensor;
+        mRVE_ForceChain.insert(mRVE_ForceChain.end(), p_particle->mForceChain.begin(), p_particle->mForceChain.end());
 
-      if (p_particle->mInner) {
-        mRVE_NumParticlesInner++;
-        mRVE_AvgCoordNumInner += p_particle->mCoordNum;
-        mRVE_RoseDiagramInner += p_particle->mRoseDiagram;
+        if (p_particle->mInner) {
+          mRVE_NumParticlesInner++;
+          mRVE_AvgCoordNumInner += p_particle->mCoordNum;
+          mRVE_RoseDiagramInner += p_particle->mRoseDiagram;
+        }
+      }
+      else {
+        mRVE_VolSolid += 0.5 * RVEComputeParticleVolume(p_particle);
       }
     }
 
@@ -1898,7 +1915,7 @@ namespace Kratos {
       if (!mRVE_Solve) return;
 
       // Average coordination number
-      mRVE_AvgCoordNum /= mListOfSphericParticles.size();
+      mRVE_AvgCoordNum /= mRVE_NumParticles;
       mRVE_AvgCoordNumInner /= mRVE_NumParticlesInner;
 
       // Compute porosity and void ratio
@@ -1906,8 +1923,10 @@ namespace Kratos {
       RVEComputePorosity();
 
       // Compute stress applied by walls
-      double surf = RVEComputeTotalSurface();
-      mRVE_WallStress = mRVE_WallForces / surf;
+      if (mRVE_FlatWalls)
+        mRVE_WallStress = mRVE_WallForces / RVEComputeTotalSurface();
+      else
+        mRVE_WallStress = 0.0;  // TODO: Not computed for particle walls
 
       // Compute fabric anisotropy and stresses
       if (mRVE_NumContacts == 0.0) {
@@ -1971,16 +1990,29 @@ namespace Kratos {
 
       // Stop compression
       const double limit_stress = GetModelPart().GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+
       if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
         mRVE_Compress = false;
 
-        ModelPart& fem_model_part = GetFemModelPart();
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-          ModelPart& submp = *sub_model_part;
-          array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
-          linear_velocity[0] = 0.0;
-          linear_velocity[1] = 0.0;
-          linear_velocity[2] = 0.0;
+        if (mRVE_FlatWalls) {
+          ModelPart& fem_model_part = GetFemModelPart();
+          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            ModelPart& submp = *sub_model_part;
+            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+            linear_velocity[0] = 0.0;
+            linear_velocity[1] = 0.0;
+            linear_velocity[2] = 0.0;
+          }
+        }
+        else {
+          ModelPart& r_model_part = GetModelPart();
+          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            array_1d<double, 3> linear_velocity = (*sub_model_part)[LINEAR_VELOCITY];
+            if (linear_velocity[0] != 0.0 || linear_velocity[1] != 0.0 || linear_velocity[2] != 0.0) {
+              int* fixed_mesh = &(*sub_model_part)[FIXED_MESH_OPTION];
+              *fixed_mesh = 1;
+            }
+          }
         }
       }
     }
@@ -1998,12 +2030,14 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEAssembleWallVectors(void) {
-      if      (mRVE_Dimension == 2) RVEAssembleWallVectors2D();
-      else if (mRVE_Dimension == 3) RVEAssembleWallVectors3D();
+      if      (mRVE_Dimension == 2 && mRVE_FlatWalls)  RVEAssembleWallVectors2D_Flat();
+      else if (mRVE_Dimension == 3 && mRVE_FlatWalls)  RVEAssembleWallVectors3D_Flat();
+      else if (mRVE_Dimension == 2 && !mRVE_FlatWalls) RVEAssembleWallVectors2D_Particles();
+      else if (mRVE_Dimension == 3 && !mRVE_FlatWalls) RVEAssembleWallVectors3D_Particles();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEAssembleWallVectors2D(void) {
+    void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Flat(void) {
       const double eps = std::numeric_limits<double>::epsilon();
 
       std::vector<DEMWall*> wall_elems_x;
@@ -2045,10 +2079,14 @@ namespace Kratos {
         if      (std::abs(y-ymin) < eps) mRVE_WallYMin.push_back(wall_elems_y[i]);
         else if (std::abs(y-ymax) < eps) mRVE_WallYMax.push_back(wall_elems_y[i]);
       }
+
+      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
+        mListOfSphericParticles[i]->mWall = 0;
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEAssembleWallVectors3D(void) {
+    void ExplicitSolverStrategy::RVEAssembleWallVectors3D_Flat(void) {
       const double eps = std::numeric_limits<double>::epsilon();
 
       std::vector<DEMWall*> wall_elems_x;
@@ -2104,6 +2142,110 @@ namespace Kratos {
         if      (std::abs(z-zmin) < eps) mRVE_WallZMin.push_back(wall_elems_z[i]);
         else if (std::abs(z-zmax) < eps) mRVE_WallZMax.push_back(wall_elems_z[i]);
       }
+
+      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
+        mListOfSphericParticles[i]->mWall = 0;
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Particles(void) {
+      const double eps = std::numeric_limits<double>::epsilon();
+      double xmin =  DBL_MAX;
+      double xmax = -DBL_MAX;
+      double ymin =  DBL_MAX;
+      double ymax = -DBL_MAX;
+
+      const int number_of_particles = (int)mListOfSphericParticles.size();
+      for (int i = 0; i < number_of_particles; i++) {
+        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+        if (coord_x < xmin) xmin = coord_x;
+        if (coord_x > xmax) xmax = coord_x;
+        if (coord_y < ymin) ymin = coord_y;
+        if (coord_y > ymax) ymax = coord_y;
+      }
+
+      for (int i = 0; i < number_of_particles; i++) {
+        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+        if (std::abs(coord_x - xmin) < eps) {
+          mRVE_WallParticleXMin.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 1;
+        }
+        else if (std::abs(coord_x - xmax) < eps) {
+          mRVE_WallParticleXMax.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 2;
+        }
+        else if (std::abs(coord_y - ymin) < eps) {
+          mRVE_WallParticleYMin.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 3;
+        }
+        else if (std::abs(coord_y - ymax) < eps) {
+          mRVE_WallParticleYMax.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 4;
+        }
+        else {
+          mListOfSphericParticles[i]->mWall = 0;
+        }
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEAssembleWallVectors3D_Particles(void) {
+      const double eps = std::numeric_limits<double>::epsilon();
+      double xmin =  DBL_MAX;
+      double xmax = -DBL_MAX;
+      double ymin =  DBL_MAX;
+      double ymax = -DBL_MAX;
+      double zmin =  DBL_MAX;
+      double zmax = -DBL_MAX;
+
+      const int number_of_particles = (int)mListOfSphericParticles.size();
+      for (int i = 0; i < number_of_particles; i++) {
+        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+        const double coord_z = mListOfSphericParticles[i]->GetGeometry()[0][2];
+        if (coord_x < xmin) xmin = coord_x;
+        if (coord_x > xmax) xmax = coord_x;
+        if (coord_y < ymin) ymin = coord_y;
+        if (coord_y > ymax) ymax = coord_y;
+        if (coord_z < zmin) zmin = coord_z;
+        if (coord_z > zmax) zmax = coord_z;
+      }
+
+      for (int i = 0; i < number_of_particles; i++) {
+        const double coord_x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+        const double coord_y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+        const double coord_z = mListOfSphericParticles[i]->GetGeometry()[0][2];
+        if (std::abs(coord_x - xmin) < eps) {
+          mRVE_WallParticleXMin.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 1;
+        }
+        else if (std::abs(coord_x - xmax) < eps) {
+          mRVE_WallParticleXMax.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 2;
+        }
+        else if (std::abs(coord_y - ymin) < eps) {
+          mRVE_WallParticleYMin.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 3;
+        }
+        else if (std::abs(coord_y - ymax) < eps) {
+          mRVE_WallParticleYMax.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 4;
+        }
+        else if (std::abs(coord_z - zmin) < eps) {
+          mRVE_WallParticleZMin.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 5;
+        }
+        else if (std::abs(coord_z - zmax) < eps) {
+          mRVE_WallParticleZMax.push_back(mListOfSphericParticles[i]);
+          mListOfSphericParticles[i]->mWall = 6;
+        }
+        else {
+          mListOfSphericParticles[i]->mWall = 0;
+        }
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2136,14 +2278,26 @@ namespace Kratos {
       double dY = 1.0;
       double dZ = 1.0;
 
-      if (mRVE_WallXMin.size() > 0 && mRVE_WallXMax.size() > 0)
-        dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+      if (mRVE_FlatWalls) {
+        if (mRVE_WallXMin.size() > 0 && mRVE_WallXMax.size() > 0)
+          dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
 
-      if (mRVE_WallYMin.size() > 0 && mRVE_WallYMax.size() > 0)
-        dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+        if (mRVE_WallYMin.size() > 0 && mRVE_WallYMax.size() > 0)
+          dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
 
-      if (mRVE_WallZMin.size() > 0 && mRVE_WallZMax.size() > 0)
-        dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+        if (mRVE_WallZMin.size() > 0 && mRVE_WallZMax.size() > 0)
+          dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+      }
+      else {
+        if (mRVE_WallParticleXMin.size() > 0 && mRVE_WallParticleXMax.size() > 0)
+          dX = std::abs(mRVE_WallParticleXMin[0]->GetGeometry()[0][0] - mRVE_WallParticleXMax[0]->GetGeometry()[0][0]);
+
+        if (mRVE_WallParticleYMin.size() > 0 && mRVE_WallParticleYMax.size() > 0)
+          dY = std::abs(mRVE_WallParticleYMin[0]->GetGeometry()[0][1] - mRVE_WallParticleYMax[0]->GetGeometry()[0][1]);
+
+        if (mRVE_WallParticleZMin.size() > 0 && mRVE_WallParticleZMax.size() > 0)
+          dZ = std::abs(mRVE_WallParticleZMin[0]->GetGeometry()[0][2] - mRVE_WallParticleZMax[0]->GetGeometry()[0][2]);
+      }
 
       return dX * dY * dZ;
     }
@@ -2214,10 +2368,11 @@ namespace Kratos {
 
       if (mRVE_FileContactNumber.is_open()) {
         mRVE_FileContactNumber << time_step << " " << time << " ";
-        const int number_of_particles = (int)mListOfSphericParticles.size();
-        for (int i = 0; i < number_of_particles; i++) {
-          const int contacts = mListOfSphericParticles[i]->mCoordNum;
-          mRVE_FileContactNumber << contacts << " ";
+        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+          if (mListOfSphericParticles[i]->mWall == 0) {
+            const int contacts = mListOfSphericParticles[i]->mCoordNum;
+            mRVE_FileContactNumber << contacts << " ";
+          }
         }
         mRVE_FileContactNumber << std::endl;
       }
