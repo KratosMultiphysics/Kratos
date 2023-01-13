@@ -30,6 +30,7 @@
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 // ==============================================================================
 
@@ -51,6 +52,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     AddCustomOptimizationAlgorithmToPython(m);
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     //registering variables in python
 
@@ -168,6 +170,8 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DENSITY_SENSITIVITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THICKNESS_SENSITIVITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CROSS_AREA_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, YOUNG_MODULUS_SENSITIVITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POISSON_RATIO_SENSITIVITY);
 
   }
 
