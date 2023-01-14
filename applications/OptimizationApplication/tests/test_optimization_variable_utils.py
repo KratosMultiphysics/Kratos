@@ -10,6 +10,8 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
 
         number_of_nodes = 10
         for id in range(1, number_of_nodes + 1):
@@ -140,6 +142,17 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
         self.utils.AssignVectorToContainer(self.model_part.Elements, 3, Kratos.VELOCITY, values)
         self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.VELOCITY))
 
+    def test_AssignVectorToHistoricalContainer(self):
+        values = Kratos.Vector()
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.PRESSURE, 3, values)
+        self.utils.AssignVectorToHistoricalContainer(self.model_part, 3, Kratos.DENSITY, values)
+
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.VELOCITY, 3, values)
+        self.utils.AssignVectorToHistoricalContainer(self.model_part, 3, Kratos.ACCELERATION, values)
+
+        for node in self.model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), node.GetValue(Kratos.PRESSURE))
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetValue(Kratos.VELOCITY), 12)
 
     def __CheckVectorFromVectors(self, vector: Kratos.Vector, ids, get_entity_value_method):
         self.assertEqual(vector.Size(), len(ids) * 3)

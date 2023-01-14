@@ -94,6 +94,13 @@ public:
         const Variable<TDataType>& rVariable,
         const Vector& rValues);
 
+    template<class TDataType>
+    static void AssignVectorToHistoricalContainer(
+        ModelPart& rModelPart,
+        const IndexType DomainSize,
+        const Variable<TDataType>& rVariable,
+        const Vector& rValues);
+
     template<class TContainerType>
     static void CreateEntitySpecificPropertiesForContainer(
         ModelPart& rModelPart,

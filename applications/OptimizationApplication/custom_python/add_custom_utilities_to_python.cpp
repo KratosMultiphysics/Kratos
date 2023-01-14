@@ -66,6 +66,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("AssignVectorToContainer", &OptimizationUtils::AssignVectorToContainer<ModelPart::ElementsContainerType, array_1d<double, 3>>)
         .def_static("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ConditionsContainerType>)
         .def_static("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ElementsContainerType>)
+        .def_static("AssignVectorToHistoricalContainer", &OptimizationUtils::AssignVectorToHistoricalContainer<double>)
+        .def_static("AssignVectorToHistoricalContainer", &OptimizationUtils::AssignVectorToHistoricalContainer<array_1d<double, 3>>)
         ;
 
     py::class_<GradientProjectionSolverUtils >(m, "GradientProjectionSolverUtils")
