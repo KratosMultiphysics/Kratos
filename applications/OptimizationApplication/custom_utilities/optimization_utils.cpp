@@ -218,7 +218,7 @@ void OptimizationUtils::AssignVectorToContainerProperties(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(rContainer.size() != rValues.size())
+    KRATOS_ERROR_IF_NOT(rContainer.size() == rValues.size())
         << "Container size and values size mismatch. [ rContainer.size() = "
         << rContainer.size() << ", values.size() = " << rValues.size() << " ].\n";
 

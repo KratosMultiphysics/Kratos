@@ -89,12 +89,64 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
         self.model_part.GetCondition(4).Properties[Kratos.DENSITY] = 1.0
         self.assertTrue(self.utils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Conditions, Kratos.DENSITY, self.model_part.GetCommunicator().GetDataCommunicator()))
 
-    def __CheckVectorFromVectors(self, matrix: Kratos.Matrix, ids, get_entity_value_method):
-        self.assertEqual(matrix.Size(), len(ids) * 3)
+    def test_CalculateVectorL2Norm(self):
+        v = Kratos.Vector(4, 2.0)
+        self.assertEqual(self.utils.CalculateVectorL2Norm(v), 4.0)
+
+    def test_AssignVectorToContainerProperties(self):
+        values = Kratos.Vector()
+
+        self.utils.GetContainerPropertiesVariableToVector(self.model_part.Conditions, Kratos.PRESSURE, values)
+        values *= 2.0
+        self.utils.AssignVectorToContainerProperties(self.model_part.Conditions, Kratos.PRESSURE, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).Properties[Kratos.PRESSURE])
+
+        self.utils.GetContainerPropertiesVariableToVector(self.model_part.Elements, Kratos.PRESSURE, values)
+        values *= 2.0
+        self.utils.AssignVectorToContainerProperties(self.model_part.Elements, Kratos.PRESSURE, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).Properties[Kratos.PRESSURE])
+
+    def test_AssignVectorToContainerScalar(self):
+        values = Kratos.Vector()
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.PRESSURE, 3, values)
+        values *= 2
+        self.utils.AssignVectorToContainer(self.model_part.Nodes, 3, Kratos.PRESSURE, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Nodes), lambda m, id: m.GetNode(id).GetValue(Kratos.PRESSURE))
+
+        self.utils.GetContainerVariableToVector(self.model_part.Conditions, Kratos.PRESSURE, 3, values)
+        values *= 2
+        self.utils.AssignVectorToContainer(self.model_part.Conditions, 3, Kratos.PRESSURE, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).GetValue(Kratos.PRESSURE))
+
+        self.utils.GetContainerVariableToVector(self.model_part.Elements, Kratos.PRESSURE, 3, values)
+        values *= 2
+        self.utils.AssignVectorToContainer(self.model_part.Elements, 3, Kratos.PRESSURE, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.PRESSURE))
+
+    def test_AssignVectorToContainerVector(self):
+        values = Kratos.Vector()
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.VELOCITY, 3, values)
+        values *= 2
+        self.utils.AssignVectorToContainer(self.model_part.Nodes, 3, Kratos.VELOCITY, values)
+        self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Nodes), lambda m, id: m.GetNode(id).GetValue(Kratos.VELOCITY))
+
+        self.utils.GetContainerVariableToVector(self.model_part.Conditions, Kratos.VELOCITY, 3, values)
+        values *= 2
+        self.utils.AssignVectorToContainer(self.model_part.Conditions, 3, Kratos.VELOCITY, values)
+        self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).GetValue(Kratos.VELOCITY))
+
+        self.utils.GetContainerVariableToVector(self.model_part.Elements, Kratos.VELOCITY, 3, values)
+        values *= 2
+        self.utils.AssignVectorToContainer(self.model_part.Elements, 3, Kratos.VELOCITY, values)
+        self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.VELOCITY))
+
+
+    def __CheckVectorFromVectors(self, vector: Kratos.Vector, ids, get_entity_value_method):
+        self.assertEqual(vector.Size(), len(ids) * 3)
         for i, id in enumerate(ids):
             v = get_entity_value_method(self.model_part, id)
             for j in range(3):
-                self.assertEqual(matrix[i * 3 + j], v[j])
+                self.assertEqual(vector[i * 3 + j], v[j])
 
     def __CheckVectorFromScalars(self, vector: Kratos.Vector, ids, get_entity_value_method):
         self.assertEqual(vector.Size(), len(ids))
