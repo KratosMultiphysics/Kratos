@@ -31,7 +31,7 @@ class OptimizationInfo:
 
     def GetRoutine(self, routine_class_type, routine_name: str) -> 'routine_class_type':
         if routine_class_type not in self.__objects.keys():
-            raise RuntimeError(f"No objects of type \"{routine_class_type.__name__}\" [ requested routine_name = \"{routine_name}\" ].")
+            raise RuntimeError(f"No objects of type \"{routine_class_type.__name__}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(v.__name__ for v in self.__objects.keys()))
 
         if routine_name not in self.__objects[routine_class_type].keys():
             raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{routine_class_type.__name__}\". Followings are available options:\n\t" + "\n\t".join(v.GetName() for v in self.__objects[routine_class_type].values()))
@@ -40,7 +40,7 @@ class OptimizationInfo:
 
     def GetRoutines(self, routine_class_type):
         if routine_class_type not in self.__objects.keys():
-            raise RuntimeError(f"No objects of type \"{routine_class_type.__name__}\" [ requested routine_name = \"{routine_name}\" ].")
+            raise RuntimeError(f"No objects of type \"{routine_class_type.__name__}\". Following are the available type options: \n\t" + "\n\t".join(v.__name__ for v in self.__objects.keys()))
 
         return self.__objects[routine_class_type].values()
 
