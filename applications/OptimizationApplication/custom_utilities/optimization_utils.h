@@ -79,17 +79,44 @@ public:
     static IndexType GetLocalSize(
         const IndexType DomainSize);
 
+    static double CalculateVectorL2Norm(const Vector& rInput);
+
+    template<class TContainerType>
+    static void AssignVectorToContainerProperties(
+        TContainerType& rContainer,
+        const Variable<double>& rPropertiesVariable,
+        const Vector& rValues);
+
+    template<class TContainerType, class TDataType>
+    static void AssignVectorToContainer(
+        TContainerType& rContainer,
+        const IndexType DomainSize,
+        const Variable<TDataType>& rVariable,
+        const Vector& rValues);
+
+    template<class TContainerType>
+    static void CreateEntitySpecificPropertiesForContainer(
+        ModelPart& rModelPart,
+        TContainerType& rContainer);
+
     ///@}
 private:
     ///@name Private operations
     ///@{
 
     template<class TDataType>
-    static inline void AssignValue(
+    static inline void AssignValueToVector(
         const TDataType& rValue,
         const IndexType ValueComponentIndex,
         const IndexType VectoStartingIndex,
         Vector& rOutput);
+
+    template<class TDataType>
+    static inline void AssignValueFromVector(
+        TDataType& rOutput,
+        const IndexType ValueComponentIndex,
+        const IndexType VectoStartingIndex,
+        const Vector& rInput);
 
     ///@}
 };
