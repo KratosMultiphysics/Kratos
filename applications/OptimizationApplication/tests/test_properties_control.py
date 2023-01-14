@@ -10,7 +10,7 @@ from KratosMultiphysics.OptimizationApplication.optimization_info import Optimiz
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 
-class TestExecutionPolicies(kratos_unittest.TestCase):
+class TestPropertiesControl(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()

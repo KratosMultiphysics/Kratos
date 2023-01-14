@@ -23,6 +23,7 @@ from test_mass_response_function import TestMassResponseFunctionShells
 from test_mass_response_function import TestMassResponseFunctionSolids
 from test_entity_specific_properties_process import TestEntitySpecificPropertiesProcess
 from test_linear_strain_energy_response_function import TestLinearStrainEnergyResponseFunctionBase
+from test_properties_control import TestPropertiesControl
 
 # Nightly tests
 
@@ -54,6 +55,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEntitySpecificPropertiesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLinearStrainEnergyResponseFunctionBase]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPropertiesControl]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
