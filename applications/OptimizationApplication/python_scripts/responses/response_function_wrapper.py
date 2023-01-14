@@ -66,17 +66,9 @@ class ResponseFunctionBaseWrapper(ABC):
             # w.r.t. another response function
 
             container = GetSensitivityContainer(sensitivity_model_part, sensitivity_container_type)
-            sensitivity_variable_type = Kratos.KratosGlobals.GetVariableType(sensitivity_variable.Name())
-            match sensitivity_variable_type:
-                case "Double":
-                    values = Kratos.Vector()
-                    KratosOA.OptimizationVariableUtils.GetContainerVariableToVector(container, sensitivity_variable, values)
-                case "Array":
-                    values = Kratos.Matrix()
-                    KratosOA.OptimizationVariableUtils.GetContainerVariableToMatrix(container, sensitivity_variable, values)
-                case _:
-                    raise RuntimeError(f"{sensitivity_variable.name} is of type {sensitivity_container_type} which is not a supported type. Supported types are: \t\nDouble\t\nArray")
-
+            values = Kratos.Vector()
+            domain_size = sensitivity_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+            KratosOA.OptimizationVariableUtils.GetContainerVariableToVector(container, sensitivity_variable, domain_size, values)
             self.response_sensitivities[sensitivity_variable, sensitivity_model_part, sensitivity_container_type] = values
 
         return self.response_sensitivities[sensitivity_variable, sensitivity_model_part, sensitivity_container_type]
@@ -84,7 +76,7 @@ class ResponseFunctionBaseWrapper(ABC):
     def GetStandardizedValue(self):
         return self._StandardizeValue(self.GetValue())
 
-    def GetStandardizedSensitivitydef(self, sensitivity_variable, sensitivity_model_part: Kratos.ModelPart, sensitivity_container_type: ContainerEnum):
+    def GetStandardizedSensitivity(self, sensitivity_variable, sensitivity_model_part: Kratos.ModelPart, sensitivity_container_type: ContainerEnum):
         return self._StandardizeSensitivity(self.GetSensitivity(sensitivity_variable, sensitivity_model_part, sensitivity_container_type))
 
     @abstractmethod

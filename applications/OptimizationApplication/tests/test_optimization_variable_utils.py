@@ -47,35 +47,35 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
         # check for elements
         self.assertEqual(self.utils.GetContainerIds(self.model_part.Elements), [element.Id for element in self.model_part.Elements])
 
-    def test_GetContainerVariableToMatrix(self):
-        values = Kratos.Matrix()
-        self.utils.GetContainerVariableToMatrix(self.model_part.Nodes, Kratos.VELOCITY, values)
-        self.__CheckMatrix(values, self.utils.GetContainerIds(self.model_part.Nodes), lambda m, id: m.GetNode(id).GetValue(Kratos.VELOCITY))
-
-        self.utils.GetContainerVariableToMatrix(self.model_part.Conditions, Kratos.VELOCITY, values)
-        self.__CheckMatrix(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).GetValue(Kratos.VELOCITY))
-
-        self.utils.GetContainerVariableToMatrix(self.model_part.Elements, Kratos.VELOCITY, values)
-        self.__CheckMatrix(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.VELOCITY))
-
-    def test_GetContainerVariableToVector(self):
+    def test_GetContainerVariableToVectorVector(self):
         values = Kratos.Vector()
-        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.PRESSURE, values)
-        self.__CheckVector(values, self.utils.GetContainerIds(self.model_part.Nodes), lambda m, id: m.GetNode(id).GetValue(Kratos.PRESSURE))
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.VELOCITY, 3, values)
+        self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Nodes), lambda m, id: m.GetNode(id).GetValue(Kratos.VELOCITY))
 
-        self.utils.GetContainerVariableToVector(self.model_part.Conditions, Kratos.PRESSURE, values)
-        self.__CheckVector(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).GetValue(Kratos.PRESSURE))
+        self.utils.GetContainerVariableToVector(self.model_part.Conditions, Kratos.VELOCITY, 3, values)
+        self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).GetValue(Kratos.VELOCITY))
 
-        self.utils.GetContainerVariableToVector(self.model_part.Elements, Kratos.PRESSURE, values)
-        self.__CheckVector(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.PRESSURE))
+        self.utils.GetContainerVariableToVector(self.model_part.Elements, Kratos.VELOCITY, 3, values)
+        self.__CheckVectorFromVectors(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.VELOCITY))
+
+    def test_GetContainerVariableToVectorScalar(self):
+        values = Kratos.Vector()
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.PRESSURE, 3, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Nodes), lambda m, id: m.GetNode(id).GetValue(Kratos.PRESSURE))
+
+        self.utils.GetContainerVariableToVector(self.model_part.Conditions, Kratos.PRESSURE, 3, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).GetValue(Kratos.PRESSURE))
+
+        self.utils.GetContainerVariableToVector(self.model_part.Elements, Kratos.PRESSURE, 3, values)
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).GetValue(Kratos.PRESSURE))
 
     def test_GetContainerPropertiesVariableToVector(self):
         values = Kratos.Vector()
         self.utils.GetContainerPropertiesVariableToVector(self.model_part.Conditions, Kratos.PRESSURE, values)
-        self.__CheckVector(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).Properties[Kratos.PRESSURE])
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Conditions), lambda m, id: m.GetCondition(id).Properties[Kratos.PRESSURE])
 
         self.utils.GetContainerPropertiesVariableToVector(self.model_part.Elements, Kratos.PRESSURE, values)
-        self.__CheckVector(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).Properties[Kratos.PRESSURE])
+        self.__CheckVectorFromScalars(values, self.utils.GetContainerIds(self.model_part.Elements), lambda m, id: m.GetElement(id).Properties[Kratos.PRESSURE])
 
     def test_IsVariableExistsInAllContainerProperties(self):
         self.assertTrue(self.utils.IsVariableExistsInAllContainerProperties(self.model_part.Conditions, Kratos.PRESSURE, self.model_part.GetCommunicator().GetDataCommunicator()))
@@ -89,14 +89,14 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
         self.model_part.GetCondition(4).Properties[Kratos.DENSITY] = 1.0
         self.assertTrue(self.utils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Conditions, Kratos.DENSITY, self.model_part.GetCommunicator().GetDataCommunicator()))
 
-    def __CheckMatrix(self, matrix: Kratos.Matrix, ids, get_entity_value_method):
-        self.assertEqual(matrix.Size1(), len(ids))
+    def __CheckVectorFromVectors(self, matrix: Kratos.Matrix, ids, get_entity_value_method):
+        self.assertEqual(matrix.Size(), len(ids) * 3)
         for i, id in enumerate(ids):
             v = get_entity_value_method(self.model_part, id)
-            for j in range(matrix.Size2()):
-                self.assertEqual(matrix[i, j], v[j])
+            for j in range(3):
+                self.assertEqual(matrix[i * 3 + j], v[j])
 
-    def __CheckVector(self, vector: Kratos.Vector, ids, get_entity_value_method):
+    def __CheckVectorFromScalars(self, vector: Kratos.Vector, ids, get_entity_value_method):
         self.assertEqual(vector.Size(), len(ids))
         for i, id in enumerate(ids):
             v = get_entity_value_method(self.model_part, id)
