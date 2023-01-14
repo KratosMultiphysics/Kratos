@@ -92,6 +92,15 @@ class OptimizationInfo:
         else:
             self.GetData(0)[key] = v
 
+    def Has(self, key):
+        if isinstance(key, tuple):
+            if len(key) == 2:
+                return key[0] in self.GetData(key[1]).keys()
+            else:
+                raise RuntimeError(f"Unsupported key with length higher than 2 is provided for OptimizationInfo::__getitem__. [ key = {key} ].")
+        else:
+            return key in self.GetData(0).keys()
+
     def GetBufferSize(self) -> int:
         return len(self.__iteration_data)
 

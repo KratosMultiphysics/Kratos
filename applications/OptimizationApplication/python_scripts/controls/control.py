@@ -25,7 +25,7 @@ class Control(ABC):
     def Finalize(self):
         pass
 
-    def SetControlUpdateVector(self, control_update: Kratos.Vector):
+    def SetControlUpdatesVector(self, control_update: Kratos.Vector):
         self.__is_control_update_computed = True
         self.__control_update = control_update
 

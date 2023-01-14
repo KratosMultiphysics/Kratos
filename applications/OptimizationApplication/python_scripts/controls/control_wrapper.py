@@ -15,15 +15,15 @@ class ControlWrapper:
             "echo_level"           : 0,
             "module"               : "KratosMultiphysics.OptimizationApplication.controls",
             "type"                 : "PleaseProvideClassName",
-            "settings"             : {},
             "sensitivity_modifiers": [],
-            "update_modifiers"     : []
+            "update_modifiers"     : [],
+            "settings"             : {}
         }""")
 
         self.parameters.ValidateAndAssignDefaults(default_parameters)
 
         self.name = self.parameters["name"].GetString()
-        if self.__name == "":
+        if self.name == "":
             raise RuntimeError(f"Controls should be given a non-empty name. Followings are the corresponding control settings:\n{self.parameters}")
 
         # create the response function
