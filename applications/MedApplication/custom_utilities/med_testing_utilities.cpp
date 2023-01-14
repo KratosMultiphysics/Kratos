@@ -94,7 +94,7 @@ void CheckEntitiesAreEqual(
 
     // check entities
     for (std::size_t i=0; i<rEntities1.size(); ++i) {
-        CheckEntitiesAreEqual(*(rEntities1.begin()+i), *(rEntities2.begin()+i+i));
+        CheckEntitiesAreEqual(*(rEntities1.begin()+i), *(rEntities2.begin()+i));
     }
 
     KRATOS_CATCH("")
