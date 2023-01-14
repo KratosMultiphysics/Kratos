@@ -119,6 +119,34 @@ void OptimizationUtils::GetContainerVariableToVector(
     KRATOS_CATCH("")
 }
 
+template<class TDataType>
+void OptimizationUtils::GetHistoricalContainerVariableToVector(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
+    Vector& rOutput)
+{
+    KRATOS_TRY
+
+    const IndexType number_of_entities = rModelPart.NumberOfNodes();
+    const IndexType local_size = GetLocalSize<TDataType>(DomainSize);
+
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(rVariable))
+        << rVariable.Name() << " is not found in the nodal solution step variables container of "
+        << rModelPart.FullName() << ".\n";
+
+    rOutput.resize(number_of_entities * local_size);
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
+        const auto& values = (rModelPart.NodesBegin() + Index)->FastGetSolutionStepValue(rVariable);
+        for (IndexType i = 0; i < local_size; ++i) {
+            AssignValueToVector(values, i, Index * local_size, rOutput);
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
 template<class TContainerType>
 void OptimizationUtils::GetContainerPropertiesVariableToVector(
     const TContainerType& rContainer,
@@ -315,6 +343,9 @@ void OptimizationUtils::AssignVectorToHistoricalContainer(
 template void OptimizationUtils::GetContainerIds(const ModelPart::NodesContainerType&, std::vector<IndexType>&);
 template void OptimizationUtils::GetContainerIds(const ModelPart::ConditionsContainerType&, std::vector<IndexType>&);
 template void OptimizationUtils::GetContainerIds(const ModelPart::ElementsContainerType&, std::vector<IndexType>&);
+
+template void OptimizationUtils::GetHistoricalContainerVariableToVector(const ModelPart&, const Variable<double>&, const IndexType, Vector&);
+template void OptimizationUtils::GetHistoricalContainerVariableToVector(const ModelPart&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
 
 template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::NodesContainerType&, const Variable<double>&, const IndexType, Vector&);
 template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType, Vector&);

@@ -154,6 +154,19 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), node.GetValue(Kratos.PRESSURE))
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetValue(Kratos.VELOCITY), 12)
 
+    def test_GetHistoricalContainerVariableToVector(self):
+        values = Kratos.Vector()
+        read_values = Kratos.Vector()
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.PRESSURE, 3, values)
+        self.utils.AssignVectorToHistoricalContainer(self.model_part, 3, Kratos.DENSITY, values)
+        self.utils.GetHistoricalContainerVariableToVector(self.model_part, Kratos.DENSITY, 3, read_values)
+        self.assertVectorAlmostEqual(values, read_values, 12)
+
+        self.utils.GetContainerVariableToVector(self.model_part.Nodes, Kratos.VELOCITY, 3, values)
+        self.utils.AssignVectorToHistoricalContainer(self.model_part, 3, Kratos.ACCELERATION, values)
+        self.utils.GetHistoricalContainerVariableToVector(self.model_part, Kratos.ACCELERATION, 3, read_values)
+        self.assertVectorAlmostEqual(values, read_values, 12)
+
     def __CheckVectorFromVectors(self, vector: Kratos.Vector, ids, get_entity_value_method):
         self.assertEqual(vector.Size(), len(ids) * 3)
         for i, id in enumerate(ids):

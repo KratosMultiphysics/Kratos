@@ -52,6 +52,13 @@ public:
         const IndexType DomainSize,
         Vector& rOutput);
 
+    template<class TDataType>
+    static void GetHistoricalContainerVariableToVector(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
+        Vector& rOutput);
+
     template<class TContainerType>
     static GeometryData::KratosGeometryType GetContainerEntityGeometryType(
         const TContainerType& rContainer,
