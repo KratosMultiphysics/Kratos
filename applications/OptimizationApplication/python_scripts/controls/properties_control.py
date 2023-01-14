@@ -41,7 +41,12 @@ class PropertiesControl(Control):
         super().Initialize()
 
         # creates element specific properties
-        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+        if not self.optimization_info.Has("model_parts_with_element_specific_properties"):
+            self.optimization_info["model_parts_with_element_specific_properties"] = []
+
+        if not self.model_part.FullName() in self.optimization_info["model_parts_with_element_specific_properties"]:
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            self.optimization_info["model_parts_with_element_specific_properties"].append(self.model_part.FullName())
 
     def InitializeSolutionStep(self):
         if self.optimization_info["step"] > 1:
