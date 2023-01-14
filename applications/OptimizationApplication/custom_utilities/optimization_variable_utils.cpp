@@ -23,6 +23,37 @@
 
 namespace Kratos
 {
+template<>
+IndexType OptimizationVariableUtils::GetLocalSize<double>(const IndexType DomainSize)
+{
+    return 1;
+}
+
+template<>
+IndexType OptimizationVariableUtils::GetLocalSize<array_1d<double, 3>>(const IndexType DomainSize)
+{
+    return DomainSize;
+}
+
+template<>
+void OptimizationVariableUtils::AssignValue(
+    const double& rValue,
+    const IndexType ValueComponentIndex,
+    const IndexType VectoStartingIndex,
+    Vector& rOutput)
+{
+    rOutput[VectoStartingIndex] = rValue;
+}
+
+template<>
+void OptimizationVariableUtils::AssignValue(
+    const array_1d<double, 3>& rValue,
+    const IndexType ValueComponentIndex,
+    const IndexType VectoStartingIndex,
+    Vector& rOutput)
+{
+    rOutput[VectoStartingIndex + ValueComponentIndex] = rValue[ValueComponentIndex];
+}
 
 template<class TContainerType>
 void OptimizationVariableUtils::GetContainerIds(
@@ -42,39 +73,25 @@ void OptimizationVariableUtils::GetContainerIds(
     KRATOS_CATCH("")
 }
 
-template<class TContainerType>
-void OptimizationVariableUtils::GetContainerVariableToMatrix(
-    const TContainerType& rContainer,
-    const Variable<array_1d<double, 3>> & rVariable,
-    Matrix& rOutput)
-{
-    KRATOS_TRY
-
-    const IndexType number_of_entities = rContainer.size();
-
-    rOutput.resize(number_of_entities, 3);
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
-        row(rOutput, Index) = (rContainer.begin() + Index)->GetValue(rVariable);
-    });
-
-    KRATOS_CATCH("")
-}
-
-template<class TContainerType>
+template<class TContainerType, class TDataType>
 void OptimizationVariableUtils::GetContainerVariableToVector(
     const TContainerType& rContainer,
-    const Variable<double> & rVariable,
+    const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
     Vector& rOutput)
 {
     KRATOS_TRY
 
     const IndexType number_of_entities = rContainer.size();
+    const IndexType local_size = GetLocalSize<TDataType>(DomainSize);
 
-    rOutput.resize(number_of_entities);
+    rOutput.resize(number_of_entities * local_size);
 
     IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
-        rOutput[Index] = (rContainer.begin() + Index)->GetValue(rVariable);
+        const auto& values = (rContainer.begin() + Index)->GetValue(rVariable);
+        for (IndexType i = 0; i < local_size; ++i) {
+            AssignValue(values, i, Index * local_size, rOutput);
+        }
     });
 
     KRATOS_CATCH("")
@@ -163,13 +180,13 @@ template void OptimizationVariableUtils::GetContainerIds(const ModelPart::NodesC
 template void OptimizationVariableUtils::GetContainerIds(const ModelPart::ConditionsContainerType&, std::vector<IndexType>&);
 template void OptimizationVariableUtils::GetContainerIds(const ModelPart::ElementsContainerType&, std::vector<IndexType>&);
 
-template void OptimizationVariableUtils::GetContainerVariableToMatrix(const ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, Matrix&);
-template void OptimizationVariableUtils::GetContainerVariableToMatrix(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, Matrix&);
-template void OptimizationVariableUtils::GetContainerVariableToMatrix(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, Matrix&);
+template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::NodesContainerType&, const Variable<double>&, const IndexType, Vector&);
+template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType, Vector&);
+template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType, Vector&);
 
-template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::NodesContainerType&, const Variable<double>&, Vector&);
-template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<double>&, Vector&);
-template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::ElementsContainerType&, const Variable<double>&, Vector&);
+template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
+template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
+template void OptimizationVariableUtils::GetContainerVariableToVector(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
 
 template GeometryData::KratosGeometryType OptimizationVariableUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template GeometryData::KratosGeometryType OptimizationVariableUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);

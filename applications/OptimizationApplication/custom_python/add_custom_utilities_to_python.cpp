@@ -21,6 +21,7 @@
 
 // Application includes
 #include "custom_utilities/optimization_variable_utils.h"
+#include "custom_utilities/solver_utilities/gradient_projection_solver_utilities.h"
 
 // Include base h
 #include "add_custom_utilities_to_python.h"
@@ -36,12 +37,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetContainerIds", [](const ModelPart::NodesContainerType& rNodes) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationVariableUtils::GetContainerIds(rNodes, values); return values;})
         .def_static("GetContainerIds", [](const ModelPart::ConditionsContainerType& rConditions) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationVariableUtils::GetContainerIds(rConditions, values); return values;})
         .def_static("GetContainerIds", [](const ModelPart::ElementsContainerType& rElements) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationVariableUtils::GetContainerIds(rElements, values); return values;})
-        .def_static("GetContainerVariableToMatrix", &OptimizationVariableUtils::GetContainerVariableToMatrix<ModelPart::NodesContainerType>)
-        .def_static("GetContainerVariableToMatrix", &OptimizationVariableUtils::GetContainerVariableToMatrix<ModelPart::ConditionsContainerType>)
-        .def_static("GetContainerVariableToMatrix", &OptimizationVariableUtils::GetContainerVariableToMatrix<ModelPart::ElementsContainerType>)
-        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::NodesContainerType>)
-        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::ConditionsContainerType>)
-        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::ElementsContainerType>)
+        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::NodesContainerType, double>)
+        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::ConditionsContainerType, double>)
+        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::ElementsContainerType, double>)
+        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::NodesContainerType, array_1d<double, 3>>)
+        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
+        .def_static("GetContainerVariableToVector", &OptimizationVariableUtils::GetContainerVariableToVector<ModelPart::ElementsContainerType, array_1d<double, 3>>)
         .def_static("GetContainerPropertiesVariableToVector", &OptimizationVariableUtils::GetContainerPropertiesVariableToVector<ModelPart::ConditionsContainerType>)
         .def_static("GetContainerPropertiesVariableToVector", &OptimizationVariableUtils::GetContainerPropertiesVariableToVector<ModelPart::ElementsContainerType>)
         .def_static("IsVariableExistsInAllContainerProperties", &OptimizationVariableUtils::IsVariableExistsInAllContainerProperties<ModelPart::ConditionsContainerType, double>)
@@ -56,6 +57,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("AreAllEntitiesOfSameGeometryType", [](ModelPart::ElementsContainerType& rContainer, const DataCommunicator& rDataCommunicator) { return OptimizationVariableUtils::GetContainerEntityGeometryType(rContainer, rDataCommunicator) != GeometryData::KratosGeometryType::Kratos_generic_type; } )
         ;
 
+    py::class_<GradientProjectionSolverUtilities >(m, "GradientProjectionSolverUtilities")
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection<ModelPart::NodesContainerType, double>)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ConditionsContainerType, double>)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ElementsContainerType, double>)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection<ModelPart::NodesContainerType, array_1d<double, 3>>)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        .def_static("CalculateControlChange", &GradientProjectionSolverUtilities::CalculateControlChange<ModelPart::NodesContainerType, double>)
+        .def_static("CalculateControlChange", &GradientProjectionSolverUtilities::CalculateControlChange<ModelPart::ConditionsContainerType, double>)
+        .def_static("CalculateControlChange", &GradientProjectionSolverUtilities::CalculateControlChange<ModelPart::ElementsContainerType, double>)
+        .def_static("CalculateControlChange", &GradientProjectionSolverUtilities::CalculateControlChange<ModelPart::NodesContainerType, array_1d<double, 3>>)
+        .def_static("CalculateControlChange", &GradientProjectionSolverUtilities::CalculateControlChange<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
+        .def_static("CalculateControlChange", &GradientProjectionSolverUtilities::CalculateControlChange<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        ;
 }
 
 }  // namespace Python.

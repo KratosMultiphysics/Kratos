@@ -45,16 +45,11 @@ public:
         const TContainerType& rContainer,
         std::vector<IndexType>& rOutput);
 
-    template<class TContainerType>
-    static void GetContainerVariableToMatrix(
-        const TContainerType& rContainer,
-        const Variable<array_1d<double, 3>>& rVariable,
-        Matrix& rOutput);
-
-    template<class TContainerType>
+    template<class TContainerType, class TDataType>
     static void GetContainerVariableToVector(
         const TContainerType& rContainer,
-        const Variable<double>& rVariable,
+        const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
         Vector& rOutput);
 
     template<class TContainerType>
@@ -80,11 +75,21 @@ public:
         const Variable<TDataType>& rVariable,
         const DataCommunicator& rDataCommunicator);
 
+    template<class DataType>
+    static IndexType inline GetLocalSize(
+        const IndexType DomainSize);
+
     ///@}
 private:
     ///@name Private operations
     ///@{
 
+    template<class TDataType>
+    static inline void AssignValue(
+        const TDataType& rValue,
+        const IndexType ValueComponentIndex,
+        const IndexType VectoStartingIndex,
+        Vector& rOutput);
 
     ///@}
 };
