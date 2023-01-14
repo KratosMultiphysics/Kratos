@@ -27,7 +27,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) GradientProjectionSolverUtilities
+class KRATOS_API(OPTIMIZATION_APPLICATION) GradientProjectionSolverUtils
 {
 public:
     ///@name Type definitions
@@ -63,9 +63,6 @@ public:
 private:
     ///@name Private operations
     ///@{
-
-    template<class DataType>
-    static IndexType inline GetLocalSize(const IndexType DomainSize);
 
     template<class TDataType>
     static void inline AddValue(

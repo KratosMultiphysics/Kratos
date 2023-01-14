@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) OptimizationVariableUtils
+class KRATOS_API(OPTIMIZATION_APPLICATION) OptimizationUtils
 {
 public:
     ///@name Type definitions
@@ -75,8 +75,8 @@ public:
         const Variable<TDataType>& rVariable,
         const DataCommunicator& rDataCommunicator);
 
-    template<class DataType>
-    static IndexType inline GetLocalSize(
+    template<class TDataType>
+    static IndexType GetLocalSize(
         const IndexType DomainSize);
 
     ///@}

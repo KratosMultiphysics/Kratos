@@ -20,15 +20,15 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "custom_utilities/optimization_variable_utils.h"
+#include "custom_utilities/optimization_utils.h"
 
 // Include base h
-#include "gradient_projection_solver_utilities.h"
+#include "gradient_projection_solver_utils.h"
 
 namespace Kratos {
 
 template<>
-void GradientProjectionSolverUtilities::AddValue(
+void GradientProjectionSolverUtils::AddValue(
     double& rOutput,
     const IndexType VariableComponentIndex,
     const IndexType DofStartingIndex,
@@ -39,7 +39,7 @@ void GradientProjectionSolverUtilities::AddValue(
 
 
 template<>
-void GradientProjectionSolverUtilities::AddValue(
+void GradientProjectionSolverUtils::AddValue(
     array_1d<double, 3>& rOutput,
     const IndexType VariableComponentIndex,
     const IndexType DofStartingIndex,
@@ -49,21 +49,21 @@ void GradientProjectionSolverUtilities::AddValue(
 }
 
 template<>
-double GradientProjectionSolverUtilities::CalculateValueNormSquare(
+double GradientProjectionSolverUtils::CalculateValueNormSquare(
     const double& rValue)
 {
     return std::pow(rValue, 2);
 }
 
 template<>
-double GradientProjectionSolverUtilities::CalculateValueNormSquare(
+double GradientProjectionSolverUtils::CalculateValueNormSquare(
     const array_1d<double, 3>& rValue)
 {
     return std::pow(rValue[0], 2) + std::pow(rValue[1], 2) + std::pow(rValue[2], 2);
 }
 
 template<class TContainerType, class TDataType>
-void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(
+void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(
     TContainerType& rContainer,
     const IndexType DomainSize,
     const Variable<TDataType>& rSearchDirectionVariable,
@@ -76,7 +76,7 @@ void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorr
 
     const IndexType dofs_size = rObjectiveGradient.size();
     const IndexType constraints_size = rConstraintsGradients.size();
-    const IndexType local_size = OptimizationVariableUtils::GetLocalSize<TDataType>(DomainSize);
+    const IndexType local_size = OptimizationUtils::GetLocalSize<TDataType>(DomainSize);
 
     KRATOS_ERROR_IF_NOT(rContainer.size() * local_size == dofs_size)
         << "Number of dofs in the contaienr does not match with number of dofs "
@@ -156,7 +156,7 @@ void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorr
 }
 
 template<class TContainerType, class TDataType>
-void GradientProjectionSolverUtilities::CalculateControlChange(
+void GradientProjectionSolverUtils::CalculateControlChange(
     TContainerType& rContainer,
     const DataCommunicator& rDataCommunicator,
     const Variable<TDataType>& rSearchDirectionVariable,
@@ -185,7 +185,7 @@ void GradientProjectionSolverUtilities::CalculateControlChange(
                 const double delta = StepSize - correction_norm;
                 search_direction_multiplyer = delta / search_direction_norm;
             } else {
-                KRATOS_WARNING("GradientProjectionSolverUtilities")
+                KRATOS_WARNING("GradientProjectionSolverUtils")
                     << "Correction is scaled down from " << correction_norm
                     << " to " << MaxCorrectionShare * StepSize << ".\n";
                 correction_multiplyer = MaxCorrectionShare * StepSize / correction_norm;
@@ -203,7 +203,7 @@ void GradientProjectionSolverUtilities::CalculateControlChange(
             rEntity.SetValue(rControlChangeVariable, r_search_direction + r_search_direction_correction);
         });
     } else {
-        KRATOS_WARNING("GradientProjectionSolverUtilities") << "Norm of " << rSearchDirectionVariable.Name() << " is zero. Hence skipping control change calculation.\n";
+        KRATOS_WARNING("GradientProjectionSolverUtils") << "Norm of " << rSearchDirectionVariable.Name() << " is zero. Hence skipping control change calculation.\n";
         VariableUtils().SetNonHistoricalVariableToZero(rControlChangeVariable, rContainer);
     }
 
@@ -211,20 +211,20 @@ void GradientProjectionSolverUtilities::CalculateControlChange(
 }
 
 // template instantiations
-template void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
 
-template void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtilities::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
 
-template void GradientProjectionSolverUtilities::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
-template void GradientProjectionSolverUtilities::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&,  const double, const double);
-template void GradientProjectionSolverUtilities::CalculateControlChange(ModelPart::ElementsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
+template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
+template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&,  const double, const double);
+template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ElementsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
 
-template void GradientProjectionSolverUtilities::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
-template void GradientProjectionSolverUtilities::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
-template void GradientProjectionSolverUtilities::CalculateControlChange(ModelPart::ElementsContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
+template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
+template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
+template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ElementsContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
 
 } // namespace Kratos
