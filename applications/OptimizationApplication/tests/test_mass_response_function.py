@@ -6,7 +6,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
-from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 
 class TestMassResponseFunctionBase(kratos_unittest.TestCase):
     @classmethod

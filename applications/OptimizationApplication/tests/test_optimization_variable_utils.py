@@ -35,7 +35,7 @@ class TestOptimizationVariableUtils(kratos_unittest.TestCase):
             element.SetValue(Kratos.PRESSURE, id+5)
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
-        cls.utils = KratosOA.OptimizationVariableUtils
+        cls.utils = KratosOA.OptimizationUtils
 
     def test_GetContainerIds(self):
         # check for nodes

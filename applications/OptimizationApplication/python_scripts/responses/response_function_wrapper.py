@@ -4,10 +4,10 @@ from abc import abstractmethod
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import RetrieveObject
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import RetrieveObject
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
-from KratosMultiphysics.OptimizationApplication.responses.response_function import GetSensitivityContainer
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
 
 class ResponseFunctionBaseWrapper(ABC):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
@@ -68,7 +68,7 @@ class ResponseFunctionBaseWrapper(ABC):
             container = GetSensitivityContainer(sensitivity_model_part, sensitivity_container_type)
             values = Kratos.Vector()
             domain_size = sensitivity_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-            KratosOA.OptimizationVariableUtils.GetContainerVariableToVector(container, sensitivity_variable, domain_size, values)
+            KratosOA.OptimizationUtils.GetContainerVariableToVector(container, sensitivity_variable, domain_size, values)
             self.response_sensitivities[sensitivity_variable, sensitivity_model_part, sensitivity_container_type] = values
 
         return self.response_sensitivities[sensitivity_variable, sensitivity_model_part, sensitivity_container_type]

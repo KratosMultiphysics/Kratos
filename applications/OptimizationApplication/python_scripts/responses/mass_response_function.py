@@ -12,8 +12,8 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.responses.response_function import ContainerEnum
-from KratosMultiphysics.OptimizationApplication.responses.response_function import GetSensitivityContainer
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
 
 
 class MassResponseFunction(ResponseFunction):
@@ -28,14 +28,14 @@ class MassResponseFunction(ResponseFunction):
 
     def Check(self):
         data_communicator = self.model_part.GetCommunicator().GetDataCommunicator()
-        if not KratosOA.OptimizationVariableUtils.IsVariableExistsInAllContainerProperties(self.model_part.Elements, Kratos.DENSITY, data_communicator):
+        if not KratosOA.OptimizationUtils.IsVariableExistsInAllContainerProperties(self.model_part.Elements, Kratos.DENSITY, data_communicator):
             raise RuntimeError(f"Some elements' properties in {self.model_part.FullName()} does not have DENSITY variable.")
 
-        if KratosOA.OptimizationVariableUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, Kratos.THICKNESS, data_communicator) and \
-           KratosOA.OptimizationVariableUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, KratosOA.CROSS_AREA, data_communicator):
+        if KratosOA.OptimizationUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, Kratos.THICKNESS, data_communicator) and \
+           KratosOA.OptimizationUtils.IsVariableExistsInAtLeastOneContainerProperties(self.model_part.Elements, KratosOA.CROSS_AREA, data_communicator):
            raise RuntimeError(f"{self.model_part.FullName()} has elements consisting THICKNESS and CROSS_AREA. Please break down this response to SumResponseFunction where each sub response function only has elements with either THICKNESS or CROSS_AREA.")
 
-        if not KratosOA.OptimizationVariableUtils.AreAllEntitiesOfSameGeometryType(self.model_part.Elements, data_communicator):
+        if not KratosOA.OptimizationUtils.AreAllEntitiesOfSameGeometryType(self.model_part.Elements, data_communicator):
             raise RuntimeError(f"{self.model_part.FullName()} has elements with different geometry types. Please break down this response to SumResponseFunction where each sub response function only has elements with one geometry type.")
 
     def CalculateValue(self) -> float:

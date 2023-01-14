@@ -10,28 +10,10 @@
 
 from abc import ABC
 from abc import abstractmethod
-from enum import Enum
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-
-class ContainerEnum(Enum):
-    NODES = 1
-    ELEMENTS = 2
-    CONDITIONS = 3
-    ELEMENT_PROPERTIES = 4
-    CONDITION_PROPERTIES = 5
-
-def GetSensitivityContainer(model_part: Kratos.ModelPart, container_type: ContainerEnum):
-    match (container_type):
-        case ContainerEnum.NODES:
-            return model_part.Nodes
-        case ContainerEnum.ELEMENTS | ContainerEnum.ELEMENT_PROPERTIES:
-            return model_part.Elements
-        case ContainerEnum.CONDITIONS | ContainerEnum.CONDITION_PROPERTIES:
-            return model_part.Conditions
-        case _:
-            raise RuntimeError("Unsupported container type requested.")
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 
 class ResponseFunction(ABC):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
