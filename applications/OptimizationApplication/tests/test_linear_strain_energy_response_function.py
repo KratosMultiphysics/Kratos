@@ -44,7 +44,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
                 "log_in_file"              : false,
                 "echo_level"               : 0
             }""")
-            cls.optimization_info.AddExecutionPolicyWrapper(ExecutionPolicyWrapper(cls.model, execution_policy_wrapper_settings))
+            cls.optimization_info.AddRoutine(ExecutionPolicyWrapper(cls.model, execution_policy_wrapper_settings))
 
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
@@ -61,7 +61,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
                     "perturbation_size"    : 1e-8
                 }
             }""")
-            cls.optimization_info.AddResponseFunctionWrapper(CreateResponseFunctionWrapper(cls.model, response_function_wrapper_settings, cls.optimization_info))
+            cls.optimization_info.AddRoutine(CreateResponseFunctionWrapper(cls.model, response_function_wrapper_settings, cls.optimization_info))
             cls.optimization_info.Initialize()
 
             # now replace the properties
@@ -72,7 +72,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             }""")
             cls.process: Kratos.Process = KratosOA.EntitySpecificPropertiesProcess(cls.model, process_parameters)
 
-            cls.response_function: ResponseFunctionBaseWrapper = cls.optimization_info.GetResponseFunctionWrapper("strain_energy")
+            cls.response_function: ResponseFunctionBaseWrapper = cls.optimization_info.GetRoutine(ResponseFunctionBaseWrapper, "strain_energy")
             cls.optimization_info.InitializeSolutionStep()
             cls.process.ExecuteInitializeSolutionStep()
             cls.ref_value = cls.response_function.GetValue()

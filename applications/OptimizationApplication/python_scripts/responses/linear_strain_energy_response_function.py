@@ -28,7 +28,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
         self.model_part = self.model[parameters["model_part_name"].GetString()]
-        self.primal_analysis_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetExecutionPolicyWrapper(parameters["primal_analysis_name"].GetString())
+        self.primal_analysis_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetRoutine(ExecutionPolicyWrapper, parameters["primal_analysis_name"].GetString())
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
     def Check(self):

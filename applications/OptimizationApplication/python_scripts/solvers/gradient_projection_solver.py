@@ -33,7 +33,7 @@ class GradientProjectionSolver(PythonSolver):
         # objectives and constraints
         self.objectives_list = []
         self.constraints_list = []
-        for response in optimization_info.GetResponseFunctionWrappers():
+        for response in optimization_info.GetRoutines(ResponseFunctionBaseWrapper):
             if isinstance(response, ObjectiveResponseFunctionWrapper):
                 self.objectives_list.append(response)
             elif isinstance(response, ConstraintResponseFunctionWrapper):
@@ -48,7 +48,7 @@ class GradientProjectionSolver(PythonSolver):
             raise RuntimeError("Only one objective is allowed in the optimization.")
 
         self.objective_response_function_wrapper: ResponseFunctionBaseWrapper = self.objectives_list[0]
-        self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetControlsWrappers() if control_wrapper.GetName() in self.settings["control_names_list"].GetStringArray()]
+        self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetRoutines(ControlWrapper) if control_wrapper.GetName() in self.settings["control_names_list"].GetStringArray()]
 
     def SolveSolutionStep(self) -> bool:
         # calculate objective value

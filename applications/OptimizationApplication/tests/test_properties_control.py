@@ -31,7 +31,7 @@ class TestPropertiesControl(kratos_unittest.TestCase):
         }""")
 
         cls.properties_control_wrapper = ControlWrapper(cls.model, parameters, cls.optimization_info)
-        cls.optimization_info.AddControlsWrapper(cls.properties_control_wrapper)
+        cls.optimization_info.AddRoutine(cls.properties_control_wrapper)
 
     @classmethod
     def tearDownClass(cls):
@@ -49,7 +49,7 @@ class TestPropertiesControl(kratos_unittest.TestCase):
                 if element_i.Id != element_j.Id:
                     self.assertNotEqual(element_i.Properties, element_j.Properties)
 
-    def test_PropertiesControlp(self):
+    def test_PropertiesControl(self):
         self.optimization_info.Initialize()
 
         update_vector = Kratos.Vector()

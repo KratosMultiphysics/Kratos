@@ -1,10 +1,11 @@
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.routine import Routine
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import RetrieveObject
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.modifiers.modifier import Modifier
 
-class ControlWrapper:
+class ControlWrapper(Routine):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         self.model = model
         self.parameters = parameters
