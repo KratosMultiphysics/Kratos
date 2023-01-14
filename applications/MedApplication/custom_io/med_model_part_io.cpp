@@ -91,7 +91,41 @@ std::function<void(std::vector<med_int>&)> GetReorderFunction(const med_geometry
     }
 }
 
+int GetNumberOfNodes(
+    const med_idt FileHandle,
+	const char* pMeshName)
+{
+    // indicators if mesh has changed compared to previous step
+    // not of interest
+    med_bool coordinate_changement;
+    med_bool geo_transformation;
+
+    return MEDmeshnEntity(
+        FileHandle,
+        pMeshName, MED_NO_DT, MED_NO_IT ,
+        MED_NODE, MED_NO_GEOTYPE,
+        MED_COORDINATE, MED_NO_CMODE,
+        &coordinate_changement, &geo_transformation);
 }
+
+std::vector<double> GetNodeCoordinates(
+    const med_idt FileHandle,
+	const char* pMeshName,
+    const int NumberOfNodes,
+    const int Dimension)
+{
+    std::vector<double> coords(NumberOfNodes*Dimension);
+
+    const med_err err = MEDmeshNodeCoordinateRd(
+        FileHandle, pMeshName,
+        MED_NO_DT, MED_NO_IT,
+        MED_FULL_INTERLACE,
+        coords.data());
+
+    return coords;
+}
+
+} // anonymous namespace
 
 class MedModelPartIO::MedFileHandler
 {
@@ -230,6 +264,26 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
+
+    const int num_nodes = GetNumberOfNodes(mpFileHandler->GetFileHandle(), mpFileHandler->GetMeshName());
+    const int dimension = mpFileHandler->GetDimension();
+
+    const std::vector<double> node_coords = GetNodeCoordinates(
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName(),
+        num_nodes,
+        dimension);
+
+    for (int i=0; i<num_nodes; ++i) {
+        std::array<double, 3> coords{0,0,0};
+        for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
+        rThisModelPart.CreateNewNode(
+            i+1,
+            coords[0],
+            coords[1],
+            coords[2]
+        );
+    }
 
     KRATOS_CATCH("")
 }

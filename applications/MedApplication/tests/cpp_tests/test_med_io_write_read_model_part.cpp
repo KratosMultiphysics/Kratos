@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <utility> // std::as_const
 
 // External includes
 
@@ -36,12 +35,11 @@ void MedWriteReadModelPart(
     auto full_name = rFileName;
     full_name.replace_extension(".med");
 
-    test_model_part_write.GetProcessInfo()[DOMAIN_SIZE] = 3;
     rPopulateFunction(test_model_part_write);
 
     { // encapsulating to ensure memory (aka file handle) is freed
         MedModelPartIO io_write(full_name, IO::WRITE);
-        io_write.WriteModelPart(std::as_const(test_model_part_write));
+        io_write.WriteModelPart(test_model_part_write);
     }
     { // encapsulating to ensure memory (aka file handle) is freed
         MedModelPartIO io_read(full_name);
@@ -68,8 +66,13 @@ KRATOS_TEST_CASE_IN_SUITE(WriteReadMedEmpty, KratosMedFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
 {
     MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
-        for (int i=0; i<200; ++i) {
-            rModelPart.CreateNewNode(i+1, i*1.15, i-i*1.45, i+153);
+        int node_id = 0;
+        for (int x=0; x<20; ++x) {
+            for (int y=0; y<10; ++y) {
+                for (int z=0; z<15; ++z) {
+                    rModelPart.CreateNewNode(++node_id, x, y, z);
+                }
+            }
         }
     });
 }
