@@ -6,7 +6,7 @@ from KratosMultiphysics.OptimizationApplication.optimization_routine import Opti
 class OptimizationInfo:
     def __init__(self):
         # objects registry
-        self.__objects = {}
+        self.__optimization_routines = {}
 
         # initializing the buffer to one
         self.__iteration_data = []
@@ -21,36 +21,36 @@ class OptimizationInfo:
 
         base_class_name = class_hierrachy[routine_index - 1].__name__
         if not self.HasRoutineType(base_class_name):
-            self.__objects[base_class_name] = []
+            self.__optimization_routines[base_class_name] = []
 
         if self.HasRoutine(base_class_name, routine.GetName()):
             raise RuntimeError(f"Adding a routine with the name \"{routine.GetName()}\" while having another routine with the same name. OptimizationRoutine names for each type of object should be unique. [ Type of the routine: \"{base_class_name}\" ]")
 
-        self.__objects[base_class_name].append(routine)
+        self.__optimization_routines[base_class_name].append(routine)
 
     def HasRoutine(self, routine_class_type_name: str, routine_name: str) -> bool:
         if not self.HasRoutineType(routine_class_type_name):
-            raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__objects.keys()))
+            raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
-        return routine_name in [v.GetName() for v in self.__objects[routine_class_type_name]]
+        return routine_name in [v.GetName() for v in self.__optimization_routines[routine_class_type_name]]
 
     def GetRoutine(self, routine_class_type_name: str, routine_name: str) -> 'routine_class_type_name':
         if not self.HasRoutineType(routine_class_type_name):
-            raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__objects.keys()))
+            raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
         if not self.HasRoutine(routine_class_type_name, routine_name):
-            raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{routine_class_type_name}\". Followings are available options:\n\t" + "\n\t".join(v.GetName() for v in self.__objects[routine_class_type_name]))
+            raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{routine_class_type_name}\". Followings are available options:\n\t" + "\n\t".join(v.GetName() for v in self.__optimization_routines[routine_class_type_name]))
 
-        return self.__objects[routine_class_type_name][[v.GetName() for v in self.__objects[routine_class_type_name]].index(routine_name)]
+        return self.__optimization_routines[routine_class_type_name][[v.GetName() for v in self.__optimization_routines[routine_class_type_name]].index(routine_name)]
 
     def HasRoutineType(self, routine_class_type_name: str) -> bool:
-        return routine_class_type_name in self.__objects.keys()
+        return routine_class_type_name in self.__optimization_routines.keys()
 
     def GetRoutines(self, routine_class_type_name: str) -> list[OptimizationRoutine]:
         if not self.HasRoutineType(routine_class_type_name):
-            raise RuntimeError(f"No objects of type \"{routine_class_type_name}\". Following are the available type options: \n\t" + "\n\t".join(self.__objects.keys()))
+            raise RuntimeError(f"No objects of type \"{routine_class_type_name}\". Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
-        return self.__objects[routine_class_type_name]
+        return self.__optimization_routines[routine_class_type_name]
 
     def SetBufferSize(self, buffer_size: int):
         if len(self.__iteration_data) != buffer_size:
