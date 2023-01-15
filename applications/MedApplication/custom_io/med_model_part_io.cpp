@@ -114,6 +114,8 @@ std::vector<double> GetNodeCoordinates(
     const int NumberOfNodes,
     const int Dimension)
 {
+    static_assert(sizeof(double) == sizeof(med_float), "mismatch between double and med_float!");
+
     std::vector<double> coords(NumberOfNodes*Dimension);
 
     const med_err err = MEDmeshNodeCoordinateRd(
@@ -265,6 +267,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
 
+    // reading nodes
     const int num_nodes = GetNumberOfNodes(mpFileHandler->GetFileHandle(), mpFileHandler->GetMeshName());
     const int dimension = mpFileHandler->GetDimension();
 
@@ -274,15 +277,80 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         num_nodes,
         dimension);
 
+    std::vector<NodePointerType> new_nodes(node_coords);
+
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
         for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
-        rThisModelPart.CreateNewNode(
+        new_nodes[i] = rThisModelPart.CreateNewNode(
             i+1,
             coords[0],
             coords[1],
             coords[2]
         );
+    }
+
+    Logger << Read xxx nodes
+
+    // reading cells
+    const int num_geometry_types = MEDmeshnEntity(
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName(),
+        MED_NO_DT, MED_NO_IT,
+        MED_CELL, MED_GEO_ALL,
+        MED_CONNECTIVITY, MED_NODAL,
+        &coordinatechangement, &geotransformation); // TODO error if smaller zero, holds probably for the other functions too that return med_int
+
+    // looping geometry types
+    for (int it_geo=1; it<=num_geometry_types; ++it_geo) {
+        /* get geometry type */
+        err = MEDmeshEntityInfo(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            MED_NO_DT, MED_NO_IT,
+            MED_CELL, it_geo,
+            geotypename, &geotype);
+
+        /* how many cells of type geotype ? */
+        const int num_geometries = MEDmeshnEntity(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            MED_NO_DT, MED_NO_IT,
+            MED_CELL, geotype,
+            MED_CONNECTIVITY, MED_NODAL,
+            &coordinatechangement, &geotransformation);
+
+        /* read cells connectivity in the mesh */
+        const int num_nodes_geo_type = geotype%100;
+        std::vector<med_int> connectivity(num_geometries * num_nodes_geo_type);
+
+        err = MEDmeshElementConnectivityRd(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            MED_NO_DT, MED_NO_IT,
+            MED_CELL, geotype,
+            MED_NODAL, MED_FULL_INTERLACE, connectivity.data());
+        }
+
+        // create geometries
+        std::vector<???> new_geometries(num_geometries);
+
+        std::string kratos_geo_name = ...
+        const auto& r_ref_geometry = KratosComponents<GeometryType>::Get(kratos_geo_name);
+
+        Element::NodesArrayType temp_geometry_nodes(num_nodes_geo_type); // TODO make thread local
+        IndexPartition(num_geometries).for_each([&](const int i){
+            for (int j=0; j<num_nodes_geo_type; ++j) {
+                const int node_idx = i*num_nodes_geo_type + j;
+                // TODO debug bounds check!
+                temp_geometry_nodes[j] = new_nodes[node_idx];
+            }
+            new_geometries[i] = r_clone_geometry.Create(i+1, temp_geometry_nodes)
+        });
+
+        rThisModelPart->AddGeometries(new_geometries.begin(), new_geometries.end());
+
+        Logger << ... added x amount of geom of type Y
     }
 
     KRATOS_CATCH("")
@@ -300,7 +368,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     MEDfileCommentWr(mpFileHandler->GetFileHandle(), "A 2D unstructured mesh : 15 nodes, 12 cells");
 
-    constexpr med_int dimension = 3;
+    constexpr med_int dimension = 3; // in Kratos, everything is 3D
 
     const char axisname[MED_SNAME_SIZE] = "x y";
     const char unitname[MED_SNAME_SIZE] = "cm cm";
