@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
 
-class Routine(ABC):
+class OptimizationRoutine(ABC):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
         self.model = model
         self.parameters = parameters

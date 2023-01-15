@@ -3,14 +3,14 @@ from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.routine import Routine
+from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import RetrieveObject
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
 
-class ResponseFunctionBaseWrapper(Routine):
+class ResponseFunctionBaseWrapper(OptimizationRoutine):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_parameters = self.GetDefaultParameters()
         parameters.ValidateAndAssignDefaults(default_parameters)
