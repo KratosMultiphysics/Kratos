@@ -44,7 +44,7 @@ class OptimizationAnalysis(AnalysisStage):
 
         # now we initialize rest
         self.__ExecuteRoutinesMethod("ResponseFunctionWrapper", "Initialize")
-        self.__ExecuteRoutinesMethod("ControlsWrapper", "Initialize")
+        self.__ExecuteRoutinesMethod("ControlWrapper", "Initialize")
 
         # then we initialize the optimization solver
         super().Initialize()
@@ -58,7 +58,7 @@ class OptimizationAnalysis(AnalysisStage):
         super().InitializeSolutionStep()
 
         self.__ExecuteRoutinesMethod("ResponseFunctionWrapper", "InitializeSolutionStep")
-        self.__ExecuteRoutinesMethod("ControlsWrapper", "InitializeSolutionStep")
+        self.__ExecuteRoutinesMethod("ControlWrapper", "InitializeSolutionStep")
 
     def FinalizeSolutionStep(self):
         for mesh_controller in self.__list_of_meshers:
@@ -66,7 +66,7 @@ class OptimizationAnalysis(AnalysisStage):
 
         self.__ExecuteRoutinesMethod("ExecutionPolicyWrapper", "FinalizeSolutionStep")
         self.__ExecuteRoutinesMethod("ResponseFunctionWrapper", "FinalizeSolutionStep")
-        self.__ExecuteRoutinesMethod("ControlsWrapper", "FinalizeSolutionStep")
+        self.__ExecuteRoutinesMethod("ControlWrapper", "FinalizeSolutionStep")
         super().FinalizeSolutionStep()
 
     def Finalize(self):
@@ -78,7 +78,7 @@ class OptimizationAnalysis(AnalysisStage):
         super().Finalize()
 
         self.__ExecuteRoutinesMethod("ResponseFunctionWrapper", "Finalize")
-        self.__ExecuteRoutinesMethod("ControlsWrapper", "Finalize")
+        self.__ExecuteRoutinesMethod("ControlWrapper", "Finalize")
 
     def _CreateMeshes(self):
         for mesher_settings in self.project_parameters["meshes"]:
