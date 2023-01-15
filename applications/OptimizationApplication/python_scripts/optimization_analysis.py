@@ -105,3 +105,9 @@ class OptimizationAnalysis(AnalysisStage):
                 getattr(routine, execution_method)()
         else:
             Kratos.Logger.PrintWarning(self.__class__.__name__, f"No routine type \"{routine_class_type_name}\" is found in optimization info. Hence, skipping running \"{execution_method}\" methods on those types.")
+
+    def _GetSimulationName(self):
+        return "OptimizationAnalysis"
+
+    def PrintAnalysisStageProgressInformation(self):
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.optimization_info["step"])
