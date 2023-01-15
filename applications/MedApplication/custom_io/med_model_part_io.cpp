@@ -61,33 +61,80 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
     { GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    MED_HEXA27 }
 };
 
+template<typename T>
 void CheckConnectivitiesSize(
     const std::size_t ExpectedSize,
-    const std::vector<med_int>& Conns)
+    const std::vector<T>& Conns)
 {
     KRATOS_DEBUG_ERROR_IF_NOT(Conns.size() == ExpectedSize) << "Connectivities must have a size of " << ExpectedSize << ", but have " << Conns.size() << "!" << std::endl;
 };
 
-std::function<void(std::vector<med_int>&)> GetReorderFunction(const med_geometry_type MedGeomType)
+template<typename T>
+std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type MedGeomType)
 {
     switch (MedGeomType)
     {
     case MED_TRIA3:
-        return [](std::vector<med_int>& Connectivities){
+        return [](std::vector<T>& Connectivities){
             CheckConnectivitiesSize(3, Connectivities);
             std::swap(Connectivities[1], Connectivities[2]);
         };
 
     case MED_QUAD4:
-        return [](std::vector<med_int>& Connectivities){
+        return [](std::vector<T>& Connectivities){
             CheckConnectivitiesSize(4, Connectivities);
             std::swap(Connectivities[1], Connectivities[3]);
         };
 
     default:
-        return [](std::vector<med_int>& Connectivities){
+        return [](std::vector<T>& Connectivities){
             // does nothing if no reordering is needed
         };
+    }
+}
+
+std::string GetKratosGeometryName(
+    const med_geometry_type MedGeomType,
+    const int Dimension)
+{
+    switch (MedGeomType)
+    {
+        case MED_POINT1:
+            return Dimension == 2 ? "Point2D" : "Point3D";
+        case MED_SEG2:
+            return Dimension == 2 ? "Line2D2" : "Line3D2";
+        case MED_SEG3:
+            return Dimension == 2 ? "Line2D3" : "Line3D3";
+        case MED_TRIA3:
+            return Dimension == 2 ? "Triangle2D3" : "Triangle3D3";
+        case MED_TRIA6:
+            return DIMENSION == 2 ? "Triangle2D6" : "Triangle3D6";
+        case MED_QUAD4:
+            return DIMENSION == 2 ? "Quadrilateral2D4" : "Quadrilateral3D4";
+        case MED_QUAD8:
+            return DIMENSION == 2 ? "Quadrilateral2D8" : "Quadrilateral3D8";
+        case MED_QUAD9:
+            return DIMENSION == 2 ? "Quadrilateral2D9" : "Quadrilateral3D9";
+        case MED_TETRA4:
+            return "Tetrahedra3D4";
+        case MED_TETRA10:
+            return "Tetrahedra3D10";
+        case MED_PYRA5:
+            return "Pyramid3D5";
+        case MED_PYRA13:
+            return "Pyramid3D13";
+        case MED_PENTA6:
+            return "Prism3D6";
+        case MED_PENTA15:
+            return "Prism3D15";
+        case MED_HEXA8:
+            return "Hexahedra3D8";
+        case MED_HEXA20:
+            return "Hexahedra3D20";
+        case MED_HEXA27:
+            return "Hexahedra3D27";
+        default:
+            KRATOS_ERROR << "MED geometry type " << MedGeomType << " is not available!" << std::endl;
     }
 }
 
@@ -309,48 +356,51 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             mpFileHandler->GetMeshName(),
             MED_NO_DT, MED_NO_IT,
             MED_CELL, it_geo,
-            geotypename, &geotype);
+            geotypename, &geo_type);
 
         /* how many cells of type geotype ? */
         const int num_geometries = MEDmeshnEntity(
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
             MED_NO_DT, MED_NO_IT,
-            MED_CELL, geotype,
+            MED_CELL, geo_type,
             MED_CONNECTIVITY, MED_NODAL,
             &coordinatechangement, &geotransformation);
 
         /* read cells connectivity in the mesh */
-        const int num_nodes_geo_type = geotype%100;
+        const int num_nodes_geo_type = geo_type%100;
         std::vector<med_int> connectivity(num_geometries * num_nodes_geo_type);
 
         err = MEDmeshElementConnectivityRd(
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
             MED_NO_DT, MED_NO_IT,
-            MED_CELL, geotype,
-            MED_NODAL, MED_FULL_INTERLACE, connectivity.data());
+            MED_CELL, geo_type,
+            MED_NODAL, MED_FULL_INTERLACE,
+            connectivity.data());
         }
 
         // create geometries
         std::vector<???> new_geometries(num_geometries);
 
-        std::string kratos_geo_name = ...
+        const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
         const auto& r_ref_geometry = KratosComponents<GeometryType>::Get(kratos_geo_name);
+        const auto reorder_fct = GetReorderFunction(geo_type);
 
         Element::NodesArrayType temp_geometry_nodes(num_nodes_geo_type); // TODO make thread local
         IndexPartition(num_geometries).for_each([&](const int i){
             for (int j=0; j<num_nodes_geo_type; ++j) {
                 const int node_idx = i*num_nodes_geo_type + j;
                 // TODO debug bounds check!
-                temp_geometry_nodes[j] = new_nodes[node_idx];
+                temp_geometry_nodes[j] = new_nodes[connectivity(node_idx)]; // I think this also needs a +1
             }
-            new_geometries[i] = r_clone_geometry.Create(i+1, temp_geometry_nodes)
+            reorder_fct(temp_geometry_nodes);
+            new_geometries[i] = r_clone_geometry.Create(i+1, temp_geometry_nodes); // TODO id must be global!
         });
 
         rThisModelPart->AddGeometries(new_geometries.begin(), new_geometries.end());
 
-        Logger << ... added x amount of geom of type Y
+        KRATOS_INFO() << ... added x amount of geom of type Y << "\n";
     }
 
     KRATOS_CATCH("")
