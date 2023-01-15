@@ -54,7 +54,7 @@ class PropertiesControl(Control):
             current_property_values = Kratos.Vector()
             KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.model_part.Elements, self.control_variable, current_property_values)
 
-            new_property_values = current_property_values + self.GetControlUpdateVector()
+            new_property_values = current_property_values + self.GetControlUpdatesVector()
 
             KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.model_part.Elements, self.control_variable, new_property_values)
             KratosOA.OptimizationUtils.AssignVectorToContainer(self.model_part.Elements, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], self.control_variable, new_property_values)

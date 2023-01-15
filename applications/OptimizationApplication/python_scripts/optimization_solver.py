@@ -63,6 +63,19 @@ class OptimizationSolver(PythonSolver):
         super().InitializeSolutionStep()
         self.__ExecuteMethod("InitializeSolutionStep")
 
+    def SolveSolutionStep(self):
+        super().SolveSolutionStep()
+        self.__ExecuteMethod("SolveSolutionStep")
+        return False
+
+    def IsConverged(self):
+        is_converged = True
+
+        for algorithm in self.__list_of_algorithms:
+            is_converged = is_converged and algorithm.IsConverged()
+
+        return is_converged
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         self.__ExecuteMethod("FinalizeSolutionStep")

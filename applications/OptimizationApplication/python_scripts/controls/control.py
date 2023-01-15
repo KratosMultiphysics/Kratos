@@ -29,7 +29,7 @@ class Control(ABC):
         self.__is_control_update_computed = True
         self.__control_update = control_update
 
-    def GetControlUpdateVector(self) -> Kratos.Vector:
+    def GetControlUpdatesVector(self) -> Kratos.Vector:
         if not self.IsControlUpdateComputed():
             raise RuntimeError("Control update is not computed for current solution step.")
         return self.__control_update

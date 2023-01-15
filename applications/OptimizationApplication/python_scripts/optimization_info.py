@@ -72,11 +72,17 @@ class OptimizationInfo:
     def __getitem__(self, key):
         if isinstance(key, tuple):
             if len(key) == 2:
-                return self.GetData(key[1])[key[0]]
+                data = self.GetData(key[1])
+                if key[0] not in data.keys():
+                    raise RuntimeError(f"\"{key[0]}\" is not found in the current step data. Followings are the available data: \n\t" + "\n\t".join(data.keys()))
+                return data[key[0]]
             else:
                 raise RuntimeError(f"Unsupported key with length higher than 2 is provided for OptimizationInfo::__getitem__. [ key = {key} ].")
         else:
-            return self.GetData(0)[key]
+            data = self.GetData(0)
+            if key not in data.keys():
+                raise RuntimeError(f"\"{key}\" is not found in the current step data. Followings are the available data: \n\t" + "\n\t".join(data.keys()))
+            return data[key]
 
     def __setitem__(self, key, v):
         if isinstance(key, tuple):

@@ -29,7 +29,7 @@ class ShapeControl(Control):
     def InitializeSolutionStep(self):
         # move boundaries according to update variable
         if self.optimization_info["step"] > 1:
-            vector = self.GetControlUpdateVector()
+            vector = self.GetControlUpdatesVector()
             KratosOA.OptimizationUtils.AssignVectorToHistoricalContainer(self.model_part, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], Kratos.MESH_DISPLACEMENT, vector)
             self.mesh_moving_execution_policy_wrapper.Execute()
 

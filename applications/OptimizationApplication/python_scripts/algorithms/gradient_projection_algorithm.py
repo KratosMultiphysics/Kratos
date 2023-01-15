@@ -56,10 +56,15 @@ class GradientProjectionAlgorithm(Algorithm):
         self.objective_response_function_wrapper: ResponseFunctionWrapper = self.objectives_list[0]
         self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetRoutines("ControlWrapper") if control_wrapper.GetName() in self.parameters["control_names_list"].GetStringArray()]
 
+        self.optimization_info["objective"] = {}
+        self.optimization_info["constraints"] = []
+
     def SolveSolutionStep(self) -> bool:
         # calculate objective value
-        self.optimization_info["objective"]["value"] = self.objective_response_function_wrapper.GetValue()
-        self.optimization_info["objective"]["standardized_value"] = self.objective_response_function_wrapper.GetStandardizedValue()
+        self.optimization_info["objective"] = {
+            "value": self.objective_response_function_wrapper.GetValue(),
+            "standardized_value": self.objective_response_function_wrapper.GetStandardizedValue()
+        }
 
         # calculate constraint values
         constraint_values = []
@@ -78,7 +83,7 @@ class GradientProjectionAlgorithm(Algorithm):
         controls_data = []
         for control_wrapper in self.control_wrappers_list:
             control_wrapper: ControlWrapper = control_wrapper
-            control: Control = ControlWrapper.GetControl()
+            control: Control = control_wrapper.GetControl()
 
             control_model_part = control.GetModelPart()
             control_container_type = control.GetContainerType()
@@ -105,7 +110,7 @@ class GradientProjectionAlgorithm(Algorithm):
             for i, v in enumerate(active_constraint_values):
                 active_constraint_values_vector[i] = v
 
-            control_container = GetSensitivityContainer(control_model_part)
+            control_container = GetSensitivityContainer(control_model_part, control_container_type)
             control_domain_size = control_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
 
             search_direction_variable, search_correction_variable = GradientProjectionAlgorithm.__GetSearchVariables(control_sensitivty_variable)

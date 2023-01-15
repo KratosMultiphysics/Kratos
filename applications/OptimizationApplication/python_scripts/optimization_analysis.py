@@ -111,3 +111,6 @@ class OptimizationAnalysis(AnalysisStage):
 
     def PrintAnalysisStageProgressInformation(self):
         Kratos.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.optimization_info["step"])
+
+    def KeepAdvancingSolutionLoop(self):
+        return self.optimization_info["step"] < self.end_time and not self._GetSolver().IsConverged()
