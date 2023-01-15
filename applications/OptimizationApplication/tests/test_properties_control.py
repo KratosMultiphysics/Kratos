@@ -40,7 +40,7 @@ class TestPropertiesControl(kratos_unittest.TestCase):
 
     def test_PropertiesControlInitialize(self):
         # running it twice to check whether the it only does the creation of specific properties once.
-        self.optimization_info.Initialize()
+        self.properties_control_wrapper.Initialize()
 
         self.assertEqual(self.optimization_info["model_parts_with_element_specific_properties"], ["Structure.structure"])
 
@@ -50,7 +50,7 @@ class TestPropertiesControl(kratos_unittest.TestCase):
                     self.assertNotEqual(element_i.Properties, element_j.Properties)
 
     def test_PropertiesControl(self):
-        self.optimization_info.Initialize()
+        self.properties_control_wrapper.Initialize()
 
         update_vector = Kratos.Vector()
         KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.properties_control_wrapper.GetControl().GetModelPart().Elements, Kratos.DENSITY, update_vector)
@@ -60,7 +60,8 @@ class TestPropertiesControl(kratos_unittest.TestCase):
             values = Kratos.Vector()
             KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.properties_control_wrapper.GetControl().GetModelPart().Elements, Kratos.DENSITY, values)
 
-            self.optimization_info.InitializeSolutionStep()
+            self.optimization_info.AdvanceSolutionStep()
+            self.properties_control_wrapper.InitializeSolutionStep()
 
             if self.optimization_info["step"] > 1:
                 for j, element in enumerate(self.properties_control_wrapper.GetControl().GetModelPart().Elements):
@@ -68,9 +69,9 @@ class TestPropertiesControl(kratos_unittest.TestCase):
 
             self.properties_control_wrapper.GetControl().SetControlUpdatesVector(update_vector)
 
-            self.optimization_info.FinalizeSolutionStep()
+            self.properties_control_wrapper.FinalizeSolutionStep()
 
-        self.optimization_info.Finalize()
+        self.properties_control_wrapper.Finalize()
 
     def test_GetModelPart(self):
         self.assertEqual(self.model_part.GetSubModelPart("structure"), self.properties_control_wrapper.GetControl().GetModelPart())
