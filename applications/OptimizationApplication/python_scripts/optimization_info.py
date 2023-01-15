@@ -9,9 +9,8 @@ class OptimizationInfo:
         self.__objects = {}
 
         # initializing the buffer to one
-        self.__iteration_data = [{}]
+        self.__iteration_data = []
         self.__buffer_index = 0
-        self["step"] = 0
 
     def AddRoutine(self, routine: OptimizationRoutine):
         if not isinstance(routine, OptimizationRoutine):
@@ -65,12 +64,10 @@ class OptimizationInfo:
                     Kratos.Logger.PrintWarning(self.__class__.__name__, f"Changing buffer size with data will lose all the data in optimization info buffer. [ current_buffer_size = {len(self.__iteration_data)}, new_buffer_size = {buffer_size} ].")
             self.__iteration_data = [{} for i in range(buffer_size)]
             self.__buffer_index = 0
-            self["step"] = 0
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Optimization info buffer is set to {buffer_size}.")
 
     def AdvanceSolutionStep(self):
         self.__buffer_index = (self.__buffer_index + 1) % len(self.__iteration_data)
-        self["step"] = self["step", 1] + 1
 
     def __getitem__(self, key):
         if isinstance(key, tuple):

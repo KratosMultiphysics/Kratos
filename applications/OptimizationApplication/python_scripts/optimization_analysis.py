@@ -7,23 +7,24 @@ from KratosMultiphysics.OptimizationApplication.mesh_controllers.mesh_controller
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import CreateResponseFunctionWrapper
+from KratosMultiphysics.OptimizationApplication.optimization_solver import OptimizationSolver
 
 class OptimizationAnalysis(AnalysisStage):
     def __init__(self, model: Kratos.Model, project_parameters: Kratos.Parameters):
+        self.optimization_info = OptimizationInfo()
         super().__init__(model, project_parameters)
+        self.optimization_info.SetBufferSize(self._GetSolver().GetMinimumBufferSize())
 
         default_settings = Kratos.Parameters("""{
-            "problem_data": {},
-            "meshes"      : [],
-            "analyses"    : [],
-            "responses"   : [],
-            "controls"    : [],
-            "solvers"     : []
+            "problem_data" : {},
+            "meshes"       : [],
+            "analyses"     : [],
+            "responses"    : [],
+            "controls"     : [],
+            "optimizations": {}
         }""")
         project_parameters.ValidateAndAssignDefaults(default_settings)
         self.__list_of_meshers = []
-
-        self.optimization_info = OptimizationInfo()
 
         self._CreateMeshes()
         self._CreateAnalyses()
@@ -37,9 +38,6 @@ class OptimizationAnalysis(AnalysisStage):
         # solving problems using analsis (or not).
         self.__ExecuteRoutinesMethod("ExecutionPolicyWrapper", "Initialize")
 
-        # then we initialize the optimization solver
-        super().Initialize()
-
         # now we create other types
         self._CreateResponses()
         self._CreateControls()
@@ -48,9 +46,10 @@ class OptimizationAnalysis(AnalysisStage):
         self.__ExecuteRoutinesMethod("ResponseFunctionWrapper", "Initialize")
         self.__ExecuteRoutinesMethod("ControlsWrapper", "Initialize")
 
-    def InitializeSolutionStep(self):
-        self.optimization_info.AdvanceSolutionStep()
+        # then we initialize the optimization solver
+        super().Initialize()
 
+    def InitializeSolutionStep(self):
         for mesh_controller in self.__list_of_meshers:
             mesh_controller.InitializeSolutionStep()
 
@@ -98,8 +97,7 @@ class OptimizationAnalysis(AnalysisStage):
             self.optimization_info.AddRoutine(ControlWrapper(self.model, control_settings, self.optimization_info))
 
     def _CreateSolver(self):
-        pass
-        # return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
+        return OptimizationSolver(self.model, self.project_parameters["optimizations"], self.optimization_info)
 
     def __ExecuteRoutinesMethod(self, routine_class_type_name: str, execution_method: str):
         if self.optimization_info.HasRoutineType(routine_class_type_name):

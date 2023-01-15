@@ -1,39 +1,45 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ObjectiveResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ConstraintResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 
-class GradientProjectionSolver(PythonSolver):
-    @classmethod
-    def GetDefaultParameters(cls):
-        return Kratos.Parameters("""{
+class GradientProjectionAlgorithm(Algorithm):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+        super().__init__(model, parameters, optimization_info)
+
+        default_settings = Kratos.Parameters("""{
             "max_correction_share": 0.75,
             "relative_tolerance"  : 1e-3,
             "step_size"           : 1e-3,
-            "control_names_list"  : []
+            "control_names_list"  : [],
+            "response_names_list" : []
         }""")
+        parameters.ValidateAndAssignDefaults(default_settings)
 
-    def __init__(self, model: Kratos.Model, settings: Kratos.Parameters, optimization_info: OptimizationInfo):
-        super().__init__(model, settings)
         self.optimization_info = optimization_info
-        if self.optimization_info.GetBufferSize() < 2:
-            self.optimization_info.SetBufferSize(2)
 
-        self.max_correction_share = settings["max_correction_share"].GetDouble()
-        self.relative_tolerance = settings["relative_tolerance"].GetDouble()
-        self.step_size = settings["step_size"].GetDouble()
+        self.max_correction_share = parameters["max_correction_share"].GetDouble()
+        self.relative_tolerance = parameters["relative_tolerance"].GetDouble()
+        self.step_size = parameters["step_size"].GetDouble()
+
+    def GetMinimumBufferSize(self) -> int:
+        return 2
+
+    def Initialize(self):
+        super().Initialize()
 
         # objectives and constraints
         self.objectives_list = []
         self.constraints_list = []
-        for response in optimization_info.GetRoutines(ResponseFunctionWrapper):
+        for response_name in self.parameters["response_names_list"].GetStringArray():
+            response: ResponseFunctionWrapper = self.optimization_info.GetRoutine("ResponseFunctionWrapper", response_name)
             if isinstance(response, ObjectiveResponseFunctionWrapper):
                 self.objectives_list.append(response)
             elif isinstance(response, ConstraintResponseFunctionWrapper):
@@ -48,7 +54,7 @@ class GradientProjectionSolver(PythonSolver):
             raise RuntimeError("Only one objective is allowed in the optimization.")
 
         self.objective_response_function_wrapper: ResponseFunctionWrapper = self.objectives_list[0]
-        self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetRoutines(ControlWrapper) if control_wrapper.GetName() in self.settings["control_names_list"].GetStringArray()]
+        self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetRoutines("ControlWrapper") if control_wrapper.GetName() in self.parameters["control_names_list"].GetStringArray()]
 
     def SolveSolutionStep(self) -> bool:
         # calculate objective value
@@ -78,7 +84,7 @@ class GradientProjectionSolver(PythonSolver):
             control_container_type = control.GetContainerType()
             control_sensitivty_variable = control.GetControlSensitivityVariable()
 
-            modified_objective_sensitivities = GradientProjectionSolver.__GetModifiedSensitivities(
+            modified_objective_sensitivities = GradientProjectionAlgorithm.__GetModifiedSensitivities(
                 control_wrapper, self.objective_response_function_wrapper, control_sensitivty_variable, control_model_part, control_container_type)
 
             self.optimization_info["objective"]["modified_sensitivity"] = modified_objective_sensitivities
@@ -90,7 +96,7 @@ class GradientProjectionSolver(PythonSolver):
 
                 if self.optimization_info["constraints"][i]["is_active"]:
                     active_constraint_values.append(constraint_value)
-                    modified_active_constraint_sensitivities = GradientProjectionSolver.__GetModifiedSensitivities(
+                    modified_active_constraint_sensitivities = GradientProjectionAlgorithm.__GetModifiedSensitivities(
                         control_wrapper, constraint_wrapper, control_sensitivty_variable, control_model_part, control_container_type)
                     modified_active_constraints_sensitivities.append(modified_active_constraint_sensitivities)
                     self.optimization_info["constraints"][i]["modified_sensitivity"] = modified_active_constraint_sensitivities
@@ -102,7 +108,7 @@ class GradientProjectionSolver(PythonSolver):
             control_container = GetSensitivityContainer(control_model_part)
             control_domain_size = control_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
 
-            search_direction_variable, search_correction_variable = GradientProjectionSolver.__GetSearchVariables(control_sensitivty_variable)
+            search_direction_variable, search_correction_variable = GradientProjectionAlgorithm.__GetSearchVariables(control_sensitivty_variable)
 
             KratosOA.GradientProjectionSolverUtils.CalculateProjectedSearchDirectionAndCorrection(
                 control_container,
@@ -134,15 +140,12 @@ class GradientProjectionSolver(PythonSolver):
                 "modified_control_update": control.GetControlUpdatesVector()
             })
 
-
-
         self.optimization_info["controls"] = controls_data
-        return self._CheckConvergence()
 
-    def _CheckConvergence(self) -> bool:
+    def IsConverged(self) -> bool:
         if self.optimization_info["step"] > 1:
             # check for objective convergence
-            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info["objective"]["value", 1] - 1) < self.relative_tolerance
+            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info["objective"]["value", 1] - 1.0) < self.relative_tolerance
 
             # check for constraint convergence
             for constraint_data in self.optimization_info["constraints"]:

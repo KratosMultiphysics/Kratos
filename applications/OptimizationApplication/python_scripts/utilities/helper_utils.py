@@ -71,4 +71,4 @@ def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, optimizat
             else:
                 raise RuntimeError(f"Invalid module found under \"{module_prefix}\".")
         else:
-            raise RuntimeError("Invalid \"module\" and/or \"type\" fields.")
+            raise RuntimeError(f"Invalid \"module\" and/or \"type\" fields. [ Provided settings = {parameters} ]")
