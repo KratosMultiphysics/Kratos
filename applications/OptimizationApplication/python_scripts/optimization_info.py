@@ -40,7 +40,7 @@ class OptimizationInfo:
             raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__objects.keys()))
 
         if not self.HasRoutine(routine_class_type_name, routine_name):
-            raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{routine_class_type_name.__name__}\". Followings are available options:\n\t" + "\n\t".join(v.GetName() for v in self.__objects[routine_class_type_name].values()))
+            raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{routine_class_type_name}\". Followings are available options:\n\t" + "\n\t".join(v.GetName() for v in self.__objects[routine_class_type_name]))
 
         return self.__objects[routine_class_type_name][[v.GetName() for v in self.__objects[routine_class_type_name]].index(routine_name)]
 
