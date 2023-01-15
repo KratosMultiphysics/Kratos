@@ -10,7 +10,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
 
-class ResponseFunctionBaseWrapper(OptimizationRoutine):
+class ResponseFunctionWrapper(OptimizationRoutine):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_parameters = self.GetDefaultParameters()
         parameters.ValidateAndAssignDefaults(default_parameters)
@@ -101,7 +101,7 @@ class ResponseFunctionBaseWrapper(OptimizationRoutine):
         pass
 
 
-class ObjectiveResponseFunctionWrapper(ResponseFunctionBaseWrapper):
+class ObjectiveResponseFunctionWrapper(ResponseFunctionWrapper):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         super().__init__(model, parameters, optimization_info)
 
@@ -145,7 +145,7 @@ class ObjectiveResponseFunctionWrapper(ResponseFunctionBaseWrapper):
         return info
 
 
-class ConstraintResponseFunctionWrapper(ResponseFunctionBaseWrapper):
+class ConstraintResponseFunctionWrapper(ResponseFunctionWrapper):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         super().__init__(model, parameters, optimization_info)
 

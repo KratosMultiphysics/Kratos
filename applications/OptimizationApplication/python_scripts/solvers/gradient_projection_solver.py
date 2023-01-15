@@ -4,7 +4,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
-from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionBaseWrapper
+from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ObjectiveResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ConstraintResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
@@ -33,7 +33,7 @@ class GradientProjectionSolver(PythonSolver):
         # objectives and constraints
         self.objectives_list = []
         self.constraints_list = []
-        for response in optimization_info.GetRoutines(ResponseFunctionBaseWrapper):
+        for response in optimization_info.GetRoutines(ResponseFunctionWrapper):
             if isinstance(response, ObjectiveResponseFunctionWrapper):
                 self.objectives_list.append(response)
             elif isinstance(response, ConstraintResponseFunctionWrapper):
@@ -47,7 +47,7 @@ class GradientProjectionSolver(PythonSolver):
         if len(self.objectives_list) > 1:
             raise RuntimeError("Only one objective is allowed in the optimization.")
 
-        self.objective_response_function_wrapper: ResponseFunctionBaseWrapper = self.objectives_list[0]
+        self.objective_response_function_wrapper: ResponseFunctionWrapper = self.objectives_list[0]
         self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetRoutines(ControlWrapper) if control_wrapper.GetName() in self.settings["control_names_list"].GetStringArray()]
 
     def SolveSolutionStep(self) -> bool:
@@ -58,7 +58,7 @@ class GradientProjectionSolver(PythonSolver):
         # calculate constraint values
         constraint_values = []
         for constraint_wrapper in self.constraints_list:
-            constraint_wrapper: ResponseFunctionBaseWrapper = constraint_wrapper
+            constraint_wrapper: ResponseFunctionWrapper = constraint_wrapper
             constraint_data = {
                 "value": constraint_wrapper.GetValue(),
                 "standardized_value": constraint_wrapper.GetStandardizedValue(),
@@ -86,7 +86,7 @@ class GradientProjectionSolver(PythonSolver):
             active_constraint_values = []
             modified_active_constraints_sensitivities = []
             for i, constraint_wrapper in enumerate(self.constraints_list):
-                constraint_wrapper: ResponseFunctionBaseWrapper = constraint_wrapper
+                constraint_wrapper: ResponseFunctionWrapper = constraint_wrapper
 
                 if self.optimization_info["constraints"][i]["is_active"]:
                     active_constraint_values.append(constraint_value)
@@ -153,7 +153,7 @@ class GradientProjectionSolver(PythonSolver):
             return False
 
     @staticmethod
-    def __GetModifiedSensitivities(control_wrapper: ControlWrapper, response_function_wrapper: ResponseFunctionBaseWrapper, sensitivity_variable, sensitivity_model_part: Kratos.ModelPart, sensitivity_container_type: ContainerEnum) -> Kratos.Vector:
+    def __GetModifiedSensitivities(control_wrapper: ControlWrapper, response_function_wrapper: ResponseFunctionWrapper, sensitivity_variable, sensitivity_model_part: Kratos.ModelPart, sensitivity_container_type: ContainerEnum) -> Kratos.Vector:
         sensitivities = response_function_wrapper.GetStandardizedSensitivity(
                                         sensitivity_variable, sensitivity_model_part, sensitivity_container_type)
         return control_wrapper.ModifySensitivities(sensitivities)

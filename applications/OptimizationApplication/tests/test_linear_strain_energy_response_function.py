@@ -9,7 +9,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
-from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionBaseWrapper
+from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import CreateResponseFunctionWrapper
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
@@ -76,7 +76,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             }""")
             cls.process: Kratos.Process = KratosOA.EntitySpecificPropertiesProcess(cls.model, process_parameters)
 
-            cls.response_function: ResponseFunctionBaseWrapper = cls.optimization_info.GetRoutine("ResponseFunctionBaseWrapper", "strain_energy")
+            cls.response_function: ResponseFunctionWrapper = cls.optimization_info.GetRoutine("ResponseFunctionWrapper", "strain_energy")
             cls.execution_policy_wrapper.InitializeSolutionStep()
             cls.response_function_wrapper.InitializeSolutionStep()
             cls.process.ExecuteInitializeSolutionStep()
