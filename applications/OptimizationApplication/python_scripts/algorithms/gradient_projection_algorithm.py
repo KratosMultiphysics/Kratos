@@ -35,8 +35,6 @@ class GradientProjectionAlgorithm(Algorithm):
         return 2
 
     def Initialize(self):
-        super().Initialize()
-
         # objectives and constraints
         self.objectives_list = []
         self.constraints_list = []
