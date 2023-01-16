@@ -324,7 +324,6 @@ void GeometryUtilities::CalculateNodalAreasFromConditions()
 
     this->CalculateAreaNormalsFromConditions();
 
-
     //resetting the nodal area
     VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, mrModelPart.Nodes());
 
