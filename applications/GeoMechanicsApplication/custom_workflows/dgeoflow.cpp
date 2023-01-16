@@ -124,7 +124,10 @@ namespace Kratos
         {
             KRATOS_INFO("KratosExecute") << "Importing GeoMechanicsApplication" << std::endl;
             kernel.ImportApplication(geo_app);
+            kernel.Initialize();
+            kernel.InitializeApplication(*geo_app);
         }
+
         Kratos::OpenMPUtils::SetNumThreads(1);
         if (this->GetEchoLevel() > 0)
         {
@@ -660,7 +663,7 @@ namespace Kratos
         std::stringstream kratosLogBuffer;
         LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
         Logger::AddOutput(p_output);
-
+        
         try
         {
             reportProgress(0.0);
