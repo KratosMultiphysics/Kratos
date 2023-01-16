@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 # Import additional libraries
@@ -55,7 +55,7 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints,
                 # normalize constraints
                 dc_dx_normalized.append(NormalizeResponseGradient(design_surface, constraint_gradient_weighted_mapped_name, norm_type))
 
-            heat = KM.Vector(len(design_surface.Nodes))
+            heat = Kratos.Vector(len(design_surface.Nodes))
             # fill heat map for each node
             for i in range(len(design_surface.Nodes)):
                 index = design_variable_dimension*i
@@ -76,13 +76,13 @@ def ComputeSensitivityHeatmap( design_surface, objectives, constraints,
             if optimization_iteration == 1:
                 heat_relaxed = heat
             else:
-                prev_heat = KM.Vector()
-                optimization_utilities.AssembleVector(design_surface, prev_heat, KM.KratosGlobals.GetVariable(heat_map_name))
-                heat_relaxed = KM.Vector(len(design_surface.Nodes))
+                prev_heat = Kratos.Vector()
+                optimization_utilities.AssembleVector(design_surface, prev_heat, Kratos.KratosGlobals.GetVariable(heat_map_name))
+                heat_relaxed = Kratos.Vector(len(design_surface.Nodes))
                 for i in range(len(design_surface.Nodes)):
                     heat_relaxed[i] = relax_coeff * heat[i] + (1 - relax_coeff) * prev_heat[i]
 
-            optimization_utilities.AssignVectorToVariable(design_surface, heat_relaxed, KM.KratosGlobals.GetVariable(heat_map_name))
+            optimization_utilities.AssignVectorToVariable(design_surface, heat_relaxed, Kratos.KratosGlobals.GetVariable(heat_map_name))
 
         ___ComputeHeatmapWithNorm(norm_type="MAX")
         ___ComputeHeatmapWithNorm(norm_type="L2")
@@ -95,8 +95,8 @@ def ComputeResponseHeatmap( design_surface, response_gradient_name, optimization
     # reciprocal relaxation
     relax_coeff = 1 / optimization_iteration
 
-    dg_dx = KM.Vector()
-    optimization_utilities.AssembleVector(design_surface, dg_dx, KM.KratosGlobals.GetVariable(response_gradient_name))
+    dg_dx = Kratos.Vector()
+    optimization_utilities.AssembleVector(design_surface, dg_dx, Kratos.KratosGlobals.GetVariable(response_gradient_name))
 
     # DF1DX individual heatmap
     g_name = f"{response_gradient_name[0:4]}"
@@ -104,22 +104,22 @@ def ComputeResponseHeatmap( design_surface, response_gradient_name, optimization
     if optimization_iteration == 1:
         heat_dfdx_relaxed = dg_dx
     else:
-        prev_heat_dfdx = KM.Vector()
-        optimization_utilities.AssembleVector(design_surface, prev_heat_dfdx, KM.KratosGlobals.GetVariable(heatmap_dgdx_name))
-        heat_dfdx_relaxed = KM.Vector(design_variable_dimension*len(design_surface.Nodes))
+        prev_heat_dfdx = Kratos.Vector()
+        optimization_utilities.AssembleVector(design_surface, prev_heat_dfdx, Kratos.KratosGlobals.GetVariable(heatmap_dgdx_name))
+        heat_dfdx_relaxed = Kratos.Vector(design_variable_dimension*len(design_surface.Nodes))
         for i in range(len(design_surface.Nodes)):
             for dim in range(design_variable_dimension):
                 index = design_variable_dimension * i + dim
                 heat_dfdx_relaxed[index] = relax_coeff * dg_dx[index] + (1 - relax_coeff) * prev_heat_dfdx[index]
 
-    optimization_utilities.AssignVectorToVariable(design_surface, heat_dfdx_relaxed, KM.KratosGlobals.GetVariable(heatmap_dgdx_name))
+    optimization_utilities.AssignVectorToVariable(design_surface, heat_dfdx_relaxed, Kratos.KratosGlobals.GetVariable(heatmap_dgdx_name))
 
 def NormalizeResponseGradient( design_surface, response_gradient_name, norm_type ):
 
     optimization_utilities = KSO.OptimizationUtilities
 
-    dg_dx = KM.Vector()
-    optimization_utilities.AssembleVector(design_surface, dg_dx, KM.KratosGlobals.GetVariable(response_gradient_name))
+    dg_dx = Kratos.Vector()
+    optimization_utilities.AssembleVector(design_surface, dg_dx, Kratos.KratosGlobals.GetVariable(response_gradient_name))
 
     if norm_type == "MAX":
         dg_dx_norm = cm.NormInf3D(dg_dx)
@@ -140,23 +140,25 @@ def WeightAndMapResponseGradient( design_surface, response_gradient_name, mapper
 
     optimization_utilities = KSO.OptimizationUtilities
 
-    nodal_area = KM.Vector()
-    optimization_utilities.AssembleVector(design_surface, nodal_area, KM.KratosGlobals.GetVariable("NODAL_AREA"))
+    nodal_area = Kratos.Vector()
+    optimization_utilities.AssembleVector(design_surface, nodal_area, Kratos.KratosGlobals.GetVariable("NODAL_AREA"))
 
-    dg_dx = KM.Vector()
-    optimization_utilities.AssembleVector(design_surface, dg_dx, KM.KratosGlobals.GetVariable(response_gradient_name))
+    dg_dx = Kratos.Vector()
+    optimization_utilities.AssembleVector(design_surface, dg_dx, Kratos.KratosGlobals.GetVariable(response_gradient_name))
 
     # weight response gradients with nodal area
-    dg_dx_weighted = KM.Vector(design_variable_dimension*len(design_surface.Nodes))
+    dg_dx_weighted = Kratos.Vector(design_variable_dimension*len(design_surface.Nodes))
     for i in range(len(design_surface.Nodes)):
         for dim in range(design_variable_dimension):
             index = design_variable_dimension * i + dim
             dg_dx_weighted[index] = dg_dx[index] / nodal_area[i]
 
     response_gradient_weighted_name = f"{response_gradient_name}_WEIGHTED"
-    optimization_utilities.AssignVectorToVariable(design_surface, dg_dx_weighted, KM.KratosGlobals.GetVariable(response_gradient_weighted_name))
+    optimization_utilities.AssignVectorToVariable(design_surface, dg_dx_weighted,
+                                                  Kratos.KratosGlobals.GetVariable(response_gradient_weighted_name))
 
     response_gradient_weighted_mapped_name = f"{response_gradient_weighted_name}_MAPPED"
-    mapper.InverseMap(KM.KratosGlobals.GetVariable(response_gradient_weighted_name), KM.KratosGlobals.GetVariable(response_gradient_weighted_mapped_name))
+    mapper.InverseMap(Kratos.KratosGlobals.GetVariable(response_gradient_weighted_name),
+                      Kratos.KratosGlobals.GetVariable(response_gradient_weighted_mapped_name))
 
 # ==============================================================================
