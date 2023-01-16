@@ -75,28 +75,19 @@ namespace Kratos
             array_1d<double, TNumNodes> TemperatureVector;
             array_1d<double, TNumNodes> DtTemperatureVector;
 
-            ///Variables computed at each GP
-            Matrix B;
-
             ///Constitutive Law parameters
             BoundedMatrix<double, TDim, TDim> ConstitutiveMatrix;
             Vector Np;
-            Vector NpT;
-            Matrix GradNp;
             Matrix GradNpT;
             Matrix GradNpTInitialConfiguration;
 
-            Matrix F;
-            double detF;
             Vector detJContainer;
             Matrix NContainer;
             GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
             // needed for updated Lagrangian:
             double detJ;
-            double detJInitialConfiguration;
             double IntegrationCoefficient;
-            double IntegrationCoefficientInitialConfiguration;
 
             //Auxiliary Variables
             BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
@@ -104,7 +95,7 @@ namespace Kratos
             BoundedMatrix<double, TNumNodes, TDim> TDimMatrix;
         };
 
-            	/// Default Constructor
+    	/// Default Constructor
         TransientThermalElement(IndexType NewId = 0) : BaseType(NewId) {}
 
         /// Constructor using an array of nodes
