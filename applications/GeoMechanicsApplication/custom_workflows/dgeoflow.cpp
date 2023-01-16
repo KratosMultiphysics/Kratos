@@ -124,7 +124,6 @@ namespace Kratos
         {
             KRATOS_INFO("KratosExecute") << "Importing GeoMechanicsApplication" << std::endl;
             kernel.ImportApplication(geo_app);
-            kernel.Initialize();
             kernel.InitializeApplication(*geo_app);
         }
 
