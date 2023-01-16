@@ -19,16 +19,8 @@ class MeshController:
         self.parameters = parameters
         self.optimization_info = optimization_info
 
-    def Initialize(self):
-        pass
-
-    def InitializeSolutionStep(self):
-        pass
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def Finalize(self):
+    @abstractmethod
+    def ImportModelPart(self):
         pass
 
     @abstractmethod

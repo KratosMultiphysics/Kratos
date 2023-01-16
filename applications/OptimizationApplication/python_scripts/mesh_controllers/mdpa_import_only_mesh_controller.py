@@ -28,6 +28,6 @@ class MdpaImportOnlyMeshController(MeshController):
 
         self.model_part = self.model.CreateModelPart(model_part_name)
 
-    def Initialize(self):
+    def ImportModelPart(self):
         Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(self.model_part)
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.domain_size
