@@ -1,5 +1,5 @@
 # Import Kratos core and apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
@@ -12,9 +12,9 @@ import os, csv
 
 # Read parameters
 with open("optimization_parameters.json",'r') as parameter_file:
-    parameters = KM.Parameters(parameter_file.read())
+    parameters = Kratos.Parameters(parameter_file.read())
 
-model = KM.Model()
+model = Kratos.Model()
 
 class CustomAnalyzer(AnalyzerBaseClass):
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
@@ -61,7 +61,7 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     TestCase().assertEqual(resulting_iteration, 1)
 
 # # write json output
-# output_process = JsonOutputProcess(model, KM.Parameters(
+# output_process = JsonOutputProcess(model, Kratos.Parameters(
 #     """{
 #         "output_variables" : ["GAUSSIAN_CURVATURE"],
 #         "output_file_name" : "gaussian_curvature_results.json",
@@ -75,7 +75,7 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 # output_process.ExecuteFinalizeSolutionStep()
 # output_process.ExecuteFinalize()
 
-check_process = FromJsonCheckResultProcess(model, KM.Parameters(
+check_process = FromJsonCheckResultProcess(model, Kratos.Parameters(
     """{
         "check_variables"  : ["GAUSSIAN_CURVATURE"],
         "input_file_name"  : "gaussian_curvature_results.json",
