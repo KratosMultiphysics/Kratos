@@ -94,7 +94,8 @@
                     "response_names_list": [
                         "mass_Structure",
                         "strain_energy"
-                    ]
+                    ],
+                    "echo_level": 1
                 }
             },
             {
@@ -109,7 +110,8 @@
                     "response_names_list": [
                         "mass_Structure",
                         "strain_energy"
-                    ]
+                    ],
+                    "echo_level": 1
                 }
             }
         ]

@@ -31,7 +31,7 @@ class Control(ABC):
 
     def GetControlUpdatesVector(self) -> Kratos.Vector:
         if not self.IsControlUpdateComputed():
-            raise RuntimeError("Control update is not computed for current solution step.")
+            raise RuntimeError(f"Control update is not computed for current solution step. Followings are information on the controller: \n\tModel part name = {self.GetModelPart().FullName()}\n\tSensitivity variable = {self.GetControlSensitivityVariable().Name()}")
         return self.__control_update
 
     def IsControlUpdateComputed(self) -> bool:

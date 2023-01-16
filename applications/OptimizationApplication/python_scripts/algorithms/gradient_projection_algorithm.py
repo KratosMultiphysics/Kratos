@@ -19,7 +19,8 @@ class GradientProjectionAlgorithm(Algorithm):
             "relative_tolerance"  : 1e-3,
             "step_size"           : 1e-3,
             "control_names_list"  : [],
-            "response_names_list" : []
+            "response_names_list" : [],
+            "echo_level"          : 0
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -28,6 +29,7 @@ class GradientProjectionAlgorithm(Algorithm):
         self.max_correction_share = parameters["max_correction_share"].GetDouble()
         self.relative_tolerance = parameters["relative_tolerance"].GetDouble()
         self.step_size = parameters["step_size"].GetDouble()
+        self.echo_level = parameters["echo_level"].GetInt()
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -82,6 +84,7 @@ class GradientProjectionAlgorithm(Algorithm):
         # calculate objective gradients
         controls_data = []
         for control_wrapper in self.control_wrappers_list:
+            self.__PrintInfo(1, f"Computing sensitivities for {control_wrapper.GetName()} control...")
             control_wrapper: ControlWrapper = control_wrapper
             control: Control = control_wrapper.GetControl()
 
@@ -145,6 +148,8 @@ class GradientProjectionAlgorithm(Algorithm):
                 "modified_control_update": control.GetControlUpdatesVector()
             })
 
+            self.__PrintInfo(1, f"Computed sensitivities for {control_wrapper.GetName()} control.")
+
         self.optimization_info["controls"] = controls_data
 
     def IsConverged(self) -> bool:
@@ -180,4 +185,8 @@ class GradientProjectionAlgorithm(Algorithm):
                 raise RuntimeError(f"Unsupported {sensitivty_variable.Name()} of type {sensitivity_variable_type} is used. This only supports double and array variable types.")
 
         return search_direction_variable, search_correction_variable
+
+    def __PrintInfo(self, required_echo_level: int, message: str):
+        if self.echo_level >= required_echo_level:
+            Kratos.Logger.PrintInfo(self.__class__.__name__, message)
 
