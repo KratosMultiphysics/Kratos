@@ -68,6 +68,10 @@ class GradientProjectionAlgorithm(Algorithm):
             "standardized_value": self.objective_response_function_wrapper.GetStandardizedValue()
         }
 
+        msg  = f"\n\tObjective name : {self.objective_response_function_wrapper.GetName()}"
+        msg += f"\n\tObjective value: " + str(self.optimization_info["objective"]["value"])
+        self.__PrintInfo(1, msg, "")
+
         # calculate constraint values
         constraint_values = []
         for constraint_wrapper in self.constraints_list:
@@ -79,6 +83,14 @@ class GradientProjectionAlgorithm(Algorithm):
             }
             constraint_value = constraint_wrapper.GetStandardizedValue()
             constraint_values.append(constraint_data)
+            msg = f"\n\tConstraint name : {constraint_wrapper.GetName()}"
+            msg += f"\n\tConstraint value: " + str(constraint_data["value"])
+            if constraint_data["is_active"]:
+                msg += f"\n\tConstraint is active."
+            else:
+                msg += f"\n\tConstraint is inactive."
+            self.__PrintInfo(1, msg, "")
+
         self.optimization_info["constraints"] = constraint_values
 
         # calculate objective gradients
@@ -186,7 +198,7 @@ class GradientProjectionAlgorithm(Algorithm):
 
         return search_direction_variable, search_correction_variable
 
-    def __PrintInfo(self, required_echo_level: int, message: str):
+    def __PrintInfo(self, required_echo_level: int, message: str, title = "GradientProjectionAlgorithm"):
         if self.echo_level >= required_echo_level:
-            Kratos.Logger.PrintInfo(self.__class__.__name__, message)
+            Kratos.Logger.PrintInfo("", message)
 
