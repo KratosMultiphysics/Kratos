@@ -65,7 +65,11 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
             # Creating parameters for the data transfer
             # TODO: I should check if the parameters change between different data transfers
             parameters = KM.Parameters(self.settings["3d_1d_data_transfer_settings"].WriteJsonString())
+            if not parameters.Has("origin_variables"):
+                parameters.AddEmptyArray("origin_variables")
             parameters["origin_variables"].Append(variable_origin.Name())
+            if not parameters.Has("destination_variables"):
+                parameters.AddEmptyArray("destination_variables")
             parameters["destination_variables"].Append(variable_destination.Name())
             for transfer_option in transfer_options.GetStringArray():
                 if transfer_option == "swap_sign":
@@ -79,10 +83,10 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
             self.__data_transfer_process[identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other data transfers
 
             # Execute the data transfer
-            if self.origin_is_3d == True:
+            if self.origin_is_3d:
                 self.__data_transfer_process[inverse_identifier_tuple].Set(KM.Mapper.USE_TRANSPOSE)
             self.__data_transfer_process[identifier_tuple].Execute()
-            if self.origin_is_3d == True:
+            if self.origin_is_3d:
                 self.__data_transfer_process[inverse_identifier_tuple].Reset(KM.Mapper.USE_TRANSPOSE)
 
     def _Check(self, from_solver_data, to_solver_data):
