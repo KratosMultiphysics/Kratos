@@ -56,7 +56,9 @@ class GradientProjectionAlgorithm(Algorithm):
             raise RuntimeError("Only one objective is allowed in the optimization.")
 
         self.objective_response_function_wrapper: ResponseFunctionWrapper = self.objectives_list[0]
-        self.control_wrappers_list = [control_wrapper for control_wrapper in self.optimization_info.GetRoutines("ControlWrapper") if control_wrapper.GetName() in self.parameters["control_names_list"].GetStringArray()]
+        self.control_wrappers_list = []
+        for control_wrapper_name in self.parameters["control_names_list"].GetStringArray():
+            self.control_wrappers_list.append(self.optimization_info.GetRoutine("ControlWrapper", control_wrapper_name))
 
         self.optimization_info["objective"] = {}
         self.optimization_info["constraints"] = []
@@ -155,7 +157,7 @@ class GradientProjectionAlgorithm(Algorithm):
     def IsConverged(self) -> bool:
         if self.optimization_info["step"] > 1:
             # check for objective convergence
-            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info["objective"]["value", 1] - 1.0) < self.relative_tolerance
+            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info["objective", 1]["value"] - 1.0) < self.relative_tolerance
 
             # check for constraint convergence
             for constraint_data in self.optimization_info["constraints"]:

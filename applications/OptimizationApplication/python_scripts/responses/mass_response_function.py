@@ -53,6 +53,6 @@ class MassResponseFunction(ResponseFunction):
         else:
             # since this response function covers all the possible sensitivity calculations for the method given in CalculateMass,
             # we can return the corresponding zero values for other sensitivity values
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(sensitivity_variable, GetSensitivityContainer(sensitivity_container_type))
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(sensitivity_variable, GetSensitivityContainer(sensitivity_model_part, sensitivity_container_type))
 
 
