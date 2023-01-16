@@ -24,6 +24,7 @@ from test_mass_response_function import TestMassResponseFunctionSolids
 from test_entity_specific_properties_process import TestEntitySpecificPropertiesProcess
 from test_linear_strain_energy_response_function import TestLinearStrainEnergyResponseFunctionBase
 from test_properties_control import TestPropertiesControl
+from test_mass_optimization import TestMassOptimization
 
 # Nightly tests
 
@@ -70,6 +71,7 @@ def AssembleTestSuites():
     validationSuite.addTest(mat_opt_test('test_execution'))
     validationSuite.addTest(shell_shape_opt_test('test_execution'))
     validationSuite.addTest(shell_thick_opt_test('test_execution'))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassOptimization]))
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']

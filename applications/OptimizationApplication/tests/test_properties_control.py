@@ -15,6 +15,8 @@ class TestPropertiesControl(kratos_unittest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.optimization_info = OptimizationInfo()
+        cls.optimization_info.SetBufferSize(1)
+        cls.optimization_info["step"] = 0
         cls.model_part = cls.model.CreateModelPart("Structure")
         Kratos.ModelPartIO("linear_element_test/Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 

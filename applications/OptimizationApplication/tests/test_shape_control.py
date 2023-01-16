@@ -16,6 +16,8 @@ class TestShapeControl(kratos_unittest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.optimization_info = OptimizationInfo()
+        cls.optimization_info.SetBufferSize(1)
+        cls.optimization_info["step"] = 0
         cls.model_part = cls.model.CreateModelPart("Structure")
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(Kratos.MESH_DISPLACEMENT)
