@@ -11,18 +11,6 @@ class Modifier(ABC):
         self.parameters = parameters
         self.optimization_info = optimization_info
 
-    def Initialize(self):
-        pass
-
-    def InitializeSolutionStep(self):
-        pass
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def Finalize(self):
-        pass
-
     @abstractmethod
     def ModifySensitivities(self, sensitivities: Kratos.Vector, model_part: Kratos.ModelPart, container_type: ContainerEnum):
         pass
