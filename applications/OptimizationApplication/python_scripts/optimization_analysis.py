@@ -23,7 +23,7 @@ class OptimizationAnalysis(AnalysisStage):
             "controls"     : [],
             "optimizations": {}
         }""")
-        project_parameters.ValidateAndAssignDefaults(default_settings)
+        project_parameters.AddMissingParameters(default_settings)
         self.__list_of_meshers = []
 
         self._CreateMeshes()

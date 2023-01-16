@@ -115,5 +115,11 @@
                 }
             }
         ]
+    },
+    "processes": {
+        "auxiliary_processes": []
+    },
+    "output_processes": {
+        "vtk_output_processes": []
     }
 }
