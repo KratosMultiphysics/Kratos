@@ -186,15 +186,14 @@ class GradientProjectionAlgorithm(Algorithm):
     @staticmethod
     def __GetSearchVariables(sensitivty_variable):
         sensitivity_variable_type = Kratos.KratosGlobals.GetVariableType(sensitivty_variable.Name())
-        match sensitivity_variable_type:
-            case "Double":
-                search_direction_variable = KratosOA.SCALAR_SEARCH_DIRECTION
-                search_correction_variable = KratosOA.SCALAR_SEARCH_CORRECTION
-            case "Array":
-                search_direction_variable = KratosOA.VECTOR_SEARCH_DIRECTION
-                search_correction_variable = KratosOA.VECTOR_SEARCH_CORRECTION
-            case _:
-                raise RuntimeError(f"Unsupported {sensitivty_variable.Name()} of type {sensitivity_variable_type} is used. This only supports double and array variable types.")
+        if sensitivity_variable_type == "Double":
+            search_direction_variable = KratosOA.SCALAR_SEARCH_DIRECTION
+            search_correction_variable = KratosOA.SCALAR_SEARCH_CORRECTION
+        elif sensitivity_variable_type == "Array":
+            search_direction_variable = KratosOA.VECTOR_SEARCH_DIRECTION
+            search_correction_variable = KratosOA.VECTOR_SEARCH_CORRECTION
+        else:
+            raise RuntimeError(f"Unsupported {sensitivty_variable.Name()} of type {sensitivity_variable_type} is used. This only supports double and array variable types.")
 
         return search_direction_variable, search_correction_variable
 

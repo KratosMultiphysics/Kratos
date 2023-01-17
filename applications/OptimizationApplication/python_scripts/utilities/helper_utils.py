@@ -13,15 +13,14 @@ class ContainerEnum(Enum):
     CONDITION_PROPERTIES = 5
 
 def GetSensitivityContainer(model_part: Kratos.ModelPart, container_type: ContainerEnum):
-    match (container_type):
-        case ContainerEnum.NODES:
-            return model_part.Nodes
-        case ContainerEnum.ELEMENTS | ContainerEnum.ELEMENT_PROPERTIES:
-            return model_part.Elements
-        case ContainerEnum.CONDITIONS | ContainerEnum.CONDITION_PROPERTIES:
-            return model_part.Conditions
-        case _:
-            raise RuntimeError("Unsupported container type requested.")
+    if container_type == ContainerEnum.NODES:
+        return model_part.Nodes
+    elif container_type in [ContainerEnum.ELEMENTS, ContainerEnum.ELEMENT_PROPERTIES]:
+        return model_part.Elements
+    elif container_type in [ContainerEnum.CONDITIONS, ContainerEnum.CONDITION_PROPERTIES]:
+        return model_part.Conditions
+    else:
+        raise RuntimeError("Unsupported container type requested.")
 
 def RetrieveObject(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo, object_type = object):
     default_settings = Kratos.Parameters("""{

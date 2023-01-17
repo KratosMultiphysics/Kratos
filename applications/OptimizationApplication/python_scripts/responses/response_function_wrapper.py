@@ -108,13 +108,12 @@ class ObjectiveResponseFunctionWrapper(ResponseFunctionWrapper):
         self.scaling = parameters["scaling"].GetDouble()
 
         self.objective = parameters["objective"].GetString()
-        match self.objective:
-            case "minimization":
-                self.standardization_value = 1.0
-            case "maximization":
-                self.standardization_value = -1.0
-            case _:
-                raise RuntimeError(f"{self.name} requesting unsupported objective {self.objective}. Supported objectives are: \n\tminimization\n\tmaximization")
+        if self.objective == "minimization":
+            self.standardization_value = 1.0
+        elif self.objective == "maximization":
+            self.standardization_value = -1.0
+        else:
+            raise RuntimeError(f"{self.name} requesting unsupported objective {self.objective}. Supported objectives are: \n\tminimization\n\tmaximization")
 
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
@@ -153,22 +152,20 @@ class ConstraintResponseFunctionWrapper(ResponseFunctionWrapper):
         self.ref_scaling = parameters["ref_scaling"].GetDouble()
 
         self.ref_type = parameters["ref_type"].GetString()
-        match self.ref_type:
-            case "initial":
-                self.reference_value = None
-            case "specified":
-                self.reference_value = parameters["ref_value"].GetDouble()
-            case _:
-                raise RuntimeError(f"Provided \"reference_type\" = {self.ref_type} is not supported for response function with \"name\" = {self.name}. Followings are supported options: \n\tinitial\n\tspecified")
+        if self.ref_type == "initial":
+            self.reference_value = None
+        elif self.ref_type == "specified":
+            self.reference_value = parameters["ref_value"].GetDouble()
+        else:
+            raise RuntimeError(f"Provided \"reference_type\" = {self.ref_type} is not supported for response function with \"name\" = {self.name}. Followings are supported options: \n\tinitial\n\tspecified")
 
         self.constraint = parameters["constraint"].GetString()
-        match self.constraint:
-            case "<" | "<=" | "=":
-                self.standardization_value = 1.0
-            case ">" | ">=":
-                self.standardization_value = -1.0
-            case _:
-                raise RuntimeError(f"Provided \"constraint\" = {self.constraint} is not supported in response function with \"name\" = {self.name}. Followings are supported options: \n\t=\n\t<=\n\t<\n\t>=\n\t>")
+        if self.constraint in ["<", "<=", "="]:
+            self.standardization_value = 1.0
+        elif self.constraint in [">", ">="]:
+            self.standardization_value = -1.0
+        else:
+            raise RuntimeError(f"Provided \"constraint\" = {self.constraint} is not supported in response function with \"name\" = {self.name}. Followings are supported options: \n\t=\n\t<=\n\t<\n\t>=\n\t>")
 
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
