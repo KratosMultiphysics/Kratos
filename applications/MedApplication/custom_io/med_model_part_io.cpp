@@ -61,6 +61,11 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
     { GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    MED_HEXA27 }
 };
 
+void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
+{
+    KRATOS_ERROR_IF_NOT(ierr == 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
+}
+
 template<typename T>
 void CheckConnectivitiesSize(
     const std::size_t ExpectedSize,
@@ -80,11 +85,26 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
             std::swap(Connectivities[1], Connectivities[2]);
         };
 
+    case MED_TRIA6:
+        KRATOS_ERROR << "Not implemented!" << std::endl;
+
     case MED_QUAD4:
         return [](std::vector<T>& Connectivities){
             CheckConnectivitiesSize(4, Connectivities);
             std::swap(Connectivities[1], Connectivities[3]);
         };
+
+    case MED_QUAD8:
+        KRATOS_ERROR << "Not implemented!" << std::endl;
+
+    case MED_QUAD9: // should be same as MED_QUAD8
+        KRATOS_ERROR << "Not implemented!" << std::endl;
+
+    case MED_PYRA5:
+        KRATOS_ERROR << "Not implemented!" << std::endl;
+
+    case MED_PYRA13:
+        KRATOS_ERROR << "Not implemented!" << std::endl;
 
     default:
         return [](std::vector<T>& Connectivities){
@@ -108,13 +128,13 @@ std::string GetKratosGeometryName(
         case MED_TRIA3:
             return Dimension == 2 ? "Triangle2D3" : "Triangle3D3";
         case MED_TRIA6:
-            return DIMENSION == 2 ? "Triangle2D6" : "Triangle3D6";
+            return Dimension == 2 ? "Triangle2D6" : "Triangle3D6";
         case MED_QUAD4:
-            return DIMENSION == 2 ? "Quadrilateral2D4" : "Quadrilateral3D4";
+            return Dimension == 2 ? "Quadrilateral2D4" : "Quadrilateral3D4";
         case MED_QUAD8:
-            return DIMENSION == 2 ? "Quadrilateral2D8" : "Quadrilateral3D8";
+            return Dimension == 2 ? "Quadrilateral2D8" : "Quadrilateral3D8";
         case MED_QUAD9:
-            return DIMENSION == 2 ? "Quadrilateral2D9" : "Quadrilateral3D9";
+            return Dimension == 2 ? "Quadrilateral2D9" : "Quadrilateral3D9";
         case MED_TETRA4:
             return "Tetrahedra3D4";
         case MED_TETRA10:
@@ -142,6 +162,8 @@ int GetNumberOfNodes(
     const med_idt FileHandle,
 	const char* pMeshName)
 {
+    KRATOS_TRY
+
     // indicators if mesh has changed compared to previous step
     // not of interest
     med_bool coordinate_changement;
@@ -152,7 +174,9 @@ int GetNumberOfNodes(
         pMeshName, MED_NO_DT, MED_NO_IT ,
         MED_NODE, MED_NO_GEOTYPE,
         MED_COORDINATE, MED_NO_CMODE,
-        &coordinate_changement, &geo_transformation);
+        &coordinate_changement, &geo_transformation);+
+
+    KRATOS_CATCH("")
 }
 
 std::vector<double> GetNodeCoordinates(
@@ -161,17 +185,23 @@ std::vector<double> GetNodeCoordinates(
     const int NumberOfNodes,
     const int Dimension)
 {
+    KRATOS_TRY
+
     static_assert(sizeof(double) == sizeof(med_float), "mismatch between double and med_float!");
 
     std::vector<double> coords(NumberOfNodes*Dimension);
 
-    const med_err err = MEDmeshNodeCoordinateRd(
+    const auto err = MEDmeshNodeCoordinateRd(
         FileHandle, pMeshName,
         MED_NO_DT, MED_NO_IT,
         MED_FULL_INTERLACE,
         coords.data());
 
+    CheckMEDErrorCode(err, "MEDmeshNodeCoordinateRd");
+
     return coords;
+
+    KRATOS_CATCH("")
 }
 
 } // anonymous namespace
@@ -337,7 +367,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         );
     }
 
-    Logger << Read xxx nodes
+    KRATOS_INFO("MedModelPartIO") << "Read " << num_nodes << " nodes" << std::endl;
 
     // reading cells
     const int num_geometry_types = MEDmeshnEntity(
@@ -444,10 +474,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 // {
 //     KRATOS_TRY
 
-    const Vector nodal_coords = VariableUtils().GetCurrentPositionsVector(rThisModelPart.Nodes(), dimension);
-
-    // TODO find better solution than to copy
-    const std::vector<double> vec_nodal_coords(nodal_coords.begin(), nodal_coords.end());
+    const std::vector<double> nodal_coords = VariableUtils().GetCurrentPositionsVector<std::vector<double>>(rThisModelPart.Nodes(), dimension);
 
     // add check and warning if ModelPart is empty
     err = MEDmeshNodeCoordinateWr(
