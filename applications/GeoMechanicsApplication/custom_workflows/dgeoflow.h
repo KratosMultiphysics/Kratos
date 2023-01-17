@@ -211,8 +211,8 @@ namespace Kratos
 
     private:
         // Initial Setup
-        Model current_model;
         Kernel kernel;
+        Model current_model;
         
         void ResetModelParts();
 
