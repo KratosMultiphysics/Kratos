@@ -272,9 +272,9 @@ double GeoTrussElementLinearBase<TDim,TNumNodes>::CalculateLinearStrain()
     {
         length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     }
-    else // 1D
+    else
     {
-        length_0 = std::abs(this->GetGeometry()[1]->GetInitialPosition().Coordinates()[0] - this->GetGeometry()[0]->GetInitialPosition().Coordinates()[0]);
+        KRATOS_ERROR << "Dimension of truss element should be either 2D or 3D" << std::endl;
     }
     
     const double e = (current_disp[TDim]-current_disp[0])/length_0;
