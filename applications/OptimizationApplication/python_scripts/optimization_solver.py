@@ -126,7 +126,7 @@ class OptimizationSolver(PythonSolver):
 
     def AdvanceInTime(self, _):
         self.optimization_info.AdvanceSolutionStep()
-        self.optimization_info["step"] = self.optimization_info["step", 1] + 1
+        self.optimization_info["step"] = self.optimization_info.GetSolutionStepData(1)["step"] + 1
         return self.optimization_info["step"]
 
     def __ExecuteMethod(self, items, method_name: str):

@@ -24,20 +24,20 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         optimization_info.AdvanceSolutionStep()
         optimization_info["step"] = 2
         self.assertEqual(optimization_info["step"], 2)
-        self.assertEqual(optimization_info["step", 1], 1)
+        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 1)
 
         optimization_info.AdvanceSolutionStep()
         optimization_info["step"] = 3
         self.assertEqual(optimization_info["step"], 3)
-        self.assertEqual(optimization_info["step", 1], 2)
-        self.assertEqual(optimization_info["step", 2], 1)
+        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 2)
+        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 1)
 
         optimization_info.AdvanceSolutionStep()
         optimization_info["step"] = 4
         self.assertEqual(optimization_info["step"], 4)
-        self.assertEqual(optimization_info["step", 1], 3)
-        self.assertEqual(optimization_info["step", 2], 2)
-        self.assertEqual(optimization_info["step", 3], 4)
+        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
+        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
+        self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
 
     def test_AdvanceSolutionStepSet(self):
         optimization_info = OptimizationInfo()
@@ -48,30 +48,30 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
 
         optimization_info.AdvanceSolutionStep()
         optimization_info["step"] = 2
-        optimization_info["step", 1] = 10
+        optimization_info.GetSolutionStepData(1)["step"] = 10
         self.assertEqual(optimization_info["step"], 2)
-        self.assertEqual(optimization_info["step", 1], 10)
+        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 10)
 
         optimization_info.AdvanceSolutionStep()
         optimization_info["step"] = 3
-        optimization_info["step", 2] = 15
+        optimization_info.GetSolutionStepData(2)["step"] = 15
         self.assertEqual(optimization_info["step"], 3)
-        self.assertEqual(optimization_info["step", 1], 2)
-        self.assertEqual(optimization_info["step", 2], 15)
+        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 2)
+        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 15)
 
         optimization_info.AdvanceSolutionStep()
         optimization_info["step"] = 4
         self.assertEqual(optimization_info["step"], 4)
-        self.assertEqual(optimization_info["step", 1], 3)
-        self.assertEqual(optimization_info["step", 2], 2)
-        self.assertEqual(optimization_info["step", 3], 4)
+        self.assertEqual(optimization_info.GetSolutionStepData(1)["step"], 3)
+        self.assertEqual(optimization_info.GetSolutionStepData(2)["step"], 2)
+        self.assertEqual(optimization_info.GetSolutionStepData(3)["step"], 4)
 
     def test_Has(self):
         optimization_info = OptimizationInfo()
         optimization_info.SetBufferSize(1)
         optimization_info["step"] = 1
-        self.assertTrue(optimization_info.Has("step"))
-        self.assertFalse(optimization_info.Has("Step"))
+        self.assertTrue(optimization_info.HasSolutionStepDataKey("step"))
+        self.assertFalse(optimization_info.HasSolutionStepDataKey("Step"))
 
     def test_OptimizationRoutines(self):
         optimization_info = OptimizationInfo()

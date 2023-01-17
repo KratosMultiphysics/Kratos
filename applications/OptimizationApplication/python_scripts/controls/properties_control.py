@@ -41,7 +41,7 @@ class PropertiesControl(Control):
         super().Initialize()
 
         # creates element specific properties
-        if not self.optimization_info.Has("model_parts_with_element_specific_properties"):
+        if not self.optimization_info.HasSolutionStepDataKey("model_parts_with_element_specific_properties"):
             self.optimization_info["model_parts_with_element_specific_properties"] = []
 
         if not self.model_part.FullName() in self.optimization_info["model_parts_with_element_specific_properties"]:

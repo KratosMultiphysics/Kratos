@@ -176,7 +176,7 @@ class GradientProjectionAlgorithm(Algorithm):
     def IsConverged(self) -> bool:
         if self.optimization_info["step"] > 1:
             # check for objective convergence
-            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info["objective", 1]["value"] - 1.0) < self.relative_tolerance
+            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info.GetSolutionStepData(1)["objective"]["value"] - 1.0) < self.relative_tolerance
 
             # check for constraint convergence
             for constraint_data in self.optimization_info["constraints"]:
