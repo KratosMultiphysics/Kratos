@@ -2005,14 +2005,7 @@ namespace Kratos {
           }
         }
         else {
-          ModelPart& r_model_part = GetModelPart();
-          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
-            array_1d<double, 3> linear_velocity = (*sub_model_part)[LINEAR_VELOCITY];
-            if (linear_velocity[0] != 0.0 || linear_velocity[1] != 0.0 || linear_velocity[2] != 0.0) {
-              int* fixed_mesh = &(*sub_model_part)[FIXED_MESH_OPTION];
-              *fixed_mesh = 1;
-            }
-          }
+          // TODO
         }
       }
     }
