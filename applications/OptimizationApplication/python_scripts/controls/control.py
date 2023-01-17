@@ -38,8 +38,29 @@ class Control(ABC):
         return self.__is_control_update_computed
 
     @abstractmethod
+    def UpdateControls(self, control_values: Kratos.Vector):
+        """Updates the corresponding controls with given control values
+
+        Args:
+            control_values (Kratos.Vector): Given updated control values
+        """
+        pass
+
+    @abstractmethod
+    def GetNewControlValuesVector(self) -> Kratos.Vector:
+        """Returns the control values vector after updating
+
+        This method returns the control values vector for the control after updating it with control update.
+        Eg: For density control, the updated DENSITY values vector
+
+        Returns:
+            any: Control values vector
+        """
+        pass
+
+    @abstractmethod
     def GetContainerType(self) -> ContainerEnum:
-        """Returns the contaienr type on which the control is acted upon
+        """Returns the container type on which the control is acted upon
 
         This method returns the container type, where the sensitivites/updates
         are carried on.

@@ -12,6 +12,10 @@ class Modifier(ABC):
         self.optimization_info = optimization_info
 
     @abstractmethod
+    def ModifyControl(self, control_values: Kratos.Vector, model_part: Kratos.ModelPart, container_type: ContainerEnum):
+        pass
+
+    @abstractmethod
     def ModifySensitivities(self, sensitivities: Kratos.Vector, model_part: Kratos.ModelPart, container_type: ContainerEnum):
         pass
 

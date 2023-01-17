@@ -12,13 +12,12 @@ class ControlWrapper(OptimizationRoutine):
         self.optimization_info = optimization_info
 
         default_parameters = Kratos.Parameters("""{
-            "name"                 : "",
-            "echo_level"           : 0,
-            "module"               : "KratosMultiphysics.OptimizationApplication.controls",
-            "type"                 : "PleaseProvideClassName",
-            "sensitivity_modifiers": [],
-            "update_modifiers"     : [],
-            "settings"             : {}
+            "name"          : "",
+            "echo_level"    : 0,
+            "module"        : "KratosMultiphysics.OptimizationApplication.controls",
+            "type"          : "PleaseProvideClassName",
+            "modifiers_list": [],
+            "settings"      : {}
         }""")
 
         self.parameters.ValidateAndAssignDefaults(default_parameters)
@@ -40,49 +39,37 @@ class ControlWrapper(OptimizationRoutine):
             "settings": {}
         }""")
 
-        self.__list_of_sensitivity_modifiers = []
-        for modifier_settings in self.parameters["sensitivity_modifiers"]:
+        self.__list_of_modifiers = []
+        for modifier_settings in self.parameters["modifiers_list"]:
             modifier_settings.ValidateAndAssignDefaults(modifier_defaults)
-            self.__list_of_sensitivity_modifiers.append(RetrieveObject(self.model, modifier_settings, optimization_info, Modifier))
-
-        self.__list_of_update_modifiers = []
-        for modifier_settings in self.parameters["update_modifiers"]:
-            modifier_settings.ValidateAndAssignDefaults(modifier_defaults)
-            self.__list_of_update_modifiers.append(RetrieveObject(self.model, modifier_settings, optimization_info, Modifier))
+            self.__list_of_modifiers.append(RetrieveObject(self.model, modifier_settings, optimization_info, Modifier))
 
     def Initialize(self):
         self.control.Initialize()
-        for modifier in self.__list_of_sensitivity_modifiers:
-            modifier.Initialize()
-
-        for modifier in self.__list_of_update_modifiers:
+        for modifier in self.__list_of_modifiers:
             modifier.Initialize()
 
     def InitializeSolutionStep(self):
+        if self.optimization_info["step"] > 1:
+            control_values = self.control.GetNewControlValuesVector()
+            control_values = self.ModifyControl(control_values)
+            self.control.UpdateControls(control_values)
+
         self.control.InitializeSolutionStep()
 
-        for modifier in self.__list_of_sensitivity_modifiers:
-            modifier.InitializeSolutionStep()
-
-        for modifier in self.__list_of_update_modifiers:
+        for modifier in self.__list_of_modifiers:
             modifier.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         self.control.FinalizeSolutionStep()
 
-        for modifier in self.__list_of_sensitivity_modifiers:
-            modifier.FinalizeSolutionStep()
-
-        for modifier in self.__list_of_update_modifiers:
+        for modifier in self.__list_of_modifiers:
             modifier.FinalizeSolutionStep()
 
     def Finalize(self):
         self.control.Finalize()
 
-        for modifier in self.__list_of_sensitivity_modifiers:
-            modifier.Finalize()
-
-        for modifier in self.__list_of_update_modifiers:
+        for modifier in self.__list_of_modifiers:
             modifier.Finalize()
 
     def GetName(self):
@@ -91,17 +78,24 @@ class ControlWrapper(OptimizationRoutine):
     def GetControl(self) -> Control:
         return self.control
 
+    def ModifyControl(self, control_values: Kratos.Vector):
+        resultant_control_values = Kratos.Vector(control_values)
+        for modifier in self.__list_of_modifiers:
+            resultant_control_values = modifier.Control(resultant_control_values, self.control.GetModelPart(), self.control.GetContainerType())
+
+        return resultant_control_values
+
     def ModifySensitivities(self, sensitivities: Kratos.Vector) -> Kratos.Vector:
         resultant_sensitivities = Kratos.Vector(sensitivities)
-        for modifier in self.__list_of_sensitivity_modifiers:
+        for modifier in self.__list_of_modifiers:
             resultant_sensitivities = modifier.ModifySensitivities(resultant_sensitivities, self.control.GetModelPart(), self.control.GetContainerType())
 
         return resultant_sensitivities
 
     def ModifyControlUpdates(self, controls: Kratos.Vector) -> Kratos.Vector:
         resultant_controls = Kratos.Vector(controls)
-        for modifier in self.__list_of_update_modifiers:
-            resultant_controls = modifier.ModifySensitivities(resultant_controls, self.control.GetModelPart(), self.control.GetContainerType())
+        for modifier in self.__list_of_modifiers:
+            resultant_controls = modifier.ModifyControlUpdates(resultant_controls, self.control.GetModelPart(), self.control.GetContainerType())
 
         return resultant_controls
 

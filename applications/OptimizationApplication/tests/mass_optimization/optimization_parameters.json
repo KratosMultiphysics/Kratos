@@ -67,8 +67,7 @@
                     "model_part_name": "Structure",
                     "control_variable_name": "DENSITY"
                 },
-                "sensitivity_modifiers": [],
-                "update_modifiers": []
+                "modifiers_list": []
             },
             {
                 "name": "young_modulus",
@@ -77,8 +76,7 @@
                     "model_part_name": "Structure",
                     "control_variable_name": "YOUNG_MODULUS"
                 },
-                "sensitivity_modifiers": [],
-                "update_modifiers": []
+                "modifiers_list": []
             }
         ],
         "algorithms": [

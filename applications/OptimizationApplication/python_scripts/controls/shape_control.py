@@ -26,14 +26,12 @@ class ShapeControl(Control):
         self.control_update_variable = Kratos.KratosGlobals.GetVariable(control_update_variable_name)
         self.mesh_moving_execution_policy_wrapper: ExecutionPolicyWrapper = self.optimization_info.GetRoutine("ExecutionPolicyWrapper", self.parameters["mesh_moving_analysis_name"].GetString())
 
-    def InitializeSolutionStep(self):
-        # move boundaries according to update variable
-        if self.optimization_info["step"] > 1:
-            vector = self.GetControlUpdatesVector()
-            KratosOA.OptimizationUtils.AssignVectorToHistoricalContainer(self.model_part, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], Kratos.MESH_DISPLACEMENT, vector)
-            self.mesh_moving_execution_policy_wrapper.Execute()
+    def UpdateControls(self, control_values: Kratos.Vector):
+        KratosOA.OptimizationUtils.AssignVectorToHistoricalContainer(self.model_part, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], Kratos.MESH_DISPLACEMENT, control_values)
+        self.mesh_moving_execution_policy_wrapper.Execute()
 
-        super().InitializeSolutionStep()
+    def GetNewControlValuesVector(self) -> Kratos.Vector:
+        return self.GetControlUpdatesVector()
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part

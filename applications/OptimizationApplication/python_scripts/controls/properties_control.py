@@ -48,18 +48,14 @@ class PropertiesControl(Control):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
             self.optimization_info["model_parts_with_element_specific_properties"].append(self.model_part.FullName())
 
-    def InitializeSolutionStep(self):
-        if self.optimization_info["step"] > 1:
-            # update the properties from the element data containers
-            current_property_values = Kratos.Vector()
-            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.model_part.Elements, self.control_variable, current_property_values)
+    def UpdateControls(self, control_values: Kratos.Vector):
+        KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.model_part.Elements, self.control_variable, control_values)
+        KratosOA.OptimizationUtils.AssignVectorToContainer(self.model_part.Elements, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], self.control_variable, control_values)
 
-            new_property_values = current_property_values + self.GetControlUpdatesVector()
-
-            KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.model_part.Elements, self.control_variable, new_property_values)
-            KratosOA.OptimizationUtils.AssignVectorToContainer(self.model_part.Elements, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], self.control_variable, new_property_values)
-
-        super().InitializeSolutionStep()
+    def GetNewControlValuesVector(self) -> Kratos.Vector:
+        current_property_values = Kratos.Vector()
+        KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.model_part.Elements, self.control_variable, current_property_values)
+        return current_property_values + self.GetControlUpdatesVector()
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part
