@@ -12,12 +12,12 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         super().__init__(model, parameters, optimization_info)
 
         default_settings = Kratos.Parameters("""{
-            "model_part_name"      : "PLEASE_PROVIDE_A_MODEL_PART_NAME",
-            "primal_analysis_name" : "",
-            "perturbation_size"    : 1e-8
+            "evaluated_model_part_name": "PLEASE_PROVIDE_A_MODEL_PART_NAME",
+            "primal_analysis_name"     : "",
+            "perturbation_size"        : 1e-8
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
-        self.model_part = self.model[parameters["model_part_name"].GetString()]
+        self.model_part = self.model[parameters["evaluated_model_part_name"].GetString()]
         self.primal_analysis_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetOptimizationRoutine("ExecutionPolicyWrapper", parameters["primal_analysis_name"].GetString())
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
