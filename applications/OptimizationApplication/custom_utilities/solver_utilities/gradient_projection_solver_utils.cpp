@@ -66,6 +66,7 @@ template<class TContainerType, class TDataType>
 void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(
     TContainerType& rContainer,
     const IndexType DomainSize,
+    LinearSolver<DenseSpace, DenseSpace>& rSolver,
     const Variable<TDataType>& rSearchDirectionVariable,
     const Variable<TDataType>& rSearchDirectionCorrectionVariable,
     const Vector& rConstraintValues,
@@ -116,6 +117,8 @@ void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrecti
 
     // Now computing the inverse of NTN
     Matrix NTN_inv(NTN.size1(), NTN.size2());
+    Matrix I = IdentityMatrix(NTN.size2());
+    rSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
 
     // calculates (N^T).nsbla_f
     Vector NT_nabla_f(constraints_size);
@@ -211,13 +214,13 @@ void GradientProjectionSolverUtils::CalculateControlChange(
 }
 
 // template instantiations
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
 
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
+template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
 
 template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
 template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&,  const double, const double);

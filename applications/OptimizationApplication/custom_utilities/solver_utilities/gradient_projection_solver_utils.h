@@ -18,6 +18,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 // Application includes
 
@@ -35,6 +37,8 @@ public:
 
     using IndexType = std::size_t;
 
+    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+
     ///@}
     ///@name Static operations
     ///@{
@@ -43,6 +47,7 @@ public:
     static void CalculateProjectedSearchDirectionAndCorrection(
         TContainerType& rContainer,
         const IndexType DomainSize,
+        LinearSolver<DenseSpace, DenseSpace>& rSolver,
         const Variable<TDataType>& rSearchDirectionVariable,
         const Variable<TDataType>& rSearchDirectionCorrectionVariable,
         const Vector& rConstraintValues,

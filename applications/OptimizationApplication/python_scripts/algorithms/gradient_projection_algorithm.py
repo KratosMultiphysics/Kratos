@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
@@ -15,12 +16,13 @@ class GradientProjectionAlgorithm(Algorithm):
         super().__init__(model, parameters, optimization_info)
 
         default_settings = Kratos.Parameters("""{
-            "max_correction_share": 0.75,
-            "relative_tolerance"  : 1e-3,
-            "step_size"           : 1e-3,
-            "control_names_list"  : [],
-            "response_names_list" : [],
-            "echo_level"          : 0
+            "max_correction_share"  : 0.75,
+            "relative_tolerance"    : 1e-3,
+            "step_size"             : 1e-3,
+            "control_names_list"    : [],
+            "response_names_list"   : [],
+            "linear_solver_settings": {},
+            "echo_level"            : 0
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -30,6 +32,12 @@ class GradientProjectionAlgorithm(Algorithm):
         self.relative_tolerance = parameters["relative_tolerance"].GetDouble()
         self.step_size = parameters["step_size"].GetDouble()
         self.echo_level = parameters["echo_level"].GetInt()
+
+        default_linear_solver_settings = Kratos.Parameters("""{
+            "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
+        }""")
+        parameters["linear_solver_settings"].ValidateAndAssignDefaults(default_linear_solver_settings)
+        self.linear_solver = ConstructSolver(parameters["linear_solver_settings"])
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -133,6 +141,7 @@ class GradientProjectionAlgorithm(Algorithm):
             KratosOA.GradientProjectionSolverUtils.CalculateProjectedSearchDirectionAndCorrection(
                 control_container,
                 control_domain_size,
+                self.linear_solver,
                 search_direction_variable,
                 search_correction_variable,
                 active_constraint_values_vector,
