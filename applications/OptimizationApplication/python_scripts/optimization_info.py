@@ -46,7 +46,7 @@ class OptimizationInfo:
     def HasRoutineType(self, routine_class_type_name: str) -> bool:
         return routine_class_type_name in self.__optimization_routines.keys()
 
-    def GetRoutines(self, routine_class_type_name: str) -> list[OptimizationRoutine]:
+    def GetRoutines(self, routine_class_type_name: str) -> 'list[OptimizationRoutine]':
         if not self.HasRoutineType(routine_class_type_name):
             raise RuntimeError(f"No objects of type \"{routine_class_type_name}\". Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
