@@ -200,5 +200,5 @@ class GradientProjectionAlgorithm(Algorithm):
 
     def __PrintInfo(self, required_echo_level: int, message: str, title = "GradientProjectionAlgorithm"):
         if self.echo_level >= required_echo_level:
-            Kratos.Logger.PrintInfo("", message)
+            Kratos.Logger.PrintInfo(title, message)
 
