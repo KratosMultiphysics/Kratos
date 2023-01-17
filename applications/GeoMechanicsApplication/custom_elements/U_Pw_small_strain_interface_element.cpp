@@ -569,6 +569,26 @@ void UPwSmallStrainInterfaceElement<3,8>::
     KRATOS_CATCH( "" )
 }
 
+template< unsigned int TDim, unsigned int TNumNodes >
+Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(const Vector& rStressVector)
+{
+    Vector full_stress_vector(6, 0);
+
+    if constexpr(TDim==2)
+    {
+        full_stress_vector[INDEX_3D_ZZ] = rStressVector[INDEX_2D_INTERFACE_ZZ];
+        full_stress_vector[INDEX_3D_XZ] = rStressVector[INDEX_2D_INTERFACE_XZ];
+    }
+    else if constexpr (TDim == 3)
+    {
+        full_stress_vector[INDEX_3D_ZZ] = rStressVector[INDEX_3D_INTERFACE_ZZ];
+        full_stress_vector[INDEX_3D_YZ] = rStressVector[INDEX_3D_INTERFACE_YZ];
+        full_stress_vector[INDEX_3D_XZ] = rStressVector[INDEX_3D_INTERFACE_XZ];
+        
+    }
+    return full_stress_vector;
+}
+
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
@@ -578,12 +598,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    const GeometryType& Geom = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
     std::vector<double> GPValues(NumGPoints);
 
     //Printed on standard GiD Gauss points
-    const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const unsigned int OutputGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
     if (rValues.size() != OutputGPoints)
         rValues.resize(OutputGPoints);
 
@@ -592,7 +612,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         //Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             StressStrainUtilities EquivalentStress;
-            GPValues[GPoint] = EquivalentStress.CalculateVonMisesStress(mStressVector[GPoint]);
+
+            Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
+            GPValues[GPoint] = EquivalentStress.CalculateVonMisesStress(full_stress_vector);
         }
 
         this->InterpolateOutputDoubles(rValues, GPValues);
@@ -600,12 +622,26 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         //Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             StressStrainUtilities EquivalentStress;
-            GPValues[GPoint] = EquivalentStress.CalculateMeanStress(mStressVector[GPoint]);
+            Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
+            GPValues[GPoint] = EquivalentStress.CalculateMeanStress(full_stress_vector);
         }
     
         this->InterpolateOutputDoubles(rValues, GPValues);
-    } else if (rVariable == MEAN_STRESS ||
-               rVariable == ENGINEERING_VON_MISES_STRAIN ||
+    }
+    else if (rVariable == MEAN_STRESS) {
+
+        std::vector<Vector> StressVector;
+        CalculateOnLobattoIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
+
+        //loop integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            StressStrainUtilities EquivalentStress;
+            Vector full_stress_vector = this->SetFullStressVector(StressVector[GPoint]);
+            GPValues[GPoint] = EquivalentStress.CalculateMeanStress(full_stress_vector);
+        }
+        this->InterpolateOutputDoubles(rValues, GPValues);
+
+    } else if (rVariable == ENGINEERING_VON_MISES_STRAIN ||
                rVariable == ENGINEERING_VOLUMETRIC_STRAIN ||
                rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN ||
                rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN) {
@@ -648,10 +684,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         //Element variables
         InterfaceElementVariables Variables;
-        this->InitializeElementVariables(Variables, Geom, this->GetProperties(), rCurrentProcessInfo);
+        this->InitializeElementVariables(Variables, rGeom, this->GetProperties(), rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -706,18 +742,18 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const PropertiesType& rProp = this->GetProperties();
 
         this->InitializeElementVariables(Variables,
-            Geom,
+            rGeom,
             rProp,
             rCurrentProcessInfo);
 
         //Containers of variables at all integration points
-        const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
+        const Matrix& NContainer = rGeom.ShapeFunctionsValues(mThisIntegrationMethod);
         const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer =
-            Geom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+            rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
         GeometryType::JacobiansType JContainer(NumGPoints);
-        Geom.Jacobian(JContainer, mThisIntegrationMethod);        
+        rGeom.Jacobian(JContainer, mThisIntegrationMethod);
 
-        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, rProp, rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -1069,6 +1105,115 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnLobattoIntegrationPoints<array_1d>()") << std::endl;
     KRATOS_CATCH( "" )
+}
+
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::
+CalculateOnLobattoIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        //Defining necessary variables
+        const GeometryType& rGeom = this->GetGeometry();
+    const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+
+    // calculated on Lobatto points 
+    if (rValues.size() != NumGPoints)
+        rValues.resize(NumGPoints);
+
+    if (rVariable == TOTAL_STRESS_VECTOR) {
+
+        //Defining necessary variables
+        const PropertiesType& rProp = this->GetProperties();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = rGeom.ShapeFunctionsValues(mThisIntegrationMethod);
+        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+        GeometryType::JacobiansType JContainer(NumGPoints);
+        rGeom.Jacobian(JContainer, mThisIntegrationMethod);
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        //Element variables
+        InterfaceElementVariables Variables;;
+        this->InitializeElementVariables(Variables,
+            rGeom,
+            rProp,
+            rCurrentProcessInfo);
+
+        // create general parametes of retention law
+        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+
+        Vector VoigtVector(mStressVector[0].size());
+        noalias(VoigtVector) = ZeroVector(VoigtVector.size());
+
+        for (unsigned int i = 0; i < mStressVector[0].size(); ++i) VoigtVector[i] = 1.0;
+
+        const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
+
+        Vector TotalStressVector(mStressVector[0].size());
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+        //Auxiliary variables
+        const double& MinimumJointWidth = rProp[MINIMUM_JOINT_WIDTH];
+        array_1d<double, TDim> RelDispVector;
+        SFGradAuxVariables SFGradAuxVars;
+
+        //Loop over integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            //Compute Np, StrainVector, JointWidth, GradNpT
+            noalias(Variables.Np) = row(NContainer, GPoint);
+            InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);
+            noalias(RelDispVector) = prod(Variables.Nu, Variables.DisplacementVector);
+            noalias(Variables.StrainVector) = prod(Variables.RotationMatrix, RelDispVector);
+
+            this->CheckAndCalculateJointWidth(Variables.JointWidth,
+                ConstitutiveParameters,
+                Variables.StrainVector[TDim - 1],
+                MinimumJointWidth,
+                GPoint);
+
+            this->CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
+                SFGradAuxVars,
+                JContainer[GPoint],
+                Variables.RotationMatrix,
+                DN_DeContainer[GPoint],
+                NContainer,
+                Variables.JointWidth,
+                GPoint);
+
+            //compute constitutive tensor and/or stresses
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+
+            this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+
+            noalias(TotalStressVector) = mStressVector[GPoint];
+            noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR
+                * Variables.BiotCoefficient
+                * Variables.BishopCoefficient
+                * Variables.FluidPressure
+                * VoigtVector;
+
+            // calculate on Lobatto intergation points
+            if (rValues[GPoint].size() != TotalStressVector.size())
+                rValues[GPoint].resize(TotalStressVector.size(), false);
+
+            rValues[GPoint] = TotalStressVector;
+        }
+    }
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
