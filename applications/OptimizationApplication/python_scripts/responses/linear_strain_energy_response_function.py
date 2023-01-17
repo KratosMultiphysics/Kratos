@@ -1,13 +1,3 @@
-# ==============================================================================
-#  KratosOptimizationApplication
-#
-#  License:         BSD License
-#                   license: OptimizationApplication/license.txt
-#
-#  Main authors:    Suneth Warnakulasuriya
-#
-# ==============================================================================
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
@@ -53,8 +43,10 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             else:
                 raise RuntimeError(f"{variable_name} is not a supported sensitivity variable.")
         else:
-            # since this response function covers all the possible sensitivity calculations for the method given in CalculateMass,
-            # we can return the corresponding zero values for other sensitivity values
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(sensitivity_variable, GetSensitivityContainer(sensitivity_container_type))
+            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()} {sensitivity_container_type.name}."
+            msg += "Followings are supported options:"
+            msg += "\n\tSHAPE_SENSITIVITY for NODES container"
+            msg += "\n\properties for ELEMENT_PROPERTIES container"
+            raise RuntimeError(msg)
 
 
