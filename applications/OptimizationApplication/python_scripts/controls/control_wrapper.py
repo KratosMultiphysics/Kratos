@@ -33,15 +33,8 @@ class ControlWrapper(OptimizationRoutine):
         control_settings.AddValue("settings", self.parameters["settings"])
         self.control: Control = RetrieveObject(self.model, control_settings, optimization_info, Control)
 
-        modifier_defaults = Kratos.Parameters("""{
-            "module"  : "KratosMultiphysics.OptimizationApplication.modifiers",
-            "type"    : "PleaseProvideClassName",
-            "settings": {}
-        }""")
-
         self.__list_of_modifiers = []
         for modifier_settings in self.parameters["modifiers_list"]:
-            modifier_settings.ValidateAndAssignDefaults(modifier_defaults)
             self.__list_of_modifiers.append(RetrieveObject(self.model, modifier_settings, optimization_info, Modifier))
 
     def Initialize(self):
