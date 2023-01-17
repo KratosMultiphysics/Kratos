@@ -46,7 +46,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()} {sensitivity_container_type.name}."
             msg += "Followings are supported options:"
             msg += "\n\tSHAPE_SENSITIVITY for NODES container"
-            msg += "\n\properties for ELEMENT_PROPERTIES container"
+            msg += "\n\tproperties for ELEMENT_PROPERTIES container"
             raise RuntimeError(msg)
 
 
