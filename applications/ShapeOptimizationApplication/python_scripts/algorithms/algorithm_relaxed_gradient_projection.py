@@ -98,6 +98,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.PROJECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
 
     # --------------------------------------------------------------------------
