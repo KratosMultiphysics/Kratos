@@ -77,13 +77,13 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         optimization_info = OptimizationInfo()
         optimization_info.SetBufferSize(1)
         temp = TestOptimizationInfo.TestRoutine(None, None)
-        optimization_info.AddRoutine(temp)
+        optimization_info.AddOptimizationRoutine(temp)
 
 
-        self.assertTrue(optimization_info.HasRoutine("TestRoutine", "TestRoutine"))
-        self.assertTrue(optimization_info.HasRoutineType("TestRoutine"))
-        self.assertEqual(temp, optimization_info.GetRoutine("TestRoutine", "TestRoutine"))
-        self.assertEqual([temp], optimization_info.GetRoutines("TestRoutine"))
+        self.assertTrue(optimization_info.HasOptimizationRoutine("TestRoutine", "TestRoutine"))
+        self.assertTrue(optimization_info.HasOptimizationRoutineType("TestRoutine"))
+        self.assertEqual(temp, optimization_info.GetOptimizationRoutine("TestRoutine", "TestRoutine"))
+        self.assertEqual([temp], optimization_info.GetOptimizationRoutines("TestRoutine"))
 
 
 

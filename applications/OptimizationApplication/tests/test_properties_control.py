@@ -33,7 +33,7 @@ class TestPropertiesControl(kratos_unittest.TestCase):
         }""")
 
         cls.properties_control_wrapper = ControlWrapper(cls.model, parameters, cls.optimization_info)
-        cls.optimization_info.AddRoutine(cls.properties_control_wrapper)
+        cls.optimization_info.AddOptimizationRoutine(cls.properties_control_wrapper)
 
     @classmethod
     def tearDownClass(cls):

@@ -47,7 +47,7 @@ class GradientProjectionAlgorithm(Algorithm):
         self.objectives_list = []
         self.constraints_list = []
         for response_name in self.parameters["response_names_list"].GetStringArray():
-            response: ResponseFunctionWrapper = self.optimization_info.GetRoutine("ResponseFunctionWrapper", response_name)
+            response: ResponseFunctionWrapper = self.optimization_info.GetOptimizationRoutine("ResponseFunctionWrapper", response_name)
             if isinstance(response, ObjectiveResponseFunctionWrapper):
                 self.objectives_list.append(response)
             elif isinstance(response, ConstraintResponseFunctionWrapper):
@@ -64,7 +64,7 @@ class GradientProjectionAlgorithm(Algorithm):
         self.objective_response_function_wrapper: ResponseFunctionWrapper = self.objectives_list[0]
         self.control_wrappers_list = []
         for control_wrapper_name in self.parameters["control_names_list"].GetStringArray():
-            self.control_wrappers_list.append(self.optimization_info.GetRoutine("ControlWrapper", control_wrapper_name))
+            self.control_wrappers_list.append(self.optimization_info.GetOptimizationRoutine("ControlWrapper", control_wrapper_name))
 
         self.optimization_info["objective"] = {}
         self.optimization_info["constraints"] = []

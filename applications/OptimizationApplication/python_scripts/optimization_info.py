@@ -33,7 +33,7 @@ class OptimizationInfo:
         self.__buffer_index = 0
         self.__echo_level = echo_level
 
-    def AddRoutine(self, routine: OptimizationRoutine):
+    def AddOptimizationRoutine(self, routine: OptimizationRoutine):
         if not isinstance(routine, OptimizationRoutine):
             raise RuntimeError(f"Only objects of derrived types of OptimizationRoutine can be added. The object being added is: \n{routine}")
 
@@ -41,35 +41,35 @@ class OptimizationInfo:
         routine_index = class_hierrachy.index(OptimizationRoutine)
 
         base_class_name = class_hierrachy[routine_index - 1].__name__
-        if not self.HasRoutineType(base_class_name):
+        if not self.HasOptimizationRoutineType(base_class_name):
             self.__optimization_routines[base_class_name] = []
 
-        if self.HasRoutine(base_class_name, routine.GetName()):
+        if self.HasOptimizationRoutine(base_class_name, routine.GetName()):
             raise RuntimeError(f"Adding a routine with the name \"{routine.GetName()}\" while having another routine with the same name. OptimizationRoutine names for each type of object should be unique. [ Type of the routine: \"{base_class_name}\" ]")
 
         self.__optimization_routines[base_class_name].append(routine)
         self.__PrintInfo(1, f"Added {routine.GetName()} optimization routine.")
 
-    def HasRoutine(self, routine_class_type_name: str, routine_name: str) -> bool:
-        if not self.HasRoutineType(routine_class_type_name):
+    def HasOptimizationRoutine(self, routine_class_type_name: str, routine_name: str) -> bool:
+        if not self.HasOptimizationRoutineType(routine_class_type_name):
             raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
         return routine_name in [v.GetName() for v in self.__optimization_routines[routine_class_type_name]]
 
-    def GetRoutine(self, routine_class_type_name: str, routine_name: str) -> 'routine_class_type_name':
-        if not self.HasRoutineType(routine_class_type_name):
+    def GetOptimizationRoutine(self, routine_class_type_name: str, routine_name: str) -> 'routine_class_type_name':
+        if not self.HasOptimizationRoutineType(routine_class_type_name):
             raise RuntimeError(f"No objects of type \"{routine_class_type_name}\" [ requested routine_name = \"{routine_name}\" ]. Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
-        if not self.HasRoutine(routine_class_type_name, routine_name):
+        if not self.HasOptimizationRoutine(routine_class_type_name, routine_name):
             raise RuntimeError(f"No routine with \"{routine_name}\" is available in the routines list for objects with type \"{routine_class_type_name}\". Followings are available options:\n\t" + "\n\t".join(v.GetName() for v in self.__optimization_routines[routine_class_type_name]))
 
         return self.__optimization_routines[routine_class_type_name][[v.GetName() for v in self.__optimization_routines[routine_class_type_name]].index(routine_name)]
 
-    def HasRoutineType(self, routine_class_type_name: str) -> bool:
+    def HasOptimizationRoutineType(self, routine_class_type_name: str) -> bool:
         return routine_class_type_name in self.__optimization_routines.keys()
 
-    def GetRoutines(self, routine_class_type_name: str) -> 'list[OptimizationRoutine]':
-        if not self.HasRoutineType(routine_class_type_name):
+    def GetOptimizationRoutines(self, routine_class_type_name: str) -> 'list[OptimizationRoutine]':
+        if not self.HasOptimizationRoutineType(routine_class_type_name):
             raise RuntimeError(f"No objects of type \"{routine_class_type_name}\". Following are the available type options: \n\t" + "\n\t".join(self.__optimization_routines.keys()))
 
         return self.__optimization_routines[routine_class_type_name]

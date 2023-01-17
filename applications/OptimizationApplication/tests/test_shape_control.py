@@ -44,7 +44,7 @@ class TestShapeControl(kratos_unittest.TestCase):
         }""")
 
         cls.execution_policy_wrapper = ExecutionPolicyWrapper(cls.model, execution_policy_wrapper_parameters)
-        cls.optimization_info.AddRoutine(cls.execution_policy_wrapper)
+        cls.optimization_info.AddOptimizationRoutine(cls.execution_policy_wrapper)
 
         parameters = Kratos.Parameters("""{
             "name"                 : "density",
@@ -56,7 +56,7 @@ class TestShapeControl(kratos_unittest.TestCase):
         }""")
 
         cls.shape_control_wrapper = ControlWrapper(cls.model, parameters, cls.optimization_info)
-        cls.optimization_info.AddRoutine(cls.shape_control_wrapper)
+        cls.optimization_info.AddOptimizationRoutine(cls.shape_control_wrapper)
 
     @classmethod
     def tearDownClass(cls):
