@@ -31,6 +31,7 @@ class OptimizationSolver(PythonSolver):
         # creates the optimization info data holder
         self.optimization_info = OptimizationInfo()
         self.__list_of_meshers = []
+        self.__is_converged = False
 
         self._CreateMeshes()
         self._CreateAnalyses()
@@ -87,15 +88,13 @@ class OptimizationSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         self.__ExecuteMethod(self.__list_of_algorithms, "SolveSolutionStep")
-        return False
+        self.__is_converged = True
+        for algorithm in self.__list_of_algorithms:
+            self.__is_converged = self.__is_converged and algorithm.IsConverged()
+        return self.__is_converged
 
     def IsConverged(self):
-        is_converged = True
-
-        for algorithm in self.__list_of_algorithms:
-            is_converged = is_converged and algorithm.IsConverged()
-
-        return is_converged
+        self.__is_converged
 
     def FinalizeSolutionStep(self):
         self.__ExecuteRoutinesMethod("ExecutionPolicyWrapper", "FinalizeSolutionStep")

@@ -186,9 +186,11 @@ void LinearStrainEnergyResponseUtilities::CalculateStrainEnergyElementProperties
 {
     KRATOS_TRY
 
-    VariableUtils().SetNonHistoricalVariableToZero(rOutputSensitivityVariable, rModelPart.Elements());
-
     using tls_type = std::tuple<Vector, Vector, Vector>;
+
+    block_for_each(rModelPart.Elements(), [&](auto& rElement){
+        rElement.GetProperties().SetValue(rOutputSensitivityVariable, 0.0);
+    });
 
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
@@ -210,7 +212,7 @@ void LinearStrainEnergyResponseUtilities::CalculateStrainEnergyElementProperties
             r_properties[rPrimalVariable] -= Delta;
 
             // now calculate the sensitivity
-            rElement.GetValue(rOutputSensitivityVariable) += 0.5 * inner_prod(r_u, r_perturbed_rhs - r_ref_rhs) / Delta;
+            rElement.GetProperties().GetValue(rOutputSensitivityVariable) += 0.5 * inner_prod(r_u, r_perturbed_rhs - r_ref_rhs) / Delta;
         }
     });
 

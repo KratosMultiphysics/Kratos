@@ -219,7 +219,7 @@ void MassResponseUtilities::CalculateMassDensitySensitivity(
                                     : [](const ModelPart::ElementType& rElement) { return 1.0; };
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        rElement.SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
+        rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
     });
 
     KRATOS_CATCH("")
@@ -261,7 +261,7 @@ void MassResponseUtilities::CalculateMassGeometricalPropertySensitivity(
         << ". Please seperate the model part such that either one of them is present in elemental properties.\n";
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
-        rElement.SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
+        rElement.GetProperties().SetValue(rOutputSensitivityVariable, rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY]);
     });
 
     KRATOS_CATCH("")

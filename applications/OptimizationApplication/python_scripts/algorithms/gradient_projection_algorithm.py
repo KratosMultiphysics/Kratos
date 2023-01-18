@@ -102,10 +102,10 @@ class GradientProjectionAlgorithm(Algorithm):
     def IsConverged(self) -> bool:
         if self.optimization_info["step"] > 1:
             # check for objective convergence
-            is_converged = abs(self.optimization_info["objective"]["value"] / self.optimization_info.GetSolutionStepData(1)["objective"]["value"] - 1.0) < self.relative_tolerance
+            is_converged = abs(self.optimization_info[self.GetName()]["objectives"][self.objective]["value"] / self.optimization_info.GetSolutionStepData(1)[self.GetName()]["objectives"][self.objective]["value"] - 1.0) < self.relative_tolerance
 
             # check for constraint convergence
-            for constraint_data in self.optimization_info["constraints"]:
+            for constraint_data in self.optimization_info[self.GetName()]["constraints"].values():
                 is_converged = is_converged and not constraint_data["is_active"]
 
             return is_converged

@@ -83,7 +83,8 @@
                 "settings": {
                     "max_correction_share": 0.75,
                     "relative_tolerance": 1e-3,
-                    "step_size": 1e-3
+                    "step_size": 1e-3,
+                    "echo_level": 2
                 },
                 "control_names": [
                     "density"

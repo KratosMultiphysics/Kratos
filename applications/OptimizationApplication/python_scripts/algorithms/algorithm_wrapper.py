@@ -110,7 +110,7 @@ class ConstraintResponseFunctionWrapper:
         return (self.constraint_type == "=") or self.CalculateStandardizedValue() >= 0.0
 
     def GetResponseInfo(self) -> str:
-        msg = "\tObjective info:"
+        msg = "\tConstraint info:"
         msg += f"\n\t\t name  : {self.GetName()}"
         msg += f"\n\t\t type  : {self.constraint_type} {self.reference_value}"
         msg += f"\n\t\t value : {self.CalculateValue()}"
