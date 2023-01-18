@@ -95,3 +95,6 @@ class ContainerData:
         result = ContainerData(self.__model_part, self.__container_type)
         KratosOA.OptimizationUtils.DivideVector(result.__data, self.__data, float(other))
         return result
+
+    def __str__(self) -> str:
+        return f"ContainerData[ Model part name = {self.__model_part.FullName()}, container type: {self.__container_type.name}, size of values = {self.__data.Size()} ]"

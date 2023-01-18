@@ -64,7 +64,6 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
 
     def test_ContainerDataMultiply(self):
         a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
-        b = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
         c = a * 4
@@ -75,7 +74,6 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
 
     def test_ContainerDataDivide(self):
         a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
-        b = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
         c = a / 2
@@ -83,6 +81,17 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
         c.AssignDataToContainer(Kratos.DENSITY)
         for element in self.model_part.Elements:
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] / 2)
+
+    def test_IsSameContainer(self):
+        a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+
+        a.ReadDataFromContainer(Kratos.PRESSURE)
+        b = a.Clone()
+        b = b * 2
+        b.AssignDataToContainer(Kratos.DENSITY)
+
+        self.assertTrue(a.IsSameContainer(b))
+        self.assertVectorAlmostEqual(a.GetData(), b.GetData() / 2, 9)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
