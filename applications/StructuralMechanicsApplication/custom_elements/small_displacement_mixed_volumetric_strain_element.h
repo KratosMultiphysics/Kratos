@@ -322,6 +322,10 @@ public:
         MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning

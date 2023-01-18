@@ -668,7 +668,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         Matrix tau_1_mat(dim, dim);
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
         const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
-        double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
+        const double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
@@ -747,6 +747,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateMassMatrix(
     const SizeType n_nodes = r_geom.PointsNumber();
     const SizeType block_size = dim + 1;
     const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Clear matrix
     if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size) {
@@ -763,39 +764,83 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateMassMatrix(
     const double aux_rho_thickness = density * thickness;
     const bool compute_lumped_mass_matrix = r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
     
-    if (compute_lumped_mass_matrix) {
-        // Calculate the nodal lumped mass values
-        Vector lumped_mass_vector;
-        const double total_mass = r_geom.DomainSize() * aux_rho_thickness;
-        lumped_mass_vector = total_mass * r_geom.LumpingFactors(lumped_mass_vector);
-
-        // Assemble nodal values
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            const double aux = lumped_mass_vector[i_node];
-            for (IndexType d = 0; d < dim; ++d) {
-                rMassMatrix(i_node * block_size + d, i_node * block_size + d) = aux;
-            }
+    // Create the kinematics container and fill the nodal data
+    const auto& r_geometry = GetGeometry();
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        for (IndexType d = 0; d < dim; ++d) {
+            kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
+        kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+    }
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+    auto &r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    if (compute_lumped_mass_matrix) {
+        KRATOS_ERROR << "Mass matrix is not symmetric and cannot be lumped." << std::endl;
     } else {
-        Matrix J0(dim, dim);
+        // Set auxiliary arrays
+        Vector voigt_identity =  ZeroVector(strain_size);
+        for (IndexType d = 0; d < dim; ++d) {
+            voigt_identity[d] = 1.0;
+        }
+        Vector G_i(dim);
+        Matrix B_i(strain_size, dim);
+
+        // Calculate the anisotropy tensor products
+        const Vector m_T = prod(voigt_identity, mAnisotropyTensor);
+
         const auto& r_integration_method = this->GetIntegrationMethod();
         const auto& r_N_container = r_geom.ShapeFunctionsValues(r_integration_method);
         const auto& r_integration_points = r_geom.IntegrationPoints(r_integration_method);
         const SizeType n_gauss = r_integration_points.size();
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Calculate the constitutive response
+            CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+            // Calculate tau_1 stabilization constant
+            Matrix aux = ZeroMatrix(dim,dim);
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                for (IndexType k = 0;  k < strain_size; ++k) {
+                    for (IndexType l = 0; l < dim; ++l) {
+                        B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
+                    }
+                }
+                noalias(aux) += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            }
+            double det;
+            Matrix tau_1_mat(dim, dim);
+            MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
+            const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+            const double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
+
+            // Calculate bulk modulus
+            const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+
             // Calculate current integration point weight
             // Note that this includes the density and the thickness
-            GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_integration_points[i_gauss], J0);
-            const double detJ0 = MathUtils<double>::Det(J0);
-            const double w_gauss = aux_rho_thickness * detJ0 * r_integration_points[i_gauss].Weight();
+            const double w_gauss = aux_rho_thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
-            // Asseble nodal contributions
+            // Assemble nodal contributions
             const auto &r_N = row(r_N_container, i_gauss);
+            const double aux_stab = w_gauss * bulk_modulus * m_T_tau_1;
             for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                noalias(G_i) = row(kinematic_variables.DN_DX, i_node);
                 for (IndexType j_node = 0; j_node < n_nodes; ++j_node) {
                     const double aux = r_N[i_node] * r_N[j_node] * w_gauss;
                     for (IndexType d = 0; d < dim; ++d) {
                         rMassMatrix(i_node*block_size +d, j_node*block_size + d) += aux;
+                        rMassMatrix(i_node*block_size + dim, j_node*block_size + d) -= aux_stab * G_i(d) * r_N[j_node];
                     }
                 }
             }
@@ -803,6 +848,33 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateMassMatrix(
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainElement::GetSecondDerivativesVector(
+    Vector &rValues,
+    int Step) const
+{
+    const auto &r_geom = GetGeometry();
+    const SizeType dim = r_geom.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geom.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+
+    if (rValues.size() != matrix_size) {
+        rValues.resize(matrix_size, false);
+    }
+
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        const SizeType index = i_node * block_size;
+        const auto& r_acc = r_geom[i_node].FastGetSolutionStepValue(ACCELERATION, Step);
+        for(IndexType d = 0; d < dim; ++d) {
+            rValues[index + d] = r_acc[d];
+        }
+        rValues[index + dim] = 0.0;
+    }
 }
 
 /***********************************************************************************/
