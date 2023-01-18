@@ -9,7 +9,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 class TestShapeControl(kratos_unittest.TestCase):
     @classmethod
@@ -50,7 +50,7 @@ class TestShapeControl(kratos_unittest.TestCase):
             "name"                 : "density",
             "type"                 : "ShapeControl",
             "settings"             : {
-                "model_part_name"       : "Structure.structure",
+                "model_part_names"         : ["Structure.structure"],
                 "mesh_moving_analysis_name": "test"
             }
         }""")
@@ -79,7 +79,7 @@ class TestShapeControl(kratos_unittest.TestCase):
                 self.assertVectorAlmostEqual(v, test, 12)
 
             v = Kratos.Vector(self.model_part.NumberOfNodes() * 3, i)
-            self.shape_control_wrapper.GetControl().SetControlUpdatesVector(v)
+            self.shape_control_wrapper.SetControlUpdate(ContainerData(self.model_part.GetSubModelPart("structure"), ContainerData.ContainerEnum.NODES))
 
             self.execution_policy_wrapper.FinalizeSolutionStep()
             self.shape_control_wrapper.FinalizeSolutionStep()
@@ -88,10 +88,10 @@ class TestShapeControl(kratos_unittest.TestCase):
         self.shape_control_wrapper.Finalize()
 
     def test_GetModelPart(self):
-        self.assertEqual(self.model_part.GetSubModelPart("structure"), self.shape_control_wrapper.GetControl().GetModelPart())
+        self.assertEqual(self.model_part.GetSubModelPart("structure"), self.shape_control_wrapper.GetControl().GetModelParts()[0])
 
     def test_GetContainerType(self):
-        self.assertEqual(self.shape_control_wrapper.GetControl().GetContainerType(), ContainerEnum.NODES)
+        self.assertEqual(self.shape_control_wrapper.GetControl().GetContainerType(), ContainerData.ContainerEnum.NODES)
 
     def test_GetControlSensitivityVariable(self):
         self.assertEqual(self.shape_control_wrapper.GetControl().GetControlSensitivityVariable(), Kratos.SHAPE_SENSITIVITY)

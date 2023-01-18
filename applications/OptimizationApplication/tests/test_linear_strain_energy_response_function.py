@@ -123,7 +123,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.YOUNG_MODULUS_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.YOUNG_MODULUS, x, y),
             1e-7,
             1e-6,
@@ -136,7 +136,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.POISSON_RATIO_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.POISSON_RATIO_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.POISSON_RATIO, x, y),
             1e-7,
             1e-4,
@@ -149,7 +149,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
             1.0,
             1e-6,

@@ -95,7 +95,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
             1e-6,
             6)
@@ -107,7 +107,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.CROSS_AREA_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.CROSS_AREA_SENSITIVITY],
             lambda x, y: self._UpdateProperties(KratosOA.CROSS_AREA, x, y),
             1e-6,
             6)
@@ -166,7 +166,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
             1e-6,
             6)
@@ -178,7 +178,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.THICKNESS_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.THICKNESS_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.THICKNESS, x, y),
             1e-7,
             6)
@@ -246,7 +246,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
             1e-6,
             6)

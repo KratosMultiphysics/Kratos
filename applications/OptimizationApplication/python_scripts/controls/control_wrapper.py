@@ -93,7 +93,7 @@ class ControlWrapper(OptimizationRoutine):
         for control_model_part in self.control.GetModelParts():
             if control_update.IsSameContainer(ContainerData(control_model_part, self.GetControl().GetContainerType())):
                 self.__control_updates[control_model_part] = control_update
-                break
-            else:
-                raise RuntimeError(f"Trying to set an invalid control update for {self.GetName} with {str(control_update)}")
+                return
+
+        raise RuntimeError(f"Trying to set an invalid control update for \"{self.GetName()}\" with {str(control_update)}")
 

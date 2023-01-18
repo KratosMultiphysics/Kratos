@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
-class TestExecutionPolicies(kratos_unittest.TestCase):
+class TestContainerData(kratos_unittest.TestCase):
     def setUp(self):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test")
