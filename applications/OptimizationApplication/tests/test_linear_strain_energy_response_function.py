@@ -10,7 +10,6 @@ from KratosMultiphysics.OptimizationApplication.optimization_info import Optimiz
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
-from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import CreateResponseFunctionWrapper
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
@@ -54,15 +53,13 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
                 "name"     : "strain_energy",
                 "module"   : "KratosMultiphysics.OptimizationApplication.responses",
                 "type"     : "LinearStrainEnergyResponseFunction",
-                "objective": "maximization",
-                "scaling"  : 2.0,
                 "settings" : {
-                    "model_part_name"      : "Structure.structure",
-                    "primal_analysis_name" : "primal",
-                    "perturbation_size"    : 1e-8
+                    "evaluated_model_part_name": "Structure.structure",
+                    "primal_analysis_name"     : "primal",
+                    "perturbation_size"        : 1e-8
                 }
             }""")
-            cls.response_function_wrapper = CreateResponseFunctionWrapper(cls.model, response_function_wrapper_settings, cls.optimization_info)
+            cls.response_function_wrapper = ResponseFunctionWrapper(cls.model, response_function_wrapper_settings, cls.optimization_info)
             cls.optimization_info.AddOptimizationRoutine(cls.response_function_wrapper)
 
             cls.execution_policy_wrapper.Initialize()
@@ -81,7 +78,6 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             cls.response_function_wrapper.InitializeSolutionStep()
             cls.process.ExecuteInitializeSolutionStep()
             cls.ref_value = cls.response_function.GetValue()
-            cls.standardize_ref_value = cls.response_function.GetStandardizedValue()
 
     @classmethod
     def tearDownClass(cls):
@@ -119,7 +115,6 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
 
     def test_CalculateValue(self):
         self.assertAlmostEqual(self.ref_value, 71515947.17480606, 6)
-        self.assertAlmostEqual(self.standardize_ref_value, -2 * 71515947.17480606, 6)
 
     def test_CalculateYoungModulusSensitivity(self):
         self._CalculateSensitivity(KratosOA.YOUNG_MODULUS_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)

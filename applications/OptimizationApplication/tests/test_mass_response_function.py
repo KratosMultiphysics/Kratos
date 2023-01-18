@@ -50,7 +50,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "model_part_name": "test"
+            "evaluated_model_part_name": "test"
         }""")
 
     @classmethod
@@ -116,7 +116,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "model_part_name": "test"
+            "evaluated_model_part_name": "test"
         }""")
 
     @classmethod
@@ -187,7 +187,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
     @classmethod
     def GetParameters(cls):
         return Kratos.Parameters("""{
-            "model_part_name": "test"
+            "evaluated_model_part_name": "test"
         }""")
 
     @classmethod
