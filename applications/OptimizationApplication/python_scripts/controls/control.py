@@ -2,9 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolder
+from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 class Control(ABC):
     def __init__(self):
@@ -23,19 +21,16 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def GetCurrentControls(self, model_part: Kratos.ModelPart) -> ContainerVariableDataHolder:
-        """Returns the control values vector after updating
-
-        This method returns the control values vector for the control after updating it with control update.
-        Eg: For density control, the updated DENSITY values vector
+    def GetCurrentControlContainerData(self, model_part: Kratos.ModelPart) -> ContainerData:
+        """Gets the control data
 
         Returns:
-            any: Control values vector
+            ControlDataContainer: _description_
         """
         pass
 
     @abstractmethod
-    def GetContainerType(self) -> ContainerEnum:
+    def GetContainerType(self) -> ContainerData.ContainerEnum:
         """Returns the container type on which the control is acted upon
 
         This method returns the container type, where the sensitivites/updates
@@ -73,15 +68,10 @@ class Control(ABC):
 
     @abstractmethod
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':
-        """Returns model parts on which this controller is used.
-
-        Returns:
-            list[Kratos.ModelPart]: Controlled model parts list
-        """
         pass
 
     @abstractmethod
-    def UpdateControls(self, control_data: ContainerVariableDataHolder):
+    def UpdateControls(self, control_data: ContainerData):
         """Updates the corresponding controls with given control values
 
         Args:

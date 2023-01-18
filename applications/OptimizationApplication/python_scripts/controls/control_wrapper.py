@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolder
+from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.modifiers.modifier import Modifier
 
@@ -41,14 +41,16 @@ class ControlWrapper(OptimizationRoutine):
             modifier.Initialize()
 
     def InitializeSolutionStep(self):
+        # update the controls is the step is > 1
         if self.optimization_info["step"] > 1:
-            control_update: ContainerVariableDataHolder
+            control_update: ContainerData
             for control_update in self.__control_updates.values():
-                current_control_values = self.control.GetCurrentControls(control_update.GetModelPart())
-                new_control_values = control_update.GetValues() + current_control_values.GetValues()
-                modified_control_values = self.ModifyControl(ContainerVariableDataHolder(new_control_values, current_control_values.GetVariable(), current_control_values.GetModelPart(), current_control_values.GetContainerType()))
+                current_control_values = self.control.GetCurrentControlContainerData(control_update.GetModelPart())
+                new_control_values = current_control_values + control_update
+                modified_control_values = self.ModifyControl(new_control_values)
                 self.control.UpdateControls(modified_control_values)
 
+        # reset control updates
         self.__control_updates = {}
 
         self.control.InitializeSolutionStep()
@@ -74,47 +76,31 @@ class ControlWrapper(OptimizationRoutine):
     def GetControl(self) -> Control:
         return self.control
 
-    def ModifyControl(self, control_values: ContainerVariableDataHolder):
-        resultant_control_values = ContainerVariableDataHolder(Kratos.Vector(control_values.GetValues()), control_values.GetVariable(), control_values.GetModelPart(), control_values.GetContainerType())
+    def ModifyControl(self, controls: ContainerData):
+        resultant_control_values = controls.Clone()
         for modifier in self.__list_of_modifiers:
-            resultant_control_values = modifier.Control(resultant_control_values, self.control.GetModelPart(), self.control.GetContainerType())
-
+            resultant_control_values = modifier.Control(resultant_control_values)
         return resultant_control_values
 
-    def ModifySensitivities(self, sensitivities: ContainerVariableDataHolder) -> ContainerVariableDataHolder:
-        resultant_sensitivities = ContainerVariableDataHolder(Kratos.Vector(sensitivities.GetValues()), sensitivities.GetVariable(), sensitivities.GetModelPart(), sensitivities.GetContainerType())
+    def ModifySensitivities(self, sensitivities: ContainerData) -> ContainerData:
+        resultant_sensitivities = sensitivities.Clone()
         for modifier in self.__list_of_modifiers:
-            resultant_sensitivities = modifier.ModifySensitivities(resultant_sensitivities, self.control.GetModelPart(), self.control.GetContainerType())
-
+            resultant_sensitivities = modifier.ModifySensitivities(resultant_sensitivities)
         return resultant_sensitivities
 
-    def ModifyControlUpdates(self, controls: ContainerVariableDataHolder) -> ContainerVariableDataHolder:
-        resultant_controls = ContainerVariableDataHolder(Kratos.Vector(controls.GetValues()), controls.GetVariable(), controls.GetModelPart(), controls.GetContainerType())
+    def ModifyControlUpdates(self, control_update: ContainerData) -> ContainerData:
+        resultant_controls = control_update.Clone()
         for modifier in self.__list_of_modifiers:
-            resultant_controls = modifier.ModifyControlUpdates(resultant_controls, self.control.GetModelPart(), self.control.GetContainerType())
+            resultant_controls = modifier.ModifyControlUpdates(resultant_controls)
 
         return resultant_controls
 
-    def SetControlUpdate(self, control_update: ContainerVariableDataHolder):
-        # check whether it is a valid control update
+    def SetControlUpdate(self, control_update: ContainerData):
         control_model_part: Kratos.ModelPart
         for control_model_part in self.control.GetModelParts():
-            is_valid_update = True
-
-            is_valid_update = is_valid_update and (control_model_part.FullName() in [model_part.FullName() for model_part in self.control.GetModelParts()])
-            is_valid_update = is_valid_update and (control_update.GetContainerType() == self.control.GetContainerType())
-            is_valid_update = is_valid_update and (control_update.GetVariable() == self.control.GetControlUpdateVariable())
-
-            if is_valid_update:
+            if control_update.IsSameContainer(ContainerData(control_model_part, self.GetControl().GetContainerType())):
+                self.__control_updates[control_model_part] = control_update
                 break
-
-        if is_valid_update:
-            control_update_key = (control_model_part.FullName(), control_update.GetContainerType(), control_update.GetVariable())
-            if control_update_key in self.__control_updates.keys():
-                raise RuntimeError(f"Trying to overwrite control update for {self.GetName()} with {str(control_update)}")
-
-            # set the control update
-            self.__control_updates[control_update_key] = control_update
-        else:
-            raise RuntimeError(f"Trying to set an invalid control update for {self.GetName} with {str(control_update)}")
+            else:
+                raise RuntimeError(f"Trying to set an invalid control update for {self.GetName} with {str(control_update)}")
 
