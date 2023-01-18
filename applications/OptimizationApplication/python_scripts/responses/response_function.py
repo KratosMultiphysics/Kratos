@@ -1,25 +1,12 @@
-# ==============================================================================
-#  KratosOptimizationApplication
-#
-#  License:         BSD License
-#                   license: OptimizationApplication/license.txt
-#
-#  Main authors:    Suneth Warnakulasuriya
-#
-# ==============================================================================
-
 from abc import ABC
 from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 class ResponseFunction(ABC):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
-        self.model = model
-        self.parameters = parameters
-        self.optimization_info = optimization_info
+    def __init__(self):
+        pass
 
     def Initialize(self):
         pass
@@ -42,6 +29,6 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateSensitivity(self, sensitivity_variable, sensitivity_model_part: Kratos.ModelPart, sensitivity_container_type: ContainerEnum) -> None:
+    def CalculateSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
         pass
 
