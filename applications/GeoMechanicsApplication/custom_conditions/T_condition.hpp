@@ -91,8 +91,8 @@ protected:
     // Member Variables
 
     GeometryData::IntegrationMethod mThisIntegrationMethod;
-    const unsigned int nDof = 1;
-    const unsigned int conditionSize = TNumNodes * nDof;
+    static constexpr unsigned int nDof = 1;
+    static constexpr unsigned int conditionSize = TNumNodes * nDof;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

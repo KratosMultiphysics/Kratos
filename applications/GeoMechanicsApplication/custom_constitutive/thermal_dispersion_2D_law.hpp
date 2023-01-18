@@ -212,10 +212,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
     }
 
-    // stress vector indices
-    // const int VOIGT_INDEX_XX = 0;
-    // const int VOIGT_INDEX_YY = 1;
-
-}; // Class LinearPlaneStrainK0Law
+}; // Class GeoThermalDispersion2DLaw
 }  // namespace Kratos.
 #endif // KRATOS_THERMAL_DISPERSION_2D_LAW_GEO_H_INCLUDED  defined
