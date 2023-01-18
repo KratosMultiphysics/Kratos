@@ -1,0 +1,563 @@
+{
+    "loads": [
+        {
+            "ID": 1,
+            "direction": [
+                0,
+                -1,
+                0
+            ],
+            "modulus": 5000000.0,
+            "position": [
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            ],
+            "type": "PointLoad"
+        },
+        {
+            "ID": 2,
+            "direction": [
+                0,
+                -1,
+                0
+            ],
+            "modulus": 5000000.0,
+            "position": [
+                [
+                    9.072,
+                    0.0,
+                    0.0
+                ]
+            ],
+            "type": "PointLoad"
+        },
+        {
+            "ID": 3,
+            "direction": [
+                0,
+                -1,
+                0
+            ],
+            "modulus": 5000000.0,
+            "position": [
+                [
+                    13.08,
+                    0.0,
+                    0.0
+                ]
+            ],
+            "type": "PointLoad"
+        }
+    ],
+    "measurements": [
+        {
+            "load ID": 1,
+            "sensor ID": 1,
+            "value": [
+                0.0,
+                -0.12475926842806194,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 2,
+            "value": [
+                0.0,
+                -0.0921520485894142,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 3,
+            "value": [
+                0.0,
+                -0.05851788854812344,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 4,
+            "value": [
+                0.0,
+                -0.024273711086975423,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 5,
+            "value": [
+                0.0,
+                0.021150307412544086,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 6,
+            "value": [
+                0.0,
+                0.05582286122649867,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 7,
+            "value": [
+                0.0,
+                0.0614409625633851,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 8,
+            "value": [
+                0.0,
+                0.05922675967706093,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 9,
+            "value": [
+                0.0,
+                0.05876626939419045,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 10,
+            "value": [
+                0.0,
+                0.051614299565866884,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 11,
+            "value": [
+                0.0,
+                0.04416040723186014,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 12,
+            "value": [
+                0.0,
+                0.03247966494994332,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 13,
+            "value": [
+                0.0,
+                0.023362777161962486,
+                0.0
+            ]
+        },
+        {
+            "load ID": 1,
+            "sensor ID": 14,
+            "value": [
+                0.0,
+                0.011124668085612372,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 1,
+            "value": [
+                0.0,
+                0.05953429939306352,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 2,
+            "value": [
+                0.0,
+                0.04583592672963718,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 3,
+            "value": [
+                0.0,
+                0.029925138654823533,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 4,
+            "value": [
+                0.0,
+                0.013519392260328188,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 5,
+            "value": [
+                0.0,
+                -0.013295464511799825,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 6,
+            "value": [
+                0.0,
+                -0.05161551320867005,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 7,
+            "value": [
+                0.0,
+                -0.06009984106801474,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 8,
+            "value": [
+                0.0,
+                -0.06097811254295905,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 9,
+            "value": [
+                0.0,
+                -0.05821256162664939,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 10,
+            "value": [
+                0.0,
+                -0.052106045347624294,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 11,
+            "value": [
+                0.0,
+                -0.04537238136211962,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 12,
+            "value": [
+                0.0,
+                -0.037931318369132994,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 13,
+            "value": [
+                0.0,
+                -0.02596201281875596,
+                0.0
+            ]
+        },
+        {
+            "load ID": 2,
+            "sensor ID": 14,
+            "value": [
+                0.0,
+                -0.014015397817261957,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 1,
+            "value": [
+                0.0,
+                0.04347271081084014,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 2,
+            "value": [
+                0.0,
+                0.034367150933183384,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 3,
+            "value": [
+                0.0,
+                0.020083311467431395,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 4,
+            "value": [
+                0.0,
+                0.01174600618616207,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 5,
+            "value": [
+                0.0,
+                -0.010988511911156847,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 6,
+            "value": [
+                0.0,
+                -0.03941542774012272,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 7,
+            "value": [
+                0.0,
+                -0.04705603216752382,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 8,
+            "value": [
+                0.0,
+                -0.05027212309342869,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 9,
+            "value": [
+                0.0,
+                -0.05302627766873194,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 10,
+            "value": [
+                0.0,
+                -0.04999199561330051,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 11,
+            "value": [
+                0.0,
+                -0.04591956691684226,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 12,
+            "value": [
+                0.0,
+                -0.03720109998058018,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 13,
+            "value": [
+                0.0,
+                -0.02605234817509996,
+                0.0
+            ]
+        },
+        {
+            "load ID": 3,
+            "sensor ID": 14,
+            "value": [
+                0.0,
+                -0.013275599497725934,
+                0.0
+            ]
+        }
+    ],
+    "sensors": [
+        {
+            "ID": 1,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 2,
+            "position": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 3,
+            "position": [
+                2.0,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 4,
+            "position": [
+                3.0,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 5,
+            "position": [
+                5.0,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 6,
+            "position": [
+                8.048,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 7,
+            "position": [
+                9.072,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 8,
+            "position": [
+                10.096,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 9,
+            "position": [
+                11.12,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 10,
+            "position": [
+                12.1,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 11,
+            "position": [
+                13.08,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 12,
+            "position": [
+                14.06,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 13,
+            "position": [
+                15.04,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        },
+        {
+            "ID": 14,
+            "position": [
+                16.02,
+                0.0,
+                0.0
+            ],
+            "type": "PointDisplacement"
+        }
+    ]
+}

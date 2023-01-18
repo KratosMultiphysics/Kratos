@@ -1,0 +1,21 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Beam_Beam_Auto2",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "BeamConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 7850.0,
+                "YOUNG_MODULUS"     : 30000000000.0,
+                "POISSON_RATIO"     : 0.29,
+                "CROSS_AREA"        : 1.68,
+                "TORSIONAL_INERTIA" : 100.0,
+                "I22"               : 100.0,
+                "I33"               : 0.1255142888
+            },
+            "Tables"           : {}
+        }
+    }]
+}

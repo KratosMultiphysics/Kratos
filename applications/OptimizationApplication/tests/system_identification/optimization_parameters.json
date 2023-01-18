@@ -39,36 +39,16 @@
         ],
         "responses": [
             {
-                "name": "mass_Structure",
+                "name": "displacement_to_measurements",
                 "module": "KratosMultiphysics.OptimizationApplication.responses",
-                "type": "MassResponseFunction",
+                "type": "DisplacementResponseFunction",
                 "objective": "minimization",
                 "settings": {
-                    "evaluated_model_part_name": "Structure"
-                }
-            },
-            {
-                "name": "strain_energy",
-                "module": "KratosMultiphysics.OptimizationApplication.responses",
-                "type": "LinearStrainEnergyResponseFunction",
-                "constraint": "=",
-                "ref_type": "initial",
-                "settings": {
                     "evaluated_model_part_name": "Structure",
-                    "primal_analysis_name": "Structure_static"
                 }
             }
         ],
         "controls": [
-            {
-                "name": "density",
-                "type": "PropertiesControl",
-                "settings": {
-                    "model_part_name": "Structure",
-                    "control_variable_name": "DENSITY"
-                },
-                "modifiers_list": []
-            },
             {
                 "name": "young_modulus",
                 "type": "PropertiesControl",
@@ -85,29 +65,12 @@
                 "settings": {
                     "max_correction_share": 0.75,
                     "relative_tolerance": 1e-3,
-                    "step_size": 1e-3,
-                    "control_names_list": [
-                        "density"
-                    ],
-                    "response_names_list": [
-                        "mass_Structure",
-                        "strain_energy"
-                    ],
-                    "echo_level": 1
-                }
-            },
-            {
-                "type": "GradientProjectionAlgorithm",
-                "settings": {
-                    "max_correction_share": 0.75,
-                    "relative_tolerance": 1e-3,
                     "step_size": 1e+2,
                     "control_names_list": [
                         "young_modulus"
                     ],
                     "response_names_list": [
-                        "mass_Structure",
-                        "strain_energy"
+                        "displacement_to_measurements"
                     ],
                     "echo_level": 1
                 }
