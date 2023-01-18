@@ -5,7 +5,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
-from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerEnum
 
 class TestExecutionPolicies(kratos_unittest.TestCase):
     def setUp(self):
@@ -40,8 +39,8 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
 
 
     def test_ContainerDataAdd(self):
-        a = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
-        b = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
+        a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+        b = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
         b.ReadDataFromContainer(Kratos.PRESSURE)
@@ -52,8 +51,8 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 2)
 
     def test_ContainerDataSubstract(self):
-        a = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
-        b = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
+        a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+        b = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
         b.ReadDataFromContainer(Kratos.PRESSURE)
@@ -64,8 +63,8 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 3)
 
     def test_ContainerDataMultiply(self):
-        a = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
-        b = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
+        a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+        b = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
         c = a * 4
@@ -75,8 +74,8 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 4)
 
     def test_ContainerDataDivide(self):
-        a = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
-        b = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
+        a = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+        b = ContainerData(self.model_part, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
         c = a / 2

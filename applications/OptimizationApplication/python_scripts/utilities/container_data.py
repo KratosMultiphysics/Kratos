@@ -2,20 +2,20 @@ from enum import Enum
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
-class ContainerEnum(Enum):
-    NODES = 1
-    ELEMENTS = 2
-    CONDITIONS = 3
-    ELEMENT_PROPERTIES = 4
-    CONDITION_PROPERTIES = 5
-
 class ContainerData:
+    class ContainerEnum(Enum):
+        NODES = 1
+        ELEMENTS = 2
+        CONDITIONS = 3
+        ELEMENT_PROPERTIES = 4
+        CONDITION_PROPERTIES = 5
+
     def __init__(self, model_part: Kratos.ModelPart, container_type: ContainerEnum):
         self.__model_part = model_part
         self.__container_type = container_type
         self.__data = Kratos.Vector()
 
-    def GetModelPart(self):
+    def GetModelPart(self) -> Kratos.ModelPart:
         return self.__model_part
 
     def GetContainerTpe(self):
@@ -34,28 +34,28 @@ class ContainerData:
 
     def ReadDataFromContainer(self, variable: any):
         domain_size = self.__model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        if self.__container_type == ContainerEnum.NODES:
+        if self.__container_type == ContainerData.ContainerEnum.NODES:
             KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__model_part.Nodes, variable, domain_size, self.__data)
-        elif self.__container_type == ContainerEnum.CONDITIONS:
+        elif self.__container_type == ContainerData.ContainerEnum.CONDITIONS:
             KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__model_part.Conditions, variable, domain_size, self.__data)
-        elif self.__container_type == ContainerEnum.ELEMENTS:
+        elif self.__container_type == ContainerData.ContainerEnum.ELEMENTS:
             KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__model_part.Elements, variable, domain_size, self.__data)
-        elif self.__container_type == ContainerEnum.CONDITION_PROPERTIES:
+        elif self.__container_type == ContainerData.ContainerEnum.CONDITION_PROPERTIES:
             KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.__model_part.Conditions, variable, self.__data)
-        elif self.__container_type == ContainerEnum.ELEMENT_PROPERTIES:
+        elif self.__container_type == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
             KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.__model_part.Elements, variable, self.__data)
 
     def AssignDataToContainer(self, variable: any):
         domain_size = self.__model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        if self.__container_type == ContainerEnum.NODES:
+        if self.__container_type == ContainerData.ContainerEnum.NODES:
             KratosOA.OptimizationUtils.AssignVectorToContainer(self.__model_part.Nodes, variable, domain_size, self.__data)
-        elif self.__container_type == ContainerEnum.CONDITIONS:
+        elif self.__container_type == ContainerData.ContainerEnum.CONDITIONS:
             KratosOA.OptimizationUtils.AssignVectorToContainer(self.__model_part.Conditions, variable, domain_size, self.__data)
-        elif self.__container_type == ContainerEnum.ELEMENTS:
+        elif self.__container_type == ContainerData.ContainerEnum.ELEMENTS:
             KratosOA.OptimizationUtils.AssignVectorToContainer(self.__model_part.Elements, variable, domain_size, self.__data)
-        elif self.__container_type == ContainerEnum.CONDITION_PROPERTIES:
+        elif self.__container_type == ContainerData.ContainerEnum.CONDITION_PROPERTIES:
             KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.__model_part.Conditions, variable, self.__data)
-        elif self.__container_type == ContainerEnum.ELEMENT_PROPERTIES:
+        elif self.__container_type == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
             KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.__model_part.Elements, variable, self.__data)
 
     def __add__(self, other):
