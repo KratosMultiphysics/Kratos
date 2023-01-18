@@ -113,10 +113,8 @@ void GaussPIPE_HEIGHT::write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_p
 
 namespace Kratos
 {
-
     KratosExecute::KratosExecute()
     {
-
         KRATOS_INFO("KratosExecute") << "Setting Up Kratos" << std::endl;
 
         KratosGeoMechanicsApplication::Pointer geo_app = Kratos::make_shared<KratosGeoMechanicsApplication>();
