@@ -37,8 +37,6 @@ void TCondition<TDim,TNumNodes>::GetDofList(
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const unsigned int nDof = 1;
-    const unsigned int conditionSize = TNumNodes * nDof;
     if (rConditionDofList.size() != conditionSize)
         rConditionDofList.resize( conditionSize );
 
@@ -58,8 +56,6 @@ void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    unsigned int conditionSize = TNumNodes;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != conditionSize )
@@ -99,8 +95,6 @@ void TCondition<TDim, TNumNodes>::CalculateRightHandSide(
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes ;
-
     //Resetting the RHS
     if ( rRightHandSideVector.size() != conditionSize )
         rRightHandSideVector.resize( conditionSize, false );
@@ -121,9 +115,6 @@ void TCondition<TDim,TNumNodes>::EquationIdVector(
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-
-    unsigned int nDof = 1;
-    unsigned int conditionSize = TNumNodes * nDof;
 
     if (rResult.size() != conditionSize)
         rResult.resize( conditionSize,false );

@@ -49,7 +49,7 @@ public:
     ///Constructor
     // ============================================================================================
     // ============================================================================================
-    NewmarkQuasistaticTScheme(double theta) : 
+    explicit NewmarkQuasistaticTScheme(double theta) : 
         NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
     { }
 

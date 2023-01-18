@@ -56,10 +56,8 @@ namespace Kratos
             ///Properties variables
             double WaterDensity;
             double SolidDensity;
-        	double Density;
             double WaterHeatCapacity;
             double SolidHeatCapacity;
-            double HeatCapacity;
             double WaterThermalConductivity;
             double SolidThermalConductivityXX;
             double SolidThermalConductivityXY;
@@ -219,14 +217,6 @@ namespace Kratos
 
         // Copy constructor.
         TransientThermalElement(TransientThermalElement const& rOther);
-
-        template <class TValueType>
-        inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-        {
-            rNode.SetLock();
-            rNode.FastGetSolutionStepValue(Var) = Value;
-            rNode.UnSetLock();
-        }
 
     }; // Class TransientThermalElement
 

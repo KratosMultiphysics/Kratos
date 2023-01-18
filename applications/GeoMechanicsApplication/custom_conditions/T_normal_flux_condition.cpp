@@ -89,8 +89,7 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
     noalias(rVariables.TVector) = rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::
-        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,
-                                                rVariables.TVector);
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 }
 
 // ============================================================================================

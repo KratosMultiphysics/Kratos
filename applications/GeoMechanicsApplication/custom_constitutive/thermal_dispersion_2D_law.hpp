@@ -107,12 +107,6 @@ public:
     ///@{
 
     /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
-     */
-    void GetLawFeatures(Features& rFeatures) override;
-
-    /**
      * @brief Dimension of the law:
      * @return The dimension were the law is working
      */
@@ -146,13 +140,6 @@ public:
     ///@name Friends
     ///@{
 
-    /**
-     * @brief  Itreturns the value of a specified variable
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
     /**
  * @brief It calculates the constitutive matrix C

@@ -72,7 +72,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         # Add temperature variables
         self._add_temperature_variables()
-        
+
         ## smoothing variables
         self._add_smoothing_variables()
 
