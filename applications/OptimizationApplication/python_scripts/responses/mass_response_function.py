@@ -1,13 +1,3 @@
-# ==============================================================================
-#  KratosOptimizationApplication
-#
-#  License:         BSD License
-#                   license: OptimizationApplication/license.txt
-#
-#  Main authors:    Suneth Warnakulasuriya
-#
-# ==============================================================================
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
@@ -21,10 +11,10 @@ class MassResponseFunction(ResponseFunction):
         super().__init__(model, parameters, optimization_info)
 
         default_settings = Kratos.Parameters("""{
-            "model_part_name": "PLEASE_PROVIDE_A_MODEL_PART_NAME"
+            "evaluated_model_part_name": "PLEASE_PROVIDE_A_MODEL_PART_NAME"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
-        self.model_part = self.model[parameters["model_part_name"].GetString()]
+        self.model_part = self.model[parameters["evaluated_model_part_name"].GetString()]
 
     def Check(self):
         data_communicator = self.model_part.GetCommunicator().GetDataCommunicator()
@@ -51,8 +41,12 @@ class MassResponseFunction(ResponseFunction):
         elif sensitivity_variable == KratosOA.CROSS_AREA_SENSITIVITY and sensitivity_container_type == ContainerEnum.ELEMENT_PROPERTIES:
             KratosOA.MassResponseUtilities.CalculateMassCrossAreaSensitivity(sensitivity_model_part, sensitivity_variable)
         else:
-            # since this response function covers all the possible sensitivity calculations for the method given in CalculateMass,
-            # we can return the corresponding zero values for other sensitivity values
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(sensitivity_variable, GetSensitivityContainer(sensitivity_model_part, sensitivity_container_type))
+            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()} {sensitivity_container_type.name}."
+            msg += "Followings are supported options:"
+            msg += "\n\tSHAPE_SENSITIVITY for NODES container"
+            msg += "\n\tDENSITY_SENSITIVITY for ELEMENT_PROPERTIES container"
+            msg += "\n\tTHICKNESS_SENSITIVITY for ELEMENT_PROPERTIES container"
+            msg += "\n\tCROSS_AREA_SENSITIVITY for ELEMENT_PROPERTIES container"
+            raise RuntimeError(msg)
 
 

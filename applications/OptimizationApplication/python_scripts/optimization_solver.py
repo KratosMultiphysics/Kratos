@@ -126,7 +126,7 @@ class OptimizationSolver(PythonSolver):
 
     def AdvanceInTime(self, _):
         self.optimization_info.AdvanceSolutionStep()
-        self.optimization_info["step"] = self.optimization_info["step", 1] + 1
+        self.optimization_info["step"] = self.optimization_info.GetSolutionStepData(1)["step"] + 1
         return self.optimization_info["step"]
 
     def __ExecuteMethod(self, items, method_name: str):
@@ -134,8 +134,8 @@ class OptimizationSolver(PythonSolver):
             getattr(itr, method_name)()
 
     def __ExecuteRoutinesMethod(self, routine_class_type_name: str, execution_method: str):
-        if self.optimization_info.HasRoutineType(routine_class_type_name):
-            for routine in self.optimization_info.GetRoutines(routine_class_type_name):
+        if self.optimization_info.HasOptimizationRoutineType(routine_class_type_name):
+            for routine in self.optimization_info.GetOptimizationRoutines(routine_class_type_name):
                 getattr(routine, execution_method)()
         else:
             Kratos.Logger.PrintWarning(self.__class__.__name__, f"No routine type \"{routine_class_type_name}\" is found in optimization info. Hence, skipping running \"{execution_method}\" methods on those types.")
@@ -146,12 +146,12 @@ class OptimizationSolver(PythonSolver):
 
     def _CreateAnalyses(self):
         for analyses_settings in self.settings["analyses"]:
-            self.optimization_info.AddRoutine(ExecutionPolicyWrapper(self.model, analyses_settings))
+            self.optimization_info.AddOptimizationRoutine(ExecutionPolicyWrapper(self.model, analyses_settings))
 
     def _CreateResponses(self):
         for response_settings in self.settings["responses"]:
-            self.optimization_info.AddRoutine(CreateResponseFunctionWrapper(self.model, response_settings, self.optimization_info))
+            self.optimization_info.AddOptimizationRoutine(CreateResponseFunctionWrapper(self.model, response_settings, self.optimization_info))
 
     def _CreateControls(self):
         for control_settings in self.settings["controls"]:
-            self.optimization_info.AddRoutine(ControlWrapper(self.model, control_settings, self.optimization_info))
+            self.optimization_info.AddOptimizationRoutine(ControlWrapper(self.model, control_settings, self.optimization_info))

@@ -1,13 +1,3 @@
-# ==============================================================================
-#  KratosOptimizationApplication
-#
-#  License:         BSD License
-#                   license: OptimizationApplication/license.txt
-#
-#  Main authors:    Suneth Warnakulasuriya
-#
-# ==============================================================================
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
@@ -22,13 +12,13 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         super().__init__(model, parameters, optimization_info)
 
         default_settings = Kratos.Parameters("""{
-            "model_part_name"      : "PLEASE_PROVIDE_A_MODEL_PART_NAME",
-            "primal_analysis_name" : "",
-            "perturbation_size"    : 1e-8
+            "evaluated_model_part_name": "PLEASE_PROVIDE_A_MODEL_PART_NAME",
+            "primal_analysis_name"     : "",
+            "perturbation_size"        : 1e-8
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
-        self.model_part = self.model[parameters["model_part_name"].GetString()]
-        self.primal_analysis_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetRoutine("ExecutionPolicyWrapper", parameters["primal_analysis_name"].GetString())
+        self.model_part = self.model[parameters["evaluated_model_part_name"].GetString()]
+        self.primal_analysis_execution_policy_wrapper: ExecutionPolicyWrapper = optimization_info.GetOptimizationRoutine("ExecutionPolicyWrapper", parameters["primal_analysis_name"].GetString())
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
     def Check(self):
@@ -53,8 +43,10 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             else:
                 raise RuntimeError(f"{variable_name} is not a supported sensitivity variable.")
         else:
-            # since this response function covers all the possible sensitivity calculations for the method given in CalculateMass,
-            # we can return the corresponding zero values for other sensitivity values
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(sensitivity_variable, GetSensitivityContainer(sensitivity_container_type))
+            msg = f"Unsupported sensitivity w.r.t. {sensitivity_variable.Name()} requested for {sensitivity_model_part.FullName()} {sensitivity_container_type.name}."
+            msg += "Followings are supported options:"
+            msg += "\n\tSHAPE_SENSITIVITY for NODES container"
+            msg += "\n\tproperties for ELEMENT_PROPERTIES container"
+            raise RuntimeError(msg)
 
 

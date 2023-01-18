@@ -24,7 +24,7 @@ class ShapeControl(Control):
             raise RuntimeError(f"{control_update_variable_name} with {control_update_variable_type} type is not supported. Only supports array variables")
 
         self.control_update_variable = Kratos.KratosGlobals.GetVariable(control_update_variable_name)
-        self.mesh_moving_execution_policy_wrapper: ExecutionPolicyWrapper = self.optimization_info.GetRoutine("ExecutionPolicyWrapper", self.parameters["mesh_moving_analysis_name"].GetString())
+        self.mesh_moving_execution_policy_wrapper: ExecutionPolicyWrapper = self.optimization_info.GetOptimizationRoutine("ExecutionPolicyWrapper", self.parameters["mesh_moving_analysis_name"].GetString())
 
     def UpdateControls(self, control_values: Kratos.Vector):
         KratosOA.OptimizationUtils.AssignVectorToHistoricalContainer(self.model_part, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], Kratos.MESH_DISPLACEMENT, control_values)
