@@ -8,8 +8,6 @@
     "optimization_settings": {
         "meshes": [
             {
-                "module": "KratosMultiphysics.OptimizationApplication.mesh_controllers",
-                "type": "MdpaImportOnlyMeshController",
                 "settings": {
                     "model_part_name": "Structure",
                     "domain_size": 3,
@@ -40,21 +38,16 @@
         "responses": [
             {
                 "name": "mass_Structure",
-                "module": "KratosMultiphysics.OptimizationApplication.responses",
                 "type": "MassResponseFunction",
-                "objective": "minimization",
                 "settings": {
-                    "model_part_name": "Structure"
+                    "evaluated_model_part_name": "Structure"
                 }
             },
             {
                 "name": "strain_energy",
-                "module": "KratosMultiphysics.OptimizationApplication.responses",
                 "type": "LinearStrainEnergyResponseFunction",
-                "constraint": "=",
-                "ref_type": "initial",
                 "settings": {
-                    "model_part_name": "Structure",
+                    "evaluated_model_part_name": "Structure",
                     "primal_analysis_name": "Structure_static"
                 }
             }
@@ -62,18 +55,22 @@
         "controls": [
             {
                 "name": "density",
-                "type": "PropertiesControl",
+                "type": "MaterialPropertiesControl",
                 "settings": {
-                    "model_part_name": "Structure",
+                    "model_part_names": [
+                        "Structure"
+                    ],
                     "control_variable_name": "DENSITY"
                 },
                 "modifiers_list": []
             },
             {
                 "name": "young_modulus",
-                "type": "PropertiesControl",
+                "type": "MaterialPropertiesControl",
                 "settings": {
-                    "model_part_name": "Structure",
+                    "model_part_names": [
+                        "Structure"
+                    ],
                     "control_variable_name": "YOUNG_MODULUS"
                 },
                 "modifiers_list": []
@@ -81,36 +78,29 @@
         ],
         "algorithms": [
             {
+                "name": "algorithm_1",
                 "type": "GradientProjectionAlgorithm",
                 "settings": {
                     "max_correction_share": 0.75,
                     "relative_tolerance": 1e-3,
-                    "step_size": 1e-3,
-                    "control_names_list": [
-                        "density"
-                    ],
-                    "response_names_list": [
-                        "mass_Structure",
-                        "strain_energy"
-                    ],
-                    "echo_level": 1
-                }
-            },
-            {
-                "type": "GradientProjectionAlgorithm",
-                "settings": {
-                    "max_correction_share": 0.75,
-                    "relative_tolerance": 1e-3,
-                    "step_size": 1e+2,
-                    "control_names_list": [
-                        "young_modulus"
-                    ],
-                    "response_names_list": [
-                        "mass_Structure",
-                        "strain_energy"
-                    ],
-                    "echo_level": 1
-                }
+                    "step_size": 1e-3
+                },
+                "control_names": [
+                    "density"
+                ],
+                "objectives": [
+                    {
+                        "response_name": "mass_Structure",
+                        "type": "minimization"
+                    }
+                ],
+                "constraints": [
+                    {
+                        "response_name": "strain_energy",
+                        "type": "<",
+                        "ref_type": "initial_value"
+                    }
+                ]
             }
         ]
     },

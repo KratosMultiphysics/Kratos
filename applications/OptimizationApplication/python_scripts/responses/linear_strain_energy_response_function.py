@@ -4,7 +4,6 @@ from KratosMultiphysics.OptimizationApplication.optimization_info import Optimiz
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import GetSensitivityContainer
 
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):

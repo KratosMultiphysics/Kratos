@@ -24,6 +24,9 @@ class ContainerData:
     def GetData(self) -> Kratos.Vector:
         return self.__data
 
+    def SetData(self, data: Kratos.Vector):
+        self.__data = data
+
     def Clone(self):
         other = ContainerData(self.__model_part, self.__container_type)
         other.__data = Kratos.Vector(self.__data)
@@ -57,6 +60,9 @@ class ContainerData:
             KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.__model_part.Conditions, variable, self.__data)
         elif self.__container_type == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
             KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.__model_part.Elements, variable, self.__data)
+
+    def NormInf(self) -> float:
+        return KratosOA.OptimizationUtils.NormInf(self.__data)
 
     def __add__(self, other):
         if not isinstance(other, ContainerData):

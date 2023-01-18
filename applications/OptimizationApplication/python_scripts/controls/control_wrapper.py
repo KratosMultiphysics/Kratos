@@ -47,8 +47,8 @@ class ControlWrapper(OptimizationRoutine):
             for control_update in self.__control_updates.values():
                 current_control_values = self.control.GetCurrentControlContainerData(control_update.GetModelPart())
                 new_control_values = current_control_values + control_update
-                modified_control_values = self.ModifyControl(new_control_values)
-                self.control.UpdateControls(modified_control_values)
+                self.ModifyControl(new_control_values)
+                self.control.UpdateControls(new_control_values)
 
         # reset control updates
         self.__control_updates = {}
@@ -77,23 +77,16 @@ class ControlWrapper(OptimizationRoutine):
         return self.control
 
     def ModifyControl(self, controls: ContainerData):
-        resultant_control_values = controls.Clone()
         for modifier in self.__list_of_modifiers:
-            resultant_control_values = modifier.Control(resultant_control_values)
-        return resultant_control_values
+             modifier.Control(controls)
 
-    def ModifySensitivities(self, sensitivities: ContainerData) -> ContainerData:
-        resultant_sensitivities = sensitivities.Clone()
+    def ModifySensitivities(self, sensitivities: ContainerData):
         for modifier in self.__list_of_modifiers:
-            resultant_sensitivities = modifier.ModifySensitivities(resultant_sensitivities)
-        return resultant_sensitivities
+            modifier.ModifySensitivities(sensitivities)
 
-    def ModifyControlUpdates(self, control_update: ContainerData) -> ContainerData:
-        resultant_controls = control_update.Clone()
+    def ModifyControlUpdates(self, control_update: ContainerData):
         for modifier in self.__list_of_modifiers:
-            resultant_controls = modifier.ModifyControlUpdates(resultant_controls)
-
-        return resultant_controls
+            modifier.ModifyControlUpdates(control_update)
 
     def SetControlUpdate(self, control_update: ContainerData):
         control_model_part: Kratos.ModelPart
