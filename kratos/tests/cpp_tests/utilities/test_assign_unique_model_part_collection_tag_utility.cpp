@@ -285,7 +285,7 @@ namespace Kratos
             for (auto itr = param_write.begin(); itr != param_write.end(); ++itr) {
                 const std::string& r_name = itr.name();
                 KRATOS_CHECK(param_read.Has(r_name));
-                const auto& r_write_string_array = itr->GetStringArray();
+                const auto& r_write_string_array = (*itr).GetStringArray();
                 const auto& r_read_string_array = param_read[r_name].GetStringArray();
                 std::unordered_set<std::string> aux_set;
                 for (auto& r_name : r_read_string_array) {

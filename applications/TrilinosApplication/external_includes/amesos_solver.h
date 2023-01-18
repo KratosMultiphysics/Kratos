@@ -107,10 +107,10 @@ public:
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mParameterList
         mParameterList = Teuchos::ParameterList();
         for(auto it = settings["trilinos_amesos_parameter_list"].begin(); it != settings["trilinos_amesos_parameter_list"].end(); it++) {
-            if(it->IsString()) mParameterList.set(it.name(), it->GetString());
-            else if(it->IsInt()) mParameterList.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mParameterList.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mParameterList.set(it.name(), it->GetDouble());
+            if((*it).IsString()) mParameterList.set(it.name(), (*it).GetString());
+            else if((*it).IsInt()) mParameterList.set(it.name(), (*it).GetInt());
+            else if((*it).IsBool()) mParameterList.set(it.name(), (*it).GetBool());
+            else if((*it).IsDouble()) mParameterList.set(it.name(), (*it).GetDouble());
         }
 
         mSolverName = settings["amesos_solver_type"].GetString();

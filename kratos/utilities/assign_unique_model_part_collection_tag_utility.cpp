@@ -244,7 +244,7 @@ Parameters AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(
     buffer << infile.rdbuf();
     Parameters color_json(buffer.str());
     for (auto it_param = color_json.begin(); it_param != color_json.end(); ++it_param) {
-        const std::vector<std::string>& r_sub_model_part_names = it_param->GetStringArray();
+        const std::vector<std::string>& r_sub_model_part_names = (*it_param).GetStringArray();
         rCollections.insert(std::pair<IndexType,std::vector<std::string>>({std::stoi(it_param.name()), r_sub_model_part_names}));
     }
 

@@ -416,8 +416,8 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::IdentifyDataJSON(
 
     // Getting number of definitions
     SizeType number_of_definitions = 0;
-    for (auto& r_param : json_input) {
-        if (!r_param.IsVector()) {  // Removing TIME
+    for (auto param : json_input) {
+        if (!param.IsVector()) {  // Removing TIME
             ++number_of_definitions;
         }
     }

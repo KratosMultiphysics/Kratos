@@ -41,12 +41,12 @@ namespace Kratos {
             KRATOS_CHECK((*i_parameter).IsBool());
             KRATOS_CHECK_EQUAL((*i_parameter).GetBool(), true);
             ++i_parameter;
-            KRATOS_CHECK(i_parameter->IsDouble());
-            KRATOS_CHECK_EQUAL(i_parameter->GetDouble(), 2.0);
+            KRATOS_CHECK((*i_parameter).IsDouble());
+            KRATOS_CHECK_EQUAL((*i_parameter).GetDouble(), 2.0);
             ++i_parameter;
             KRATOS_CHECK_EQUAL(i_parameter.name(), std::string("int_value"));
-            KRATOS_CHECK(i_parameter->IsInt());
-            KRATOS_CHECK_EQUAL(i_parameter->GetInt(), 10);
+            KRATOS_CHECK((*i_parameter).IsInt());
+            KRATOS_CHECK_EQUAL((*i_parameter).GetInt(), 10);
 
             unsigned int size = 0;
 

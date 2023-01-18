@@ -328,9 +328,9 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersChangeParameters, KratosCoreFastSuite)
 
     Parameters my_list = subparams["list_value"];
 
-    for (auto& r_param : my_list) {
-        if (r_param.IsBool()) {
-            KRATOS_CHECK_IS_FALSE(r_param.GetBool())
+    for (auto param : my_list) {
+        if (param.IsBool()) {
+            KRATOS_CHECK_IS_FALSE(param.GetBool())
         }
     }
 
@@ -539,7 +539,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIterators, KratosCoreFastSuite)
 
     // Iteration by items
     for(auto it=kp.begin(); it!=kp.end(); ++it) {
-        KRATOS_CHECK_STRING_EQUAL(kp[it.name()].PrettyPrintJsonString(), it->PrettyPrintJsonString());
+        KRATOS_CHECK_STRING_EQUAL(kp[it.name()].PrettyPrintJsonString(), (*it).PrettyPrintJsonString());
     }
 
     // Testing values
