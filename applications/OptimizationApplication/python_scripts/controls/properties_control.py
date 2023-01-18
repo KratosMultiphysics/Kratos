@@ -3,19 +3,19 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerVariableDataHolder
 
 class PropertiesControl(Control):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
-        super().__init__(model, parameters, optimization_info)
-
         default_settings = Kratos.Parameters("""{
-            "model_part_name"             : "",
+            "model_part_names"            : [""],
             "control_variable_name"       : "",
             "control_update_variable_name": "SCALAR_CONTROL_UPDATE"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = self.model[parameters["model_part_name"].GetString()]
+        self.optimization_info = optimization_info
+        self.model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
 
         control_variable_name = parameters["control_variable_name"].GetString()
         control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
@@ -38,27 +38,26 @@ class PropertiesControl(Control):
         self.control_update_variable = Kratos.KratosGlobals.GetVariable(control_update_variable_name)
 
     def Initialize(self):
-        super().Initialize()
-
         # creates element specific properties
         if not self.optimization_info.HasSolutionStepDataKey("model_parts_with_element_specific_properties"):
             self.optimization_info["model_parts_with_element_specific_properties"] = []
 
-        if not self.model_part.FullName() in self.optimization_info["model_parts_with_element_specific_properties"]:
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            self.optimization_info["model_parts_with_element_specific_properties"].append(self.model_part.FullName())
+        for model_part in self.model_parts:
+            if not model_part.FullName() in self.optimization_info["model_parts_with_element_specific_properties"]:
+                KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements)
+                self.optimization_info["model_parts_with_element_specific_properties"].append(model_part.FullName())
 
-    def UpdateControls(self, control_values: Kratos.Vector):
-        KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.model_part.Elements, self.control_variable, control_values)
-        KratosOA.OptimizationUtils.AssignVectorToContainer(self.model_part.Elements, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE], self.control_variable, control_values)
+    def UpdateControls(self, control_values: ContainerVariableDataHolder):
+        KratosOA.OptimizationUtils.AssignVectorToContainerProperties(control_values.GetModelPart().Elements, self.control_variable, control_values.GetValues())
+        KratosOA.OptimizationUtils.AssignVectorToContainer(control_values.GetModelPart().Elements, control_values.GetModelPart().ProcessInfo[Kratos.DOMAIN_SIZE], self.control_variable, control_values.GetValues())
 
-    def GetNewControlValuesVector(self) -> Kratos.Vector:
+    def GetCurrentControls(self, model_part: Kratos.ModelPart) -> ContainerVariableDataHolder:
         current_property_values = Kratos.Vector()
-        KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.model_part.Elements, self.control_variable, current_property_values)
-        return current_property_values + self.GetControlUpdatesVector()
+        KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(model_part.Elements, self.control_variable, current_property_values)
+        return ContainerVariableDataHolder(current_property_values, self.control_variable, model_part, self.GetContainerType())
 
-    def GetModelPart(self) -> Kratos.ModelPart:
-        return self.model_part
+    def GetModelParts(self) -> 'list[Kratos.ModelPart]':
+        return self.model_parts
 
     def GetContainerType(self) -> ContainerEnum:
         return ContainerEnum.ELEMENT_PROPERTIES
