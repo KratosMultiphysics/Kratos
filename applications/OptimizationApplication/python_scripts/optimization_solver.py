@@ -3,13 +3,13 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.python_solver import PythonSolver
 
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import RetrieveObject
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
 
 from KratosMultiphysics.OptimizationApplication.mesh_controllers.mesh_controller import MeshController
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
-from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import CreateResponseFunctionWrapper
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_wrapper import AlgorithmWrapper
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 
 class OptimizationSolver(PythonSolver):
@@ -30,13 +30,6 @@ class OptimizationSolver(PythonSolver):
 
         # creates the optimization info data holder
         self.optimization_info = OptimizationInfo()
-
-        default_solver_settings = Kratos.Parameters("""{
-            "module"  : "KratosMultiphysics.OptimizationApplication.algorithms",
-            "type"    : "PLEASE_PROVIDE_SOLVER_CLASS_NAME",
-            "settings": {}
-        }""")
-
         self.__list_of_meshers = []
 
         self._CreateMeshes()
@@ -44,8 +37,7 @@ class OptimizationSolver(PythonSolver):
 
         self.__list_of_algorithms = []
         for algorithm_settings in settings["algorithms"]:
-            algorithm_settings.ValidateAndAssignDefaults(default_solver_settings)
-            self.__list_of_algorithms.append(RetrieveObject(self.model, algorithm_settings, self.optimization_info, Algorithm))
+            self.__list_of_algorithms.append(AlgorithmWrapper(model, algorithm_settings, self.optimization_info))
 
         if len(self.__list_of_algorithms) == 0:
             raise RuntimeError("No optimization solvers provided.")
@@ -141,8 +133,15 @@ class OptimizationSolver(PythonSolver):
             Kratos.Logger.PrintWarning(self.__class__.__name__, f"No routine type \"{routine_class_type_name}\" is found in optimization info. Hence, skipping running \"{execution_method}\" methods on those types.")
 
     def _CreateMeshes(self):
+        mesher_settings: Kratos.Parameters
         for mesher_settings in self.settings["meshes"]:
-            self.__list_of_meshers.append(RetrieveObject(self.model, mesher_settings, self.optimization_info, MeshController))
+            default_mesher_settinsg = Kratos.Parameters("""{
+                "module"  : "KratosMultiphysics.OptimizationApplication.mesh_controllers",
+                "type"    : "MdpaImportOnlyMeshController",
+                "settings": {}
+            }""")
+            mesher_settings.ValidateAndAssignDefaults(default_mesher_settinsg)
+            self.__list_of_meshers.append(Factory(mesher_settings["module"].GetString(), mesher_settings["type"].GetString(), self.model, mesher_settings["settings"], self.optimization_info, MeshController))
 
     def _CreateAnalyses(self):
         for analyses_settings in self.settings["analyses"]:
@@ -150,7 +149,7 @@ class OptimizationSolver(PythonSolver):
 
     def _CreateResponses(self):
         for response_settings in self.settings["responses"]:
-            self.optimization_info.AddOptimizationRoutine(CreateResponseFunctionWrapper(self.model, response_settings, self.optimization_info))
+            self.optimization_info.AddOptimizationRoutine(ResponseFunctionWrapper(self.model, response_settings, self.optimization_info))
 
     def _CreateControls(self):
         for control_settings in self.settings["controls"]:
