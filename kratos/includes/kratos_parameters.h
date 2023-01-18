@@ -95,7 +95,7 @@ private:
          * @brief Default constructor (just iterator)
          * @param itValue The iterator to adapt
          */
-        iterator_adaptor(const iterator_adaptor& itValue);
+        iterator_adaptor(const iterator_adaptor& itValue) = default;
 
         ///@}
         ///@name Operators
@@ -135,14 +135,7 @@ private:
          * @details This operator returns the pointer of a given iterator
          * @return The Pointer of the given iterator
          */
-        Parameters& operator*() const;
-
-        /**
-         * @brief operator ->
-         * @details This operator acces to the pointer of the Parameter
-         * @return The pointer of the parameter
-         */
-        Parameters* operator->() const;
+        value_type operator*() const;
 
         ///@}
         ///@name Operations
@@ -168,7 +161,7 @@ private:
 
         std::size_t mDistance = 0;                       /// The iterator distance
         nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+        Kratos::shared_ptr<nlohmann::json> mpRoot;
 
         ///@}
     };
@@ -209,7 +202,7 @@ private:
          * @param itValue The iterator to adapt
          * @todo Use copy constructor in the following method
          */
-        const_iterator_adaptor(const const_iterator_adaptor& itValue);
+        const_iterator_adaptor(const const_iterator_adaptor& itValue) = default;
 
         ///@}
         ///@name Operators
@@ -249,14 +242,7 @@ private:
          * @details This operator returns the pointer of a given iterator
          * @return The Pointer of the given iterator
          */
-        const Parameters& operator*() const;
-
-        /**
-         * @brief operator ->
-         * @details This operator acces to the pointer of the Parameter
-         * @return The pointer of the parameter
-         */
-        const Parameters* operator->() const;
+        value_type operator*() const;
 
         ///@}
         ///@name Operations
@@ -281,7 +267,7 @@ private:
 
         std::size_t mDistance = 0;                       /// The iterator distance
         nlohmann::json& mrValue;                         /// The original container
-        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+        Kratos::shared_ptr<nlohmann::json> mpRoot;
 
         ///@}
     };
