@@ -117,12 +117,11 @@ namespace Kratos
     {
         KRATOS_INFO("KratosExecute") << "Setting Up Kratos" << std::endl;
 
-        KratosGeoMechanicsApplication::Pointer geo_app = Kratos::make_shared<KratosGeoMechanicsApplication>();
-        if (!kernel.IsImported(geo_app->Name()))
+    	if (!kernel.IsImported("KratosGeoMechanicsApplication"))
         {
             KRATOS_INFO("KratosExecute") << "Importing GeoMechanicsApplication" << std::endl;
-            kernel.ImportApplication(geo_app);
-            kernel.InitializeApplication(*geo_app);
+    		geoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
+            kernel.ImportApplication(geoApp);
         }
 
         Kratos::OpenMPUtils::SetNumThreads(1);

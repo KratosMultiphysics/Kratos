@@ -212,8 +212,9 @@ namespace Kratos
     private:
         // Initial Setup
         Model current_model;
-        KratosGeoMechanicsApplication application;
-
+        Kernel kernel;
+        KratosGeoMechanicsApplication::Pointer geoApp;
+        
         void ResetModelParts();
 
         int echoLevel = 1;
