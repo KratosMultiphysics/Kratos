@@ -7,7 +7,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
 
@@ -77,22 +77,22 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             cls.execution_policy_wrapper.InitializeSolutionStep()
             cls.response_function_wrapper.InitializeSolutionStep()
             cls.process.ExecuteInitializeSolutionStep()
-            cls.ref_value = cls.response_function.GetValue()
+            cls.ref_value = cls.response_function.CalculateValue()
 
     @classmethod
     def tearDownClass(cls):
         with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
-    def _CalculateSensitivity(self, sensitivity_variable, sensitivity_container_type: ContainerEnum):
-        self.response_function.GetSensitivity(sensitivity_variable, self.model_part, sensitivity_container_type)
+    def _CalculateSensitivity(self, sensitivity_variable, sensitivity_container_type: ContainerData.ContainerEnum):
+        self.response_function.CalculateSensitivity(sensitivity_variable, ContainerData(self.model_part, sensitivity_container_type))
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, rel_tol, abs_tol):
         for entity in entities:
             adjoint_sensitivity = sensitivity_method(entity)
             update_method(entity, delta)
             response_function.InitializeSolutionStep()
-            value = response_function.GetValue()
+            value = response_function.CalculateValue()
             fd_sensitivity = (value - self.ref_value)/delta
             update_method(entity, -delta)
             self.assertTrue(
@@ -117,7 +117,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
         self.assertAlmostEqual(self.ref_value, 71515947.17480606, 6)
 
     def test_CalculateYoungModulusSensitivity(self):
-        self._CalculateSensitivity(KratosOA.YOUNG_MODULUS_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+        self._CalculateSensitivity(KratosOA.YOUNG_MODULUS_SENSITIVITY, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         # calculate element density sensitivity
         self._CheckSensitivity(
@@ -130,7 +130,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             1e-5)
 
     def test_CalculatePoissonRatioSensitivity(self):
-        self._CalculateSensitivity(KratosOA.POISSON_RATIO_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+        self._CalculateSensitivity(KratosOA.POISSON_RATIO_SENSITIVITY, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         # calculate element density sensitivity
         self._CheckSensitivity(
@@ -143,7 +143,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             1e-5)
 
     def test_CalculateDensitySensitivity(self):
-        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         # calculate element density sensitivity
         self._CheckSensitivity(
@@ -156,7 +156,7 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             1e-5)
 
     def test_CalculateShapeSensitivity(self):
-        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerEnum.NODES)
+        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerData.ContainerEnum.NODES)
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
             self.response_function,
