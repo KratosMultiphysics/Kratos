@@ -113,6 +113,26 @@ public:
         ModelPart& rModelPart,
         TContainerType& rContainer);
 
+    static void AddVectors(
+        Vector& rOutput,
+        const Vector& rA,
+        const Vector& rB);
+
+    static void SubstractVectors(
+        Vector& rOutput,
+        const Vector& rA,
+        const Vector& rB);
+
+    static void MultiplyVector(
+        Vector& rOutput,
+        const Vector& rA,
+        const double Multiplier);
+
+    static void DivideVector(
+        Vector& rOutput,
+        const Vector& rA,
+        const double Divisor);
+
     ///@}
 private:
     ///@name Private operations

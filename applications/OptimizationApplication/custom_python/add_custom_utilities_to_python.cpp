@@ -70,6 +70,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("AssignVectorToHistoricalContainer", &OptimizationUtils::AssignVectorToHistoricalContainer<array_1d<double, 3>>)
         .def_static("GetHistoricalContainerVariableToVector", &OptimizationUtils::GetHistoricalContainerVariableToVector<double>)
         .def_static("GetHistoricalContainerVariableToVector", &OptimizationUtils::GetHistoricalContainerVariableToVector<array_1d<double, 3>>)
+        .def_static("AddVectors", &OptimizationUtils::AddVectors)
+        .def_static("SubstractVectors", &OptimizationUtils::SubstractVectors)
+        .def_static("MultiplyVector", &OptimizationUtils::MultiplyVector)
+        .def_static("DivideVector", &OptimizationUtils::DivideVector)
         ;
 
     py::class_<GradientProjectionSolverUtils >(m, "GradientProjectionSolverUtils")

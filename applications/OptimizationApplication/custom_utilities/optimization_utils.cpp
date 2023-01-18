@@ -339,6 +339,88 @@ void OptimizationUtils::AssignVectorToHistoricalContainer(
     KRATOS_CATCH("");
 }
 
+void OptimizationUtils::AddVectors(
+    Vector& rOutput,
+    const Vector& rA,
+    const Vector& rB)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rA.size() == rB.size())
+        << "Vector size mismatch. [ rA.size() = " << rA.size()
+        << ", rB.size() = " << rB.size() << " ].\n";
+
+    if (rOutput.size() != rA.size()) {
+        rOutput.resize(rA.size(), false);
+    }
+
+    IndexPartition<IndexType>(rOutput.size()).for_each([&](const IndexType Index) {
+        rOutput[Index] = rA[Index] + rB[Index];
+    });
+
+    KRATOS_CATCH("");
+}
+
+void OptimizationUtils::SubstractVectors(
+    Vector& rOutput,
+    const Vector& rA,
+    const Vector& rB)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rA.size() == rB.size())
+        << "Vector size mismatch. [ rA.size() = " << rA.size()
+        << ", rB.size() = " << rB.size() << " ].\n";
+
+    if (rOutput.size() != rA.size()) {
+        rOutput.resize(rA.size(), false);
+    }
+
+    IndexPartition<IndexType>(rOutput.size()).for_each([&](const IndexType Index) {
+        rOutput[Index] = rA[Index] - rB[Index];
+    });
+
+    KRATOS_CATCH("");
+}
+
+void OptimizationUtils::MultiplyVector(
+    Vector& rOutput,
+    const Vector& rA,
+    const double Multiplier)
+{
+    KRATOS_TRY
+
+    if (rOutput.size() != rA.size()) {
+        rOutput.resize(rA.size(), false);
+    }
+
+    IndexPartition<IndexType>(rOutput.size()).for_each([&](const IndexType Index) {
+        rOutput[Index] = rA[Index] * Multiplier;
+    });
+
+    KRATOS_CATCH("");
+}
+
+void OptimizationUtils::DivideVector(
+    Vector& rOutput,
+    const Vector& rA,
+    const double Divisor)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(Divisor == 0.0) << "Division by zero.\n";
+
+    if (rOutput.size() != rA.size()) {
+        rOutput.resize(rA.size(), false);
+    }
+
+    IndexPartition<IndexType>(rOutput.size()).for_each([&](const IndexType Index) {
+        rOutput[Index] = rA[Index] / Divisor;
+    });
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template void OptimizationUtils::GetContainerIds(const ModelPart::NodesContainerType&, std::vector<IndexType>&);
 template void OptimizationUtils::GetContainerIds(const ModelPart::ConditionsContainerType&, std::vector<IndexType>&);
