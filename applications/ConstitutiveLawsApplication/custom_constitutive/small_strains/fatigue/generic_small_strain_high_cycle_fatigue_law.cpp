@@ -100,12 +100,13 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     bool advance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
-
+    
     if (max_indicator && min_indicator) {
 
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
         
+        double c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
         // if (max_stress > 778.0E6){
         //     KRATOS_WATCH(max_stress)
         // }
@@ -123,7 +124,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             B0,
             s_th,
             alphat,
-            cycles_to_failure);
+            cycles_to_failure,
+            c_factor);
 
         double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
@@ -155,7 +157,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                                         s_th,
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
-                                                                                        wohler_stress);
+                                                                                        wohler_stress,
+                                                                                        c_factor);
     }
     if (advance_strategy_applied) {
 
@@ -171,7 +174,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             B0,
             s_th,
             alphat,
-            cycles_to_failure);
+            cycles_to_failure,
+            c_factor);
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         reversion_factor,
@@ -181,7 +185,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                                         s_th,
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
-                                                                                        wohler_stress);
+                                                                                        wohler_stress,
+                                                                                        c_factor);
     }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;

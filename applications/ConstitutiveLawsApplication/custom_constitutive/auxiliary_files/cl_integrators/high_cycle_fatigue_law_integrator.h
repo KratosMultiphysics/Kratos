@@ -171,7 +171,8 @@ public:
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
-                                            double& rN_f)
+                                            double& rN_f,
+                                            const double FatigueReductionFactorSmoothness)
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
@@ -216,7 +217,7 @@ public:
                 if (std::isnan(rN_f)){
                     rN_f = 1.0e15;
                     }           
-                rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+                rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
                 if (softening_type == curve_by_points) {
                     rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
@@ -252,7 +253,8 @@ public:
                                                                 const double Sth,
                                                                 const double Alphat,
                                                                 double& rFatigueReductionFactor,
-                                                                double& rWohlerStress)
+                                                                double& rWohlerStress,
+                                                                const double FatigueReductionFactorSmoothness)
 	{
         const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (GlobalNumberOfCycles > 2){
@@ -278,7 +280,7 @@ public:
         }
               
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF))));
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
             // if(std::abs(ReversionFactor) < 1.001){
             //     rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
