@@ -79,7 +79,7 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
         b = ContainerData(self.model_part, ContainerEnum.ELEMENT_PROPERTIES)
 
         a.ReadDataFromContainer(Kratos.PRESSURE)
-        c = a / self
+        c = a / 2
 
         c.AssignDataToContainer(Kratos.DENSITY)
         for element in self.model_part.Elements:
