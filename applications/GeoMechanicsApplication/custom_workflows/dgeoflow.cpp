@@ -117,11 +117,8 @@ namespace Kratos
     {
         KRATOS_INFO("KratosExecute") << "Setting Up Kratos" << std::endl;
 
-        KratosGeoMechanicsApplication::Pointer geo_app = Kratos::make_shared<KratosGeoMechanicsApplication>();
-        if (!kernel.IsImported(geo_app->Name()))
-        {
-            kernel.ImportApplication(geo_app);
-        }
+        if (!KratosComponents<VariableData>::Has("DENSITY_WATER")) application.RegisterKratosCore();
+    	application.Register();
 
         Kratos::OpenMPUtils::SetNumThreads(1);
         if (this->GetEchoLevel() > 0)
