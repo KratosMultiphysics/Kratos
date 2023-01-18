@@ -133,6 +133,9 @@ public:
         const Vector& rA,
         const double Divisor);
 
+    static double NormInf(
+        const Vector& rOutput);
+
     ///@}
 private:
     ///@name Private operations

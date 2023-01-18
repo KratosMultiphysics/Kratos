@@ -421,6 +421,18 @@ void OptimizationUtils::DivideVector(
     KRATOS_CATCH("");
 }
 
+double OptimizationUtils::NormInf(
+    const Vector& rOutput)
+{
+    KRATOS_TRY
+
+    return IndexPartition<IndexType>(rOutput.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
+        return rOutput[Index];
+    });
+
+    KRATOS_CATCH("")
+}
+
 // template instantiations
 template void OptimizationUtils::GetContainerIds(const ModelPart::NodesContainerType&, std::vector<IndexType>&);
 template void OptimizationUtils::GetContainerIds(const ModelPart::ConditionsContainerType&, std::vector<IndexType>&);

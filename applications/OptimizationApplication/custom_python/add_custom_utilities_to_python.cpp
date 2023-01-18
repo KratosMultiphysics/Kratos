@@ -74,21 +74,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("SubstractVectors", &OptimizationUtils::SubstractVectors)
         .def_static("MultiplyVector", &OptimizationUtils::MultiplyVector)
         .def_static("DivideVector", &OptimizationUtils::DivideVector)
+        .def_static("NormInf", &OptimizationUtils::NormInf)
         ;
 
     py::class_<GradientProjectionSolverUtils >(m, "GradientProjectionSolverUtils")
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection<ModelPart::NodesContainerType, double>)
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ConditionsContainerType, double>)
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ElementsContainerType, double>)
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection<ModelPart::ElementsContainerType, array_1d<double, 3>>)
-        .def_static("CalculateControlChange", &GradientProjectionSolverUtils::CalculateControlChange<ModelPart::NodesContainerType, double>)
-        .def_static("CalculateControlChange", &GradientProjectionSolverUtils::CalculateControlChange<ModelPart::ConditionsContainerType, double>)
-        .def_static("CalculateControlChange", &GradientProjectionSolverUtils::CalculateControlChange<ModelPart::ElementsContainerType, double>)
-        .def_static("CalculateControlChange", &GradientProjectionSolverUtils::CalculateControlChange<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def_static("CalculateControlChange", &GradientProjectionSolverUtils::CalculateControlChange<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("CalculateControlChange", &GradientProjectionSolverUtils::CalculateControlChange<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection)
+        .def_static("CalculateControlUpdate", &GradientProjectionSolverUtils::CalculateControlUpdate)
         ;
 }
 

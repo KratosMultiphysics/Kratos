@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <limits>
 
 // Project includes
 #include "includes/model_part.h"
@@ -27,48 +28,10 @@
 
 namespace Kratos {
 
-template<>
-void GradientProjectionSolverUtils::AddValue(
-    double& rOutput,
-    const IndexType VariableComponentIndex,
-    const IndexType DofStartingIndex,
-    const Vector& rValues)
-{
-    rOutput += rValues[DofStartingIndex];
-}
-
-
-template<>
-void GradientProjectionSolverUtils::AddValue(
-    array_1d<double, 3>& rOutput,
-    const IndexType VariableComponentIndex,
-    const IndexType DofStartingIndex,
-    const Vector& rValues)
-{
-    rOutput[VariableComponentIndex] += rValues[DofStartingIndex + VariableComponentIndex];
-}
-
-template<>
-double GradientProjectionSolverUtils::CalculateValueNormSquare(
-    const double& rValue)
-{
-    return std::pow(rValue, 2);
-}
-
-template<>
-double GradientProjectionSolverUtils::CalculateValueNormSquare(
-    const array_1d<double, 3>& rValue)
-{
-    return std::pow(rValue[0], 2) + std::pow(rValue[1], 2) + std::pow(rValue[2], 2);
-}
-
-template<class TContainerType, class TDataType>
 void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(
-    TContainerType& rContainer,
-    const IndexType DomainSize,
+    Vector& rSearchDirection,
+    Vector& rSearchCorrection,
     LinearSolver<DenseSpace, DenseSpace>& rSolver,
-    const Variable<TDataType>& rSearchDirectionVariable,
-    const Variable<TDataType>& rSearchDirectionCorrectionVariable,
     const Vector& rConstraintValues,
     const Vector& rObjectiveGradient,
     const std::vector<Vector>& rConstraintsGradients)
@@ -77,13 +40,11 @@ void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrecti
 
     const IndexType dofs_size = rObjectiveGradient.size();
     const IndexType constraints_size = rConstraintsGradients.size();
-    const IndexType local_size = OptimizationUtils::GetLocalSize<TDataType>(DomainSize);
 
-    KRATOS_ERROR_IF_NOT(rContainer.size() * local_size == dofs_size)
-        << "Number of dofs in the contaienr does not match with number of dofs "
-           "given in the objective gradient vector. [ Dofs in contaienr = "
-        << rContainer.size() * local_size
-        << ", number dofs in the objective gradient vector = " << dofs_size << " ].\n";
+    if (rSearchDirection.size() != dofs_size) {
+        rSearchDirection.resize(dofs_size, false);
+        rSearchCorrection.resize(dofs_size, false);
+    }
 
     KRATOS_ERROR_IF_NOT(constraints_size == rConstraintValues.size())
         << "Number of constraints values provided does not match with number "
@@ -131,103 +92,63 @@ void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrecti
 
     // NTN_inv x ((N^T).nsbla_f)
     const Vector& NTN_inv_NT_nabla_f = prod(NTN_inv, NT_nabla_f);
-    const Vector& negative_NTN_inv_constraint_values = -prod(NTN_inv, rConstraintValues);
-    const Vector& negative_objective_gradients = -rObjectiveGradient;
+    const Vector& NTN_inv_constraint_values = prod(NTN_inv, rConstraintValues);
 
-    IndexPartition<IndexType>(rContainer.size()).for_each([&](const IndexType rEntityIndex) {
-        TDataType search_direction = rSearchDirectionVariable.Zero();
-        TDataType correction = rSearchDirectionVariable.Zero();
+    IndexPartition<IndexType>(dofs_size).for_each([&](const IndexType Index) {
+        double search_value = -rObjectiveGradient[Index];
+        double correction_value = 0.0;
 
-        for (IndexType i = 0; i < local_size; ++i) {
-            const IndexType dof_starting_index = rEntityIndex * local_size;
-
-            AddValue(search_direction, i, dof_starting_index, negative_objective_gradients);
-            for (IndexType j = 0; j < constraints_size; ++j) {
-                AddValue(search_direction, i, dof_starting_index, rConstraintsGradients[j] * NTN_inv_NT_nabla_f[j]);
-                AddValue(correction, i, dof_starting_index, rConstraintsGradients[j] * negative_NTN_inv_constraint_values[j]);
-            }
+        for (IndexType i = 0; i < constraints_size; ++ i) {
+            search_value += rConstraintsGradients[i][Index] * NTN_inv_NT_nabla_f[i];
+            correction_value -= rConstraintsGradients[i][Index] * NTN_inv_constraint_values[i];
         }
 
-        auto& r_entity = *(rContainer.begin() + rEntityIndex);
-        r_entity.SetValue(rSearchDirectionVariable, search_direction);
-        r_entity.SetValue(rSearchDirectionCorrectionVariable, correction);
+        rSearchDirection[Index] = search_value;
+        rSearchCorrection[Index] = correction_value;
     });
-
-
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType, class TDataType>
-void GradientProjectionSolverUtils::CalculateControlChange(
-    TContainerType& rContainer,
-    const DataCommunicator& rDataCommunicator,
-    const Variable<TDataType>& rSearchDirectionVariable,
-    const Variable<TDataType>& rSearchDirectionCorrectionVariable,
-    const Variable<TDataType>& rControlChangeVariable,
+void GradientProjectionSolverUtils::CalculateControlUpdate(
+    Vector& rControlUpdate,
+    Vector& rSearchDirection,
+    Vector& rSearchCorrection,
     const double StepSize,
     const double MaxCorrectionShare)
 {
     KRATOS_TRY
 
-    double local_search_direction_sum_square, local_search_correction_sum_square;
-    std::tie(local_search_direction_sum_square, local_search_correction_sum_square) = block_for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>(rContainer, [&](const auto& rEntity) {
-        return std::make_tuple(
-            CalculateValueNormSquare(rEntity.GetValue(rSearchDirectionVariable)),
-            CalculateValueNormSquare(rEntity.GetValue(rSearchDirectionCorrectionVariable)));
-    });
-    const auto& norms = rDataCommunicator.SumAll(array_1d<double, 3>({local_search_direction_sum_square, local_search_correction_sum_square, 0.0}));
-    const double search_direction_norm = std::sqrt(norms[0]);
-    const double correction_norm = std::sqrt(norms[1]);
+    KRATOS_ERROR_IF_NOT(rSearchDirection.size() == rSearchCorrection.size())
+        << "Search direction and search correction vector size mismatch. [ Search direction vector size = "
+        << rSearchDirection.size() << ", search correction vector size = " << rSearchCorrection.size()
+        << " ].\n";
 
-    if (search_direction_norm > 0.0) {
-        double search_direction_multiplyer;
-        double correction_multiplyer;
-        if (correction_norm > 0.0) {
-            if (correction_norm <= MaxCorrectionShare * StepSize) {
-                const double delta = StepSize - correction_norm;
-                search_direction_multiplyer = delta / search_direction_norm;
-            } else {
-                KRATOS_WARNING("GradientProjectionSolverUtils")
-                    << "Correction is scaled down from " << correction_norm
-                    << " to " << MaxCorrectionShare * StepSize << ".\n";
-                correction_multiplyer = MaxCorrectionShare * StepSize / correction_norm;
-                search_direction_multiplyer = (1.0 - MaxCorrectionShare) * StepSize / search_direction_norm;
-            }
-        } else {
-            search_direction_multiplyer = StepSize / search_direction_norm;
-        }
-
-        block_for_each(rContainer, [&](auto& rEntity) {
-            auto& r_search_direction = rEntity.GetValue(rSearchDirectionVariable);
-            r_search_direction *= search_direction_multiplyer;
-            auto& r_search_direction_correction = rEntity.GetValue(rSearchDirectionCorrectionVariable);
-            r_search_direction_correction *= correction_multiplyer;
-            rEntity.SetValue(rControlChangeVariable, r_search_direction + r_search_direction_correction);
-        });
-    } else {
-        KRATOS_WARNING("GradientProjectionSolverUtils") << "Norm of " << rSearchDirectionVariable.Name() << " is zero. Hence skipping control change calculation.\n";
-        VariableUtils().SetNonHistoricalVariableToZero(rControlChangeVariable, rContainer);
+    if (rControlUpdate.size() != rSearchCorrection.size()) {
+        rControlUpdate.resize(rSearchCorrection.size(), false);
     }
+
+    const double search_direction_norm_inf = OptimizationUtils::NormInf(rSearchDirection);
+    const double search_correction_norm_inf = OptimizationUtils::NormInf(rSearchCorrection);
+
+    if (std::abs(search_correction_norm_inf) > std::numeric_limits<double>::epsilon()) {
+        if (search_correction_norm_inf <= MaxCorrectionShare * StepSize) {
+            OptimizationUtils::MultiplyVector(rSearchDirection, rSearchDirection, (StepSize - search_correction_norm_inf) / search_direction_norm_inf);
+        } else {
+            KRATOS_WARNING("GradientProjectionSolverUtils")
+                << "Correction is scaled down from " << search_correction_norm_inf
+                << " to " << MaxCorrectionShare * StepSize << ".\n";
+
+            OptimizationUtils::MultiplyVector(rSearchCorrection, rSearchCorrection, MaxCorrectionShare * StepSize / search_correction_norm_inf);
+            OptimizationUtils::MultiplyVector(rSearchDirection, rSearchDirection, (1.0 - MaxCorrectionShare) * StepSize / search_direction_norm_inf);
+        }
+    } else {
+        OptimizationUtils::MultiplyVector(rSearchDirection, rSearchDirection, StepSize / search_direction_norm_inf);
+    }
+
+    OptimizationUtils::AddVectors(rControlUpdate, rSearchDirection, rSearchCorrection);
 
     KRATOS_CATCH("");
 }
-
-// template instantiations
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<double>&, const Variable<double>&, const Vector&, const Vector&, const std::vector<Vector>&);
-
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::NodesContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ConditionsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-template void GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection(ModelPart::ElementsContainerType&, const IndexType, LinearSolver<DenseSpace, DenseSpace>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Vector&, const Vector&, const std::vector<Vector>&);
-
-template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
-template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&,  const double, const double);
-template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ElementsContainerType&, const DataCommunicator&, const Variable<double>&, const Variable<double>&, const Variable<double>&, const double, const double);
-
-template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::NodesContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
-template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ConditionsContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
-template void GradientProjectionSolverUtils::CalculateControlChange(ModelPart::ElementsContainerType&, const DataCommunicator&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double, const double);
 
 } // namespace Kratos
