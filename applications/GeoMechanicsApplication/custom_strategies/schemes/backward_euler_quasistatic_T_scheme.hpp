@@ -10,8 +10,7 @@
 //  Main authors:    Mohamed Nabi
 //
 
-#if !defined(KRATOS_BACKWARD_EULER_QUASISTATIC_T_SCHEME )
-#define  KRATOS_BACKWARD_EULER_QUASISTATIC_T_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -78,5 +77,3 @@ protected:
 
 }; // Class BackwardEulerQuasistaticTScheme
 }  // namespace Kratos
-
-#endif // KRATOS_BACKWARD_EULER_QUASISTATIC_T_SCHEME defined

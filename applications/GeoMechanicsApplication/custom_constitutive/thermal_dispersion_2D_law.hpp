@@ -10,8 +10,7 @@
 //  Main authors:    Mohamed Nabi
 //
 
-#if !defined (KRATOS_THERMAL_DISPERSION_2D_LAW_GEO_H_INCLUDED)
-#define  KRATOS_THERMAL_DISPERSION_2D_LAW_GEO_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -214,4 +213,3 @@ private:
 
 }; // Class GeoThermalDispersion2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_THERMAL_DISPERSION_2D_LAW_GEO_H_INCLUDED  defined

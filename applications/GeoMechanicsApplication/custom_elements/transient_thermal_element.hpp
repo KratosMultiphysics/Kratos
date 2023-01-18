@@ -10,8 +10,7 @@
 //  Main authors:    Mohamed Nabi
 //
 
-#if !defined(KRATOS_GEO_THERMAL_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_THERMAL_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -221,5 +220,3 @@ namespace Kratos
     }; // Class TransientThermalElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_THERMAL_ELEMENT_H_INCLUDED  defined

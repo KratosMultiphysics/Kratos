@@ -14,8 +14,7 @@
 //
 
 
-#if !defined(KRATOS_GEO_T_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_T_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -124,5 +123,3 @@ private:
 }; // class TCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_T_CONDITION_H_INCLUDED defined 

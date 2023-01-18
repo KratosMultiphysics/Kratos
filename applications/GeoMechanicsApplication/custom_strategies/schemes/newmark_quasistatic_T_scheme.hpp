@@ -10,8 +10,7 @@
 //  Main authors:    Mohamed Nabi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_T_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_T_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -153,5 +152,3 @@ protected:
 
 }; // Class NewmarkQuasistaticTScheme
 }  // namespace Kratos
-
-#endif // KRATOS_NEWMARK_QUASISTATIC_T_SCHEME defined
