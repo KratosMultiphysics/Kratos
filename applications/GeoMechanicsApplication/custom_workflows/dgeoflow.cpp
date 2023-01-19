@@ -117,7 +117,7 @@ namespace Kratos
     {
         KRATOS_INFO("KratosExecute") << "Setting Up Kratos" << std::endl;
 
-    	if (!kernel.IsImported("KratosGeoMechanicsApplication"))
+    	if (!kernel.IsImported("GeoMechanicsApplication"))
         {
             KRATOS_INFO("KratosExecute") << "Importing GeoMechanicsApplication" << std::endl;
     		geoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
