@@ -607,7 +607,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     if (rValues.size() != OutputGPoints)
         rValues.resize(OutputGPoints);
 
-    // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
     if (rVariable == VON_MISES_STRESS) {
         //Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
