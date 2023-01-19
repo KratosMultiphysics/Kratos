@@ -207,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsGetPositionsVector, KratosCoreFastSuite)
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
     for (std::size_t i = 0; i < 4; ++i) {
-        r_test_model_part.CreateNewNode(i, 1,2,3);,
+        r_test_model_part.CreateNewNode(i, 1,2,3);
     },
 
     const Vector init_pos_1 = VariableUtils().GetInitialPositionsVector(std::as_const(r_test_model_part.Nodes()), 3);
