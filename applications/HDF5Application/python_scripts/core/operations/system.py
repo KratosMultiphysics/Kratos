@@ -19,7 +19,10 @@ import pathlib
 class DeleteOldH5Files(KratosMultiphysics.Operation):
     '''Delete h5-files from previous simulations.'''
 
-    def __init__(self, model_part: KratosMultiphysics.ModelPart, file: KratosHDF5.HDF5File):
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 _: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File):
         super().__init__()
         self.__model_part = model_part
         self.__file = file
@@ -38,11 +41,6 @@ class DeleteOldH5Files(KratosMultiphysics.Operation):
                 if file_time > current_time:
                     DeleteFileIfExisting(str(directory_path / name))
 
-    class Factory:
-
-        def __call__(self, model_part: KratosMultiphysics.ModelPart, file: KratosHDF5.HDF5File) -> "DeleteOldH5Files":
-            return DeleteOldH5Files(model_part, file)
-
 
 def Create(settings):
     '''Return an operation specified by the setting's 'operation_type'.
@@ -50,9 +48,8 @@ def Create(settings):
     This method is normally not used directly, but rather it is imported
     in core.operations.model_part.Create using the 'module_name' setting.
     '''
-    operation_type = settings['operation_type']
+    operation_type = settings['operation_type'].GetString()
     if operation_type == 'delete_old_h5_files':
-        return DeleteOldH5Files.Factory()
+        return DeleteOldH5Files
     else:
-        raise ValueError(
-            '"operation_type" has invalid value "' + operation_type + '"')
+        raise ValueError(f'"operation_type" has invalid value "{operation_type}"')

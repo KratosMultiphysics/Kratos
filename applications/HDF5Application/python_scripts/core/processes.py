@@ -114,7 +114,7 @@ class OrderedOutputOperationProcess(KratosMultiphysics.OutputProcess, OrderedOpe
     def PrintOutput(self) -> None:
         """!Bypass checks and execute all processes assigned to each registered controller."""
         for controller in self.__GetLoopControllers():
-            controller.ExecuteOperations()
+            controller.ExecuteOperation()
 
     # TODO: remove the double quotes from the return type hint after adopting python3.9 or newer
     def __GetLoopControllers(self) -> "list[controllers.Controller]":

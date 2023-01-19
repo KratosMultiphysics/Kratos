@@ -27,7 +27,10 @@ except ImportError:
 class XdmfOutput(KratosMultiphysics.Operation):
     '''Output that creates the xdmf-file for the given h5-files.'''
 
-    def __init__(self, model_part: KratosMultiphysics.ModelPart, file: KratosHDF5.HDF5File):
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 _: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File):
         super().__init__()
         self.__model_part = model_part
         self.__file = file
@@ -36,13 +39,9 @@ class XdmfOutput(KratosMultiphysics.Operation):
         self.__model_part.GetCommunicator().GetDataCommunicator().Barrier()
         # write xdmf only on one rank!
         if self.__model_part.GetCommunicator().MyPID() == 0:
-            WriteMultifileTemporalAnalysisToXdmf(
-                self.__file.GetFileName(), "/ModelData", "/ResultsData")
-
-    class Factory:
-
-        def __call__(self, model_part: KratosMultiphysics.ModelPart, file: KratosHDF5.HDF5File) -> "XdmfOutput":
-            return XdmfOutput(model_part, file)
+            WriteMultifileTemporalAnalysisToXdmf(self.__file.GetFileName(),
+                                                 "/ModelData",
+                                                 "/ResultsData")
 
 
 def Create(settings):
@@ -51,9 +50,8 @@ def Create(settings):
     This method is normally not used directly, but rather it is imported
     in core.operations.model_part.Create using the 'module_name' setting.
     '''
-    operation_type = settings['operation_type']
+    operation_type = settings['operation_type'].GetString()
     if operation_type == 'xdmf_output':
-        return XdmfOutput.Factory()
+        return XdmfOutput
     else:
-        raise ValueError(
-            '"operation_type" has invalid value "' + operation_type + '"')
+        raise ValueError(f'"operation_type" has invalid value "{operation_type}"')
