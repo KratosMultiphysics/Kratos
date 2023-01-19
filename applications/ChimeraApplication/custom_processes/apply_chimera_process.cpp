@@ -152,10 +152,10 @@ void ApplyChimera<TDim>::DoChimeraLoop()
     BuiltinTimer do_chimera_loop_time;
 
     int i_current_level = 0;
-    for (auto& current_level : mParameters) {
+    for (auto current_level : mParameters) {
         ChimeraHoleCuttingUtility::Domain domain_type =
             ChimeraHoleCuttingUtility::Domain::MAIN_BACKGROUND;
-        for (auto& background_patch_param :
+        for (auto background_patch_param :
              current_level) { // Gives the current background
             background_patch_param.ValidateAndAssignDefaults(parameters_for_validation);
             Model& current_model = mrMainModelPart.GetModel();
@@ -181,7 +181,7 @@ void ApplyChimera<TDim>::DoChimeraLoop()
 
             for (int i_slave_level = i_current_level + 1;
                  i_slave_level < mNumberOfLevels; ++i_slave_level) {
-                for (auto& slave_patch_param :
+                for (auto slave_patch_param :
                      mParameters[i_slave_level]) // Loop over all other slave
                                                  // patches
                 {
