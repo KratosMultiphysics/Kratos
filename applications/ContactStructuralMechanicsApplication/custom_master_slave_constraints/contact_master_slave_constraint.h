@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(CONTACT_MASTER_SLAVE_CONSTRAINT_H)
-#define CONTACT_MASTER_SLAVE_CONSTRAINT_H
+#pragma once
 
 // System includes
 
@@ -282,7 +281,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 ///@}
 
-
 } // namespace Kratos
-
-#endif // USER_PROVIDED_CONTACT_MASTER_SLAVE_CONSTRAINT_H
