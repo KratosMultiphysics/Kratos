@@ -50,11 +50,11 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
         # Pick necessary entries from the input parameters
         # (assuming they're all present)
         self.__parameters = KratosMultiphysics.Parameters()
-        self.__parameters.AddValue("prefix", parameters["prefix"])
+        self.__parameters.AddString("prefix", Prefix(parameters["prefix"].GetString(), self.model_part, self.time_format))
 
     #@abc.abstractmethod # <== missing the ABCMeta metaclass
     def Execute(self) -> None:
-        pass
+        raise RuntimeError("Call to a pure abstract method")
 
     #@abc.abstractstaticmethod # <== missing the ABCMeta metaclass
     @staticmethod
@@ -144,6 +144,13 @@ class ProcessInfoInput(ProcessInfoIOOperation):
 
 class VariableIOOperation(IOOperation):
     '''Generates json settings for variable data IO.'''
+
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 parameters: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File):
+        super().__init__(model_part, parameters, file)
+        self.parameters.AddValue("list_of_variables", parameters["list_of_variables"])
 
     @staticmethod
     def GetDefaultParameters() -> KratosMultiphysics.Parameters:
@@ -395,7 +402,6 @@ class AggregateOperation(KratosMultiphysics.Operation):
     def Execute(self) -> None:
         with OpenHDF5File(self.__io_parameters, self.__model_part) as file:
             for operation, operation_parameters in self.__operations:
-                print(id(operation_parameters), operation.__name__, operation_parameters["operation_type"].GetString())
                 operation(self.__model_part, operation_parameters, file).Execute()
 
     def Add(self, operation_parameters: KratosMultiphysics.Parameters) -> None:

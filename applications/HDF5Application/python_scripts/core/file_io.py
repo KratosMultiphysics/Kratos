@@ -176,3 +176,7 @@ class OpenHDF5File(object):
     def __exit__(self, exit_type, exit_value, exit_traceback) -> None:
         self.__file.Close()
         self.__file = None
+
+    @property
+    def file(self) -> KratosHDF5.HDF5File:
+        return self.__file

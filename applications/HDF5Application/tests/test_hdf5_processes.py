@@ -418,6 +418,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         with patch('KratosMultiphysics.HDF5Application.xdmf_utils.WriteMultifileTemporalAnalysisToXdmf', autospec=True) as WriteMultifileTemporalAnalysisToXdmf:
             with patch('KratosMultiphysics.kratos_utilities.DeleteFileIfExisting', autospec=True) as DeleteFileIfExisting:
                 with patch('pathlib.Path.glob', autospec=True) as listdir:
+                    self.HDF5FileSerial().GetFileName.return_value = settings["Parameters"]["model_part_name"].GetString() + ".h5"
                     listdir.return_value = [
                         pathlib.Path('test_model_part-0.0000.h5').absolute(),
                         pathlib.Path('test_model_part-0.1000.h5').absolute()]
