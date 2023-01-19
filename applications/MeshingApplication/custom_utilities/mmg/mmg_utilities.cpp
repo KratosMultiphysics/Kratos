@@ -2854,7 +2854,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMG2D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Edg, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -2869,7 +2869,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMG3D_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -2884,7 +2884,7 @@ void MmgUtilities<MMGLibrary::MMGS>::SetLocalParameter(
     double HMin,
     double HMax,
     double HausdorffValue
-    ) 
+    )
 {
     if ( MMGS_Set_localParameter(mMmgMesh, mMmgMet, MMG5_Triangle, rColor, HMin, HMax, HausdorffValue) != 1)
         KRATOS_ERROR << "Unable to set local parameter" << std::endl;
@@ -4508,7 +4508,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     Parameters elem_ref_json(elem_infile);
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
-        Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
+        Element const& r_clone_element = KratosComponents<Element>::Get((*it_param).GetString());
         rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
 
@@ -4518,7 +4518,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     Parameters cond_ref_json(cond_infile);
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
-        Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
+        Condition const& r_clone_element = KratosComponents<Condition>::Get((*it_param).GetString());
         rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
 
