@@ -260,6 +260,10 @@ void Parameters::SolveIncludes(nlohmann::json& rJson, const std::filesystem::pat
 
             if(act_it.value().is_object()) {
                 s.emplace(&act_it.value(), act_it.value().begin());
+            } else if (act_it.value().is_array()) {
+                for (auto it : act_it.value().items()) {
+                    SolveIncludes(it.value(), rFileName, rIncludeSequence);
+                }
             } else if (act_it.key() == "@include_json") {
                 // Check whether the included file exists
                 const std::string included_file_path_string = *act_it;
