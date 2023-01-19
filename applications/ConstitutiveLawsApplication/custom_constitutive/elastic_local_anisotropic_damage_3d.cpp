@@ -204,40 +204,39 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         noalias(r_stress_vector)      = prod(r_constitutive_matrix, r_strain_vector);
 
         const double eps = 1e-8;
+        const double beta1t = 0.85;
+        const double beta2t = 0.18;
+        const double beta1c = 0.0;
+        const double beta2c = 0.095;
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
         const double ft  = r_material_properties[YIELD_STRESS_TENSION];
-        // const double fcb = 1.16 * fck;  
-        // const double alphaL = (((fcb/fck)-1.0)/(2.0*(fcb/fck)-1.0));
-        // const double betaL  = ((1.0 - alphaL) * (fck/(ft))) - (1. + alphaL); 
+        const double k0t0 = r_material_properties[DAMAGE_THRESHOLD_TENSION];
+        const double k0c0 = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
+        double SprMax, H, Max_principal_strain, k0t, k0c ;
         Vector dI1dS  = ZeroVector(6);
         Vector dJ2dS  = ZeroVector(6); 
-        Matrix dJ2ddS = ZeroMatrix(6, 6); 
-        Matrix dSprdS = ZeroMatrix(3,6);
-        GetDerivatives( r_stress_vector, dI1dS, dJ2ddS,dJ2dS);
         Vector damage_vector= ZeroVector(3);
         Vector Spr = ZeroVector(3);
-        Matrix M   = ZeroMatrix(6,6);
-        Matrix inverse_M   = ZeroMatrix(6,6);
         Vector dSmaxdSig = ZeroVector(6);;
-        double SprMax,det_M ;
+        Matrix dJ2ddS = ZeroMatrix(6, 6); 
+        Matrix dSprdS = ZeroMatrix(3,6);
+        Matrix EffStiffnessMatrix = ZeroMatrix(6, 6); 
+        Matrix dEprdE = ZeroMatrix(3,6);
+        Matrix dkdEpr = ZeroMatrix(3,3);
+        Matrix dHdk   = ZeroMatrix(6,3);
+
+        GetDerivatives( r_stress_vector, dI1dS, dJ2ddS,dJ2dS);
         GetEigenValues(r_stress_vector, Spr, SprMax);
-        
         //manipulation of zero entries in stress
         if( (fabs(Spr(0)-Spr(1)) < 2.0*eps ) && ( fabs(Spr(0)-Spr(2)) < 2.0*eps ) && ( fabs(Spr(1)-Spr(2)) < 2.0*eps ) ){
             Spr(0) = Spr(0) + 1.1*eps;
             Spr(1) = Spr(1) + 0.75*eps;
             Spr(2) = Spr(2) + 0.5*eps;
-            //dSprdS(0,0) = dSprdS(1,1) = dSprdS(2,2) = 1.0;
         }else{
             if( fabs(Spr(0)-Spr(1)) < eps ) Spr(1) = Spr(1) - eps;
             if( fabs(Spr(1)-Spr(2)) < eps ) Spr(2) = Spr(2) - eps;
-            //ComputedSprdS(r_stress_vector, Spr, dSprdS);
         }
-        //computing invariants of stress
-        double I1, J2, H;
-        GetInvariants(r_stress_vector, I1, J2);
-        
         if(SprMax < eps){
             H = 0.0;
         }else{
@@ -250,17 +249,12 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
 
        //calculate prinicpal strains
         Vector principal_strains = ZeroVector(3);
-        double Max_principal_strain;
         GetEigenValues(r_strain_vector, principal_strains, Max_principal_strain);
+        double r=0.0; GetStressWeightFactor(r,Spr);
+        KRATOS_WATCH(r);
+        double del_r = 0.0;
+        if (r>0 && r < 0.1){del_r = 1.0;}
 
-        const double beta1t = 0.85;
-        const double beta2t = 0.18;
-        const double beta1c = 0.0;
-        const double beta2c = 0.095;
-        double k0t,k0c;
-
-        const double k0t0 = r_material_properties[DAMAGE_THRESHOLD_TENSION];
-        const double k0c0 = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
         if (k0t0==0 || k0c0==0){
             k0t = fck/E;
             k0c = (10./3.) * ft/E;
@@ -268,9 +262,9 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
             k0t = std::min(k0t0,fck/E);
             k0c = std::min(k0c0,(10./3.) * ft/E);
         }
-        double k0 = k0t  * H  + (1.-H) * k0c;
-        double beta1 = beta1t  * H  + (1.-H) * beta1c;
-        double beta2 = beta2t  * H  + (1.-H) * beta2c;
+        double k0 = k0t  * H * (1-del_r) + (1.0- H + del_r) * k0c;
+        double beta1 = beta1t  * H * (1-del_r) + (1.-H + del_r) * beta1c;
+        double beta2 = beta2t  * H * (1-del_r) + (1.-H + del_r) * beta2c;
 
         Vector kappa = ZeroVector(3);
         Vector F     = ZeroVector(3);
@@ -287,17 +281,16 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
                 double var2      = exp(-beta2*((kappa[i]-k0)/(k0)));
                 damage_vector[i] = 1.0 - var1 * var2;              
             }
-            GetDamageEffectTensor(damage_vector, M);
-            MathUtils<double>::InvertMatrix(M, inverse_M, det_M);
-            r_constitutive_matrix = prod(inverse_M, prod(r_constitutive_matrix, (trans(inverse_M))));
-            r_stress_vector       = prod(r_constitutive_matrix,r_strain_vector);
-        } 
-
-        for (int i = 0; i < 3; i++){
             if(damage_vector[i] < 0.0){damage_vector[i] = 0.0;}
-        }
+        } 
+        CalculateParameters(rParametersValues, damage_vector, EffStiffnessMatrix, dEprdE, dkdEpr);
+        CalculatePartialDerivatives(r_material_properties, damage_vector, k0, beta1, beta2, kappa, dHdk);
+        Matrix b = prod(dkdEpr, dEprdE);
+        r_constitutive_matrix = EffStiffnessMatrix + prod(dHdk, b);
+        r_stress_vector       = prod(r_constitutive_matrix,r_strain_vector);
         rDamageVector = damage_vector;
-    }
+        }
+
     KRATOS_CATCH("")
 }
 
@@ -472,6 +465,81 @@ void ElasticAnisotropicDamage::GetDamageEffectTensor(
 }
 //************************************************************************************
 //***********************************************************************************
+
+void ElasticAnisotropicDamage::CalculateParameters(
+    ConstitutiveLaw::Parameters& rParametersValues, 
+    const Vector& DamageVector,
+    Matrix& EffStiffnessMatrix,
+    Matrix& dEprdE,
+    Matrix& dkdEpr
+)
+{
+    KRATOS_TRY
+
+    Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
+    const Vector& r_strain_vector = rParametersValues.GetStrainVector();        
+
+    Matrix M     = ZeroMatrix(6,6);
+    Matrix Inv_M = ZeroMatrix(6,6);
+    Vector principal_strains = ZeroVector(3);
+    double det_M, Max_principal_strain;
+
+
+    CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
+    GetDamageEffectTensor(DamageVector, M);
+    MathUtils<double>::InvertMatrix(M, Inv_M, det_M);
+    Matrix a = prod(r_constitutive_matrix,trans(Inv_M));
+    EffStiffnessMatrix = prod(Inv_M,a);    
+
+    GetEigenValues(r_strain_vector, principal_strains, Max_principal_strain);
+    ComputedSprdS(r_strain_vector, principal_strains, dEprdE); 
+    for(int i = 0; i < 3; ++i){  
+        if(DamageVector[i] > 0){
+            dkdEpr(i,i) = 1; 
+        } 
+    } 
+
+    KRATOS_CATCH("") 
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticAnisotropicDamage::CalculatePartialDerivatives(
+    const Properties& rMaterialProperties,
+    const Vector& DamageVector,
+    const double& Kappa0, 
+    const double& Beta1, 
+    const double& Beta2, 
+    const Vector& Kappa,
+    Matrix& dHdk
+)
+{
+    const double E   = rMaterialProperties[YOUNG_MODULUS];
+    const double nu  = rMaterialProperties[POISSON_RATIO];
+    const double E_factor = ((1 + nu ) * (1- nu))/E;
+    double dDdk;
+    for(size_t i =0; i < dHdk.size1(); ++i){
+        for(size_t j =0; j < DamageVector.size(); ++j){
+            if(i==j){
+                dDdk      = (1- DamageVector[j]) * (Beta1/Kappa[j] + Beta2/Kappa0);
+                dHdk(j,j) = E_factor * (-2 * (1-DamageVector[j]) * (1-nu) * dDdk);
+            }else if(i==0 || i==1 || i==2){
+                dHdk(i,j) = 0;
+            }else{
+                if(i-j == 3){
+                    dHdk(i,j) = 0;
+                }else{
+                    dDdk      = (1- DamageVector[j]) * (Beta1/Kappa[j] + Beta2/Kappa0);
+                    dHdk(i,j) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[(j+1)%3]+DamageVector[(j+2)%3]))-1) * dDdk;
+                }
+            }
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
 
 void ElasticAnisotropicDamage::GetLawFeatures(Features& rFeatures)
 {

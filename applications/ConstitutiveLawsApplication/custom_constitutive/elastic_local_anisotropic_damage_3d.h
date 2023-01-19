@@ -197,16 +197,16 @@ public:
      */
     void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
 
-    /**
-     * @brief calculates the value of a specified variable (double)
-     * @param rValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(Parameters& rValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
+    // /**
+    //  * @brief calculates the value of a specified variable (double)
+    //  * @param rValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // double& CalculateValue(Parameters& rValues,
+    //                        const Variable<double>& rThisVariable,
+    //                        double& rValue) override;
 
     /**
      * @brief calculates the value of a specified variable (Vector)
@@ -318,7 +318,25 @@ protected:
     void GetStressWeightFactor(double &w, 
                                const Vector &s_pr) const ;
     
+    /**
+     * @brief This method calculates the linearized tangent operator
+     */ 
+    void CalculateParameters(ConstitutiveLaw::Parameters& rParametersValues, 
+                             const Vector& DamageVector,
+                             Matrix& EffStiffnessMatrix,
+                             Matrix& dEprdE,
+                             Matrix& dkdEpr);
+    /**
+     * @brief This method calculates the linearized tangent operator
+     */ 
 
+    void CalculatePartialDerivatives(const Properties& rMaterialProperties,
+                                     const Vector& DamageVector,
+                                     const double& Kappa0, 
+                                     const double& Beta1, 
+                                     const double& Beta2, 
+                                     const Vector& Kappa,
+                                     Matrix& dHdk);
 private:
 
     ///@name Static Member Variables
