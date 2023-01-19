@@ -194,6 +194,27 @@ Begin SubModelPart Parts_Beam_Beam_Auto2 // Group Beam Auto2 // Subtree Parts_Be
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
+Begin SubModelPart Load_position_1
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Load_position_2
+    Begin SubModelPartNodes
+            22
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart DISPLACEMENT_Point_support_left // Group Point support left // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             9

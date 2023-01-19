@@ -39,12 +39,13 @@
         ],
         "responses": [
             {
-                "name": "displacement_to_measurements",
+                "name": "displacement",
                 "module": "KratosMultiphysics.OptimizationApplication.responses",
                 "type": "DisplacementResponseFunction",
                 "objective": "minimization",
                 "settings": {
                     "evaluated_model_part_name": "Structure",
+                    "primal_analysis_name": "Structure_static"
                 }
             }
         ],
@@ -70,7 +71,7 @@
                         "young_modulus"
                     ],
                     "response_names_list": [
-                        "displacement_to_measurements"
+                        "displacement"
                     ],
                     "echo_level": 1
                 }

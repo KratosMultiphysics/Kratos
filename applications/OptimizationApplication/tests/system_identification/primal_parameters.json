@@ -127,7 +127,42 @@
                 }
             }
         ],
-        "loads_process_list": [],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process fixes the selected components of a given vector variable",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.Load_position_1",
+                    "variable_name": "POINT_LOAD",
+                    "modulus": 1000,
+                    "direction": [
+                        0.0,
+                        0.0,
+                        -1.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process fixes the selected components of a given vector variable",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.Load_position_2",
+                    "variable_name": "POINT_LOAD",
+                    "modulus": 1000,
+                    "direction": [
+                        0.0,
+                        0.0,
+                        -1.0
+                    ]
+                }
+            }
+        ],
         "list_other_processes": []
     },
     "output_processes": {
