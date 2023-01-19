@@ -1136,6 +1136,7 @@ namespace
         int number_2nd_level = 0 ;
         int number_3rd_level = 0 ;
         int number_4th_level = 0 ;
+        int number_5th_level = 0 ;
         for (auto& r_bd_node : mpModelPart->Nodes()) {
             auto it_found = sur_bd_nodes_map.find(r_bd_node.Id());
             if (it_found == sur_bd_nodes_map.end() && r_bd_node.Is(BOUNDARY)) {
@@ -1366,34 +1367,12 @@ namespace
                                 }
                             }
                         }
-                        // KRATOS_WATCH(r_node_neighSS)
-                        // KRATOS_WATCH("HO UN NODO VERY PROBLEMATIC")
-                        // KRATOS_WATCH(count_available_neigh_node)
 
                         if (count_available_neigh_node > 0) {
-                            // // Need to collect all the neighbours
-                            // auto& p_node_neigh_vect_TOT = r_node_neighSS[0].GetValue(NEIGHBOUR_NODES);
-                            // for (int i = 1 ; i < r_node_neighSS.size() ; i++ ) {
-                            //     auto& r_node_i = r_node_neighSS[i] ;
-                            //     auto& r_node_neigh_vect_i = r_node_i.GetValue(NEIGHBOUR_NODES);
-                            //     for(auto& it : r_node_neigh_vect_i.GetContainer()) {
-                            //         p_node_neigh_vect_TOT.push_back(it);
-                            //     } 
-                            // }
-                            // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-                            // // Unique
-                            // p_node_neigh_vect_TOT.Unique() ;    
-                            // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-                            // // shrink_to_fit
-                            // p_node_neigh_vect_TOT.shrink_to_fit() ;
-                            // // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-
                             // Set an auxilary map to calculate the current node nodal gradient contributions
                             std::map<std::size_t, Vector> neigh_dn_dx_map;
                             double w_total = 0.0;
-                            // for (std::size_t i_neigh = 0; i_neigh < p_node_neigh_vect_TOT.size(); ++i_neigh) { 
                             for (int i = 0 ; i < r_node_neighSS.size() ; i++ ) {    
-                                // auto p_node_neigh = p_node_neigh_vect_TOT(i_neigh).get();
                                 // KRATOS_WATCH(r_node_neighSS[i].Id())
                                 auto p_node_neigh = &r_node_neighSS[i];
                                 double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
@@ -1506,31 +1485,11 @@ namespace
                             // KRATOS_WATCH("VERY_VERY_PROBLEMATIC NODE")
                             // KRATOS_WATCH(count_available_neigh_node)
                             if (count_available_neigh_node > 0) {
-                                // Need to collect all the neighbours
-                                // auto& p_node_neigh_vect_TOT = r_node_neighSSS[0].GetValue(NEIGHBOUR_NODES);
-                                // for (int i = 1 ; i < r_node_neighSSS.size() ; i++ ) {
-                                //     auto& r_node_i = r_node_neighSSS[i] ;
-                                //     auto& r_node_neigh_vect_i = r_node_i.GetValue(NEIGHBOUR_NODES);
-                                //     for(auto& it : r_node_neigh_vect_i.GetContainer()) {
-                                //         p_node_neigh_vect_TOT.push_back(it);
-                                //     } 
-                                // }
-                                // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-                                // Unique
-                                // p_node_neigh_vect_TOT.Unique() ;    
-                                // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-                                // shrink_to_fit
-                                // p_node_neigh_vect_TOT.shrink_to_fit() ;
-                                // KRATOS_WATCH(p_node_neigh_vect_TOT.size())
-            
                                 // Set an auxilary map to calculate the current node nodal gradient contributions
                                 std::map<std::size_t, Vector> neigh_dn_dx_map;
                                 double w_total = 0.0;
                                 for (int i = 0 ; i < r_node_neighSSS.size() ; i++ ) {  
-                                // for (std::size_t i_neigh = 0; i_neigh < p_node_neigh_vect_TOT.size(); ++i_neigh) {   
-                                    // auto p_node_neigh = p_node_neigh_vect_TOT(i_neigh).get();
                                     auto p_node_neigh = &r_node_neighSSS[i] ;
-                                    // auto& r_node_ = *p_node_neigh  ;
                                     // KRATOS_WATCH(r_node_.Id())
                                     double &phi_distance = p_node_neigh->GetSolutionStepValue(DISTANCE);
                                     if (phi_distance > 0 && p_node_neigh->IsNot(BOUNDARY) ) {
@@ -1581,7 +1540,12 @@ namespace
                                 number_4th_level = number_4th_level + 1 ;
                             } else {
                                 KRATOS_WATCH("Need 5th level neigh research....")
-                                exit(0) ;
+                                KRATOS_WATCH("\n\n\n\n\n\n\n\n\n\n\n\n\n\n We return 0 nodes...")
+                                number_5th_level = number_5th_level + 1 ;
+                                // insert a fake map with 0 contribiutions
+                                std::map<std::size_t, Vector> neigh_dn_dx_map;
+                                sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
+                                // exit(0) ;
                             }
                             // exit(0) ;
                         }
@@ -1596,6 +1560,7 @@ namespace
         KRATOS_WATCH(number_2nd_level)
         KRATOS_WATCH(number_3rd_level)
         KRATOS_WATCH(number_4th_level)
+        KRATOS_WATCH(number_5th_level)
         return sur_bd_nodes_map;
     }
 
