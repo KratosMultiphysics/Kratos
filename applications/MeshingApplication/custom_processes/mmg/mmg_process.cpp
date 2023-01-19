@@ -32,7 +32,7 @@
 /* The mappers includes */
 #include "spaces/ublas_space.h"
 #include "mappers/mapper_flags.h"
-#include "factories/mapper_factory.h" 
+#include "factories/mapper_factory.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -590,7 +590,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
             ModelPart& r_auxiliary_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
 
-            // Define mapper factory 
+            // Define mapper factory
             DEFINE_MAPPER_FACTORY_SERIAL
             if (MapperFactoryType::HasMapper("nearest_element") && mThisParameters["use_mapper_if_available"].GetBool()) {
                 KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Using MappingApplication to interpolate values" << std::endl;
@@ -867,7 +867,7 @@ void MmgProcess<TMMGLibrary>::ApplyLocalParameters() {
     // Count number of parameters given by the user
     const auto parameter_array = mThisParameters["advanced_parameters"]["local_entity_parameters_list"];
     IndexType n_parameters = parameter_array.size();
-    for (auto& parameter_settings : parameter_array) {
+    for (auto parameter_settings : parameter_array) {
         n_parameters += parameter_settings["model_part_name_list"].size();
     }
 
@@ -1501,7 +1501,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
                 "max_num_search_iterations"     : 8,
                 "echo_level"                    : 0
             }
-        }, 
+        },
         "extrapolate_contour_values"           : true,
         "surface_elements"                     : false,
         "search_parameters"                    : {
