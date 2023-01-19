@@ -7,7 +7,7 @@
 #   - https://github.com/KratosMultiphysics/Kratos
 
 # Optional parameters:
-# You can find a list will all the compiation options in INSTALL.md or here:
+# You can find a list with all the compilation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 # Function to add apps
@@ -48,5 +48,5 @@ cmake ..                                                                        
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
 -DUSE_EIGEN_MKL=OFF
 
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

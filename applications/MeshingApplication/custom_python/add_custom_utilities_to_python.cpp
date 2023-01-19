@@ -27,6 +27,7 @@
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
+#include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
 
 
 #ifdef  USE_TETGEN_NONFREE_TPL
@@ -120,6 +121,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     (m,"LinearToQuadraticTetrahedraMeshConverter")
     .def(py::init<ModelPart&>())
     .def("LocalConvertLinearToQuadraticTetrahedraMesh", &LinearToQuadraticTetrahedraMeshConverter::LocalConvertLinearToQuadraticTetrahedraMesh)
+    ;
+
+    py::class_<LocalRefineTetrahedraMeshParallelToBoundaries >
+    (m,"LocalRefineTetrahedraMeshParallelToBoundaries")
+    .def(py::init<ModelPart&>())
+    .def("LocalRefineMesh", &LocalRefineTetrahedraMeshParallelToBoundaries::LocalRefineMesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL

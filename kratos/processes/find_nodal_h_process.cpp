@@ -50,7 +50,7 @@ void FindNodalHProcess<THistorical>::Execute()
         for(IndexType k = 0; k < number_of_nodes-1; ++k) {
             double& r_h1 = GetHValue(r_geom[k]);
             for(IndexType l=k+1; l < number_of_nodes; ++l) {
-                const double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
+                const double hedge = r_geom[l].Distance(r_geom[k]);
                 double& r_h2 = GetHValue(r_geom[l]);
 
                 // Get minimum between the existent value and the considered edge length

@@ -35,6 +35,8 @@ ModelPart& RansKEpsilonKAFC2D3NSetUp(
     auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3NSetUp(
         rModel, "RansKEpsilonKAFC2D3N");
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -43,6 +45,8 @@ ModelPart& RansKEpsilonEpsilonAFC2D3NSetUp(
 {
     auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3NSetUp(
         rModel, "RansKEpsilonEpsilonAFC2D3N");
+
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
     return r_model_part;
 }

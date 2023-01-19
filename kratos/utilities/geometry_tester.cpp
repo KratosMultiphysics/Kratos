@@ -979,7 +979,7 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
     Vector ei,ej,f;
 
     double delta = 1e-1;
-    unsigned int dim = rGeometry.Dimension();
+    unsigned int dim = rGeometry.WorkingSpaceDimension();
     rGeometry.ShapeFunctionsSecondDerivatives(DDN_DX,local_coordinates);
 
     if ( H.size() != rGeometry.size() )
