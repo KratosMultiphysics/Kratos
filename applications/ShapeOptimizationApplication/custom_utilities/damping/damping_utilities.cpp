@@ -49,10 +49,10 @@ DampingUtilities::DampingUtilities( ModelPart& modelPartToDamp, Parameters Dampi
         }  )" );
 
     // Loop over all regions for which damping is to be applied
-    for (auto& r_region_parameters : mDampingSettings["damping_regions"])
+    for (auto region_parameters : mDampingSettings["damping_regions"])
     {
-        r_region_parameters.ValidateAndAssignDefaults(default_parameters);
-        KRATOS_ERROR_IF(r_region_parameters["damping_radius"].GetDouble() < 0.0) << "DampingUtilities: 'damping_radius' is a mandatory setting and has to be > 0.0!" << std::endl;
+        region_parameters.ValidateAndAssignDefaults(default_parameters);
+        KRATOS_ERROR_IF(region_parameters["damping_radius"].GetDouble() < 0.0) << "DampingUtilities: 'damping_radius' is a mandatory setting and has to be > 0.0!" << std::endl;
     }
 
     BuiltinTimer timer;
