@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_QUADRILATERAL_2D_9_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_2D_9_H_INCLUDED
+#pragma once 
 
 // System includes
 
@@ -23,6 +22,7 @@
 
 // Project includes
 #include "geometries/line_2d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 
 
@@ -405,7 +405,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /** This method calculates and returns area or surface area of
@@ -422,16 +422,7 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            Area += temp[i] * integration_points[i].Weight();
-        }
-
-        return Area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
     /**
@@ -482,10 +473,8 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (-1.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
-        {
-            if ( (rResult[1] >= (-1.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
-            {
+        if ( (rResult[0] >= (-1.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
+            if ( (rResult[1] >= (-1.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
                 return true;
             }
         }
@@ -1326,5 +1315,3 @@ const GeometryDimension Quadrilateral2D9<TPointType>::msGeometryDimension(
     2, 2, 2);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_9_H_INCLUDED  defined

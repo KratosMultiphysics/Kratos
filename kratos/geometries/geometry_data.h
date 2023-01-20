@@ -422,7 +422,7 @@ public:
     ///@name Integration
     ///@{
 
-    /** Number of integtation points for default integration
+    /** Number of integration points for default integration
     method. This method just call IntegrationPointsNumber(enum
     IntegrationMethod ThisMethod) with default integration
     method.
