@@ -174,7 +174,7 @@ int GetNumberOfNodes(
         pMeshName, MED_NO_DT, MED_NO_IT ,
         MED_NODE, MED_NO_GEOTYPE,
         MED_COORDINATE, MED_NO_CMODE,
-        &coordinate_changement, &geo_transformation);+
+        &coordinate_changement, &geo_transformation);
 
     KRATOS_CATCH("")
 }
@@ -342,6 +342,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
+    using NodePointerType = ModelPart::NodeType::Pointer;
+    using GeometryPointer = ModelPart::GeometryType::Pointer;
+
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
 
     // reading nodes
@@ -354,7 +357,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         num_nodes,
         dimension);
 
-    std::vector<NodePointerType> new_nodes(node_coords);
+    std::vector<NodePointerType> new_nodes(num_nodes);
 
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
@@ -369,6 +372,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     KRATOS_INFO("MedModelPartIO") << "Read " << num_nodes << " nodes" << std::endl;
 
+    med_bool coordinatechangement, geotransformation;
+
     // reading cells
     const int num_geometry_types = MEDmeshnEntity(
         mpFileHandler->GetFileHandle(),
@@ -379,14 +384,18 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         &coordinatechangement, &geotransformation); // TODO error if smaller zero, holds probably for the other functions too that return med_int
 
     // looping geometry types
-    for (int it_geo=1; it<=num_geometry_types; ++it_geo) {
+    for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) {
+        med_geometry_type geo_type;
+
+        std::string geotypename;
+
         /* get geometry type */
-        err = MEDmeshEntityInfo(
+        med_err err = MEDmeshEntityInfo(
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
             MED_NO_DT, MED_NO_IT,
             MED_CELL, it_geo,
-            geotypename, &geo_type);
+            geotypename.data(), &geo_type);
 
         /* how many cells of type geotype ? */
         const int num_geometries = MEDmeshnEntity(
@@ -408,29 +417,28 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CELL, geo_type,
             MED_NODAL, MED_FULL_INTERLACE,
             connectivity.data());
-        }
 
         // create geometries
-        std::vector<???> new_geometries(num_geometries);
+        std::vector<GeometryPointer> new_geometries(num_geometries);
 
         const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
         const auto& r_ref_geometry = KratosComponents<GeometryType>::Get(kratos_geo_name);
-        const auto reorder_fct = GetReorderFunction(geo_type);
+        const auto reorder_fct = GetReorderFunction<Element::NodesArrayType>(geo_type);
 
         Element::NodesArrayType temp_geometry_nodes(num_nodes_geo_type); // TODO make thread local
         IndexPartition(num_geometries).for_each([&](const int i){
             for (int j=0; j<num_nodes_geo_type; ++j) {
                 const int node_idx = i*num_nodes_geo_type + j;
                 // TODO debug bounds check!
-                temp_geometry_nodes[j] = new_nodes[connectivity(node_idx)]; // I think this also needs a +1
+                temp_geometry_nodes[j] = *(new_nodes[connectivity[node_idx]]); // I think this also needs a +1
             }
-            reorder_fct(temp_geometry_nodes);
-            new_geometries[i] = r_clone_geometry.Create(i+1, temp_geometry_nodes); // TODO id must be global!
+            reorder_fct(temp_geometry_nodes.data());
+            new_geometries[i] = r_ref_geometry.Create(i+1, temp_geometry_nodes); // TODO id must be global!
         });
 
-        rThisModelPart->AddGeometries(new_geometries.begin(), new_geometries.end());
+        rThisModelPart.AddGeometries(new_geometries.begin(), new_geometries.end());
 
-        KRATOS_INFO() << ... added x amount of geom of type Y << "\n";
+        KRATOS_INFO("MedModelPartIO") << "... added x amount of geom of type Y" << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -485,7 +493,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         0.0,
         MED_FULL_INTERLACE,
         rThisModelPart.NumberOfNodes(),
-        vec_nodal_coords.data());
+        nodal_coords.data());
 
     if (rThisModelPart.NumberOfGeometries() > 0) {
         std::string geometry_name;
@@ -509,7 +517,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
             ConnectivitiesVector& Connectivities) {
 
                 const auto med_geom_type = KratosToMedGeometryType.at(GeomType);
-                const auto reorder_fct = GetReorderFunction(med_geom_type);
+                const auto reorder_fct = GetReorderFunction<ConnectivitiesType>(med_geom_type);
 
                 auto GetMedConnectivities = [&reorder_fct](
                     const std::size_t NumberOfPoints,
@@ -603,11 +611,6 @@ void MedModelPartIO::DivideInputToPartitions(Kratos::shared_ptr<std::iostream> *
         pStreams,
         NumberOfPartitions,
         rPartitioningInfo);
-}
-
-int MedModelPartIO::GetNumberOfMedMeshes() const
-{
-    return MEDnMesh(mpFileHandler->GetFileHandle());
 }
 
 } // namespace Kratos.
