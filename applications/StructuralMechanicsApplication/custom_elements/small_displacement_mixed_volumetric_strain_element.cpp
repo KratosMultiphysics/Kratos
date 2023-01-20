@@ -339,11 +339,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     rRightHandSideVector.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
@@ -509,11 +510,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     rLeftHandSideMatrix.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
     const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
@@ -645,11 +647,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     rRightHandSideVector.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const double thickness = (dim == 2 && GetProperties().Has(THICKNESS)) ? GetProperties()[THICKNESS] : 1.0;
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        const double w_gauss = thickness * kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
