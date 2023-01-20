@@ -242,7 +242,12 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
+    template<typename TIteratorType>
+    void SearchEdgeToBeRefinedGeneric(
+            TIteratorType GeometricalObjectsBegin,
+            TIteratorType GeometricalObjectsEnd,
+            compressed_matrix<int>& rCoord
+					  );
     ///@}
     ///@name Protected Operations
     ///@{

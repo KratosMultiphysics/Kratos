@@ -167,7 +167,24 @@ namespace Kratos
         ElementsArrayType::iterator it_begin = rElements.ptr_begin();
         ElementsArrayType::iterator it_end   = rElements.ptr_end();
 
-        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+        this->SearchEdgeToBeRefinedGeneric(it_begin,it_end,Coord);
+
+        KRATOS_CATCH("");
+    }
+
+        /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<typename TIteratorType>
+    void LocalRefineGeometryMesh::SearchEdgeToBeRefinedGeneric(
+            TIteratorType GeometricalObjectsBegin,
+            TIteratorType GeometricalObjectsEnd,
+            compressed_matrix<int>& rCoord
+    )
+    {
+        KRATOS_TRY;
+
+        for (TIteratorType it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it)
         {
             if (it->GetValue(SPLIT_ELEMENT) == true)
             {
@@ -180,7 +197,7 @@ namespace Kratos
                         int index_j = geom[j].Id() - 1;
                         if (index_j > index_i)
                         {
-                            Coord(index_i, index_j) = -2;
+                            rCoord(index_i, index_j) = -2;
                         }
                     }
                 }
@@ -524,5 +541,8 @@ namespace Kratos
             ( iNode->GetValue(FATHER_NODES) ).clear();
         }
     }
+
+    template void LocalRefineGeometryMesh::SearchEdgeToBeRefinedGeneric<ModelPart::ElementsContainerType::iterator>  (ModelPart::ElementsContainerType::iterator GeometricalObjectsBegin, ModelPart::ElementsContainerType::iterator   GeometricalObjectsEnd, compressed_matrix<int>& rCoord);
+    //template void LocalRefineGeometryMesh::SearchEdgeToBeRefinedGeneric<ModelPart::ConditionsContainerType::iterator>(ModelPart::ElementsContainerType::iterator GeometricalObjectsBegin, ModelPart::ConditionsContainerType::iterator GeometricalObjectsEnd, compressed_matrix<int>& rCoord);
 
 } // Namespace Kratos.
