@@ -32,6 +32,7 @@ from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
 from test_consecutive_pipe_lines import TestConsecutivePipeLines
 from test_line_loads import KratosGeoMechanicsLineLoadTests
 from test_element_lab import KratosGeoMechanicsLabElementTests
+from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -64,6 +65,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsLineLoadTests,
                         KratosGeoMechanicsCurvedBeamElementTests,
                         KratosGeoMechanicsLabElementTests
+                        KratosGeoMechanicsTransientThermalTests
                         ]
 
     # Create an array with the selected tests
