@@ -95,9 +95,12 @@ public:
 
     double CalculateWaterPressureGradient(const GeometryType& Geom);
 
+    double CalculateHeadGradient(const GeometryType& Geom);
+
     double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom);
 
     void CalculateLengthSlope(const GeometryType& Geom);
+
 
 protected:
     
@@ -119,6 +122,8 @@ protected:
     double CalculateParticleDiameter(const PropertiesType& Prop);
 
     double pipe_initialised = false;
+
+    array_1d<double, TNumNodes> HydraulicHeadsFromWaterPressures();
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include <math.h>
+
 namespace Kratos
 {
 
@@ -96,6 +97,37 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("");
 }
 
+template< unsigned int TDim, unsigned int TNumNodes >
+array_1d<double, TNumNodes> SteadyStatePwPipingElement<TDim, TNumNodes>::HydraulicHeadsFromWaterPressures() {
+
+    const double NumericalLimit = std::numeric_limits<double>::epsilon();
+    const PropertiesType& rProp = this->GetProperties();
+    const GeometryType& rGeom = this->GetGeometry();
+
+    //Defining necessary variables
+    array_1d<double, TNumNodes> NodalHydraulicHead;
+    for (unsigned int node = 0; node < TNumNodes; ++node) {
+        array_1d<double, 3> NodeVolumeAcceleration;
+        noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
+        const double g = norm_2(NodeVolumeAcceleration);
+        if (g > NumericalLimit) {
+            const double FluidWeight = g * rProp[DENSITY_WATER];
+
+            array_1d<double, 3> NodeCoordinates;
+            noalias(NodeCoordinates) = rGeom[node].Coordinates();
+            array_1d<double, 3> NodeVolumeAccelerationUnitVector;
+            noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
+
+            const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+            NodalHydraulicHead[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
+                - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight;
+        }
+        else {
+            NodalHydraulicHead[node] = 0.0;
+        }
+    }
+    return NodalHydraulicHead;
+}
 
 template< >
 void SteadyStatePwPipingElement<2, 4>::CalculateLengthSlope(const GeometryType& Geom)
@@ -105,8 +137,10 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLengthSlope(const GeometryType& 
 	double dx = Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0];
     double dy = Geom.GetPoint(1)[1] - Geom.GetPoint(0)[1];
 
-	this->SetValue(PIPE_ELEMENT_LENGTH, sqrt(pow(dx, 2) + pow(dy, 2)));
-    this->SetValue(PIPE_ELEMENT_SLOPE, atan(dy / dx));
+    this->SetValue(PIPE_ELEMENT_LENGTH, abs(dx));
+	//this->SetValue(PIPE_ELEMENT_LENGTH, sqrt(pow(dx, 2) + pow(dy, 2)));
+    this->SetValue(PIPE_ELEMENT_SLOPE, atan(dy / dx) / (M_PI/180.0));
+    //this->SetValue(PIPE_ELEMENT_SLOPE, 0);
     
 	KRATOS_CATCH("")
 }
@@ -146,6 +180,7 @@ CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
             rValues[GPoint] = pipe_active;
         }
     }
+    
     KRATOS_CATCH("")
 }
 
@@ -156,11 +191,11 @@ CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     if (rVariable == PIPE_HEIGHT)
     {
-        const GeometryType& Geom = this->GetGeometry();
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
         if (rValues.size() != OutputGPoints)
             rValues.resize(OutputGPoints);
 
@@ -272,6 +307,8 @@ double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const Ge
     double length = this->GetValue(PIPE_ELEMENT_LENGTH);
 	return abs((Geom[3].FastGetSolutionStepValue(WATER_PRESSURE) + Geom[0].FastGetSolutionStepValue(WATER_PRESSURE))/2 
         - (Geom[2].GetSolutionStepValue(WATER_PRESSURE)+ Geom[1].GetSolutionStepValue(WATER_PRESSURE))/2) / length;
+
+    
 }
 template< >
 double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const GeometryType& Geom)
@@ -284,6 +321,27 @@ double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const Ge
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
 
+
+template< >
+double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const GeometryType& Geom)
+{
+    double length = this->GetValue(PIPE_ELEMENT_LENGTH);
+    array_1d<double, 4> NodalHydraulicHead = HydraulicHeadsFromWaterPressures();
+    return abs((NodalHydraulicHead[3] + NodalHydraulicHead[0]) / 2
+        - (NodalHydraulicHead[2] + NodalHydraulicHead[1]) / 2) / length;
+}
+template< >
+double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const GeometryType& Geom)
+{
+    KRATOS_ERROR << " hydraulic head gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
+    return 0;
+}
+template< >
+double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const GeometryType& Geom)
+{
+    KRATOS_ERROR << " hydraulic head gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
+    return 0;
+}
 /// <summary>
 ///  Calculate the particle diameter for the particles in the pipe. The particle diameter equals d70, 
 /// when the unmodified sellmeijer piping rule is used. 
@@ -321,12 +379,13 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
 
     // calculate pressure gradient over element
     double dpdxy = CalculateWaterPressureGradient(Geom);
-
+    double dhdl = CalculateHeadGradient(Geom);
     // calculate particle diameter
     double particle_d = CalculateParticleDiameter(Prop);
 
     // return infinite when dpdxy is 0
-    if (dpdxy < std::numeric_limits<double>::epsilon())
+    //if (dpdxy < std::numeric_limits<double>::epsilon())
+	if (dhdl < std::numeric_limits<double>::epsilon())
     { 
         return 1e10;
     }
@@ -334,11 +393,9 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     // gravity is taken from first node
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
-	
-
-    // does the pipeSlope also need to be in the cos term ???
-	return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdxy;
-
+    double comparison = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dpdxy;
+    double equilibrium = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity / FluidDensity) * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dhdl;
+    return equilibrium;
 }
 
 template class SteadyStatePwPipingElement<2,4>;
@@ -346,3 +403,4 @@ template class SteadyStatePwPipingElement<3,6>;
 template class SteadyStatePwPipingElement<3,8>;
 
 } // Namespace Kratos
+  
