@@ -52,98 +52,99 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
             node.Fix(KratosMultiphysics.VELOCITY_X)
             node.Fix(KratosMultiphysics.VELOCITY_Y)
             node.Fix(KratosMultiphysics.VELOCITY_Z)
-        #     if node.Is(BOUNDARY) : 
-        #         # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
-        #         # node.Fix(KratosMultiphysics.TEMPERATURE)
-        #         node.Set(BOUNDARY, False)
-        # skin_model_part = self.skin_model_part
-        # # Total number of skin elements
-        # tot_skin_el = len(self.skin_model_part.Conditions)
-        # print('Number of skin elements: ', tot_skin_el)
+            if node.Is(BOUNDARY) : 
+                # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
+                # node.Fix(KratosMultiphysics.TEMPERATURE)
+                node.Set(BOUNDARY, False)
+        skin_model_part = self.skin_model_part
+        # Total number of skin elements
+        tot_skin_el = len(self.skin_model_part.Conditions)
+        print('Number of skin elements: ', tot_skin_el)
 
-        # KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
-        # # Find the surrogate boundary nodes
-        # a = KratosMultiphysics.FindSurrogateNodesProcess2D(main_model_part, skin_model_part)
-        # a.Execute()
-        # self.closest_element = a.FindClosestElement(main_model_part, skin_model_part)
+        KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
+        # Find the surrogate boundary nodes
+        a = KratosMultiphysics.FindSurrogateNodesProcess2D(main_model_part, skin_model_part)
+        a.Execute()
+        self.closest_element = a.FindClosestElement(main_model_part, skin_model_part)
 
-        # self.surrogate_sub_model_part = main_model_part.CreateSubModelPart("surrogate_sub_model_part")
-        # tot_sur_nodes = 0 
-        # for node in main_model_part.Nodes :
-        #     if node.Is(BOUNDARY):
-        #         self.surrogate_sub_model_part.AddNode(node,0)
-        #         tot_sur_nodes = tot_sur_nodes + 1
+        self.surrogate_sub_model_part = main_model_part.CreateSubModelPart("surrogate_sub_model_part")
+        tot_sur_nodes = 0 
+        for node in main_model_part.Nodes :
+            if node.Is(BOUNDARY):
+                self.surrogate_sub_model_part.AddNode(node,0)
+                tot_sur_nodes = tot_sur_nodes + 1
         
-        # #### self.surrogate_sub_model_part, tot_sur_nodes = FindSurrogateNodes(main_model_part,iter)
-        # #### self.closest_element = FindClosestSkinElement(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
+        #### self.surrogate_sub_model_part, tot_sur_nodes = FindSurrogateNodes(main_model_part,iter)
+        #### self.closest_element = FindClosestSkinElement(main_model_part,skin_model_part,tot_sur_nodes,tot_skin_el)
         
-        # # Find the projection onto the skin elements for each surr node
-        # projection_surr_nodes = Find_projections(main_model_part,skin_model_part,tot_sur_nodes,self.closest_element)
-        # # Then we create a sub_model part with just the elements & the nodes "outside" the surrogate boundary
-        # sub_model_part_fluid = Create_sub_model_part_fluid(main_model_part,iter)
-        # self.sub_model_part_fluid = sub_model_part_fluid
-        # print('Creato il sub_model_part per il calcolo del gradiente')
-        # self.projection_surr_nodes = projection_surr_nodes
-        # # self.closest_element = closest_element
-        # self.tot_sur_nodes = tot_sur_nodes
+        # Find the projection onto the skin elements for each surr node
+        projection_surr_nodes = Find_projections(main_model_part,skin_model_part,tot_sur_nodes,self.closest_element)
+        # Then we create a sub_model part with just the elements & the nodes "outside" the surrogate boundary
+        sub_model_part_fluid = Create_sub_model_part_fluid(main_model_part,iter)
+        self.sub_model_part_fluid = sub_model_part_fluid
+        print('Creato il sub_model_part per il calcolo del gradiente')
+        self.projection_surr_nodes = projection_surr_nodes
+        # self.closest_element = closest_element
+        self.tot_sur_nodes = tot_sur_nodes
 
 
-        # # Set the BC at the skin mesh________________________________________________________________________________________________
-        # for node in skin_model_part.Nodes:
-        #     # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X + node.Y)
-        #     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
-        #     # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9 - ((node.X)**2 + (node.Y)**2) ) ) # --> Paraboloide
-        #     # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
-        #     node.Fix(KratosMultiphysics.TEMPERATURE)
+        # Set the BC at the skin mesh________________________________________________________________________________________________
+        for node in skin_model_part.Nodes:
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X + node.Y)
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9 - ((node.X)**2 + (node.Y)**2) ) ) # --> Paraboloide
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.sin(node.X) * math.cos(node.Y))
+            node.Fix(KratosMultiphysics.TEMPERATURE)
 
-        # # Calculate the required neighbours
-        # nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(main_model_part)
-        # nodal_neighbours_process.Execute()
+        # Calculate the required neighbours
+        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(main_model_part)
+        nodal_neighbours_process.Execute()
 
-        # ## Find the so called "INTERFACE" elements
-        # for elem in sub_model_part_fluid.Elements :
-        #     if elem.Is(BOUNDARY) :
-        #         count_surr = 0
-        #         # Let's count how many surrogate nodes the element has
-        #         for node in elem.GetNodes() :
-        #             if node.Is(BOUNDARY) :
-        #                 count_surr = count_surr + 1
-        #         if count_surr > 1 :  # two or three nodes are surrogate nodes
-        #             elem.Set(INTERFACE, True) # FUNDAMENTAL
+        ## Find the so called "INTERFACE" elements
+        for elem in sub_model_part_fluid.Elements :
+            if elem.Is(BOUNDARY) :
+                count_surr = 0
+                # Let's count how many surrogate nodes the element has
+                for node in elem.GetNodes() :
+                    if node.Is(BOUNDARY) :
+                        count_surr = count_surr + 1
+                if count_surr > 1 :  # two or three nodes are surrogate nodes
+                    elem.Set(INTERFACE, True) # FUNDAMENTAL
 
-        # elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
-        # elemental_neighbours_process.Execute()
+        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(main_model_part)
+        elemental_neighbours_process.Execute()
 
 
-        # ## Compute the gradint coefficients for each of the surrogate node
-        # # self.result, self.result2 = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
-        # self.result = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
+        ## Compute the gradint coefficients for each of the surrogate node
+        # self.result, self.result2 = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
+        self.result = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
         
-        # # for node in self.surrogate_sub_model_part.Nodes :
-        # #     my_result = self.result[node.Id]
-        # #     if len(my_result) == 0 :
-        # #         # Sostitute the results of the "Problematic" & "Very_Problematic" surrogate nodes 
-        # #         # self.result[node.Id] = self.result2[node.Id]
-        # #         # node.Set(SLAVE, True)
-        # #         # exit()
+        # for node in self.surrogate_sub_model_part.Nodes :
+        #     my_result = self.result[node.Id]
+        #     if len(my_result) == 0 :
+        #         # Sostitute the results of the "Problematic" & "Very_Problematic" surrogate nodes 
+        #         # self.result[node.Id] = self.result2[node.Id]
+        #         # node.Set(SLAVE, True)
+        #         # exit()
             
 
-        # ## Compute the T matrix for imposition of sbm condition
-        # i = 0
-        # for node in self.surrogate_sub_model_part.Nodes :
-        #     # Create the T matrices: 0 , 1 , ... , len(boundary_sub_model_part.Nodes)-1
-        #     nameT = "T_" + str(i)
-        #     globals()[nameT] = Compute_T_matrix (self.result, node, projection_surr_nodes, i)
-        #     i = i + 1
+        ## Compute the T matrix for imposition of sbm condition
+        i = 0
+        for node in self.surrogate_sub_model_part.Nodes :
+            # Create the T matrices: 0 , 1 , ... , len(boundary_sub_model_part.Nodes)-1
+            nameT = "T_" + str(i)
+            globals()[nameT] = Compute_T_matrix (self.result, node, projection_surr_nodes, i)
+            i = i + 1
 
           
-        # # Create the CreateMasterSlaveConstraints
-        # j = 1
-        # for node in self.surrogate_sub_model_part.Nodes :
-        #     name = "T_" + str(j-1)
-        #     T = globals()[name]
-        #     Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
-        #     j = j + 1
+        # Create the CreateMasterSlaveConstraints
+        j = 1
+        for node in self.surrogate_sub_model_part.Nodes :
+            name = "T_" + str(j-1)
+            T = globals()[name]
+            Impose_MPC_Globally (main_model_part, self.result, self.skin_model_part, self.closest_element, self.projection_surr_nodes, T, node, j)
+            j = j + 1
         
     def InitializeSolutionStep(self):
 
@@ -196,32 +197,32 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         
 
     def Finalize(self):
-        # super().Finalize()
-        # # This is compiles after solving all the solution steps
-        # file_tre = open("Surr_B.txt", "w")
-        # for node in self.surrogate_sub_model_part.Nodes :
-        #     file_tre.write(str(node.X))
-        #     file_tre.write('  ')
-        #     file_tre.write(str(node.Y))
-        #     file_tre.write('\n')
-        # file_tre.close()
+        super().Finalize()
+        # This is compiles after solving all the solution steps
+        file_tre = open("Surr_B.txt", "w")
+        for node in self.surrogate_sub_model_part.Nodes :
+            file_tre.write(str(node.X))
+            file_tre.write('  ')
+            file_tre.write(str(node.Y))
+            file_tre.write('\n')
+        file_tre.close()
 
-        # # # main_model_part = self.GetComputingModelPart()
-        # main_model_part = self.main_model_part
+        # # main_model_part = self.GetComputingModelPart()
+        main_model_part = self.main_model_part
         
-        # # Check the error if the exact solution is known
-        # self.errorL2, self.errorH1, self.max_err = Compute_error(main_model_part, self.sub_model_part_fluid)
-        # print(self.max_err)
-        # file_tre1 = open("Surr_B1.txt", "w")
-        # for node in self.surrogate_sub_model_part.Nodes :
-        #     if node.Is(SLAVE) :
-        #         file_tre1.write(str(node.X))
-        #         file_tre1.write('  ')
-        #         file_tre1.write(str(node.Y))
-        #         file_tre1.write('  ')
-        #         file_tre1.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node.X-node.Y)))
-        #         file_tre1.write('\n')
-        # file_tre1.close()
+        # Check the error if the exact solution is known
+        self.errorL2, self.errorH1, self.max_err = Compute_error(main_model_part, self.sub_model_part_fluid)
+        print(self.max_err)
+        file_tre1 = open("Surr_B1.txt", "w")
+        for node in self.surrogate_sub_model_part.Nodes :
+            if node.Is(SLAVE) :
+                file_tre1.write(str(node.X))
+                file_tre1.write('  ')
+                file_tre1.write(str(node.Y))
+                file_tre1.write('  ')
+                file_tre1.write(str(abs(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-node.X-node.Y)))
+                file_tre1.write('\n')
+        file_tre1.close()
 
 
         ## Sebastian 2.0 --> save TEMPERATURE
