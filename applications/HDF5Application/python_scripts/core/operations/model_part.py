@@ -384,6 +384,7 @@ def GetSubclasses(base_class: type) -> "list[type]":
 
 
 class AggregateOperation(KratosMultiphysics.Operation):
+    """ @brief Class for aggregating HDF5 IO operations on the same file."""
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: typing.Union[KratosMultiphysics.Parameters, ParametersWrapper]):
         super().__init__()

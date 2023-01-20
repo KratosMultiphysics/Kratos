@@ -23,7 +23,9 @@ test_file_path = pathlib.Path("kratos.h5")
 
 
 def ensure_no_file(file_path: pathlib.Path) -> typing.Callable:
+    """@brief Construct a decorator that deletes the specified file before and after the function is called."""
     def decorator(function: typing.Callable) -> typing.Callable:
+        """@brief Delete a file before and after the function is called."""
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             if file_path.is_file():
@@ -40,7 +42,6 @@ def ensure_no_file(file_path: pathlib.Path) -> typing.Callable:
             return output
         return wrapper
     return decorator
-
 
 
 def _SurrogateModelPart():
