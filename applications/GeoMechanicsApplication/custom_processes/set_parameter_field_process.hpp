@@ -118,7 +118,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
+    void SetValueAtElement(Element& element, const Variable<double>& rVar, double Value);
 
     ///@}
     ///@name Serialization
