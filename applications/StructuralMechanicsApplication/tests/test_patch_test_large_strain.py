@@ -539,7 +539,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_2D_triangle_10N_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,6 )
+        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,8 )
 
     def test_TL_2D_triangle_10N_linearized_on_old_iteration(self):
         builder_type = "block_builder"
@@ -549,8 +549,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_TL_2D_triangle_10N_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,6 )
-        
+        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,8 )
+
 
     def _TL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
@@ -634,7 +634,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
         self._TL_2D_triangle_15N(builder_type, linearize_on_old_iteration,8 )
-        
+
 
     def _TL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
@@ -1040,7 +1040,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_10N_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[5, 5] )
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 6] )
 
     def test_UL_2D_triangle_10N_linearized_on_old_iteration(self):
         builder_type = "block_builder"
@@ -1050,7 +1050,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_10N_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[5, 5] )
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 6] )
 
 
     def _UL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):

@@ -1343,7 +1343,7 @@ inline std::ostream& operator << (std::ostream& rOStream, const Triangle2D10<TPo
 template<class TPointType> const
 GeometryData Triangle2D10<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::IntegrationMethod::GI_GAUSS_3,
+    GeometryData::IntegrationMethod::GI_GAUSS_4,
     Triangle2D10<TPointType>::AllIntegrationPoints(),
     Triangle2D10<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients());
