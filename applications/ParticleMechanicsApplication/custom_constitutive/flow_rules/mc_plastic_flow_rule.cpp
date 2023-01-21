@@ -806,12 +806,47 @@ void MCPlasticFlowRule::ComputePlasticHardeningParameter(const BoundedVector<dou
 void MCPlasticFlowRule::save( Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleFlowRule )
+
+    rSerializer.save("mElasticPricipalStrain",mElasticPrincipalStrain);
+    rSerializer.save("mPlasticPrincipalStrain",mPlasticPrincipalStrain);
+    rSerializer.save("mElasticPreviousPrincipalStrain",mElasticPreviousPrincipalStrain);
+    rSerializer.save("mPrincipalStressTrial",mPrincipalStressTrial);
+    rSerializer.save("mPrincipalStressUpdated",mPrincipalStressUpdated);
+    rSerializer.save("mLargeStrainBool",mLargeStrainBool);
+    rSerializer.save("mRegion",mRegion);
+
+    rSerializer.save("mEquivalentPlasticStrain",mEquivalentPlasticStrain);
+
+    rSerializer.save("mMaterialParametersCohesion",mMaterialParameters.Cohesion);
+    rSerializer.save("mMaterialParametersFrictionAngle",mMaterialParameters.FrictionAngle);
+    rSerializer.save("mMaterialParametersDilatancyAngle",mMaterialParameters.DilatancyAngle);
 }
 
 void MCPlasticFlowRule::load( Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleFlowRule )
 
+    rSerializer.load("mElasticPricipalStrain",mElasticPrincipalStrain);
+    rSerializer.load("mPlasticPrincipalStrain",mPlasticPrincipalStrain);
+    rSerializer.load("mElasticPreviousPrincipalStrain",mElasticPreviousPrincipalStrain);
+    rSerializer.load("mPrincipalStressTrial",mPrincipalStressTrial);
+    rSerializer.load("mPrincipalStressUpdated",mPrincipalStressUpdated);
+    rSerializer.load("mLargeStrainBool",mLargeStrainBool);
+    rSerializer.load("mRegion",mRegion);
+
+    rSerializer.load("mEquivalentPlasticStrain",mEquivalentPlasticStrain);
+
+    double Cohesion;
+    double FrictionAngle;
+    double DilatancyAngle;
+
+    rSerializer.load("mMaterialParametersCohesion",Cohesion);
+    rSerializer.load("mMaterialParametersFrictionAngle",FrictionAngle);
+    rSerializer.load("mMaterialParametersDilatancyAngle",DilatancyAngle);
+
+    mMaterialParameters.Cohesion      = Cohesion;
+    mMaterialParameters.FrictionAngle = FrictionAngle;
+    mMaterialParameters.DilatancyAngle= DilatancyAngle;
 }
 
 } //end namespace kratos
