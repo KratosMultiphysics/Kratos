@@ -63,7 +63,7 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
 
 void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
 {
-    KRATOS_ERROR_IF_NOT(ierr == 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
+    KRATOS_ERROR_IF(ierr < 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
 }
 
 template<typename T>
@@ -424,24 +424,48 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             connectivity.data());
 
         // create geometries
-        ModelPart::GeometryContainerType new_geometries; // TODO thread local
-
         const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
         const auto& r_ref_geometry = KratosComponents<GeometryType>::Get(kratos_geo_name);
         const auto reorder_fct = GetReorderFunction<Element::NodesArrayType::pointer>(geo_type);
 
+        struct GeometryCollector
+        {
+            using return_type = std::shared_ptr<ModelPart::GeometriesMapType>;
+            using value_type = ModelPart::GeometryContainerType::GeometryPointerType;
+
+            return_type NewGeometries = Kratos::make_shared<ModelPart::GeometriesMapType>();
+
+            return_type GetValue()
+            {
+                return NewGeometries;
+            }
+
+            void LocalReduce(value_type NewGeometry)
+            {
+                NewGeometries->insert(NewGeometry);
+            }
+
+            void ThreadSafeReduce(GeometryCollector& rOther)
+            {
+                const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
+                // adding to the MP directly here would probably be more efficient, but accessing it is not possible
+                NewGeometries->GetContainer().merge(rOther.NewGeometries->GetContainer());
+            }
+        };
+
         Element::NodesArrayType temp_geometry_nodes(num_nodes_geo_type); // TODO make thread local
-        IndexPartition(num_geometries).for_each([&](const int i){
+
+        auto new_geometries = IndexPartition(num_geometries).for_each<GeometryCollector>([&](const int i){
             for (int j=0; j<num_nodes_geo_type; ++j) {
                 const int node_idx = i*num_nodes_geo_type + j;
                 // TODO debug bounds check!
                 temp_geometry_nodes[j] = *(new_nodes[connectivity[node_idx]]); // I think this also needs a +1
             }
             reorder_fct(temp_geometry_nodes.GetContainer());
-            new_geometries.AddGeometry(r_ref_geometry.Create(i+1, temp_geometry_nodes)); // TODO id must be global!
+            return r_ref_geometry.Create(i+1, temp_geometry_nodes); // TODO id must be global!
         });
 
-        rThisModelPart.AddGeometries(new_geometries.GeometriesBegin(), new_geometries.GeometriesEnd()); // must be done thread local!
+        rThisModelPart.AddGeometries(new_geometries->begin(), new_geometries->end());
 
         KRATOS_INFO("MedModelPartIO") << "... added x amount of geom of type Y" << std::endl;
     }
