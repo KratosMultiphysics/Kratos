@@ -71,10 +71,10 @@ namespace Testing {
     */
     Line2D5<Point>::Pointer GeneratePointsParabolaLine2D5() {
         return Kratos::make_shared<Line2D5<Point>>(
-        Kratos::make_shared<Point>(0.00, 0.0  , 0.0),
-        Kratos::make_shared<Point>(1.00, 0.0  , 0.0),
+        Kratos::make_shared<Point>(0.00, 0.00 , 0.0),
+        Kratos::make_shared<Point>(1.00, 0.00 , 0.0),
         Kratos::make_shared<Point>(0.25, 0.375, 0.0),
-        Kratos::make_shared<Point>(0.50, 0.5  , 0.0),
+        Kratos::make_shared<Point>(0.50, 0.50 , 0.0),
         Kratos::make_shared<Point>(0.75, 0.375, 0.0)
         );
     }
@@ -114,7 +114,7 @@ namespace Testing {
 
         p_geometry = GeneratePointsParabolaLine2D5();
 
-        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.48139, 1.0e-5); // NOTE: Analytic 1.478942858
+        KRATOS_CHECK_NEAR(p_geometry->Length(), 1.47827, 1.0e-5); // NOTE: Analytic 1.478942858
     }
 
     /** Checks if the bounding box of the line is calculated correctly.

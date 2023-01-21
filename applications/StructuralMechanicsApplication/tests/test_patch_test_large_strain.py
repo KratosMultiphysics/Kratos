@@ -468,7 +468,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
         self._TL_2D_triangle(builder_type, linearize_on_old_iteration,6 )
-        
+
 
     def _TL_2D_triangle_10N(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
@@ -1051,8 +1051,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
         self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[5, 5] )
-        
-        
+
+
     def _UL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
