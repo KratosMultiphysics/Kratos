@@ -80,18 +80,24 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     switch (MedGeomType)
     {
     case MED_TRIA3:
-        return [](std::vector<T>& Connectivities){
+        return [](auto& Connectivities){
             CheckConnectivitiesSize(3, Connectivities);
-            std::swap(Connectivities[1], Connectivities[2]);
+            auto t1 = Connectivities[1];
+            Connectivities[1] = Connectivities[2];
+            Connectivities[2] = t1;
+            // std::swap(Connectivities[1], Connectivities[2]);
         };
 
     case MED_TRIA6:
         KRATOS_ERROR << "Not implemented!" << std::endl;
 
     case MED_QUAD4:
-        return [](std::vector<T>& Connectivities){
+        return [](auto& Connectivities){
             CheckConnectivitiesSize(4, Connectivities);
-            std::swap(Connectivities[1], Connectivities[3]);
+            T t1 = Connectivities[1];
+            Connectivities[1] = Connectivities[3];
+            Connectivities[3] = t1;
+            // std::swap(Connectivities[1], Connectivities[3]);
         };
 
     case MED_QUAD8:
@@ -107,7 +113,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         KRATOS_ERROR << "Not implemented!" << std::endl;
 
     default:
-        return [](std::vector<T>& Connectivities){
+        return [](auto& Connectivities){
             // does nothing if no reordering is needed
         };
     }
@@ -423,7 +429,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
         const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
         const auto& r_ref_geometry = KratosComponents<GeometryType>::Get(kratos_geo_name);
-        const auto reorder_fct = GetReorderFunction<Element::NodesArrayType>(geo_type);
+        const auto reorder_fct = GetReorderFunction<Element::NodesArrayType::pointer>(geo_type);
 
         Element::NodesArrayType temp_geometry_nodes(num_nodes_geo_type); // TODO make thread local
         IndexPartition(num_geometries).for_each([&](const int i){
@@ -432,11 +438,11 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                 // TODO debug bounds check!
                 temp_geometry_nodes[j] = *(new_nodes[connectivity[node_idx]]); // I think this also needs a +1
             }
-            reorder_fct(temp_geometry_nodes.data());
+            reorder_fct(temp_geometry_nodes.GetContainer());
             new_geometries[i] = r_ref_geometry.Create(i+1, temp_geometry_nodes); // TODO id must be global!
         });
 
-        rThisModelPart.AddGeometries(new_geometries.begin(), new_geometries.end());
+        // rThisModelPart.AddGeometries(new_geometries.begin(), new_geometries.end());
 
         KRATOS_INFO("MedModelPartIO") << "... added x amount of geom of type Y" << std::endl;
     }
@@ -517,7 +523,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
             ConnectivitiesVector& Connectivities) {
 
                 const auto med_geom_type = KratosToMedGeometryType.at(GeomType);
-                const auto reorder_fct = GetReorderFunction<ConnectivitiesType>(med_geom_type);
+                const auto reorder_fct = GetReorderFunction<ConnectivitiesType::value_type>(med_geom_type);
 
                 auto GetMedConnectivities = [&reorder_fct](
                     const std::size_t NumberOfPoints,
