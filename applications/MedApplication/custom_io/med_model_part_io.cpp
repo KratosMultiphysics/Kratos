@@ -349,7 +349,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     KRATOS_TRY
 
     using NodePointerType = ModelPart::NodeType::Pointer;
-    using GeometryPointer = ModelPart::GeometryType::Pointer;
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
 
@@ -425,7 +424,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             connectivity.data());
 
         // create geometries
-        std::vector<GeometryPointer> new_geometries(num_geometries);
+        ModelPart::GeometryContainerType new_geometries; // TODO thread local
 
         const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
         const auto& r_ref_geometry = KratosComponents<GeometryType>::Get(kratos_geo_name);
@@ -439,10 +438,10 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                 temp_geometry_nodes[j] = *(new_nodes[connectivity[node_idx]]); // I think this also needs a +1
             }
             reorder_fct(temp_geometry_nodes.GetContainer());
-            new_geometries[i] = r_ref_geometry.Create(i+1, temp_geometry_nodes); // TODO id must be global!
+            new_geometries.AddGeometry(r_ref_geometry.Create(i+1, temp_geometry_nodes)); // TODO id must be global!
         });
 
-        // rThisModelPart.AddGeometries(new_geometries.begin(), new_geometries.end());
+        rThisModelPart.AddGeometries(new_geometries.GeometriesBegin(), new_geometries.GeometriesEnd()); // must be done thread local!
 
         KRATOS_INFO("MedModelPartIO") << "... added x amount of geom of type Y" << std::endl;
     }
