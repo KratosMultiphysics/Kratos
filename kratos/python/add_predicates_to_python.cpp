@@ -13,6 +13,7 @@
 // --- Core Includes ---
 #include "add_predicates_to_python.h"
 #include "utilities/model_predicate.h"
+#include "includes/define.h"
 
 
 namespace Kratos::Python
@@ -20,7 +21,7 @@ namespace Kratos::Python
 
 
 /// @brief Wrapper class for binding a pure virtual class.
-class ModelPredicateTrampoline : public ModelPredicate
+class KRATOS_API(KratosCore) ModelPredicateTrampoline : public ModelPredicate
 {
 public:
     using ModelPredicate::ModelPredicate;
