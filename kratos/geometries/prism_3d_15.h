@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -15,8 +15,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_PRISM_3D_15_H_INCLUDED )
-#define  KRATOS_PRISM_3D_15_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,6 +24,7 @@
 // Project includes
 #include "geometries/triangle_3d_6.h"
 #include "geometries/quadrilateral_3d_8.h"
+#include "utilities/integration_utilities.h"
 #include "integration/prism_gauss_legendre_integration_points.h"
 
 namespace Kratos
@@ -380,31 +380,17 @@ public:
         return this->Volume();
     }
 
-    /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
      * @see Length()
      * @see Area()
-     * @see Volume()
-     *
+     * @see DomainSize()
      */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double volume = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
 
     double Area() const override
@@ -1127,5 +1113,3 @@ GeometryDimension Prism3D15<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_PRISM_3D_15_H_INCLUDED  defined

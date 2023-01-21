@@ -84,8 +84,8 @@ Kratos::unique_ptr<GeometryType> ReconstructTriangle(const ClosestPointsContaine
         const double quality = p_geom->Quality(GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS);
 
         if (quality < 0.05) {
-            const double d1 = MapperUtilities::ComputeDistance(geom_points[0], geom_points[1]);
-            const double d2 = MapperUtilities::ComputeDistance(geom_points[0], geom_points[2]);
+            const double d1 = geom_points[0].Distance(geom_points[1]);
+            const double d2 = geom_points[0].Distance(geom_points[2]);
             auto it_point_to_remove = points_copy.GetPoints().begin();
             if (d1 * 10 < d2) {
                 // this means that the first and the second point are much closer to each other than the
@@ -131,8 +131,8 @@ Kratos::unique_ptr<GeometryType> ReconstructTetrahedra(const ClosestPointsContai
         const double quality = p_geom->Quality(GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS);
 
         if (quality < 0.05) {
-            const double d1 = MapperUtilities::ComputeDistance(geom_points[0], geom_points[1]);
-            const double d2 = MapperUtilities::ComputeDistance(geom_points[0], geom_points[2]);
+            const double d1 = geom_points[0].Distance(geom_points[1]);
+            const double d2 = geom_points[0].Distance(geom_points[2]);
             auto it_point_to_remove = points_copy.GetPoints().begin();
             if (d1 * 10 < d2) {
                 // this means that the first and the second point are much closer to each other than the
@@ -221,7 +221,8 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
     PointWithId point(
         r_node.GetValue(INTERFACE_EQUATION_ID),
         r_node.Coordinates(),
-        MapperUtilities::ComputeDistance(this->Coordinates(), r_node.Coordinates()));
+        MapperUtilities::ComputeDistance(this->Coordinates(), r_node.Coordinates())
+        );
 
     mClosestPoints.Add(point);
 
@@ -335,7 +336,7 @@ void BarycentricLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoL
 
     rOStream << "BarycentricLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {
-        rOStream << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        rOStream << " at Coordinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
     }
 }
 
