@@ -152,7 +152,7 @@ void UpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 }
 
 
-void UpdatedLagrangianPQ::InitializeMaterial()
+void UpdatedLagrangianPQ::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     GeneralVariables Variables;
@@ -163,7 +163,7 @@ void UpdatedLagrangianPQ::InitializeMaterial()
         Vector N_dummy; // this is because the shape functions are not explicitly defined at the 'master' material point anymore
         GetGeometry().SetValue(MP_VOLUME, mMP.volume);
         mConstitutiveLawVector->InitializeMaterial(
-            GetProperties(), GetGeometry(), N_dummy);
+            GetProperties(), GetGeometry(), N_dummy, rCurrentProcessInfo);
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
         mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());

@@ -140,9 +140,9 @@ void UpdatedLagrangianUP::Initialize(const ProcessInfo& rCurrentProcessInfo)
         mDeformationGradientF0 = IdentityMatrix(dimension);
 
         // Initialize constitutive law and materials
-        InitializeMaterial();
+        InitializeMaterial(rCurrentProcessInfo);
     } else {
-        InitializeMaterialRestart();
+        InitializeMaterialRestart(rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )

@@ -165,7 +165,8 @@ public:
      */
     void InitializeMaterial( const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
-                             const Vector& rShapeFunctionsValues ) override;
+                             const Vector& rShapeFunctionsValues,
+                             const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Computes the material response:

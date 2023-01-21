@@ -184,25 +184,20 @@ void HenckyElasticPlastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable,
 
 void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
         const GeometryType& rGeometry,
-        const Vector& rShapeFunctionsValues)
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo)
 {
-    bool restarted = false;
-
-    if (rShapeFunctionsValues.size() > 0){
-        if (rShapeFunctionsValues(0) == -888 ){
-            restarted = true;
-        }
-    }
-
-    if (!restarted){
+    if (!rCurrentProcessInfo[IS_RESTARTED]){
         mDeterminantF0                = 1;
         mInverseDeformationGradientF0 = IdentityMatrix(3);
         mElasticLeftCauchyGreen       = IdentityMatrix(3);
 
         mPlasticRegion = 0;
-    }
 
-    mpMPMFlowRule->InitializeMaterial(mpYieldCriterion, mpHardeningLaw, rProps);
+        mpMPMFlowRule->InitializeMaterial(mpYieldCriterion, mpHardeningLaw, rProps);
+    } else {
+        mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rProps);
+    }
 }
 
 

@@ -110,7 +110,7 @@ namespace Testing
         // Run test
         Vector dummy;
         double value;
-        cl.InitializeMaterial(material_properties, geometry, dummy);
+        cl.InitializeMaterial(material_properties, geometry, dummy, r_current_process_info);
         cl.CalculateMaterialResponseKirchhoff(cl_parameters);
 
         // Check MP_TEMPERATURE
@@ -205,7 +205,7 @@ namespace Testing
         // Run test
         Vector dummy;
         double value;
-        cl.InitializeMaterial(material_properties, geometry, dummy);
+        cl.InitializeMaterial(material_properties, geometry, dummy, r_current_process_info);
         cl.CalculateMaterialResponseKirchhoff(cl_parameters);
 
         // Check MP_TEMPERATURE
