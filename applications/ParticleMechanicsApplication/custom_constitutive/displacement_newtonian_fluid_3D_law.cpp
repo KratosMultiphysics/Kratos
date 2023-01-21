@@ -147,10 +147,13 @@ void DispNewtonianFluid3DLaw::SetValue(const Variable<Matrix>& rThisVariable, co
 
 void DispNewtonianFluid3DLaw::InitializeMaterial(const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues)
+    const Vector& rShapeFunctionsValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-  mDeterminantF0                = 1;
-  mInverseDeformationGradientF0 = IdentityMatrix(3);
+  if (!rCurrentProcessInfo[IS_RESTARTED]){
+    mDeterminantF0                = 1;
+    mInverseDeformationGradientF0 = IdentityMatrix(3);
+  }
 }
 
 //***********************MATERIAL RESPONSE********************************************
