@@ -38,7 +38,7 @@ namespace Kratos
  *              - must not have side-effects (not checked)
  *              - must not mutate its input (not checked)
  *              - must be default, move, and copy constructible (not checked)
- *              - [optional]: should be constructible from @ref Parameters (required for @ref Factory).
+ *              - [optional]: should be constructible from @ref Parameters (required for @ref CompoundPipe).
  *
  *  @details Pipes are meant to be stitched together to form a pipeline capable of performing more complex
  *           tasks. Two operators can be used for this purpose:
@@ -59,7 +59,7 @@ namespace Kratos
  *           Usage: @code IsPipe<MyPipe>::value @endcode. A type must satisfy the pipe requirements in order to be usable in
  *           @ref operator| and @ref operator>>.
  *
- *  @details Pipes that are constructible from @ref Parameters can be used with @ref Factory. @ref Factory recursively
+ *  @details Pipes that are constructible from @ref Parameters can be used with @ref CompoundPipe. @ref CompoundPipe recursively
  *           constructs each pipe segment by passing the same @ref Parameters instance. This can be very handy for constructing
  *           longer pipes or using pipes in generic templates.
  */
@@ -110,10 +110,11 @@ typename TPipe::OutputType operator>>(TInput&& rInput, const TPipe& rPipe);
 
 
 namespace Detail{
-//template <class, class>
-//struct Factory;
+
+// Forward declare Factory because it needs to be a friend of CompoundPipe.
 template <class>
 class Factory;
+
 } // namespace Detail
 
 
@@ -170,9 +171,6 @@ public:
     typename CompoundPipe::OutputType operator()(typename CompoundPipe::InputType Input) const;
 
 private:
-    //template <class, class>
-    //friend struct Detail::Factory;
-
     template <class>
     friend class Detail::Factory;
 
