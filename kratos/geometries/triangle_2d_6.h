@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_TRIANGLE_2D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -458,7 +456,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( Area() ) );
+        return std::sqrt( std::abs( Area() ) );
     }
 
     /** 
@@ -472,16 +470,7 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
     // TODO: Code activated in June 2023
@@ -1202,5 +1191,3 @@ const GeometryDimension Triangle2D6<TPointType>::msGeometryDimension(
     2, 2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined
