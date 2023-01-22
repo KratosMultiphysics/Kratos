@@ -73,7 +73,7 @@ public:
     /** @brief Returns the current number of threads
      * @return number of threads
      */
-    static int GetNumThreads();
+    [[nodiscard]] static int GetNumThreads();
 
     /** @brief Sets the current number of threads
      * @param NumThreads - the number of threads to be used
@@ -84,7 +84,7 @@ public:
      * This can include the multiple threads per processing unit
      * @return number of processors
      */
-    static int GetNumProcs();
+    [[nodiscard]] static int GetNumProcs();
 
     ///@}
 
@@ -92,7 +92,7 @@ public:
      * Global lock that can be used for critical sections
      * @return global lock
      */
-    static LockObject& GetGlobalLock();
+    [[nodiscard]] static LockObject& GetGlobalLock();
 
     ///@}
 
@@ -204,7 +204,7 @@ public:
      * @param f - must be a unary function accepting as input TContainerType::value_type&
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
@@ -260,7 +260,7 @@ public:
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -308,7 +308,7 @@ void block_for_each(TContainerType &&v, TFunctionType &&func)
  * @param func - must be a unary function accepting as input TContainerType::value_type&
  */
 template <class TReducer, class TContainerType, class TFunctionType>
-typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
 {
     return  BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(std::forward<TFunctionType>(func));
 }
@@ -330,7 +330,7 @@ void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctio
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
  */
 template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
-typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     return BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
 }
@@ -431,7 +431,7 @@ public:
      * @param f - must be a unary function accepting as input IndexType
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
@@ -486,7 +486,7 @@ public:
      * @param f - must be a function accepting as input IndexType and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    [[nodiscard]] inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 

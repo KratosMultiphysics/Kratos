@@ -320,12 +320,16 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 
     double reference_max = std::numeric_limits<double>::lowest();
     double reference_min = std::numeric_limits<double>::max();
+    double reference_abs_max = std::numeric_limits<double>::lowest();
+    double reference_abs_min = std::numeric_limits<double>::max();
     double reference_sum = 0.0;
     double reference_sub = 0.0;
     for(auto item : data_vector)
     {
         reference_max = std::max(reference_max, item);
         reference_min = std::min(reference_min, item);
+        reference_abs_max = (std::abs(reference_abs_max) < std::abs(item)) ? item : reference_abs_max;
+        reference_abs_min = (std::abs(reference_abs_min) < std::abs(item)) ? reference_abs_min : item;
         reference_sum += item;
         reference_sub -= item;
     }
@@ -383,24 +387,30 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     typedef CombinedReduction< SumReduction<double>,
                                MinReduction<double>,
                                MaxReduction<double>,
+                               AbsMinReduction<double>,
+                               AbsMaxReduction<double>,
                                SubReduction<double>
             > MultipleReduction;
 
     //auto reduction_res
-    double sum,min,max,sub;
-    std::tie(sum,min,max,sub) = IndexPartition<unsigned int>(data_vector.size()).
+    double sum,min,max,abs_min,abs_max,sub;
+    std::tie(sum,min,max,abs_min,abs_max,sub) = IndexPartition<unsigned int>(data_vector.size()).
         for_each<MultipleReduction>(
             [&](unsigned int i){
                     double to_sum = data_vector[i];
                     double to_max = data_vector[i];
                     double to_min = data_vector[i];
+                    double to_abs_max = data_vector[i];
+                    double to_abs_min = data_vector[i];
                     double to_sub = data_vector[i];
-                    return std::make_tuple( to_sum, to_max, to_min, to_sub ); //note that these may have different types
+                    return std::make_tuple( to_sum, to_max, to_min, to_abs_max, to_abs_min, to_sub ); //note that these may have different types
                 }
             );
     KRATOS_CHECK_EQUAL(sum, reference_sum );
     KRATOS_CHECK_EQUAL(min, reference_min );
     KRATOS_CHECK_EQUAL(max, reference_max );
+    KRATOS_CHECK_EQUAL(abs_min, reference_abs_min );
+    KRATOS_CHECK_EQUAL(abs_max, reference_abs_max );
     KRATOS_CHECK_EQUAL(sub, reference_sub );
 }
 
@@ -420,7 +430,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
 
     // version with reductions
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        block_for_each<SumReduction<double>>(data_vector, [](double& item){
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = block_for_each<SumReduction<double>>(data_vector, [](double& item){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
         });
@@ -439,7 +450,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
 
     // version with reduction and TLS
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
         });
@@ -466,7 +478,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
 
     // version with reductions
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
         [&](unsigned int i){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;
@@ -489,7 +502,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
 
     // version with reduction and TLS
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
+        // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+        std::ignore = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
         [&](unsigned int i, std::vector<double>& rTLS){
             KRATOS_ERROR << "Inside parallel region" << std::endl;
             return 0.0;

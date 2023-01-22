@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -18,15 +18,13 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_frictional_laws_to_python.h"
 
-// Utilities
+/* Utilities */
 #include "custom_frictional_laws/frictional_law.h"
 #include "custom_frictional_laws/frictional_law_with_derivative.h"
 #include "custom_frictional_laws/tresca_frictional_law.h"
 #include "custom_frictional_laws/coulomb_frictional_law.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -237,7 +235,4 @@ void  AddCustomFrictionalLawsToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
-
+}  // namespace Kratos::Python.

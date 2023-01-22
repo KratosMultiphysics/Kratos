@@ -367,6 +367,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
+    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
     SizeType Dimension() const
     {
         return mpGeometryDimension->Dimension();
@@ -421,7 +422,7 @@ public:
     ///@name Integration
     ///@{
 
-    /** Number of integtation points for default integration
+    /** Number of integration points for default integration
     method. This method just call IntegrationPointsNumber(enum
     IntegrationMethod ThisMethod) with default integration
     method.
@@ -738,8 +739,7 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
-        rOStream << "    working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
+        rOStream << "    Working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
         rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
 

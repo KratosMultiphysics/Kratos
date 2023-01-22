@@ -3,7 +3,6 @@ import KratosMultiphysics.mpi as KratosMPI
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.KratosUnittest as UnitTest
-import sys
 import os
 
 dependencies_are_available = kratos_utilities.CheckIfApplicationsAvailable("MetisApplication")
