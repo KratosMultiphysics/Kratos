@@ -155,6 +155,49 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_SameDistanceFound, KratosMappingApplicationSerialTestSuite)
+{
+    Point coords(0.0, 0.0, 0.0);
+
+    std::size_t source_local_sys_idx = 123;
+
+    NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
+
+    auto node_1(Kratos::make_intrusive<NodeType>(1,  1.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(2, -1.0, 0.0, 0.0));
+
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
+
+    const int expected_id_found_1 = 35;
+    const int expected_id_found_2 = 67;
+
+    node_1->SetValue(INTERFACE_EQUATION_ID, expected_id_found_1);
+    node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found_2);
+
+    // We compute the real distance bcs this would also be computed by the search
+    const double dist_1 = coords.Distance(*interface_node_1);
+    const double dist_2 = coords.Distance(*interface_node_2);
+    KRATOS_CHECK_DOUBLE_EQUAL(dist_1, dist_2);
+
+    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
+
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
+    nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
+
+    KRATOS_CHECK(nearest_neighbor_info.GetLocalSearchWasSuccessful());
+
+    std::vector<int> found_id(2);
+    nearest_neighbor_info.GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
+    KRATOS_CHECK(found_id[0] == expected_id_found_1 || found_id[0] == expected_id_found_2);
+    KRATOS_CHECK(found_id[1] == expected_id_found_1 || found_id[1] == expected_id_found_2);
+
+    double neighbor_dist;
+    nearest_neighbor_info.GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
+    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1);
+    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMappingApplicationSerialTestSuite)
 {
     // NOTE: In this tests "node_3" is the closest node
