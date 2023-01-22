@@ -18,8 +18,6 @@
 #include "utilities/parallel_utilities.h"
 #include "optimization_application.h"
 
-#define PI 3.14159265
-
 // ==============================================================================
 
 namespace Kratos
@@ -49,7 +47,13 @@ SymmetryUtility::SymmetryUtility(std::string Name, ModelPart& rModelPart, Parame
             KRATOS_ERROR<<"SymmetryUtility: norm of axis is close to zero"<<std::endl;
             
         mRotationalSymmetryData.Axis = axis/norm_axis;
-        mRotationalSymmetryData.Angle = mSymmetrySettings["settings"]["angle"].GetDouble();        
+        mRotationalSymmetryData.Angle = mSymmetrySettings["settings"]["angle"].GetDouble();  
+        mRotationalSymmetryData.NumRot = (360.0/mRotationalSymmetryData.Angle);
+        for(int r_i=1;r_i<mRotationalSymmetryData.NumRot;r_i++){
+            Matrix rot_mat_i;
+            GetRotationMatrix(r_i*mRotationalSymmetryData.Angle,rot_mat_i);
+            mRotationalSymmetryData.RotationMatrices.push_back(rot_mat_i);
+        }    
     }
     else
         KRATOS_ERROR<<"SymmetryUtility: type should be either plane or axis"<<std::endl;
@@ -67,7 +71,7 @@ void SymmetryUtility::Initialize()
     NodeVector mListOfNodesInModelPart;
     mListOfNodesInModelPart.resize(mrModelPart.Nodes().size());
     int counter = 0;
-    for (ModelPart::NodesContainerType::iterator node_it = mrModelPart.NodesBegin(); node_it != mrModelPart.NodesEnd(); ++node_it)
+    for (auto node_it = mrModelPart.NodesBegin(); node_it != mrModelPart.NodesEnd(); ++node_it)
     {
         NodeTypePointer pnode = *(node_it.base());
         mListOfNodesInModelPart[counter++] = pnode;
@@ -82,18 +86,18 @@ void SymmetryUtility::Initialize()
         std::vector<std::pair <NodeTypePointer,NodeVector>>& rMap = mRotationalSymmetryData.Map;
         #pragma omp parallel for reduction(merge: rMap)
         for (auto& r_node : mrModelPart.Nodes()){
-            int num_rotations = (360.0/mRotationalSymmetryData.Angle);
+            int num_rotations = mRotationalSymmetryData.NumRot;
             NodeVector p_neighbor_rot_nodes;
             p_neighbor_rot_nodes.resize(num_rotations-1);
             for(int r_i=1;r_i<num_rotations;r_i++){
-               NodeTypePointer p_rot_node = GetRotatedNode(r_node,r_i*mRotationalSymmetryData.Angle);
+               NodeTypePointer p_rot_node = GetRotatedNode(r_node,r_i-1);
                double distance;
                NodeTypePointer p_neighbor_rot_node = search_tree.SearchNearestPoint(*p_rot_node, distance);
                p_neighbor_rot_nodes[r_i-1] = p_neighbor_rot_node;
             }
             std::pair <NodeTypePointer,NodeVector> nodes_pair;
             nodes_pair = std::make_pair(mrModelPart.pGetNode(r_node.Id()),p_neighbor_rot_nodes);
-            rMap.push_back(nodes_pair); 
+            rMap.emplace_back(std::move(nodes_pair));
         }
     }
 
@@ -114,13 +118,11 @@ void SymmetryUtility::Initialize()
     KRATOS_INFO("SymmetryUtility::Initialize: ") << " Finished initialization of symmetry utility "<<mUtilName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;    
 }
 
-SymmetryUtility::NodeTypePointer SymmetryUtility::GetRotatedNode(NodeType& rNode, double angle){
+SymmetryUtility::NodeTypePointer SymmetryUtility::GetRotatedNode(NodeType& rNode, int rotation_index){
     NodeTypePointer p_new_node = Kratos::make_intrusive<NodeType>(rNode.Id(), rNode[0], rNode[1], rNode[2]);
 
     const array_3d v1 = rNode.Coordinates()-mRotationalSymmetryData.Point;
-    Matrix rot_mat;
-    GetRotationMatrix(angle,rot_mat);
-    p_new_node->Coordinates() = prod(rot_mat, v1) + mRotationalSymmetryData.Point;
+    p_new_node->Coordinates() = prod(mRotationalSymmetryData.RotationMatrices[rotation_index], v1) + mRotationalSymmetryData.Point;
 
     return p_new_node;
 }
@@ -141,8 +143,8 @@ void SymmetryUtility::GetRotationMatrix(double angle, Matrix& rRotMat){
     rRotMat.resize(3,3);
     rRotMat = ZeroMatrix(3,3);
 
-    const double c=cos(angle*PI/180);
-    const double s=sin(angle*PI/180);
+    const double c=cos(angle*Globals::Pi/180);
+    const double s=sin(angle*Globals::Pi/180);
     const double t = 1-c;
     const array_3d& k = mRotationalSymmetryData.Axis;
 

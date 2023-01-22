@@ -102,8 +102,12 @@ public:
         array_1d<double,3> Point;
 		// angle
         double Angle;
+		// number of rotational operations
+        int NumRot;        
         // axis
         array_1d<double,3> Axis;
+        // pre-computed rotation matrices
+        std::vector<Matrix> RotationMatrices;        
         // map 
         std::vector<std::pair <NodeTypePointer,NodeVector>> Map;
 	};  
@@ -245,7 +249,7 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    NodeTypePointer GetRotatedNode(NodeType& rNode, double angle);
+    NodeTypePointer GetRotatedNode(NodeType& rNode, int rotation_index);
     NodeTypePointer GetReflectedNode(NodeType& rNode);
     void GetRotationMatrix(double angle, Matrix& rRotMat);
 
