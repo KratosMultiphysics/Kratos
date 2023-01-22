@@ -5,14 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//	                 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 //
 
-#if !defined (KRATOS_PYRAMID_3D_5_H_INCLUDED)
-#define KRATOS_PYRAMID_3D_5_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath> // std::abs for double
@@ -22,8 +21,8 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+#include "utilities/integration_utilities.h"
 #include "integration/pyramid_gauss_legendre_integration_points.h"
-
 
 namespace Kratos {
 
@@ -318,27 +317,17 @@ public:
         return 5;
     }
 
-    /** This method calculate and return volume of this
-     geometry. For one and two dimensional geometry it returns
-    zero and for three dimensional it gives volume of geometry.
-
-    @return double value contains volume.
-    @see Length()
-    @see Area()
-    @see DomainSize()
-    */
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-        double vol = 0.00;
-
-        for (std::size_t i=0; i<integration_points.size(); ++i) {
-            vol += temp[i] * integration_points[i].Weight();
-        }
-
-        return vol;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
 
     /**
@@ -785,5 +774,3 @@ GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PYRAMID_3D_5_H_INCLUDED defined
