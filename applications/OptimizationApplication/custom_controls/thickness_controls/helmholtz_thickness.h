@@ -561,16 +561,6 @@ private:
         if(pow_val<-700) 
             pow_val = -700;        
 
-        // if(index_x1>0){
-        //     double prev_x1,prev_x2,prev_y1,prev_y2;
-        //     prev_x1 = x_limits[index_x1-1];
-        //     prev_x2 = x_limits[index_x1];
-        //     prev_y1 = y_limits[index_x1-1];
-        //     prev_y2 = y_limits[index_x1];
-        //     double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
-        //     y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
-        // }
-
         return (y2-y1)/(std::pow(1+std::exp(pow_val),penal_fac)) + y1;
     }
 
