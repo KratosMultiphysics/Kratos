@@ -146,7 +146,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -177,7 +177,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -208,7 +208,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -241,7 +241,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -273,9 +273,8 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        KRATOS_CRITICAL_SECTION(
-            mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
-        )
+        KRATOS_CRITICAL_SECTION
+        mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
     }
 };
 

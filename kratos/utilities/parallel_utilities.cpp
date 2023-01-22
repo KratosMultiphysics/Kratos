@@ -136,13 +136,12 @@ LockObject& ParallelUtilities::GetGlobalLock()
 int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
-        KRATOS_CRITICAL_SECTION(
-            if (!mspNumThreads) {
-                static int num_threads;
-                num_threads = InitializeNumberOfThreads();
-                mspNumThreads = &num_threads;
-            }
-        )
+        KRATOS_CRITICAL_SECTION
+        if (!mspNumThreads) {
+            static int num_threads;
+            num_threads = InitializeNumberOfThreads();
+            mspNumThreads = &num_threads;
+        }
     }
 
     return *mspNumThreads;

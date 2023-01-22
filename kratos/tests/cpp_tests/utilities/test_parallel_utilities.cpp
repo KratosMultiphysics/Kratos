@@ -558,10 +558,8 @@ KRATOS_TEST_CASE_IN_SUITE(KratosCriticalSection, KratosCoreFastSuite)
 
     IndexPartition(size).for_each(
         [&sum](auto i){
-                KRATOS_CRITICAL_SECTION(
-                    constexpr std::size_t i=1, j=2; // comma separated to make sure macro can take multiple args
-                    sum += (j-i);
-                )
+                KRATOS_CRITICAL_SECTION
+                sum += 1;
             }
         );
 
