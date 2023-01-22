@@ -24,8 +24,6 @@ namespace Kratos::Python
 class KRATOS_API(KratosCore) ModelPredicateTrampoline : public ModelPredicate
 {
 public:
-    using ModelPredicate::ModelPredicate;
-
     bool operator()(const Model& rModel) const override
     {
         using ReturnType = bool;
@@ -43,7 +41,6 @@ public:
 void AddPredicatesToPython(pybind11::module& rModule)
 {
     pybind11::class_<ModelPredicate, ModelPredicate::Pointer, ModelPredicateTrampoline>(rModule, "ModelPredicate")
-        .def(pybind11::init<>())
         .def("__call__", &ModelPredicate::operator())
         ;
 }
