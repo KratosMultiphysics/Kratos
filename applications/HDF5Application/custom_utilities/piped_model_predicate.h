@@ -90,7 +90,7 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
     Pipes::ModelPartFromModel,
     Pipes::ProcessInfoFromModelPart,
     Pipes::StepFromProcessInfo,
-    Pipes::IntervalPredicate<double>
+    Pipes::IntervalPredicate<int>
 >>;
 
 
