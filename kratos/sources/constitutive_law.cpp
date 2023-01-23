@@ -556,13 +556,6 @@ void ConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
 {
 }
 
-void ConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
 /**
  * to be called at the beginning of each solution step
  * (e.g. from Element::InitializeSolutionStep)

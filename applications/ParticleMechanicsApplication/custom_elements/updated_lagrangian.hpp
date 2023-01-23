@@ -597,11 +597,6 @@ protected:
      */
     virtual void InitializeMaterial (const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Initialize Material Properties on the Constitutive Law when restarting
-     */
-    virtual void InitializeMaterialRestart (const ProcessInfo& rCurrentProcessInfo);
-
 
     /**
      * Reset the Constitutive Law Parameters

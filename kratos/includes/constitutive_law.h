@@ -1002,15 +1002,9 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param rCurrentProcessInfo the current process information
      */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Pass the Process Info as well\"")
     virtual void InitializeMaterial(const Properties& rMaterialProperties,
                                     const GeometryType& rElementGeometry,
                                     const Vector& rShapeFunctionsValues);
-
-    virtual void InitializeMaterial(const Properties& rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues,
-                                    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * to be called at the beginning of each solution step

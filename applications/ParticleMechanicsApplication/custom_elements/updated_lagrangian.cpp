@@ -153,8 +153,6 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         // Initialize constitutive law and materials
         InitializeMaterial(rCurrentProcessInfo);
-    } else {
-        InitializeMaterialRestart(rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
@@ -1023,22 +1021,6 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 }
 
 
-void UpdatedLagrangian::InitializeMaterialRestart(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
-    {
-        Vector N_dummy;
-        mConstitutiveLawVector->InitializeMaterial(GetProperties(), GetGeometry(), N_dummy, rCurrentProcessInfo);
-    }
-    else
-        KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
-    
-    KRATOS_CATCH( "" )
-}
-
-
 void UpdatedLagrangian::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -1049,7 +1031,7 @@ void UpdatedLagrangian::InitializeMaterial(const ProcessInfo& rCurrentProcessInf
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
         mConstitutiveLawVector->InitializeMaterial(
-            GetProperties(), GetGeometry(), N, rCurrentProcessInfo);
+            GetProperties(), GetGeometry(), N);
 
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
         mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());

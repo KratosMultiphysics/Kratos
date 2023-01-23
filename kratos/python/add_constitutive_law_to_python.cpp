@@ -64,25 +64,6 @@ template<class TDataType> void ConstitutiveLawSetValue(ConstitutiveLaw& rThisCon
 void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& rThisConstitutiveLaw, ConstitutiveLaw::Parameters& rValues,const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {rThisConstitutiveLaw.CalculateMaterialResponse (rValues,rStressMeasure);}
 
-void ConstitutiveLawInitializeMaterialStandard(
-        ConstitutiveLaw& rThisConstitutiveLaw,
-        const Properties& rMaterialProperties,
-        const ConstitutiveLaw::GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues)
-{
-    rThisConstitutiveLaw.InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-}
-
-void ConstitutiveLawInitializeMaterialProcessInfo(
-        ConstitutiveLaw& rThisConstitutiveLaw,
-        const Properties& rMaterialProperties,
-        const ConstitutiveLaw::GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    rThisConstitutiveLaw.InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-}
-
 Flags GetFeaturesOptions(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetOptions();}
 double GetStrainSizeFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainSize();}
 double GetSpaceDimensionFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetSpaceDimension();}
@@ -228,10 +209,7 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("FinalizeMaterialResponsePK2",&ConstitutiveLaw::FinalizeMaterialResponsePK2)
     .def("FinalizeMaterialResponseKirchhoff",&ConstitutiveLaw::FinalizeMaterialResponseKirchhoff)
     .def("FinalizeMaterialResponseCauchy",&ConstitutiveLaw::FinalizeMaterialResponseCauchy)
-    .def("InitializeMaterial", py::overload_cast<ConstitutiveLaw&, const Properties&, const ConstitutiveLaw::GeometryType&,
-                                                const Vector&>(&ConstitutiveLawInitializeMaterialStandard))
-    .def("InitializeMaterial", py::overload_cast<ConstitutiveLaw&, const Properties&, const ConstitutiveLaw::GeometryType&,
-                                                const Vector&, const ProcessInfo&>(&ConstitutiveLawInitializeMaterialProcessInfo))
+    .def("InitializeMaterial", &ConstitutiveLaw::InitializeMaterial)
     .def("ResetMaterial",&ConstitutiveLaw::ResetMaterial)
     .def("TransformStrains",&ConstitutiveLaw::TransformStrains, py::return_value_policy::reference_internal)
 //     .def("TransformStresses",&ConstitutiveLaw::TransformStresses)
