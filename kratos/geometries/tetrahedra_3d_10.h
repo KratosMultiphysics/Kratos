@@ -629,8 +629,8 @@ public:
     double AverageEdgeLength() const override {
         double average_edge_length = 0.0;
         GeometriesArrayType edges = this->GenerateEdges();
-        for (auto& edge : edges) {
-            average_edge_length += edge.Length();
+        for (auto& r_edge : edges) {
+            average_edge_length += r_edge .Length();
         }
         return average_edge_length/6.0;
     }
