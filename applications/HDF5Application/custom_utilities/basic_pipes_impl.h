@@ -65,11 +65,4 @@ Modulo<TValue>::Modulo(const Parameters& rParameters)
 }
 
 
-template <>
-inline double Modulo<double>::operator()(double Value) const
-{
-    return std::fmod(Value, mModulo);
-}
-
-
 } // namespace Kratos::Pipes
