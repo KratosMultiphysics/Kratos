@@ -98,6 +98,10 @@
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
+// Wall laws
+#include "custom_conditions/wall_laws/linear_log_wall_law.h"
+#include "custom_conditions/wall_laws/navier_slip_wall_law.h"
+
 // Adjoint fluid elements
 #include "custom_elements/vms_adjoint_element.h"
 #include "custom_elements/fluid_adjoint_element.h"
@@ -105,7 +109,6 @@
 
 // Adjoint fluid conditions
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
-
 
 namespace Kratos
 {
@@ -398,8 +401,12 @@ private:
     /// Navier-Stokes symbolic element
     const NavierStokes<2> mNavierStokes2D;
     const NavierStokes<3> mNavierStokes3D;
-    const NavierStokesWallCondition<2> mNavierStokesWallCondition2D;
-    const NavierStokesWallCondition<3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<2,2> mNavierStokesWallCondition2D;
+    const NavierStokesWallCondition<3,3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>> mNavierStokesLinearLogWallCondition2D;
+    const NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>> mNavierStokesLinearLogWallCondition3D;
+    const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
+    const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
@@ -421,8 +428,8 @@ private:
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<2, 3> > mTwoFluidNavierStokesAlphaMethod2D3N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
-    const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
-    const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
+    const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
+    const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

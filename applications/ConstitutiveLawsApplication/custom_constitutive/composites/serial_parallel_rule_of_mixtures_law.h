@@ -101,7 +101,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     // Copy constructor
     SerialParallelRuleOfMixturesLaw(SerialParallelRuleOfMixturesLaw const& rOther)
         : ConstitutiveLaw(rOther), mpMatrixConstitutiveLaw(rOther.mpMatrixConstitutiveLaw), mpFiberConstitutiveLaw(rOther.mpFiberConstitutiveLaw),
-        mFiberVolumetricParticipation(rOther.mFiberVolumetricParticipation), mParallelDirections(rOther.mParallelDirections)
+        mFiberVolumetricParticipation(rOther.mFiberVolumetricParticipation), mParallelDirections(rOther.mParallelDirections) , 
+        mPreviousStrainVector(rOther.mPreviousStrainVector) , mPreviousSerialStrainMatrix(rOther.mPreviousSerialStrainMatrix) , mIsPrestressed(rOther.mIsPrestressed) 
     {
     }
 
@@ -558,6 +559,20 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         return true;
     }
 
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return 0 if OK, 1 otherwise
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -692,6 +707,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
         rSerializer.save("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
+        rSerializer.save("FiberVolumetricParticipation", mFiberVolumetricParticipation);
+        rSerializer.save("ParallelDirections", mParallelDirections);
+        rSerializer.save("PreviousStrainVector", mPreviousStrainVector);
+        rSerializer.save("PreviousSerialStrainMatrix", mPreviousSerialStrainMatrix);
+        rSerializer.save("IsPrestressed", mIsPrestressed);
     }
 
     void load(Serializer& rSerializer) override
@@ -699,6 +719,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
         rSerializer.load("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
+        rSerializer.load("FiberVolumetricParticipation", mFiberVolumetricParticipation);
+        rSerializer.load("ParallelDirections", mParallelDirections);
+        rSerializer.load("PreviousStrainVector", mPreviousStrainVector);
+        rSerializer.load("PreviousSerialStrainMatrix", mPreviousSerialStrainMatrix);
+        rSerializer.load("IsPrestressed", mIsPrestressed);
     }
 
     ///@}

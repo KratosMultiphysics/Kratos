@@ -249,6 +249,29 @@ more_levels_json_with_includes = """
 }
 """
 
+vector_json_with_includes = """
+{
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
+   "level1": [
+    {
+         "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json",
+         "vector": [
+            {
+                "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+            }
+         ]
+    },
+    {
+        "hello": 0
+    },
+    {
+         "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+    }
+   ],
+   "string_value" : "hello"
+}
+"""
+
 class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -283,6 +306,13 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(
             param.WriteJsonString(),
             self.compact_expected_output
+        )
+
+    def test_vector_json_with_include_parameters(self):
+        param = Parameters(vector_json_with_includes)
+        self.assertEqual(
+            param.WriteJsonString(),
+            '{"bool_value":true,"double_value":2.0,"int_value":10,"level1":[{"list_value":[3,"hi",false],"tmp":5.0,"vector":[{"list_value":[3,"hi",false],"tmp":5.0}]},{"hello":0},{"list_value":[3,"hi",false],"tmp":5.0}],"string_value":"hello"}'
         )
 
     def test_kratos_change_parameters(self):
@@ -493,6 +523,23 @@ class TestParameters(KratosUnittest.TestCase):
 
         kp.RemoveValue("int_value")
         kp.RemoveValue("level1")
+
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+
+    def test_remove_values(self):
+        kp = Parameters(json_string)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1", "You_ll_never_take_me_alive"]
+        success = kp.RemoveValues(list_remove)
+        self.assertFalse(success)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+
+        list_remove = ["int_value", "level1"]
+        kp.RemoveValues(list_remove)
 
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
