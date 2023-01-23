@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//	                 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
@@ -21,7 +21,8 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
-#include "utilities/integration_utilities.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "integration/pyramid_gauss_legendre_integration_points.h"
 
 namespace Kratos {
@@ -62,6 +63,13 @@ public:
 
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
+
+    /**
+     * Type of edge and face geometries
+     */
+    typedef Line3D2<TPointType> EdgeType;
+    typedef Triangle3D3<TPointType> FaceType1;
+    typedef Quadrilateral3D4<TPointType> FaceType2;
 
     /// Pointer definition of Pyramid3D5
     KRATOS_CLASS_POINTER_DEFINITION(Pyramid3D5);
@@ -307,6 +315,45 @@ public:
     }
 
     /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
+    {
+        GeometriesArrayType edges = GeometriesArrayType();
+        typedef typename Geometry<TPointType>::Pointer EdgePointerType;
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 0 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        return edges;
+    }
+
+    /**
      * @brief Returns the number of faces of the current geometry.
      * @see EdgesNumber
      * @see Edges
@@ -317,17 +364,63 @@ public:
         return 5;
     }
 
-    /** 
-     * @brief This method calculate and return volume of this geometry. 
-     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
-     * @return double value contains volume.
-     * @see Length()
-     * @see Area()
-     * @see DomainSize()
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
      */
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+        typedef typename Geometry<TPointType>::Pointer FacePointerType;
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType2(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        return faces;
+    }
+
+    /** This method calculate and return volume of this
+     geometry. For one and two dimensional geometry it returns
+    zero and for three dimensional it gives volume of geometry.
+
+    @return double value contains volume.
+    @see Length()
+    @see Area()
+    @see DomainSize()
+    */
     double Volume() const override
     {
-        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
+        Vector temp;
+        this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
+        double vol = 0.00;
+
+        for (std::size_t i=0; i<integration_points.size(); ++i) {
+            vol += temp[i] * integration_points[i].Weight();
+        }
+
+        return vol;
     }
 
     /**
