@@ -153,8 +153,7 @@ public:
      */
     static double CalculateReversionFactor(const double MaxStress, const double MinStress)
     {
-        // return MinStress / MaxStress;
-        return 0.1;
+        return MinStress / MaxStress;
     }
 
     /**

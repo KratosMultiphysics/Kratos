@@ -163,8 +163,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     }
     if (advance_strategy_applied) {
 
-        double c_factor = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][7];
-
         max_stress = (1 - reference_damage)*mMaxStress;
         min_stress = (1 - reference_damage)*mMinStress;
 
@@ -360,8 +358,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
-    // array_1d<double, VoigtSize> aux_strain_vector;
-    // aux_strain_vector = r_strain_vector;
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -373,7 +369,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
     array_1d<double, VoigtSize> predictive_stress_vector;
-    array_1d<double, VoigtSize> aux_stress_vector;
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
 
@@ -390,16 +385,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
         this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
-        // noalias(aux_stress_vector) = prod(r_constitutive_matrix, aux_strain_vector);
-
         // Initialize Plastic Parameters
         double uniaxial_stress;
-        // double nominal_uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-        // TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(aux_stress_vector, aux_strain_vector, nominal_uniaxial_stress, rValues);
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
-        // nominal_uniaxial_stress *= sign_factor;
         uniaxial_stress *= sign_factor;
         double max_stress = mMaxStress;
         double min_stress = mMinStress;
@@ -443,7 +433,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         Vector previous_stresses = ZeroVector(2);
         const Vector& r_aux_stresses = mPreviousStresses;
-        
         previous_stresses[1] = this->CalculateValue(rValues, UNIAXIAL_STRESS, previous_stresses[1]) * sign_factor / (1.0 - this->GetDamage());
         previous_stresses[0] = r_aux_stresses[1];
 
@@ -652,28 +641,10 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-    if (this->Has(rThisVariable)) {
+    if (this->Has(rThisVariable))
         return this->GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == NOMINAL_UNIAXIAL_STRESS) {
-            
-            // We get the strain vector
-        Vector& r_strain_vector = rParameterValues.GetStrainVector();
-        
-        // Elastic Matrix
-        Matrix& r_constitutive_matrix = rParameterValues.GetConstitutiveMatrix();
-        this->CalculateValue(rParameterValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-
-        // S0 = C:(E-E0) + S0
-        array_1d<double, VoigtSize> r_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-
-        BoundedArrayType aux_stress_vector = r_stress_vector;
-        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(aux_stress_vector, r_strain_vector, rValue, rParameterValues);
-        
-        return rValue;
-
-    } else {
+    else
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    }    
 }
 
 /***********************************************************************************/
@@ -691,7 +662,6 @@ Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     } else if (rThisVariable == CONSTITUTIVE_MATRIX) {
         this->CalculateElasticMatrix(rValue, rParameterValues);
     }
-
     return rValue;
 }
 
