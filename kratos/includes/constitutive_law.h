@@ -1000,7 +1000,6 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current process information
      */
     virtual void InitializeMaterial(const Properties& rMaterialProperties,
                                     const GeometryType& rElementGeometry,
