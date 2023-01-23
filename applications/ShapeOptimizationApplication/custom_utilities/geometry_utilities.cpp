@@ -422,86 +422,15 @@ void GeometryUtilities::CalculateGaussianCurvature() {
 
         // For quadratic elements (e.g. 6NTriangle)
         if (technique == "curvature_tensor") {
-            bool local_cartesian_basis_defined = false;
-            Vector e_1 = ZeroVector(3);
-            Vector e_2 = ZeroVector(3);
-            Matrix b_total = ZeroMatrix(2,2);
-            int counter = 0;
-            for (const auto& r_condition_neighbour : r_condition_neighbours) {
-                if (GeometryUtilities::CheckIfElementIsQuadratic(r_condition_neighbour)) {
-                    Matrix b = GeometryUtilities::CurvatureTensor(rNode, r_condition_neighbour);
-                    if (!local_cartesian_basis_defined) {
-                        GeometryUtilities::CartesianBaseVectors(rNode, r_condition_neighbour, e_1, e_2);
-                        local_cartesian_basis_defined = true;
-                    }
-                    Vector g_1 = ZeroVector(3);
-                    Vector g_2 = ZeroVector(3);
-                    GeometryUtilities::BaseVectors(rNode, r_condition_neighbour, g_1, g_2);
-                    Matrix b_transformed = ZeroMatrix(2,2);
-                    GeometryUtilities::TransformTensorCoefficients(b, b_transformed, g_1, g_2, e_1, e_2);
-                    b_total += b_transformed;
-                    ++counter;
-                }
-            }
-            b_total /= counter;
-            r_gaussian_curvature = MathUtils<double>::Det2(b_total);
+            r_gaussian_curvature = this->GaussianCurvatureForNodeFromTensor(rNode);
         }
         // For 3NTriangles by Meyer
         else if (technique == "Meyer") {
-            ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(mrModelPart.Name() + "_edges");
-            if (r_edge_model_part.HasNode(rNode.Id())) {
-                r_gaussian_curvature = 0;
-            } else {
-                r_gaussian_curvature = 2*Globals::Pi;
-                double A_mixed = 0.0;
-                for (const auto& r_condition_neighbour : r_condition_neighbours) {
-                    double element_angle = 0;
-                    double element_a_mixed = 0;
-                    GeometryUtilities::InnerAngleAndMixedAreaOf3D3NTriangletAtNode(rNode, r_condition_neighbour, element_angle, element_a_mixed);
-
-                    r_gaussian_curvature -= element_angle;
-                    A_mixed += element_a_mixed;
-                }
-                r_gaussian_curvature /= A_mixed;
-            }
+            r_gaussian_curvature = this->GaussianCurvatureForNodeMeyer(rNode);
         }
         // For 4NQuads by Taubin, variable naming according to Camprubi Estebo
         else if (technique == "Taubin") {
-            Vector A3_p = rNode.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            Vector A1_p = ZeroVector(3);
-            Vector A2_p = ZeroVector(3);
-            MathUtils<double>::OrthonormalBasis(A3_p, A1_p, A2_p);
-            Vector curvature_tensor = ZeroVector(3);
-            double area_sum = 0;
-            for (const auto& r_condition_neighbour : r_condition_neighbours) {
-                if (r_condition_neighbour->GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 ) continue;
-                Vector kappa_Qi(3);
-                Vector a_i(3);
-                Vector b_i(3);
-                Matrix A(3,3);
-                int i = 0;
-                for (const auto& r_element_node : r_condition_neighbour->GetGeometry()) {
-                    if (r_element_node.Id() == rNode.Id()) continue;
-                    Vector r_i = r_element_node - rNode.Coordinates();
-                    Vector t_i = r_i - A3_p * (MathUtils<double>::Dot3(A3_p, r_i));
-                    t_i /= MathUtils<double>::Norm3(t_i);
-                    kappa_Qi(i) = 2 * MathUtils<double>::Dot3(A3_p, r_i) / (MathUtils<double>::Norm3(r_i)*MathUtils<double>::Norm3(r_i));
-                    a_i(i) = MathUtils<double>::Dot3(t_i, A1_p);
-                    b_i(i) = MathUtils<double>::Dot3(t_i, A2_p);
-                    A(i, 0) = a_i(i) * a_i(i);
-                    A(i, 1) = 2 * a_i(i) * b_i(i);
-                    A(i, 2) = b_i(i) * b_i(i);
-                    ++i;
-                }
-                Vector curvature_tensor_element = ZeroVector(3);
-                MathUtils<double>::Solve(A, curvature_tensor_element, kappa_Qi);
-                area_sum += r_condition_neighbour->GetGeometry().Area();
-                curvature_tensor += r_condition_neighbour->GetGeometry().Area() * curvature_tensor_element;
-            }
-            if (area_sum > 0) {
-                curvature_tensor /= area_sum;
-                r_gaussian_curvature = curvature_tensor(0) * curvature_tensor(2) - curvature_tensor(1) * curvature_tensor(1);
-            }
+            r_gaussian_curvature = this->GaussianCurvatureForNodeTaubin(rNode);
         }
     });
 
@@ -526,6 +455,104 @@ void GeometryUtilities::CalculateGaussianCurvature() {
     });
 
     KRATOS_CATCH("");
+}
+
+double GeometryUtilities::GaussianCurvatureForNodeFromTensor(const NodeType &rNode) {
+
+    const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
+
+    bool local_cartesian_basis_defined = false;
+    Vector e_1 = ZeroVector(3);
+    Vector e_2 = ZeroVector(3);
+    Matrix b_total = ZeroMatrix(2,2);
+    int counter = 0;
+    for (const auto& r_condition_neighbour : r_condition_neighbours) {
+        if (GeometryUtilities::CheckIfElementIsQuadratic(r_condition_neighbour)) {
+            Matrix b = GeometryUtilities::CurvatureTensor(rNode, r_condition_neighbour);
+            if (!local_cartesian_basis_defined) {
+                GeometryUtilities::CartesianBaseVectors(rNode, r_condition_neighbour, e_1, e_2);
+                local_cartesian_basis_defined = true;
+            }
+            Vector g_1 = ZeroVector(3);
+            Vector g_2 = ZeroVector(3);
+            GeometryUtilities::BaseVectors(rNode, r_condition_neighbour, g_1, g_2);
+            Matrix b_transformed = ZeroMatrix(2,2);
+            GeometryUtilities::TransformTensorCoefficients(b, b_transformed, g_1, g_2, e_1, e_2);
+            b_total += b_transformed;
+            ++counter;
+        }
+    }
+    b_total /= counter;
+    double gaussian_curvature = MathUtils<double>::Det2(b_total);
+
+    return gaussian_curvature;
+}
+
+double GeometryUtilities::GaussianCurvatureForNodeMeyer(const NodeType &rNode) {
+
+    const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
+
+    ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(mrModelPart.Name() + "_edges");
+    if (r_edge_model_part.HasNode(rNode.Id())) {
+        return 0;
+    } else {
+        double gaussian_curvature = 2*Globals::Pi;
+        double A_mixed = 0.0;
+        for (const auto& r_condition_neighbour : r_condition_neighbours) {
+            double element_angle = 0;
+            double element_a_mixed = 0;
+            GeometryUtilities::InnerAngleAndMixedAreaOf3D3NTriangletAtNode(rNode, r_condition_neighbour, element_angle, element_a_mixed);
+
+            gaussian_curvature -= element_angle;
+            A_mixed += element_a_mixed;
+        }
+        gaussian_curvature /= A_mixed;
+        return gaussian_curvature;
+    }
+}
+
+double GeometryUtilities::GaussianCurvatureForNodeTaubin(const NodeType &rNode) {
+
+    const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
+
+    Vector A3_p = rNode.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+    Vector A1_p = ZeroVector(3);
+    Vector A2_p = ZeroVector(3);
+    MathUtils<double>::OrthonormalBasis(A3_p, A1_p, A2_p);
+    Vector curvature_tensor = ZeroVector(3);
+    double area_sum = 0;
+    for (const auto& r_condition_neighbour : r_condition_neighbours) {
+        if (r_condition_neighbour->GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 ) continue;
+        Vector kappa_Qi(3);
+        Vector a_i(3);
+        Vector b_i(3);
+        Matrix A(3,3);
+        int i = 0;
+        for (const auto& r_element_node : r_condition_neighbour->GetGeometry()) {
+            if (r_element_node.Id() == rNode.Id()) continue;
+            Vector r_i = r_element_node - rNode.Coordinates();
+            Vector t_i = r_i - A3_p * (MathUtils<double>::Dot3(A3_p, r_i));
+            t_i /= MathUtils<double>::Norm3(t_i);
+            kappa_Qi(i) = 2 * MathUtils<double>::Dot3(A3_p, r_i) / (MathUtils<double>::Norm3(r_i)*MathUtils<double>::Norm3(r_i));
+            a_i(i) = MathUtils<double>::Dot3(t_i, A1_p);
+            b_i(i) = MathUtils<double>::Dot3(t_i, A2_p);
+            A(i, 0) = a_i(i) * a_i(i);
+            A(i, 1) = 2 * a_i(i) * b_i(i);
+            A(i, 2) = b_i(i) * b_i(i);
+            ++i;
+        }
+        Vector curvature_tensor_element = ZeroVector(3);
+        MathUtils<double>::Solve(A, curvature_tensor_element, kappa_Qi);
+        area_sum += r_condition_neighbour->GetGeometry().Area();
+        curvature_tensor += r_condition_neighbour->GetGeometry().Area() * curvature_tensor_element;
+    }
+
+    double gaussian_curvature = 0;
+    if (area_sum > 0) {
+        curvature_tensor /= area_sum;
+        gaussian_curvature = curvature_tensor(0) * curvature_tensor(2) - curvature_tensor(1) * curvature_tensor(1);
+    }
+    return gaussian_curvature;
 }
 
 std::string GeometryUtilities::GetCurvatureTechnique(const NodeType &rNode) {
