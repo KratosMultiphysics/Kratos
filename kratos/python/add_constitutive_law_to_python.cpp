@@ -70,7 +70,7 @@ void ConstitutiveLawInitializeMaterialStandard(
         const ConstitutiveLaw::GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues)
 {
-    return rThisConstitutiveLaw.InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+    rThisConstitutiveLaw.InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
 
 void ConstitutiveLawInitializeMaterialProcessInfo(
@@ -80,7 +80,7 @@ void ConstitutiveLawInitializeMaterialProcessInfo(
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    return rThisConstitutiveLaw.InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+    rThisConstitutiveLaw.InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 Flags GetFeaturesOptions(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetOptions();}
@@ -228,8 +228,10 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("FinalizeMaterialResponsePK2",&ConstitutiveLaw::FinalizeMaterialResponsePK2)
     .def("FinalizeMaterialResponseKirchhoff",&ConstitutiveLaw::FinalizeMaterialResponseKirchhoff)
     .def("FinalizeMaterialResponseCauchy",&ConstitutiveLaw::FinalizeMaterialResponseCauchy)
-    .def("InitializeMaterial",&ConstitutiveLawInitializeMaterialStandard, py::return_value_policy::reference_internal)
-    .def("InitializeMaterial",&ConstitutiveLawInitializeMaterialProcessInfo, py::return_value_policy::reference_internal)
+    .def("InitializeMaterial", py::overload_cast<ConstitutiveLaw&, const Properties&, const ConstitutiveLaw::GeometryType&,
+                                                const Vector&>(&ConstitutiveLawInitializeMaterialStandard))
+    .def("InitializeMaterial", py::overload_cast<ConstitutiveLaw&, const Properties&, const ConstitutiveLaw::GeometryType&,
+                                                const Vector&, const ProcessInfo&>(&ConstitutiveLawInitializeMaterialProcessInfo))
     .def("ResetMaterial",&ConstitutiveLaw::ResetMaterial)
     .def("TransformStrains",&ConstitutiveLaw::TransformStrains, py::return_value_policy::reference_internal)
 //     .def("TransformStresses",&ConstitutiveLaw::TransformStresses)
