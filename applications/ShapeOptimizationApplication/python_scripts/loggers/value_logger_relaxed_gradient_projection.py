@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 
 # Import logger base classes
 from .value_logger_base import ValueLogger
@@ -54,15 +54,16 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        KM.Logger.Print("")
-        KM.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+        Kratos.Logger.Print("")
+        Kratos.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
 
-        KM.Logger.PrintInfo("ShapeOpt", "Absolute change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
-        KM.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
+        Kratos.Logger.PrintInfo("ShapeOpt", "Absolute change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
+        Kratos.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            KM.Logger.PrintInfo("ShapeOpt", "Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
+            Kratos.Logger.PrintInfo("ShapeOpt", f"Value of C{str(itr+1)} = ","{:> .5E}".format(
+                                    self.history["response_value"][constraint_id][self.current_index]))
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
@@ -91,9 +92,12 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
                 row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_buffer_value"][self.current_index]))
                 row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_buffer_size"][self.current_index]))
                 row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_buffer_size_factor"][self.current_index]))
-                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_central_buffer_value"][self.current_index] + self.communicator.getReferenceValue(constraint_id)))
-                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_lower_buffer_value"][self.current_index] + self.communicator.getReferenceValue(constraint_id)))
-                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_upper_buffer_value"][self.current_index] + self.communicator.getReferenceValue(constraint_id)))
+                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_central_buffer_value"][self.current_index] +
+                                              self.communicator.getReferenceValue(constraint_id)))
+                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_lower_buffer_value"][self.current_index]
+                                              + self.communicator.getReferenceValue(constraint_id)))
+                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_upper_buffer_value"][self.current_index]
+                                              + self.communicator.getReferenceValue(constraint_id)))
 
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)

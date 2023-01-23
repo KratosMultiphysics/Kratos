@@ -12,7 +12,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 
@@ -29,7 +29,7 @@ import numpy as np
 class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
-        default_algorithm_settings = KM.Parameters("""
+        default_algorithm_settings = Kratos.Parameters("""
         {
             "name"                    : "relaxed_gradient_projection",
             "max_iterations"          : 100,
@@ -64,8 +64,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             constraint_id = constraint["identifier"].GetString()
             self.constraint_gradient_variables.update({
                 constraint_id : {
-                    "gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
-                    "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                    "gradient": Kratos.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
+                    "mapped_gradient": Kratos.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
                 }
             })
             self.constraint_buffer_variables.update({
@@ -131,10 +131,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.optimization_iteration in range(1,self.max_iterations):
-            KM.Logger.Print("")
-            KM.Logger.Print("===============================================================================")
-            KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
-            KM.Logger.Print("===============================================================================\n")
+            Kratos.Logger.Print("")
+            Kratos.Logger.Print("===============================================================================")
+            Kratos.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
+            Kratos.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
 
@@ -150,9 +150,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             self.__updateBufferZone()
 
-            KM.Logger.Print("")
-            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            Kratos.Logger.Print("")
+            Kratos.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            Kratos.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             if self.__isAlgorithmConverged():
                 break
@@ -215,7 +215,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __computeBufferValue(self):
-    # compute new buffer size and buffer values
+        # compute new buffer size and buffer values
     	for constraint in self.constraints:
             identifier = constraint["identifier"].GetString()
             g_i = self.communicator.getStandardizedValue(identifier)
@@ -234,8 +234,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 self.constraint_buffer_variables[identifier]["buffer_size"] = max(buffer_size_factor * max_constraint_change, 1e-12)
 
             buffer_size = self.constraint_buffer_variables[identifier]["buffer_size"]
-            self.constraint_buffer_variables[identifier]["lower_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] - buffer_size
-            self.constraint_buffer_variables[identifier]["upper_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] + buffer_size
+            self.constraint_buffer_variables[identifier]["lower_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] \
+                - buffer_size
+            self.constraint_buffer_variables[identifier]["upper_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] \
+                + buffer_size
 
             if self.__isConstraintActive(constraint):
                 if constraint["type"].GetString() == "=":
@@ -263,7 +265,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             self.direction_has_changed = False
 
-            KM.Logger.PrintInfo("ShapeOpt", "Inner Iteration to Find Shape Update = ", self.inner_iter)
+            Kratos.Logger.PrintInfo("ShapeOpt", "Inner Iteration to Find Shape Update = ", self.inner_iter)
 
             self.__computeControlPointUpdate()
 
@@ -280,7 +282,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
 
     def __checkInnerConvergence(self):
-        KM.Logger.PrintInfo("Check Convergence of the inner loop:")
+        Kratos.Logger.PrintInfo("Check Convergence of the inner loop:")
         if self.inner_iter == 1:
             return False
         elif self.direction_has_changed and self.inner_iter <= self.max_inner_iter:
@@ -296,12 +298,12 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 identifier = constraint["identifier"].GetString()
                 g_i = self.communicator.getStandardizedValue(identifier)
                 g_a_variable = self.constraint_gradient_variables[identifier]["gradient"]
-                shape_update = KM.Vector()
-                gradient = KM.Vector()
+                shape_update = Kratos.Vector()
+                gradient = Kratos.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, gradient, g_a_variable)
                 self.optimization_utilities.AssembleVector(self.design_surface, shape_update, KSO.SHAPE_UPDATE)
                 new_g_i = g_i + np.dot(gradient, shape_update)
-                KM.Logger.PrintInfo("Constraint ", identifier, "\n Linearized new value = ", new_g_i)
+                Kratos.Logger.PrintInfo("Constraint ", identifier, "\n Linearized new value = ", new_g_i)
                 if new_g_i > 0.0:
                     if self.relaxation_coefficients[index] < 1.0:
                         self.relaxation_coefficients[index] = min(self.relaxation_coefficients[index] + self.buffer_coeff_update, 1.0)
@@ -309,11 +311,11 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                     elif self.correction_coefficients[index] < 2.0:
                         self.correction_coefficients[index] = min (self.correction_coefficients[index] + self.buffer_coeff_update, 2.0)
                         self.direction_has_changed = True
-                KM.Logger.PrintInfo("Constraint ", identifier, "\n W_R, W_C = ", self.relaxation_coefficients[index], self.correction_coefficients[index])
+                Kratos.Logger.PrintInfo("Constraint ", identifier, "\n W_R, W_C = ", self.relaxation_coefficients[index], self.correction_coefficients[index])
 
     # --------------------------------------------------------------------------
     def __LineSearch(self):
-        KM.Logger.PrintInfo("Line Search ...")
+        Kratos.Logger.PrintInfo("Line Search ...")
         if self.line_search_type == "manual_stepping":
             self.__manualStep()
         elif self.line_search_type == "QNBB_method":
@@ -337,7 +339,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     def __manualStep(self):
         step_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE)
         if abs(step_norm) > 1e-10:
-            step = KM.Vector()
+            step = Kratos.Vector()
             self.optimization_utilities.AssembleVector(self.design_surface, step, KSO.CONTROL_POINT_UPDATE)
             step *= 1.0 / step_norm
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, step, KSO.SEARCH_DIRECTION)
@@ -347,7 +349,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     def __QNBBStep(self):
         self.s_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         if abs(self.s_norm) > 1e-10:
-            s = KM.Vector()
+            s = Kratos.Vector()
             self.optimization_utilities.AssembleVector(self.design_surface, s, KSO.SEARCH_DIRECTION)
             s /= self.s_norm
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
@@ -371,25 +373,25 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     def __BBStep(self):
         self.s_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         if abs(self.s_norm) > 1e-10:
-            s = KM.Vector()
+            s = Kratos.Vector()
             self.optimization_utilities.AssembleVector(self.design_surface, s, KSO.SEARCH_DIRECTION)
             s /= self.s_norm
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
             y = self.prev_s - s
             if np.dot(y, y) < 1e-9:
-                step = max_step_size
+                step = self.max_step_size
             else:
                 step = abs(np.dot(y, self.d) / np.dot(y, y))
-            if step > max_step_size:
-                step = max_step_size
+            if step > self.max_step_size:
+                step = self.max_step_size
             s = s * step
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
 
     def __saveLineSearchData(self):
-            self.prev_s = KM.Vector()
-            self.d = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, self.d, KSO.CONTROL_POINT_UPDATE)
-            self.optimization_utilities.AssembleVector(self.design_surface, self.prev_s, KSO.SEARCH_DIRECTION)
+        self.prev_s = Kratos.Vector()
+        self.d = Kratos.Vector()
+        self.optimization_utilities.AssembleVector(self.design_surface, self.d, KSO.CONTROL_POINT_UPDATE)
+        self.optimization_utilities.AssembleVector(self.design_surface, self.prev_s, KSO.SEARCH_DIRECTION)
 
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
@@ -397,9 +399,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         if self.inner_iter == 1:
             self.g_a, self.g_a_variables, self.relaxation_coefficients, self.correction_coefficients = self.__getActiveConstraints()
 
-        KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
-        nabla_f = KM.Vector()
-        p = KM.Vector()
+        Kratos.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
+        nabla_f = Kratos.Vector()
+        p = Kratos.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
         f_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
 
@@ -407,29 +409,29 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             nabla_f *= 1.0/f_norm
 
         if len(self.g_a) == 0:
-            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+            Kratos.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             p = nabla_f * (-1.0)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.SEARCH_DIRECTION)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
-            KM.VariableUtils().SetHistoricalVariableToZero(KSO.CORRECTION, self.design_surface.Nodes)
+            Kratos.VariableUtils().SetHistoricalVariableToZero(KSO.CORRECTION, self.design_surface.Nodes)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.CONTROL_POINT_UPDATE)
             self.__LineSearch()
             return
 
-        omega_r = KM.Matrix()
+        omega_r = Kratos.Matrix()
         self.optimization_utilities.AssembleBufferMatrix(omega_r, self.relaxation_coefficients)
-        omega_c = KM.Vector(self.correction_coefficients)
+        omega_c = Kratos.Vector(self.correction_coefficients)
 
-        KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
-        N = KM.Matrix()
+        Kratos.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
+        N = Kratos.Matrix()
         self.optimization_utilities.AssembleMatrix(self.design_surface, N, self.g_a_variables)
 
-        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
+        settings = Kratos.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
-        c = KM.Vector()
+        c = Kratos.Vector()
 
-        KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
+        Kratos.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
         self.optimization_utilities.CalculateRelaxedProjectedSearchDirectionAndCorrection(
             nabla_f,
             N,
@@ -465,7 +467,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 active_constraint_values.append(g_i)
                 g_a_variable = self.constraint_gradient_variables[identifier]["mapped_gradient"]
                 g_a_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, g_a_variable)
-                g_a_variable_vector = KM.Vector()
+                g_a_variable_vector = Kratos.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, g_a_variable_vector, g_a_variable)
                 if abs(g_a_norm) > 1e-10:
                     g_a_variable_vector /= g_a_norm
@@ -525,7 +527,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] -= g_i_m1
                 elif delta_g <= 0.0 and g_i_m1 < 0:
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] += g_i_m1
-                    self.constraint_buffer_variables[identifier]["central_buffer_value"] = max(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
+                    self.constraint_buffer_variables[identifier]["central_buffer_value"] = \
+                        max(self.constraint_buffer_variables[identifier]["central_buffer_value"], 0.0)
 
             self.constraint_buffer_variables[identifier]["g_i-3"] = g_i_m2
             self.constraint_buffer_variables[identifier]["g_i-2"] = g_i_m1
@@ -558,15 +561,15 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             # Check if maximum iterations were reached
             if self.optimization_iteration == self.max_iterations:
-                KM.Logger.Print("")
-                KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
+                Kratos.Logger.Print("")
+                Kratos.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
                 return True
 
             # Check for relative tolerance
             relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
             if abs(relative_change_of_objective_value) < self.relative_tolerance:
-                KM.Logger.Print("")
-                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
+                Kratos.Logger.Print("")
+                Kratos.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------
