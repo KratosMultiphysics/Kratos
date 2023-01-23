@@ -650,6 +650,16 @@ public:
         return d_shape_f_values;
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Pyramid;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Pyramid3D5;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
