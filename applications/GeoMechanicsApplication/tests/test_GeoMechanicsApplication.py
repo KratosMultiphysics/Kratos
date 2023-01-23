@@ -53,7 +53,6 @@ def AssembleTestSuites():
     small_test_cases = [
                         KratosGeoMechanicsGeneralTests,
                         KratosGeoMechanicsExcavationTests,
-                        KratosGeoMechanicsInterfaceTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
                         KratosGeoMechanicsWaterPressureTests,
@@ -72,7 +71,8 @@ def AssembleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [ 
+    night_test_cases = [
+                        KratosGeoMechanicsInterfaceTests,
                         KratosGeoMechanicsDynamicsTests,
                         KratosGeoMechanicsAbsorbingBoundaryColumnTests,
                         TestSellmeijersRule,

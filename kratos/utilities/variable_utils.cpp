@@ -393,7 +393,7 @@ TVectorType VariableUtils::GetCurrentPositionsVector(
     const ModelPart::NodesContainerType& rNodes,
     const unsigned int Dimension)
 {
-    KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
+    KRATOS_ERROR_IF(Dimension>3) << "Only Dimension<=3 is admitted by the function" << std::endl;
     TVectorType pos(rNodes.size()*Dimension);
 
     IndexPartition<unsigned int>(rNodes.size()).for_each(
@@ -411,7 +411,7 @@ TVectorType VariableUtils::GetInitialPositionsVector(
     const ModelPart::NodesContainerType& rNodes,
     const unsigned int Dimension)
 {
-    KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
+    KRATOS_ERROR_IF(Dimension>3) << "Only Dimension<=3 is admitted by the function" << std::endl;
     TVectorType pos(rNodes.size()*Dimension);
 
     IndexPartition<unsigned int>(rNodes.size()).for_each(
@@ -619,6 +619,9 @@ template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableO
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector<Vector>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetInitialPositionsVector<std::vector<double>>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
 
 template KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector<Vector>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
 template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetCurrentPositionsVector<std::vector<double>>(const ModelPart::NodesContainerType&, const unsigned int Dimension);

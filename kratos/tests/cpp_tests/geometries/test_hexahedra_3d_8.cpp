@@ -274,5 +274,11 @@ namespace Kratos {
       auto geom = GenerateOriginCenterLen2Hexahedra3D8();
       TestAllShapeFunctionsLocalGradients(*geom);
   }
+
+  /** Checks the average edge length */
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8AverageEdgeLength, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateOriginCenterLen2Hexahedra3D8();
+        KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 2.0, TOLERANCE);
+    }
 	}
 }  // namespace Kratos.

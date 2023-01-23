@@ -130,7 +130,7 @@ namespace Kratos {
 
         // Now replace the elements in SubModelParts
         if ( NewElements.size() > 0 ) {
-            ReplaceElementsInSubModelPart(rThisModelPart);
+            ReplaceElementsInSubModelPart(rThisModelPart.GetRootModelPart());
         }
     }
 
