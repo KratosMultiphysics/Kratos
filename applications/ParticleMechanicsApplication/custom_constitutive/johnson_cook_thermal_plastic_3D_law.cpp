@@ -54,27 +54,25 @@ namespace Kratos
 	}
 
 
-	void JohnsonCookThermalPlastic3DLaw::InitializeMaterial(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const Vector& rShapeFunctionsValues, const ProcessInfo& rCurrentProcessInfo)
+	void JohnsonCookThermalPlastic3DLaw::InitializeMaterial(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const Vector& rShapeFunctionsValues)
 	{
-		BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+		BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-		if (!rCurrentProcessInfo[IS_RESTARTED]){
-			mStrainOld = ZeroVector(GetStrainSize());
-			mEquivalentPlasticStrainOld = 0.0;
-			mPlasticStrainRateOld = 0.0;
-			mEnergyInternal = 0.0;
-			mEnergyDissipated = 0.0;
-			mTemperatureOld = rMaterialProperties[TEMPERATURE];
-			mGammaOld = 1e-8;
-			mHardeningRatio = 1.0;
+		mStrainOld = ZeroVector(GetStrainSize());
+		mEquivalentPlasticStrainOld = 0.0;
+		mPlasticStrainRateOld = 0.0;
+		mEnergyInternal = 0.0;
+		mEnergyDissipated = 0.0;
+		mTemperatureOld = rMaterialProperties[TEMPERATURE];
+		mGammaOld = 1e-8;
+		mHardeningRatio = 1.0;
 
-			if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) {
-				KRATOS_WARNING("Johnson Cook Material Model") << " Taylor Quinney Coefficient set to 0, ignoring thermal effects" << std::endl;
-			}
-
-			mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
-			mYieldStressVirgin = mYieldStressOld;
+		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) {
+			KRATOS_WARNING("Johnson Cook Material Model") << " Taylor Quinney Coefficient set to 0, ignoring thermal effects" << std::endl;
 		}
+
+		mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
+		mYieldStressVirgin = mYieldStressOld;
 	}
 
 

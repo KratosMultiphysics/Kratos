@@ -151,14 +151,11 @@ void HyperElastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const M
 
 void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo )
+        const Vector& rShapeFunctionsValues )
 {
-    if (!rCurrentProcessInfo[IS_RESTARTED]){
-        mDeterminantF0                = 1;
-        mInverseDeformationGradientF0 = IdentityMatrix(3);
-        mStrainEnergy                 = 0;
-    }
+    mDeterminantF0                = 1;
+    mInverseDeformationGradientF0 = IdentityMatrix(3);
+    mStrainEnergy                 = 0;
 }
 
 
