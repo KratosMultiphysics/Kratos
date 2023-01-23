@@ -137,10 +137,8 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLengthSlope(const GeometryType& 
 	double dx = Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0];
     double dy = Geom.GetPoint(1)[1] - Geom.GetPoint(0)[1];
 
-    //this->SetValue(PIPE_ELEMENT_LENGTH, abs(dx));
 	this->SetValue(PIPE_ELEMENT_LENGTH, sqrt(pow(dx, 2) + pow(dy, 2)));
     this->SetValue(PIPE_ELEMENT_SLOPE, atan(dy / dx) / (M_PI/180.0));
-    //this->SetValue(PIPE_ELEMENT_SLOPE, 0);
     
 	KRATOS_CATCH("")
 }
@@ -378,13 +376,11 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     const double pipeSlope = this->GetValue(PIPE_ELEMENT_SLOPE);
 
     // calculate pressure gradient over element
-    double dpdxy = CalculateWaterPressureGradient(Geom);
     double dhdl = CalculateHeadGradient(Geom);
     // calculate particle diameter
     double particle_d = CalculateParticleDiameter(Prop);
 
     // return infinite when dpdxy is 0
-    //if (dpdxy < std::numeric_limits<double>::epsilon())
 	if (dhdl < std::numeric_limits<double>::epsilon())
     { 
         return 1e10;
@@ -393,9 +389,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     // gravity is taken from first node
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
-    double comparison = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dpdxy;
-    double equilibrium = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / (dhdl * FluidDensity * gravity);
-    return equilibrium;
+    return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / (dhdl * FluidDensity * gravity);
 }
 
 template class SteadyStatePwPipingElement<2,4>;
