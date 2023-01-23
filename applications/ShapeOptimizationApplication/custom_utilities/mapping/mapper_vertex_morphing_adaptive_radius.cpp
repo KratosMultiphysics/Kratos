@@ -70,15 +70,15 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Initialize()
     BaseType::Initialize();
     CalculateAdaptiveVertexMorphingRadius();
 
-    KRATOS_INFO("ShapeOpt") << "minimum_filter_radius:  " << mMinimumFilterRadius  << std::endl;
-    KRATOS_INFO("ShapeOpt") << "radius_function:  " << mRadiusFunctionType  << std::endl;
+    KRATOS_INFO("ShapeOpt") << "minimum_filter_radius: " << mMinimumFilterRadius  << std::endl;
+    KRATOS_INFO("ShapeOpt") << "radius_function: " << mRadiusFunctionType  << std::endl;
     if (mRadiusFunctionType == "analytic") {
-        KRATOS_INFO("ShapeOpt") << "curvature_limit:  " << mCurvatureLimit  << std::endl;
+        KRATOS_INFO("ShapeOpt") << "curvature_limit: " << mCurvatureLimit  << std::endl;
     } else {
         KRATOS_INFO("ShapeOpt") << "curvature_limit: Setting is ignored for the chosen radius_function!" << std::endl;
     }
-    KRATOS_INFO("ShapeOpt") << "radius_function_parameter:  " << mRadiusFunctionParameter  << std::endl;
-    KRATOS_INFO("ShapeOpt") << "filter_radius_smoothing_iterations:  " << mNumberOfSmoothingIterations  << std::endl;
+    KRATOS_INFO("ShapeOpt") << "radius_function_parameter: " << mRadiusFunctionParameter  << std::endl;
+    KRATOS_INFO("ShapeOpt") << "filter_radius_smoothing_iterations: " << mNumberOfSmoothingIterations  << std::endl;
 }
 
 template <class TBaseVertexMorphingMapper>

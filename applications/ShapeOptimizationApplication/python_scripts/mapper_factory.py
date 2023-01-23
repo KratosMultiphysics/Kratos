@@ -41,12 +41,11 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
             "normal": [0.0, 0.0, 0.0]
         },
         "adaptive_filter_settings"   : {
-            "minimum_filter_radius"      : 1e-3,
-            "filter_radius_smoothing_iterations": 10,
-            "filter_radius_factor": 7,
             "radius_function": "analytic",
             "radius_function_parameter": 1,
-            "curvature_limit": 1e-3
+            "minimum_filter_radius": 1e-3,
+            "curvature_limit": 1e-3,
+            "filter_radius_smoothing_iterations": 10
         }
     }""")
 

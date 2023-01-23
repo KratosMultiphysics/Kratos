@@ -164,4 +164,8 @@ class curvature_4NQuad_test(ShapeOptimizationTestFactory):
 class curvature_8NQuad_test(ShapeOptimizationTestFactory):
     execution_directory = "geom_util_curvature_8NQuad_test"
     execution_file = "run_test"
+
+class mapper_adaptive_filter_curvature_test(ShapeOptimizationTestFactory):
+    execution_directory = "mapper_adaptive_filter_curvature_test"
+    execution_file = "run_test"
 # ==============================================================================
