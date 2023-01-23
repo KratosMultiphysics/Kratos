@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//	                 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
@@ -411,16 +411,7 @@ public:
     */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-        double vol = 0.00;
-
-        for (std::size_t i=0; i<integration_points.size(); ++i) {
-            vol += temp[i] * integration_points[i].Weight();
-        }
-
-        return vol;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
 
     /**
