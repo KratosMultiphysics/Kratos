@@ -663,12 +663,12 @@ void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& N
     rModelPart.AddNodes(NodesIds);
 }
 
-void AddElement1(ModelPart& rModelPart, ModelPart::Element::Pointer pElement)
+void AddElement1(ModelPart& rModelPart, Element::Pointer pElement)
 {
     rModelPart.AddElement(pElement);
 }
 
-void AddElement2(ModelPart& rModelPart, ModelPart::Element::Pointer pElement, const ModelPart::IndexType MeshId )
+void AddElement2(ModelPart& rModelPart, Element::Pointer pElement, const ModelPart::IndexType MeshId )
 {
     rModelPart.AddElement(pElement, MeshId);
 }
