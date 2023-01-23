@@ -4,19 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohamed Nabi
 //                   
 //                   
-//  contributors:    
+//  Contributors:    
 //                   
 //
 
-
-#if !defined(KRATOS_TRIANGLE_2D_10_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_10_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1352,5 +1350,3 @@ template<class TPointType>
 const GeometryDimension Triangle2D10<TPointType>::msGeometryDimension(2, 2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_2D_10_H_INCLUDED  defined

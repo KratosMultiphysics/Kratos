@@ -4,18 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:               BSD License
-//                              Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohamed Nabi
 //                   
 //                   
-//  contributors:    
+//  Contributors:    
 //                   
 //
 
-#if !defined(KRATOS_LINE_2D_4_H_INCLUDED )
-#define  KRATOS_LINE_2D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1139,5 +1138,3 @@ template<class TPointType>
 const GeometryDimension Line2D4<TPointType>::msGeometryDimension(2, 2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_4_H_INCLUDED defined
