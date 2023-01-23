@@ -322,24 +322,6 @@ KRATOS_API(KRATOS_CORE) const ModelPart::ConditionsContainerType& VariableUtils:
     return rModelPart.Conditions();
 }
 
-template<class TDataType>
-void VariableUtils::AuxiliaryHistoricalValueSetter(
-    const Variable<TDataType>& rVariable,
-    const TDataType& rValue,
-    NodeType& rNode)
-{
-    rNode.FastGetSolutionStepValue(rVariable) = rValue;
-}
-
-template<>
-void VariableUtils::AuxiliaryHistoricalValueSetter(
-    const Variable<array_1d<double,3>>& rVariable,
-    const array_1d<double,3>& rValue,
-    NodeType& rNode)
-{
-    noalias(rNode.FastGetSolutionStepValue(rVariable)) = rValue;
-}
-
 template <class TDataType, class TContainerType, class TWeightDataType>
 void VariableUtils::WeightedAccumulateVariableOnNodes(
     ModelPart& rModelPart,
@@ -618,10 +600,5 @@ template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableO
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
-
-template void VariableUtils::AuxiliaryHistoricalValueSetter<int>(const Variable<int>&, const int&, NodeType&);
-template void VariableUtils::AuxiliaryHistoricalValueSetter<double>(const Variable<double>&, const double&, NodeType&);
-template void VariableUtils::AuxiliaryHistoricalValueSetter<Vector>(const Variable<Vector>&, const Vector&, NodeType&);
-template void VariableUtils::AuxiliaryHistoricalValueSetter<Matrix>(const Variable<Matrix>&, const Matrix&, NodeType&);
 
 } /* namespace Kratos.*/
