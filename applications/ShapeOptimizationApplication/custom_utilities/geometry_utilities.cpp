@@ -415,7 +415,6 @@ void GeometryUtilities::CalculateGaussianCurvature() {
 
     block_for_each(mrModelPart.Nodes(), [&](NodeType &rNode) {
 
-        const auto& r_condition_neighbours = rNode.GetValue(NEIGHBOUR_CONDITIONS).GetContainer();
         double& r_gaussian_curvature = rNode.FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 
         std::string technique = this->GetCurvatureTechnique(rNode);
