@@ -543,28 +543,28 @@ public:
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 4 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 5 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 5 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 6 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 6 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 7 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 7 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 9 ) ) ) );
 
         return edges;
     }
@@ -626,6 +626,20 @@ public:
                                               this->pGetPoint( 8 ),
                                               this->pGetPoint( 5 ) ) ) );
         return faces;
+    }
+
+    /** This method calculates and returns the average edge length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     */
+    double AverageEdgeLength() const override {
+        double average_edge_length = 0.0;
+        GeometriesArrayType edges = this->GenerateEdges();
+        for (auto& edge : edges) {
+            average_edge_length += edge.Length();
+        }
+        return average_edge_length/6.0;
     }
 
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
