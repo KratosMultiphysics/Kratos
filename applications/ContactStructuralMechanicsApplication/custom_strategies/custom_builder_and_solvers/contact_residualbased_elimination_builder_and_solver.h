@@ -4,22 +4,22 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 //
-#if !defined(KRATOS_CONTACT_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
-#define  KRATOS_CONTACT_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER
 
-/* System includes */
+#pragma once
+
+// System includes
 #include <unordered_set>
 #include <unordered_map>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
@@ -179,7 +179,7 @@ public:
         std::unordered_map<IndexType, IndexSetType> set_nodes_with_lm_associated;
         if (rModelPart.HasSubModelPart("Contact"))
             set_nodes_with_lm_associated.reserve(rModelPart.GetSubModelPart("Contact").NumberOfNodes());
-        // Allocating auxiliar parameters
+        // Allocating auxiliary parameters
         IndexType node_id;
         // We start the dof loop
         for (auto& i_dof : BaseType::mDofSet) {
@@ -188,7 +188,7 @@ public:
                 set_nodes_with_lm_associated.insert({node_id, IndexSetType({})});
         }
 
-        // Auxiliar keys
+        // Auxiliary keys
         const IndexType key_lm_x = VECTOR_LAGRANGE_MULTIPLIER_X.Key();
         const IndexType key_lm_y = VECTOR_LAGRANGE_MULTIPLIER_Y.Key();
         const IndexType key_lm_z = VECTOR_LAGRANGE_MULTIPLIER_Z.Key();
@@ -382,5 +382,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_CONTACT_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */

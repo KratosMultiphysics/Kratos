@@ -4,20 +4,17 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:             BSD License
+//                       Kratos default license: kratos/license.txt
 //
-//  Main authors:    Nelson Lafontaine
-//                   Jordi Cotela Dalmau
-//                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Main authors:        Nelson Lafontaine
+//                       Jordi Cotela Dalmau
+//                       Riccardo Rossi
+//  Co-authors:          Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_GEOMETRY_MESH)
-#define  KRATOS_LOCAL_REFINE_GEOMETRY_MESH
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#pragma once
+
 
 // NOTE: Before compute the remeshing it is necessary to compute the neighbours
 
@@ -26,14 +23,11 @@
 // Extrenal includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
+#include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
-#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "processes/node_erase_process.h"
 
 namespace Kratos
 {
@@ -60,9 +54,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef std::vector<Matrix> Matrix_Order_Tensor;
+    typedef std::vector<Vector> Vector_Order_Tensor;
+    typedef std::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
@@ -96,9 +90,10 @@ public:
     * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
     */
 
-    void LocalRefineMesh(
-            bool refine_on_reference,
-            bool interpolate_internal_variables);
+    virtual void LocalRefineMesh(
+        bool refine_on_reference,
+        bool interpolate_internal_variables
+        );
 
     /**
     * This function initialises the matrix Cord
@@ -107,9 +102,9 @@ public:
     */
 
     virtual void CSRRowMatrix(
-            ModelPart& this_model_part,
-            compressed_matrix<int>& Coord
-			       );
+        ModelPart& this_model_part,
+        compressed_matrix<int>& Coord
+        );
 
     /**
     * This functions looks for potential edges that could be refined
@@ -118,9 +113,9 @@ public:
     */
 
     virtual void SearchEdgeToBeRefined(
-            ModelPart& this_model_part,
-            compressed_matrix<int>& Coord
-					  );
+        ModelPart& this_model_part,
+        compressed_matrix<int>& Coord
+        );
 
     /**
     * It creates the list of new nodes
@@ -131,11 +126,11 @@ public:
     */
 
     virtual void CreateListOfNewNodes(
-            ModelPart& this_model_part,
-            compressed_matrix<int>& Coord,
-            boost::numeric::ublas::vector<int> &List_New_Nodes,
-            boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node
-					 );
+        ModelPart& this_model_part,
+        compressed_matrix<int>& Coord,
+        std::vector<int> &List_New_Nodes,
+        std::vector<array_1d<int, 2 > >& Position_Node
+        );
 
     /**
     * Computes the coordinates of the new nodes in the center of the edges
@@ -146,10 +141,10 @@ public:
     */
 
     virtual void CalculateCoordinateAndInsertNewNodes(
-            ModelPart& this_model_part,
-            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
-            const boost::numeric::ublas::vector<int> &List_New_Nodes
-							  );
+        ModelPart& this_model_part,
+        const std::vector<array_1d<int, 2 > >& Position_Node,
+        const std::vector<int> &List_New_Nodes
+        );
 
     /**
     * It erases the old elements and it creates the new ones
@@ -160,11 +155,11 @@ public:
     */
 
     virtual void EraseOldElementAndCreateNewElement(
-            ModelPart& this_model_part,
-            const compressed_matrix<int>& Coord,
-            PointerVector< Element >& New_Elements,
-            bool interpolate_internal_variables
-							       );
+        ModelPart& this_model_part,
+        const compressed_matrix<int>& Coord,
+        PointerVector< Element >& New_Elements,
+        bool interpolate_internal_variables
+        );
 
     /**
     * Remove the old conditions and creates new ones
@@ -173,9 +168,9 @@ public:
     */
 
     virtual void EraseOldConditionsAndCreateNew(
-            ModelPart& this_model_part,
-            const compressed_matrix<int>& Coord
-    );
+        ModelPart& this_model_part,
+        const compressed_matrix<int>& Coord
+        );
 
     /**
     * It calculates the new edges of the new elements
@@ -187,11 +182,11 @@ public:
     */
 
     virtual void CalculateEdges(
-            Element::GeometryType& geom,
-            const compressed_matrix<int>& Coord,
-            int* edge_ids,
-            std::vector<int> & aux
-            );
+        Element::GeometryType& geom,
+        const compressed_matrix<int>& Coord,
+        int* edge_ids,
+        std::vector<int> & aux
+        );
 
     /**
     * This process renumerates the elements and nodes
@@ -200,9 +195,9 @@ public:
     */
 
     virtual void RenumeringElementsAndNodes(
-            ModelPart& this_model_part,
-            PointerVector< Element >& New_Elements
-					      );
+        ModelPart& this_model_part,
+        PointerVector< Element >& New_Elements
+        );
 
     /**
     * It creates a partition of the process between the different threads
@@ -215,7 +210,7 @@ public:
       unsigned int number_of_threads,
       const int number_of_rows,
       vector<unsigned int>& partitions
-    );
+      );
 
     /**
     * Interpolates the internal variables
@@ -226,11 +221,11 @@ public:
     */
 
     virtual void InterpolateInteralVariables(
-            const int& number_elem,
-            const Element::Pointer father_elem,
-            Element::Pointer child_elem,
-            const ProcessInfo& rCurrentProcessInfo
-            );
+        const int& number_elem,
+        const Element::Pointer father_elem,
+        Element::Pointer child_elem,
+        const ProcessInfo& rCurrentProcessInfo
+        );
 
     virtual void UpdateSubModelPartNodes(ModelPart &rModelPart);
 
@@ -243,7 +238,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+        ModelPart& mModelPart;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -273,8 +268,6 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mModelPart;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -299,5 +292,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_LOCAL_REFINE_GEOMETRY_MESH  defined

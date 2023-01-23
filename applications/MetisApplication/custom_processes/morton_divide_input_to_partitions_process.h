@@ -12,15 +12,12 @@
 //                   Carlos Roig
 //
 
-#if !defined(KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED )
-#define  KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
-
+#pragma once
 
 // System includes
 
 // Project includes
 #include "processes/graph_coloring_process.h"
-#include "includes/model_part.h"
 #include "custom_processes/morton_partitioning_process.h"
 
 namespace Kratos
@@ -56,10 +53,6 @@ class MortonDivideInputToPartitionsProcess
 public:
     ///@name Type Definitions
     ///@{
-
-    #ifdef KRATOS_USE_METIS_5
-      typedef idx_t idxtype;
-    #endif
 
     /// Pointer definition of MortonDivideInputToPartitionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(MortonDivideInputToPartitionsProcess);
@@ -530,7 +523,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined

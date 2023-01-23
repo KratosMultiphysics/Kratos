@@ -245,7 +245,7 @@ public:
 
         //estimate a minimal h
         /*double h=0.0;
-        if(TDim == 3) h = pow(6.0*Area, 1.0/3.0);
+        if constexpr (TDim == 3) h = pow(6.0*Area, 1.0/3.0);
         else h = sqrt(2.0*Area);*/
 
 

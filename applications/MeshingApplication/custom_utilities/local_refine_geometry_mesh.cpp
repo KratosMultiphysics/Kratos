@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "utilities/math_utils.h"
 #include "local_refine_geometry_mesh.hpp"
 
 namespace Kratos
@@ -39,9 +40,9 @@ namespace Kratos
         }
 
         compressed_matrix<int> Coord;                                              // The matrix that stores all the index of the geometry
-        boost::numeric::ublas::vector<int> List_New_Nodes;                         // The news nodes
-        boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
+        std::vector<int> List_New_Nodes;                         // The news nodes
+        std::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
+        std::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
 
         PointerVector< Element > New_Elements;
 	New_Elements.reserve(20);
@@ -195,8 +196,8 @@ namespace Kratos
     void LocalRefineGeometryMesh::CreateListOfNewNodes(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord,
-            boost::numeric::ublas::vector<int> &List_New_Nodes,
-            boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node
+            std::vector<int> &List_New_Nodes,
+            std::vector<array_1d<int, 2 > >& Position_Node
     )
     {
         KRATOS_TRY;
@@ -228,7 +229,7 @@ namespace Kratos
         }
 
         // Setting edges -2 to the new id of the new node
-        Position_Node.resize(number_of_new_nodes, false);
+        Position_Node.resize(number_of_new_nodes);
         unsigned int index = 0;
         for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
         {
@@ -252,16 +253,16 @@ namespace Kratos
 
     void LocalRefineGeometryMesh::CalculateCoordinateAndInsertNewNodes(
             ModelPart& this_model_part,
-            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
-            const boost::numeric::ublas::vector<int> &List_New_Nodes
+            const std::vector<array_1d<int, 2 > >& Position_Node,
+            const std::vector<int> &List_New_Nodes
     )
     {
 	KRATOS_TRY;
 
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size(), false);
+        std::vector< array_1d<double, 3 > > Coordinate_New_Node;
+        Coordinate_New_Node.resize(Position_Node.size());
         unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 
@@ -480,6 +481,7 @@ namespace Kratos
         for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
                 iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++)
         {
+            bool added_nodes = false;
             for (auto iNode = rModelPart.Nodes().ptr_begin();
                     iNode != rModelPart.Nodes().ptr_end(); iNode++)
             {
@@ -499,9 +501,16 @@ namespace Kratos
                             ParentsInSubModelPart++;
                     }
 
-                    if ( ParentCount == ParentsInSubModelPart )
+                    if ( ParentCount == ParentsInSubModelPart ) {
                         iSubModelPart->AddNode( *iNode );
+                        added_nodes = true;
+                    }
                 }
+            }
+            if(added_nodes)
+            {
+                 ModelPart &rSubModelPart = *iSubModelPart;
+                 UpdateSubModelPartNodes(rSubModelPart);
             }
         }
     }

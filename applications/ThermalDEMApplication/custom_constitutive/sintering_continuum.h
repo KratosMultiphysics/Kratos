@@ -1,14 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Szymon Nosewicz (IPPT PAN, Warsaw, Poland)
-//                   Miguel Angel Celigueta (CIMNE, maceli@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 /*
@@ -136,16 +131,16 @@ namespace Kratos
 				                     double& kn,
 				                     double  sintering_displ);
 
-			void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                            SphericContinuumParticle* neighbor,
-                                            double equiv_young,
-                                            double distance,
-                                            double calculation_area,
-                                            double LocalCoordSystem[3][3],
-                                            double ElasticLocalRotationalMoment[3],
-                                            double ViscoLocalRotationalMoment[3],
-                                            double equiv_poisson,
-                                            double indentation) override;
+    // void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+    //                                       SphericContinuumParticle* neighbor,
+    //                                       double equiv_young,
+    //                                       double distance,
+    //                                       double calculation_area,
+    //                                       double LocalCoordSystem[3][3],
+    //                                       double ElasticLocalRotationalMoment[3],
+    //                                       double ViscoLocalRotationalMoment[3],
+    //                                       double equiv_poisson,
+    //                                       double indentation) override;
 
 		private:
 
