@@ -20,27 +20,9 @@ namespace Kratos::Python
 {
 
 
-/// @brief Wrapper class for binding a pure virtual class.
-class KRATOS_API(KratosCore) ModelPredicateTrampoline : public ModelPredicate
-{
-public:
-    bool operator()(const Model& rModel) const override
-    {
-        using ReturnType = bool;
-        using BaseType = ModelPredicate;
-        PYBIND11_OVERRIDE_PURE(
-            ReturnType,
-            BaseType,
-            operator(),
-            rModel
-        );
-    }
-}; // class ModelPredicateTrampoline
-
-
 void AddPredicatesToPython(pybind11::module& rModule)
 {
-    pybind11::class_<ModelPredicate, ModelPredicate::Pointer, ModelPredicateTrampoline>(rModule, "ModelPredicate")
+    pybind11::class_<ModelPredicate, ModelPredicate::Pointer>(rModule, "ModelPredicate")
         .def("__call__", &ModelPredicate::operator())
         ;
 }

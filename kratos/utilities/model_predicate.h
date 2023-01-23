@@ -28,7 +28,10 @@ struct KRATOS_API(KratosCore) ModelPredicate
 
     virtual ~ModelPredicate() {}
 
-    virtual bool operator()(const Model& rModel) const = 0;
+    virtual bool operator()(const Model& rModel) const
+    {
+        KRATOS_ERROR << "Attempt to call pure virtual function";
+    };
 }; // struct ModelPredicate
 
 
