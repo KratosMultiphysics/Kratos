@@ -627,12 +627,13 @@ public:
      *
      */
     double AverageEdgeLength() const override {
-        double average_edge_length = 0.0;
-        GeometriesArrayType edges = this->GenerateEdges();
-        for (auto& r_edge : edges) {
-            average_edge_length += r_edge .Length();
-        }
-        return average_edge_length/6.0;
+        const GeometriesArrayType edges = this->GenerateEdges();
+        return std::accumulate(
+            edges.begin(),
+            edges.end(),
+            0.0,
+            [](double sum, const auto& rEdge) {return sum + rEdge.Length();}
+        ) * 0.16666666666666666667;
     }
 
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
