@@ -284,25 +284,29 @@ protected:
     /**
 
      * @brief This method computes principal values of stresses/strains
-     * @param StressVector Stresses in vector form
+     * @param VectorForm Stresses/Strains in vector form
      * @param Pri_Values principal values in vector form
      * @param MaxValue maximum of the principal values
      * @param MinValue minimum of the principal values
      */
-    void GetEigenValues(const Vector& StressVector,
+    void GetEigenValues(const Vector& VectorForm,
                         Vector& Pri_Values,
-                        double& MaxValue); 
+                        double& MaxValue,
+                        const Variable<Vector>& rThisVariable,
+                        const bool& Sorted); 
         
     ///@}
     
     /**
-     * @brief This method computes dSprdS
-     * @param StressVector Stresses in vector form
-     * @param Spr principal values
+     * @brief This method computes dSprdS(dSigma_pr/dSigma or dEpsilon_pr/dEpsilon)
+     * @param VectorForm Stresses/strains in vector form
+     * @param PrincipalVector principal values
      */
-    void ComputedSprdS(const Vector StressVector,
-                       const Vector Spr,
-                       Matrix& dSprdS);  
+    void ComputedSprdS(const Vector VectorForm,
+                       const Vector PrincipalVector,
+                       const Variable<Vector>& rThisVariable,
+                       Matrix& dSprdS
+                       );  
     /**
      * @brief This method computes the invariants of stress matrix
      * @param StressVector Stresses in vector form
@@ -337,6 +341,19 @@ protected:
                                      const double& Beta2, 
                                      const Vector& Kappa,
                                      Matrix& dHdk);
+    /**
+     * @brief This method adjusts the stress/strain values to avoid the numerical problems due to zero entries
+     */ 
+    void ManipulationOfZeroEntries(Vector& PrincipalVector,
+    const double& eps);
+    /**
+     * @brief This method converts stress or strain vectors to tensors
+     */ 
+    void VectorToTensor(const Vector& VectorForm, 
+    Matrix& TensorForm,
+    const Variable<Vector>& rThisVariable
+    );
+
 private:
 
     ///@name Static Member Variables
