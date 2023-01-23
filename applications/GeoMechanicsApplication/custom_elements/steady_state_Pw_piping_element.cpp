@@ -393,8 +393,8 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     // gravity is taken from first node
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
-    //double comparison = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dpdxy;
-    double equilibrium = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity / FluidDensity) * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dhdl;
+    double comparison = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / dpdxy;
+    double equilibrium = modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta * sin((theta + pipeSlope) * M_PI / 180.0) / cos((theta * M_PI / 180.0)) / (dhdl * FluidDensity * gravity);
     return equilibrium;
 }
 
