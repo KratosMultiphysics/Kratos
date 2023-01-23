@@ -17,6 +17,7 @@
 #pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
