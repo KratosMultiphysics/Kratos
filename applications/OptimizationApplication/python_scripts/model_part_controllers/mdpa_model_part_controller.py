@@ -3,7 +3,7 @@ from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_par
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 
 class MdpaModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationInfo):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",
@@ -25,6 +25,7 @@ class MdpaModelPartController(ModelPartController):
             raise RuntimeError("\"domain_size\"  should be in either 1, 2 or 3." + str(parameters))
 
         self.model_part = model.CreateModelPart(model_part_name)
+        self.optimization_info = optimization_info
 
     def ImportModelPart(self):
         Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(self.model_part)
@@ -32,3 +33,7 @@ class MdpaModelPartController(ModelPartController):
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.model_part
+
+    def InitializeSolutionStep(self):
+        self.model_part.ProcessInfo[Kratos.STEP] = self.optimization_info["step"]
+        self.model_part.ProcessInfo[Kratos.TIME] = self.optimization_info["step"]
