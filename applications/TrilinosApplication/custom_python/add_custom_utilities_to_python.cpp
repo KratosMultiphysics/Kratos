@@ -1,11 +1,13 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
@@ -28,9 +30,7 @@
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -183,6 +183,5 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesStructure);
 
 }
-}  // namespace Python.
 
-} // Namespace Kratos
+} // Namespace Kratos::Python.
