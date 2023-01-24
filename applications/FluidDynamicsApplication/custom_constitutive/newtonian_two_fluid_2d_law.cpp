@@ -82,8 +82,7 @@ double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
 
     if (rGeom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY))
         {
-            double artificial_visocisty = rGeom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
-            viscosity += artificial_visocisty;
+            viscosity += rGeom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);;
         }
 
     if (prop.Has(C_SMAGORINSKY)) {
