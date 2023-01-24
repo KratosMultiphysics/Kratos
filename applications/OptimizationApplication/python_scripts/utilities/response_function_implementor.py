@@ -134,7 +134,7 @@ class ConstraintResponseFunctionImplementor(ResponseFunctionImplementor):
         return (self.__constraint_type == "=") or self.CalculateStandardizedValue() >= 0.0
 
     def GetResponseInfo(self) -> str:
-        msg = "\tObjective info:"
+        msg = "\tConstraint info:"
         msg += f"\n\t\t name     : {self.GetName()}"
         msg += f"\n\t\t value    : {self.CalculateValue()}"
         msg += f"\n\t\t type     : {self.__constraint_type}"
