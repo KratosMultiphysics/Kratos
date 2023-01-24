@@ -94,10 +94,6 @@ namespace{
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
-    auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->AverageEdgeLength(), "Calling base class 'AverageEdgeLength' method instead of derived class one.");
-  }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Circumradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
@@ -165,6 +161,11 @@ namespace{
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     TestAllShapeFunctionsLocalGradients(*geom);
+  }
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
+    auto geom = GenerateReferenceTetrahedra3D10();
+    KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.20710678119, 1e-7);
   }
 
 } // namespace Testing.

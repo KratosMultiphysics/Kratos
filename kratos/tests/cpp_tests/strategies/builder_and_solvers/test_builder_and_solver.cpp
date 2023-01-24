@@ -14,13 +14,12 @@
 #include <limits>
 #include <iomanip>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "testing/testing.h"
 
 /* Utility includes */
-#include "includes/define.h"
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
 #include "utilities/condition_number_utility.h"
@@ -29,16 +28,16 @@
 #include "geometries/line_2d_2.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
 
-// Linear solvers
+/* Linear solvers */
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 
-// The most basic scheme (static)
+/* The most basic scheme (static) */
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
-// The builder and solvers
+/* The builder and solvers */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
