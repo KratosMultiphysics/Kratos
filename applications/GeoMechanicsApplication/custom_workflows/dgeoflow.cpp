@@ -786,7 +786,7 @@ namespace Kratos
                 currentHead = minCriticalHead;
                 criticalHead = currentHead;
 
-                std::vector<Element *> pipeElements;
+                std::vector<Element::Pointer> pipeElements;
                 pipeElements = p_solving_strategy->GetPipingElements();
                 int noPipeElements = pipeElements.size();
 
@@ -808,15 +808,15 @@ namespace Kratos
                     std::string currentHeadString = currentHeadStream.str();
 
                     std::string progress = "Calculating head level " + currentHeadString + "m (" + std::to_string(step) + "/" + std::to_string(maxSteps) + ")";
-                    reportTextualProgress(progress.data());
+                    KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << progress << " | " << std::to_string((double)step/((double)maxSteps)) << std::endl;
+                	reportTextualProgress(progress.data());
                     reportProgress(((double)step) / ((double)maxSteps));
 
                     mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
-
                     int count = 0;
-                    for (Element *element : pipeElements)
+                    for (Element::Pointer pElement : pipeElements)
                     {
-                        if (element->GetValue(PIPE_ACTIVE))
+                    	if (pElement->GetValue(PIPE_ACTIVE))
                             count += 1;
                     }
 
@@ -940,7 +940,7 @@ namespace Kratos
     {
         shared_ptr<Process> RiverBoundary;
 
-        std::vector<Element *> pipeElements;
+        std::vector<Element::Pointer> pipeElements;
         pipeElements = p_solving_strategy->GetPipingElements();
 
         double firstNode_A = pipeElements.front()->GetGeometry().GetPoint(0).X0();

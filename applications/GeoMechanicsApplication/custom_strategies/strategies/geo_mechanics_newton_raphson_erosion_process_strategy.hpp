@@ -52,7 +52,7 @@ public:
     typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
     typedef typename boost::range_detail::filtered_range
-        <std::function<bool(Element*)>, std::vector<Element*>>                         filtered_elements;
+	<std::function<bool(Element::Pointer)>, std::vector<Element::Pointer>>                         filtered_elements;
 
     typedef class SteadyStatePwPipingElement<2, 4>               SteadyStatePwPipingElementType;
     typedef Properties PropertiesType;
@@ -101,12 +101,12 @@ public:
         bool grow = true;
 
         // get piping elements
-        std::vector<Element*> PipeElements = GetPipingElements();
+        std::vector<Element::Pointer> PipeElements = GetPipingElements();
         unsigned int n_el = PipeElements.size(); // number of piping elements
 
         // get initially open pipe elements
         unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
-
+        
         if (PipeElements.size()==0)
         {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "No Pipe Elements -> Finalizing Solution " << std::endl;
@@ -124,12 +124,13 @@ public:
             bool converged = true;
 
             // get tip element and activate
-            Element* tip_element = PipeElements.at(openPipeElements);
+            Element::Pointer tip_element = PipeElements.at(openPipeElements);
             openPipeElements += 1;
+            bool has = tip_element->Has(PIPE_ACTIVE);
             tip_element->SetValue(PIPE_ACTIVE, true);
 
             // Get all open pipe elements
-            std::function<bool(Element*)> filter = [](Element* i) {return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE); };
+            std::function<bool(Element::Pointer)> filter = [](Element::Pointer i) {return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE); };
             filtered_elements OpenPipeElements = PipeElements | boost::adaptors::filtered(filter);
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
             
@@ -177,9 +178,9 @@ public:
 
     //-----------------------------Get Piping Elements--------------------------------------
 
-    std::vector<Element*> GetPipingElements() {
+    std::vector<Element::Pointer> GetPipingElements() {
         ModelPart& CurrentModelPart = this->GetModelPart();
-        std::vector<Element*> PipeElements;
+        std::vector<Element::Pointer> PipeElements;
         double PipeElementStartX;
 
         for (Element& element : CurrentModelPart.Elements())
@@ -205,13 +206,13 @@ public:
         }
 
         // Get Maximum X Value in Pipe
-        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element* a, const Element* b)
+        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer a, const Element::Pointer b)
             {
                 return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
             });
 
         // Get Minimum X Value in Pipe
-        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element* a, const Element* b)
+        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer a, const Element::Pointer b)
             {
                 return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
             });
@@ -229,20 +230,20 @@ public:
         if (minX == PipeElementStartX)
         {
             // Pipe Left -> Right
-            sort(PipeElements.begin(), PipeElements.end(), [](const Element* lhs, const Element* rhs) {
+            sort(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer lhs, const Element::Pointer rhs) {
                 return lhs->GetGeometry().GetPoint(0)[0] < rhs->GetGeometry().GetPoint(0)[0];
                 });
         }
         else
         {
             // Pipe Right -> Left
-            sort(PipeElements.begin(), PipeElements.end(), [](const Element* lhs, const Element* rhs) {
+            sort(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer lhs, const Element::Pointer rhs) {
                 return lhs->GetGeometry().GetPoint(0)[0] > rhs->GetGeometry().GetPoint(0)[0];
                 });
         }
 
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
-        for (const Element* pipeElement : PipeElements)
+        for (const Element::Pointer pipeElement : PipeElements)
         {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "PipeElementIDs (in order): " << pipeElement->Id() << std::endl;
         }
@@ -270,11 +271,11 @@ private:
     /// </summary>
     /// <param name="PipeElements"></param>
     /// <returns></returns>
-    int InitialiseNumActivePipeElements(std::vector<Element*> PipeElements)
+    int InitialiseNumActivePipeElements(std::vector<Element::Pointer> PipeElements)
     {
         int nOpenElements = 0;
 
-        for (Element* pipe_element : PipeElements)
+        for (Element::Pointer pipe_element : PipeElements)
         {
             if (pipe_element->GetValue(PIPE_ACTIVE))
             {
@@ -306,13 +307,13 @@ private:
     /// </summary>
     /// <param name="pipe_elements"> vector of all pipe elements</param>
     /// <returns></returns>
-    double CalculateMaxPipeHeight(std::vector<Element*> pipe_elements)
+    double CalculateMaxPipeHeight(std::vector<Element::Pointer> pipe_elements)
     {
         double max_diameter = 0;
         double height_factor = 100;
 
         // loop over all elements
-        for (Element* pipe_element : pipe_elements)
+        for (Element::Pointer pipe_element : pipe_elements)
         {
             // calculate pipe particle diameter of pipe element
             PropertiesType prop = pipe_element->GetProperties();
@@ -388,16 +389,16 @@ private:
             {
                 // Update depth of open piping Elements 
                 equilibrium = true;
-                for (auto OpenPipeElement : open_pipe_elements)
+                for (Element::Pointer OpenPipeElement : open_pipe_elements)
                 {
-                    SteadyStatePwPipingElement<2, 4>* pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
+                    SteadyStatePwPipingElement<2, 4>::Pointer pElement = Kratos::static_pointer_cast<SteadyStatePwPipingElement<2, 4>>(OpenPipeElement);
 
                     // get open pipe element geometry and properties
-                    auto& Geom = pElement->GetGeometry();
-                    auto& prop = pElement->GetProperties();
+                    auto& pGeom = pElement->GetGeometry();
+                    auto& pProp = pElement->GetProperties();
 
                     // calculate equilibrium pipe height and get current pipe height
-                    double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom);
+                    double eq_height = pElement->CalculateEquilibriumPipeHeight(pProp, pGeom);
                     double current_height = pElement->GetValue(PIPE_HEIGHT);
 
                     // set erosion on true if current pipe height is greater than the equilibirum height
@@ -439,13 +440,13 @@ private:
     /// <param name="max_pipe_height"> maximum allowed pipe height</param>
     /// <param name="PipeElements"> vector of all pipe elements</param>
     /// <returns>tuple of grow bool and number of open pipe elements</returns>
-    std::tuple<bool, int> check_status_tip_element(unsigned int n_open_elements, unsigned int n_elements, double max_pipe_height, std::vector<Element*> PipeElements)
+    std::tuple<bool, int> check_status_tip_element(unsigned int n_open_elements, unsigned int n_elements, double max_pipe_height, std::vector<Element::Pointer> PipeElements)
     {
         bool grow = true;
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum pipe height or if all elements are open
         if (n_open_elements < n_elements)
         {
-            Element* tip_element = PipeElements.at(n_open_elements - 1);
+            Element::Pointer tip_element = PipeElements.at(n_open_elements - 1);
             double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
             
             if ((pipe_height > max_pipe_height + std::numeric_limits<double>::epsilon()) || (pipe_height < pipe_height_accuracy))
@@ -474,7 +475,7 @@ private:
     /// <returns></returns>
     void save_or_reset_pipe_heights(filtered_elements open_pipe_elements, bool grow)
     {
-        for (Element* OpenPipeElement : open_pipe_elements)
+        for (Element::Pointer OpenPipeElement : open_pipe_elements)
         {
             if (grow)
             {
