@@ -19,6 +19,7 @@
 #include "includes/checks.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "utilities/element_size_calculator.h"
+#include "fluid_dynamics_application.h"
 
 namespace Kratos
 {
@@ -78,18 +79,26 @@ double NewtonianTwoFluid3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
     double viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
+    const GeometryType &rGeom = rParameters.GetElementGeometry();
 
-    if (prop.Has(C_SMAGORINSKY)) {
+    if(rGeom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY)){
+            double artificial_visocisty = rGeom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+            viscosity +=artificial_visocisty;
+    }
+
+    if (prop.Has(C_SMAGORINSKY))
+    {
         const double csmag = prop[C_SMAGORINSKY];
-        if (csmag > 0.0) {
+        if (csmag > 0.0)
+        {
             double density;
             EvaluateInPoint(density, DENSITY, rParameters);
             const double strain_rate = EquivalentStrainRate(rParameters);
-            const BoundedMatrix<double, 4, 3>& DN_DX = rParameters.GetShapeFunctionsDerivatives();
-            const double elem_size = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
+            const BoundedMatrix<double, 4, 3> &DN_DX = rParameters.GetShapeFunctionsDerivatives();
+            const double elem_size = ElementSizeCalculator<3, 4>::GradientsElementSize(DN_DX);
             const double length_scale = std::pow(csmag * elem_size, 2);
             // length_scale *= length_scale;
-            viscosity += 2.0*length_scale * strain_rate * density;
+            viscosity += 2.0 * length_scale * strain_rate * density;
         }
     }
     return viscosity;
