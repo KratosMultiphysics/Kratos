@@ -78,7 +78,7 @@ double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
     double viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
-    const GeometryType &rGeom = rParameters.GetElementGeometry();
+    const auto& r_geom = rParameters.GetElementGeometry();
 
     if (rGeom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY))
         {
