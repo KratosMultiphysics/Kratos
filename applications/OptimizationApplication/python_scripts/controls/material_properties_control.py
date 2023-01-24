@@ -46,13 +46,8 @@ class MaterialPropertiesControl(Control):
                 KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements)
                 self.optimization_info["model_parts_with_element_specific_properties"].append(f"{model_part.FullName()}.Elements")
 
-    def UpdateControls(self, control_values: ContainerData):
+    def UpdateControl(self, control_values: ContainerData):
         control_values.AssignDataToContainer(self.control_variable)
-
-    def GetCurrentControlContainerData(self, model_part: Kratos.ModelPart) -> ContainerData:
-        container_data = ContainerData(model_part, self.GetContainerType())
-        container_data.ReadDataFromContainer(self.control_variable)
-        return container_data
 
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':
         return self.model_parts

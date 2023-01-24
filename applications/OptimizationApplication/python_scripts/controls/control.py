@@ -21,15 +21,6 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def GetCurrentControlContainerData(self, model_part: Kratos.ModelPart) -> ContainerData:
-        """Gets the control data
-
-        Returns:
-            ControlDataContainer: _description_
-        """
-        pass
-
-    @abstractmethod
     def GetContainerType(self) -> ContainerData.ContainerEnum:
         """Returns the container type on which the control is acted upon
 
@@ -68,10 +59,15 @@ class Control(ABC):
 
     @abstractmethod
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':
+        """_summary_
+
+        Returns:
+            list[Kratos.ModelPart]: _description_
+        """
         pass
 
     @abstractmethod
-    def UpdateControls(self, control_data: ContainerData):
+    def UpdateControl(self, control_data: ContainerData):
         """Updates the corresponding controls with given control values
 
         Args:
