@@ -7,9 +7,9 @@ import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+from KratosMultiphysics.OptimizationApplication.controls.shape_control import ShapeControl
 
 class TestShapeControl(kratos_unittest.TestCase):
     @classmethod
@@ -44,19 +44,14 @@ class TestShapeControl(kratos_unittest.TestCase):
         }""")
 
         cls.execution_policy_wrapper = ExecutionPolicyWrapper(cls.model, execution_policy_wrapper_parameters)
-        cls.optimization_info.AddOptimizationRoutine(cls.execution_policy_wrapper)
+        cls.optimization_info.AddOptimizationRoutine(ExecutionPolicyWrapper, cls.execution_policy_wrapper.GetName(), cls.execution_policy_wrapper)
 
         parameters = Kratos.Parameters("""{
-            "name"                 : "density",
-            "type"                 : "ShapeControl",
-            "settings"             : {
-                "model_part_names"         : ["Structure.structure"],
-                "mesh_moving_analysis_name": "test"
-            }
+            "model_part_names"         : ["Structure.structure"],
+            "mesh_moving_analysis_name": "test"
         }""")
 
-        cls.shape_control_wrapper = ControlWrapper(cls.model, parameters, cls.optimization_info)
-        cls.optimization_info.AddOptimizationRoutine(cls.shape_control_wrapper)
+        cls.shape_control = ShapeControl(cls.model, parameters, cls.optimization_info)
 
     @classmethod
     def tearDownClass(cls):
@@ -65,13 +60,13 @@ class TestShapeControl(kratos_unittest.TestCase):
 
     def test_ShapeControl(self):
         self.execution_policy_wrapper.Initialize()
-        self.shape_control_wrapper.Initialize()
+        self.shape_control.Initialize()
 
         # run for 3 iterations
         for i in range(3):
             self.optimization_info.AdvanceSolutionStep()
             self.execution_policy_wrapper.InitializeSolutionStep()
-            self.shape_control_wrapper.InitializeSolutionStep()
+            self.shape_control.InitializeSolutionStep()
 
             if (self.optimization_info["step"] > 1):
                 test = Kratos.Vector()
@@ -79,25 +74,27 @@ class TestShapeControl(kratos_unittest.TestCase):
                 self.assertVectorAlmostEqual(v, test, 12)
 
             v = Kratos.Vector(self.model_part.NumberOfNodes() * 3, i)
-            self.shape_control_wrapper.SetControlUpdate(ContainerData(self.model_part.GetSubModelPart("structure"), ContainerData.ContainerEnum.NODES))
+            data = ContainerData(self.model_part.GetSubModelPart("structure"), ContainerData.ContainerEnum.NODES)
+            data.SetData(v)
+            self.shape_control.UpdateControl(data)
 
             self.execution_policy_wrapper.FinalizeSolutionStep()
-            self.shape_control_wrapper.FinalizeSolutionStep()
+            self.shape_control.FinalizeSolutionStep()
 
         self.execution_policy_wrapper.Finalize()
-        self.shape_control_wrapper.Finalize()
+        self.shape_control.Finalize()
 
     def test_GetModelPart(self):
-        self.assertEqual(self.model_part.GetSubModelPart("structure"), self.shape_control_wrapper.GetControl().GetModelParts()[0])
+        self.assertEqual(self.model_part.GetSubModelPart("structure"), self.shape_control.GetModelParts()[0])
 
     def test_GetContainerType(self):
-        self.assertEqual(self.shape_control_wrapper.GetControl().GetContainerType(), ContainerData.ContainerEnum.NODES)
+        self.assertEqual(self.shape_control.GetContainerType(), ContainerData.ContainerEnum.NODES)
 
     def test_GetControlSensitivityVariable(self):
-        self.assertEqual(self.shape_control_wrapper.GetControl().GetControlSensitivityVariable(), Kratos.SHAPE_SENSITIVITY)
+        self.assertEqual(self.shape_control.GetControlSensitivityVariable(), Kratos.SHAPE_SENSITIVITY)
 
     def test_GetControlUpdateVariable(self):
-        self.assertEqual(self.shape_control_wrapper.GetControl().GetControlUpdateVariable(), KratosOA.VECTOR_CONTROL_UPDATE)
+        self.assertEqual(self.shape_control.GetControlUpdateVariable(), KratosOA.VECTOR_CONTROL_UPDATE)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
