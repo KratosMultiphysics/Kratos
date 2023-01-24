@@ -26,6 +26,12 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_penali
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_trust_region import ValueLoggerTrustRegion
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_bead_optimization import ValueLoggerBeadOptimization
 from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_gradient_projection import ValueLoggerGradientProjection
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.sensitivity_heatmap_logger import (
+    SensitivityHeatmapLoggerSteepestDescent,
+    SensitivityHeatmapLoggerPenalizedProjection,
+    SensitivityHeatmapLoggerGradientProjection,
+    SensitivityHeatmapLoggerTrustRegion,
+    SensitivityHeatmapLoggerBeadOptimization)
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -44,6 +50,8 @@ class DataLogger():
             "output_directory"          : "Optimization_Results",
             "optimization_log_filename" : "optimization_log",
             "design_output_mode"        : "write_optimization_model_part",
+            "sensitivity_heatmap"       : false,
+            "sensitivity_heatmap_settings": {},
             "nodal_results"             : [ "SHAPE_CHANGE" ],
             "output_format"             : { "name": "vtk" }
         }""")
@@ -52,6 +60,7 @@ class DataLogger():
 
         self.ValueLogger = self.__CreateValueLogger()
         self.DesignLogger = self.__CreateDesignLogger()
+        self.SensitivityHeatmapLogger = self.__CreateSensitivityHeatmapLogger()
 
         self.__CreateFolderToStoreOptimizationResults()
         self.__OutputInformationAboutResponseFunctions()
@@ -106,6 +115,25 @@ class DataLogger():
         else:
             raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 
+    # -----------------------------------------------------------------------------
+    def __CreateSensitivityHeatmapLogger( self ):
+        if not self.OptimizationSettings["output"]["sensitivity_heatmap"].GetBool():
+            return None
+
+        AlgorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
+        if AlgorithmName == "steepest_descent":
+            return SensitivityHeatmapLoggerSteepestDescent( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "penalized_projection":
+            return SensitivityHeatmapLoggerPenalizedProjection( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "gradient_projection":
+            return SensitivityHeatmapLoggerGradientProjection( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "trust_region":
+            return SensitivityHeatmapLoggerTrustRegion( self.ModelPartController, self.OptimizationSettings )
+        elif AlgorithmName == "bead_optimization":
+            return SensitivityHeatmapLoggerBeadOptimization( self.ModelPartController, self.OptimizationSettings )
+        else:
+            raise NameError("The following optimization algorithm not supported by the response logger (name may be misspelled): " + AlgorithmName)
+
     # --------------------------------------------------------------------------
     def __CreateFolderToStoreOptimizationResults ( self ):
         resultsDirectory = self.OptimizationSettings["output"]["output_directory"].GetString()
@@ -131,21 +159,12 @@ class DataLogger():
             KM.Logger.PrintInfo("ShapeOpt", "No constraints defined.\n")
 
     # --------------------------------------------------------------------------
-    def SensitivityHeatmapLogging( self ):
-        if self.DesignLogger:
-            for nodal_result in self.DesignLogger.output_settings["nodal_results"]:
-                if nodal_result.GetString() in ["HEATMAP_MAX", "HEATMAP_L2", "HEATMAP_DF1DX", "HEATMAP_DF1DALPHA",
-                                                "HEATMAP_DC1DX", "HEATMAP_DC2DX", "HEATMAP_DC3DX", "HEATMAP_DC4DX",
-                                                "HEATMAP_DC5DX", "HEATMAP_DC6DX", "HEATMAP_DC7DX", "HEATMAP_DC8DX",
-                                                "HEATMAP_DC9DX"]:
-                    return True
-        return False
-
-    # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
         if self.DesignLogger:
             self.DesignLogger.InitializeLogging()
         self.ValueLogger.InitializeLogging()
+        if self.SensitivityHeatmapLogger:
+            self.SensitivityHeatmapLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, current_iteration ):
@@ -155,6 +174,11 @@ class DataLogger():
     # --------------------------------------------------------------------------
     def LogCurrentValues( self, current_iteration, additional_values ):
         self.ValueLogger.LogCurrentValues( current_iteration, additional_values )
+
+    # --------------------------------------------------------------------------
+    def LogSensitivityHeatmap( self, current_iteration, mapper ):
+        if self.SensitivityHeatmapLogger:
+            self.SensitivityHeatmapLogger.LogSensitivityHeatmap( current_iteration, mapper )
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):

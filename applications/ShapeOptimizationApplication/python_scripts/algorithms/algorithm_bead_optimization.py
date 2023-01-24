@@ -20,7 +20,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sens_heatmap import ComputeSensitivityHeatmap
 import math
 
 # ==============================================================================
@@ -97,7 +96,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DPDALPHA)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DPDALPHA_MAPPED)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.DLDALPHA)
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DALPHA)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -351,11 +349,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["penalty_factor"] = penalty_factor
                 additional_values_to_log["max_norm_objective_gradient"] = max_norm_objective_gradient
 
-                if self.data_logger.SensitivityHeatmapLogging():
-                    ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints,
-                                              total_iteration, self.mapper, design_variable_name="ALPHA",
-                                              design_variable_dimension=1)
-
+                self.data_logger.LogSensitivityHeatmap(total_iteration, self.mapper)
                 self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(total_iteration)
 

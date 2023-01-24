@@ -20,7 +20,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sens_heatmap import ComputeSensitivityHeatmap
 
 # ==============================================================================
 class AlgorithmSteepestDescent(OptimizationAlgorithm):
@@ -212,14 +211,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
 
-        if self.data_logger.SensitivityHeatmapLogging():
-            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.optimization_iteration, self.mapper)
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
         self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
 
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["norm_objective_gradient"] = self.norm_objective_gradient
+        self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 

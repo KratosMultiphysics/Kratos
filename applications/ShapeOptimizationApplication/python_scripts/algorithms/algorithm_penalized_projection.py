@@ -20,7 +20,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_sens_heatmap import ComputeSensitivityHeatmap
 
 # ==============================================================================
 class AlgorithmPenalizedProjection(OptimizationAlgorithm):
@@ -193,11 +192,10 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
-        if self.data_logger.SensitivityHeatmapLogging():
-            ComputeSensitivityHeatmap(self.design_surface, self.objectives, self.constraints, self.optimization_iteration, self.mapper)
         additional_values_to_log = {}
         additional_values_to_log["correction_scaling"] = self.correction_scaling
         additional_values_to_log["step_size"] = self.step_size
+        self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
