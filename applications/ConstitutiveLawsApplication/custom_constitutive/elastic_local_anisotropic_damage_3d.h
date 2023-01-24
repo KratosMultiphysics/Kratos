@@ -8,7 +8,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:   
+//  Main authors:   athira vadakkekkara
 //  Collaborator:
 
 #pragma once
@@ -66,6 +66,29 @@ public:
     typedef ProcessInfo ProcessInfoType;
     typedef ConstitutiveLaw BaseType;
     typedef std::size_t SizeType;
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 3;
+
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 6;
+
+    // The definition of the bounded vector type
+    typedef BoundedVector<double, Dimension > BoundedVectorType;
+
+    // The definition of the bounded vector type
+    typedef BoundedVector<double, VoigtSize > BoundedVectorVoigtType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, VoigtSize, Dimension> BoundedMatrix6x3Type;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, VoigtSize> BoundedMatrix3x6Type;
 
     // Counted pointer
     KRATOS_CLASS_POINTER_DEFINITION(ElasticAnisotropicDamage);
@@ -223,8 +246,9 @@ public:
      * @brief calculates the damage effect tensor M
      * @return damage effect tensor M
      */
-    void GetDamageEffectTensor(const Vector& DamageVector, 
-                               Matrix& DamageEffectTensor);
+    void GetDamageEffectTensor(BoundedMatrixVoigtType& DamageEffectTensor,
+                               const BoundedVectorType& DamageVector
+                               );
     
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -277,10 +301,10 @@ protected:
      * @param dJ2ddS 
      * @param dJ2dS 
      */
-    void GetDerivatives(const Vector StressVector,
-                        Vector& dI1dS,
-                        Matrix& dJ2ddS,
-                        Vector& dJ2dS);
+    void GetDerivatives(BoundedVectorVoigtType& dI1dS,
+                        BoundedMatrixVoigtType& dJ2ddS,
+                        BoundedVectorVoigtType& dJ2dS,
+                        const Vector& StressVector);
     /**
 
      * @brief This method computes principal values of stresses/strains
@@ -289,11 +313,11 @@ protected:
      * @param MaxValue maximum of the principal values
      * @param MinValue minimum of the principal values
      */
-    void GetEigenValues(const Vector& VectorForm,
-                        Vector& Pri_Values,
-                        double& MaxValue,
+    void GetEigenValues(BoundedVectorType& Pri_Values,
+                        double MaxValue,
                         const Variable<Vector>& rThisVariable,
-                        const bool& Sorted); 
+                        const bool Sorted,
+                        const Vector& VectorForm); 
         
     ///@}
     
@@ -302,57 +326,50 @@ protected:
      * @param VectorForm Stresses/strains in vector form
      * @param PrincipalVector principal values
      */
-    void ComputedSprdS(const Vector VectorForm,
-                       const Vector PrincipalVector,
-                       const Variable<Vector>& rThisVariable,
-                       Matrix& dSprdS
+    void ComputedSprdS(BoundedMatrix3x6Type& dSprdS,
+                       const Vector& VectorForm,
+                       const BoundedVectorType& PrincipalVector,
+                       const Variable<Vector>& rThisVariable
                        );  
-    /**
-     * @brief This method computes the invariants of stress matrix
-     * @param StressVector Stresses in vector form
-     * @param I1 first invariant of stress
-     * @param J2 second invariant of deviator stress
-     */
-    void GetInvariants(const Vector& StressVector,
-                       double& I1,
-                       double& J2);
     /**
      * @brief This method computes stress weight factor
      */                                
     void GetStressWeightFactor(double &w, 
-                               const Vector &s_pr) const ;
+                               const BoundedVectorType &s_pr) const ;
     
     /**
      * @brief This method calculates the linearized tangent operator
      */ 
-    void CalculateParameters(ConstitutiveLaw::Parameters& rParametersValues, 
-                             const Vector& DamageVector,
-                             Matrix& EffStiffnessMatrix,
-                             Matrix& dEprdE,
-                             Matrix& dkdEpr);
+    void CalculateParameters(BoundedMatrixVoigtType& EffStiffnessMatrix,
+                             BoundedMatrix3x6Type& dEprdE,
+                             BoundedMatrixType& dkdEpr,
+                             ConstitutiveLaw::Parameters& rParametersValues, 
+                             const BoundedVectorType& DamageVector
+                             );
     /**
      * @brief This method calculates the linearized tangent operator
      */ 
 
-    void CalculatePartialDerivatives(const Properties& rMaterialProperties,
-                                     const Vector& DamageVector,
-                                     const double& Kappa0, 
-                                     const double& Beta1, 
-                                     const double& Beta2, 
-                                     const Vector& Kappa,
-                                     Matrix& dHdk);
+    void CalculatePartialDerivatives(BoundedMatrix6x3Type& dHdk,
+                                    const Properties& rMaterialProperties,
+                                    const BoundedVectorType& DamageVector,
+                                    const double Kappa0, 
+                                    const double Beta1, 
+                                    const double Beta2, 
+                                    const BoundedVectorType& Kappa
+                                    );
     /**
      * @brief This method adjusts the stress/strain values to avoid the numerical problems due to zero entries
      */ 
-    void ManipulationOfZeroEntries(Vector& PrincipalVector,
-    const double& eps);
+    void ManipulationOfZeroEntries(BoundedVectorType& PrincipalVector,
+                                   const double eps);
     /**
      * @brief This method converts stress or strain vectors to tensors
      */ 
-    void VectorToTensor(const Vector& VectorForm, 
-    Matrix& TensorForm,
-    const Variable<Vector>& rThisVariable
-    );
+    void VectorToTensor(BoundedMatrixType& TensorForm,
+                        const Vector& VectorForm, 
+                        const Variable<Vector>& rThisVariable
+                        );
 
 private:
 
