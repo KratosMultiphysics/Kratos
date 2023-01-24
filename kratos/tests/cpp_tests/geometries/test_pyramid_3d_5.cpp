@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5EdgesNumber, KratosCoreGeometriesFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GenerateEdges, KratosCoreGeometriesFastSuite)
 {
-    auto geom = GenerateEdges();
+    auto geom = GenerateRegularPyramid3D5();
     auto edges = geom->GenerateEdges();
 
     // Edge 1
@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5FacesNumber, KratosCoreGeometriesFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GenerateFaces, KratosCoreGeometriesFastSuite)
 {
-    auto geom = GenerateEdges();
+    auto geom = GenerateRegularPyramid3D5();
     auto faces = geom->GenerateFaces();
 
     // Face 1
