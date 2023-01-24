@@ -7,8 +7,8 @@ import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
+from KratosMultiphysics.OptimizationApplication.controls.material_properties_control import MaterialPropertiesControl
 
 class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     @classmethod
@@ -24,16 +24,11 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         Kratos.ReadMaterialsUtility(material_settings, cls.model)
 
         parameters = Kratos.Parameters("""{
-            "name"                 : "density",
-            "type"                 : "MaterialPropertiesControl",
-            "settings"             : {
-                "model_part_names"      : ["Structure.structure"],
-                "control_variable_name" : "DENSITY"
-            }
+            "model_part_names"      : ["Structure.structure"],
+            "control_variable_name" : "DENSITY"
         }""")
 
-        cls.properties_control_wrapper = ControlWrapper(cls.model, parameters, cls.optimization_info)
-        cls.optimization_info.AddOptimizationRoutine(cls.properties_control_wrapper)
+        cls.properties_control = MaterialPropertiesControl(cls.model, parameters, cls.optimization_info)
 
     @classmethod
     def tearDownClass(cls):
@@ -45,7 +40,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
 
     def test_PropertiesControlInitialize(self):
         # running it twice to check whether the it only does the creation of specific properties once.
-        self.properties_control_wrapper.Initialize()
+        self.properties_control.Initialize()
 
         self.assertEqual(self.optimization_info["model_parts_with_element_specific_properties"], ["Structure.structure.Elements"])
 
@@ -55,44 +50,44 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
                     self.assertNotEqual(element_i.Properties, element_j.Properties)
 
     def test_PropertiesControl(self):
-        self.properties_control_wrapper.Initialize()
+        self.properties_control.Initialize()
 
         for element in self.model_part.GetSubModelPart("structure").Elements:
             element.Properties[Kratos.DENSITY] = element.Id
 
-        update_vector = ContainerData(self.properties_control_wrapper.GetControl().GetModelParts()[0], self.properties_control_wrapper.GetControl().GetContainerType())
+        update_vector = ContainerData(self.properties_control.GetModelParts()[0], self.properties_control.GetContainerType())
         update_vector.ReadDataFromContainer(Kratos.DENSITY)
 
         # run for 3 iterations
         for i in range(1, 4, 1):
             values = Kratos.Vector()
-            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.properties_control_wrapper.GetControl().GetModelParts()[0].Elements, Kratos.DENSITY, values)
+            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.properties_control.GetModelParts()[0].Elements, Kratos.DENSITY, values)
 
             self.optimization_info.AdvanceSolutionStep()
             self.optimization_info["step"] = i
-            self.properties_control_wrapper.InitializeSolutionStep()
+            self.properties_control.InitializeSolutionStep()
 
             if i > 1:
-                for element in self.properties_control_wrapper.GetControl().GetModelParts()[0].Elements:
+                for element in self.properties_control.GetModelParts()[0].Elements:
                     self.assertEqual(element.Properties[Kratos.DENSITY], element.Id * i)
 
-            self.properties_control_wrapper.SetControlUpdate(update_vector.Clone())
+            self.properties_control.UpdateControl(update_vector.Clone())
 
-            self.properties_control_wrapper.FinalizeSolutionStep()
+            self.properties_control.FinalizeSolutionStep()
 
-        self.properties_control_wrapper.Finalize()
+        self.properties_control.Finalize()
 
     def test_GetModelPart(self):
-        self.assertEqual(self.model_part.GetSubModelPart("structure"), self.properties_control_wrapper.GetControl().GetModelParts()[0])
+        self.assertEqual(self.model_part.GetSubModelPart("structure"), self.properties_control.GetModelParts()[0])
 
     def test_GetContainerType(self):
-        self.assertEqual(self.properties_control_wrapper.GetControl().GetContainerType(), ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
+        self.assertEqual(self.properties_control.GetContainerType(), ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
     def test_GetControlSensitivityVariable(self):
-        self.assertEqual(self.properties_control_wrapper.GetControl().GetControlSensitivityVariable(), KratosOA.DENSITY_SENSITIVITY)
+        self.assertEqual(self.properties_control.GetControlSensitivityVariable(), KratosOA.DENSITY_SENSITIVITY)
 
     def test_GetControlUpdateVariable(self):
-        self.assertEqual(self.properties_control_wrapper.GetControl().GetControlUpdateVariable(), KratosOA.SCALAR_CONTROL_UPDATE)
+        self.assertEqual(self.properties_control.GetControlUpdateVariable(), KratosOA.SCALAR_CONTROL_UPDATE)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS

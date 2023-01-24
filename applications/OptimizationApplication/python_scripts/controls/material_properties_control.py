@@ -47,7 +47,10 @@ class MaterialPropertiesControl(Control):
                 self.optimization_info["model_parts_with_element_specific_properties"].append(f"{model_part.FullName()}.Elements")
 
     def UpdateControl(self, control_values: ContainerData):
-        control_values.AssignDataToContainer(self.control_variable)
+        current_values_container = ContainerData(control_values.GetModelPart(), control_values.GetContainerTpe())
+        current_values_container.ReadDataFromContainer(self.control_variable)
+        new_values_container = current_values_container + control_values
+        new_values_container.AssignDataToContainer(self.control_variable)
 
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':
         return self.model_parts
