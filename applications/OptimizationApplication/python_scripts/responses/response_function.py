@@ -1,7 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
 
-import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 class ResponseFunction(ABC):
