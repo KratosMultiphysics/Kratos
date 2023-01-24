@@ -89,15 +89,19 @@ namespace Kratos::Testing
         const int rank =  r_comm.Rank();
         const int world_size = r_comm.Size();
 
-        // Create nodes
-        auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-        auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-        auto pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+        // Initially everything in one partition
+        if (rank == 0) {
+            // Create nodes
+            auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            auto pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
 
-        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
-        rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
-        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
-        rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+            // Create elements
+            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
+            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+        }
 
         /// Add dof
         for (auto& r_node : rModelPart.Nodes()) {
@@ -200,7 +204,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolver, TrilinosApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, TrilinosApplicationFastSuite)
     {
         // The base model part
         Model current_model;
