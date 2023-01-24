@@ -6,6 +6,10 @@ from typing import Union
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 
+def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
+    for obj in list_of_objects:
+        getattr(obj, method.__name__)(*args, **kwargs)
+
 def Factory(
     module_name: str,
     class_name: str,
