@@ -125,7 +125,11 @@ namespace Kratos::Testing
             r_node.Fix(DISPLACEMENT_Y);
             r_node.Fix(DISPLACEMENT_Z);
         }
-        pnode1->Fix(DISPLACEMENT_X);
+        // Fix X in first node
+        if (rModelPart.HasNode(1)) {
+            auto pnode = rModelPart.pGetNode(1);
+            pnode->Fix(DISPLACEMENT_X);
+        }
 
         // TODO: Fix this!
         // if (WithConstraint) {
