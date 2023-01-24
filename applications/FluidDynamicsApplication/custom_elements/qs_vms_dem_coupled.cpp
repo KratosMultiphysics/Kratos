@@ -549,30 +549,30 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
-
-    sigma *= viscosity;
+    MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
     // Note: Dof order is (vx,vy,[vz,]p) for each node
-    for (unsigned int i = 0; i < NumNodes; ++i)
+    for (unsigned int i = 0; i < NumNodes; i++)
     {
         unsigned int row = i*BlockSize;
         // Loop over columns
-        for (unsigned int j = 0; j < NumNodes; ++j)
+        for (unsigned int j = 0; j < NumNodes; j++)
         {
             unsigned int col = j*BlockSize;
 
-            for (unsigned int d = 0; d < Dim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+            for (unsigned int d = 0; d < Dim; d++) // iterate over dimensions for velocity Dofs in this node combination
             {
                 double UGAlpha = tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.N[j];
                 double AU = tau_one(d,d) * AGradN[i] * rData.N[j];
-                for (unsigned int e = 0; e < Dim; ++e){
+                for (unsigned int e = 0; e < Dim; e++){
+                    double LI = tau_one(d,d) * viscosity * rData.N[j] * rData.DDN_DDX[i](d,e);
+                    double CI = 2.0/3.0 * tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * rData.N[j];
                     double RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.N[j];
-                    rMassMatrix(row+d, col+e) -= weight * RSigmaU;
+                    for (unsigned int f = 0; f < Dim; f++)
+                        if (d == e)
+                            LI += tau_one(d,d) * viscosity * rData.DDN_DDX[i](f,f) * rData.N[j];
+                    rMassMatrix(row+d, col+e) += weight * (LI - CI - RSigmaU);
                 }
                 rMassMatrix(row+d, col+d) += weight * AU;
                 rMassMatrix(row+Dim,col+d) += weight * UGAlpha;
@@ -635,19 +635,13 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-    BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     //array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
     array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
 
-    BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
-
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
-
-    sigma *= viscosity;
+    MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
     // Temporary containers
     double U;
@@ -671,17 +665,23 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
             for (unsigned int d = 0; d < Dim; d++)
             {
 
+                double AA = tau_one(d,d) * AGradN[i] * AGradN[j]; // Stabilization: u*grad(v) * tau_one * u*grad(u);
                 // Stabilization: (a * Grad(v)) * tau_one * Grad(p)
                 double P = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
                 U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
                 double QD = fluid_fraction * rData.N[i] * rData.DN_DX(j,d);
 
-                double GAlphaR = 0.0;
                 double RSigmaG = 0.0;
                 double GAlphaA = tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * AGradN[j];
+                double GAlphaL_1 = 0.0;
+                double GAlphaL_2 = 0.0;
+                double GAlphaR = 0.0;
+                double GAlphaC = 0.0;
                 double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
+                double LG_1 = 0.0;
+                double LG_2 = 0.0;
+                double CG = 0.0;
                 G += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
-                double AA = tau_one(d,d) * AGradN[i] * AGradN[j]; // Stabilization: u*grad(v) * tau_one * u*grad(u);
                 for (unsigned int e = 0; e < Dim; e++){ // Stabilization: Div(v) * tau_two * Div(u)
                     double DnuD = 2.0/3.0 * viscosity * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     double GS = viscosity * rData.DN_DX(i,e) * rData.DN_DX(j,d);
@@ -691,22 +691,74 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     double DU = tau_two * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.N[j];
                     double DD = tau_two * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     double RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
+                    double AL = tau_one(d,d) * viscosity * AGradN[i] * rData.DDN_DDX[j](d,e);
+                    double AC = 2.0 / 3.0 * tau_one(d,d) * viscosity * AGradN[i] * rData.DDN_DDX[j](d,e);
+                    double LA = tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * AGradN[j];
+                    double LL_diag_1 = 0.0;
+                    double LL_diag_2 = 0.0;
+                    double LL_2 = 0.0;
+                    double LL_3 = 0.0;
+                    double LL_4 = 0.0;
+                    double LC_1 = 0.0;
+                    double LC_2 = 0.0;
+                    double LSigma_1 = 0.0;
+                    double LSigma_2 = 0.0;
+                    double CA = 2.0/3.0 * tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * AGradN[j];
+                    double CL_1 = 0.0;
+                    double CL_2 = 0.0;
+                    double CC = 0.0;
+                    double CSigma = 0.0;
+                    double RSigmaL_1 = 0.0;
+                    double RSigmaL_2 = 0.0;
+                    double RSigmaC = 0.0;
+                    GAlphaL_1 += tau_one(d,d) * viscosity * fluid_fraction * rData.DN_DX(i,d) * rData.DDN_DDX[j](e,e);
+                    GAlphaL_2 += tau_one(d,d) * viscosity * fluid_fraction * rData.DN_DX(i,e) * rData.DDN_DDX[j](d,e);
                     GAlphaR += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,e) * sigma(e,d) * rData.N[j];
+                    GAlphaC += 2.0/3.0 * tau_one(d,d) * viscosity * fluid_fraction * rData.DN_DX(i,e) * rData.DDN_DDX[j](e,d);
+                    LG_1 += tau_one(d,d) * viscosity * rData.DDN_DDX[i](e,e) * rData.DN_DX(j,d);
+                    LG_2 += tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * rData.DN_DX(j,e);
+                    CG += 2.0/3.0 * tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * rData.DN_DX(j,e);
                     RSigmaG += tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,e);
                     for (unsigned int f = 0; f < Dim; f++){
-                        if (d == e)
+                        if (d == e){
                             GS += viscosity * rData.DN_DX(i,f) * rData.DN_DX(j,f);
+                            AL += tau_one(d,d) * viscosity * AGradN[i] * rData.DDN_DDX[j](f,f);
+                            LA += tau_one(d,d) * viscosity * rData.DDN_DDX[i](f,f) * AGradN[j];
+                            LL_diag_1 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,f);
+                            LL_diag_2 += rData.DDN_DDX[j](f,f);
+                            CL_1 += 2.0/3.0 * tau_one * viscosity * viscosity * rData.N[i] * rData.DDN_DDX[j](f,f);
+                        }
+                        LL_2 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,f) * rData.DDN_DDX[j](d,e);
+                        LL_3 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,e) * rData.DDN_DDX[j](f,f);
+                        LL_4 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](e,f);
+                        LC_1 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,f) * rData.DDN_DDX[j](d,e);
+                        LC_2 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](f,e);
+                        LSigma_1 += tau_one(d,d) * viscosity * rData.DDN_DDX[i](f,f) * sigma(d,e) * rData.N[j];
+                        LSigma_2 += tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,f) * sigma(f,e) * rData.N[j];
+                        CL_2 += 2.0/3.0 * tau_one * viscosity * viscosity * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](f,e);
+                        CC += 4.0/9.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,d) * rData.DDN_DDX[j](f,e);
+                        CSigma += 2.0/3.0 * tau_one(d,d) * viscosity * rData.DDN_DDX[i](f,d) * sigma(f,e) * rData.N[j];
                         RRSigma += tau_one(d,d) * sigma(d,f) * rData.N[i] * sigma(f,d) * rData.N[j];
+                        RSigmaL_1 += tau_one(d,d) * viscosity * rData.N[i] * sigma(d,e) * rData.DDN_DDX[j](f,f);
+                        RSigmaL_2 += tau_one(d,d) * viscosity * rData.N[i] * sigma(d,f) * rData.DDN_DDX[j](e,f);
+                        RSigmaC += 2.0/3.0 * tau_one(d,d) * viscosity * sigma(d,f) * rData.N[i] * rData.DDN_DDX[j](f,e);
                     }
-                    LHS(row+d,col+e) += rData.Weight * (GS - DnuD + DD + DU + RSigma);
+                    double LL = (LL_diag_1 * LL_diag_2) + LL_2 + LL_3 + LL_4;
+                    double LC = LC_1 + LC_2;
+                    double CL = CL_1 + CL_2;
+                    double LSigma = LSigma_1 + LSigma_2;
+                    double RSigmaL = RSigmaL_1 + RSigmaL_2;
+                    LHS(row+d,col+e) += rData.Weight * (GS - DnuD - AL + AC + LA - LL + LC - CA + CL - CC + DD + DU + RSigma);
 
                     // Adding reactive terms to the stabilization
-                    LHS(row+d,col+e) += rData.Weight * (ASigma - RRSigma - RSigmaA);
+                    LHS(row+d,col+e) += rData.Weight * (ASigma - RRSigma - RSigmaA - CSigma + LSigma - RSigmaL + RSigmaC);
                 }
+                double GAlphaL = GAlphaL_1 + GAlphaL_2;
+                double LG = LG_1 + LG_2;
 
                 LHS(row+d,col+d) += rData.Weight * (V + AA);
-                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QD + GAlphaR);
-                LHS(row+d,col+Dim) += rData.Weight * (AG - P - RSigmaG);
+                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QD - GAlphaL + GAlphaR + GAlphaC);
+                LHS(row+d,col+Dim) += rData.Weight * (AG - P + LG - CG - RSigmaG);
 
             }
             // Write q-p term
@@ -723,10 +775,18 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
             double AF = tau_one(d,d) * AGradN[i] * (body_force[d] - momentum_projection[d]);
             double DPhi = tau_two * rData.DN_DX(i,d) * (mass_source - fluid_fraction_rate - mass_projection);
             double RSigmaF = 0.0;
+            double LF_1 = 0.0;
+            double LF_2 = 0.0;
+            double CF = 0.0;
             QAlphaF += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * (body_force[d] - momentum_projection[d]);
-            for (unsigned int e = 0; e < Dim; ++e)
+            for (unsigned int e = 0; e < Dim; ++e){
                 RSigmaF += tau_one(d,d) * rData.N[i] * sigma(d,e) * (body_force[e] - momentum_projection[e]);
-            rLocalRHS[row+d] += rData.Weight * (VF + AF - RSigmaF + DPhi);
+                LF_1 += tau_one(d,d) * viscosity * rData.DDN_DDX[i](e,e) * (body_force[d] - momentum_projection[d]);
+                LF_2 += tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * (body_force[e] - momentum_projection[e]);
+                CF += 2.0/3.0 * tau_one(d,d) * viscosity * rData.DDN_DDX[i](d,e) * (body_force[e] - momentum_projection[e]);
+            }
+            double LF = LF_1 + LF_2;
+            rLocalRHS[row+d] += rData.Weight * (VF + AF - RSigmaF + LF - CF + DPhi);
         }
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q);
     }
