@@ -17,6 +17,7 @@
 #pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -619,6 +620,21 @@ public:
                                               this->pGetPoint( 8 ),
                                               this->pGetPoint( 5 ) ) ) );
         return faces;
+    }
+
+    /** This method calculates and returns the average edge length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     */
+    double AverageEdgeLength() const override {
+        const GeometriesArrayType edges = this->GenerateEdges();
+        return std::accumulate(
+            edges.begin(),
+            edges.end(),
+            0.0,
+            [](double sum, const auto& rEdge) {return sum + rEdge.Length();}
+        ) * 0.16666666666666666667;
     }
 
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
