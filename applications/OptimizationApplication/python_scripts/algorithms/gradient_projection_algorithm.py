@@ -4,10 +4,10 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.controls.control_wrapper import ControlWrapper
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_wrapper import ObjectiveResponseFunctionWrapper
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_wrapper import ConstraintResponseFunctionWrapper
+from KratosMultiphysics.OptimizationApplication.utilities.control_transformation_technique import ControlTransformationTechnique
+from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ObjectiveResponseFunctionImplementor
+from KratosMultiphysics.OptimizationApplication.utilities.response_function_implementor import ConstraintResponseFunctionImplementor
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
 class GradientProjectionAlgorithm(Algorithm):
@@ -43,7 +43,7 @@ class GradientProjectionAlgorithm(Algorithm):
 
     def Initialize(self):
         # since we only have one objective
-        self.objective: ObjectiveResponseFunctionWrapper = self.GetObjectives()[0]
+        self.objective = self.GetObjectives()[0]
 
     def SolveSolutionStep(self) -> bool:
         # iniitalize optimization info for the algorithm
@@ -61,10 +61,14 @@ class GradientProjectionAlgorithm(Algorithm):
             "value": self.objective.CalculateValue(),
             "standardized_value": self.objective.CalculateStandardizedValue()
         }
-        self.__PrintInfo(1, self.objective.GetResponseInfo(), "")
+
+        relative_change = 0.0
+        if self.optimization_info["step"] > 1:
+            relative_change = (self.objective.CalculateValue() / self.optimization_info.GetSolutionStepData(1)[self.GetName()]["objectives"][self.objective]["value"] - 1.0) * 100.0
+
+        self.__PrintInfo(1, self.objective.GetResponseInfo() + f"\n\t\t rel_change [%]: {relative_change}", "")
 
         # calculate constraint values
-        constraint: ConstraintResponseFunctionWrapper
         for constraint in self.GetConstraints():
             algorithm_data["constraints"][constraint] = {
                 "value": constraint.CalculateValue(),
@@ -74,30 +78,29 @@ class GradientProjectionAlgorithm(Algorithm):
             self.__PrintInfo(1, constraint.GetResponseInfo(), "")
 
         # calculate response gradients
-        control_wrapper: ControlWrapper
-        for control_wrapper in self.GetControllers():
-            self.__PrintInfo(1, f"Computing sensitivities for {control_wrapper.GetName()} control...")
+        for controller in self.GetControllers():
+            self.__PrintInfo(1, f"Computing sensitivities for {controller.GetName()} control...")
 
-            # create control_wrapper optimization info
-            algorithm_data["controls"][control_wrapper] = {
+            # create controller optimization info
+            algorithm_data["controls"][controller] = {
                 "objectives" : {},
                 "constraints": {}
             }
 
-            control_data = algorithm_data["controls"][control_wrapper]
+            control_data = algorithm_data["controls"][controller]
 
             # compute objective sensitivities
-            self.__ComputeResponseSensitivityForControlWrapper(control_wrapper, self.objective, control_data["objectives"])
+            self.__ComputeResponseSensitivityForControlWrapper(controller, self.objective, control_data["objectives"])
 
             # compute constraint sensitivities
             for constraint, constraint_data in algorithm_data["constraints"].items():
                 if constraint_data["is_active"]:
-                    self.__ComputeResponseSensitivityForControlWrapper(control_wrapper, constraint, control_data["constraints"])
+                    self.__ComputeResponseSensitivityForControlWrapper(controller, constraint, control_data["constraints"])
 
             # compute control update
-            self.__ComputeControlUpdatesForControlWrapper(control_wrapper)
+            self.__ComputeControlUpdatesForControlWrapper(controller)
 
-            self.__PrintInfo(1, f"Computed sensitivities for {control_wrapper.GetName()} control.")
+            self.__PrintInfo(1, f"Computed sensitivities for {controller.GetName()} control.")
 
     def IsConverged(self) -> bool:
         if self.optimization_info["step"] > 1:
@@ -116,9 +119,8 @@ class GradientProjectionAlgorithm(Algorithm):
         if self.echo_level >= required_echo_level:
             Kratos.Logger.PrintInfo(title, message)
 
-    def __ComputeResponseSensitivityForControlWrapper(self, control_wrapper: ControlWrapper, response_function: Union[ObjectiveResponseFunctionWrapper, ConstraintResponseFunctionWrapper], optimization_data: dict):
-        control = control_wrapper.GetControl()
-        control_model_part: Kratos.ModelPart
+    def __ComputeResponseSensitivityForControlWrapper(self, controller: ControlTransformationTechnique, response_function: Union[ObjectiveResponseFunctionImplementor, ConstraintResponseFunctionImplementor], optimization_data: dict):
+        control = controller.GetControl()
         for control_model_part in control.GetModelParts():
             optimization_data[control_model_part] = {}
 
@@ -126,16 +128,16 @@ class GradientProjectionAlgorithm(Algorithm):
             raw_sensitivity_container = ContainerData(control_model_part, control.GetContainerType())
             response_function.CalculateStandardizedSensitivity(control.GetControlSensitivityVariable(), raw_sensitivity_container)
 
-            # calculate modified sensitivities
-            modified_sensitivities_container = raw_sensitivity_container.Clone()
-            control_wrapper.ModifySensitivities(modified_sensitivities_container)
+            # calculate transformed sensitivities
+            transformed_sensitivities_container = raw_sensitivity_container.Clone()
+            controller.TransformSensitivity(transformed_sensitivities_container)
 
             optimization_data[control_model_part][response_function] = {
                 "raw_sensitivities": raw_sensitivity_container,
-                "modified_sensitivities": modified_sensitivities_container
+                "transformed_sensitivities": transformed_sensitivities_container
             }
 
-    def __ComputeControlUpdatesForControlWrapper(self, control_wrapper: ControlWrapper):
+    def __ComputeControlUpdatesForControlWrapper(self, controller: ControlTransformationTechnique):
         algorithm_data = self.optimization_info[self.GetName()]
         algorithm_data["controls"]["update"] = {}
 
@@ -145,23 +147,22 @@ class GradientProjectionAlgorithm(Algorithm):
         # get active constraints values
         active_constraint_values_vector = Kratos.Vector([data[1] for data in active_constraints_data])
 
-        control = control_wrapper.GetControl()
-        control_model_part: Kratos.ModelPart
+        control = controller.GetControl()
         for control_model_part in control.GetModelParts():
             # get the objective sensitivities
-            modified_objective_sensitivities: ContainerData = algorithm_data["controls"][control_wrapper]["objectives"][control_model_part][self.objective]["modified_sensitivities"]
+            transformed_objective_sensitivities: ContainerData = algorithm_data["controls"][controller]["objectives"][control_model_part][self.objective]["transformed_sensitivities"]
 
             # get the active constraint sensitivities
             if len(active_constraints_data) == 0:
                 self.__PrintInfo(1, "No constraints active, use negative objective gradient as search direction.")
-                search_direction = modified_objective_sensitivities * (-1.0)
+                search_direction = transformed_objective_sensitivities * (-1.0)
                 search_direction *= self.step_size / search_direction.NormInf()
                 control_update = search_direction.Clone()
                 search_correction = ContainerData(control_model_part, control.GetContainerType())
                 search_correction.SetData(Kratos.Vector(control_update.GetData().Size(), 0.0))
             else:
-                control_model_part_constraint_data = algorithm_data["controls"][control_wrapper]["constraints"][control_model_part]
-                modified_constraint_sensitivities = [control_model_part_constraint_data[data[0]]["modified_sensitivities"].GetData() for data in active_constraints_data]
+                control_model_part_constraint_data = algorithm_data["controls"][controller]["constraints"][control_model_part]
+                transformed_constraint_sensitivities = [control_model_part_constraint_data[data[0]]["transformed_sensitivities"].GetData() for data in active_constraints_data]
 
                 # compute the projected search direction and correction
                 search_direction = ContainerData(control_model_part, control.GetContainerType())
@@ -171,8 +172,8 @@ class GradientProjectionAlgorithm(Algorithm):
                     search_correction.GetData(),
                     self.linear_solver,
                     active_constraint_values_vector,
-                    modified_objective_sensitivities.GetData(),
-                    modified_constraint_sensitivities)
+                    transformed_objective_sensitivities.GetData(),
+                    transformed_constraint_sensitivities)
 
                 # calculate control update
                 control_update = ContainerData(control_model_part, control.GetContainerType())
@@ -183,14 +184,19 @@ class GradientProjectionAlgorithm(Algorithm):
                     self.step_size,
                     self.max_correction_share)
 
+            # calculate transformed updates
+            transformed_updates_container = control_update.Clone()
+            controller.TransformUpdate(transformed_updates_container)
+
             # now set the control update
-            control_wrapper.SetControlUpdate(control_update.Clone())
+            controller.SetControlUpdate(transformed_updates_container.Clone())
 
             # now record computed values in optimization info for later visualization
-            algorithm_data["controls"]["update"][control_wrapper] = {
+            algorithm_data["controls"]["update"][controller] = {
                 "search_direction": search_direction,
                 "search_correction": search_correction,
-                "control_update": control_update
+                "raw_control_update": control_update,
+                "transformed_control_update": transformed_updates_container
             }
 
 
