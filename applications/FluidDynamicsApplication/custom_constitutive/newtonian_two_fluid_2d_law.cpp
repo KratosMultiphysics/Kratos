@@ -20,7 +20,7 @@
 #include "includes/cfd_variables.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
-#include "fluid_dynamics_application.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
