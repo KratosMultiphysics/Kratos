@@ -80,10 +80,9 @@ double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
     const Properties& prop = rParameters.GetMaterialProperties();
     const auto& r_geom = rParameters.GetElementGeometry();
 
-    if (rGeom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY))
-        {
-            viscosity += rGeom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);;
-        }
+    if (r_geom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY)){
+        viscosity += r_geom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+    }
 
     if (prop.Has(C_SMAGORINSKY)) {
         const double csmag = prop[C_SMAGORINSKY];
