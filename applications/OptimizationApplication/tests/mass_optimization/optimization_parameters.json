@@ -6,8 +6,9 @@
         "end_time": 10
     },
     "optimization_settings": {
-        "meshes": [
+        "model_parts": [
             {
+                "name": "StructuralModelPart",
                 "settings": {
                     "model_part_name": "Structure",
                     "domain_size": 3,
@@ -62,18 +63,7 @@
                     ],
                     "control_variable_name": "DENSITY"
                 },
-                "modifiers_list": []
-            },
-            {
-                "name": "young_modulus",
-                "type": "MaterialPropertiesControl",
-                "settings": {
-                    "model_part_names": [
-                        "Structure"
-                    ],
-                    "control_variable_name": "YOUNG_MODULUS"
-                },
-                "modifiers_list": []
+                "transformation_techniques": []
             }
         ],
         "algorithms": [
