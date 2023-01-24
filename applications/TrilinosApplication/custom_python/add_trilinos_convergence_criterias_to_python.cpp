@@ -31,10 +31,7 @@
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_mixed_generic_criteria.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -99,9 +96,6 @@ void  AddConvergenceCriterias(pybind11::module& m)
         .def(py::init< const ConvergenceVariableListType& >());
 }
 
-
-} // namespace Python.
-
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined
