@@ -24,8 +24,9 @@
 #include "spaces/ublas_space.h"
 #include "trilinos_space.h"
 #include "containers/model.h"
-#include "mpi/utilities/distributed_model_part_initializer.h"
 #include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/utilities/model_part_communicator_utilities.h"
 
 /* Element include */
 #include "geometries/line_2d_2.h"
@@ -101,6 +102,11 @@ namespace Kratos::Testing
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
             GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+        }
+
+        /// Add PARTITION_INDEX
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
         }
 
         /// Add dof
@@ -216,11 +222,14 @@ namespace Kratos::Testing
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
         Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
-        // Distribute among partitions
-        DistributedModelPartInitializer(r_model_part, r_comm, 0).Execute();
+        // Set MPI coomunicator
+        ModelPartCommunicatorUtilities::SetMPICommunicator(r_model_part, r_comm);
 
         // Basic build
         BasicTestBuilderAndSolverDisplacement(r_model_part);
+
+        // Compute communicaton plan and fill communicator meshes correctly
+        ParallelFillCommunicator(r_model_part, r_comm).Execute();
 
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
