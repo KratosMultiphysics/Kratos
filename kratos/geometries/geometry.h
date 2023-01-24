@@ -1220,7 +1220,8 @@ public:
             }
         } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
             IntegrationMethod integration_method = GetDefaultIntegrationMethod();
-            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            int j = std::min(static_cast<int>(integration_method) + 1, 4);
+            integration_method = static_cast<IntegrationMethod>(j);
             const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
             const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
 
