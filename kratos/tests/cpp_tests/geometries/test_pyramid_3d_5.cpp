@@ -21,8 +21,7 @@
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef GeometryType::Pointer            BaseGeometryPtrType;
 typedef Pyramid3D5<NodeType>             Pyramid3D5GeometryType;
@@ -39,6 +38,14 @@ BaseGeometryPtrType GenerateRegularPyramid3D5() {
         GeneratePoint<NodeType>( 1.0,  1.0, 0.0),
         GeneratePoint<NodeType>( 0.0,  0.0, 1.5)
     ));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GetGeometryType, KratosCoreGeometriesFastSuite)
+{
+    auto geomRegular = GenerateRegularPyramid3D5();
+
+    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryFamily(), GeometryType::GeometryData::KratosGeometryFamily::Kratos_Pyramid);
+    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryType(), GeometryType::GeometryData::KratosGeometryType::Kratos_Pyramid3D5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5EdgesNumber, KratosCoreGeometriesFastSuite)
@@ -234,5 +241,4 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite)
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing.
