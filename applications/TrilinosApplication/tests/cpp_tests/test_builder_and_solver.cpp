@@ -192,12 +192,16 @@ namespace Kratos::Testing
     }
 
     // NOTE: Adapt this to MPI
-    // static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
+    // static void DebugLHS(
+    //     const TrilinosSparseSpaceType::MatrixType& rA,
+    //     const DataCommunicator& rCommunicator
+    //     )
     // {
+    //     const int rank =  rCommunicator.Rank();
     //     for (std::size_t i = 0; i < rA.size1(); ++i) {
     //         for (std::size_t j = 0; j < rA.size2(); ++j) {
     //             if (std::abs(rA(i, j)) > 0.99) {
-    //                 std::cout << "            KRATOS_CHECK_RELATIVE_NEAR(rA(" << i << "," << j << "), ";
+    //                 std::cout << "            if (rank == " << rank << ") KRATOS_CHECK_RELATIVE_NEAR(rA(" << i << "," << j << "), ";
     //                 std::cout << std::fixed;
     //                 std::cout << std::setprecision(16);
     //                 std::cout << rA(i, j);
@@ -218,6 +222,10 @@ namespace Kratos::Testing
 
         // The data communicator
         const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+        const int rank =  r_comm.Rank();
+        const int world_size = r_comm.Size();
+
+        // Generate Epetra coomunicator
         KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
         Epetra_MpiComm epetra_comm(raw_mpi_comm);
