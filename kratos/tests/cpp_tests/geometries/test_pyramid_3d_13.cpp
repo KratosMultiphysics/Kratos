@@ -51,8 +51,8 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GetGeometryType, KratosCoreGeometriesFastSu
 {
     auto geomRegular = GenerateRegularPyramid3D13();
 
-    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryFamily(), GeometryType::GeometryData::KratosGeometryFamily::Kratos_Pyramid);
-    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryType(), GeometryType::GeometryData::KratosGeometryType::Kratos_Pyramid3D13);
+    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Pyramid);
+    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Pyramid3D13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13EdgesNumber, KratosCoreGeometriesFastSuite)
