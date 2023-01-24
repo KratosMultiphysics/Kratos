@@ -1069,7 +1069,7 @@ private:
             const double a = MathUtils<double>::Norm3(edge.GetPoint(0)-edge.GetPoint(1));
             const double b = MathUtils<double>::Norm3(edge.GetPoint(1)-edge.GetPoint(2));
             const double c = MathUtils<double>::Norm3(edge.GetPoint(2)-edge.GetPoint(0));
-            if (b + c > a + c*tol) {
+            if (b + c > a*(1.0+tol) ) {
                 return false;
             }
         }
