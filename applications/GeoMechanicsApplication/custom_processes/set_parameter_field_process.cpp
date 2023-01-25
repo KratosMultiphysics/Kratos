@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include "json/json_fwd.hpp"
 
 // Project includes
 #include "set_parameter_field_process.hpp"
@@ -41,7 +42,8 @@ namespace Kratos
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "CUSTOM",
             "func_type"       : "input",               
-            "function"        : "100-2*y"
+            "function"        : "100-2*y",
+			"dataset"         : "dummy"
         }  )"
     );
     Parameters mParameters;
@@ -62,7 +64,19 @@ namespace Kratos
 
         std::cout << "value after: " << r_prop[rVar] << std::endl;
         rElement.SetProperties(p_prop);
+        
 
+        //todo find a way to output the value to GID
+  //       auto rProc = mrModelPart.GetProcessInfo();
+  //       auto& r_geom = rElement.GetGeometry();
+  //
+  //       SizeType n_int_points = r_geom.IntegrationPointsNumber();
+  //
+		// std::vector<double> values_on_integration_points(n_int_points, Value);
+  //
+  //       rElement.SetValuesOnIntegrationPoints(rVar, values_on_integration_points, rProc);
+  //       rElement.SetValue(rVar, Value);
+        
         std::cout << "value after2: " << rElement.GetProperties()[rVar] << std::endl;
     }
 
@@ -77,7 +91,7 @@ void SetParameterFieldProcess::ExecuteInitialize()
         {
             BasicGenericFunctionUtility parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
 
-            ModelPart::ElementsContainerType& elements = mrModelPart.Elements();
+            //ModelPart::ElementsContainerType& elements = mrModelPart.Elements();
 
             const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
 
@@ -95,41 +109,33 @@ void SetParameterFieldProcess::ExecuteInitialize()
                 const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
                 this->SetValueAtElement(r_element, r_var, val);
-                
-   /*             Properties::Pointer p_prop = make_shared<Properties>(r_prop);
-                std::cout << "value before: " << r_prop[var] << std::endl;
-                std::cout << "value input: " << val << std::endl;
-                p_prop->SetValue(var,val);
-                std::cout << "value after: " << r_prop[var] << std::endl;
-                
-                
-                r_element.SetProperties(p_prop);
 
-                std::cout << "value after2: " << r_element.GetProperties()[var] << std::endl;*/
-
-                //auto method = elements[i].GetIntegrationMethod();
-
-
-                //auto integration_points = elements[i].GetGeometry().GetGeometryData().IntegrationPoints();
-                //for (IndexType j = 0; j < integration_points.size(); ++j)
-                //{
-                //    double val = parameter_function.CallFunction(integration_points[j].X(), integration_points[j].Y(), integration_points[j].Z(), current_time, 0, 0, 0);
-                //    auto prop = elements[i].GetProperties();
-
-                //    const Variable<double>& var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
-                //    //prop[var] = val;
-
-
-                //    prop[CONSTITUTIVE_LAW]->SetValue(var, val, this->mrModelPart.GetProcessInfo());
-
-                //   /* integration_points[j].
-
-                //    Properties::Pointer p_prop = make_shared<Properties>(&prop);
-                //    elements[i].SetProperties(p_prop);*/
-
-                //}
             }
         }
+        else if (mParameters["func_type"].GetString().compare("python") == 0)
+        {
+
+            
+            auto dataset = mParameters["dataset"].GetString();
+            const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
+
+            Parameters tmp1 = Parameters(dataset);
+
+            auto r_elements = mrModelPart.Elements();
+
+            auto element_iterator  = mrModelPart.ElementsBegin();
+            //Element& el = mrModelPart.Elements().begin();
+            IndexType i = 0;
+            for (auto it : tmp1)
+            {
+                double value = it.GetDouble();
+
+                this->SetValueAtElement(*element_iterator, r_var, value);
+            }
+
+            
+        }
+
     }
     KRATOS_CATCH("")
 }
