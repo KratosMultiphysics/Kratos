@@ -1065,10 +1065,10 @@ private:
     bool FacesArePlanar() const
     {
         constexpr double tol = 1e-6;
-        for (auto edge : this->GenerateEdges()) {
-            const double a = MathUtils<double>::Norm3(edge.GetPoint(0)-edge.GetPoint(1));
-            const double b = MathUtils<double>::Norm3(edge.GetPoint(1)-edge.GetPoint(2));
-            const double c = MathUtils<double>::Norm3(edge.GetPoint(2)-edge.GetPoint(0));
+        for (auto& r_edge : this->GenerateEdges()) {
+            const double a = MathUtils<double>::Norm3(r_edge.GetPoint(0)-r_edge.GetPoint(1));
+            const double b = MathUtils<double>::Norm3(r_edge.GetPoint(1)-r_edge.GetPoint(2));
+            const double c = MathUtils<double>::Norm3(r_edge.GetPoint(2)-r_edge.GetPoint(0));
             if (b + c > a + c*tol) {
                 return false;
             }
