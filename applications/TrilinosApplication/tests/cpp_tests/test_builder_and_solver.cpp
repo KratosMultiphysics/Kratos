@@ -214,7 +214,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, TrilinosApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
@@ -245,6 +245,8 @@ namespace Kratos::Testing
         auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        //KRATOS_WATCH(rA.NumGlobalNonzeros())
 
         // // To create the solution of reference
         // DebugLHS(rA);
