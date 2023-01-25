@@ -222,6 +222,7 @@ template class SteadyStatePwElement<3,8>;
 template class SteadyStatePwElement<2,6>;
 template class SteadyStatePwElement<2,8>;
 template class SteadyStatePwElement<2,9>;
+template class SteadyStatePwElement<2,10>;
 template class SteadyStatePwElement<2,15>;
 template class SteadyStatePwElement<3,10>;
 template class SteadyStatePwElement<3,20>;

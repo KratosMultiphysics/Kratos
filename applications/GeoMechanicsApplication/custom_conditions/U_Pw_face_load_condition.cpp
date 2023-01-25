@@ -109,6 +109,21 @@ void UPwFaceLoadCondition<2,3>::
 
 //----------------------------------------------------------------------------------------
 template< >
+void UPwFaceLoadCondition<2,4>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    const double dx_dxi = Jacobian(0, 0);
+    const double dy_dxi = Jacobian(1, 0);
+
+    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
 void UPwFaceLoadCondition<2,5>::
 CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
     const Matrix& Jacobian,
@@ -117,7 +132,7 @@ CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
     const double dx_dxi = Jacobian(0, 0);
     const double dy_dxi = Jacobian(1, 0);
 
-    const double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
 
     rIntegrationCoefficient = ds * Weight;
 }
@@ -170,6 +185,7 @@ void UPwFaceLoadCondition<3,4>::
 
 template class UPwFaceLoadCondition<2,2>;
 template class UPwFaceLoadCondition<2,3>;
+template class UPwFaceLoadCondition<2,4>;
 template class UPwFaceLoadCondition<2,5>;
 
 template class UPwFaceLoadCondition<3,3>;

@@ -297,6 +297,7 @@ private:
     const TransientPwElement<2,6> mTransientPwElement2D6N;
     const TransientPwElement<2,8> mTransientPwElement2D8N;
     const TransientPwElement<2,9> mTransientPwElement2D9N;
+    const TransientPwElement<2,10> mTransientPwElement2D10N;
     const TransientPwElement<2,15> mTransientPwElement2D15N;
     const TransientPwElement<3,10> mTransientPwElement3D10N;
     const TransientPwElement<3,20> mTransientPwElement3D20N;
@@ -315,6 +316,7 @@ private:
     const SteadyStatePwElement<2,6> mSteadyStatePwElement2D6N;
     const SteadyStatePwElement<2,8> mSteadyStatePwElement2D8N;
     const SteadyStatePwElement<2,9> mSteadyStatePwElement2D9N;
+    const SteadyStatePwElement<2,10> mSteadyStatePwElement2D10N;
     const SteadyStatePwElement<2,15> mSteadyStatePwElement2D15N;
     const SteadyStatePwElement<3,10> mSteadyStatePwElement3D10N;
     const SteadyStatePwElement<3,20> mSteadyStatePwElement3D20N;
@@ -337,6 +339,7 @@ private:
     const UPwSmallStrainElement<2,6> mUPwSmallStrainElement2D6N;
     const UPwSmallStrainElement<2,8> mUPwSmallStrainElement2D8N;
     const UPwSmallStrainElement<2,9> mUPwSmallStrainElement2D9N;
+    const UPwSmallStrainElement<2,10> mUPwSmallStrainElement2D10N;
     const UPwSmallStrainElement<2,15> mUPwSmallStrainElement2D15N;
     const UPwSmallStrainElement<3,10> mUPwSmallStrainElement3D10N;
     const UPwSmallStrainElement<3,20> mUPwSmallStrainElement3D20N;
@@ -364,6 +367,7 @@ private:
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D6N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D8N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D9N;
+    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D10N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D15N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
@@ -375,6 +379,7 @@ private:
     const UPwSmallStrainAxisymmetricElement<2,6> mUPwSmallStrainAxisymmetricElement2D6N;
     const UPwSmallStrainAxisymmetricElement<2,8> mUPwSmallStrainAxisymmetricElement2D8N;
     const UPwSmallStrainAxisymmetricElement<2,9> mUPwSmallStrainAxisymmetricElement2D9N;
+    const UPwSmallStrainAxisymmetricElement<2,10> mUPwSmallStrainAxisymmetricElement2D10N;
     const UPwSmallStrainAxisymmetricElement<2,15> mUPwSmallStrainAxisymmetricElement2D15N;
 
     const UPwSmallStrainAxisymmetricFICElement<2,3> mUPwSmallStrainAxisymmetricFICElement2D3N;
@@ -383,6 +388,7 @@ private:
     const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D6N;
     const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D8N;
     const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N;
     const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N;
 
     // interface elements
@@ -403,6 +409,7 @@ private:
     const UPwUpdatedLagrangianElement<2,6> mUPwUpdatedLagrangianElement2D6N;
     const UPwUpdatedLagrangianElement<2,8> mUPwUpdatedLagrangianElement2D8N;
     const UPwUpdatedLagrangianElement<2,9> mUPwUpdatedLagrangianElement2D9N;
+    const UPwUpdatedLagrangianElement<2,10> mUPwUpdatedLagrangianElement2D10N;
     const UPwUpdatedLagrangianElement<2,15> mUPwUpdatedLagrangianElement2D15N;
     const UPwUpdatedLagrangianElement<3,10> mUPwUpdatedLagrangianElement3D10N;
     const UPwUpdatedLagrangianElement<3,20> mUPwUpdatedLagrangianElement3D20N;
@@ -416,6 +423,7 @@ private:
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D6N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D8N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D9N;
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D10N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D15N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D10N;
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D20N;
@@ -427,11 +435,13 @@ private:
     const UPwUpdatedLagrangianAxisymmetricElement<2,6> mUPwUpdatedLagrangianAxisymmetricElement2D6N;
     const UPwUpdatedLagrangianAxisymmetricElement<2,8> mUPwUpdatedLagrangianAxisymmetricElement2D8N;
     const UPwUpdatedLagrangianAxisymmetricElement<2,9> mUPwUpdatedLagrangianAxisymmetricElement2D9N;
+    const UPwUpdatedLagrangianAxisymmetricElement<2,10> mUPwUpdatedLagrangianAxisymmetricElement2D10N;
     const UPwUpdatedLagrangianAxisymmetricElement<2,15> mUPwUpdatedLagrangianAxisymmetricElement2D15N;
 
     const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D6N;
     const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N;
     const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N;
+    const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N;
     const UpdatedLagrangianUPwDiffOrderAxisymmetricElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N;
 
     const UPwUpdatedLagrangianAxisymmetricFICElement<2,3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N;
@@ -468,6 +478,8 @@ private:
     const PwNormalFluxCondition<3, 4> mPwNormalFluxCondition3D4N;
 
     const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N;
+    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N;
+    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N;
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N;
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N;
@@ -479,10 +491,13 @@ private:
     const UPwNormalFluxFICCondition<3,4> mUPwNormalFluxFICCondition3D4N;
 
     const LineLoad2DDiffOrderCondition mLineLoadDiffOrderCondition2D3N;
+    const LineLoad2DDiffOrderCondition mLineLoadDiffOrderCondition2D4N;
     const LineLoad2DDiffOrderCondition mLineLoadDiffOrderCondition2D5N;
     const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D3N;
+    const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D4N;
     const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D5N;
     const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D3N;
+    const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D4N;
     const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D5N;
     const SurfaceLoad3DDiffOrderCondition mSurfaceLoadDiffOrderCondition3D6N;
     const SurfaceLoad3DDiffOrderCondition mSurfaceLoadDiffOrderCondition3D8N;

@@ -13,6 +13,7 @@
 
 // Project includes
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_10.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -198,6 +199,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumDim = rGeom.WorkingSpaceDimension();
 
     switch(NumUNodes)
     {
@@ -210,11 +212,14 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
         case 9: //2D Q9P4
             mpPressureGeometry = GeometryType::Pointer( new Quadrilateral2D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)) );
             break;
-        case 10: //3D T10P4
-            mpPressureGeometry = GeometryType::Pointer( new Tetrahedra3D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)) );
+        case 10: //3D T10P4  //2D T10P6
+            if (NumDim == 3)
+                mpPressureGeometry = GeometryType::Pointer(new Tetrahedra3D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)));
+            else if (NumDim == 2)
+                mpPressureGeometry = GeometryType::Pointer(new Triangle2D6< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5)));
             break;
-        case 15: //2D T15P3
-            mpPressureGeometry = GeometryType::Pointer(new Triangle2D3< Node<3> >(rGeom(0), rGeom(1), rGeom(2)));
+        case 15: //2D T15P10
+            mpPressureGeometry = GeometryType::Pointer(new Triangle2D10< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7), rGeom(8), rGeom(9)));
             break;
         case 20: //3D H20P8
             mpPressureGeometry = GeometryType::Pointer( new Hexahedra3D8< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7)) );
@@ -827,6 +832,7 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
 
     GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumDim = rGeom.WorkingSpaceDimension();
 
     switch (NumUNodes)
     {
@@ -865,21 +871,40 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
             ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.25 * (p0 + p1 + p2 + p3) );
             break;
         }
-        case 10: //3D T10P4
+        case 10: //3D T10P4  //2D T10P6
         {
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[4],WATER_PRESSURE, 0.5 * (p0 + p1) );
-            ThreadSafeNodeWrite(rGeom[5],WATER_PRESSURE, 0.5 * (p1 + p2) );
-            ThreadSafeNodeWrite(rGeom[6],WATER_PRESSURE, 0.5 * (p2 + p0) );
-            ThreadSafeNodeWrite(rGeom[7],WATER_PRESSURE, 0.5 * (p0 + p3) );
-            ThreadSafeNodeWrite(rGeom[8],WATER_PRESSURE, 0.5 * (p1 + p3) );
-            ThreadSafeNodeWrite(rGeom[9],WATER_PRESSURE, 0.5 * (p2 + p3) );
+            if (NumDim == 3) 
+            {
+                const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
+                ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, 0.5 * (p0 + p1));
+                ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, 0.5 * (p1 + p2));
+                ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, 0.5 * (p2 + p0));
+                ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, 0.5 * (p0 + p3));
+                ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, 0.5 * (p1 + p3));
+                ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, 0.5 * (p2 + p3));
+            }
+            else if (NumDim == 2)
+            {
+                const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
+                const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
+                ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+                ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, 0.25 * (3.0 * p0 + p1));
+            }
             break;
         }
-        case 15: //2D T15P3
+        case 15: //2D T15P10
         {
             const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
             const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
@@ -2549,7 +2574,7 @@ GeometryData::IntegrationMethod
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
     case 10:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
         break;
     case 15:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;

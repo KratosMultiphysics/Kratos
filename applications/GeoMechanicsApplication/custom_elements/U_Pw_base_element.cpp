@@ -269,7 +269,7 @@ GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMe
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
     case 10:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
         break;
     case 15:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
@@ -829,6 +829,7 @@ template class UPwBaseElement<3,8>;
 template class UPwBaseElement<2,6>;
 template class UPwBaseElement<2,8>;
 template class UPwBaseElement<2,9>;
+template class UPwBaseElement<2,10>;
 template class UPwBaseElement<2,15>;
 template class UPwBaseElement<3,10>;
 template class UPwBaseElement<3,20>;
