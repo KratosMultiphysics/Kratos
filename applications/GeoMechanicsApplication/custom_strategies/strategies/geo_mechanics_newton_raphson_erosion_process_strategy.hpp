@@ -126,7 +126,6 @@ public:
             // get tip element and activate
             Element::Pointer tip_element = PipeElements.at(openPipeElements);
             openPipeElements += 1;
-            bool has = tip_element->Has(PIPE_ACTIVE);
             tip_element->SetValue(PIPE_ACTIVE, true);
 
             // Get all open pipe elements
@@ -206,15 +205,15 @@ public:
         }
 
         // Get Maximum X Value in Pipe
-        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer a, const Element::Pointer b)
+        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer pElementA, const Element::Pointer pElementB)
             {
-                return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
+                return pElementA->GetGeometry().GetPoint(0)[0] < pElementA->GetGeometry().GetPoint(0)[0];
             });
 
         // Get Minimum X Value in Pipe
-        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer a, const Element::Pointer b)
+        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer pElementA, const Element::Pointer pElementB)
             {
-                return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
+                return pElementA->GetGeometry().GetPoint(0)[0] < pElementB->GetGeometry().GetPoint(0)[0];
             });
 
         double minX = leftPipe[0]->GetGeometry().GetPoint(0)[0];
@@ -271,11 +270,11 @@ private:
     /// </summary>
     /// <param name="PipeElements"></param>
     /// <returns></returns>
-    int InitialiseNumActivePipeElements(std::vector<Element::Pointer> PipeElements)
+    int InitialiseNumActivePipeElements(const std::vector<Element::Pointer>& pPipeElements)
     {
         int nOpenElements = 0;
 
-        for (Element::Pointer pipe_element : PipeElements)
+        for (Element::Pointer pipe_element : pPipeElements)
         {
             if (pipe_element->GetValue(PIPE_ACTIVE))
             {
@@ -307,13 +306,13 @@ private:
     /// </summary>
     /// <param name="pipe_elements"> vector of all pipe elements</param>
     /// <returns></returns>
-    double CalculateMaxPipeHeight(std::vector<Element::Pointer> pipe_elements)
+    double CalculateMaxPipeHeight(const std::vector<Element::Pointer>& pPipeElements)
     {
         double max_diameter = 0;
         double height_factor = 100;
 
         // loop over all elements
-        for (Element::Pointer pipe_element : pipe_elements)
+        for (Element::Pointer pipe_element : pPipeElements)
         {
             // calculate pipe particle diameter of pipe element
             PropertiesType prop = pipe_element->GetProperties();
@@ -408,7 +407,7 @@ private:
                     }
 
                     // check this if statement, I dont understand the check for pipe erosion
-                    if (((!pElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax))
+                    if ((!pElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax)
                     {
                         pElement->SetValue(PIPE_HEIGHT, pElement->GetValue(PIPE_HEIGHT) + da);
                         equilibrium = false;
@@ -440,7 +439,7 @@ private:
     /// <param name="max_pipe_height"> maximum allowed pipe height</param>
     /// <param name="PipeElements"> vector of all pipe elements</param>
     /// <returns>tuple of grow bool and number of open pipe elements</returns>
-    std::tuple<bool, int> check_status_tip_element(unsigned int n_open_elements, unsigned int n_elements, double max_pipe_height, std::vector<Element::Pointer> PipeElements)
+    std::tuple<bool, int> check_status_tip_element(unsigned int n_open_elements, unsigned int n_elements, double max_pipe_height, const std::vector<Element::Pointer>& PipeElements)
     {
         bool grow = true;
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum pipe height or if all elements are open
