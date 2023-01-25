@@ -32,7 +32,6 @@ class OptimizationSolver(PythonSolver):
         # creates the optimization info data holder
         self.optimization_info = OptimizationInfo()
         self.__is_converged = False
-        self.__list_of_algorithms: 'list[Algorithm]' = []
         self.__list_of_algorithm_properties: 'list[(list[str], Kratos.Parameters, Kratos.Parameters)]' = []
 
         self._CreateModelPartControllers()
@@ -47,15 +46,15 @@ class OptimizationSolver(PythonSolver):
 
     def GetMinimumBufferSize(self):
         buffer_size = -1000
-        for algorithm in self.__list_of_algorithms:
+        for algorithm in self.optimization_info.GetOptimizationRoutines(Algorithm):
             buffer_size = max(buffer_size, algorithm.GetMinimumBufferSize())
         return buffer_size
 
     def AddVariables(self):
-        CallOnAll(self.__list_of_algorithms, Algorithm.AddVariables)
+        CallOnAll(self.optimization_info.GetOptimizationRoutines(Algorithm), Algorithm.AddVariables)
 
     def AddDofs(self):
-        CallOnAll(self.__list_of_algorithms, Algorithm.AddDofs)
+        CallOnAll(self.optimization_info.GetOptimizationRoutines(Algorithm), Algorithm.AddDofs)
 
     def ImportModelPart(self):
         CallOnAll(self.optimization_info.GetOptimizationRoutines(ModelPartController), ModelPartController.ImportModelPart)
@@ -70,29 +69,22 @@ class OptimizationSolver(PythonSolver):
         self._AssignAlgorithmProperties()
 
     def Check(self):
-        CallOnAll(self.__list_of_algorithms, Algorithm.Check)
+        CallOnAll(self.optimization_info.GetOptimizationRoutines(Algorithm), Algorithm.Check)
 
     def Initialize(self):
         # set the current step to 0
         self.optimization_info["step"] = 0
 
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ModelPartController), ModelPartController.Initialize)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ExecutionPolicyWrapper), ExecutionPolicyWrapper.Initialize)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ResponseFunction), ResponseFunction.Initialize)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ControlTransformationTechnique), ControlTransformationTechnique.Initialize)
-        CallOnAll(self.__list_of_algorithms, Algorithm.Initialize)
+        CallOnAll(self.__GetOrderedOptimizationRoutines(), Algorithm.Initialize)
 
     def InitializeSolutionStep(self):
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ModelPartController), ModelPartController.InitializeSolutionStep)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ExecutionPolicyWrapper), ExecutionPolicyWrapper.InitializeSolutionStep)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ResponseFunction), ResponseFunction.InitializeSolutionStep)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ControlTransformationTechnique), ControlTransformationTechnique.InitializeSolutionStep)
-        CallOnAll(self.__list_of_algorithms, Algorithm.InitializeSolutionStep)
+        CallOnAll(self.__GetOrderedOptimizationRoutines(), Algorithm.InitializeSolutionStep)
 
     def SolveSolutionStep(self):
-        CallOnAll(self.__list_of_algorithms, Algorithm.SolveSolutionStep)
+        CallOnAll(self.optimization_info.GetOptimizationRoutines(Algorithm), Algorithm.SolveSolutionStep)
+
         self.__is_converged = True
-        for algorithm in self.__list_of_algorithms:
+        for algorithm in self.optimization_info.GetOptimizationRoutines(Algorithm):
             self.__is_converged = self.__is_converged and algorithm.IsConverged()
         return self.__is_converged
 
@@ -100,18 +92,10 @@ class OptimizationSolver(PythonSolver):
         return self.__is_converged
 
     def FinalizeSolutionStep(self):
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ModelPartController), ModelPartController.FinalizeSolutionStep)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ExecutionPolicyWrapper), ExecutionPolicyWrapper.FinalizeSolutionStep)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ResponseFunction), ResponseFunction.FinalizeSolutionStep)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ControlTransformationTechnique), ControlTransformationTechnique.FinalizeSolutionStep)
-        CallOnAll(self.__list_of_algorithms, Algorithm.FinalizeSolutionStep)
+        CallOnAll(self.__GetOrderedOptimizationRoutines(), Algorithm.FinalizeSolutionStep)
 
     def Finalize(self):
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ModelPartController), ModelPartController.Finalize)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ExecutionPolicyWrapper), ExecutionPolicyWrapper.Finalize)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ResponseFunction), ResponseFunction.Finalize)
-        CallOnAll(self.optimization_info.GetOptimizationRoutines(ControlTransformationTechnique), ControlTransformationTechnique.Finalize)
-        CallOnAll(self.__list_of_algorithms, Algorithm.Finalize)
+        CallOnAll(self.__GetOrderedOptimizationRoutines(), Algorithm.Finalize)
 
     def GetComputingModelPart(self):
         model_part_name = self.settings["model_part_name"].GetString()
@@ -180,7 +164,7 @@ class OptimizationSolver(PythonSolver):
             algorithm_settings.ValidateAndAssignDefaults(default_settings)
             algorithm: Algorithm = Factory(algorithm_settings["module"].GetString(), algorithm_settings["type"].GetString(), self.model, algorithm_settings["settings"], self.optimization_info, Algorithm)
             algorithm.SetName(algorithm_settings["name"].GetString())
-            self.__list_of_algorithms.append(algorithm)
+            self.optimization_info.AddOptimizationRoutine(Algorithm, algorithm.GetName(), algorithm)
             self.__list_of_algorithm_properties.append(
                 (
                     algorithm_settings["control_names"].GetStringArray(),
@@ -189,7 +173,17 @@ class OptimizationSolver(PythonSolver):
                 ))
 
     def _AssignAlgorithmProperties(self):
-        for algorithm, (control_names, objectives_settings, contraints_settings) in zip(self.__list_of_algorithms, self.__list_of_algorithm_properties):
+        for algorithm, (control_names, objectives_settings, contraints_settings) in zip(self.optimization_info.GetOptimizationRoutines(Algorithm), self.__list_of_algorithm_properties):
             algorithm.SetControllers([self.optimization_info.GetOptimizationRoutine(ControlTransformationTechnique, control_name) for control_name in control_names])
             algorithm.SetObjectives([ObjectiveResponseFunctionImplementor(objective_settings, self.optimization_info) for objective_settings in objectives_settings])
             algorithm.SetConstraints([ConstraintResponseFunctionImplementor(constraint_settings, self.optimization_info) for constraint_settings in contraints_settings])
+
+    def _GetOptimizationRoutineOrder(self) -> 'list[any]':
+        return [ModelPartController, ExecutionPolicyWrapper, ResponseFunction, ControlTransformationTechnique, Algorithm]
+
+    def __GetOrderedOptimizationRoutines(self) -> 'list[any]':
+        ordered_routines = []
+        for optimization_routine_type in self._GetOptimizationRoutineOrder():
+            ordered_routines.extend(self.optimization_info.GetOptimizationRoutines(optimization_routine_type))
+        return ordered_routines
+
