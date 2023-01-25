@@ -32,7 +32,6 @@ class OptimizationSolver(PythonSolver):
         # creates the optimization info data holder
         self.optimization_info = OptimizationInfo()
         self.__is_converged = False
-        self.__list_of_algorithm_properties: 'list[(list[str], Kratos.Parameters, Kratos.Parameters)]' = []
 
         self._CreateModelPartControllers()
         self._CreateAnalyses()
@@ -165,18 +164,13 @@ class OptimizationSolver(PythonSolver):
             algorithm: Algorithm = Factory(algorithm_settings["module"].GetString(), algorithm_settings["type"].GetString(), self.model, algorithm_settings["settings"], self.optimization_info, Algorithm)
             algorithm.SetName(algorithm_settings["name"].GetString())
             self.optimization_info.AddOptimizationRoutine(Algorithm, algorithm.GetName(), algorithm)
-            self.__list_of_algorithm_properties.append(
-                (
-                    algorithm_settings["control_names"].GetStringArray(),
-                    algorithm_settings["objectives"],
-                    algorithm_settings["constraints"]
-                ))
 
     def _AssignAlgorithmProperties(self):
-        for algorithm, (control_names, objectives_settings, contraints_settings) in zip(self.optimization_info.GetOptimizationRoutines(Algorithm), self.__list_of_algorithm_properties):
-            algorithm.SetControllers([self.optimization_info.GetOptimizationRoutine(ControlTransformationTechnique, control_name) for control_name in control_names])
-            algorithm.SetObjectives([ObjectiveResponseFunctionImplementor(objective_settings, self.optimization_info) for objective_settings in objectives_settings])
-            algorithm.SetConstraints([ConstraintResponseFunctionImplementor(constraint_settings, self.optimization_info) for constraint_settings in contraints_settings])
+        for algorithm_settings in self.settings["algorithms"]:
+            algorithm = self.optimization_info.GetOptimizationRoutine(Algorithm, algorithm_settings["name"].GetString())
+            algorithm.SetControllers([self.optimization_info.GetOptimizationRoutine(ControlTransformationTechnique, control_name) for control_name in algorithm_settings["control_names"].GetStringArray()])
+            algorithm.SetObjectives([ObjectiveResponseFunctionImplementor(objective_settings, self.optimization_info) for objective_settings in algorithm_settings["objectives"]])
+            algorithm.SetConstraints([ConstraintResponseFunctionImplementor(constraint_settings, self.optimization_info) for constraint_settings in algorithm_settings["constraints"]])
 
     def _GetOptimizationRoutineOrder(self) -> 'list[any]':
         return [ModelPartController, ExecutionPolicyWrapper, ResponseFunction, ControlTransformationTechnique, Algorithm]
