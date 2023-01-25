@@ -249,6 +249,22 @@ namespace Kratos::Testing
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
+        // const Epetra_Map& r_Amap = rA.RowMap();
+        // const int numRows = r_Amap.NumMyElements();
+        // int* rows = r_Amap.MyGlobalElements();
+        // for(int i=0; i<numRows; ++i) {
+        //     const int row = rows[i];
+        //     int rowLen = rA.NumGlobalEntries(row);
+        //     int* indices = new int[rowLen*2];
+        //     double* values = new double[rowLen*2];
+        //     rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);
+        //     for(int j=0; j<rowLen; ++j) {
+        //         KRATOS_WATCH(values[j])
+        //     }
+        //     delete [] indices;
+        //     delete [] values;
+        // }
+
         // // To create the solution of reference
         // DebugLHS(rA);
 
