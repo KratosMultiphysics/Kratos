@@ -859,8 +859,9 @@ public:
 
         // importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
-        if (ierr != 0)
-            KRATOS_ERROR << "Epetra failure found";
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+
+        // NOTE: CheckAndCorrectZeroDiagonalValues would be missing in here
 
         for (int i = 0; i < rA.NumMyRows(); i++) {
             int numEntries; // number of non-zero entries
