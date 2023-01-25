@@ -192,24 +192,27 @@ namespace Kratos::Testing
     }
 
     // NOTE: Adapt this to MPI
-    // static void DebugLHS(
-    //     const TrilinosSparseSpaceType::MatrixType& rA,
-    //     const DataCommunicator& rCommunicator
-    //     )
-    // {
-    //     const int rank =  rCommunicator.Rank();
-    //     for (std::size_t i = 0; i < rA.size1(); ++i) {
-    //         for (std::size_t j = 0; j < rA.size2(); ++j) {
-    //             if (std::abs(rA(i, j)) > 0.99) {
-    //                 std::cout << "            if (rank == " << rank << ") KRATOS_CHECK_RELATIVE_NEAR(rA(" << i << "," << j << "), ";
-    //                 std::cout << std::fixed;
-    //                 std::cout << std::setprecision(16);
-    //                 std::cout << rA(i, j);
-    //                 std::cout << ", tolerance);" << std::endl;
-    //             }
-    //         }
-    //     }
-    // }
+    static void DebugLHS(
+        const TrilinosSparseSpaceType::MatrixType& rA,
+        const DataCommunicator& rCommunicator
+        )
+    {
+        std::cout << "KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");";
+        std::cout << "KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");";
+        std::cout << "KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");";
+        // const int rank =  rCommunicator.Rank();
+        // for (std::size_t i = 0; i < rA.size1(); ++i) {
+        //     for (std::size_t j = 0; j < rA.size2(); ++j) {
+        //         if (std::abs(rA(i, j)) > 0.99) {
+        //             std::cout << "            if (rank == " << rank << ") KRATOS_CHECK_RELATIVE_NEAR(rA(" << i << "," << j << "), ";
+        //             std::cout << std::fixed;
+        //             std::cout << std::setprecision(16);
+        //             std::cout << rA(i, j);
+        //             std::cout << ", tolerance);" << std::endl;
+        //         }
+        //     }
+        // }
+    }
 
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
@@ -246,15 +249,14 @@ namespace Kratos::Testing
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-        //KRATOS_WATCH(rA.NumGlobalNonzeros())
-
         // // To create the solution of reference
         // DebugLHS(rA);
 
-        // // The solution check
-        // constexpr double tolerance = 1e-8;
-        // KRATOS_CHECK(rA.size1() == 6);
-        // KRATOS_CHECK(rA.size2() == 6);
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
         // KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         // KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
         // KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);
