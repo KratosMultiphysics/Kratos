@@ -693,9 +693,9 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(0), this->pGetPoint(3), this->pGetPoint(4), this->pGetPoint(1)));
-        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)));
-        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(2), this->pGetPoint(7), this->pGetPoint(8), this->pGetPoint(0)));
+        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(0), this->pGetPoint(1), this->pGetPoint(3), this->pGetPoint(4)));
+        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(5), this->pGetPoint(6)));
+        edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(2), this->pGetPoint(0), this->pGetPoint(7), this->pGetPoint(8)));
         return edges;
     }
 
