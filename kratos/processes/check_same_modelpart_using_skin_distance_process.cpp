@@ -45,25 +45,18 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
 
     // We get the coordinates of the bounding box
     using NodeType = Node<3>;
+    using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
+    double max_x, min_x, max_y, min_y, max_z, min_z;
+    std::tie(max_x, min_x, max_y, min_y, max_z, min_z) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y(),rNode.Z(),rNode.Z());
+    });
     const double bounding_box_scale_factor = mThisParameters["bounding_box_scale_factor"].GetDouble();
-    const double max_x = bounding_box_scale_factor * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return rNode.X();
-    });
-    const double min_x = bounding_box_scale_factor * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return rNode.X();
-    });
-    const double max_y = bounding_box_scale_factor * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return rNode.Y();
-    });
-    const double min_y = bounding_box_scale_factor * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return rNode.Y();
-    });
-    const double max_z = bounding_box_scale_factor * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return rNode.Z();
-    });
-    const double min_z = bounding_box_scale_factor * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return rNode.Z();
-    });
+    max_x *= bounding_box_scale_factor;
+    min_x *= bounding_box_scale_factor;
+    max_y *= bounding_box_scale_factor;
+    min_y *= bounding_box_scale_factor;
+    max_z *= bounding_box_scale_factor;
+    min_z *= bounding_box_scale_factor;
 
     // Generate background mesh
     auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, min_x, min_y, min_z);
