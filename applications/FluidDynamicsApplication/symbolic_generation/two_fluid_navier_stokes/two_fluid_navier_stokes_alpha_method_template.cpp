@@ -127,9 +127,10 @@ double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
     const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
 
     // Check that velocity gradient norm is non-zero
-    double grad_v_norm;
+
     //substitute_artificial_mu_grad_v_norm_2D_3N
 
     if (grad_v_norm > 1.0e-12) {
