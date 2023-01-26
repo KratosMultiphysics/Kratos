@@ -78,14 +78,15 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
     Parameters mesher_parameters(R"({
-        "number_of_divisions"        : 100,
-        "element_name"               : "Element3D4N"
+        "number_of_divisions"        : 30,
+        "element_name"               : "Element3D4N",
+        "create_skin_sub_model_part" : false
     })");
     ModelPart& r_model_part_1 = mrModel.CreateModelPart("BACKGROUND_MESH_1");
     StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
 
     // Using the same geometry, we create the second background mesh, but values are stored in a different model part
-    ModelPart& r_model_part_2 = AuxiliarModelPartUtilities(r_model_part_1).DeepCopyModelPart("BACKGROUND_MESH_2");
+    ModelPart& r_model_part_2 = AuxiliarModelPartUtilities(r_model_part_1).DeepCopyModelPart("BACKGROUND_MESH_2", &mrModel);
 
     // Compute the distance to the skin
     Parameters distance_parameters = mThisParameters["discontinuous_distance_settings"];
@@ -117,6 +118,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         const Vector& r_elem_dist_2 = it_elem_2->GetValue(r_elem_dist_var);
         return norm_2(r_elem_dist_1 - r_elem_dist_2);
     });
+
     if (error > tolerance) {
         KRATOS_ERROR << "The distance between the two model parts is " << error << " and the tolerance is " << tolerance << std::endl;
     } else {
