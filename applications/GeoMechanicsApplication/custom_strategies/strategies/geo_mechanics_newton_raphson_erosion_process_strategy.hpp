@@ -52,9 +52,8 @@ public:
     typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
     typedef typename boost::range_detail::filtered_range
-	<std::function<bool(Element::Pointer)>, std::vector<Element::Pointer>>                         filtered_elements;
-
-    typedef class SteadyStatePwPipingElement<2, 4>               SteadyStatePwPipingElementType;
+	<std::function<bool(Element::Pointer)>, std::vector<Element::Pointer>>        filtered_elements;
+    typedef class SteadyStatePwPipingElement<2, 4>                   SteadyStatePwPipingElementType;
     typedef Properties PropertiesType;
     typedef Node <3> NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -242,7 +241,7 @@ public:
         }
 
         KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
-        for (const Element::Pointer pipeElement : PipeElements)
+        for (const Element::Pointer& pipeElement : PipeElements)
         {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "PipeElementIDs (in order): " << pipeElement->Id() << std::endl;
         }
@@ -270,13 +269,13 @@ private:
     /// </summary>
     /// <param name="PipeElements"></param>
     /// <returns></returns>
-    int InitialiseNumActivePipeElements(const std::vector<Element::Pointer>& pPipeElements)
+    int InitialiseNumActivePipeElements(const std::vector<Element::Pointer>& PipeElements)
     {
         int nOpenElements = 0;
 
-        for (Element::Pointer pipe_element : pPipeElements)
+        for (const Element::Pointer& pPipeElement : PipeElements)
         {
-            if (pipe_element->GetValue(PIPE_ACTIVE))
+            if (pPipeElement->GetValue(PIPE_ACTIVE))
             {
                 nOpenElements += 1;
             }
@@ -312,7 +311,7 @@ private:
         double height_factor = 100;
 
         // loop over all elements
-        for (Element::Pointer pipe_element : pPipeElements)
+        for (const Element::Pointer& pipe_element : pPipeElements)
         {
             // calculate pipe particle diameter of pipe element
             PropertiesType prop = pipe_element->GetProperties();
@@ -388,7 +387,7 @@ private:
             {
                 // Update depth of open piping Elements 
                 equilibrium = true;
-                for (Element::Pointer OpenPipeElement : openPipeElements)
+                for (Element::Pointer& OpenPipeElement : openPipeElements)
                 {
                     SteadyStatePwPipingElement<2, 4>::Pointer pElement = Kratos::static_pointer_cast<SteadyStatePwPipingElement<2, 4>>(OpenPipeElement);
 
@@ -445,7 +444,7 @@ private:
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum pipe height or if all elements are open
         if (n_open_elements < n_elements)
         {
-            Element::Pointer tip_element = PipeElements.at(n_open_elements - 1);
+            const Element::Pointer& tip_element = PipeElements.at(n_open_elements - 1);
             double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
             
             if ((pipe_height > max_pipe_height + std::numeric_limits<double>::epsilon()) || (pipe_height < pipe_height_accuracy))
@@ -472,17 +471,17 @@ private:
     /// <param name="open_pipe_elements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
-    void save_or_reset_pipe_heights(filtered_elements open_pipe_elements, bool grow)
+    void save_or_reset_pipe_heights(filtered_elements openPipeElements, bool grow)
     {
-        for (Element::Pointer OpenPipeElement : open_pipe_elements)
+        for (const Element::Pointer& pOpenPipeElement : openPipeElements)
         {
             if (grow)
             {
-                OpenPipeElement->SetValue(PREV_PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT));
+                pOpenPipeElement->SetValue(PREV_PIPE_HEIGHT, pOpenPipeElement->GetValue(PIPE_HEIGHT));
             }
             else
             {
-                OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PREV_PIPE_HEIGHT));
+                pOpenPipeElement->SetValue(PIPE_HEIGHT, pOpenPipeElement->GetValue(PREV_PIPE_HEIGHT));
             }
         }
     }
