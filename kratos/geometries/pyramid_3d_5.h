@@ -5,14 +5,22 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
+<<<<<<< HEAD
 //	                 Kratos default license: kratos/license.txt
+=======
+//                   Kratos default license: kratos/license.txt
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 //
 
+<<<<<<< HEAD
 #if !defined (KRATOS_PYRAMID_3D_5_H_INCLUDED)
 #define KRATOS_PYRAMID_3D_5_H_INCLUDED
+=======
+#pragma once
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 // System includes
 #include <cmath> // std::abs for double
@@ -22,9 +30,16 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+<<<<<<< HEAD
 #include "integration/pyramid_gauss_legendre_integration_points.h"
 
 
+=======
+#include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "integration/pyramid_gauss_legendre_integration_points.h"
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -64,6 +79,16 @@ public:
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
 
+<<<<<<< HEAD
+=======
+    /**
+     * Type of edge and face geometries
+     */
+    typedef Line3D2<TPointType> EdgeType;
+    typedef Triangle3D3<TPointType> FaceType1;
+    typedef Quadrilateral3D4<TPointType> FaceType2;
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     /// Pointer definition of Pyramid3D5
     KRATOS_CLASS_POINTER_DEFINITION(Pyramid3D5);
 
@@ -215,6 +240,19 @@ public:
     {
     }
 
+<<<<<<< HEAD
+=======
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Pyramid;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Pyramid3D5;
+    }
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     ///@}
     ///@name Operators
     ///@{
@@ -308,6 +346,48 @@ public:
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
+    {
+        GeometriesArrayType edges = GeometriesArrayType();
+        typedef typename Geometry<TPointType>::Pointer EdgePointerType;
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 0 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        return edges;
+    }
+
+    /**
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
      * @brief Returns the number of faces of the current geometry.
      * @see EdgesNumber
      * @see Edges
@@ -318,6 +398,45 @@ public:
         return 5;
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+        typedef typename Geometry<TPointType>::Pointer FacePointerType;
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType2(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        return faces;
+    }
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     /** This method calculate and return volume of this
      geometry. For one and two dimensional geometry it returns
     zero and for three dimensional it gives volume of geometry.
@@ -329,6 +448,7 @@ public:
     */
     double Volume() const override
     {
+<<<<<<< HEAD
         Vector temp;
         this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
@@ -339,6 +459,9 @@ public:
         }
 
         return vol;
+=======
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
     /**
@@ -785,5 +908,8 @@ GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }  // namespace Kratos.
+<<<<<<< HEAD
 
 #endif // KRATOS_PYRAMID_3D_5_H_INCLUDED defined
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

@@ -534,8 +534,13 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
+<<<<<<< HEAD
         .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector)
         .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector)
+=======
+        .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector<>)
+        .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector<>)
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         .def("SetCurrentPositionsVector", &VariableUtils::SetCurrentPositionsVector)
         .def("SetInitialPositionsVector", &VariableUtils::SetInitialPositionsVector)
         ;

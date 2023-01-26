@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_QUADRILATERAL_2D_4_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_2D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,6 +23,7 @@
 // Project includes
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
@@ -449,6 +448,7 @@ public:
      */
     double Area() const override
     {
+<<<<<<< HEAD
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
@@ -459,6 +459,9 @@ public:
         }
 
         return area;
+=======
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
     /**
@@ -1167,6 +1170,10 @@ template<class TPointType> const
 GeometryDimension Quadrilateral2D4<TPointType>::msGeometryDimension(
     2, 2, 2);
 
+<<<<<<< HEAD
 }// namespace Kratos.
 
 #endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined
+=======
+}// namespace Kratos.
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

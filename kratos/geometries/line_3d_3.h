@@ -340,6 +340,7 @@ public:
     */
     double Length() const override
     {
+<<<<<<< HEAD
         Vector temp;
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
         this->DeterminantOfJacobian( temp, integration_method );
@@ -351,6 +352,10 @@ public:
         }
 
         return length;
+=======
+        const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
     /** This method calculate and return area or surface area of

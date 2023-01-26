@@ -16,7 +16,10 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+<<<<<<< HEAD
 export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile

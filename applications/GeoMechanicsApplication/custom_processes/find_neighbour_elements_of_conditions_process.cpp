@@ -43,12 +43,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             Ids[i] = rGeometry[i].Id();
         }
 
+<<<<<<< HEAD
         // DIRTY SOLUTION: swap position 1 and 2 of Ids[] if the size is 3 (line condition)
         if (rGeometry.LocalSpaceDimension() == 1 && Ids.size() == 3) {
             // Line2D3 or Line3D3
             // incosistent face ordering
             std::swap(Ids[1], Ids[2]);
         }
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
             // reverse ordering to be consistent with face ordering

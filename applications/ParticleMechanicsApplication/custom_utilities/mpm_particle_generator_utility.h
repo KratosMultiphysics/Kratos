@@ -76,6 +76,8 @@ namespace MPMParticleGeneratorUtility
                                         ModelPart& rMPMModelPart,
 <<<<<<< HEAD
                                         bool IsMixedFormulation = false) {
+                                        
+/** mpi implementation start
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
@@ -258,14 +260,21 @@ namespace MPMParticleGeneratorUtility
             }
         }
     }
+*/ // mpi implementation end
 
+<<<<<<< HEAD
 =======
                                         bool IsMixedFormulation=false); 
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions
      */
+<<<<<<< HEAD
 >>>>>>> master
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     template<SizeType TDimension>
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,

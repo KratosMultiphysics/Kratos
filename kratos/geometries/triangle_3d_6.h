@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -464,6 +463,7 @@ public:
      */
     double Area() const override
     {
+<<<<<<< HEAD
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
@@ -474,6 +474,10 @@ public:
         }
 
         return area;
+=======
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
     // TODO: Code activated in June 2023
@@ -660,9 +664,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1136,5 +1140,8 @@ GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
     2, 3, 2);
 
 }// namespace Kratos.
+<<<<<<< HEAD
 
 #endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

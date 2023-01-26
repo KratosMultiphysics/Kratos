@@ -75,6 +75,10 @@ double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double VolumeErrorRate;    // Mass loss time rate (m^3/s) to be used as source term in the mass conservation equation
 double MaxSpectralRadius;
+<<<<<<< HEAD
+=======
+double ArtificialDynamicViscosity;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -155,6 +159,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
             NumNegativeNodes++;
     }
 
+<<<<<<< HEAD
+=======
+    ArtificialDynamicViscosity = r_geometry.Has(ARTIFICIAL_DYNAMIC_VISCOSITY) ? r_geometry.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) : 0.0;
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     // In here we calculate the volume error temporary ratio (note that the input value is a relative measure of the volume loss)
     // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
     // Note as well that there is a minus sign (this comes from the divergence sign)
@@ -352,7 +361,11 @@ void CalculateEffectiveViscosityAtGaussPoint()
     }
 
     DynamicViscosity = dynamic_viscosity / navg;
+<<<<<<< HEAD
     this->EffectiveViscosity = DynamicViscosity;
+=======
+    this->EffectiveViscosity = DynamicViscosity + ArtificialDynamicViscosity;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 }
 
 void ComputeDarcyTerm()

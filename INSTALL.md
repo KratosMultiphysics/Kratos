@@ -89,7 +89,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
           Once installing, please **do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''**
 
-          Minimum required version: CMake 3.14
+        Minimum required version: CMake 3.14
 
       - Python
 
@@ -673,5 +673,25 @@ Forces to re-download and replace an existing version of *Tetgen* obtained throu
 #### Triangle
 [Triangle](http://www.cs.cmu.edu/~quake/triangle.html) is a library for delaunay triangulation. We provide some utilities in *Kratos* that depend on this library. The flags related with *Triangle* are the following:
 
-`-DUSE_TRIANGLE_NONFREE_TPL`
-Enables or disables the use of *Triangle* and its related utilities in the code.
+Root directory for Trilinos library.
+
+`-DTRILINOS_INCLUDE_DIR=String`
+
+Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
+
+`-DTRILINOS_LIBRARY_DIR=String`
+
+Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
+
+`-DTRILINOS_LIBRARY_PREFIX=String`
+Indicates the prefix of the trilinos libraries in case they have:
+```
+libepetra.so          -> No prefix
+libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
+```
+If trilinos was installed using the package manager usually the following lines have to be used:
+```
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
+-DTRILINOS_LIBRARY_PREFIX="trilinos_" \
+```

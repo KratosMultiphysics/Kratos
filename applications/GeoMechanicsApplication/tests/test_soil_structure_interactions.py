@@ -39,7 +39,10 @@ class KratosGeoMechanicsSoilStructureInteractionTests(KratosUnittest.TestCase):
         # check if displacement in soil at both sides of truss is equal
         self.assertAlmostEqual(displacements[6][0], displacements[8][0])
 
+<<<<<<< HEAD
     @KratosUnittest.skip("test should be checked!")
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     def test_cable_between_soil(self):
         """
         Two blocks of soil are attached with very stiff cable. A point load is applied to 1 soil block.

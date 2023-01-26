@@ -147,10 +147,14 @@ protected:
     {
         KRATOS_TRY
 
+<<<<<<< HEAD
         int ierr = MotherType::Check();
         if(ierr != 0) return ierr;
 
         return ierr;
+=======
+        return MotherType::Check();
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         KRATOS_CATCH( "" )
     }

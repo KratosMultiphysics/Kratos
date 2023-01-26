@@ -144,6 +144,7 @@ public:
 
 
         double element_mass = 0;
+<<<<<<< HEAD
         if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(T_PR))
             element_mass = volume_area * elem_i.GetProperties().GetValue(T_PR) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
@@ -152,6 +153,16 @@ public:
             element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 3 && DomainSize == 3)
             element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
+=======
+        if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS) && elem_i.GetProperties().Has(PT))
+            element_mass = volume_area * elem_i.GetProperties().GetValue(PT) * elem_i.GetProperties().GetValue(DENSITY);
+        else if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
+            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);            
+        else if (local_space_dimension == 3 && DomainSize == 3)
+            element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
+        else
+            KRATOS_ERROR << "MassOptResponse::CalculateElementMass: the element is neither shell nor solid element !" << std::endl;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         return element_mass;
     }
@@ -263,10 +274,17 @@ public:
         auto& r_this_geometry = elem_i.GetGeometry();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
+<<<<<<< HEAD
         double curr_thickness = elem_i.GetProperties().GetValue(T_PR);
         elem_i.GetProperties().SetValue(T_PR,1.0);
         double elem_thick_grad = CalculateElementMass(elem_i,DomainSize);
         elem_i.GetProperties().SetValue(T_PR,curr_thickness);
+=======
+        double curr_thickness = elem_i.GetProperties().GetValue(PT);
+        elem_i.GetProperties().SetValue(PT,1.0);
+        double elem_thick_grad = CalculateElementMass(elem_i,DomainSize);
+        elem_i.GetProperties().SetValue(PT,curr_thickness);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PT_D_FT);

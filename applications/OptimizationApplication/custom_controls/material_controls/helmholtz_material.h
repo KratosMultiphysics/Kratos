@@ -110,6 +110,10 @@ public:
         physical_densities =  mTechniqueSettings["physical_densities"].GetVector();
         initial_density = mTechniqueSettings["initial_density"].GetDouble();
         youngs_modules =  mTechniqueSettings["youngs_modules"].GetVector();
+<<<<<<< HEAD
+=======
+        SIMP_pow_fac = mTechniqueSettings["SIMP_power_fac"].GetInt();
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         beta = mTechniqueSettings["beta_settings"]["initial_value"].GetDouble();
         adaptive_beta = mTechniqueSettings["beta_settings"]["adaptive"].GetBool();
         beta_fac = mTechniqueSettings["beta_settings"]["increase_fac"].GetDouble();
@@ -256,6 +260,10 @@ protected:
     Parameters mTechniqueSettings;
     double beta;
     bool adaptive_beta;
+<<<<<<< HEAD
+=======
+    int SIMP_pow_fac;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     double beta_fac;
     double max_beta;
     int beta_update_period;
@@ -474,7 +482,11 @@ private:
                 auto& physical_density = node_i.FastGetSolutionStepValue(PD);
                 auto& physical_density_der = node_i.FastGetSolutionStepValue(D_PD_D_FD);
                 physical_density = ProjectForward(filtered_density,filtered_densities,physical_densities,beta);
+<<<<<<< HEAD
                 physical_density_der = FirstFilterDerivative(filtered_density,filtered_densities,physical_densities,beta);
+=======
+                physical_density_der = ProjectionDerivative(filtered_density,filtered_densities,physical_densities,beta);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
             }
         }
 
@@ -501,8 +513,13 @@ private:
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 auto& youngs_modulus = node_i.FastGetSolutionStepValue(PE);
                 auto& youngs_modulus_der = node_i.FastGetSolutionStepValue(D_PE_D_FD);
+<<<<<<< HEAD
                 youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta);
                 youngs_modulus_der = FirstFilterDerivative(filtered_density,filtered_densities,youngs_modules,beta);
+=======
+                youngs_modulus = ProjectForward(filtered_density,filtered_densities,youngs_modules,beta,SIMP_pow_fac);
+                youngs_modulus_der = ProjectionDerivative(filtered_density,filtered_densities,youngs_modules,beta,SIMP_pow_fac);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
             }
         }
 
@@ -517,6 +534,7 @@ private:
                     elem_i_young_modulus += it->GetGeometry()[node_element].FastGetSolutionStepValue(PE);
                 elem_i_young_modulus /= it->GetGeometry().size();
 
+<<<<<<< HEAD
                 double E_min,E_max;
 
                 for(int i=0;i<youngs_modules.size()-1;i++){
@@ -532,11 +550,18 @@ private:
                 it->GetProperties().SetValue(E_MAX,E_max);
                 it->GetProperties().SetValue(E_PR,elem_i_young_modulus);
                 it->GetProperties().SetValue(E_PE,penal_elem_i_young_modulus);
+=======
+                it->GetProperties().SetValue(YOUNG_MODULUS,elem_i_young_modulus);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
             }
         }
     }
 
+<<<<<<< HEAD
     double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
+=======
+    double ProjectForward(double x, Vector x_limits, Vector y_limits, double beta, int penal_fac = 1){
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         double x1,x2,y1,y2;
         int index_x1 = 0;
@@ -569,6 +594,7 @@ private:
         
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
 
+<<<<<<< HEAD
         // if(index_x1>0){
         //     double prev_x1,prev_x2,prev_y1,prev_y2;
         //     prev_x1 = x_limits[index_x1-1];
@@ -580,6 +606,9 @@ private:
         // }
 
         return (y2-y1)/(1+std::exp(pow_val)) + y1;
+=======
+        return (y2-y1)/(std::pow(1+std::exp(pow_val),penal_fac)) + y1;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
 
@@ -613,7 +642,11 @@ private:
         return x;
     }
 
+<<<<<<< HEAD
     double FirstFilterDerivative(double x,Vector x_limits,Vector y_limits,double beta){
+=======
+    double ProjectionDerivative(double x,Vector x_limits,Vector y_limits,double beta,int penal_fac = 1){
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         double dfdx = 0;
         double x1,x2,y1,y2;
@@ -642,10 +675,17 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
+<<<<<<< HEAD
         double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
 
         if (y2<y1)
             dydx *=-1;
+=======
+        double dydx = (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
+
+        // if (y2<y1)
+        //     dydx *=-1;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         return dydx;
 

@@ -10,8 +10,12 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 
+<<<<<<< HEAD
 #if !defined (KRATOS_PYRAMID_3D_13_H_INCLUDED)
 #define KRATOS_PYRAMID_3D_13_H_INCLUDED
+=======
+#pragma once
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 // System includes
 #include <cmath> // std::abs for double
@@ -21,9 +25,15 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+<<<<<<< HEAD
 #include "integration/pyramid_gauss_legendre_integration_points.h"
 
 
+=======
+#include "utilities/integration_utilities.h"
+#include "integration/pyramid_gauss_legendre_integration_points.h"
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -231,6 +241,19 @@ public:
     {
     }
 
+<<<<<<< HEAD
+=======
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Pyramid;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Pyramid3D13;
+    }
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     ///@}
     ///@name Operators
     ///@{
@@ -334,6 +357,7 @@ public:
         return 5;
     }
 
+<<<<<<< HEAD
     /** This method calculate and return volume of this
      geometry. For one and two dimensional geometry it returns
     zero and for three dimensional it gives volume of geometry.
@@ -355,6 +379,19 @@ public:
         }
 
         return vol;
+=======
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
+    {
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
     /**
@@ -881,5 +918,8 @@ GeometryDimension Pyramid3D13<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }  // namespace Kratos.
+<<<<<<< HEAD
 
 #endif // KRATOS_PYRAMID_3D_13_H_INCLUDED defined
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

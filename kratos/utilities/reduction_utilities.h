@@ -9,6 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #pragma once
@@ -145,7 +146,11 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
+<<<<<<< HEAD
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+=======
+        KRATOS_CRITICAL_SECTION
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         LocalReduce(rOther.mValue);
     }
 };
@@ -176,7 +181,11 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
     {
+<<<<<<< HEAD
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+=======
+        KRATOS_CRITICAL_SECTION
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         LocalReduce(rOther.mValue);
     }
 };
@@ -207,7 +216,11 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
+<<<<<<< HEAD
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+=======
+        KRATOS_CRITICAL_SECTION
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         LocalReduce(rOther.mValue);
     }
 };
@@ -240,7 +253,11 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
     {
+<<<<<<< HEAD
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+=======
+        KRATOS_CRITICAL_SECTION
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         LocalReduce(rOther.mValue);
     }
 };
@@ -272,7 +289,11 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
+<<<<<<< HEAD
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+=======
+        KRATOS_CRITICAL_SECTION
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
     }
 };

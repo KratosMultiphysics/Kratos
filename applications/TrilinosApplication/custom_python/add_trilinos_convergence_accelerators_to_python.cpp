@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
+=======
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -28,8 +36,12 @@
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 #include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp" // To be removed
 
+<<<<<<< HEAD
 namespace Kratos {
 namespace Python {
+=======
+namespace Kratos::Python {
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
@@ -84,5 +96,9 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
 
 }
 
+<<<<<<< HEAD
 } // namespace Python.
 } // Namespace Kratos
+=======
+} // namespace Kratos::Python.
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

@@ -388,6 +388,7 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
     KRATOS_CATCH("");
 }
 
+<<<<<<< HEAD
 
 KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
     const ModelPart::NodesContainerType& rNodes,
@@ -395,6 +396,15 @@ KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
 {
     KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
     Vector pos(rNodes.size()*Dimension);
+=======
+template<class TVectorType>
+TVectorType VariableUtils::GetCurrentPositionsVector(
+    const ModelPart::NodesContainerType& rNodes,
+    const unsigned int Dimension)
+{
+    KRATOS_ERROR_IF(Dimension>3) << "Only Dimension<=3 is admitted by the function" << std::endl;
+    TVectorType pos(rNodes.size()*Dimension);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     IndexPartition<unsigned int>(rNodes.size()).for_each(
     [&](unsigned int i){
@@ -406,12 +416,22 @@ KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
     return pos;
 }
 
+<<<<<<< HEAD
 KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector(
     const ModelPart::NodesContainerType& rNodes,
     const unsigned int Dimension)
 {
     KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
     Vector pos(rNodes.size()*Dimension);
+=======
+template<class TVectorType>
+TVectorType VariableUtils::GetInitialPositionsVector(
+    const ModelPart::NodesContainerType& rNodes,
+    const unsigned int Dimension)
+{
+    KRATOS_ERROR_IF(Dimension>3) << "Only Dimension<=3 is admitted by the function" << std::endl;
+    TVectorType pos(rNodes.size()*Dimension);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     IndexPartition<unsigned int>(rNodes.size()).for_each(
     [&](unsigned int i){
@@ -619,6 +639,15 @@ template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableO
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
+<<<<<<< HEAD
+=======
+template KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector<Vector>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetInitialPositionsVector<std::vector<double>>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+
+template KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector<Vector>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetCurrentPositionsVector<std::vector<double>>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 template void VariableUtils::AuxiliaryHistoricalValueSetter<int>(const Variable<int>&, const int&, NodeType&);
 template void VariableUtils::AuxiliaryHistoricalValueSetter<double>(const Variable<double>&, const double&, NodeType&);
 template void VariableUtils::AuxiliaryHistoricalValueSetter<Vector>(const Variable<Vector>&, const Vector&, NodeType&);

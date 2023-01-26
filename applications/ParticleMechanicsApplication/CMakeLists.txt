@@ -99,8 +99,15 @@ if((${USE_MPI} MATCHES ON) )
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
   )
 endif((${USE_MPI} MATCHES ON) )
+<<<<<<< HEAD
 =======
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)
 >>>>>>> master
+=======
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

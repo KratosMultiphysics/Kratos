@@ -14,6 +14,11 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 
+<<<<<<< HEAD
+=======
+#include <custom_utilities/stress_strain_utilities.hpp>
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 namespace Kratos
 {
 
@@ -567,6 +572,29 @@ void UPwSmallStrainInterfaceElement<3,8>::
     KRATOS_CATCH( "" )
 }
 
+<<<<<<< HEAD
+=======
+template< unsigned int TDim, unsigned int TNumNodes >
+Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(const Vector& rStressVector)
+{
+    Vector full_stress_vector(6, 0);
+
+    if constexpr(TDim==2)
+    {
+        full_stress_vector[INDEX_3D_ZZ] = rStressVector[INDEX_2D_INTERFACE_ZZ];
+        full_stress_vector[INDEX_3D_XZ] = rStressVector[INDEX_2D_INTERFACE_XZ];
+    }
+    else if constexpr (TDim == 3)
+    {
+        full_stress_vector[INDEX_3D_ZZ] = rStressVector[INDEX_3D_INTERFACE_ZZ];
+        full_stress_vector[INDEX_3D_YZ] = rStressVector[INDEX_3D_INTERFACE_YZ];
+        full_stress_vector[INDEX_3D_XZ] = rStressVector[INDEX_3D_INTERFACE_XZ];
+        
+    }
+    return full_stress_vector;
+}
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
@@ -575,6 +603,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+<<<<<<< HEAD
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
 
     if (rVariable == DAMAGE_VARIABLE) {
@@ -582,10 +611,69 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         std::vector<double> GPValues(NumGPoints);
+=======
+
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    std::vector<double> GPValues(NumGPoints);
+
+    //Printed on standard GiD Gauss points
+    const unsigned int OutputGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    if (rValues.size() != OutputGPoints)
+        rValues.resize(OutputGPoints);
+
+    if (rVariable == VON_MISES_STRESS) {
+        //Loop over integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            StressStrainUtilities EquivalentStress;
+
+            Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
+            GPValues[GPoint] = EquivalentStress.CalculateVonMisesStress(full_stress_vector);
+        }
+
+        this->InterpolateOutputDoubles(rValues, GPValues);
+    } else if (rVariable == MEAN_EFFECTIVE_STRESS) {
+        //Loop over integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            StressStrainUtilities EquivalentStress;
+            Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
+            GPValues[GPoint] = EquivalentStress.CalculateMeanStress(full_stress_vector);
+        }
+    
+        this->InterpolateOutputDoubles(rValues, GPValues);
+    }
+    else if (rVariable == MEAN_STRESS) {
+
+        std::vector<Vector> StressVector;
+        CalculateOnLobattoIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
+
+        //loop integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            StressStrainUtilities EquivalentStress;
+            Vector full_stress_vector = this->SetFullStressVector(StressVector[GPoint]);
+            GPValues[GPoint] = EquivalentStress.CalculateMeanStress(full_stress_vector);
+        }
+        this->InterpolateOutputDoubles(rValues, GPValues);
+
+    } else if (rVariable == ENGINEERING_VON_MISES_STRAIN ||
+               rVariable == ENGINEERING_VOLUMETRIC_STRAIN ||
+               rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN ||
+               rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN) {
+
+       // Current variable is not calculated in U_Pw interface elements the output is set to 0
+        for (unsigned int i = 0; i < OutputGPoints; ++i) {
+            rValues[i] = 0;
+        }
+       
+    } else if (rVariable == DAMAGE_VARIABLE) {
+        //Variables computed on Lobatto points
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         for ( unsigned int i = 0;  i < NumGPoints; ++i )
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
 
+<<<<<<< HEAD
         //Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
@@ -595,11 +683,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     } else if (rVariable == STATE_VARIABLE) {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
+=======
+        this->InterpolateOutputDoubles(rValues,GPValues);
+    } else if (rVariable == STATE_VARIABLE) {
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); ++i )
             rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
     } else if (rVariable == JOINT_WIDTH) {
         //Variables computed on Lobatto points
+<<<<<<< HEAD
         const GeometryType& Geom = this->GetGeometry();
 
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -607,16 +700,24 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         this->CalculateOnIntegrationPoints(LOCAL_RELATIVE_DISPLACEMENT_VECTOR, GPAuxValues, rCurrentProcessInfo);
 
         std::vector<double> GPValues(NumGPoints);
+=======
+        std::vector<array_1d<double,3>> GPAuxValues(NumGPoints);
+        this->CalculateOnIntegrationPoints(LOCAL_RELATIVE_DISPLACEMENT_VECTOR, GPAuxValues, rCurrentProcessInfo);
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         for (unsigned int i=0; i < NumGPoints; ++i) {
             GPValues[i] = mInitialGap[i] + GPAuxValues[i][TDim-1];
         }
 
         //Printed on standard GiD Gauss points
+<<<<<<< HEAD
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         this->InterpolateOutputDoubles(rValues,GPValues);
     } else if (rVariable == DEGREE_OF_SATURATION ||
                rVariable == EFFECTIVE_SATURATION ||
@@ -624,6 +725,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                rVariable == DERIVATIVE_OF_SATURATION ||
                rVariable == RELATIVE_PERMEABILITY ) {
         //Defining necessary variables
+<<<<<<< HEAD
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         std::vector<double> GPValues(NumGPoints);
@@ -637,6 +739,15 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         if (GPValues.size() != NumGPoints)
             GPValues.resize(NumGPoints);
+=======
+
+        //Element variables
+        InterfaceElementVariables Variables;
+        this->InitializeElementVariables(Variables, rGeom, this->GetProperties(), rCurrentProcessInfo);
+
+        // create general parameters of retention law
+        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -650,10 +761,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             if (rVariable == RELATIVE_PERMEABILITY )   GPValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
 
+<<<<<<< HEAD
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
         if (rValues.size() != OutputGPoints)
             rValues.resize(OutputGPoints);
 
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         this->InterpolateOutputDoubles(rValues, GPValues);
     } 
     else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
@@ -693,9 +807,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         InterfaceElementVariables Variables;
         const PropertiesType& rProp = this->GetProperties();
+<<<<<<< HEAD
         const GeometryType& rGeom = this->GetGeometry();
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
         std::vector<double> GPValues(NumGPoints);
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         this->InitializeElementVariables(Variables,
             rGeom,
@@ -707,12 +824,17 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer =
             rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
         GeometryType::JacobiansType JContainer(NumGPoints);
+<<<<<<< HEAD
         rGeom.Jacobian(JContainer, mThisIntegrationMethod);        
 
         // set constitutive parameters
         if (GPValues.size() != mConstitutiveLawVector.size())
             GPValues.resize(mConstitutiveLawVector.size());
         
+=======
+        rGeom.Jacobian(JContainer, mThisIntegrationMethod);
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -758,6 +880,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         }
 
         //Printed on standard GiD Gauss points
+<<<<<<< HEAD
         const unsigned int OutputGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
         if (rValues.size() != OutputGPoints)
             rValues.resize(OutputGPoints);
@@ -769,15 +892,23 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         std::vector<double> GPValues(NumGPoints);
+=======
+        this->InterpolateOutputDoubles(rValues, GPValues);
+    } else {
+        //Variables computed on Lobatto points
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
         for ( unsigned int i = 0;  i < NumGPoints; ++i )
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
 
         //Printed on standard GiD Gauss points
+<<<<<<< HEAD
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         this->InterpolateOutputDoubles(rValues,GPValues);
     }
 
@@ -1079,6 +1210,118 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
+<<<<<<< HEAD
+=======
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::
+CalculateOnLobattoIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        //Defining necessary variables
+        const GeometryType& rGeom = this->GetGeometry();
+    const IndexType NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+
+    // calculated on Lobatto points 
+    if (rValues.size() != NumGPoints)
+        rValues.resize(NumGPoints);
+
+    if (rVariable == TOTAL_STRESS_VECTOR) {
+
+        //Defining necessary variables
+        const PropertiesType& rProp = this->GetProperties();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = rGeom.ShapeFunctionsValues(mThisIntegrationMethod);
+        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+        GeometryType::JacobiansType JContainer(NumGPoints);
+        rGeom.Jacobian(JContainer, mThisIntegrationMethod);
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        //Element variables
+        InterfaceElementVariables Variables;;
+        this->InitializeElementVariables(Variables,
+            rGeom,
+            rProp,
+            rCurrentProcessInfo);
+
+        // create general parametes of retention law
+        RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+
+        Vector VoigtVector(mStressVector[0].size());
+        noalias(VoigtVector) = ZeroVector(VoigtVector.size());
+
+        for (unsigned int i = 0; i < mStressVector[0].size(); ++i) VoigtVector[i] = 1.0;
+
+        const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
+
+        Vector TotalStressVector(mStressVector[0].size());
+
+        //set gauss points variables to constitutivelaw parameters
+        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+        //Auxiliary variables
+        const double& MinimumJointWidth = rProp[MINIMUM_JOINT_WIDTH];
+        array_1d<double, TDim> RelDispVector;
+        SFGradAuxVariables SFGradAuxVars;
+
+        //Loop over integration points
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            //Compute Np, StrainVector, JointWidth, GradNpT
+            noalias(Variables.Np) = row(NContainer, GPoint);
+            InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);
+            noalias(RelDispVector) = prod(Variables.Nu, Variables.DisplacementVector);
+            noalias(Variables.StrainVector) = prod(Variables.RotationMatrix, RelDispVector);
+
+            this->CheckAndCalculateJointWidth(Variables.JointWidth,
+                ConstitutiveParameters,
+                Variables.StrainVector[TDim - 1],
+                MinimumJointWidth,
+                GPoint);
+
+            this->CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
+                SFGradAuxVars,
+                JContainer[GPoint],
+                Variables.RotationMatrix,
+                DN_DeContainer[GPoint],
+                NContainer,
+                Variables.JointWidth,
+                GPoint);
+
+            //compute constitutive tensor and/or stresses
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+
+            InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+
+            this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+
+            noalias(TotalStressVector) = mStressVector[GPoint];
+            noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR
+                * Variables.BiotCoefficient
+                * Variables.BishopCoefficient
+                * Variables.FluidPressure
+                * VoigtVector;
+
+            // calculate on Lobatto intergation points
+            if (rValues[GPoint].size() != TotalStressVector.size())
+                rValues[GPoint].resize(TotalStressVector.size(), false);
+
+            rValues[GPoint] = TotalStressVector;
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::

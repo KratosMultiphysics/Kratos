@@ -283,7 +283,11 @@ namespace Kratos
             m_point_load = rValues[0];
         }
         else if (rVariable == MPC_DELTA_DISPLACEMENT) {
+<<<<<<< HEAD
             m_delta_xg = rValues[0];
+=======
+            rValues[0] = m_delta_xg;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         }
         else {
             MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(
@@ -293,7 +297,7 @@ namespace Kratos
 
     void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {
         if (rValues.size() != 1)
@@ -301,6 +305,9 @@ namespace Kratos
 
         if (rVariable == POINT_LOAD) {
             rValues[0] = m_point_load;
+        }
+        else if (rVariable == MPC_DELTA_DISPLACEMENT) {
+            m_delta_xg = rValues[0];
         }
         else {
             MPMParticleBaseCondition::CalculateOnIntegrationPoints(

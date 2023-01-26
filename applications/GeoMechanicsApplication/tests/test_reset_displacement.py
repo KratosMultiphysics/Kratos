@@ -18,7 +18,10 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
+<<<<<<< HEAD
     @KratosUnittest.skip("MCGICJN2 27/6/22 - Test Ignored - Investigation Underway")
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     def test_reset_displacement_truss(self):
         """
         Tests reset displacement in a truss in 4 stages

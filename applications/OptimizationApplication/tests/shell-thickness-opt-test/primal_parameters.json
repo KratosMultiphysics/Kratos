@@ -71,7 +71,11 @@
                 "model_part_name" : "shell",
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "constrained"     : false,
+<<<<<<< HEAD
                 "modulus"         : 9.8,
+=======
+                "modulus"         : 0.0,
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
                 "direction"       : [0.0,-1.0,0.0],
                 "interval"        : [0.0,"End"]
             }

@@ -1105,6 +1105,13 @@ std::string GeometryTesterUtility::GetGeometryName(GeometryType& rGeometry)
         return std::string("Kratos_Triangle2D3");
     case GeometryData::KratosGeometryType::Kratos_Triangle2D6 :
         return std::string("Kratos_Triangle2D6");
+<<<<<<< HEAD
+=======
+    case GeometryData::KratosGeometryType::Kratos_Triangle2D10:
+        return std::string("Kratos_Triangle2D10");
+    case GeometryData::KratosGeometryType::Kratos_Triangle2D15:
+        return std::string("Kratos_Triangle2D15");
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     case GeometryData::KratosGeometryType::Kratos_Triangle3D3 :
         return std::string("Kratos_Triangle3D3");
     case GeometryData::KratosGeometryType::Kratos_Triangle3D6 :
@@ -1113,6 +1120,13 @@ std::string GeometryTesterUtility::GetGeometryName(GeometryType& rGeometry)
         return std::string("Kratos_Line2D2");
     case GeometryData::KratosGeometryType::Kratos_Line2D3 :
         return std::string("Kratos_Line2D3");
+<<<<<<< HEAD
+=======
+    case GeometryData::KratosGeometryType::Kratos_Line2D4:
+        return std::string("Kratos_Line2D4");
+    case GeometryData::KratosGeometryType::Kratos_Line2D5:
+        return std::string("Kratos_Line2D5");
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     case GeometryData::KratosGeometryType::Kratos_Line3D2 :
         return std::string("Kratos_Line3D2");
     case GeometryData::KratosGeometryType::Kratos_Line3D3 :

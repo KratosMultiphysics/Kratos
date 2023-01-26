@@ -10,8 +10,7 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED )
-#define  KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -21,6 +20,10 @@
 #include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_dimension.h"
+<<<<<<< HEAD
+=======
+#include "utilities/integration_utilities.h"
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 namespace Kratos
 {
@@ -338,15 +341,7 @@ public:
     /// Returns the domain size of this quadrature point.
     double DomainSize() const override
     {
-        Vector temp;
-        temp = this->DeterminantOfJacobian(temp);
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
-        double domain_size = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            domain_size += temp[i] * r_integration_points[i].Weight();
-        }
-        return domain_size;
+        return IntegrationUtilities::ComputeDomainSize(*this);
     }
 
     /**
@@ -684,5 +679,3 @@ const GeometryDimension QuadraturePointGeometry<
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED  defined

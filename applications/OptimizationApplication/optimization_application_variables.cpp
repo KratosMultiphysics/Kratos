@@ -85,11 +85,20 @@ namespace Kratos
 
     // thickness control
     KRATOS_CREATE_VARIABLE(double,PT);
+<<<<<<< HEAD
+=======
+    KRATOS_CREATE_VARIABLE(double,PPT);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     KRATOS_CREATE_VARIABLE(double,FT);        
     KRATOS_CREATE_VARIABLE(double,CT);
     KRATOS_CREATE_VARIABLE(double,D_CT);  
     KRATOS_CREATE_VARIABLE(double,D_PT);
+<<<<<<< HEAD
     KRATOS_CREATE_VARIABLE(double,D_PT_D_FT);   
+=======
+    KRATOS_CREATE_VARIABLE(double,D_PT_D_FT); 
+    KRATOS_CREATE_VARIABLE(double,D_PPT_D_FT);  
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     // density control
     KRATOS_CREATE_VARIABLE(double,PD);
@@ -115,21 +124,28 @@ namespace Kratos
     // for thickness optimization
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_VAR_THICKNESS );
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_SOURCE_THICKNESS );  
+<<<<<<< HEAD
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_RADIUS_THICKNESS ); 
     KRATOS_CREATE_VARIABLE( double, T_MIN );
     KRATOS_CREATE_VARIABLE( double, T_MAX );  
     KRATOS_CREATE_VARIABLE( double, T_PE );
     KRATOS_CREATE_VARIABLE( double, T_PR );     
+=======
+    KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_RADIUS_THICKNESS );     
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     // for topology optimization
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_VAR_DENSITY );
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_SOURCE_DENSITY );  
     KRATOS_CREATE_VARIABLE( double, HELMHOLTZ_RADIUS_DENSITY );  
     KRATOS_CREATE_VARIABLE( bool, COMPUTE_CONTROL_DENSITIES ); 
+<<<<<<< HEAD
     KRATOS_CREATE_VARIABLE( double, E_MIN );
     KRATOS_CREATE_VARIABLE( double, E_MAX );  
     KRATOS_CREATE_VARIABLE( double, E_PE );
     KRATOS_CREATE_VARIABLE( double, E_PR ); 
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     //Adjoint RHS
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);    

@@ -367,6 +367,7 @@ public:
         lambda = 0.5*u;
 
         Vector d_RHS_d_E;
+<<<<<<< HEAD
         double e_max = elem_i.GetProperties().GetValue(E_MAX);
         double e_min = elem_i.GetProperties().GetValue(E_MIN);
         double e_pr = elem_i.GetProperties().GetValue(E_PR);
@@ -374,12 +375,22 @@ public:
         elem_i.GetProperties().SetValue(YOUNG_MODULUS,1.0);
         elem_i.CalculateRightHandSide(d_RHS_d_E,rCurrentProcessInfo);
         elem_i.GetProperties().SetValue(YOUNG_MODULUS,e_pe);
+=======
+        double curr_e = elem_i.GetProperties().GetValue(YOUNG_MODULUS);
+        elem_i.GetProperties().SetValue(YOUNG_MODULUS,1.0);
+        elem_i.CalculateRightHandSide(d_RHS_d_E,rCurrentProcessInfo);
+        elem_i.GetProperties().SetValue(YOUNG_MODULUS,curr_e);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pe_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PE_D_FD);
             #pragma omp atomic
+<<<<<<< HEAD
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * (e_min + 3 * std::pow((e_pr-e_min)/(e_max-e_min),2.0) * (e_max-e_min)) * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
+=======
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         }
 
     };        
@@ -402,6 +413,7 @@ public:
         lambda = 0.5*u;
 
         Vector d_RHS_d_T;
+<<<<<<< HEAD
         double t_max = elem_i.GetProperties().GetValue(T_MAX);
         double t_min = elem_i.GetProperties().GetValue(T_MIN);
         double t_pr = elem_i.GetProperties().GetValue(T_PR);
@@ -415,6 +427,18 @@ public:
             const auto& d_pt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PT_D_FT);
             #pragma omp atomic
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_pt_d_ft * (t_min + 3 * std::pow((t_pr-t_min)/(t_max-t_min),2.0) * (t_max-t_min)) * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
+=======
+        double curr_t = elem_i.GetProperties().GetValue(THICKNESS);
+        elem_i.GetProperties().SetValue(THICKNESS,1.0);
+        elem_i.CalculateRightHandSide(d_RHS_d_T,rCurrentProcessInfo);
+        elem_i.GetProperties().SetValue(THICKNESS,curr_t);
+
+
+        for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
+            const auto& d_ppt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PPT_D_FT);
+            #pragma omp atomic
+            r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_ppt_d_ft * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         }    
     };
 

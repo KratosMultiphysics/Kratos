@@ -47,9 +47,15 @@ with open(optimization_log_filename, 'r') as csvfile:
     resulting_sina_alpha = float(last_line[12].strip())
 
     # # Check against specifications
+<<<<<<< HEAD
     TestCase().assertAlmostEqual(resulting_mass, 3067.14,4)
     TestCase().assertAlmostEqual(resulting_strain_energy, 0.0032905, 6)
     TestCase().assertAlmostEqual(resulting_sina_alpha, 0.22891, 5)
+=======
+    TestCase().assertAlmostEqual(resulting_mass, 3488.31,4)
+    TestCase().assertAlmostEqual(resulting_strain_energy, 0.000146988,6)
+    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.752106, 5)
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
 shutil.rmtree(original_directory+"/Optimization_Results")
 shutil.rmtree(original_directory+"/Primal_Results")

@@ -5,13 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
-#if !defined(KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER)
-#define KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER
+
+#pragma once
 
 /* System includes */
 #include <unordered_set>
@@ -443,7 +443,11 @@ public:
                   TSystemVectorType& rb) override
     {
         KRATOS_TRY
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         START_TIMER("BuildRHS ", 0)
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
@@ -482,7 +486,11 @@ public:
         rb.GlobalAssemble();
 
         STOP_TIMER("BuildRHS ", 0)
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         KRATOS_CATCH("")
     }
 
@@ -992,5 +1000,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER  defined */

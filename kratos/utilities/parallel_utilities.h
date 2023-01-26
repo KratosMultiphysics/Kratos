@@ -12,8 +12,7 @@
 //                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
-#define KRATOS_PARALLEL_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -36,10 +35,16 @@
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
+<<<<<<< HEAD
+=======
+#define KRATOS_CRITICAL_SECTION const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
 #define KRATOS_CATCH_THREAD_EXCEPTION \
 } catch(Exception& e) { \
+<<<<<<< HEAD
     const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
     err_stream << "Thread #" << i << " caught exception: " << e.what(); \
 } catch(std::exception& e) { \
@@ -47,6 +52,15 @@
     err_stream << "Thread #" << i << " caught exception: " << e.what(); \
 } catch(...) { \
     const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+=======
+    KRATOS_CRITICAL_SECTION \
+    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+} catch(std::exception& e) { \
+    KRATOS_CRITICAL_SECTION \
+    err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+} catch(...) { \
+    KRATOS_CRITICAL_SECTION \
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     err_stream << "Thread #" << i << " caught unknown exception:"; \
 }
 
@@ -527,5 +541,8 @@ private:
 #undef KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 #undef KRATOS_CATCH_THREAD_EXCEPTION
 #undef KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
+<<<<<<< HEAD
 
 #endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED defined
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a

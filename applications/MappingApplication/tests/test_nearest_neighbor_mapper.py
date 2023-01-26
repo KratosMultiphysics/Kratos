@@ -230,7 +230,10 @@ class CornerCaseNearestNeighbor(mapper_test_case.MapperTestCase):
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
         #mapper_test_case.VtkOutputNodesHistorical(self.model_part_destination, KM.TEMPERATURE)
 
+<<<<<<< HEAD
     @KratosUnittest.skipUnless(ParallelEnvironment.GetDefaultSize() <= 7,  "Test designed to be run with max. 7 ranks.")
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     def test_CornerCaseNearestNeighbor_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)

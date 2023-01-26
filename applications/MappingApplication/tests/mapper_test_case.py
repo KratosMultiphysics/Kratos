@@ -69,7 +69,6 @@ class MapperTestCase(KratosUnittest.TestCase):
             condition.SetValue(KM.PRESSURE, default_scalar)
             condition.SetValue(KM.FORCE, default_vector)
 
-
         for node in self.model_part_destination.Nodes:
             node.SetSolutionStepValue(KM.TEMPERATURE, default_scalar)
             node.SetSolutionStepValue(KM.VELOCITY, default_vector)
@@ -84,7 +83,10 @@ class MapperTestCase(KratosUnittest.TestCase):
             condition.SetValue(KM.TEMPERATURE, default_scalar)
             condition.SetValue(KM.VELOCITY, default_vector)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 def GetFullModelPartName(model_part):
     full_name = model_part.Name
     if model_part.IsSubModelPart():

@@ -1452,7 +1452,12 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
+<<<<<<< HEAD
     [[nodiscard]] Vector GetCurrentPositionsVector(
+=======
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetCurrentPositionsVector(
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1468,7 +1473,12 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
+<<<<<<< HEAD
     [[nodiscard]] Vector GetInitialPositionsVector(
+=======
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetInitialPositionsVector(
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );

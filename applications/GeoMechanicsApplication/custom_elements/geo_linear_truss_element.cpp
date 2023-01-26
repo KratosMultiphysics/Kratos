@@ -118,7 +118,11 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
     }
 
     if (rVariable == FORCE) {
+<<<<<<< HEAD
         BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
+=======
+        BoundedVector<double, 3> truss_forces = ZeroVector(3);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         const double A = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
@@ -129,8 +133,13 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
         ConstitutiveLaw::Parameters Values(this->GetGeometry(),
                                            this->GetProperties(),
                                            rCurrentProcessInfo);
+<<<<<<< HEAD
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
+=======
+        Vector temp_strain = ZeroVector(mStressVectorSize);
+        Vector temp_stress = ZeroVector(mStressVectorSize);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         temp_strain[0] = this->CalculateLinearStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
@@ -158,8 +167,13 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
                                        this->GetProperties(),
                                        rCurrentProcessInfo);
 
+<<<<<<< HEAD
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
+=======
+    Vector temp_strain = ZeroVector(mStressVectorSize);
+    Vector temp_stress = ZeroVector(mStressVectorSize);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     temp_strain[0] = this->CalculateLinearStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);

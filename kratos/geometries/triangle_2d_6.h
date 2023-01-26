@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_TRIANGLE_2D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -458,7 +456,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( Area() ) );
+        return std::sqrt( std::abs( Area() ) );
     }
 
     /** 
@@ -472,6 +470,7 @@ public:
      */
     double Area() const override
     {
+<<<<<<< HEAD
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
@@ -482,6 +481,9 @@ public:
         }
 
         return area;
+=======
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     }
 
     // TODO: Code activated in June 2023
@@ -685,9 +687,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1202,5 +1204,3 @@ const GeometryDimension Triangle2D6<TPointType>::msGeometryDimension(
     2, 2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined

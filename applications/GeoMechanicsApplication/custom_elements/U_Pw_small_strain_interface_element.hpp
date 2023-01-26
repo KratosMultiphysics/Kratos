@@ -203,6 +203,13 @@ protected:
                                                      std::vector<Matrix>& rOutput,
                                                      const ProcessInfo& rCurrentProcessInfo);
 
+<<<<<<< HEAD
+=======
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<Vector>& rVariable,
+                                                     std::vector<Vector>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     void CalculateInitialGap(const GeometryType& Geom);
 
     void ExtrapolateGPValues (const std::vector<double>& JointWidthContainer);
@@ -311,6 +318,11 @@ protected:
     void SetConstitutiveParameters(InterfaceElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
+<<<<<<< HEAD
+=======
+    Vector SetFullStressVector(const Vector& rStressVector);
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

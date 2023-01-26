@@ -130,7 +130,11 @@ namespace Kratos {
 
         // Now replace the elements in SubModelParts
         if ( NewElements.size() > 0 ) {
+<<<<<<< HEAD
             ReplaceElementsInSubModelPart(rThisModelPart);
+=======
+            ReplaceElementsInSubModelPart(rThisModelPart.GetRootModelPart());
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
         }
     }
 
@@ -197,7 +201,11 @@ namespace Kratos {
 
             // Replace the conditions in SubModelParts
             if (NewConditions.size() > 0) {
+<<<<<<< HEAD
                 ReplaceConditionsInSubModelPart(rThisModelPart);
+=======
+                ReplaceConditionsInSubModelPart(rThisModelPart.GetRootModelPart());
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
             }
         }
         KRATOS_CATCH("");

@@ -73,6 +73,11 @@ public:
     ///@name Type Definitions
     ///@{
 
+<<<<<<< HEAD
+=======
+    using BaseType = TwoFluidNavierStokes<TElementData>;
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -159,6 +164,14 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+<<<<<<< HEAD
+=======
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     ///@}
     ///@name Inquiry
     ///@{
@@ -178,7 +191,11 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     ///@}
     ///@name Friends
     ///@{
@@ -210,6 +227,7 @@ protected:
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
     void PressureGradientStabilization(
+<<<<<<< HEAD
         const TElementData& rData,
         const Vector& rInterfaceWeights,
         const Matrix& rEnrInterfaceShapeFunctionPos,
@@ -217,6 +235,15 @@ protected:
         const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
         MatrixType& rKeeTot,
 		VectorType& rRHSeeTot) override;
+=======
+        const TElementData &rData,
+        const Vector &rInterfaceWeights,
+        const Matrix &rEnrInterfaceShapeFunctionPos,
+        const Matrix &rEnrInterfaceShapeFunctionNeg,
+        const GeometryType::ShapeFunctionsGradientsType &rInterfaceShapeDerivatives,
+        MatrixType &rKeeTot,
+        VectorType &rRHSeeTot) override;
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -262,6 +289,17 @@ protected:
      */
     void CalculateStrainRate(TElementData& rData) const override;
 
+<<<<<<< HEAD
+=======
+    /**
+     * @brief Calculate the artificial dynamic viscosity.
+     * In this function we calculate the artificial dynamic viscosity in each gauss point.
+     * @param rData Data container
+     */
+
+    double CalculateArtificialDynamicViscositySpecialization(TElementData &rData) const;
+
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     ///@}
     ///@name Protected  Access
     ///@{

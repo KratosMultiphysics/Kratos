@@ -263,7 +263,24 @@ double GeoTrussElementLinearBase<TDim,TNumNodes>::CalculateLinearStrain()
     this->CreateTransformationMatrix(transformation_matrix);
 
     current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
+<<<<<<< HEAD
     const double length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+=======
+
+    double length_0;
+    if constexpr (TDim == 2)
+    {
+        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    } else if constexpr (TDim == 3)
+    {
+        length_0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    }
+    else
+    {
+        KRATOS_ERROR << "Dimension of truss element should be either 2D or 3D" << std::endl;
+    }
+    
+>>>>>>> 21c387f4469e81694616ffcfba50ef4788e0fb2a
     const double e = (current_disp[TDim]-current_disp[0])/length_0;
 
     return e;
