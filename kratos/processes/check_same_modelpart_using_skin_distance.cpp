@@ -51,13 +51,22 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
     CalculateDiscontinuousDistanceToSkinProcess<TDim> distance_calculator_2(r_model_part_2, r_skin_model_part_2, distance_parameters);
     distance_calculator_2.Execute();
 
+    // Elements iterators
+    auto it_elem_begin_1 = r_model_part_1.ElementsBegin();
+    auto it_elem_begin_2 = r_model_part_2.ElementsBegin();
+
+    // Compute the average length of the elements in order to compute the tolerance
+    double average_length = IndexPartition<std::size_t>(r_model_part_1.NumberOfElements()).for_each<SumReduction<double>>([&](std::size_t i) {
+        auto it_elem_1 = it_elem_begin_1 + i;
+        return it_elem_1->GetGeometry().Length();
+    });
+    average_length /= static_cast<double>(r_model_part_1.NumberOfElements());
+
     // Now we check that the difference is near a tolerance
-    const double tolerance = mThisParameters["tolerance"].GetDouble();
+    const double tolerance = average_length * mThisParameters["tolerance"].GetDouble();
 
     // Interate over the elements
     const Variable<Vector>& r_elem_dist_var = KratosComponents<Variable<Vector>>::Get(distance_parameters["elemental_distances_variable"].GetString());
-    auto it_elem_begin_1 = r_model_part_1.ElementsBegin();
-    auto it_elem_begin_2 = r_model_part_2.ElementsBegin();
     const double error = IndexPartition<std::size_t>(r_model_part_1.NumberOfElements()).for_each<SumReduction<double>>([&](std::size_t i) {
         auto it_elem_1 = it_elem_begin_1 + i;
         auto it_elem_2 = it_elem_begin_2 + i;
