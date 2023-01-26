@@ -17,9 +17,12 @@
 // External includes
 
 // Project includes
+#include "geometries/hexahedra_3d_8.h"
 #include "processes/check_same_modelpart_using_skin_distance.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 // #include "processes/calculate_distance_to_skin_process.h" // Continuous version
 #include "processes/calculate_discontinuous_distance_to_skin_process.h" // Discontinuous version
+#include "processes/structured_mesh_generator_process.h"
 
 namespace Kratos
 {
@@ -29,20 +32,60 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
     KRATOS_TRY
 
     // We get the names of the model parts
-    const std::string& r_model_part_1_name = mThisParameters["model_part_1_name"].GetString();
-    const std::string& r_model_part_2_name = mThisParameters["model_part_2_name"].GetString();
+    // const std::string& r_model_part_1_name = mThisParameters["model_part_1_name"].GetString();
+    // const std::string& r_model_part_2_name = mThisParameters["model_part_2_name"].GetString();
     const std::string& r_skin_model_part_1_name = mThisParameters["skin_model_part_1_name"].GetString();
     const std::string& r_skin_model_part_2_name = mThisParameters["skin_model_part_2_name"].GetString();
 
     // We get the model parts
-    ModelPart& r_model_part_1 = mrModel.GetModelPart(r_model_part_1_name);
+    // ModelPart& r_model_part_1 = mrModel.GetModelPart(r_model_part_1_name);
     ModelPart& r_skin_model_part_1 = mrModel.GetModelPart(r_skin_model_part_1_name);
-    ModelPart& r_model_part_2 = mrModel.GetModelPart(r_model_part_2_name);
+    // ModelPart& r_model_part_2 = mrModel.GetModelPart(r_model_part_2_name);
     ModelPart& r_skin_model_part_2 = mrModel.GetModelPart(r_skin_model_part_2_name);
 
-    // We check that the model parts have the same number of elements (minor check to avoid problems)
-    // TODO: Add MPI version
-    KRATOS_ERROR_IF(r_model_part_1.NumberOfElements() != r_model_part_2.NumberOfElements()) << "The model part 1 has " << r_model_part_1.NumberOfElements() << " elements and the model part 2 has " << r_model_part_2.NumberOfElements() << " elements" << std::endl;
+    // We get the coordinates of the bounding box
+    using NodeType = Node<3>;
+    const double max_x = 1.5 * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return rNode.X();
+    });
+    const double min_x = 1.5 * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return rNode.X();
+    });
+    const double max_y = 1.5 * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return rNode.Y();
+    });
+    const double min_y = 1.5 * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return rNode.Y();
+    });
+    const double max_z = 1.5 * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return rNode.Z();
+    });
+    const double min_z = 1.5 * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+        return rNode.Z();
+    });
+
+    // Generate background mesh
+    auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, min_x, min_y, min_z);
+    auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, max_x, min_y, min_z);
+    auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, max_x, max_y, min_z);
+    auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, min_x, max_y, min_z);
+    auto p_point_5 = Kratos::make_intrusive<Node<3>>(5, min_x, min_y, max_z);
+    auto p_point_6 = Kratos::make_intrusive<Node<3>>(6, max_x, min_y, max_z);
+    auto p_point_7 = Kratos::make_intrusive<Node<3>>(7, max_x, max_y, max_z);
+    auto p_point_8 = Kratos::make_intrusive<Node<3>>(8, min_x, max_y, max_z);
+
+    Hexahedra3D8<Node<3>> geometry(
+        p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
+
+    Parameters mesher_parameters(R"({
+        "number_of_divisions"        : 100,
+        "element_name"               : "Element3D4N"
+    })");
+    ModelPart& r_model_part_1 = mrModel.CreateModelPart("BACKGROUND_MESH_1");
+    StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
+
+    // Using the same geometry, we create the second background mesh, but values are stored in a different model part
+    ModelPart& r_model_part_2 = AuxiliarModelPartUtilities(r_model_part_1).DeepCopyModelPart("BACKGROUND_MESH_2");
 
     // Compute the distance to the skin
     Parameters distance_parameters = mThisParameters["discontinuous_distance_settings"];
@@ -51,21 +94,21 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
     CalculateDiscontinuousDistanceToSkinProcess<TDim> distance_calculator_2(r_model_part_2, r_skin_model_part_2, distance_parameters);
     distance_calculator_2.Execute();
 
-    // Elements iterators
-    auto it_elem_begin_1 = r_model_part_1.ElementsBegin();
-    auto it_elem_begin_2 = r_model_part_2.ElementsBegin();
-
     // Compute the average length of the elements in order to compute the tolerance
-    double average_length = IndexPartition<std::size_t>(r_model_part_1.NumberOfElements()).for_each<SumReduction<double>>([&](std::size_t i) {
-        auto it_elem_1 = it_elem_begin_1 + i;
-        return it_elem_1->GetGeometry().Length();
+    auto it_cond_begin_1 = r_skin_model_part_1.ConditionsBegin();
+    const std::size_t total_number_conditions = r_skin_model_part_1.NumberOfConditions();
+    double average_length = IndexPartition<std::size_t>(total_number_conditions).for_each<SumReduction<double>>([&](std::size_t i) {
+        auto it_cond_1 = it_cond_begin_1 + i;
+        return it_cond_1->GetGeometry().Length();
     });
-    average_length /= static_cast<double>(r_model_part_1.NumberOfElements());
+    average_length /= static_cast<double>(total_number_conditions);
 
     // Now we check that the difference is near a tolerance
     const double tolerance = average_length * mThisParameters["tolerance"].GetDouble();
 
     // Interate over the elements
+    auto it_elem_begin_1 = r_model_part_1.ElementsBegin();
+    auto it_elem_begin_2 = r_model_part_2.ElementsBegin();
     const Variable<Vector>& r_elem_dist_var = KratosComponents<Variable<Vector>>::Get(distance_parameters["elemental_distances_variable"].GetString());
     const double error = IndexPartition<std::size_t>(r_model_part_1.NumberOfElements()).for_each<SumReduction<double>>([&](std::size_t i) {
         auto it_elem_1 = it_elem_begin_1 + i;
@@ -82,9 +125,12 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
 
     // TODO: Add MPI version
 
+    // Cleaning up created model parts
+    mrModel.DeleteModelPart("BACKGROUND_MESH_1");
+    mrModel.DeleteModelPart("BACKGROUND_MESH_2");
+
     KRATOS_CATCH("")
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -96,10 +142,10 @@ const Parameters CheckSameModelPartUsingSkinDistance<TDim>::GetDefaultParameters
 
     const Parameters default_parameters = Parameters(R"(
     {
-        "model_part_1_name"     : "PLEASE_SPECIFY_MODEL_PART_1_NAME",
-        "skin_model_part_1_name": "PLEASE_SPECIFY_SKIN_MODEL_PART_NAME",
-        "model_part_2_name"     : "PLEASE_SPECIFY_MODEL_PART_2_NAME",
-        "skin_model_part_2_name": "PLEASE_SPECIFY_SKIN_MODEL_PART_NAME",
+        //"model_part_1_name"     : "PLEASE_SPECIFY_MODEL_PART_1_NAME", // The background mesh is generated automatically
+        "skin_model_part_1_name": "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
+        //"model_part_2_name"     : "PLEASE_SPECIFY_MODEL_PART_2_NAME", // The background mesh is generated automatically
+        "skin_model_part_2_name": "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "tolerance"             : 1.0e-3,
         //"continuous_distance"   : false, // TODO: Add continuous version if needed in the future
         "discontinuous_distance_settings": {
