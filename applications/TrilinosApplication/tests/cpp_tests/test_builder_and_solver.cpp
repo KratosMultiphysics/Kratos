@@ -91,7 +91,7 @@ namespace Kratos::Testing
         const int world_size = r_comm.Size();
 
         // Initially everything in one partition
-        if (rank == 0) {
+        if (world_size == 1) {
             // Create nodes
             auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -102,6 +102,24 @@ namespace Kratos::Testing
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
             GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+        } else {
+            if (rank == 0) {
+                // Create nodes
+                auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+                auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+
+                // Create elements
+                GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+                rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
+            } else if (rank == 1) {
+                // Create nodes
+                auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+                auto pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+
+                // Create elements
+                GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+                rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+            }
         }
 
         /// Add PARTITION_INDEX
@@ -141,7 +159,7 @@ namespace Kratos::Testing
             pnode->Fix(DISPLACEMENT_X);
         }
 
-        // TODO: Fix this!
+        // TODO: Fix this once MPC work!
         // if (WithConstraint) {
         //     rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode2, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
         //     if (AdditionalNode) {
@@ -245,8 +263,6 @@ namespace Kratos::Testing
 
         // The data communicator
         const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
-        const int rank =  r_comm.Rank();
-        const int world_size = r_comm.Size();
 
         // Generate Epetra coomunicator
         KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
@@ -274,7 +290,6 @@ namespace Kratos::Testing
 
         // Common information from matrix
         const Epetra_Map& r_Amap = rA.RowMap();
-        const int numRows = r_Amap.NumMyElements();
         int* rows = r_Amap.MyGlobalElements();
 
         // The solution check
