@@ -207,7 +207,7 @@ public:
         // Get Maximum X Value in Pipe
         auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element::Pointer pElementA, const Element::Pointer pElementB)
             {
-                return pElementA->GetGeometry().GetPoint(0)[0] < pElementA->GetGeometry().GetPoint(0)[0];
+                return pElementA->GetGeometry().GetPoint(0)[0] < pElementB->GetGeometry().GetPoint(0)[0];
             });
 
         // Get Minimum X Value in Pipe
