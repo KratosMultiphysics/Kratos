@@ -97,6 +97,11 @@ namespace Kratos::Testing
             auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             auto pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
 
+            /// Add PARTITION_INDEX
+            for (auto& r_node : rModelPart.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+            }
+
             // Create elements
             GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
@@ -106,7 +111,9 @@ namespace Kratos::Testing
             if (rank == 0) {
                 // Create nodes
                 auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+                pnode1->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
                 auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+                pnode2->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
 
                 // Create elements
                 GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
@@ -114,17 +121,14 @@ namespace Kratos::Testing
             } else if (rank == 1) {
                 // Create nodes
                 auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+                pnode2->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
                 auto pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+                pnode3->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
 
                 // Create elements
                 GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
                 rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
             }
-        }
-
-        /// Add PARTITION_INDEX
-        for (auto& r_node : rModelPart.Nodes()) {
-            r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
         }
 
         /// Add dof
