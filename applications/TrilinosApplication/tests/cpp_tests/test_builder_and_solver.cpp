@@ -191,27 +191,47 @@ namespace Kratos::Testing
         return rA;
     }
 
-    // NOTE: Adapt this to MPI
-    static void DebugLHS(
-        const TrilinosSparseSpaceType::MatrixType& rA,
-        const DataCommunicator& rCommunicator
-        )
+    static void DebugLHS(const TrilinosSparseSpaceType::MatrixType& rA)
     {
-        std::cout << "KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");";
-        std::cout << "KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");";
-        std::cout << "KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");";
-        // const int rank =  rCommunicator.Rank();
-        // for (std::size_t i = 0; i < rA.size1(); ++i) {
-        //     for (std::size_t j = 0; j < rA.size2(); ++j) {
-        //         if (std::abs(rA(i, j)) > 0.99) {
-        //             std::cout << "            if (rank == " << rank << ") KRATOS_CHECK_RELATIVE_NEAR(rA(" << i << "," << j << "), ";
-        //             std::cout << std::fixed;
-        //             std::cout << std::setprecision(16);
-        //             std::cout << rA(i, j);
-        //             std::cout << ", tolerance);" << std::endl;
-        //         }
-        //     }
-        // }
+        std::cout << "\n        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");\n";
+        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");\n";
+        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");\n";
+        const Epetra_Map& r_Amap = rA.RowMap();
+        const int numRows = r_Amap.NumMyElements();
+        int* rows = r_Amap.MyGlobalElements();
+        for(int i=0; i<numRows; ++i) {
+            const int row = rows[i];
+            int rowLen = rA.NumGlobalEntries(row);
+            int* indices = new int[rowLen*2];
+            double* values = new double[rowLen*2];
+            rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);
+            bool row_added = false;
+            for(int j=0; j<rowLen; ++j) {
+                if (std::abs(values[j]) > 0.99) {
+                    if (!row_added) {
+                        std::cout << "        {\n";
+                        std::cout << "            const int row = rows[" << i << "];\n";
+                        std::cout << "            int rowLen = rA.NumGlobalEntries(row);\n";
+                        std::cout << "            int* indices = new int[rowLen*2];\n";
+                        std::cout << "            double* values = new double[rowLen*2];\n";
+                        std::cout << "            rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);\n";
+                        row_added = true;
+                    }
+                    std::cout << "            KRATOS_CHECK_RELATIVE_NEAR(values[" << j << "], ";
+                    std::cout << std::fixed;
+                    std::cout << std::setprecision(16);
+                    std::cout << values[j];
+                    std::cout << ", tolerance);\n";
+                }
+            }
+            if (row_added) {
+                std::cout << "            delete [] indices;\n";
+                std::cout << "            delete [] values;\n";
+                std::cout << "        }" << std::endl;
+            }
+            delete [] indices;
+            delete [] values;
+        }
     }
 
     /**
@@ -249,37 +269,51 @@ namespace Kratos::Testing
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-        // const Epetra_Map& r_Amap = rA.RowMap();
-        // const int numRows = r_Amap.NumMyElements();
-        // int* rows = r_Amap.MyGlobalElements();
-        // for(int i=0; i<numRows; ++i) {
-        //     const int row = rows[i];
-        //     int rowLen = rA.NumGlobalEntries(row);
-        //     int* indices = new int[rowLen*2];
-        //     double* values = new double[rowLen*2];
-        //     rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);
-        //     for(int j=0; j<rowLen; ++j) {
-        //         KRATOS_WATCH(values[j])
-        //     }
-        //     delete [] indices;
-        //     delete [] values;
-        // }
-
         // // To create the solution of reference
         // DebugLHS(rA);
+
+        // Common information from matrix
+        const Epetra_Map& r_Amap = rA.RowMap();
+        const int numRows = r_Amap.NumMyElements();
+        int* rows = r_Amap.MyGlobalElements();
 
         // The solution check
         constexpr double tolerance = 1e-8;
         KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
         KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
         KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(4,2), -2069000000.0, tolerance);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
-        // KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+        {
+            const int row = rows[0];
+            int rowLen = rA.NumGlobalEntries(row);
+            int* indices = new int[rowLen*2];
+            double* values = new double[rowLen*2];
+            rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);
+            KRATOS_CHECK_RELATIVE_NEAR(values[0], 2069000000.0000000000000000, tolerance);
+            delete [] indices;
+            delete [] values;
+        }
+        {
+            const int row = rows[2];
+            int rowLen = rA.NumGlobalEntries(row);
+            int* indices = new int[rowLen*2];
+            double* values = new double[rowLen*2];
+            rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);
+            KRATOS_CHECK_RELATIVE_NEAR(values[2], 4138000000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(values[4], -2069000000.0000000000000000, tolerance);
+            delete [] indices;
+            delete [] values;
+        }
+        {
+            const int row = rows[4];
+            int rowLen = rA.NumGlobalEntries(row);
+            int* indices = new int[rowLen*2];
+            double* values = new double[rowLen*2];
+            rA.ExtractGlobalRowCopy(row, rowLen, rowLen, values, indices);
+            KRATOS_CHECK_RELATIVE_NEAR(values[0], -2069000000.0000000000000000, tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(values[2], 2069000000.0000000000000000, tolerance);
+            delete [] indices;
+            delete [] values;
+        }
     }
 
 }  // namespace Kratos::Testing.
