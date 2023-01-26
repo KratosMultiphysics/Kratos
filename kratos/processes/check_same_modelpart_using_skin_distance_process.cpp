@@ -148,13 +148,6 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
         "bounding_box_scale_factor"           : 1.5,
         "number_of_divisions_background_mesh" : 30,
         "discontinuous_distance_settings": {
-            "elemental_distances_variable"                          : "ELEMENTAL_DISTANCES",
-            "elemental_edge_distances_variable"                     : "ELEMENTAL_EDGE_DISTANCES",
-            "elemental_edge_distances_extrapolated_variable"        : "ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED",
-            "embedded_velocity_variable"                            : "EMBEDDED_VELOCITY",
-            "calculate_elemental_edge_distances"                    : false,
-            "calculate_elemental_edge_distances_extrapolated"       : false,
-            "use_positive_epsilon_for_zero_values"                  : true
         }
     })" );
 
