@@ -41,6 +41,7 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
     ModelPart& r_skin_model_part_2 = mrModel.GetModelPart(r_skin_model_part_2_name);
 
     // We check that the model parts have the same number of elements (minor check to avoid problems)
+    // TODO: Add MPI version
     KRATOS_ERROR_IF(r_model_part_1.NumberOfElements() != r_model_part_2.NumberOfElements()) << "The model part 1 has " << r_model_part_1.NumberOfElements() << " elements and the model part 2 has " << r_model_part_2.NumberOfElements() << " elements" << std::endl;
 
     // Compute the distance to the skin
@@ -52,6 +53,25 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
 
     // Now we check that the difference is near a tolerance
     const double tolerance = mThisParameters["tolerance"].GetDouble();
+
+    // Interate over the elements
+    const Variable<Vector>& r_elem_dist_var = KratosComponents<Variable<Vector>>::Get(distance_parameters["elemental_distances_variable"].GetString());
+    auto it_elem_begin_1 = r_model_part_1.ElementsBegin();
+    auto it_elem_begin_2 = r_model_part_2.ElementsBegin();
+    const double error = IndexPartition<std::size_t>(r_model_part_1.NumberOfElements()).for_each<SumReduction<double>>([&](std::size_t i) {
+        auto it_elem_1 = it_elem_begin_1 + i;
+        auto it_elem_2 = it_elem_begin_2 + i;
+        const Vector& r_elem_dist_1 = it_elem_1->GetValue(r_elem_dist_var);
+        const Vector& r_elem_dist_2 = it_elem_2->GetValue(r_elem_dist_var);
+        return norm_2(r_elem_dist_1 - r_elem_dist_2);
+    });
+    if (error > tolerance) {
+        KRATOS_ERROR << "The distance between the two model parts is " << error << " and the tolerance is " << tolerance << std::endl;
+    } else {
+        KRATOS_INFO("CheckSameModelPartUsingSkinDistance") << "The distance between the two model parts is " << error << " and the tolerance is " << tolerance << ". It would be assumed it is the same model part." << std::endl;
+    }
+
+    // TODO: Add MPI version
 
     KRATOS_CATCH("")
 }
