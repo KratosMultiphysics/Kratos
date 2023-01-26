@@ -136,7 +136,7 @@ LockObject& ParallelUtilities::GetGlobalLock()
 int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
-        const std::lock_guard<LockObject> scope_lock(GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
