@@ -141,7 +141,7 @@ public:
         // Converged values to be storaged
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
-        const auto &r_properties = Values.GetMaterialProperties();
+        const auto &r_properties = rValues.GetMaterialProperties();
         const bool symmetrize_operator = (r_properties.Has(SYMMETRIZE_TANGENT_OPERATOR)) ? r_properties[SYMMETRIZE_TANGENT_OPERATOR] : false;
 
         // The number of components
@@ -154,7 +154,7 @@ public:
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        if (rr_properties.Has(PERTURBATION_SIZE)) {
+        if (r_properties.Has(PERTURBATION_SIZE)) {
             pertubation = r_properties[PERTURBATION_SIZE];
             if (pertubation == -1.0)
                 pertubation = std::sqrt(tolerance);
@@ -282,7 +282,7 @@ public:
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
-        const auto &r_properties = Values.GetMaterialProperties();
+        const auto &r_properties = rValues.GetMaterialProperties();
         const bool symmetrize_operator = (r_properties.Has(SYMMETRIZE_TANGENT_OPERATOR)) ? r_properties[SYMMETRIZE_TANGENT_OPERATOR] : false;
 
         // The number of components
