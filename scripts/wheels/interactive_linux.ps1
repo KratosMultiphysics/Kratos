@@ -1,0 +1,1 @@
+docker run -it --name test_release -v ${HOST_SWAP}:${GUEST_SWAP} --entrypoint="bash" kratos/wheels
