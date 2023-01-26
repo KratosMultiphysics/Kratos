@@ -18,7 +18,7 @@
 
 // Project includes
 #include "geometries/hexahedra_3d_8.h"
-#include "processes/check_same_modelpart_using_skin_distance.h"
+#include "processes/check_same_modelpart_using_skin_distance_process.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 // #include "processes/calculate_distance_to_skin_process.h" // Continuous version
 #include "processes/calculate_discontinuous_distance_to_skin_process.h" // Discontinuous version
@@ -27,7 +27,7 @@
 namespace Kratos
 {
 template<std::size_t TDim>
-void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
+void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
 {
     KRATOS_TRY
 
@@ -120,7 +120,7 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
     if (error > tolerance) {
         KRATOS_ERROR << "The distance between the two model parts is " << error << " and the tolerance is " << tolerance << std::endl;
     } else {
-        KRATOS_INFO("CheckSameModelPartUsingSkinDistance") << "The distance between the two model parts is " << error << " and the tolerance is " << tolerance << ". It would be assumed it is the same model part." << std::endl;
+        KRATOS_INFO("CheckSameModelPartUsingSkinDistanceProcess") << "The distance between the two model parts is " << error << " and the tolerance is " << tolerance << ". It would be assumed it is the same model part." << std::endl;
     }
 
     // TODO: Add MPI version
@@ -136,7 +136,7 @@ void CheckSameModelPartUsingSkinDistance<TDim>::Execute()
 /***********************************************************************************/
 
 template<std::size_t TDim>
-const Parameters CheckSameModelPartUsingSkinDistance<TDim>::GetDefaultParameters() const
+const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultParameters() const
 {
     KRATOS_TRY
 
@@ -167,7 +167,7 @@ const Parameters CheckSameModelPartUsingSkinDistance<TDim>::GetDefaultParameters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class Kratos::CheckSameModelPartUsingSkinDistance<2>;
-template class Kratos::CheckSameModelPartUsingSkinDistance<3>;
+template class Kratos::CheckSameModelPartUsingSkinDistanceProcess<2>;
+template class Kratos::CheckSameModelPartUsingSkinDistanceProcess<3>;
 
 } // namespace Kratos

@@ -46,29 +46,29 @@ namespace Kratos
 ///@{
 
 /**
- * @class CheckSameModelPartUsingSkinDistance
+ * @class CheckSameModelPartUsingSkinDistanceProcess
  * @ingroup KratosCore
  * @brief Checks that the model part is the same using the skin distance
  * @details Using skin distance, this process checks that the model part is the same
  * @author Vicente Mataix Ferrandiz
  */
 template<std::size_t TDim>
-class KRATOS_API(KRATOS_CORE) CheckSameModelPartUsingSkinDistance
+class KRATOS_API(KRATOS_CORE) CheckSameModelPartUsingSkinDistanceProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CheckSameModelPartUsingSkinDistance
-    KRATOS_CLASS_POINTER_DEFINITION(CheckSameModelPartUsingSkinDistance);
+    /// Pointer definition of CheckSameModelPartUsingSkinDistanceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(CheckSameModelPartUsingSkinDistanceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    explicit CheckSameModelPartUsingSkinDistance(
+    explicit CheckSameModelPartUsingSkinDistanceProcess(
         Model& rModel,
         Parameters ThisParameters = Parameters(R"({})")
         )
@@ -84,7 +84,7 @@ public:
     }
 
     /// Destructor.
-    ~CheckSameModelPartUsingSkinDistance() override = default;
+    ~CheckSameModelPartUsingSkinDistanceProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -113,7 +113,7 @@ public:
         Parameters ThisParameters
         ) override
     {
-        return Kratos::make_shared<CheckSameModelPartUsingSkinDistance<TDim>>(rModel, ThisParameters);
+        return Kratos::make_shared<CheckSameModelPartUsingSkinDistanceProcess<TDim>>(rModel, ThisParameters);
     }
 
     /**
@@ -136,13 +136,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "CheckSameModelPartUsingSkinDistance" + std::to_string(TDim) + "D";
+        return "CheckSameModelPartUsingSkinDistanceProcess" + std::to_string(TDim) + "D";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "CheckSameModelPartUsingSkinDistance" << TDim << "D";
+        rOStream << "CheckSameModelPartUsingSkinDistanceProcess" << TDim << "D";
     }
 
     /// Print object's data.
@@ -187,13 +187,13 @@ private:
     ///@{
 
     /// Assignment operator.
-    CheckSameModelPartUsingSkinDistance& operator=(CheckSameModelPartUsingSkinDistance const& rOther);
+    CheckSameModelPartUsingSkinDistanceProcess& operator=(CheckSameModelPartUsingSkinDistanceProcess const& rOther);
 
     /// Copy constructor.
-    //CheckSameModelPartUsingSkinDistance(CheckSameModelPartUsingSkinDistance const& rOther);
+    //CheckSameModelPartUsingSkinDistanceProcess(CheckSameModelPartUsingSkinDistanceProcess const& rOther);
 
     ///@}
-}; // Class CheckSameModelPartUsingSkinDistance
+}; // Class CheckSameModelPartUsingSkinDistanceProcess
 
 ///@}
 ///@name Type Definitions
@@ -207,12 +207,12 @@ private:
 /// input stream function
 template<std::size_t TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  CheckSameModelPartUsingSkinDistance<TDim>& rThis);
+                                  CheckSameModelPartUsingSkinDistanceProcess<TDim>& rThis);
 
 /// output stream function
 template<std::size_t TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const CheckSameModelPartUsingSkinDistance<TDim>& rThis)
+                                  const CheckSameModelPartUsingSkinDistanceProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
