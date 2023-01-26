@@ -388,7 +388,7 @@ private:
             {
                 // Update depth of open piping Elements 
                 equilibrium = true;
-                for (Element::Pointer OpenPipeElement : open_pipe_elements)
+                for (Element::Pointer OpenPipeElement : openPipeElements)
                 {
                     SteadyStatePwPipingElement<2, 4>::Pointer pElement = Kratos::static_pointer_cast<SteadyStatePwPipingElement<2, 4>>(OpenPipeElement);
 
