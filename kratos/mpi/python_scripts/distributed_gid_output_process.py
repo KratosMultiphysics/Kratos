@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("TrilinosApplication"):
@@ -21,7 +19,7 @@ class DistributedGiDOutputProcess(GiDOutputProcess):
     def __init__(self, model_part, file_name, param=None):
         super(DistributedGiDOutputProcess, self).__init__(model_part, file_name, param)
         self.serial_file_name = file_name
-        self.base_file_name += "_" + str(KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank()) # overwriting the one from the baseclass
+        self.base_file_name += "_" + str(model_part.GetCommunicator().GetDataCommunicator().Rank()) # overwriting the one from the baseclass
 
     def _InitializeListFiles(self, additional_frequencies):
         '''Set up .post.lst files for global and cut results.
@@ -49,7 +47,8 @@ class DistributedGiDOutputProcess(GiDOutputProcess):
         else:
             return # No support for list_files in this format
 
-        if KM.ParallelEnvironment.GetDefaultDataCommunicator().Rank() == 0:
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
+        if data_comm.Rank() == 0:
             if self.body_io is not None:
                 with open(name_base + name_ext,"w") as list_file:
 
@@ -61,10 +60,10 @@ class DistributedGiDOutputProcess(GiDOutputProcess):
 
                     elif self.multifile_flag == KM.MultiFileFlag.SingleFile:
                         list_file.write("Merge\n")
-                        for rank in range(0, KM.ParallelEnvironment.GetDefaultDataCommunicator().Size()):
+                        for rank in range(0, data_comm.Size()):
                             list_file.write(self.serial_file_name+"_"+str(rank)+ext+'\n')
 
-        KM.ParallelEnvironment.GetDefaultDataCommunicator().Barrier()
+        data_comm.Barrier()
 
     def _CreateCuttingUtility(self):
         if not CheckIfApplicationsAvailable("TrilinosApplication"):

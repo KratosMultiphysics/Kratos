@@ -21,16 +21,15 @@
 namespace Kratos
 {
 
-FindNodalNeighboursProcess::FindNodalNeighboursProcess(ModelPart& rModelPart) 
+FindNodalNeighboursProcess::FindNodalNeighboursProcess(ModelPart& rModelPart)
     : mrModelPart(rModelPart)
 {
-    auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-    mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, mrModelPart);
-    mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, mrModelPart);
+    mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(mrModelPart);
+    mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>>(mrModelPart);
 
-    KRATOS_INFO("FindNodalNeighboursProcess") << 
-        R"(please call separetely FindGlobalNodalNeighboursProcess 
-        and FindGlobalNodalElementalNeighboursProcess. 
+    KRATOS_INFO("FindNodalNeighboursProcess") <<
+        R"(please call separetely FindGlobalNodalNeighboursProcess
+        and FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>.
         The two calculations are currently independent,
             hence memory savings can be achieved)" << std::endl;
 }
@@ -39,8 +38,8 @@ FindNodalNeighboursProcess::FindNodalNeighboursProcess(ModelPart& rModelPart)
 /***********************************************************************************/
 
 FindNodalNeighboursProcess::FindNodalNeighboursProcess(
-    ModelPart& rModelPart, 
-    const SizeType AverageElements, 
+    ModelPart& rModelPart,
+    const SizeType AverageElements,
     const SizeType AverageNodes
     ) : FindNodalNeighboursProcess(rModelPart)
 {
@@ -62,9 +61,9 @@ void FindNodalNeighboursProcess::Execute()
 void FindNodalNeighboursProcess::ClearNeighbours()
 {
     mpNodeNeighboursCalculator->ClearNeighbours();
-    mpElemNeighboursCalculator->ClearNeighbours();
+    mpElemNeighboursCalculator->Clear();
 }
-  
+
 }  // namespace Kratos.
 
 

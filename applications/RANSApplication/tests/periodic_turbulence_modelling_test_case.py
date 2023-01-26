@@ -1,7 +1,7 @@
 from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
+from test_utilities import RunParametricTestCase
 
 class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
     @classmethod
@@ -16,27 +16,38 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
         if (IsDistributedRun()):
             self.skipTest("Skipping since Periodic tests are not designed to be run in MPI.")
 
-    def testAfcTkeSteady(self):
+    def testVMSAfcTkeSteady(self):
         self.parameters["<STABILIZATION_METHOD>"] = "algebraic_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "turbulent_kinetic_energy_based"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "vms"
 
         self._runTest()
 
-    def testAfcVelocitySteady(self):
+    def testVMSAfcVelocitySteady(self):
         self.parameters["<STABILIZATION_METHOD>"] = "algebraic_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "velocity_based"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "vms"
 
         self._runTest()
 
-    def testRfcTkeSteady(self):
+    def testVMSRfcTkeSteady(self):
         self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "turbulent_kinetic_energy_based"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "vms"
 
         self._runTest()
 
-    def testRfcVelocitySteady(self):
+    def testVMSRfcVelocitySteady(self):
         self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "velocity_based"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "vms"
+
+        self._runTest()
+
+    def testQSVMSRfcVelocitySteady(self):
+        self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
+        self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "velocity_based"
+        self.parameters["<FLOW_SOLVER_FORMULATION>"] = "qsvms"
 
         self._runTest()
 

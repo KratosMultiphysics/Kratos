@@ -60,7 +60,7 @@ namespace Kratos
         typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
 
         // The strategies
-        typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+        typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
         typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
 //         void ComplexOrientationMPCGiDIODebug(ModelPart& rModelPart)
@@ -83,8 +83,8 @@ namespace Kratos
         {
             rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
             rModelPart.AddNodalSolutionStepVariable(REACTION);
-            rModelPart.AddNodalSolutionStepVariable(LAGRANGE_DISPLACEMENT); // Auxiliar displacement to test complex combinations of MPC
-            rModelPart.AddNodalSolutionStepVariable(FORCE_RESIDUAL); // Auxiliar displacement to test complex combinations of MPC
+            rModelPart.AddNodalSolutionStepVariable(LAGRANGE_DISPLACEMENT); // Auxiliary displacement to test complex combinations of MPC
+            rModelPart.AddNodalSolutionStepVariable(FORCE_RESIDUAL); // Auxiliary displacement to test complex combinations of MPC
 
             Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
@@ -155,7 +155,7 @@ namespace Kratos
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(r_model_part, pscheme, psolver, pbuildandsolve, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(r_model_part, pscheme, pbuildandsolve, true));
 
             pstrategy->SetEchoLevel(0);
             pstrategy->Solve();

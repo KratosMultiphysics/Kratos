@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -194,19 +195,7 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType Value)
     {
-        auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
-
-        if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
-                it_entity->SetValue(rVar, Value);
-            }
-        }
+        VariableUtils().SetNonHistoricalVariable(rVar, Value, GetEntitiesContainer());
     }
 
     /**

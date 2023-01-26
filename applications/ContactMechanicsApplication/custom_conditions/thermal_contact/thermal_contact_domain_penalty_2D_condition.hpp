@@ -119,7 +119,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     //std::string Info() const;
 
@@ -178,13 +178,13 @@ protected:
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables,
-                             ProcessInfo& rCurrentProcessInfo,
+                             const ProcessInfo& rCurrentProcessInfo,
                              const unsigned int& rPointNumber) override;
 
     /**
      * Calculate Contact Element Projections
      */
-    void CalcProjections(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+    void CalcProjections(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Integration Weight:

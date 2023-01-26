@@ -1,9 +1,6 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-import sys
 
 class TestArray1DInterface(KratosUnittest.TestCase):
     def CreateModelPart(self):
@@ -15,8 +12,8 @@ class TestArray1DInterface(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 0.00,1.00,0.00)
 
         model_part.AddProperties(KM.Properties(1))
-        model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
-        model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties(1))
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties(1))
         return model_part
 
     def test_SetNodalArrayValueFromPython_Array3(self):
@@ -95,13 +92,13 @@ class TestArray1DInterface(KratosUnittest.TestCase):
 
     def test_SetPropertyArrayValueFromPython_Array3(self):
         model_part = self.CreateModelPart()
-        prop = model_part.GetProperties(1,0)
+        prop = model_part.GetProperties(1)
 
         self._ValidAssignments(prop)
 
     def test_SetPropertyArrayValueFromPython_WrongInput(self):
         model_part = self.CreateModelPart()
-        prop = model_part.GetProperties(1,0)
+        prop = model_part.GetProperties(1)
 
         self._InvalidAssignments(prop)
 

@@ -103,8 +103,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
@@ -130,7 +131,8 @@ namespace Kratos {
 				Vector RHS_perturbed = ZeroVector(9);
 				Vector solution_increment = ZeroVector(9);
 
-				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
+				const auto& r_process_info = modelPart.GetProcessInfo();
+				pElement->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
@@ -213,8 +215,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;
@@ -325,8 +328,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Compute the error of the perturbation
 			double perturbation = 2e-2;
@@ -352,7 +356,8 @@ namespace Kratos {
 				Vector RHS_perturbed = ZeroVector(16);
 				Vector solution_increment = ZeroVector(16);
 
-				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
+				const auto& r_process_info = modelPart.GetProcessInfo();
+				pElement->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
@@ -433,8 +438,9 @@ namespace Kratos {
 			Vector RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
-			pElement->Initialize(); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
 			// Check obtained RHS
 			double sum_RHS = 0.0;

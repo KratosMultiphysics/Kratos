@@ -1,0 +1,242 @@
+
+Begin Properties 1
+End Properties
+
+Begin Properties 2
+End Properties
+
+
+Begin Nodes
+  1  0.5000000000 -0.5000000000 -0.7071067812
+  2  0.2500000000 -0.2500000000 -0.3535533906
+  3  0.9419417382 -0.0580582618 -0.7071067812
+  4  0.6919417382 0.1919417382 -0.3535533906
+  5  0.0000000000 0.0000000000 0.0000000000
+  6  0.4419417382 0.4419417382 0.0000000000
+  7  1.3838834765 0.3838834765 -0.7071067812
+  8  1.1338834765 0.6338834765 -0.3535533906
+  9  0.8838834765 0.8838834765 0.0000000000
+  10  1.8258252147 0.8258252147 -0.7071067812
+  11  1.5758252147 1.0758252147 -0.3535533906
+  12  1.3258252147 1.3258252147 0.0000000000
+  13  2.2677669530 1.2677669530 -0.7071067812
+  14  2.0177669530 1.5177669530 -0.3535533906
+  15  1.7677669530 1.7677669530 0.0000000000
+  16  2.7097086912 1.7097086912 -0.7071067812
+  17  2.4597086912 1.9597086912 -0.3535533906
+  18  2.2097086912 2.2097086912 0.0000000000
+  19  3.1516504294 2.1516504294 -0.7071067812
+  20  2.9016504294 2.4016504294 -0.3535533906
+  21  2.6516504294 2.6516504294 0.0000000000
+  22  3.5935921677 2.5935921677 -0.7071067812
+  23  3.3435921677 2.8435921677 -0.3535533906
+  24  3.0935921677 3.0935921677 0.0000000000
+  25  4.0355339059 3.0355339059 -0.7071067812
+  26  3.7855339059 3.2855339059 -0.3535533906
+  27  3.5355339059 3.5355339059 0.0000000000
+End Nodes
+
+
+Begin Elements SmallStrainUPwDiffOrderElement2D6N
+  1  1  5 1 7 2 3 4
+  2  1  13 15 7 14 11 10
+  3  1  15 9 7 12 8 11
+  4  1  7 9 5 8 6 4
+  5  1  25 27 19 26 23 22
+  6  1  15 13 21 14 17 18
+  7  1  27 21 19 24 20 23
+  8  1  19 21 13 20 17 16
+End Elements
+
+Begin Elements GeoCurvedBeamElement2D3N
+  9  2  5 9 6
+  10  2  9 15 12
+  11  2  15 21 18
+  12  2  21 27 24
+End Elements
+
+
+Begin Conditions PointLoadCondition2D1N
+  1  2  15
+End Conditions
+
+
+Begin SubModelPart Soil
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Beam
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    5
+    6
+    9
+    12
+    15
+    18
+    21
+    24
+    27
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    9
+    10
+    11
+    12
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Base
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    3
+    7
+    10
+    13
+    16
+    19
+    22
+    25
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart lateral
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    5
+    25
+    26
+    27
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart fix
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    5
+    27
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart exc
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart point_load
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    15
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
+End SubModelPart
+

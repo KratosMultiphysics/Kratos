@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 
@@ -42,7 +40,7 @@ class TestGeometry(KratosUnittest.TestCase):
         model_part= current_model.CreateModelPart("Main")
         tester = KM.GeometryTesterUtility()
         self.assertTrue( tester.TestHexahedra3D27N(model_part) )
-        
+
     def test_hexahedra_3D20N(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")

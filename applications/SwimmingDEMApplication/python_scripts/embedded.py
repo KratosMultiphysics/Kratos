@@ -158,7 +158,6 @@ def ApplyEmbeddedBCsToBalls(model_part, DEMParameters):
                 node.Set(Kratos.ACTIVE, True)
 
             elif (DEMParameters.RemoveBallsInEmbeddedOption):
-                #print("--------------- One particle was erased because it entered an embedded structure -------------------")
                 node.Set(Kratos.TO_ERASE,True)
 
 

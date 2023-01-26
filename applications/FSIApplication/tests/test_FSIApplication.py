@@ -11,7 +11,6 @@ from convergence_accelerator_test import ConvergenceAcceleratorTest
 from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
 from fsi_coupling_interface_test import FSICouplingInterfaceTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
-from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 
 ## NIGTHLY TESTS
 
@@ -34,22 +33,10 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(ConvergenceAcceleratorTest('test_aitken_accelerator'))
-    smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_accelerator'))
-    smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
-    smallSuite.addTest(ConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
-    smallSuite.addTest(FSICouplingInterfaceTest('test_fsi_coupling_interface'))
-    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithAitken'))
-    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQN'))
-    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQNRecursive'))
-    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
-    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
-    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_mvqn_recursive_accelerator_constant_forces'))
-    smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_mvqn_recursive_accelerator_variable_stiffness'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test2D_1'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test3D_two_faces'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSICouplingInterfaceTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSIProblemEmulatorTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorSpringTest]))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

@@ -13,7 +13,6 @@ def Say(*args):
 
 class SwimmingDEMSolver(PythonSolver):
 
-    @classmethod
     def GetDefaultParameters(cls):
         # default settings string in json format
         default_settings = Parameters("""{
@@ -40,6 +39,9 @@ class SwimmingDEMSolver(PythonSolver):
 
         "ElementType" : "SwimmingDEMElement",
         "body_force_per_unit_mass_variable_name" : "BODY_FORCE",
+        "error_projection_parameters"   :{
+            "u_characteristic"  : 1.0
+        },
         "do_print_results_option" : true,
         "output_interval" : 0.5,
 
@@ -180,6 +182,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["custom_dem"]["do_solve_dem"].GetBool()
         self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool()
+        self.fluid_model_type = self.project_parameters["fluid_parameters"]["solver_settings"]["formulation"]["element_type"].GetString()
 
         self.fluid_step = 0
         self.calculating_fluid_in_current_step = True
@@ -189,7 +192,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
-        super(SwimmingDEMSolver, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def ConstructStationarityTool(self):
         self.stationarity = False
@@ -214,6 +217,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.vars_man.coupling_dem_vars,
         self.vars_man.coupling_fluid_vars,
         self.vars_man.time_filtered_vars,
+        self.fluid_model_type,
         flow_field=self.field_utility,
         domain_size=self.fluid_domain_dimension
         )
@@ -345,12 +349,7 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_solver.main_model_part,
-            SDP.FunctionsCalculator(self.fluid_domain_dimension))
-
-        self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
+        self.derivative_recovery_counter.SetActivation(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()

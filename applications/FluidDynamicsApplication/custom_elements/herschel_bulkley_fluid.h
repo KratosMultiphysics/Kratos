@@ -162,24 +162,6 @@ public:
         return Kratos::make_intrusive< HerschelBulkleyFluid<TBaseElement> >(NewId,pGeom,pProperties);
     }
 
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        int Error = 0;
-
-        // Check that any required model parameters are defined
-
-
-        // Call the underlying element's check routine
-        Error = TBaseElement::Check(rCurrentProcessInfo);
-
-        return Error;
-
-        KRATOS_CATCH("");
-    }
-
     ///@}
     ///@name Access
     ///@{

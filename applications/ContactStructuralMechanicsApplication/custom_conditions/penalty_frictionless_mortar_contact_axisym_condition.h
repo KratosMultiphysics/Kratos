@@ -1,16 +1,16 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_PENALTY_FRICTIONLESS_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED )
-#define  KRATOS_PENALTY_FRICTIONLESS_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -98,7 +98,7 @@ public:
 
     typedef Line2D2<Point>                                                                                             DecompositionType;
 
-    typedef DerivativeData<2, TNumNodes, TNormalVariation>                                                            DerivativeDataType;
+    typedef DerivativeData<2, TNumNodes>                                                                              DerivativeDataType;
 
     static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
 
@@ -347,5 +347,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_PENALTY_FRICTIONLESS_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED  defined

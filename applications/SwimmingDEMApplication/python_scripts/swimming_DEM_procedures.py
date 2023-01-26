@@ -75,6 +75,7 @@ def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_mod
     if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, Kratos.FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, Kratos.FLUID_FRACTION, 1.0)
         SetModelPartSolutionStepValue(fluid_model_part, Kratos.FLUID_FRACTION_OLD, 1.0)
+        SetModelPartSolutionStepValue(fluid_model_part, SDEM.FLUID_FRACTION_OLD_2, 1.0)
     if checker.ModelPartHasNodalVariableOrNot(balls_model_part, Kratos.FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, Kratos.FLUID_FRACTION_PROJECTED, 1.0)
 

@@ -39,17 +39,17 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
- * @class LinearPlaneStrain
+ * @class LinearPlaneStrainFEMDEM
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class LinearPlaneStrain 
-    : public ElasticIsotropic3D
+class LinearPlaneStrainFEMDEM
+    : public ElasticIsotropic3DFEMDEM
 {
 public:
     ///@name Type Definitions
@@ -57,24 +57,24 @@ public:
 
     /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
-    
-    /// The base class ElasticIsotropic3D type definition
-    typedef ElasticIsotropic3D      BaseType;
-    
+
+    /// The base class ElasticIsotropic3DFEMDEM type definition
+    typedef ElasticIsotropic3DFEMDEM      BaseType;
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
-    
-    /// Counted pointer of LinearPlaneStrain
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain );
+
+    /// Counted pointer of LinearPlaneStrainFEMDEM
+    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrainFEMDEM );
 
     ///@name Life Cycle
     ///@{
@@ -82,7 +82,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearPlaneStrain();
+    LinearPlaneStrainFEMDEM();
 
     /**
      * @brief The clone operation
@@ -92,13 +92,13 @@ public:
     /**
      * Copy constructor.
      */
-    LinearPlaneStrain (const LinearPlaneStrain& rOther);
+    LinearPlaneStrainFEMDEM (const LinearPlaneStrainFEMDEM& rOther);
 
 
     /**
      * @brief Destructor.
      */
-    ~LinearPlaneStrain() override;
+    ~LinearPlaneStrainFEMDEM() override;
 
     ///@}
     ///@name Operators
@@ -116,7 +116,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension were the law is working 
+     * @return The dimension were the law is working
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -127,7 +127,7 @@ public:
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     }
@@ -184,7 +184,7 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculateElasticMatrix(
-        Matrix& C, 
+        Matrix& C,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -242,15 +242,15 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropic3D)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropic3DFEMDEM)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropic3D)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropic3DFEMDEM)
     }
 
 
-}; // Class LinearPlaneStrain
+}; // Class LinearPlaneStrainFEMDEM
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED  defined

@@ -16,7 +16,7 @@
 #include "linear_solvers/linear_solver.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //builders and solvers
 

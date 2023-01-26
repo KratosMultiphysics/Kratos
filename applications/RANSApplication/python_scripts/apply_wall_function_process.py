@@ -41,23 +41,24 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
-
+        
         self.model_part = Model[settings["model_part_name"].GetString()]
-        process_info = self.model_part.ProcessInfo
-        if (process_info.Has(KratosRANS.WALL_MODEL_PART_NAME)):
-            raise Exception(
-                "ApplyWallFunctionProcess can be applied only once. Therefore please group all wall model parts to one main model part and apply this process to it."
-            )
+        if (not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):            
+            process_info = self.model_part.ProcessInfo
+            if (process_info.Has(KratosRANS.WALL_MODEL_PART_NAME)):
+                raise Exception(
+                    "ApplyWallFunctionProcess can be applied only once. Therefore please group all wall model parts to one main model part and apply this process to it."
+                )
 
-        self.model_part.ProcessInfo.SetValue(
-            KratosRANS.WALL_MODEL_PART_NAME,
-            settings["model_part_name"].GetString())
+            self.model_part.ProcessInfo.SetValue(
+                KratosRANS.WALL_MODEL_PART_NAME,
+                settings["model_part_name"].GetString())
 
-        for node in self.model_part.Nodes:
-            node.Set(KratosMultiphysics.SLIP, True)
-            node.Set(KratosMultiphysics.STRUCTURE, True)
+            for node in self.model_part.Nodes:
+                node.Set(KratosMultiphysics.SLIP, True)
+                node.Set(KratosMultiphysics.STRUCTURE, True)
 
-        for condition in self.model_part.Conditions:
-            condition.Set(KratosMultiphysics.SLIP, True)
-            condition.Set(KratosMultiphysics.STRUCTURE, True)
-            condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 1)
+            for condition in self.model_part.Conditions:
+                condition.Set(KratosMultiphysics.SLIP, True)
+                condition.Set(KratosMultiphysics.STRUCTURE, True)
+                condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 1)

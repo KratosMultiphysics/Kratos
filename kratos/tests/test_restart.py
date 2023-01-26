@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -8,7 +6,6 @@ from KratosMultiphysics import restart_utility
 from KratosMultiphysics import save_restart_process as save_rest_proc
 
 import os
-import sys
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -18,6 +15,7 @@ def ReadModelPart(file_path, current_model):
     model_part = current_model.CreateModelPart(model_part_name)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
     model_part_io.ReadModelPart(model_part)
 
@@ -253,9 +251,11 @@ class TestRestart(KratosUnittest.TestCase):
             "Parameters" : {
                 "model_part_name"        : "MainRestart",
                 "restart_save_frequency" : 2,
-                "restart_control_type"   : "step"
+                "restart_control_type"   : "step",
+                "max_files_to_keep": 20
             }
         }""")
+        number_of_restart_files                         = 20
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
         model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
@@ -276,11 +276,11 @@ class TestRestart(KratosUnittest.TestCase):
 
         # Checking if the files exist
         base_file_name = os.path.join(base_path, "MainRestart_")
-        for i in range(2,50,2):
+        for i in range(50-number_of_restart_files*2,50,2):
             self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
 
         # Check number of restart-files
-        expected_num_files = 24
+        expected_num_files = number_of_restart_files
         num_files = len([name for name in os.listdir(base_path) if IsRestartFile(os.path.join(base_path, name))])
         self.assertEqual(expected_num_files, num_files)
 

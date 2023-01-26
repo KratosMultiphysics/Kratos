@@ -1,7 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
-import sys
-
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
 from classes.processCreator import ProcessCreator

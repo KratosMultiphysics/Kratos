@@ -25,16 +25,19 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
+#include "utilities/variable_utils.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_bfecc.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-//#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
+#include "solving_strategies/strategies/arc_length_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -48,6 +51,9 @@
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
+
+// sensitivity builder schemes
+#include "solving_strategies/schemes/sensitivity_builder_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -176,16 +182,7 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            int numNodes = static_cast<int>(rNodes.size());
-
-            #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
-            {
-                auto itNode = rNodes.begin() + i;
-
-                noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
-                noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
-            }
+            VariableUtils().UpdateCurrentPosition(rNodes, DISPLACEMENT);
         }
 
         template< typename TSpaceType >
@@ -429,7 +426,7 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
+            typedef typename ModelPart::DofsArrayType DofsArrayType;
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
@@ -453,7 +450,7 @@ namespace Kratos
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
-                .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
+                .def("GetDofSet",  [](BuilderAndSolverType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
                 .def("ResizeAndInitializeVectors", &BuilderAndSolverType::ResizeAndInitializeVectors)
                 .def("InitializeSolutionStep", &BuilderAndSolverType::InitializeSolutionStep)
@@ -468,7 +465,6 @@ namespace Kratos
                 ;
 
             // Explicit builder
-            typedef typename ModelPart::DofsArrayType DofsArrayType;
             typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
             py::class_<ExplicitBuilderType, typename ExplicitBuilderType::Pointer>(m, "ExplicitBuilder")
@@ -544,60 +540,52 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             //********************************************************************
-            //strategy base class
-            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
-            py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
-                    .def(py::init<ModelPart&, Parameters >() )
-                    .def(py::init < ModelPart&, bool >())
-                    .def("Create", &BaseSolvingStrategyType::Create)
-                    .def("Predict", &BaseSolvingStrategyType::Predict)
-                    .def("Initialize", &BaseSolvingStrategyType::Initialize)
-                    .def("Solve", &BaseSolvingStrategyType::Solve)
-                    .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
-                    .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
-                    .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel)
-                    .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel)
-                    .def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel)
-                    .def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel)
-                    .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag)
-                    .def("MoveMeshFlag", &BaseSolvingStrategyType::MoveMeshFlag)
-                    .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
-                    .def("Clear", &BaseSolvingStrategyType::Clear)
-                    .def("Check", &BaseSolvingStrategyType::Check)
-                    .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
-                    .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
-                    .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
-                    .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
-                    .def("GetSystemMatrix", &BaseSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
-                    .def("GetSystemVector", &BaseSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
-                    .def("GetSolutionVector", &BaseSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
-                    .def("GetModelPart", &BaseSolvingStrategyType::GetModelPart)
-                    .def("Info", &BaseSolvingStrategyType::Info)
-                    ;
+            //strategy base class
+            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType > BaseSolvingStrategyType;
+            py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"BaseSolvingStrategy")
+                .def(py::init<ModelPart&, Parameters >() )
+                .def(py::init < ModelPart&, bool >())
+                .def("Create", &BaseSolvingStrategyType::Create)
+                .def("Predict", &BaseSolvingStrategyType::Predict)
+                .def("Initialize", &BaseSolvingStrategyType::Initialize)
+                .def("Solve", &BaseSolvingStrategyType::Solve)
+                .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
+                .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
+                .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel)
+                .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel)
+                .def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel)
+                .def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel)
+                .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag)
+                .def("MoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
+                .def("GetMoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
+                .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
+                .def("Clear", &BaseSolvingStrategyType::Clear)
+                .def("Check", &BaseSolvingStrategyType::Check)
+                .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
+                .def("GetSystemMatrix", &BaseSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
+                .def("GetSystemVector", &BaseSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
+                .def("GetSolutionVector", &BaseSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
+                .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+                .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                .def("GetModelPart", [](BaseSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
+                .def("Info", &BaseSolvingStrategyType::Info)
+                ;
+
+            //implicit strategy base class
+            typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ImplicitSolvingStrategyType;
+            py::class_<ImplicitSolvingStrategyType, typename ImplicitSolvingStrategyType::Pointer, BaseSolvingStrategyType>(m,"ImplicitSolvingStrategy")
+                .def(py::init<ModelPart&, Parameters >() )
+                .def(py::init < ModelPart&, bool >())
+                .def("SetStiffnessMatrixIsBuilt", &ImplicitSolvingStrategyType::SetStiffnessMatrixIsBuilt)
+                .def("GetStiffnessMatrixIsBuilt", &ImplicitSolvingStrategyType::GetStiffnessMatrixIsBuilt)
+                ;
 
             typedef ExplicitSolvingStrategy< SparseSpaceType, LocalSpaceType > BaseExplicitSolvingStrategyType;
-            py::class_<BaseExplicitSolvingStrategyType, typename BaseExplicitSolvingStrategyType::Pointer>(m, "ExplicitSolvingStrategy")
+            py::class_<BaseExplicitSolvingStrategyType, typename BaseExplicitSolvingStrategyType::Pointer, BaseSolvingStrategyType>(m, "ExplicitSolvingStrategy")
                 .def(py::init<ModelPart &, bool, int>())
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
-                .def("Predict", &BaseExplicitSolvingStrategyType::Predict)
-                .def("Initialize", &BaseExplicitSolvingStrategyType::Initialize)
-                .def("IsConverged", &BaseExplicitSolvingStrategyType::IsConverged)
-                .def("SetEchoLevel", &BaseExplicitSolvingStrategyType::SetEchoLevel)
-                .def("GetEchoLevel", &BaseExplicitSolvingStrategyType::GetEchoLevel)
-                .def("SetRebuildLevel", &BaseExplicitSolvingStrategyType::SetRebuildLevel)
-                .def("GetRebuildLevel", &BaseExplicitSolvingStrategyType::GetRebuildLevel)
-                .def("SetMoveMeshFlag", &BaseExplicitSolvingStrategyType::SetMoveMeshFlag)
-                .def("MoveMeshFlag", &BaseExplicitSolvingStrategyType::MoveMeshFlag)
-                .def("MoveMesh", &BaseExplicitSolvingStrategyType::MoveMesh)
-                .def("Clear", &BaseExplicitSolvingStrategyType::Clear)
-                .def("Check", &BaseExplicitSolvingStrategyType::Check)
-                .def("GetDefaultParameters",&BaseExplicitSolvingStrategyType::GetDefaultParameters)
-                .def("InitializeSolutionStep", &BaseExplicitSolvingStrategyType::InitializeSolutionStep)
-                .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
-                .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
-                .def("GetModelPart", [](BaseExplicitSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
-                .def("Info", &BaseExplicitSolvingStrategyType::Info)
                 ;
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
@@ -607,9 +595,30 @@ namespace Kratos
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
                 ;
 
+            typedef ExplicitSolvingStrategyRungeKutta3TVD< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta3TVDType;
+            py::class_<ExplicitSolvingStrategyRungeKutta3TVDType, typename ExplicitSolvingStrategyRungeKutta3TVDType::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta3TVD")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyRungeKutta1< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta1Type;
+            py::class_<ExplicitSolvingStrategyRungeKutta1Type, typename ExplicitSolvingStrategyRungeKutta1Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta1")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyBFECC< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyBFECCType;
+            py::class_<ExplicitSolvingStrategyBFECCType, typename ExplicitSolvingStrategyBFECCType::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyBFECC")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
             typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
-            py::class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,BaseSolvingStrategyType >
+            py::class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,ImplicitSolvingStrategyType >
                 (m,"ResidualBasedLinearStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
@@ -625,7 +634,7 @@ namespace Kratos
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
-            py::class_< ResidualBasedNewtonRaphsonStrategyType, typename ResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
+            py::class_< ResidualBasedNewtonRaphsonStrategyType, typename ResidualBasedNewtonRaphsonStrategyType::Pointer, ImplicitSolvingStrategyType >
                 (m,"ResidualBasedNewtonRaphsonStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
@@ -650,9 +659,16 @@ namespace Kratos
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
+            // ARC-LENGTH
+            typedef ArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthStrategyStrategyType;
+            py::class_< ArcLengthStrategyStrategyType, typename ArcLengthStrategyStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
+                (m,"ArcLengthStrategy")
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
+                ;
+
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                 typename AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                BaseSolvingStrategyType >
+                ImplicitSolvingStrategyType >
                 (m,"AdaptiveResidualBasedNewtonRaphsonStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, int, bool, bool, bool, double, double, int
@@ -672,6 +688,20 @@ namespace Kratos
                     }))
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
+
+            py::class_<SensitivityBuilderScheme, typename SensitivityBuilderScheme::Pointer>
+            (m,"SensitivityBuilderScheme")
+                .def(py::init< >())
+                .def("Initialize", &SensitivityBuilderScheme::Initialize)
+                .def("InitializeSolutionStep", &SensitivityBuilderScheme::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &SensitivityBuilderScheme::FinalizeSolutionStep)
+                .def("Finalize", &SensitivityBuilderScheme::Finalize)
+                .def("Update", &SensitivityBuilderScheme::Update)
+                .def("Clear", &SensitivityBuilderScheme::Clear)
+                .def("Check", &SensitivityBuilderScheme::Check)
+                .def("Info", &SensitivityBuilderScheme::Info)
+                ;
+
         }
 
     } // namespace Python.

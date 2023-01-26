@@ -132,7 +132,6 @@ public:
   {
     KRATOS_TRY;
 
-    rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
@@ -158,7 +157,6 @@ public:
   {
     KRATOS_TRY;
 
-    rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     Matrix SteadyLHS;
@@ -275,7 +273,7 @@ public:
   {
     LocalSystemVectorType RHS_Contribution;
     LocalSystemMatrixType LHS_Contribution;
-    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
     for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin();
          itNode != rModelPart.NodesEnd(); ++itNode)
@@ -288,7 +286,6 @@ public:
     for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin();
          itElem != rModelPart.Elements().ptr_end(); ++itElem)
     {
-      (*itElem)->InitializeNonLinearIteration(rCurrentProcessInfo);
       (*itElem)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
       Matrix SteadyLHS;
       (*itElem)->CalculateLocalVelocityContribution(SteadyLHS,RHS_Contribution,rCurrentProcessInfo);

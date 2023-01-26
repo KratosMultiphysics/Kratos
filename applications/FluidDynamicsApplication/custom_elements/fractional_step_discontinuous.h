@@ -165,7 +165,7 @@ public:
     /// on the cut elements
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override;
+                                          const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations

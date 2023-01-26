@@ -90,7 +90,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
         rRightHandSideVector.resize(TNumNodes, false);
 
     array_1d<double, 3> An;
-    if (TDim == 2)
+    if constexpr (TDim == 2)
         CalculateNormal2D(An);
     else
         CalculateNormal3D(An);
@@ -116,7 +116,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -129,12 +129,6 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
     }
     else
     {
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY_POTENTIAL);
-        KRATOS_CHECK_VARIABLE_KEY(AUXILIARY_VELOCITY_POTENTIAL);
-
-        // Checks on nodes
-
         // Check that the element's nodes contain all required
         // SolutionStepData and Degrees of freedom
         for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 #if !defined(KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED )
@@ -97,10 +97,11 @@ private:
     ///@{
 
     std::string GetLabel(const int NumberOfEigenValue,
+                         const int NumberOfEigenvalues,
                          const double EigenValueSolution) const;
 
-    void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const;
+    void GetVariables(std::vector<const Variable<double>*>& rRequestedDoubleResults,
+                      std::vector<const Variable<array_1d<double,3>>*>& rRequestedVectorResults) const;
 
     ///@}
 

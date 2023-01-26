@@ -27,6 +27,7 @@
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 
 // Include base h
@@ -48,7 +49,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         TConvectionDiffusionReactionData::GetScalarVariable();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = Element::GetGeometry()[i].GetDof(r_variable).EquationId();
+        rResult[i] = this->GetGeometry()[i].GetDof(r_variable).EquationId();
     }
 }
 
@@ -65,7 +66,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         TConvectionDiffusionReactionData::GetScalarVariable();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
+        rElementalDofList[i] = this->GetGeometry()[i].pGetDof(r_variable);
     }
 }
 
@@ -167,7 +168,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const IndexType num_gauss_points = gauss_weights.size();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -176,8 +177,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector gauss_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const double source = r_current_data.CalculateSourceTerm(
-            gauss_shape_functions, r_shape_derivatives);
+        const double source = r_current_data.GetSourceTerm();
 
         noalias(rRightHandSideVector) +=
             gauss_shape_functions * (source * gauss_weights[g]);
@@ -244,7 +244,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const IndexType num_gauss_points = gauss_weights.size();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -255,17 +255,11 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector& r_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
-        const array_1d<double, 3>& velocity = r_current_data.CalculateEffectiveVelocity(
-            r_shape_functions, r_shape_derivatives);
-        this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
+        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
+        const double reaction = r_current_data.GetReactionTerm();
 
-        const double effective_kinematic_viscosity =
-            r_current_data.CalculateEffectiveKinematicViscosity(
-                r_shape_functions, r_shape_derivatives);
-
-        const double reaction = r_current_data.CalculateReactionTerm(
-            r_shape_functions, r_shape_derivatives);
-
+        noalias(velocity_convective_terms) = prod(r_shape_derivatives, velocity);
         const Matrix& dNa_dNb = prod(r_shape_derivatives, trans(r_shape_derivatives));
 
         AddDampingMatrixGaussPointContributions(
@@ -273,19 +267,17 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
             velocity_convective_terms, gauss_weights[g], r_shape_functions, dNa_dNb);
     }
 
-    r_current_data.UpdateElementDataValueContainer(*this);
-
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     int check = BaseType::Check(rCurrentProcessInfo);
-    TConvectionDiffusionReactionData::Check(this->GetGeometry(), rCurrentProcessInfo);
+    TConvectionDiffusionReactionData::Check(*this, rCurrentProcessInfo);
 
     return check;
 
@@ -295,41 +287,7 @@ int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReac
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetDivergenceOperator(
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step) const
-{
-    double value = 0.0;
-    const auto& r_geometry = this->GetGeometry();
-
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        const array_1d<double, 3>& r_value =
-            r_geometry[i].FastGetSolutionStepValue(rVariable, Step);
-        for (IndexType j = 0; j < TDim; ++j) {
-            value += r_value[j] * rShapeDerivatives(i, j);
-        }
-    }
-
-    return value;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetConvectionOperator(
-    BoundedVector<double, TNumNodes>& rOutput,
-    const array_1d<double, 3>& rVector,
-    const Matrix& rShapeDerivatives) const
-{
-    rOutput.clear();
-    for (IndexType i = 0; i < TNumNodes; ++i) {
-        for (IndexType j = 0; j < TDim; ++j) {
-            rOutput[i] += rVector[j] * rShapeDerivatives(i, j);
-        }
-    }
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>

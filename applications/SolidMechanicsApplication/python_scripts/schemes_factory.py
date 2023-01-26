@@ -1,6 +1,5 @@
 ## This script collects the available schemes to be used in the SolidMechanicsApplication
 
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
@@ -171,13 +170,13 @@ class SolutionScheme:
 
                     integration_method = None
                     if( len(variables) == 4 ):
-                        component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
+                        component_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
                         integration_method = component_integration_method(variables[0],variables[1],variables[2],variables[3])
                     elif( len(variables) == 1 ):
                         if(integration_method_name.find("Step") != -1):
-                            component_integration_method = getattr(KratosSolid, 'StaticStepComponentIntegration')
+                            component_integration_method = getattr(KratosSolid, 'StaticStepScalarIntegration')
                         else:
-                            component_integration_method = getattr(KratosSolid, 'StaticComponentIntegration')
+                            component_integration_method = getattr(KratosSolid, 'StaticScalarIntegration')
                         integration_method = component_integration_method(variables[0])
                     else:
                         raise Exception('len(variables) = ' + str(len(variables)))

@@ -10,7 +10,7 @@
 #include "includes/kratos_flags.h"
 #include "swimming_DEM_application.h"
 #include "swimming_particle.h"
-#include "../applications/DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {
@@ -29,6 +29,7 @@ SwimmingParticle<TBaseElement>& SwimmingParticle<TBaseElement>::operator=(const 
     mSphericity = rOther.mSphericity;
     mNormOfSlipVel = rOther.mNormOfSlipVel;
     noalias(mSlipVel) = rOther.mSlipVel;
+    mHydrodynamicInteractionLaw = rOther.mHydrodynamicInteractionLaw->Clone();
 
     return *this;
 }
@@ -84,7 +85,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       buoyancy,
                                                       r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeDragForce(r_geometry,
+    mHydrodynamicInteractionLaw->ComputeDragForce(this,
                                                   mRadius,
                                                   mFluidDensity,
                                                   mKinematicViscosity,

@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/timer.hpp>
 
 
@@ -32,7 +32,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
+#include "processes/entity_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 //#include "containers/bucket.h"
 //#include "containers/kd_tree.h"
@@ -103,7 +103,7 @@ namespace Kratos
 			ModelPart& ThisModelPart ,
 			Element const& rReferenceElement,
 			Condition const& rReferenceBoundaryCondition,
-			NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+			EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
 			double alpha_param = 1.4, double h_factor=0.5)
 		{
 
@@ -568,7 +568,7 @@ namespace Kratos
 					//generating the dofs
 					for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
 					{
-						Node<3>::DofType& rDof = *iii;
+						Node<3>::DofType &rDof = **iii;
 						Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
 						(p_new_dof)->FreeDof();
@@ -777,7 +777,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				{
 					int index = outnew.neighborlist[base+i];
 					if(index > 0)
-						neighb(i) = *((el_begin + index-1).base());
+						neighb(i) =  GlobalPointer<Element>(&*(el_begin + index-1)); //*((el_begin + index-1).base());
 					else
 						neighb(i) = Element::WeakPointer();
 				}
@@ -797,7 +797,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
 			}
 
-
+                        std::cout << "reset the boundary flag" << adding_neighb.elapsed() << std::endl;;
 			//***********************************************************************************
 			//***********************************************************************************
 			boost::timer adding_faces;

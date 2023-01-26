@@ -11,9 +11,7 @@ class FluidElementTest(UnitTest.TestCase):
     def setUp(self):
         self.domain_size = 2
         self.input_file = "cavity10"
-        self.reference_file = "reference10_qasgs"
         self.work_folder = "FluidElementTest"
-        self.element = "qsvms"
         self.is_time_integrated = False
 
         self.nsteps = 10
@@ -66,8 +64,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.runCavity()
 
     def testSymbolic(self):
-        self.element = "symbolic"
-        self.reference_file = "reference10_symbolic"
+        self.element = "weakly_compressible"
+        self.reference_file = "reference10_weakly_compressible"
         self.is_time_integrated = True
         self.runCavity()
 

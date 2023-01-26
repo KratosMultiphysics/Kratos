@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -8,7 +6,6 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 import os
-import math
 from decimal import Decimal
 
 def GetFilePath(fileName):
@@ -72,7 +69,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["consider_tessellation"].SetBool(consider_tessellation)
 
         if pure_implicit:
-            #linear_solver = ExternalSolversApplication.SuperLUSolver()
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         else:
             linear_solver = None

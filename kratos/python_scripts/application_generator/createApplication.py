@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import sys
 
 from classes.elementCreator import ElementCreator
@@ -48,4 +46,4 @@ debugApp.AddConditions([
 
 debugApp.Generate()
 
-print("Your application has been generated in: applications/{}Application".format(appNameCamel))
+print(f"Your application has been generated in: applications/{appNameCamel}Application")

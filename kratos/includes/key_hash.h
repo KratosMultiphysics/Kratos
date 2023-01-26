@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/dof.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 
 namespace Kratos
 {
@@ -161,24 +161,6 @@ namespace Kratos
     };
 
     /**
-     * @brief This is a hasher for variables pointers
-     * @tparam TVariable The type of variable to be hashed
-     */
-    template<class TVariable>
-    struct pVariableHasher
-    {
-        /**
-         * @brief This is the () operator
-         * @param pVariable The variable pointer to be hashed
-         * @return The corresponding hash
-         */
-        HashType operator()(const TVariable* pVariable) const
-        {
-            return pVariable->Key();
-        }
-    };
-
-    /**
      * @brief This is a key comparer between two variables
      * @tparam TVariable The type of variable to be compared
      */
@@ -196,6 +178,24 @@ namespace Kratos
             ) const
         {
             return rFirst.Key() == rSecond.Key();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for variables pointers
+     * @tparam TVariable The type of variable to be hashed
+     */
+    template<class TVariable>
+    struct pVariableHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param pVariable The variable pointer to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const TVariable* pVariable) const
+        {
+            return pVariable->Key();
         }
     };
 
@@ -222,7 +222,9 @@ namespace Kratos
 
     /**
      * @brief This is a hasher for indexed objects
+     * @tparam TIndexedObject Type of indexed object
      */
+    template<class TIndexedObject>
     struct IndexedObjectHasher
     {
         /**
@@ -230,7 +232,7 @@ namespace Kratos
          * @param rIndexedObject The indexed object to be hashed
          * @return The corresponding hash
          */
-        HashType operator()(const IndexedObject& rIndexedObject) const
+        HashType operator()(const TIndexedObject& rIndexedObject) const
         {
             return rIndexedObject.Id();
         }
@@ -238,7 +240,9 @@ namespace Kratos
 
     /**
      * @brief This is a key comparer between two indexed objects
+     * @tparam TIndexedObject Type of indexed object
      */
+    template<class TIndexedObject>
     struct IndexedObjectComparator
     {
         /**
@@ -247,8 +251,8 @@ namespace Kratos
          * @param rSecond The second class to be compared
          */
         bool operator()(
-            const IndexedObject& rFirst,
-            const IndexedObject& rSecond
+            const TIndexedObject& rFirst,
+            const TIndexedObject& rSecond
             ) const
         {
             return rFirst.Id() == rSecond.Id();
@@ -257,11 +261,11 @@ namespace Kratos
 
     /**
      * @brief This is a hasher for indexed objects (pointer)
-     * @param TpIndexedObject Pointer type to indexed object
+     * @tparam TpIndexedObject Pointer type to indexed object
      * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
      */
     template<class TpIndexedObject>
-    struct IndexedObjecPointertHasher
+    struct IndexedObjectPointerHasher
     {
         /**
          * @brief This is the () operator
@@ -276,7 +280,7 @@ namespace Kratos
 
     /**
      * @brief This is a key comparer between two indexed objects (pointer)
-     * @param TpIndexedObject Pointer type to indexed object
+     * @tparam TpIndexedObject Pointer type to indexed object
      * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
      */
     template<class TpIndexedObject>

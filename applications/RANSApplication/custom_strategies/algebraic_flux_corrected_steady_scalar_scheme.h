@@ -425,7 +425,6 @@ private:
     {
         KRATOS_TRY
 
-        rItem.InitializeNonLinearIteration(rCurrentProcessInfo);
         rItem.CalculateLocalSystem(rLeftHandSide, rRightHandSide, rCurrentProcessInfo);
         rItem.CalculateLocalVelocityContribution(rAuxMatrix, rRightHandSide, rCurrentProcessInfo);
 

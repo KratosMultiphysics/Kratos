@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED )
-#define  KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,7 +22,6 @@
 // Project includes
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/projection_utilities.h"
-
 
 namespace Kratos
 {
@@ -64,11 +62,9 @@ public:
         return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                             const double NeighborDistance) override;
+    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
@@ -94,6 +90,8 @@ public:
         rValue = (int)mPairingIndex;
     }
 
+    std::size_t GetNumSearchResults() const { return mNumSearchResults; }
+
 private:
 
     std::vector<int> mNodeIds;
@@ -101,6 +99,7 @@ private:
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
     double mLocalCoordTol; // this is not needed after searching, hence no need to serialize it
+    std::size_t mNumSearchResults = 0;
 
     void SaveSearchResult(const InterfaceObject& rInterfaceObject,
                           const bool ComputeApproximation);
@@ -114,6 +113,7 @@ private:
         rSerializer.save("SFValues", mShapeFunctionValues);
         rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
         rSerializer.save("PairingIndex", (int)mPairingIndex);
+        rSerializer.save("NumSearchResults", mNumSearchResults);
     }
 
     void load(Serializer& rSerializer) override
@@ -125,6 +125,7 @@ private:
         int temp;
         rSerializer.load("PairingIndex", temp);
         mPairingIndex = (ProjectionUtilities::PairingIndex)temp;
+        rSerializer.load("NumSearchResults", mNumSearchResults);
     }
 
 };
@@ -142,11 +143,20 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
     }
 
-    /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel) const override;
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestElementLocalSystem>(pNode);
+    }
+
+    void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
+
+    void SetPairingStatusForPrinting() override;
+
+    bool IsDoneSearching() const override;
 
 private:
     NodePointerType mpNode;
@@ -163,8 +173,9 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
+class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper
+    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
     ///@name Type Definitions
@@ -173,7 +184,7 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
@@ -193,12 +204,16 @@ public:
                                     rModelPartDestination,
                                     JsonParameters)
     {
+        KRATOS_TRY;
+
         this->ValidateInput();
 
         mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
         KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
 
         this->Initialize();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -212,10 +227,14 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(
+        KRATOS_TRY;
+
+        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -259,7 +278,8 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestElementLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
@@ -272,12 +292,11 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
-            "search_radius"                : -1.0,
-            "search_iterations"            : 3,
+            "search_settings"              : {},
             "local_coord_tolerance"        : 0.25,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
-            "print_pairing_status_to_file" : true,
+            "print_pairing_status_to_file" : false,
             "pairing_status_file_path"     : ""
         })");
     }
@@ -287,5 +306,3 @@ private:
 }; // Class NearestElementMapper
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED  defined

@@ -10,7 +10,7 @@
 
 import KratosMultiphysics as KM
 from .packaging_response_base import PackagingResponseBase
-from .. import custom_math as cm
+from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 
 class PlaneBasedPackaging(PackagingResponseBase):
     """

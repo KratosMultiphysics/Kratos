@@ -105,18 +105,18 @@ namespace Kratos
 		// Material moduli
 		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
 		const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
-		
+
 		// Calculate deviatoric quantities
-		const Matrix strain_increment_deviatoric = strain_increment - 
+		const Matrix strain_increment_deviatoric = strain_increment -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
-		const Matrix stress_deviatoric_old = stress_old - 
+		const Matrix stress_deviatoric_old = stress_old -
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
 
 		// Calculate trial (predicted) j2 stress
 		double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 +
 			bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment);
 		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
-		const double j2_stress_trial = std::sqrt(3.0 / 2.0 * 
+		const double j2_stress_trial = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 
 		// Declare deviatoric stress matrix to be used later
@@ -222,7 +222,7 @@ namespace Kratos
 		}
 		// Update equivalent stress
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
-		mEquivalentStress = std::sqrt(3.0 / 2.0 * 
+		mEquivalentStress = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
 		// Store stresses and strains
@@ -238,7 +238,7 @@ namespace Kratos
 	}
 
 
-	int JohnsonCookThermalPlastic3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+	int JohnsonCookThermalPlastic3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 	{
 		const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 

@@ -23,6 +23,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/quadrature_points_utility.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 
 namespace Kratos
@@ -52,10 +53,17 @@ namespace MPMParticleGeneratorUtility
     Matrix MP33ShapeFunctions();
 
     /// Get integration weights of the geometry for the given integration method
-    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+    void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+
+    /// Get integration weights of the geometry for the given integration method
+    void GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
     /// Get integration method and shape function values for the given element
-    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+    void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
+
+    /// Get integration method and shape function values for the given condition
+    void DetermineConditionIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
     /**
@@ -66,6 +74,7 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
+<<<<<<< HEAD
                                         bool IsMixedFormulation = false) {
         const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
@@ -250,7 +259,18 @@ namespace MPMParticleGeneratorUtility
         }
     }
 
+=======
+                                        bool IsMixedFormulation=false); 
+    /**
+     * @brief Function to Initiate material point condition.
+     * @details Generating particle condition using a designated shape functions
+     */
+>>>>>>> master
 
+    template<SizeType TDimension>
+    void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
+                                            ModelPart& rInitialModelPart,
+                                            ModelPart& rMPMModelPart);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions

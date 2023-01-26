@@ -1,6 +1,8 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_CXX_EXTENSIONS OFF)
 
 # Setting some policies
 # No recursive dereferencing
@@ -18,10 +20,15 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
+# Lists
+if(POLICY CMP0057)
+  cmake_policy(SET CMP0057 NEW)
+endif(POLICY CMP0057)
+
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 0)
-set (KratosMultiphysics_PATCH_VERSION "Dev")
+set (KratosMultiphysics_MINOR_VERSION 2)
+set (KratosMultiphysics_PATCH_VERSION 2)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -51,22 +58,27 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
 # If no test policy enable by default
-if(NOT DEFINED KRATOS_BUILD_TESTING)
-message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
-SET (KRATOS_BUILD_TESTING ON)
-endif(NOT DEFINED KRATOS_BUILD_TESTING)
+option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
-	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
-	SET (CMAKE_INSTALL_MESSAGE NEVER)
+  message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
+  SET (CMAKE_INSTALL_MESSAGE NEVER)
 endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
+# Generate and copy configuration for language servers
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+EXECUTE_PROCESS(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
 # Include cmake modules
 include(DownloadLib)
+include(ExternalProject)
 
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
@@ -105,15 +117,27 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-  set(CMAKE_SKIP_RPATH ON)
-
-  if(${MSVC})
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
-  endif(${MSVC})
-endif(USE_COTIRE MATCHES ON)
+# Unitary builds with version is lower than 3.16 deactivate
+IF(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_UNITY_BUILD OFF)
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(USE_COTIRE MATCHES ON)
+        # Legacy Unitary build
+        MESSAGE(STATUS "Using USE_COTIRE is deprecated and was replaced by CMAKE_UNITY_BUILD.")
+        SET(CMAKE_UNITY_BUILD ON)
+    ENDIF(USE_COTIRE MATCHES ON)
+    # Some checks
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        IF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+            SET(KRATOS_UNITY_BUILD_BATCH_SIZE 32)
+        ENDIF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+        IF(${MSVC})
+          SET(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+        ENDIF(${MSVC})
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -125,7 +149,12 @@ if(GIT_FOUND)
     COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
     OUTPUT_VARIABLE KratosMultiphysics_SHA1_NUMBER
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE SHA1_NOT_FOUND
   )
+  if(SHA1_NOT_FOUND)
+    message("Git did not find the SHA1 number. It will be set to 0.")
+    set (KratosMultiphysics_SHA1_NUMBER 0)
+  endif(SHA1_NOT_FOUND)
 else(GIT_FOUND)
   message("Git was not found on your system. SHA1 number will be set to 0.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
@@ -140,87 +169,71 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message( "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
+    message( FATAL_ERROR "Please use Version 8 or greater")
   endif()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-  message(STATUS "additional default options were set for gcc")
-  message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-  message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+  message(STATUS "Additional default options were set for GCC")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
 message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
+message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas  ")
-		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-		message("additional default options were set for clang compiler")
-		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+      if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
+        set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas  ")
+        set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+        message(STATUS "Additional default options were set for LLVM/Clang compiler")
+      endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
-		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-		message("additional default options were set for clang compiler")
-		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
-		  # pybind requires min. version 17, but we need at least 18:
-		  message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
-		  message( FATAL_ERROR "Please use Version 18 or greater")
-		endif()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
-		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-		message("additional default options were set for intel compiler")
-		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-		message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
-	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas ")
+      set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas ")
+      set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+      message(STATUS "Additional default options were set for LLVM/Clang compiler")
+    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+        # pybind requires min. version 17, but we need at least 18:
+        message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
+        message( FATAL_ERROR "Please use Version 18 or greater")
+      endif()
+      if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+        # "IntelLLVM": Intel's NextGen LLVM compiler (icx)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -diag-disable 654 -diag-disable 10010 -diag-disable 1011")
+      else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+        # "Intel": Intel's Classic compiler (icc)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010 -wd1011")
+      endif()
+      set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ")
+      set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+      message(STATUS "Additional default options were set for Intel Compiler")
+    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ") #-lpthread -wd654 -wd10010  ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops  ")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for intel compiler")
-    message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-    message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+    message(STATUS "Additional default options were set for Intel Compiler")
   endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# After all the compiler check we can print the final flags
+message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+
 # Old non-compatible versions of VS
-if(${MSVC80})
-  message( "DEPRECATED: detected compiler as MSVC80")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC80})
-
-if(${MSVC90})
-  message( "DEPRECATED: detected compiler as MSVC90")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC90})
-
-if(${MSVC10})
-  message( "DEPRECATED: detected compiler as MSVC10")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC10})
-
-if(${MSVC11})
-  message( "DEPRECATED: detected compiler as MSVC11")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC11})
-
-if(${MSVC12})
-  message( "DEPRECATED: detected compiler as MSVC12")
-  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
-endif(${MSVC12})
+if(${MSVC})
+  if(${MSVC_TOOLSET_VERSION} LESS 141)
+    message( "DEPRECATED: detected compiler as ${MSVC_TOOLSET_VERSION}")
+    message( FATAL_ERROR "Please use VisualStudio Toolset 141 (VisualStudio 2017) or greater")
+  endif(${MSVC_TOOLSET_VERSION} LESS 141)
+endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
@@ -260,13 +273,35 @@ endif(DEFINED ENV{PYTHON_EXECUTABLE})
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
-set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
-set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+if(NOT DEFINED KRATOS_ENABLE_LTO)
+    message(STATUS "LTO is Disabled")
+    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
+    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+else(NOT DEFINED KRATOS_ENABLE_LTO)
+    message(STATUS "LTO is Enabled")
+    if(${CMAKE_COMPILER_IS_GNUCXX})
+        set(CMAKE_AR "gcc-ar")
+        set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_C_ARCHIVE_FINISH true)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto=jobserver")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto=jobserver")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=jobserver")
+    elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto=thin")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto=thin")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=thin")
+    endif()
+endif(NOT DEFINED KRATOS_ENABLE_LTO)
+
+message(STATUS "AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 8))
+    message( FATAL_ERROR "Kratos only supports Python version 3.8 and above")
 endif()
+set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+
+message(STATUS "Python version used for the interface will be ${PYTHON_INTERFACE_VERSION}")
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -277,43 +312,47 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install path" FORCE)
-    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
 else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
 
 # Select shared memory parallelization
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
+    message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 # default to OpenMP
 if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
-  message("\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
+  message(STATUS "\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
   SET(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP")
 endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 
 if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
-  message("Using OpenMP for shared memory parallelization")
-  add_definitions( -DKRATOS_SMP_OPENMP )
-
-	find_package(OpenMP)
-	if (OPENMP_FOUND)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-	endif (OPENMP_FOUND)
+  find_package(OpenMP)
+  if (OPENMP_FOUND)
+    message(STATUS "Using OpenMP for shared memory parallelization")
+    add_definitions( -DKRATOS_SMP_OPENMP )
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  else (OPENMP_FOUND)
+    message(FATAL_ERROR "OpenMP could not be found!")
+    # fallback solution => in future once better supported we can use the C++11 based parallelization instead
+    message("OpenMP could not be found, disabling shared memory parallelization!")
+    add_definitions( -DKRATOS_SMP_NONE )
+  endif (OPENMP_FOUND)
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
-  message("Using C++11 for shared memory parallelization")
+  message(STATUS "Using C++11 for shared memory parallelization")
   add_definitions( -DKRATOS_SMP_CXX11 )
-  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+  message(WARNING "Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   add_definitions( -DKRATOS_SMP_NONE )
-  message("Shared memory parallelization is disabled!")
+  message(STATUS "Shared memory parallelization is disabled!")
 
 else()
   message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
@@ -329,8 +368,11 @@ find_package(Boost)
 
 if(NOT Boost_FOUND)
   # Trying to find in in external libraries
-	set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
+  set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
   find_package(Boost)
+  if(NOT Boost_FOUND)
+    message(FATAL_ERROR "It was not possible to find Boost in your machine, please define properly BOOST_ROOT if you have not")
+  endif(NOT Boost_FOUND)
 endif(NOT Boost_FOUND)
 
 set(Boost_USE_STATIC_LIBS   OFF)
@@ -342,12 +384,23 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
+if(Boost_VERSION_STRING VERSION_LESS 1.70)
+  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
+else()
+  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
+# std::atomic_ref is part of C++20, hence using boost::atomic_ref
+# boost::atomic_ref has full support from version 1.74
+if((KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11") AND (CMAKE_CXX_STANDARD LESS 20) AND (Boost_VERSION_STRING VERSION_LESS 1.74))
+  message(FATAL_ERROR "Kratos requires at least boost version 1.74 when using C++11 for shared memory parallelization and compiling with C++17")
+endif ()
+
 ##*****************************
 # Finding cuda if needed
 if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
-
 
 # Follow the symbolic links for the python lib only if needed
 if(${INSTALL_RUNKRATOS} MATCHES ON )
@@ -360,13 +413,81 @@ if(${INSTALL_RUNKRATOS} MATCHES ON )
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
+# Compiling the triangle library
+if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    add_definitions(-DUSE_TRIANGLE_NONFREE_TPL)
+endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
-if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-  find_package(Tetgen REQUIRED)
-endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+# Compiling the tetgen library
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+    set(TETGEN_ZIP_FILE "tetgen")
 
+    if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+        # Use TetGen from local source
+        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
+
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        message("TETGEN_ROOT: ${TETGEN_ROOT}")
+        if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            file(COPY ${USE_TETGEN_NONFREE_TPL_PATH} DESTINATION ${TETGEN_EXT_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+            message("Copying tetgen dir to ${TETGEN_EXT_PATH}")
+        endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+
+        # Prepare tetgen
+        add_definitions(-DTETLIBRARY)
+        add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
+
+        set(Tetgen_FOUND True)
+
+        # This is for backwards compatibility
+        if(NOT DEFINED TETGEN_INCLUDE)
+            set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        endif(NOT DEFINED TETGEN_INCLUDE)
+        if(NOT DEFINED TETGEN_LIBRARIES)
+            set(TETGEN_LIBRARIES tetgen)
+        endif(NOT DEFINED TETGEN_LIBRARIES)
+    elseif(DEFINED USE_TETGEN_NONFREE_TPL_URL)
+        # Use TetGen from external source (download)
+        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
+
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            DownloadLibAt(${TETGEN_ZIP_FILE} ${USE_TETGEN_NONFREE_TPL_URL} ${TETGEN_EXT_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        else(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            # Touch the url variable so it does no trigger a unused warning.
+            set(ignoreMe "${USE_TETGEN_NONFREE_TPL_URL}")
+            message("-- Found tetgen at ${TETGEN_EXT_PATH}, skipping...")
+        endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+
+        # Prepare tetgen
+        add_definitions(-DTETLIBRARY)
+        add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
+
+        set(Tetgen_FOUND True)
+
+        # This is for backwards compatibility
+        if(NOT DEFINED TETGEN_INCLUDE)
+            set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        endif(NOT DEFINED TETGEN_INCLUDE)
+        if(NOT DEFINED TETGEN_LIBRARIES)
+            set(TETGEN_LIBRARIES tetgen)
+        endif(NOT DEFINED TETGEN_LIBRARIES)
+    else(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+        # Try to find tetgen installed in the system
+        find_package(Tetgen REQUIRED)
+    endif(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+
+    if(tetgen_FOUND)
+        message(FATAL_ERROR "TetGen could not be found. Please use -DUSE_TETGEN_NONFREE_TPL_PATH=[path] or -DUSE_TETGEN_NONFREE_TPL_URL=[url] to indicate the correct TetGen location.")
+    endif(tetgen_FOUND)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+
+# Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
+  find_package(TRILINOS QUIET)
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -409,10 +530,8 @@ else()
     message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
-##echo user options
-message( " ")
-message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
-message( " ")
+## Echo user options
+message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
@@ -424,12 +543,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+set(${KRATOS_KERNEL} "")
+set(${KRATOS_PYTHON_INTERFACE} "")
+
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
 # Configure kratos applications
-message("-- Configuring applications (ENV):")
+message(STATUS "Configuring applications (ENV):")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
@@ -442,46 +564,49 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
         if(NOT TARGET Kratos${APPLICATION_NAME})
-            message("Adding application '${APPLICATION_PATH}'")
+            message("\tAdding application '${APPLICATION_PATH}'")
             add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
         else(NOT TARGET Kratos${APPLICATION_NAME})
-            message("[Warning] Application '${APPLICATION_PATH}' was already added")
+            message(WARNING "[Warning] Application '${APPLICATION_PATH}' was already added")
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
 
-message("")
-message("***********************************************************************")
-message("")
-message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:")
-message("")
+# Create custom targets. Not the cleanest solution, but minimizes the changes
+add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
+add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
+
+message("\n***********************************************************************\n")
+message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:\n")
 foreach(individual_app_name ${LIST_OF_APPLICATIONS_TO_BE_COMPILED})
   message("        ${individual_app_name}")
 endforeach()
-message("")
-message("        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:")
-message("")
+message("\n        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:\n")
 get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 foreach(individual_app_name ${local_list})
     if(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
         message("        ${individual_app_name}")
     endif(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
 endforeach()
-message("")
-message("***********************************************************************")
-message("")
+message("\n***********************************************************************\n")
 
-message("List of upcoming api-breaking changes:")
-message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
-message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kratos/pull/6233")
-message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
-message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
-message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
-message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
-message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
+message("\nList of upcoming API-breaking and behavior changes:")
+message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
+message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
+message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
+message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
+message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
+message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
-#compiling the triangle library
-add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+# Compiling the clipper library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
+# Compiling the triangle library
+if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+
+# Compiling the tinyexpr library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )
@@ -495,9 +620,13 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry.py" "KratosMultiphysics/python_registry.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+# Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
+add_subdirectory("scripts/post_install")

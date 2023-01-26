@@ -1,14 +1,14 @@
-from __future__ import print_function, absolute_import, division
-from KratosMultiphysics import Logger
+from KratosMultiphysics import Testing
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
 from unittest.util import safe_repr
 from contextlib import contextmanager
 
-import getopt
+import argparse
 import sys
 import os
+import time
 
 
 class TestLoader(TestLoader):
@@ -25,10 +25,15 @@ class TestLoader(TestLoader):
         return allTests
 
 
+test_timing_results = {}
+
 class TestCase(TestCase):
 
     def run(self, result=None):
-        super(TestCase,self).run(result)
+        start_time = time.time()
+        super().run(result)
+        time_needed = time.time()-start_time
+        test_timing_results[time_needed] = str(self)
 
     def skipTestIfApplicationsNotAvailable(self, *application_names):
         '''Skips the test if required applications are not available'''
@@ -68,35 +73,109 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
-    def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
-        def GetErrMsg(mismatch_idx):
-            err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(mismatch_idx)
-            err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
-            yield err_msg
+    def assertVectorAlmostEqual(self, vector1, vector2, places=7, msg=None, delta=None):
+        class LazyErrMsg:
+            '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __init__(self, mismatch_idx, aux_message=None):
+                self.mismatch_idx = mismatch_idx
+                self.aux_message=aux_message
+
+            def __str__(self):
+                err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(self.mismatch_idx)
+                err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
+                if self.aux_message:
+                    err_msg += "\n{}".format(self.aux_message)
+                return err_msg
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, prec, msg=GetErrMsg(i))
+            self.assertAlmostEqual(v1, v2, places, LazyErrMsg(i, msg), delta)
 
-    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
-        def GetDimErrMsg():
-            err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
-            err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
-            err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
-            yield err_msg
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, places=7, msg=None, delta=None):
+        class LazyDimErrMsg:
+            '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __init__(self, aux_message=None):
+                self.aux_message = aux_message
 
-        def GetValErrMsg(idx_1, idx_2):
-            err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(idx_1, idx_2)
-            err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
-            yield err_msg
+            def __str__(self):
+                err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
+                err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
+                err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
+                if self.aux_message:
+                    err_msg += "\n{}".format(self.aux_message)
+                return err_msg
+
+        class LazyValErrMsg:
+            '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __init__(self, idx_1, idx_2, aux_message=None):
+                self.idx_1 = idx_1
+                self.idx_2 = idx_2
+                self.aux_msg = aux_message
+
+            def __str__(self):
+                err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(self.idx_1, self.idx_2)
+                err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
+                if self.aux_message:
+                    err_msg += "\n{}".format(self.aux_message)
+                return err_msg
 
         dimensions_match = (matrix1.Size1() == matrix2.Size1() and matrix1.Size2() == matrix2.Size2())
-        self.assertTrue(dimensions_match, msg=GetDimErrMsg())
+        self.assertTrue(dimensions_match, msg=LazyDimErrMsg(msg))
 
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], places, LazyValErrMsg(i,j,msg), delta)
 
+class KratosTextTestResult(TextTestResult):
+    def __init__(self, stream, descriptions, verbosity):
+        super().__init__(stream=stream, descriptions=descriptions,
+                         verbosity=verbosity)
+        self.buffer = True
+        self.__start_time = None
+        self.show_test_times = verbosity > 1
+
+    def startTest(self, test):
+        super().startTest(test)
+        self.__start_time = time.perf_counter()
+
+    def addError(self, test, err):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addError(test, err)
+
+    def addExpectedFailure(self, test, err):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addExpectedFailure(test, err)
+
+    def addFailure(self, test, err):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addFailure(test, err)
+
+    def addSkip(self, test, reason):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addSkip(test, reason)
+
+    def addSuccess(self, test):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addSuccess(test)
+
+    def addUnexpectedSuccess(self, test):
+        self.__stop_time = time.perf_counter()-self.__start_time
+        if self.show_test_times:
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
+        super().addUnexpectedSuccess(test)
+
+    def getDescription(slef, test):
+        return str(test)
 
 def skipIfApplicationsNotAvailable(*application_names):
     '''Skips the test if required applications are not available'''
@@ -138,21 +217,6 @@ def SupressAllConsole():
             sys.stderr = old_stderr
             sys.stdout = old_stdout
 
-def Usage():
-    ''' Prints the usage of the script '''
-
-    lines = [
-        'Usage:',
-        '\t python kratos_run_tests [-l level] [-v verbosity]',
-        'Options',
-        '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t --using-mpi: If running in MPI and executing the MPI-tests'
-    ]
-    for l in lines:
-        Logger.PrintInfo(l) # using the logger to only print once in MPI
-
 def main():
     # this deliberately overiddes the function "unittest.main",
     # because it cannot parse extra command line arguments
@@ -162,60 +226,28 @@ def main():
     unittest.main()
 
 def runTests(tests):
-    verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation']
+    # parse command line options
+    parser = argparse.ArgumentParser()
 
-    verbosity = 1
-    level = 'all'
-    is_mpi = False
+    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
+    parser.add_argument('-v', '--verbosity', default=2, type=int, choices=[0, 1, 2])
+    parser.add_argument('--timing', action='store_true')
+    parser.add_argument('--using-mpi', action='store_true')
 
-    # Parse Commandline
-    try:
-        opts, args = getopt.getopt(
-            sys.argv[1:],
-            'hv:l:', [
-                'help',
-                'verbose=',
-                'level=',
-                'using-mpi'
-            ])
-    except getopt.GetoptError as err:
-        print(str(err))
-        Usage()
-        sys.exit(2)
+    args = parser.parse_args()
 
-    for o, a in opts:
-        if o in ('-v', '--verbose'):
-            if int(a) in verbose_values:
-                verbosity = int(a)
-            else:
-                print('Error: {} is not a valid verbose level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('-h', '--help'):
-            Usage()
-            sys.exit()
-        elif o in ('-l', '--level'):
-            if a in level_values:
-                level = a
-            else:
-                print('Error: {} is not a valid level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('--using-mpi'):
-            is_mpi = True
-        else:
-            assert False, 'unhandled option'
-
-    if is_mpi:
+    level = args.level
+    if args.using_mpi:
         level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
-        print(
-            '[Warning]: "{}" test suite is empty'.format(level),
-            file=sys.stderr)
+        print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)
     else:
-        result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        result = not TextTestRunner(verbosity=args.verbosity, buffer=True, resultclass=KratosTextTestResult).run(tests[level]).wasSuccessful()
+        if Testing.GetDefaultDataCommunicator().Rank() == 0 and args.timing:
+            print("Test Execution Times:")
+            for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
+                print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
         sys.exit(result)
 
 
@@ -267,4 +299,4 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
         if self.add_to_path:
-            sys.path = self.currentPythonpath
+            sys.path.remove(self.scope)

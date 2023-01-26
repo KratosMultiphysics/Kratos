@@ -36,7 +36,6 @@ class TimeStepTester():
 
         self.stable_time_steps_list.append(previous_dt)
 
-    @classmethod
     def RunTestCaseWithCustomizedDtAndScheme(self, dt, scheme):
         model = KratosMultiphysics.Model()
         CustomizedSolutionForTimeStepTesting(model, dt, scheme).Run()
@@ -88,7 +87,10 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 "RemoveBallsInEmbeddedOption"      : false,
                 "solver_settings" :{
                     "strategy"                 : "sphere_strategy",
-                    "RemoveBallsInitiallyTouchingWalls": false
+                    "RemoveBallsInitiallyTouchingWalls": false,
+                    "material_import_settings"           : {
+                        "materials_filename" : "MaterialsDEM.json"
+                    }
                 },
 
                 "DeltaOption"                      : "Absolute",
@@ -238,7 +240,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
         return this_test_total_energy
 
-    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         properties[PARTICLE_DENSITY] = 2650.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 7.0e6
@@ -267,8 +268,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         super().FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
-        #if not self.step%200:
-        #    print("Energy: "+str(current_test_energy))
 
         if current_test_energy/self.initial_test_energy > 1.5:
             print("GAINING ENERGY!!")

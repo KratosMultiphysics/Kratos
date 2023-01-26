@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -33,7 +34,7 @@ KRATOS_CREATE_VARIABLE( double, DISTANCE_THRESHOLD )                            
 KRATOS_CREATE_VARIABLE( double, ZERO_TOLERANCE_FACTOR )                           // The epsilon factor considered
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                             // The factor employed to search an active/inactive node
 KRATOS_CREATE_VARIABLE( double, SLIP_THRESHOLD )                                  // The threshold employed to search an slip/stick node
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliar coordinates used to map
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliary coordinates used to map
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                    // Delta coordinates used to map
 KRATOS_CREATE_VARIABLE( double, NORMAL_GAP )                                      // The normal gap employed in contact formulation
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENT_SLIP )                         // The tangent slip gap employed in contact formulation

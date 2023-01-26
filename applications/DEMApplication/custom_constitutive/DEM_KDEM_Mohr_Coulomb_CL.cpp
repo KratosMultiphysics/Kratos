@@ -14,12 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Mohr_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Mohr_Coulomb to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
     void DEM_KDEM_Mohr_Coulomb::Check(Properties::Pointer pProp) const {
         DEM_KDEM::Check(pProp);
 
@@ -39,9 +33,7 @@ namespace Kratos {
 
     double DEM_KDEM_Mohr_Coulomb::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
-        const double mohr_coulomb_c = 0.5*(element1_props[INTERNAL_COHESION] + element2_props[INTERNAL_COHESION]);
+        const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
 
         // calculation of equivalent young modulus
         double myYoung = element1->GetYoung();
@@ -65,7 +57,15 @@ namespace Kratos {
         return u1;
     }
 
-    void DEM_KDEM_Mohr_Coulomb::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+    void DEM_KDEM_Mohr_Coulomb::CheckFailure(const int i_neighbour_count, 
+                                        SphericContinuumParticle* element1, 
+                                        SphericContinuumParticle* element2,
+                                        double& contact_sigma,
+                                        double& contact_tau, 
+                                        double LocalElasticContactForce[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        double ElasticLocalRotationalMoment[3],
+                                        double ViscoLocalRotationalMoment[3]){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
@@ -80,11 +80,8 @@ namespace Kratos {
             Vector principal_stresses(3);
             noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(average_stress_tensor);
 
-            Properties& element1_props = element1->GetProperties();
-            Properties& element2_props = element2->GetProperties();
-
-            const double mohr_coulomb_c = 0.5*(element1_props[INTERNAL_COHESION] + element2_props[INTERNAL_COHESION]);
-            const double mohr_coulomb_phi = 0.5 * (element1_props[INTERNAL_FRICTION_ANGLE] + element2_props[INTERNAL_FRICTION_ANGLE]);
+            const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
+            const double& mohr_coulomb_phi = (*mpProperties)[INTERNAL_FRICTION_ANGLE];
             const double mohr_coulomb_phi_in_radians = mohr_coulomb_phi * Globals::Pi / 180.0;
             const double sinphi = std::sin(mohr_coulomb_phi_in_radians);
             const double cosphi = std::cos(mohr_coulomb_phi_in_radians);

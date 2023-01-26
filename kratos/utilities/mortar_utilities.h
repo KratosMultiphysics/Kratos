@@ -527,13 +527,13 @@ namespace MortarUtilities
 
     /**
      * @brief This method returns the auxiliar variable
-     * @param pThisNode Pointer to the node of interest
+     * @param rThisNode Reference to the node of interest
      * @param iSize The Index of the component
      * @return The value of the auxiliar variable
      */
     template< class TVarType>
     double KRATOS_API(KRATOS_CORE) GetAuxiliarValue(
-        NodeType::Pointer pThisNode,
+        NodeType& rThisNode,
         const std::size_t iSize
         );
 
@@ -566,12 +566,12 @@ namespace MortarUtilities
 
     /**
      * @brief This method adds the value
-     * @param pThisNode The node to update
+     * @param rThisNode The node to update
      * @param rThisVariable The variable to set
      */
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) AddAreaWeightedNodalValue(
-        NodeType::Pointer pThisNode,
+        NodeType& rThisNode,
         const TVarType& rThisVariable,
         const double RefArea = 1.0,
         const double Tolerance = 1.0e-4

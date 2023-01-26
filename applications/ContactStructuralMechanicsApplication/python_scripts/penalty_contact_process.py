@@ -40,7 +40,6 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         default_parameters = KM.Parameters("""
         {
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -57,7 +56,8 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
-            "consider_tessellation"          : false,
+            "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {

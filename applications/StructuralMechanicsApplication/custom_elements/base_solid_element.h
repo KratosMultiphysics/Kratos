@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -23,6 +24,7 @@
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -108,9 +110,9 @@ protected:
      */
     struct ConstitutiveVariables
     {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
 
         /**
          * The default constructor
@@ -118,9 +120,18 @@ protected:
          */
         ConstitutiveVariables(const SizeType StrainSize)
         {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 public:
@@ -149,6 +160,8 @@ public:
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
+    KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -163,7 +176,10 @@ public:
 
     // Constructor using an array of nodes with properties
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
-    {};
+    {
+        // This is needed to prevent uninitialised integration method in inactive elements
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    };
 
     // Copy constructor
     BaseSolidElement(BaseSolidElement const& rOther)
@@ -258,6 +274,32 @@ public:
     {
         return mThisIntegrationMethod;
     }
+
+    /**
+    * element can be integrated using the GP provided by the geometry or custom ones
+    * by default, the base element will use the standard integration provided by the geom
+    * @return bool to select if use/not use GPs given by the geometry
+    */
+    bool virtual UseGeometryIntegrationMethod() const
+    {
+        return true;
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
+    {
+        return GetGeometry().IntegrationPoints();
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().IntegrationPoints(ThisMethod);
+    }
+
+    const virtual Matrix& ShapeFunctionsValues(IntegrationMethod ThisMethod) const
+    {
+        return GetGeometry().ShapeFunctionsValues(ThisMethod);
+    }
+
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -376,7 +418,7 @@ public:
     /**
      * @brief Calculate a boolean Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -388,7 +430,7 @@ public:
     /**
      * @brief Calculate a integer Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -400,7 +442,7 @@ public:
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -412,7 +454,7 @@ public:
     /**
      * @brief Calculate a 3 components array_1d on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -424,7 +466,7 @@ public:
     /**
      * @brief Calculate a 6 components array_1d on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -436,7 +478,7 @@ public:
     /**
      * @brief Calculate a Vector Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -448,7 +490,7 @@ public:
     /**
      * @brief Calculate a Matrix Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
@@ -457,6 +499,17 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief Get on rVariable Constitutive Law from the element
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
      /**
       * @brief Set a bool Value on the Element Constitutive Law
@@ -466,7 +519,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<bool>& rVariable,
-        std::vector<bool>& rValues,
+        const std::vector<bool>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -478,7 +531,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<int>& rVariable,
-        std::vector<int>& rValues,
+        const std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -490,7 +543,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -502,7 +555,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -514,7 +567,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
+        const std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -526,7 +579,7 @@ public:
       */
      void SetValuesOnIntegrationPoints(
          const Variable<ConstitutiveLaw::Pointer>& rVariable,
-         std::vector<ConstitutiveLaw::Pointer>& rValues,
+         const std::vector<ConstitutiveLaw::Pointer>& rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
@@ -537,8 +590,8 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
      void SetValuesOnIntegrationPoints(
-         const Variable<array_1d<double, 3 > >& rVariable,
-         std::vector<array_1d<double, 3 > > rValues,
+         const Variable<array_1d<double, 3>>& rVariable,
+         const std::vector<array_1d<double, 3>>& rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
@@ -549,23 +602,10 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
      void SetValuesOnIntegrationPoints(
-         const Variable<array_1d<double, 6 > >& rVariable,
-         std::vector<array_1d<double, 6 > > rValues,
+         const Variable<array_1d<double, 6>>& rVariable,
+         const std::vector<array_1d<double, 6>>& rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
-
-    /**
-     * @todo To be renamed to CalculateOnIntegrationPoints!!!
-     * @brief Get on rVariable Constitutive Law from the element
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -589,7 +629,14 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
+    
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+    
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -727,7 +774,8 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2,
+        const bool IsElementRotated = true
         );
 
     /**
@@ -863,6 +911,32 @@ protected:
     */
     void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
+    /**
+     * @brief This method checks is an element has to be rotated
+     * according to a set of local axes
+     */
+    virtual bool IsElementRotated() const;
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * global to local coordinates
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToLocalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * local de global
+     * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
+     */
+    void RotateToGlobalAxes(
+        ConstitutiveLaw::Parameters &rValues,
+        KinematicVariables& rThisKinematicVariables);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -892,10 +966,14 @@ private:
     ///@{
 
     /**
-     * @brief This method computes directly the lumped mass vector
-     * @param rMassMatrix The lumped mass vector
+     * @brief This is called during the initialize of the builder to calculate the lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLumpedMassVector(VectorType& rMassVector) const;
+    void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief This method computes directly the lumped mass matrix
@@ -911,7 +989,7 @@ private:
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @tparam TType The type considered
      */
     template<class TType>
@@ -928,10 +1006,17 @@ private:
     }
 
     /**
+     * @brief This method builds the rotation matrices and local axes
+     */
+    void BuildRotationSystem(
+        BoundedMatrix<double, 3, 3> &rRotationMatrix,
+        const SizeType StrainSize);
+
+    /**
      * @brief This method computes directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
+     * @param rOutput The values obtained in the integration points
      * @param rCurrentProcessInfo the current process info instance
      * @tparam TType The type considered
      */
@@ -942,6 +1027,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
+        const bool is_rotated = IsElementRotated();
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
         const SizeType number_of_nodes = GetGeometry().size();
@@ -968,6 +1054,10 @@ private:
 
             // Compute material reponse
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
+
+            // rotate to local axes strain/F
+            if (is_rotated)
+                RotateToLocalAxes(Values, this_kinematic_variables);
 
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }

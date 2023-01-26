@@ -20,7 +20,7 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -29,7 +29,7 @@
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -53,12 +53,14 @@ void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::GetValueOnInte
             const Matrix& r_shape_derivatives = shape_derivatives[g];
 
             array_1d<double, 3> velocity;
-            RansCalculationUtilities::CalculateGradient(
-                velocity, r_geometry, VELOCITY_POTENTIAL, r_shape_derivatives);
+            FluidCalculationUtilities::EvaluateGradientInPoint(
+                r_geometry, r_shape_derivatives,
+                std::tie(velocity, VELOCITY_POTENTIAL));
+
             rValues[g] = velocity;
         }
     } else {
-        KRATOS_ERROR << "GetValueOnIntegrationPoints for variable "
+        KRATOS_ERROR << "CalculateOnIntegrationPoints for variable "
                      << rVariable.Name() << " not defined for " << this->Info();
     }
 

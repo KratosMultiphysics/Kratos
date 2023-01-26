@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../custom_conditions/RigidFace.h"
+#include "custom_conditions/RigidFace.h"
 
 /* External includes */
 #ifdef _OPENMP

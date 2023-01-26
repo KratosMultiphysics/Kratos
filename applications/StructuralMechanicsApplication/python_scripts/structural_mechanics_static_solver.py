@@ -19,5 +19,5 @@ class StaticMechanicalSolver(MechanicalSolver):
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[StaticMechanicalSolver]:: ", "Construction finished")
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

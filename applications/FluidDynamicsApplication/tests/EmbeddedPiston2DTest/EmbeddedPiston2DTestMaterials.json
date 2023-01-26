@@ -8,7 +8,8 @@
             },
             "Variables"        : {
                 "DENSITY": 1.0,
-                "DYNAMIC_VISCOSITY": 0.01
+                "DYNAMIC_VISCOSITY": 0.01,
+                "SOUND_VELOCITY" : 1.0e+12
             },
             "Tables"           : {}
         }

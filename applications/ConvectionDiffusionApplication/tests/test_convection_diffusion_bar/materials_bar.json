@@ -1,0 +1,12 @@
+{
+    "properties" : [{
+        "model_part_name" : "MainModelPart",
+        "properties_id"   : 0,
+        "Material"        : {
+            "Variables"        : {
+                "CONDUCTIVITY"  : 0.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}

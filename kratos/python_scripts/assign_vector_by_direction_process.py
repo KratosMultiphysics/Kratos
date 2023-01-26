@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import assign_scalar_variable_process
@@ -38,7 +37,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "modulus"              : 1.0,
+            "modulus"              : 0.0,
             "constrained"          : true,
             "direction"            : [1.0, 0.0, 0.0],
             "local_axes"           : {}
@@ -49,10 +48,14 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         if settings.Has("modulus"):
             if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
+        else:
+            raise RuntimeError("Please specify the modulus of the vector")
 
         if settings.Has("direction"):
             if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
+        else:
+            raise RuntimeError("Please specify the direction of the vector")
 
         # Detect "End" as a tag and replace it by a large number
         if settings.Has("interval"):
@@ -90,7 +93,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 # Compute the average conditions normal in the submodelpart of interest
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
-                if avg_normal_norm < 1.0e-6:
+                if avg_normal_norm < 1.0e-12:
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
 
                 unit_direction = KratosMultiphysics.Vector(3)
@@ -115,7 +118,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
             # Normalize direction
             if all_numeric:
                 direction_norm = math.sqrt(direction_norm)
-                if direction_norm < 1.0e-6:
+                if direction_norm < 1.0e-12:
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
                 for i in range(0,3):
                     unit_direction[i] = unit_direction[i]/direction_norm

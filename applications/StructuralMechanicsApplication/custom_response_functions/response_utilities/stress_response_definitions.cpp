@@ -428,7 +428,7 @@ void StressCalculation::CalculateStressOnGPBeam(Element& rElement,
                                             stress_vector, rCurrentProcessInfo,
                                             direction_1);
 
-    const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+    const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
 
     rOutput.resize(GP_num, false);
     for(IndexType i = 0; i < GP_num ; i++)
@@ -484,4 +484,3 @@ void StressCalculation::CalculateStressOnGPSmallDisplacement(Element& rElement,
 }
 
 }  // namespace Kratos.
-

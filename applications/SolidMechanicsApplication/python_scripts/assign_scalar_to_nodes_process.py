@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
@@ -226,7 +225,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.fix_time_integration  = False
 
         self.TimeIntegrationMethod = None
-        time_integration_container = KratosSolid.ComponentTimeIntegrationMethods()
+        time_integration_container = KratosSolid.ScalarTimeIntegrationMethods()
         if( time_integration_container.HasProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
             time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
 

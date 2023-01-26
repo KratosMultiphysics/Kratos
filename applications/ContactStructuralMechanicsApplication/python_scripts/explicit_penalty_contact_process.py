@@ -40,7 +40,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         default_parameters = KM.Parameters("""
         {
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
@@ -58,6 +57,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -133,7 +133,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         if self.contact_settings["advance_explicit_parameters"]["manual_max_gap_theshold"].GetBool():
             process_info[CSMA.MAX_GAP_THRESHOLD] = self.contact_settings["advance_explicit_parameters"]["max_gap_threshold"].GetDouble()
         else:
-            empty_settings = KM.Parameters("""{}""")
             mean_nodal_h = CSMA.ContactUtilities.CalculateMeanNodalH(self.main_model_part)
             process_info[CSMA.MAX_GAP_THRESHOLD] = mean_nodal_h
 
@@ -226,7 +225,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         super().ExecuteFinalize()
 
     def _compute_search(self):
-        """ This method return if the serach must be computed
+        """ This method return if the search must be computed
 
         Keyword arguments:
         self -- It signifies an instance of a class.

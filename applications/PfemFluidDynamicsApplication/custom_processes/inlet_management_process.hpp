@@ -25,7 +25,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -72,7 +71,7 @@ public:
       : mrModelPart(rModelPart),
         mrRemesh(rRemeshingParameters)
   {
-    KRATOS_INFO("InletManagementProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("InletManagementProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }

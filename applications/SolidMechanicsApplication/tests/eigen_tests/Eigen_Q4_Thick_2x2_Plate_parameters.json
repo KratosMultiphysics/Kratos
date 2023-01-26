@@ -25,7 +25,7 @@
 		"lambda_max": 1.0e4,
 		"search_dimension": 9,
 		"linear_solver_settings":{
-		    "solver_type": "complex_skyline_lu_solver"
+		    "solver_type": "skyline_lu_complex"
 		}
 	    },
 	    "dofs" : ["DISPLACEMENT","ROTATION"]

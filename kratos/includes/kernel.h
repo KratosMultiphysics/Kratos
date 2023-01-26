@@ -23,7 +23,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/kratos_application.h"
 
 namespace Kratos {
@@ -70,7 +69,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
         @see KratosApplication
 
     */
-    Kernel(bool IsDistributedRun = false);
+    Kernel();
+
+    Kernel(bool IsDistributedRun);
 
     /// Copy constructor.
     /** This constructor is empty
@@ -99,7 +100,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// To be deprecated becuase variables have their own hash key.
     /** The keys of Variables are not sequencial anymore, so this method will be deprecated
     */
-    void Initialize() { }
+    void Initialize();
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
@@ -109,7 +110,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(std::string ApplicationName) const;
+    bool IsImported(const std::string& ApplicationName) const;
 
     static bool IsDistributedRun();
 
@@ -133,6 +134,12 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    static std::string OSName();
+
+    static std::string PythonVersion();
+
+    static std::string Compiler();
+
     void PrintParallelismSupportInfo() const;
 
     ///@}
@@ -141,7 +148,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Static Member Variables
     ///@{
 
-        KratosApplication::Pointer mpKratosCoreApplication;
+    KratosApplication::Pointer mpKratosCoreApplication;
 
     static bool mIsDistributedRun;
 
