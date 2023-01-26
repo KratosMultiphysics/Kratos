@@ -313,8 +313,7 @@ for dim in dim_vector:
     Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
     rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
 
-    #  Calculate artificial dynamic viscosity in each point gauss
-    vel_residual_norm = 0.0
+    #  Calculate artificial dynamic viscosity in each Gauss point
     vel_residual_norm = vel_residual.norm()
     grad_v_norm = grad_v.norm()
     artificial_mu = 0.5*h*art_dyn_visc_coeff*(vel_residual_norm/grad_v_norm)

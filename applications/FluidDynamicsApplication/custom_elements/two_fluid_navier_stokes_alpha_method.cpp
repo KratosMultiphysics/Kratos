@@ -127,9 +127,10 @@ double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
     const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
 
     // Check that velocity gradient norm is non-zero
-    double grad_v_norm;
+
     grad_v_norm=sqrt(pow(fabs(DN(0,0)*(vn(0,0) + (v(0,0) - vn(0,0))/(max_spectral_radius + 1)) + DN(1,0)*(vn(1,0) + (v(1,0) - vn(1,0))/(max_spectral_radius + 1)) + DN(2,0)*(vn(2,0) + (v(2,0) - vn(2,0))/(max_spectral_radius + 1))), 2) + pow(fabs(DN(0,0)*(vn(0,1) + (v(0,1) - vn(0,1))/(max_spectral_radius + 1)) + DN(1,0)*(vn(1,1) + (v(1,1) - vn(1,1))/(max_spectral_radius + 1)) + DN(2,0)*(vn(2,1) + (v(2,1) - vn(2,1))/(max_spectral_radius + 1))), 2) + pow(fabs(DN(0,1)*(vn(0,0) + (v(0,0) - vn(0,0))/(max_spectral_radius + 1)) + DN(1,1)*(vn(1,0) + (v(1,0) - vn(1,0))/(max_spectral_radius + 1)) + DN(2,1)*(vn(2,0) + (v(2,0) - vn(2,0))/(max_spectral_radius + 1))), 2) + pow(fabs(DN(0,1)*(vn(0,1) + (v(0,1) - vn(0,1))/(max_spectral_radius + 1)) + DN(1,1)*(vn(1,1) + (v(1,1) - vn(1,1))/(max_spectral_radius + 1)) + DN(2,1)*(vn(2,1) + (v(2,1) - vn(2,1))/(max_spectral_radius + 1))), 2));
 
 
