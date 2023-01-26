@@ -53,31 +53,27 @@ namespace Kratos
 }
 
 
-    void SetParameterFieldProcess::SetValueAtElement(Element &rElement, const Variable<double>& rVar, double Value)
+    void SetParameterFieldProcess::SetValueAtElement(Element::Pointer rElement, const Variable<double>& rVar, double Value)
     {
-        auto& r_prop = rElement.GetProperties();
-        Properties::Pointer p_prop = make_shared<Properties>(r_prop);
-        std::cout << "value before: " << r_prop[rVar] << std::endl;
+
+        // todo cleanup
+
+        auto p_prop = rElement->pGetProperties();
+
+        //Element::PropertiesType::Pointer new_prop(p_prop);
+        Properties::Pointer new_prop = Kratos::make_shared<Properties>(*p_prop);
+        //Properties::Pointer new_prop2;
+        // Properties::Pointer new_prop(p_prop);
+    	std::cout << "value before: " << p_prop->GetValue(rVar) << std::endl;
         std::cout << "value input: " << Value << std::endl;
 
-        p_prop->SetValue(rVar, Value);
+        new_prop->SetValue(rVar, Value);
 
-        std::cout << "value after: " << r_prop[rVar] << std::endl;
-        rElement.SetProperties(p_prop);
-        
+        std::cout << "value after: " << p_prop->GetValue(rVar) << std::endl;
+        rElement->SetProperties(new_prop);
+        std::cout << "value after2: " << rElement->GetProperties()[rVar] << std::endl;
 
-        //todo find a way to output the value to GID
-  //       auto rProc = mrModelPart.GetProcessInfo();
-  //       auto& r_geom = rElement.GetGeometry();
-  //
-  //       SizeType n_int_points = r_geom.IntegrationPointsNumber();
-  //
-		// std::vector<double> values_on_integration_points(n_int_points, Value);
-  //
-  //       rElement.SetValuesOnIntegrationPoints(rVar, values_on_integration_points, rProc);
-  //       rElement.SetValue(rVar, Value);
-        
-        std::cout << "value after2: " << rElement.GetProperties()[rVar] << std::endl;
+        std::cout << "\n" << std::endl;
     }
 
 
@@ -97,18 +93,12 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
             for (Element& r_element : mrModelPart.Elements()) {
 
- 
-            //}
 
-            //for (IndexType i = 0; i < elements.size(); ++i)
-            //{
-            //    Element& r_element = elements[i];
                 auto& r_geom = r_element.GetGeometry();
-                double val = parameter_function.CallFunction(r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
-                auto& r_prop = r_element.GetProperties();
+                const double val = parameter_function.CallFunction(r_geom.Center().X(), r_geom.Center().Y(), r_geom.Center().Z(), current_time, 0, 0, 0);
                 const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
-                this->SetValueAtElement(r_element, r_var, val);
+                this->SetValueAtElement(&r_element, r_var, val);
 
             }
         }
@@ -119,26 +109,49 @@ void SetParameterFieldProcess::ExecuteInitialize()
             auto dataset = mParameters["dataset"].GetString();
             const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
-            Parameters tmp1 = Parameters(dataset);
+            Parameters new_data = Parameters(dataset);
 
-            auto r_elements = mrModelPart.Elements();
-
-            auto element_iterator  = mrModelPart.ElementsBegin();
-            //Element& el = mrModelPart.Elements().begin();
-            IndexType i = 0;
-            for (auto it : tmp1)
+            std::vector<double> data_vector;
+            for (Parameters& it : new_data)
             {
-                double value = it.GetDouble();
-
-                this->SetValueAtElement(*element_iterator, r_var, value);
+                data_vector.push_back(it.GetDouble());
             }
 
-            
+            IndexType i = 0;
+            for (Element& r_element : mrModelPart.Elements())
+            {
+                this->SetValueAtElement(&r_element, r_var, data_vector[i]);
+                i++;
+            }
         }
 
     }
     KRATOS_CATCH("")
 }
+
+void SetParameterFieldProcess::ExecuteBeforeSolutionLoop()
+    {
+    int a = 1;
+    // const Variable<double>& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
+    //
+    //     for (auto& r_element: mrModelPart.Elements())
+    //     {
+    //         auto& r_prop =  r_element.GetProperties();
+    //
+    //         double val = r_prop.GetValue(r_var);
+    //
+    //         auto& rProc = mrModelPart.GetProcessInfo();
+    //         auto& r_geom = r_element.GetGeometry();
+    //
+    //         SizeType n_int_points = r_geom.IntegrationPointsNumber();
+    //         std::vector<double> values_on_integration_points(n_int_points, val);
+    //
+    //         r_element.SetValuesOnIntegrationPoints(r_var, values_on_integration_points, rProc);
+    //
+    //     }
+
+    //auto& r_prop = rElement->GetProperties();
+    }
 
 //
 //void SetParameterFieldProcess::ExecuteInitializeSolutionStep()

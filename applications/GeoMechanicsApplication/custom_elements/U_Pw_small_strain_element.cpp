@@ -501,6 +501,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
+    auto& r_prop = this->GetProperties();
     if ( rOutput.size() != NumGPoints )
         rOutput.resize(NumGPoints);
 
@@ -691,6 +692,16 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             rOutput[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
         }
+    }
+    else if (r_prop.Has(rVariable))
+    {
+        // map initial material property to gauss points, as required for the output 
+	    if (rOutput.size() != mConstitutiveLawVector.size())
+	        rOutput.resize(mConstitutiveLawVector.size());
+
+	    for (unsigned int i = 0; i < rOutput.size(); ++i) {
+	        rOutput[i] = r_prop.GetValue(rVariable);
+	    }
     }
     else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )

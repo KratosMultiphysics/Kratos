@@ -71,6 +71,7 @@ public:
      */
     void ExecuteInitialize() override;
 
+    void ExecuteBeforeSolutionLoop() override;
     ///**
     // * \brief Initialize solution step. Calculate the load based on the load functions if present, else retrieve the load from the input parameters.
     // * Loop over the conditions and find, on which condition the load is located. Then set the load on the condition element, if the load is located
@@ -118,7 +119,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    void SetValueAtElement(Element& element, const Variable<double>& rVar, double Value);
+    void SetValueAtElement(Element::Pointer pElement, const Variable<double>& rVar, double Value);
 
     ///@}
     ///@name Serialization

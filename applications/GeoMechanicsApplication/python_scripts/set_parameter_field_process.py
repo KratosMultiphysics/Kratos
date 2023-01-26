@@ -71,3 +71,6 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
             # KratosGeo.SetParameterFieldProcess(self.model_part, self.params)
 
         self.process.ExecuteInitialize()
+
+    def ExecuteBeforeSolutionLoop(self):
+        self.process.ExecuteBeforeSolutionLoop()
