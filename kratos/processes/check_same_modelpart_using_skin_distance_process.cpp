@@ -78,10 +78,11 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
     Parameters mesher_parameters(R"({
-        "number_of_divisions"        : 30,
+        "number_of_divisions"        : -1,
         "element_name"               : "Element3D4N",
         "create_skin_sub_model_part" : false
     })");
+    mesher_parameters["number_of_divisions"].SetInt(mThisParameters["number_of_divisions_background_mesh"].GetInt());
     ModelPart& r_model_part_1 = mrModel.CreateModelPart("BACKGROUND_MESH_1");
     StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
 
@@ -144,12 +145,13 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
 
     const Parameters default_parameters = Parameters(R"(
     {
-        //"model_part_1_name"     : "PLEASE_SPECIFY_MODEL_PART_1_NAME", // The background mesh is generated automatically
-        "skin_model_part_1_name": "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
-        //"model_part_2_name"     : "PLEASE_SPECIFY_MODEL_PART_2_NAME", // The background mesh is generated automatically
-        "skin_model_part_2_name": "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
-        "tolerance"             : 1.0e-3,
-        //"continuous_distance"   : false, // TODO: Add continuous version if needed in the future
+        //"model_part_1_name"                   : "PLEASE_SPECIFY_MODEL_PART_1_NAME", // The background mesh is generated automatically
+        "skin_model_part_1_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
+        //"model_part_2_name"                   : "PLEASE_SPECIFY_MODEL_PART_2_NAME", // The background mesh is generated automatically
+        "skin_model_part_2_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
+        "tolerance"                           : 1.0e-3,
+        //"continuous_distance"               : false, // TODO: Add continuous version if needed in the future
+        "number_of_divisions_background_mesh" : 30,
         "discontinuous_distance_settings": {
             "elemental_distances_variable"                          : "ELEMENTAL_DISTANCES",
             "elemental_edge_distances_variable"                     : "ELEMENTAL_EDGE_DISTANCES",
