@@ -78,7 +78,7 @@ public:
         KRATOS_TRY
 
         Parameters default_parameters = GetDefaultParameters();
-        mThisParameters.ValidateAndAssignDefaults(default_parameters);
+        mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
