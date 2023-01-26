@@ -24,7 +24,6 @@ class TestCheckSameModelPartUsingSkinDistanceProcess(KratosUnittest.TestCase):
         model_part_io.ReadModelPart(self.model_part_1)
         model_part_io.ReadModelPart(self.model_part_2)
 
-    def test_same_sphere(self):
         parameters = KratosMultiphysics.Parameters("""
         {
             "skin_model_part_1_name" : "",
@@ -33,7 +32,16 @@ class TestCheckSameModelPartUsingSkinDistanceProcess(KratosUnittest.TestCase):
         """)
         parameters["skin_model_part_1_name"].SetString(self.model_part_1.Name)
         parameters["skin_model_part_2_name"].SetString(self.model_part_2.Name)
-        KratosMultiphysics.CheckSameModelPartUsingSkinDistanceProcess3D(self.current_model, parameters).Execute()
+        self.process = KratosMultiphysics.CheckSameModelPartUsingSkinDistanceProcess3D(self.current_model, parameters)
+
+    def test_same_sphere(self):
+        self.process.Execute()
+
+    @KratosUnittest.expectedFailure
+    def test_moved_sphere(self):
+        for node in self.model_part_2.Nodes:
+            node.Z += 1.0
+        self.process.Execute()
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
