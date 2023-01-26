@@ -30,7 +30,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
     def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
-            print("Singlefile option is not available for the swimming DEM application!")
+            Kratos.Logger.PrintWarning("Singlefile option is not available for the swimming DEM application!")
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
@@ -82,8 +82,8 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
         with open(self.outerlistfilename, "a") as listfile:
             listfile.write("Multiple\n")
-            folder_name = self.filename + "_Post_Files"
-            full_string_to_write = os.path.join(folder_name,self.filename+"_"+"%.12g"%step_label+ext)
+            output_path = self.filename + "_Post_Files"
+            full_string_to_write = os.path.join(output_path,self.filename+"_"+"%.12g"%step_label+ext)
             listfile.write(full_string_to_write+"\n")
 
 

@@ -115,7 +115,7 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    IntegrationMethod GetIntegrationMethod() override
+    IntegrationMethod GetIntegrationMethod() const override
     {
         return mpPrimalCondition->GetIntegrationMethod();
     }
@@ -130,11 +130,6 @@ public:
     void ResetConstitutiveLaw() override
     {
         mpPrimalCondition->ResetConstitutiveLaw();
-    }
-
-    void CleanMemory() override
-    {
-        mpPrimalCondition->CleanMemory();
     }
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
@@ -173,28 +168,10 @@ public:
 					rCurrentProcessInfo);
     }
 
-    void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalCondition->CalculateLeftHandSide(rLeftHandSideMatrices,
-					rLHSVariables,
-					rCurrentProcessInfo);
-    }
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 					const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalCondition->CalculateRightHandSide(rRightHandSideVector,
-					rCurrentProcessInfo);
-    }
-
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalCondition->CalculateRightHandSide(rRightHandSideVectors,
-					rRHSVariables,
 					rCurrentProcessInfo);
     }
 

@@ -41,7 +41,7 @@ namespace Kratos
         ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(SlidingCableElement3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SlidingCableElement3D);
 
 
         typedef Element BaseType;
@@ -145,7 +145,9 @@ namespace Kratos
             return prestress;
         };
 
-        void CalculateLumpedMassVector(VectorType &rMassVector);
+        void CalculateLumpedMassVector(
+            VectorType &rLumpedMassVector,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
@@ -191,6 +193,9 @@ namespace Kratos
         double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const;
 
     private:
+
+        // boolean for the cable --> does not resist to compression
+        bool mIsCompressed;
 
         friend class Serializer;
         void save(Serializer& rSerializer) const override;

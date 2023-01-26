@@ -15,8 +15,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../applications/DEMApplication/custom_elements/spheric_particle.h"
-#include "../../applications/DEMApplication/custom_elements/nanoparticle.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_elements/nanoparticle.h"
 #include "custom_constitutive/hydrodynamic_interaction_law.h"
 #include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 
@@ -47,7 +47,7 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of SwimmingParticle
-      KRATOS_CLASS_POINTER_DEFINITION(SwimmingParticle);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SwimmingParticle);
 
       ///@}
       ///@name Life Cycle

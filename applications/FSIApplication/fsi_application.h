@@ -26,7 +26,7 @@ namespace Kratos {
 ///@name Kratos Globals
 ///@{
 
-class KratosFSIApplication : public KratosApplication {
+class KRATOS_API(FSI_APPLICATION) KratosFSIApplication : public KratosApplication {
    public:
     ///@name Type Definitions
     ///@{
@@ -52,7 +52,7 @@ class KratosFSIApplication : public KratosApplication {
     ///@name Operations
     ///@{
 
-     void Register() override;
+    void Register() override;
 
     ///@}
     ///@name Access

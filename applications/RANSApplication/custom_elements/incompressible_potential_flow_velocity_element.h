@@ -55,7 +55,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of IncompressiblePotentialFlowVelocityElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowVelocityElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowVelocityElement);
 
     ///@}
     ///@name Life Cycle
@@ -138,7 +138,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
-            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -173,13 +173,13 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
-            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
+            NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
         KRATOS_CATCH("");
     }
 
     const Variable<double>& GetVariable() const override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>>& rVariable,
         std::vector<array_1d<double, 3>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;

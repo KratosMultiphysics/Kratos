@@ -237,10 +237,14 @@ template <class TContainerType>
 void FindNodalNeighboursForEntitiesProcess<TContainerType>::ClearNeighbours()
 {
     block_for_each(this->mrModelPart.Nodes(), [&](NodeType& rNode) {
-        auto& r_gp_neighbour_nodes_vector = rNode.GetValue(mrOutputVariable);
-        r_gp_neighbour_nodes_vector.erase(r_gp_neighbour_nodes_vector.begin(),
-                                          r_gp_neighbour_nodes_vector.end());
-        r_gp_neighbour_nodes_vector.shrink_to_fit();
+        if(rNode.Has(mrOutputVariable)){
+            auto& r_gp_neighbour_nodes_vector = rNode.GetValue(mrOutputVariable);
+            r_gp_neighbour_nodes_vector.erase(r_gp_neighbour_nodes_vector.begin(),
+                                            r_gp_neighbour_nodes_vector.end());
+            r_gp_neighbour_nodes_vector.shrink_to_fit();
+        } else {
+            rNode.SetValue(mrOutputVariable, GlobalPointersVector<NodeType>());
+        }
     });
 }
 
@@ -254,9 +258,10 @@ std::unordered_map<int, std::vector<int>> FindNodalNeighboursForEntitiesProcess<
     {
     public:
         typedef GlobalPointersVector<NodeType> value_type;
-        value_type gp_vector;
+        typedef GlobalPointersVector<NodeType> return_type;
 
-        value_type GetValue()
+        return_type gp_vector;
+        return_type GetValue()
         {
             gp_vector.Unique();
             return gp_vector;

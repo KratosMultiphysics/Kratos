@@ -4,7 +4,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.2
+        "end_time"      : 0.1
     },
     "output_processes" : {
     },
@@ -36,7 +36,7 @@
         "formulation"                 : {
         },
         "linear_solver_settings": {
-            "solver_type": "ExternalSolversApplication.super_lu"
+            "solver_type": "LinearSolversApplication.sparse_lu"
         }
     },
     "processes"        : {

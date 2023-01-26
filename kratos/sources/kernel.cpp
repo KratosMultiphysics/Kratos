@@ -21,17 +21,28 @@
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
 #include "input_output/logger.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
+
+Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
+                std::string("KratosMultiphysics"))) {
+    Initialize();
+}
+
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
     mIsDistributedRun = IsDistributedRun;
-    KRATOS_INFO("") << " |  /           |\n"
-                    << " ' /   __| _` | __|  _ \\   __|\n"
-                    << " . \\  |   (   | |   (   |\\__ \\\n"
+    Initialize();
+}
+
+void Kernel::Initialize() {
+    KRATOS_INFO("") << " |  /           |                  \n"
+                    << " ' /   __| _` | __|  _ \\   __|    \n"
+                    << " . \\  |   (   | |   (   |\\__ \\  \n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << GetVersionString() << std::endl;
+                    << "           Multi-Physics " << GetVersionString() << "\n"
+                    << "           Compiled for "<< GetOSName() << " and " << GetPythonVersion() << " with " << GetCompiler() << std::endl;
 
     PrintParallelismSupportInfo();
 
@@ -45,7 +56,7 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-bool Kernel::IsImported(std::string ApplicationName) const {
+bool Kernel::IsImported(const std::string& ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=
         GetApplicationsList().end())
         return true;
@@ -86,14 +97,12 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << std::endl;
     rOStream << "Modelers:" << std::endl;
     KratosComponents<Modeler>().PrintData(rOStream);
-
+    rOStream << std::endl;
     rOStream << "Loaded applications:" << std::endl;
-
     auto& application_list = Kernel::GetApplicationsList();
-    rOStream << "number of loaded applications = " << application_list.size()
-             << std::endl;
+    rOStream << "    Number of loaded applications = " << application_list.size() << std::endl;
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
-        rOStream << "  " << *it << std::endl;
+        rOStream << "    " << *it << std::endl;
 }
 
 // To be removed with the new entry points
@@ -106,12 +115,24 @@ std::string Kernel::Version() {
     return GetVersionString();
 }
 
+std::string Kernel::OSName() {
+    return GetOSName();
+}
+
+std::string Kernel::PythonVersion() {
+    return GetPythonVersion();
+}
+
+std::string Kernel::Compiler() {
+    return GetCompiler();
+}
+
 void Kernel::PrintParallelismSupportInfo() const
 {
-    #ifdef _OPENMP
-    constexpr bool openmp_support = true;
+    #ifdef KRATOS_SMP_NONE
+    constexpr bool threading_support = false;
     #else
-    constexpr bool openmp_support = false;
+    constexpr bool threading_support = true;
     #endif
 
     #ifdef KRATOS_USING_MPI
@@ -123,12 +144,12 @@ void Kernel::PrintParallelismSupportInfo() const
     Logger logger("");
     logger << LoggerMessage::Severity::INFO;
 
-    if (openmp_support) {
+    if (threading_support) {
         if (mpi_support) {
-            logger << "Compiled with OpenMP and MPI support." << std::endl;
+            logger << "Compiled with threading and MPI support." << std::endl;
         }
         else {
-            logger << "Compiled with OpenMP support." << std::endl;
+            logger << "Compiled with threading support." << std::endl;
         }
     }
     else if (mpi_support) {
@@ -138,8 +159,8 @@ void Kernel::PrintParallelismSupportInfo() const
         logger << "Serial compilation." << std::endl;
     }
 
-    if (openmp_support) {
-        logger << "Maximum OpenMP threads: " << OpenMPUtils::GetNumThreads() << "." << std::endl;
+    if (threading_support) {
+        logger << "Maximum number of threads: " << ParallelUtilities::GetNumThreads() << "." << std::endl;
     }
 
     if (mpi_support) {

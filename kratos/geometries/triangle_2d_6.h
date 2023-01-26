@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_TRIANGLE_2D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -64,7 +62,8 @@ namespace Kratos
  * @author Janosch Stascheit
  * @author Felix Nagel
  */
-template<class TPointType> class Triangle2D6
+template<class TPointType>
+class Triangle2D6
     : public Geometry<TPointType>
 {
 public:
@@ -245,6 +244,24 @@ public:
         }
     }
 
+    /// Constructor with Geometry Id
+    explicit Triangle2D6(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+        ) : BaseType( GeometryId, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Triangle2D6(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+        ) : BaseType( rGeometryName, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 6) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -283,12 +300,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Triangle;
+        return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Triangle2D6;
+        return GeometryData::KratosGeometryType::Kratos_Triangle2D6;
     }
 
     ///@}
@@ -334,26 +351,61 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Triangle2D6( ThisPoints ) );
+        return typename BaseType::Pointer( new Triangle2D6( rThisPoints ) );
     }
 
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Triangle2D6( NewGeometryId, rThisPoints ) );
+    }
 
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const BaseType& rGeometry
+        ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Triangle2D6( rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Triangle2D6< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+        ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Triangle2D6( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
     /**
      * returns the local coordinates of all nodes of the current geometry
@@ -404,54 +456,44 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( Area() ) );
+        return std::sqrt( std::abs( Area() ) );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /** 
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surfacede
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle2D6:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
+    /** 
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double DomainSize() const override
     {
@@ -632,9 +674,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -957,8 +999,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -998,8 +1039,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1057,13 +1097,13 @@ private:
         {
             {
                 Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 )
             }
         };
         return shape_functions_values;
@@ -1075,10 +1115,10 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 )
+                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Triangle2D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 )
             }
         };
         return shape_functions_local_gradients;
@@ -1140,7 +1180,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Triangle2D6<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Triangle2D6<TPointType>::AllIntegrationPoints(),
     Triangle2D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
@@ -1151,5 +1191,3 @@ const GeometryDimension Triangle2D6<TPointType>::msGeometryDimension(
     2, 2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined

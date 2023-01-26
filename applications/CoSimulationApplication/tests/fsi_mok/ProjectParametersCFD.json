@@ -171,7 +171,7 @@
                 "file_format"                        : "binary",
                 "output_precision"                   : 7,
                 "output_sub_model_parts"             : false,
-                "folder_name"                        : "fsi_mok/vtk_output_mok_fsi_cfd",
+                "output_path"                        : "fsi_mok/vtk_output_mok_fsi_cfd",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"]
             }

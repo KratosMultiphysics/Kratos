@@ -136,8 +136,8 @@ namespace Kratos
             CppTestsUtilities::Create2DGeometry(r_model_part, "SurfaceCondition3D3N", true, false);
 
             FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> process(
-                r_model_part.GetCommunicator().GetDataCommunicator(),
-                r_model_part, NEIGHBOUR_CONDITION_NODES);
+                r_model_part,
+                NEIGHBOUR_CONDITION_NODES);
             process.Execute();
 
             KRATOS_CHECK_EQUAL(r_model_part.pGetNode(1)->GetValue(NEIGHBOUR_CONDITION_NODES).size(), 3);

@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/point_moment_condition_3d.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -236,8 +237,6 @@ double PointMomentCondition3D::GetPointMomentIntegrationWeight() const
 
 int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-
     const auto& r_node = this->GetGeometry()[0];
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
 

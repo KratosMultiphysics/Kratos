@@ -27,7 +27,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints1
+class QuadrilateralGaussLobattoIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
@@ -46,11 +46,13 @@ public:
         return 2;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , 0.00, 1.00 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , 0.00, 1.00 );
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 , 0.00, 1.00 ),
+            IntegrationPointType(  1.00 , 0.00, 1.00 )
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -59,15 +61,11 @@ public:
         buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints2
+class QuadrilateralGaussLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints2);
@@ -86,14 +84,15 @@ public:
         return 4;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
-        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, 0.50 );
-        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, 0.50 );
-        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, 0.50 );
-        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, 0.50 );
-        return msIntegrationPoints;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 , -1.00, 0.50 ),
+            IntegrationPointType(  1.00 , -1.00, 0.50 ),
+            IntegrationPointType(  1.00 ,  1.00, 0.50 ),
+            IntegrationPointType( -1.00 ,  1.00, 0.50 )
+        }};
+        return s_integration_points;
     }
 
     std::string Info() const
@@ -102,11 +101,7 @@ public:
         buffer << "Quadrilateral Gauss-Lobatto integration 2 ";
         return buffer.str();
     }
-protected:
 
-private:
-
-    static IntegrationPointsArrayType msIntegrationPoints;
 }; // Class QuadrilateralGaussLobattoIntegrationPoints2
 
 

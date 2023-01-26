@@ -1,0 +1,31 @@
+Begin ModelPartData
+End ModelPartData
+
+Begin Properties 2
+End Properties
+
+Begin Nodes
+      111   0.0000000000   0.0510001   0.0228720785
+End Nodes
+
+Begin Elements SphericSwimmingParticle3D
+      303          2   111
+End Elements
+
+Begin NodalData RADIUS
+      111 0 3.19279e-04
+End NodalData
+
+Begin SubModelPart DEMParts
+  Begin SubModelPartData
+    INITIAL_VELOCITY_X_VALUE 1.0
+  End SubModelPartData
+  Begin SubModelPartNodes
+    111
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    303
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart

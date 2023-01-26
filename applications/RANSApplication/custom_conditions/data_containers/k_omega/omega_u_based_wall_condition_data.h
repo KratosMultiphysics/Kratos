@@ -37,12 +37,12 @@ class OmegaUBasedWallConditionData : public ScalarWallFluxConditionData
 public:
     using BaseType = ScalarWallFluxConditionData;
     using NodeType = Node<3>;
-    using GeomtryType = BaseType::GeometryType;
+    using GeometryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
 
     static void Check(
-        const GeometryType& rGeometry,
+        const Condition& rCondition,
         const ProcessInfo& rCurrentProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
@@ -53,18 +53,20 @@ public:
     }
 
     OmegaUBasedWallConditionData(
-        const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+    : BaseType(rGeometry, rProperties, rProcessInfo)
     {
     }
 
     void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
-    bool IsWallFluxComputable() const override;
+    bool IsWallFluxComputable() const;
 
     double CalculateWallFlux(
-        const Vector& rShapeFunctions) const override;
+        const Vector& rShapeFunctions);
 
 protected:
     double mOmegaSigma;
@@ -73,6 +75,7 @@ protected:
     double mBeta;
     double mYPlus;
     double mCmu25;
+    double mDensity;
 };
 
 ///@}

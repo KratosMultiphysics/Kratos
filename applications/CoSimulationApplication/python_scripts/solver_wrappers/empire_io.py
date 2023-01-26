@@ -13,16 +13,16 @@ from KratosMultiphysics.CoSimulationApplication.utilities import model_part_util
 # Other imports
 import os
 
-def Create(settings, model, solver_name):
-    return EmpireIO(settings, model, solver_name)
+def Create(*args):
+    return EmpireIO(*args)
 
 communication_folder = ".EmpireIO" # hardcoded in C++
 
 class EmpireIO(CoSimulationIO):
     """IO for the legacy EMPIRE_API
     """
-    def __init__(self, settings, model, solver_name):
-        super().__init__(settings, model, solver_name)
+    def __init__(self, settings, model, solver_name, data_communicator):
+        super().__init__(settings, model, solver_name, data_communicator)
         # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
         KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
         KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(self.settings["api_print_timing"].GetBool())
@@ -70,8 +70,8 @@ class EmpireIO(CoSimulationIO):
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
             KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, interface_data.variable)
-        elif data_type == "convergence_signal":
-            KratosCoSim.EMPIRE_API.EMPIRE_API_sendConvergenceSignal(data_config["is_converged"], self.solver_name)
+        elif data_type == "repeat_time_step":
+            KratosCoSim.EMPIRE_API.EMPIRE_API_sendConvergenceSignal((not data_config["repeat_time_step"]), self.solver_name)
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 

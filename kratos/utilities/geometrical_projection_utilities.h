@@ -11,8 +11,7 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_GEOMETRICAL_PROJECTION_UTILITIES)
-#define KRATOS_GEOMETRICAL_PROJECTION_UTILITIES
+#pragma once
 
 // System includes
 
@@ -112,28 +111,32 @@ public:
 
     /**
      * @brief Project a point over a plane (avoiding some steps)
+     * @tparam TPointClass1 The type of point (I)
+     * @tparam TPointClass2 The type of point (II)
+     * @tparam TPointClass2 The type of point (III)
      * @param rPointOrigin A point in the plane
      * @param rPointToProject The point to be projected
      * @param rNormal The normal of the plane
      * @param rDistance The distance to the projection
      * @return PointProjected The point pojected over the plane
      */
-    static inline PointType FastProject(
-        const PointType& rPointOrigin,
-        const PointType& rPointToProject,
+    template<class TPointClass1, class TPointClass2 = TPointClass1, class TPointClass3 = PointType>
+    static inline TPointClass3 FastProject(
+        const TPointClass1& rPointOrigin,
+        const TPointClass2& rPointToProject,
         const array_1d<double,3>& rNormal,
         double& rDistance
         )
     {
-        const array_1d<double,3> vector_points = rPointToProject.Coordinates() - rPointOrigin.Coordinates();
+        const array_1d<double,3> vector_points = rPointToProject - rPointOrigin;
 
         rDistance = inner_prod(vector_points, rNormal);
 
-        PointType point_projected;
+        TPointClass3 point_projected;
     #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        point_projected.Coordinates() = rPointToProject.Coordinates() - rNormal * rDistance;
+        point_projected = rPointToProject - rNormal * rDistance;
     #else
-        noalias(point_projected.Coordinates()) = rPointToProject.Coordinates() - rNormal * rDistance;
+        noalias(point_projected) = rPointToProject - rNormal * rDistance;
     #endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
@@ -179,14 +182,14 @@ public:
      */
     template<class TGeometryType>
     static inline double FastProjectOnLine(const TGeometryType& rGeometry,
-                                           const Point& rPointToProject,
+                                           const PointType& rPointToProject,
                                            PointType& rPointProjected)
     {
         const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
         const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
         const array_1d<double, 3> ab = r_p_b - r_p_a;
 
-        const array_1d<double, 3> p_c = rPointToProject.Coordinates();
+        const array_1d<double, 3>& p_c = rPointToProject.Coordinates();
 
         const double factor = (inner_prod(r_p_b, p_c) - inner_prod(r_p_a, p_c) - inner_prod(r_p_b, r_p_a) + inner_prod(r_p_a, r_p_a)) / inner_prod(ab, ab);
 
@@ -195,25 +198,56 @@ public:
         return norm_2(rPointProjected.Coordinates()-p_c);
     }
 
+
+    /**
+     * @brief Computes the minimal distance to a line
+     * @details Projects over a line and if the point projected is inside the line that distance is taken into consideration, otherwise the minimal between the two points in the line is considered
+     * @tparam TGeometryType The type of the line
+     * @param rGeometry The line where compute the distance
+     * @param rPoint The point to compute the distance
+     * @param Tolerance Tolerance to check it falls inside the line
+     * @return Distance The distance between point and line
+     */
+    template<class TGeometryType>
+    static inline double FastMinimalDistanceOnLine(
+        const TGeometryType& rGeometry,
+        const PointType& rPoint,
+        const double Tolerance = 1.0e-9
+        )
+    {
+        PointType projected_point;
+        const double projected_distance = FastProjectOnLine(rGeometry, rPoint, projected_point);
+        typename TGeometryType::CoordinatesArrayType projected_local;
+        if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
+            return projected_distance;
+        } else {
+            const double distance_a = rPoint.Distance(rGeometry[0]);
+            const double distance_b = rPoint.Distance(rGeometry[1]);
+            return std::min(distance_a, distance_b);
+        }
+    }
+
     /**
      * @brief Project a point over a line (2D only)
      * @tparam TGeometryType The type of the line
+     * @tparam TPointClass1 The type of point (I)
+     * @tparam TPointClass2 The type of point (II)
      * @param rGeometry The line where to be projected
      * @param rPointToProject The point to be projected
      * @param rPointProjected The point pojected over the line
      * @return Distance The distance between point and line
      */
-    template<class TGeometryType>
+    template<class TGeometryType, class TPointClass1, class TPointClass2 = TPointClass1>
     static inline double FastProjectOnLine2D(
         const TGeometryType& rGeometry,
-        const Point& rPointToProject,
-        PointType& rPointProjected
+        const TPointClass1& rPointToProject,
+        TPointClass2& rPointProjected
         )
     {
         // Node coordinates
-        const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
-        const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
-        const array_1d<double, 3>& r_p_c = rPointToProject.Coordinates();
+        const array_1d<double, 3>& r_p_a = rGeometry[0];
+        const array_1d<double, 3>& r_p_b = rGeometry[1];
+        const array_1d<double, 3>& r_p_c = rPointToProject;
 
         // We compute the normal
         array_1d<double,3> normal;
@@ -222,12 +256,12 @@ public:
         normal[2] = 0.0;
 
         const double norm_normal = norm_2(normal);
-        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-        else KRATOS_ERROR << "Zero norm normal: X: " << normal[0] << "\tY: " << normal[1] << std::endl;
+        KRATOS_ERROR_IF(norm_normal <= std::numeric_limits<double>::epsilon()) << "Zero norm normal: X: " << normal[0] << "\tY: " << normal[1] << std::endl;
+        normal /= norm_normal;
 
         const array_1d<double,3> vector_points = r_p_a - r_p_c;
-        const double distance = inner_prod(vector_points, normal)/norm_normal;
-        noalias(rPointProjected.Coordinates()) = r_p_c + normal * distance;
+        const double distance = inner_prod(vector_points, normal);
+        noalias(rPointProjected) = r_p_c + normal * distance;
 
         return distance;
     }
@@ -330,5 +364,4 @@ private:
 
 ///@}
 
-}
-#endif /* KRATOS_GEOMETRICAL_PROJECTION_UTILITIES defined */
+} /// namespace Kratos

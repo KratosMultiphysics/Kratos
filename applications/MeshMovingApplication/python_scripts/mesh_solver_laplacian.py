@@ -27,8 +27,8 @@ class MeshSolverLaplacian(MeshSolverBase):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
-    def _create_mesh_motion_solving_strategy(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateSolutionStrategy(self):
+        linear_solver = self._GetLinearSolver()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         solving_strategy = KratosMeshMoving.LaplacianMeshMovingStrategy(self.mesh_model_part,
@@ -37,8 +37,6 @@ class MeshSolverLaplacian(MeshSolverBase):
                                                             reform_dofs_each_step,
                                                             compute_reactions,
                                                             False,
-                                                            self.echo_level)
+                                                            self.echo_level,
+                                                            self.reinitialize_model_part_each_step)
         return solving_strategy
-
-
-

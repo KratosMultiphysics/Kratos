@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
@@ -199,6 +197,36 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(condition_sub1_copy.Nodes) , len(sub1.Nodes))
         self.assertEqual(len(condition_sub1_copy.Elements) , 0)
         self.assertEqual(len(condition_sub1_copy.Conditions) , len(sub1.Conditions))
+
+
+    def test_properties_shared(self):
+        current_model = KratosMultiphysics.Model()
+        model_part_1 = current_model.CreateModelPart("Main")
+        model_part_2 = current_model.CreateModelPart("Destination")
+
+        model_part_1.CreateNewNode(1, 0.0, 0.1, 0.0)
+        model_part_1.CreateNewNode(2, 2.0, 0.1, 0.0)
+        model_part_1.CreateNewNode(3, 1.0, 1.1, 0.0)
+
+        properties_0 = model_part_1.CreateNewProperties(0)
+        properties_1 = model_part_1.CreateNewProperties(1)
+        properties_0.SetValue(KratosMultiphysics.DENSITY, 0.1)
+        properties_1.SetValue(KratosMultiphysics.DENSITY, 1.0)
+
+        model_part_1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part_1.GetProperties()[1])
+
+        KratosMultiphysics.ConnectivityPreserveModeler().GenerateModelPart(model_part_1, model_part_2, "Element2D3N")
+
+        self.assertEqual(model_part_2.NumberOfProperties(), 2)
+        self.assertEqual(model_part_2.GetProperties()[0].GetValue(KratosMultiphysics.DENSITY), 0.1)
+        self.assertEqual(model_part_2.GetProperties()[1].GetValue(KratosMultiphysics.DENSITY), 1.0)
+
+        model_part_2.RemoveProperties(0)
+        model_part_2.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, 2.0)
+
+        self.assertEqual(model_part_1.NumberOfProperties(), 2)
+        self.assertEqual(model_part_1.GetProperties()[0].GetValue(KratosMultiphysics.DENSITY), 0.1)
+        self.assertEqual(model_part_1.GetProperties()[1].GetValue(KratosMultiphysics.DENSITY), 2.0)
 
 
 if __name__ == '__main__':

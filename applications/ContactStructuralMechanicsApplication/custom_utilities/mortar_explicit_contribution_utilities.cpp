@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -15,6 +16,7 @@
 
 // Project includes
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -78,7 +80,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         this_mortar_condition_matrices.Initialize();
 
         if (ComputeDualLM) {
-            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
@@ -108,7 +110,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
                     // Calculate the kinematic variables
                     ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
-                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
 
                     this_mortar_condition_matrices.CalculateMortarOperators(kinematic_variables, integration_weight);
@@ -125,8 +127,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-                #pragma omp atomic
-                r_nodal_area += DOperator(i_node, i_node);
+                AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
             }
         }
 
@@ -146,8 +147,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            #pragma omp atomic
-            r_weighted_gap += inner_prod(aux_array, - aux_normal);
+            AtomicAdd(r_weighted_gap, inner_prod(aux_array, - aux_normal));
         }
 
         // We reset the flag
@@ -227,7 +227,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         this_mortar_condition_matrices.Initialize();
 
         if (ComputeDualLM) {
-            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
@@ -258,7 +258,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
                     // Calculate the kinematic variables
                     ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
-                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
 
                     this_mortar_condition_matrices.CalculateMortarOperators(kinematic_variables, integration_weight);
@@ -275,8 +275,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-                #pragma omp atomic
-                r_nodal_area += DOperator(i_node, i_node);
+                AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
             }
         }
 
@@ -319,8 +318,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            #pragma omp atomic
-            r_weighted_gap += inner_prod(aux_array, - normal);
+            AtomicAdd(r_weighted_gap, inner_prod(aux_array, - normal));
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
@@ -330,8 +328,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             array_1d<double, 3>& r_weighted_slip = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
             for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                #pragma omp atomic
-                r_weighted_slip[i_dim] += slip_node[i_dim];
+                AtomicAdd(r_weighted_slip[i_dim], slip_node[i_dim]);
             }
         }
 
@@ -424,7 +421,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         rPreviousMortarOperators.Initialize();
 
         if (ComputeDualLM) {
-            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+            const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
@@ -459,7 +456,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
                     // Calculate the kinematic variables
                     ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
-                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
 
                     rPreviousMortarOperators.CalculateMortarOperators(kinematic_variables, integration_weight);
@@ -473,8 +470,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-            #pragma omp atomic
-            r_nodal_area += DOperator(i_node, i_node);
+            AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
         }
     }
 
@@ -643,12 +639,12 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-double AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(
+double AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(
     const PairedCondition* pCondition,
     const Vector& rNSlave
     )
 {
-    const double radius = AuxiliarOperationsUtilities::CalculateRadius(pCondition, rNSlave);
+    const double radius = AuxiliaryOperationsUtilities::CalculateRadius(pCondition, rNSlave);
     const double thickness = pCondition->GetProperties()[THICKNESS];
     return (2.0 * Globals::Pi * radius/thickness);
 }
@@ -656,7 +652,7 @@ double AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double AuxiliarOperationsUtilities::CalculateRadius(
+double AuxiliaryOperationsUtilities::CalculateRadius(
     const PairedCondition* pCondition,
     const Vector& rNSlave
     )

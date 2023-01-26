@@ -19,6 +19,7 @@
 #include "processes/apply_ray_casting_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -53,6 +54,20 @@ namespace Kratos
 	{
 	}
 
+	template <std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+		const double RelativeTolerance,
+		const Variable<double>* pDistanceVariable,
+		const DistanceDatabase& rDistanceDatabase)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+		  mIsSearchStructureAllocated(false),
+		  mpDistanceVariable(pDistanceVariable)
+		, mDistanceDatabase(rDistanceDatabase)
+	{
+	}
+
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::~ApplyRayCastingProcess()
 	{
@@ -64,21 +79,27 @@ namespace Kratos
 	void ApplyRayCastingProcess<TDim>::Execute()
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
-            mpFindIntersectedObjectsProcess->Initialize();
+            mpFindIntersectedObjectsProcess->ExecuteInitialize();
 
 		this->SetRayCastingTolerances();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
-		#pragma omp parallel for
-		for(int k = 0 ; k < static_cast<int>(ModelPart1.NumberOfNodes()); ++k) {
-			auto it_node = ModelPart1.NodesBegin() + k;
-			double &r_node_distance = it_node->GetSolutionStepValue(DISTANCE);
-			const double ray_distance = this->DistancePositionInSpace(*it_node);
+		// Set the getter function according to the database to be used
+		NodeScalarGetFunctionType node_distance_getter;
+		if (mDistanceDatabase == DistanceDatabase::NodeHistorical) {
+			node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
+		} else {
+			node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
+		}
+
+		block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
+			double& r_node_distance = node_distance_getter(rNode, *mpDistanceVariable);
+			const double ray_distance = this->DistancePositionInSpace(rNode);
 			if (ray_distance * r_node_distance < 0.0) {
 				r_node_distance = -r_node_distance;
 			}
-        }
+		});
 	}
 
 	template<std::size_t TDim>
@@ -137,7 +158,7 @@ namespace Kratos
 		}
 
         double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
-		if (TDim == 3){
+		if constexpr (TDim == 3){
         	distance = (std::abs(distance) > std::abs(distances[2])) ? distances[2] : distance;
 		}
 
@@ -351,7 +372,7 @@ namespace Kratos
 		rp_octree->ScaleBackToOriginalCoordinate(ray_point2);
 
 		// This is a workaround to avoid the z-component in 2D
-		if (TDim == 2){
+		if constexpr (TDim == 2){
 			ray_point1[2] = 0.0;
 			ray_point2[2] = 0.0;
 		}

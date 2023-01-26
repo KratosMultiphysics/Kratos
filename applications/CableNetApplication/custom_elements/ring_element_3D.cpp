@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos {
@@ -458,7 +459,9 @@ void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   KRATOS_CATCH("")
 }
 
-void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
+void RingElement3D::CalculateLumpedMassVector(
+    VectorType &rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -472,8 +475,9 @@ void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
     const SizeType local_size = dimension*points_number;
 
     // Clear matrix
-    if (rMassVector.size() != local_size)
-        rMassVector.resize( local_size );
+    if (rLumpedMassVector.size() != local_size) {
+      rLumpedMassVector.resize(local_size);
+    }
 
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = this->GetRefLength();
@@ -484,8 +488,7 @@ void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
     for (int i = 0; i < points_number; ++i) {
         for (int j = 0; j < dimension; ++j) {
             int index = i * dimension + j;
-
-            rMassVector[index] = total_mass;
+            rLumpedMassVector[index] = total_mass;
         }
     }
 
@@ -503,7 +506,7 @@ void RingElement3D::CalculateMassMatrix(
 
     // Compute lumped mass matrix
     VectorType temp_vector(local_size);
-    CalculateLumpedMassVector(temp_vector);
+    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != local_size || rMassMatrix.size2() != local_size)
@@ -569,14 +572,13 @@ void RingElement3D::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
-        this->CalculateLumpedMassVector(element_mass_vector);
+        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * dimension;
 
-            #pragma omp atomic
-            r_nodal_mass += element_mass_vector(index);
+            AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
     }
     KRATOS_CATCH("")
@@ -608,28 +610,20 @@ void RingElement3D::AddExplicitContribution(
             size_t index = dimension * i;
             array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], rRHSVector[index + j] - damping_residual_contribution[index + j] );
             }
         }
     } else if (rDestinationVariable == NODAL_INERTIA) {
 
         // Getting the vector mass
         VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, dimension> &r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             int index = i * dimension;
 
-            #pragma omp atomic
-            r_nodal_mass += mass_vector[index];
-
-            for (int k = 0; k < dimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += 0.0;
-            }
+            AtomicAdd(r_nodal_mass, mass_vector[index]);
         }
     }
     KRATOS_CATCH("")

@@ -41,24 +41,21 @@ class Procedures(DEM_procedures.Procedures):
 
         root = main_path + '/' + problem_name
         post_path = root + '_Post_Files'
-        data_and_results = root + '_Results_and_Data'
         graphs_path = root + '_Graphs'
-        MPI_results = root + '_MPI_results'
 
         if mpi.rank == 0 and do_print_results:
-            for directory in [post_path, data_and_results, graphs_path, MPI_results]:
+            for directory in [post_path, graphs_path]:
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))
 
         self.Barrier()
 
-        return [post_path, data_and_results, graphs_path, MPI_results]
+        return [post_path, graphs_path]
 
     def PreProcessModel(self, DEM_parameters):
-        if mpi.rank == 0:
-            print("Creating MPIer...")
-            #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters["problem_name"].GetString()) + "DEM.mdpa")
-            print("done.")
+        Logger.PrintInfo("Creating MPIer...")
+        #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters["problem_name"].GetString()) + "DEM.mdpa")
+        Logger.PrintInfo("done.")
         self.Barrier() #TODO: maybe not necessary (debugging)
 
     def FindMaxNodeIdInModelPart(self, model_part):
@@ -75,9 +72,8 @@ class Procedures(DEM_procedures.Procedures):
                 os.remove(to_erase_file)
 
     def KratosPrintInfo(self, message):
-        if mpi.rank == 0:
-            Logger.Print(*args, label="DEM")
-            Logger.Flush()
+        Logger.PrintInfo(*args, label="DEM")
+        Logger.Flush()
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
@@ -161,15 +157,12 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
     def PerformInitialPartition(self, model_part_io_spheres):
         domain_size = 3
 
-        #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
         number_of_partitions = mpi.size
 
         if mpi.rank == 0:
-            #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
             partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_spheres, number_of_partitions, domain_size);
             partitioner.Execute()
 
-        #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
         mpi.world.barrier()
         #return model_part_io_spheres
 

@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers_define.h"
 
 
 namespace Kratos
@@ -26,7 +27,7 @@ namespace Kratos
 
 template <
     typename TScalar = double,
-    typename TEigenSparseMatrix = Eigen::SparseMatrix<TScalar, Eigen::RowMajor, int>>
+    typename TEigenSparseMatrix = Kratos::EigenSparseMatrix<TScalar>>
 class UblasWrapper
 {
     std::vector<int> m_index1;

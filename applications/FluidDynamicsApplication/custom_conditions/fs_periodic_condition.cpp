@@ -59,7 +59,7 @@ Condition::Pointer FSPeriodicCondition<TDim>::Create(IndexType NewId, GeometryTy
 }
 
 template< unsigned int TDim >
-int FSPeriodicCondition<TDim>::Check(const ProcessInfo& rCurrentProcessInfo)
+int FSPeriodicCondition<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -69,33 +69,33 @@ int FSPeriodicCondition<TDim>::Check(const ProcessInfo& rCurrentProcessInfo)
 }
 
 template< unsigned int TDim >
-void FSPeriodicCondition<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void FSPeriodicCondition<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     rLeftHandSideMatrix.resize(0,0,false);
     rRightHandSideVector.resize(0,false);
 }
 
 template< unsigned int TDim >
-void FSPeriodicCondition<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void FSPeriodicCondition<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     rLeftHandSideMatrix.resize(0,0,false);
 }
 
 template< unsigned int TDim >
-void FSPeriodicCondition<TDim>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void FSPeriodicCondition<TDim>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType LHS;
     CalculateLocalSystem(LHS,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 template< unsigned int TDim >
-void FSPeriodicCondition<TDim>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void FSPeriodicCondition<TDim>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
 {
     rResult.resize(0);
 }
 
 template< unsigned int TDim >
-void FSPeriodicCondition<TDim>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void FSPeriodicCondition<TDim>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY;
 
@@ -126,7 +126,7 @@ void FSPeriodicCondition<TDim>::GetDofList(DofsVectorType& rElementalDofList, Pr
 }
 
 template< unsigned int TDim >
-void FSPeriodicCondition<TDim>::GetValuesVector(Vector& Values, int Step)
+void FSPeriodicCondition<TDim>::GetValuesVector(Vector& Values, int Step) const 
 {
     if (Values.size() != 0)
         Values.resize(0,false);
@@ -159,9 +159,9 @@ void FSPeriodicCondition<TDim>::GetValuesVector(Vector& Values, int Step)
 
 template<>
 void FSPeriodicCondition<2>::GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                           ProcessInfo& rCurrentProcessInfo)
+                                           const ProcessInfo& rCurrentProcessInfo) const 
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 2*NumNodes;
 
@@ -179,9 +179,9 @@ void FSPeriodicCondition<2>::GetVelocityDofList(DofsVectorType& rElementalDofLis
 
 template<>
 void FSPeriodicCondition<3>::GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                           ProcessInfo& rCurrentProcessInfo)
+                                           const ProcessInfo& rCurrentProcessInfo) const 
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 3*NumNodes;
 
@@ -200,9 +200,9 @@ void FSPeriodicCondition<3>::GetVelocityDofList(DofsVectorType& rElementalDofLis
 
 template< unsigned int TDim >
 void FSPeriodicCondition<TDim>::GetPressureDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo) const 
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rElementalDofList.size() != NumNodes)

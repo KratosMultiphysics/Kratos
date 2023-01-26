@@ -33,63 +33,79 @@ namespace Kratos
 namespace KEpsilonElementData
 {
 template <unsigned int TDim>
-class KElementData : public ConvectionDiffusionReactionElementData
+class KElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
-    using BaseType = ConvectionDiffusionReactionElementData;
+    ///@name Type Definitions
+    ///@{
+
+    using BaseType = ConvectionDiffusionReactionElementData<TDim>;
+
     using NodeType = Node<3>;
-    using GeomtryType = BaseType::GeometryType;
+
+    using GeometryType = typename BaseType::GeometryType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    KElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+        : BaseType(rGeometry, rProperties, rProcessInfo)
+    {
+    }
+
+    ~KElementData() override = default;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     static const Variable<double>& GetScalarVariable();
 
     static void Check(
-        const GeometryType& rGeometry,
+        const Element& rElement,
         const ProcessInfo& rCurrentProcessInfo);
 
-    static const std::string GetName()
-    {
-        return "KEpsilonKElementData";
-    }
+    static const std::string GetName() { return "KEpsilonKElementData"; }
 
-    KElementData(const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
-    {
-    }
+    ///@}
+    ///@name Operations
+    ///@{
 
     void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGaussPointData(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
-        const int Step = 0) override;
+        const int Step = 0);
 
-    array_1d<double, 3> CalculateEffectiveVelocity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
-
-    double CalculateEffectiveKinematicViscosity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
-
-    double CalculateReactionTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
-
-    double CalculateSourceTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
+    ///@}
 
 protected:
+    ///@name Protected Members
+    ///@{
+
+    using BaseType::mEffectiveVelocity;
+    using BaseType::mEffectiveKinematicViscosity;
+    using BaseType::mReactionTerm;
+    using BaseType::mSourceTerm;
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-    array_1d<double, 3> mEffectiveVelocity;
 
     double mGamma;
     double mTurbulentKinematicViscosity;
+    double mTurbulentKineticEnergy;
     double mKinematicViscosity;
     double mVelocityDivergence;
-    double mInvTkeSigma;
+    double mInvTurbulentKineticEnergySigma;
     double mCmu;
+    double mDensity;
+
+    ///@}
 };
 
 ///@}

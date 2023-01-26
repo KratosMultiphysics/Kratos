@@ -131,7 +131,7 @@ namespace Kratos
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
           KRATOS_TRY
-          KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
+          KRATOS_ERROR << "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!" << std::endl;
 
           if(rSearchNodes.size() && rBinsNodes.size())
           {

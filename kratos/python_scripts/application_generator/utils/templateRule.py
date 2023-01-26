@@ -1,10 +1,8 @@
-from __future__ import print_function, absolute_import, division
-
 import sys
 
 from utils.io import bcolors, Formatc
 
-class TemplateRule(object):
+class TemplateRule:
 
     def __init__(self):
         self.rules = []

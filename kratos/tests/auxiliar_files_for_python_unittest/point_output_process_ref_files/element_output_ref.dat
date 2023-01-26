@@ -1,4 +1,4 @@
-# Results for "element" with Id # 17 at position: x: 0.563; y: 0.89; z: 0
+# Results for "element" with Id # 17 for search config "initial" at position: x0: 0.563; y0: 0.89; z0: 0
 # time DISPLACEMENT_X VISCOSITY ACCELERATION_X ACCELERATION_Y ACCELERATION_Z
 0.15 0.161910934 1.0605 0.0242866401 0.199425 0.2404499999999999
 0.3 0.323821868 1.128 0.09714656039999998 0.44385 0.5259

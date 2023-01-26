@@ -345,7 +345,7 @@ class Benchmark1:
 
         error = abs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
 
-        print("Error in restitution numbers =", 100*error,"%")
+        Logger.PrintInfo("Error in restitution numbers =", 100*error,"%")
 
         error1 = 100*error
 
@@ -412,7 +412,7 @@ class Benchmark2:
 
         error = abs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
 
-        print("Error in restitution numbers =", 100*error,"%")
+        Logger.PrintInfo("Error in restitution numbers =", 100*error,"%")
 
         error1 = 100*error
 
@@ -523,7 +523,7 @@ class Benchmark3:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_Chung_data
 
-        print("Error in restitution numbers =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in restitution numbers =", 100*generated_data_error,"%")
 
         error1 = 100*generated_data_error
 
@@ -671,7 +671,7 @@ class Benchmark4:
         for i, j in zip(DEM_data, Chung_data):
             final_tangential_restitution_coefficient_error+=abs(i-j)
         final_tangential_restitution_coefficient_error/=summation_of_Chung_data
-        print("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
+        Logger.PrintInfo("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -697,7 +697,7 @@ class Benchmark4:
         for i, j in zip(DEM_data, Chung_data):
             final_angular_vel_total_error+=abs(i-j)
         final_angular_vel_total_error/=summation_of_Chung_data
-        print("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
+        Logger.PrintInfo("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -723,7 +723,7 @@ class Benchmark4:
         for i, j in zip(DEM_data, Chung_data):
             final_rebound_angle_error+=abs(i-j)
         final_rebound_angle_error/=summation_of_Chung_data
-        print("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
+        Logger.PrintInfo("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
 
         error1 = 100*final_tangential_restitution_coefficient_error
         error2 = 100*final_angular_vel_total_error
@@ -852,7 +852,7 @@ class Benchmark5:
 
         final_Vst_prima_div_mu_per_Vcn_prima_error/=summation_of_Chung_data
 
-        print("Error in final Vst prima div mu per Vcn prima =", 100*final_Vst_prima_div_mu_per_Vcn_prima_error,"%")
+        Logger.PrintInfo("Error in final Vst prima div mu per Vcn prima =", 100*final_Vst_prima_div_mu_per_Vcn_prima_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -879,7 +879,7 @@ class Benchmark5:
             final_r_w1_prima_div_mu_per_Vcn_error+=abs(i-j)
 
         final_r_w1_prima_div_mu_per_Vcn_error/=summation_of_Chung_data
-        print("Error in final r w1 prima div mu per Vcn =", 100*final_r_w1_prima_div_mu_per_Vcn_error,"%")
+        Logger.PrintInfo("Error in final r w1 prima div mu per Vcn =", 100*final_r_w1_prima_div_mu_per_Vcn_error,"%")
 
         error1 = 100*final_Vst_prima_div_mu_per_Vcn_prima_error
         error2 = 100*final_r_w1_prima_div_mu_per_Vcn_error
@@ -1013,7 +1013,7 @@ class Benchmark6:
             final_beta_list_outfile_name_error+=abs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
-        print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
+        Logger.PrintInfo("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
 
         lines_Chung = list(range(13, 17)); lines_DEM = list(range(12, 16)) # Sliding regime for the time being
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -1042,7 +1042,7 @@ class Benchmark6:
             final_Vst_prima_div_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
-        print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
+        Logger.PrintInfo("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
 
         error1 = 100*final_beta_list_outfile_name_error
         error2 = 100*final_Vst_prima_div_Vcn_prima_error
@@ -1169,7 +1169,7 @@ class Benchmark7:
 
         for i, j in zip(DEM_data, Chung_data):
             final_tangential_center_vel_error+=abs(i-j)
-        print("Error in final tangential center vel =", final_tangential_center_vel_error)
+        Logger.PrintInfo("Error in final tangential center vel =", final_tangential_center_vel_error)
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
@@ -1196,7 +1196,7 @@ class Benchmark7:
             final_angular_vel_error+=abs(i-j)
 
         final_angular_vel_error/=summation_of_Chung_data
-        print("Error in final angular vel =", 100*final_angular_vel_error,"%")
+        Logger.PrintInfo("Error in final angular vel =", 100*final_angular_vel_error,"%")
 
         error1 = 100*final_tangential_center_vel_error
         error2 = 100*final_angular_vel_error
@@ -1331,7 +1331,7 @@ class Benchmark8:
             final_beta_list_outfile_name_error+=abs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
-        print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
+        Logger.PrintInfo("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
 
         lines_Chung = []; lines_DEM = []; lines_DEM = list(range(4, 0, -1)); lines_Chung = list(range(13, 17)) # Sliding regime for the time being
         #lines_Chung = list(range(1, 17)); lines_DEM = list(range(0, 16)) # Whole diagram
@@ -1362,7 +1362,7 @@ class Benchmark8:
             final_Vst_prima_div_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
-        print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
+        Logger.PrintInfo("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
 
         error1 = 100*final_beta_list_outfile_name_error
         error2 = 100*final_Vst_prima_div_Vcn_prima_error
@@ -1481,7 +1481,7 @@ class Benchmark9:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_Chung_data
 
-        print("Error in restitution numbers =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in restitution numbers =", 100*generated_data_error,"%")
 
         error1 = 100*generated_data_error
 
@@ -1547,7 +1547,7 @@ class Benchmark10: ########## LINEAR THORNTON
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = self.coeff_of_restitution
 
-        print(self.coeff_of_restitution)
+        Logger.PrintInfo(self.coeff_of_restitution)
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
 
@@ -1680,7 +1680,7 @@ class Benchmark10: ########## LINEAR THORNTON
 
         final_normalized_rebound_tangential_surface_vel_error/=summation_of_Thornton_data
 
-        print("Error in normalized rebound tangential surface velocity =", 100*final_normalized_rebound_tangential_surface_vel_error,"%")
+        Logger.PrintInfo("Error in normalized rebound tangential surface velocity =", 100*final_normalized_rebound_tangential_surface_vel_error,"%")
 
         #
         Thornton_data = []; DEM_data = []; summation_of_Thornton_data = 0
@@ -1709,7 +1709,7 @@ class Benchmark10: ########## LINEAR THORNTON
             final_normalized_rebound_angular_velocity_error+=abs(i-j)
 
         final_normalized_rebound_angular_velocity_error/=summation_of_Thornton_data
-        print("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
+        Logger.PrintInfo("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
 
         #
         Thornton_data = []; DEM_data = []; summation_of_Thornton_data = 0
@@ -1738,7 +1738,7 @@ class Benchmark10: ########## LINEAR THORNTON
             final_tangential_coefficient_of_restitution_error+=abs(i-j)
 
         final_tangential_coefficient_of_restitution_error/=summation_of_Thornton_data
-        print("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
+        Logger.PrintInfo("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
         #
         error1 = 100*final_normalized_rebound_tangential_surface_vel_error
         error2 = 100*final_normalized_rebound_angular_velocity_error
@@ -1812,7 +1812,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = self.coeff_of_restitution
 
-        print(self.coeff_of_restitution)
+        Logger.PrintInfo(self.coeff_of_restitution)
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
 
@@ -1944,7 +1944,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
 
         final_normalized_rebound_tangential_surface_vel_error/=summation_of_Thornton_data
 
-        print("Error in normalized rebound tangential surface velocity =", 100*final_normalized_rebound_tangential_surface_vel_error,"%")
+        Logger.PrintInfo("Error in normalized rebound tangential surface velocity =", 100*final_normalized_rebound_tangential_surface_vel_error,"%")
 
         #
         Thornton_data = []; DEM_data = []; summation_of_Thornton_data = 0
@@ -1973,7 +1973,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             final_normalized_rebound_angular_velocity_error+=abs(i-j)
 
         final_normalized_rebound_angular_velocity_error/=summation_of_Thornton_data
-        print("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
+        Logger.PrintInfo("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
 
         #
         Thornton_data = []; DEM_data = []; summation_of_Thornton_data = 0
@@ -2002,7 +2002,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             final_tangential_coefficient_of_restitution_error+=abs(i-j)
 
         final_tangential_coefficient_of_restitution_error/=summation_of_Thornton_data
-        print("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
+        Logger.PrintInfo("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
 
         #
         error1 = 100*final_normalized_rebound_tangential_surface_vel_error
@@ -2104,7 +2104,7 @@ class Benchmark12: ########## ROLLING FRICTION
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
 
         error1 = 100*generated_data_error
 
@@ -2201,9 +2201,9 @@ class Benchmark13: ########## DEM-FEM Facet
 
         error3 = 0
 
-        print("Error in velocity X =", error1,"%")
+        Logger.PrintInfo("Error in velocity X =", error1,"%")
 
-        print("Error in velocity Z =", error2,"%")
+        Logger.PrintInfo("Error in velocity Z =", error2,"%")
 
         delete_current_benchmark_data()
 
@@ -2290,9 +2290,9 @@ class Benchmark14: ########## DEM-FEM Edge
 
         error3 = 0
 
-        print("Error in velocity X =", error1,"%")
+        Logger.PrintInfo("Error in velocity X =", error1,"%")
 
-        print("Error in velocity Z =", error2,"%")
+        Logger.PrintInfo("Error in velocity Z =", error2,"%")
 
         delete_current_benchmark_data()
 
@@ -2379,9 +2379,9 @@ class Benchmark15: ########## DEM-FEM Vertex
 
         error3 = 0
 
-        print("Error in velocity X =", error1,"%")
+        Logger.PrintInfo("Error in velocity X =", error1,"%")
 
-        print("Error in velocity Z =", error2,"%")
+        Logger.PrintInfo("Error in velocity Z =", error2,"%")
 
         delete_current_benchmark_data()
 
@@ -2497,13 +2497,13 @@ class Benchmark16: ########## DEM-FEM Grid
         final_velocity_3_error/=summation_of_ref_data3
 
         #for t, v1,v2,v3 in zip(times, DEM_data1, DEM_data2, DEM_data3):
-        #    print(t, v1, v2, v3)
+        #    Logger.PrintInfo(t, v1, v2, v3)
 
-        print("Error in velocity sphere 1 =", 100*final_velocity_1_error,"%")
+        Logger.PrintInfo("Error in velocity sphere 1 =", 100*final_velocity_1_error,"%")
 
-        print("Error in velocity sphere 2 =", 100*final_velocity_2_error,"%")
+        Logger.PrintInfo("Error in velocity sphere 2 =", 100*final_velocity_2_error,"%")
 
-        print("Error in velocity sphere 3 =", 100*final_velocity_3_error,"%")
+        Logger.PrintInfo("Error in velocity sphere 3 =", 100*final_velocity_3_error,"%")
 
         error1 = 100*final_velocity_1_error
 
@@ -2601,9 +2601,9 @@ class Benchmark17: ########## DEM-FEM Rolling
 
         error3 = 0
 
-        print("Error in velocity between meshes =", 100*total_velocity_err,"%")
+        Logger.PrintInfo("Error in velocity between meshes =", 100*total_velocity_err,"%")
 
-        print("Error in angular velocity between meshes =", 100*total_angular_velocity_err,"%")
+        Logger.PrintInfo("Error in angular velocity between meshes =", 100*total_angular_velocity_err,"%")
 
         delete_current_benchmark_data()
 
@@ -2701,7 +2701,7 @@ class Benchmark20:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
 
         error1 = 100*generated_data_error
 
@@ -2805,7 +2805,7 @@ class Benchmark21:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
 
@@ -2897,7 +2897,7 @@ class Benchmark22:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
 
@@ -2927,7 +2927,7 @@ class Benchmark23:
         pass
 
     def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):     #MAIN LOOP STEP
-        #print("generate_graph_points bench23, graph_print_interval, dt - ", graph_print_interval, dt )
+        #Logger.PrintInfo("generate_graph_points bench23, graph_print_interval, dt - ", graph_print_interval, dt )
         self.graph_frequency        = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
@@ -2990,7 +2990,7 @@ class Benchmark23:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
 
@@ -3079,7 +3079,7 @@ class Benchmark24:
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
     def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
-        #print("generate_graph_points bench24, graph_print_interval, dt - ", graph_print_interval, dt )
+        #Logger.PrintInfo("generate_graph_points bench24, graph_print_interval, dt - ", graph_print_interval, dt )
         self.graph_frequency = int(graph_print_interval/dt)
 
         if self.graph_frequency < 1:
@@ -3142,7 +3142,7 @@ class Benchmark24:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
 
@@ -3296,7 +3296,7 @@ class Benchmark25:
             generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*generated_data_error,"%")
+        Logger.PrintInfo("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
 
@@ -3569,7 +3569,7 @@ class Benchmark27:
         if dem_error1 < 0.001:
            dem_error1 = 0.0
 
-        print("Error in total force at the reference particle =", 100*dem_error1,"%")
+        Logger.PrintInfo("Error in total force at the reference particle =", 100*dem_error1,"%")
 
         i = 0
         with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as reference:
@@ -3597,7 +3597,7 @@ class Benchmark27:
         if dem_error2 < 0.001:
            dem_error2 = 0.0
 
-        print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
+        Logger.PrintInfo("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
 
 
         i = 0
@@ -3625,7 +3625,7 @@ class Benchmark27:
         if dem_error3 < 0.001:
            dem_error3 = 0.0
 
-        print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
+        Logger.PrintInfo("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
 
         error1 = 100*dem_error1
         error2 = 100*dem_error2
@@ -3665,7 +3665,7 @@ class Benchmark27:
         if final_error < 0.001:
            final_error = 0.0
 
-        print("Error in FEM axial force =", 100*final_error,"%")
+        Logger.PrintInfo("Error in FEM axial force =", 100*final_error,"%")
 
         error4 = 100*final_error
 
@@ -3863,7 +3863,7 @@ class Benchmark28:   #pendulo3D
             dem_error1+=abs(i-j)
         dem_error1/=summation_of_analytics_data
 
-        print("Error in total force at the reference particle =", 100*dem_error1,"%")
+        Logger.PrintInfo("Error in total force at the reference particle =", 100*dem_error1,"%")
 
         i = 0
         with open('paper_data/reference_graph_benchmark' + '28' + '.dat') as reference:
@@ -3888,7 +3888,7 @@ class Benchmark28:   #pendulo3D
             dem_error2+=abs(i-j)
         dem_error2/=summation_of_analytics_data
 
-        print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
+        Logger.PrintInfo("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
 
 
         i = 0
@@ -3914,7 +3914,7 @@ class Benchmark28:   #pendulo3D
             dem_error3+=abs(i-j)
         dem_error3/=summation_of_analytics_data
 
-        print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
+        Logger.PrintInfo("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
 
         error1 = 100*dem_error1
         error2 = 100*dem_error2
@@ -4037,11 +4037,11 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
             final_local_angular_velocity_z_error+=abs(m-n)
         final_local_angular_velocity_z_error/=summation_of_ref_data3
 
-        print("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
+        Logger.PrintInfo("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
 
-        print("Error in local angular velocity Y =", 100*final_local_angular_velocity_y_error,"%")
+        Logger.PrintInfo("Error in local angular velocity Y =", 100*final_local_angular_velocity_y_error,"%")
 
-        print("Error in local angular velocity Z =", 100*final_local_angular_velocity_z_error,"%")
+        Logger.PrintInfo("Error in local angular velocity Z =", 100*final_local_angular_velocity_z_error,"%")
 
         error1 = 100*final_local_angular_velocity_x_error
 
@@ -4156,11 +4156,11 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
             final_local_angular_velocity_z_error+=abs(m-n)
         final_local_angular_velocity_z_error/=summation_of_ref_data3
 
-        print("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
+        Logger.PrintInfo("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
 
-        print("Error in local angular velocity Y =", 100*final_local_angular_velocity_y_error,"%")
+        Logger.PrintInfo("Error in local angular velocity Y =", 100*final_local_angular_velocity_y_error,"%")
 
-        print("Error in local angular velocity Z =", 100*final_local_angular_velocity_z_error,"%")
+        Logger.PrintInfo("Error in local angular velocity Z =", 100*final_local_angular_velocity_z_error,"%")
 
         error1 = 100*final_local_angular_velocity_x_error
 
@@ -4263,9 +4263,9 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
             final_angular_velocity_y_error+=abs(k-l)
         final_angular_velocity_y_error/=summation_of_ref_data2
 
-        print("Error in velocity Z =", 100*final_velocity_z_error,"%")
+        Logger.PrintInfo("Error in velocity Z =", 100*final_velocity_z_error,"%")
 
-        print("Error in angular velocity Y =", 100*final_angular_velocity_y_error,"%")
+        Logger.PrintInfo("Error in angular velocity Y =", 100*final_angular_velocity_y_error,"%")
 
         error1 = 100*final_velocity_z_error
 
@@ -4366,9 +4366,9 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
             final_angular_velocity_y_error+=abs(k-l)
         final_angular_velocity_y_error/=summation_of_ref_data2
 
-        print("Error in velocity Z =", 100*final_velocity_z_error,"%")
+        Logger.PrintInfo("Error in velocity Z =", 100*final_velocity_z_error,"%")
 
-        print("Error in angular velocity Y =", 100*final_angular_velocity_y_error,"%")
+        Logger.PrintInfo("Error in angular velocity Y =", 100*final_angular_velocity_y_error,"%")
 
         error1 = 100*final_velocity_z_error
 
@@ -4796,7 +4796,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
             dem_error1/=summation_of_analytics_data                 # relative error of the above against sum of reference data
 
             if dem_error1>0.05:
-                print("Error in total force at the reference particle =", 100*dem_error1,"%"+" at index: ",index)
+                Logger.PrintInfo("Error in total force at the reference particle =", 100*dem_error1,"%"+" at index: ",index)
 
             i = 0
             with open('paper_data/reference_graph_benchmark' +  '40_%s' % index + '.dat') as reference:
@@ -4822,7 +4822,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
             dem_error2/=summation_of_analytics_data                 # relative error of the above against sum of reference data
 
             if dem_error2>0.05:
-              print("Error in angular velocity at the reference particle =", 100*dem_error2,"%"+" at index: ",index)
+              Logger.PrintInfo("Error in angular velocity at the reference particle =", 100*dem_error2,"%"+" at index: ",index)
 
 
             i = 0
@@ -4849,7 +4849,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
             dem_error3/=summation_of_analytics_data
 
             if dem_error3>0.05:
-                print("Error in delta displacement at the reference particle =", 100*dem_error3,"%"+" at index: ",index)
+                Logger.PrintInfo("Error in delta displacement at the reference particle =", 100*dem_error3,"%"+" at index: ",index)
 
             error1.append(dem_error1)
             error2.append(dem_error2)
@@ -4892,7 +4892,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 fem_error1/=summation_of_analytics_data              # relative error of the above against sum of reference data
 
             if fem_error1>0.05:
-                print("Error in total force at the reference FEM subpart =", 100*fem_error1,"%"+" at stage: ",index)
+                Logger.PrintInfo("Error in total force at the reference FEM subpart =", 100*fem_error1,"%"+" at stage: ",index)
 
 
 
@@ -4920,7 +4920,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
             fem_error2/=summation_of_analytics_data
 
             if fem_error2>0.05:
-                print("Error in delta displacement at the reference FEM subpart =", 100*fem_error2,"%"+" at stage: ",index)
+                Logger.PrintInfo("Error in delta displacement at the reference FEM subpart =", 100*fem_error2,"%"+" at stage: ",index)
 
             error4.append(fem_error1)
             error5.append(fem_error2)

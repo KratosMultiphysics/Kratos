@@ -68,8 +68,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTPeriodicTest]))
 
     # adding representative transient tests to small suite
-    smallSuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
-    smallSuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
+    smallSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -94,10 +95,20 @@ def AssembleTestSuites():
     # adding fractional step k-omega high re tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
 
-    # adding monolithic k-omega high re tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTTest]))
-    # adding fractional step k-omega high re tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaSSTTest]))
+    # adding monolithic k-omega-sst high re tests
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeTransient"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocitySteady"))
+
+    # adding fractional step k-omega-sst high re tests
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeTransient"))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']

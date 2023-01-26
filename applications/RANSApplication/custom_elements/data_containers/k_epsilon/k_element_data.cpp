@@ -18,6 +18,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "element_data_utilities.h"
 #include "rans_application_variables.h"
@@ -37,16 +38,27 @@ const Variable<double>& KElementData<TDim>::GetScalarVariable()
 
 template <unsigned int TDim>
 void KElementData<TDim>::Check(
-    const GeometryType& rGeometry,
+    const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    const int number_of_nodes = rGeometry.PointsNumber();
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto& r_node = rGeometry[i_node];
+    const auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
+        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_KINETIC_ENERGY_SIGMA))
+        << "TURBULENT_KINETIC_ENERGY_SIGMA is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
+        << "DENSITY is not found in element properties [ Element.Id() = "
+        << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
+    for (const auto& r_node : r_geometry) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
@@ -62,8 +74,13 @@ template <unsigned int TDim>
 void KElementData<TDim>::CalculateConstants(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+    mInvTurbulentKineticEnergySigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+    mDensity = this->GetProperties().GetValue(DENSITY);
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim>
@@ -76,60 +93,31 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    double tke;
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
+    mKinematicViscosity /= mDensity;
 
-    mGamma = KEpsilonElementData::CalculateGamma(mCmu, tke, mTurbulentKinematicViscosity);
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
-    mVelocityDivergence =
-        GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+    mGamma = KEpsilonElementData::CalculateGamma(mCmu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
 
-    CalculateGradient<TDim>(this->mVelocityGradient, this->GetGeometry(),
-                            VELOCITY, rShapeFunctionDerivatives, Step);
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mVelocityGradient, VELOCITY));
+
+    mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
+
+    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvTurbulentKineticEnergySigma;
+    mReactionTerm = std::max(mGamma + (2.0 / 3.0) * mVelocityDivergence, 0.0);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mEffectiveVelocity;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return mKinematicViscosity + mTurbulentKinematicViscosity * mInvTkeSigma;
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateReactionTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    return std::max(mGamma + (2.0 / 3.0) * mVelocityDivergence, 0.0);
-}
-
-template <unsigned int TDim>
-double KElementData<TDim>::CalculateSourceTerm(
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives) const
-{
-    double production = 0.0;
-
-    production = KEpsilonElementData::CalculateSourceTerm<TDim>(
-        mVelocityGradient, mTurbulentKinematicViscosity);
-
-    return production;
 }
 
 // template instantiations

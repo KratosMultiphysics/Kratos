@@ -18,7 +18,6 @@
 
 // System includes
 #include <string>
-#include <iostream>
 
 // External includes
 
@@ -29,8 +28,6 @@
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-#include "containers/global_pointers_vector.h"
-#include "containers/periodic_variables_container.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -129,6 +126,8 @@ namespace Kratos
   //KRATOS_DEFINE_VARIABLE( double, DETERMINANT_F )
   //KRATOS_DEFINE_VARIABLE( Vector, DEFORMATION_GRADIENT);
   KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRAIN_VECTOR )
+  KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRESS_VECTOR )
+  KRATOS_DEFINE_VARIABLE( Matrix, INITIAL_DEFORMATION_GRADIENT_MATRIX )
 
   KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_VECTOR )
   //KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_TENSOR )

@@ -30,16 +30,16 @@ typedef std::size_t SizeType;
     typedef PointerVector<MeshType> MeshesContainerType;
     typedef MeshType::ElementIterator ElementIterator;
 
-/** 
+/**
  * @class RegeneratePfemPressureConditionsProcess
- * @ingroup FemToDemApplication 
+ * @ingroup FemToDemApplication
  * @brief Regenerates the pressure conditions for the PFEM coupling
  * @details when several elements are removed this methods generates the line loads
  * in order to adapt to the new geometry
  * @author Alejandro Cornejo
  */
 template <SizeType TDim = 3>
-class RegeneratePfemPressureConditionsProcess : public Process 
+class RegeneratePfemPressureConditionsProcess : public Process
 {
 
 
@@ -132,7 +132,7 @@ public:
         ElementIterator itElem);
 
     /**
-     * @brief Creates surface loads 
+     * @brief Creates surface loads
      * @param Id1 The node 1 Id
      * @param Id2 The node 2 Id
      * @param itElem the element analysed
@@ -152,7 +152,7 @@ public:
 protected:
     // Member Variables
     ModelPart& mrModelPart;
-    
+
 }; // Class
 }  // namespace Kratos
 #endif /* KRATOS_REGENERATE_PFEM_PRESSURE_CONDITIONS_PROCESS defined */

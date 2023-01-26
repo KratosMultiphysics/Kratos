@@ -101,7 +101,7 @@ void TotalStructuralMassProcess::Execute()
     // Now we iterate over the elements to calculate the total mass
     auto& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
-    // Making this loop omp-parallel requires locking all the geometries & nodes, which
+    // Making this loop shared-memory-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
     for (auto& elem_i : elements_array) {
         total_mass += CalculateElementMass(elem_i, domain_size);
@@ -111,7 +111,7 @@ void TotalStructuralMassProcess::Execute()
    total_mass = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_mass);
 
     std::stringstream info_stream;
-    info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";
+    info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.FullName() << "\"";
 
     KRATOS_INFO(info_stream.str()) << total_mass << std::endl;
     KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in "

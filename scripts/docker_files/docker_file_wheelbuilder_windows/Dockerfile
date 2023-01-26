@@ -20,43 +20,29 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache \
  || IF "%ERRORLEVEL%"=="3010" EXIT 0 ; \
  	$ErrorActionPreference = 'Stop'
 
-#install 7zip
+#install chocolatey
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.7-zip.org/a/7z1900-x64.exe -OutFile c:\TEMP\7z.exe; \
-    c:\TEMP\7z.exe /S /D="C:\7zip\\"
+    iex ((New-Object System.Net.WebClient).DownloadString('http://chocolatey.org/install.ps1'))
 
 #install git
 RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/Git-2.21.0-64-bit.exe -OutFile c:\TEMP\git.exe; \
-    c:\TEMP\git.exe /SILENT
+    choco install -y 7zip.install
 
+#install git
+RUN powershell.exe -Command \
+    choco install -y git
 
 #install cmake
 RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://github.com/Kitware/CMake/releases/download/v3.14.1/cmake-3.14.1-win64-x64.zip -OutFile c:\TEMP\cmake.zip; \
-    mkdir c:\cmake; \
-    c:\7zip\7z.exe x c:\TEMP\cmake.zip -o"c:\cmake"
-
-
+    choco install -y cmake
 
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
-    c:\7zip\7z.exe x c:\TEMP\boost.zip -o"c:\boost"
-
-#Install python 3.5
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
-    mkdir c:\python\35; \
-    Start-Process c:\temp\python35.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\35' -Wait; \
-    c:\python\35\python.exe -m pip install --upgrade pip; \
-    c:\python\35\python.exe -m pip install --upgrade setuptools wheel
+    7z x c:\TEMP\boost.zip -o"c:\boost"
 
 #Install python 3.6
 RUN powershell.exe -Command \
@@ -65,6 +51,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\36; \
     Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
     c:\python\36\python.exe -m pip install --upgrade pip; \
+    c:\python\36\python.exe -m pip install mypy; \
     c:\python\36\python.exe -m pip install --upgrade setuptools wheel
 
 
@@ -75,6 +62,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\37; \
     Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
     c:\python\37\python.exe -m pip install --upgrade pip; \
+    c:\python\37\python.exe -m pip install mypy; \
     c:\python\37\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.8
@@ -84,23 +72,57 @@ RUN powershell.exe -Command \
     mkdir c:\python\38; \
     Start-Process c:\temp\python38.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\38' -Wait; \
     c:\python\38\python.exe -m pip install --upgrade pip; \
+    c:\python\38\python.exe -m pip install mypy; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
-#Downloand blas/lapack
+#Install python 3.9
 RUN powershell.exe -Command \
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-	mkdir c:\libs; \
-	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
-	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe -OutFile c:\temp\python39.exe; \
+    mkdir c:\python\39; \
+    Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
+    c:\python\39\python.exe -m pip install --upgrade pip; \
+    c:\python\39\python.exe -m pip install mypy; \
+    c:\python\39\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.10
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe -OutFile c:\temp\python310.exe; \
+    mkdir c:\python\310; \
+    Start-Process c:\temp\python310.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\310' -Wait; \
+    c:\python\310\python.exe -m pip install --upgrade pip; \
+    c:\python\310\python.exe -m pip install --upgrade setuptools wheel
+
+# Download and extract boost
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF5/HDF5_1_12_2/source/hdf5-1.12.2.zip -OutFile c:\TEMP\hdf5.zip; \
+    mkdir c:\hdf5; \
+    mkdir c:\hdf5\build; \
+    mkdir c:\hdf5\bin; \
+    mkdir c:\hdf5\source; \
+    7z x c:\TEMP\hdf5.zip -o"c:\hdf5\source"
+
+# Build Hdf5 lib
+RUN powershell.exe -Command \
+    cd 'c:/Program Files/CMake/bin/'; \
+    ./cmake.exe -H"c:\hdf5\source\hdf5-1.12.2" -B"c:\hdf5\build" -DCMAKE_INSTALL_PREFIX="c:\hdf5\bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
+    ./cmake.exe --build "c:\hdf5\build" --target install -- /property:configuration=Release
+
+# #Downloand blas/lapack
+# RUN powershell.exe -Command \
+# 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+# 	mkdir c:\libs; \
+# 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
+# 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
 
 #set env variables
-ENV CMAKE c:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe
-ENV SEVEN_ZIP c:\\7zip\\7z.exe
-ENV VCVARS  \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"
-ENV BOOST c:\\boost\\boost_1_69_0
-ENV BLAS c:\\libs\\libblas.lib
-ENV LAPACK c:\\libs\\liblapack.lib
-ENV PYTHONROOT c:\\python
+ENV CMAKE       "C:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe"
+ENV SEVEN_ZIP   "C:\\7zip\\7z.exe"
+ENV VCVARS      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\\"
+ENV BOOST       "C:\\boost\\boost_1_71_0"
+ENV PYTHONROOT  "C:\\python"
 
 COPY start.ps1 c:\\scripts\\start.ps1
 

@@ -62,6 +62,9 @@ public:
     /// Pointer definition of FIC
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FIC);
 
+    /// Base type definition
+    using BaseType = FluidElement<TElementData>;
+
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
 
@@ -96,11 +99,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = BaseType::Dim;
+    constexpr static unsigned int NumNodes = BaseType::NumNodes;
+    constexpr static unsigned int BlockSize = BaseType::BlockSize;
+    constexpr static unsigned int LocalSize = BaseType::LocalSize;
+    constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -199,35 +202,42 @@ public:
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 3>> const& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<double> const& rVariable,
+        std::vector<double>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 6>> const& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;

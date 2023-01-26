@@ -45,7 +45,7 @@ public:
         mRayleighBeta = rayleigh_k;
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mDampingMatrix.resize(NumThreads);
         mVelocityVector.resize(NumThreads);
 
@@ -124,7 +124,7 @@ public:
         //const double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -167,7 +167,7 @@ public:
     {
         KRATOS_TRY;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

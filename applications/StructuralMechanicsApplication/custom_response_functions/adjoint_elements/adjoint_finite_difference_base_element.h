@@ -142,11 +142,6 @@ public:
         mpPrimalElement->ResetConstitutiveLaw();
     }
 
-    void CleanMemory() override
-    {
-        mpPrimalElement->CleanMemory();
-    }
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
@@ -183,28 +178,10 @@ public:
                                                rCurrentProcessInfo);
     }
 
-    void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrices,
-                                               rLHSVariables,
-                                               rCurrentProcessInfo);
-    }
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
-                                                rCurrentProcessInfo);
-    }
-
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateRightHandSide(rRightHandSideVectors,
-                                                rRHSVariables,
                                                 rCurrentProcessInfo);
     }
 
@@ -437,7 +414,7 @@ protected:
         KRATOS_TRY;
 
         KRATOS_WARNING_IF("CalculateAdjointFieldOnIntegrationPoints", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+                << "The call of this non shared-memory-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
         const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();

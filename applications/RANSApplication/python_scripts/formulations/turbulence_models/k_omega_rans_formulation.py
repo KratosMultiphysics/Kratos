@@ -8,9 +8,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.scalar_turbulence_model_rans_formulation import ScalarTurbulenceModelRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equation_turbulence_model_rans_formulation import TwoEquationTurbulenceModelRansFormulation
 
-# import utilities
-from KratosMultiphysics.RANSApplication import RansCalculationUtilities
-
 class KOmegaKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
         return KratosRANS.TURBULENT_KINETIC_ENERGY
@@ -66,7 +63,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
@@ -90,7 +86,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         process_info = model_part.ProcessInfo
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
 
         nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
@@ -103,7 +98,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
                                             model,
                                             wall_model_part_name,
-                                            kappa,
                                             minimum_nut,
                                             self.echo_level)
         self.AddProcess(nut_wall_process)
@@ -112,7 +106,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
-            "wall_smoothness_beta"                          : 5.2,
             "von_karman"                                    : 0.41,
             "c_mu"                                          : 0.09,
             "c1"                                            : 0.1,
@@ -129,8 +122,7 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         settings.ValidateAndAssignDefaults(defaults)
 
         process_info = self.GetBaseModelPart().ProcessInfo
-        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, settings["wall_smoothness_beta"].GetDouble())
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, settings["von_karman"].GetDouble())
+        process_info.SetValue(KratosRANS.VON_KARMAN, settings["von_karman"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_BETA, settings["beta"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_GAMMA, settings["gamma"].GetDouble())
@@ -138,7 +130,3 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info.SetValue(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, settings["sigma_omega"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, settings["stabilizing_upwind_operator_coefficient"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, settings["stabilizing_positivity_preserving_coefficient"].GetDouble())
-        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-                                                                                    process_info[KratosRANS.WALL_VON_KARMAN],
-                                                                                    process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
-                                                                                    ))
