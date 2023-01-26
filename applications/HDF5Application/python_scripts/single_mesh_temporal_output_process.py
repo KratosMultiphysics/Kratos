@@ -141,7 +141,7 @@ def CreateCoreSettings(user_settings, model):
                                 user_settings["nodal_data_value_settings"]),
         CreateOperationSettings("element_data_value_output",
                                 user_settings["element_data_value_settings"]),
-        CreateOperationSettings("element_integration_point_output",
+        CreateOperationSettings("element_gauss_point_output",
                                 user_settings["element_gauss_point_value_settings"]),
         CreateOperationSettings("nodal_flag_value_output",
                                 user_settings["nodal_flag_value_settings"]),
@@ -151,7 +151,7 @@ def CreateCoreSettings(user_settings, model):
                                 user_settings["condition_flag_value_settings"]),
         CreateOperationSettings("condition_data_value_output",
                                 user_settings["condition_data_value_settings"]),
-        CreateOperationSettings("condition_integration_point_output",
+        CreateOperationSettings("condition_gauss_point_output",
                                 user_settings["condition_gauss_point_value_settings"])
     ]
     core_settings[1]["list_of_operations"] = [
@@ -165,13 +165,13 @@ def CreateCoreSettings(user_settings, model):
                                 user_settings["nodal_flag_value_settings"]),
         CreateOperationSettings("element_flag_value_output",
                                 user_settings["element_flag_value_settings"]),
-        CreateOperationSettings("element_integration_point_output",
+        CreateOperationSettings("element_gauss_point_output",
                                 user_settings["element_gauss_point_value_settings"]),
         CreateOperationSettings("condition_flag_value_output",
                                 user_settings["condition_flag_value_settings"]),
         CreateOperationSettings("condition_data_value_output",
                                 user_settings["condition_data_value_settings"]),
-        CreateOperationSettings("condition_integration_point_output",
+        CreateOperationSettings("condition_gauss_point_output",
                                 user_settings["condition_gauss_point_value_settings"])
     ]
     for key in user_settings["output_time_settings"]:

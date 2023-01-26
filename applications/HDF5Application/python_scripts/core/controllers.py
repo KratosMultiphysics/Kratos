@@ -10,9 +10,8 @@ license: HDF5Application/license.txt
 
 
 # Kratos imports
-from tokenize import Single
 import KratosMultiphysics
-from . import file_io
+from . import operations
 
 # STL imports
 import abc
@@ -23,13 +22,11 @@ import abc
 ##!@name Kratos classes
 ##!@{
 class Controller(metaclass=abc.ABCMeta):
-    def __init__(self, model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO):
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 operation: operations.AggregateOperation):
         self.model_part = model_part
-        self.io = io
-        self.operations = []
-
-    def Add(self, operation) -> None:
-        self.operations.append(operation)
+        self.__operation = operation
 
     @abc.abstractmethod
     def IsExecuteStep(self) -> bool:
@@ -41,11 +38,9 @@ class Controller(metaclass=abc.ABCMeta):
         """!Execute assigned operations if a check is passed."""
         pass
 
-    def ExecuteOperations(self) -> None:
+    def ExecuteOperation(self) -> None:
         """!Execute all assigned operations, bypassing the controller's checks."""
-        current_io = self.io.Get(self.model_part)
-        for op in self.operations:
-            op(self.model_part, current_io)
+        self.__operation.Execute()
 
 
 class DefaultController(Controller):
@@ -55,7 +50,7 @@ class DefaultController(Controller):
         return True
 
     def __call__(self) -> None:
-        self.ExecuteOperations()
+        self.ExecuteOperation()
 
 
 class TemporalController(Controller):
@@ -64,12 +59,17 @@ class TemporalController(Controller):
     specified in the json settings.
     """
 
-    def __init__(self, model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, settings: KratosMultiphysics.Parameters):
-        super().__init__(model_part, io)
-        settings.SetDefault('time_frequency', 1.0)
-        settings.SetDefault('step_frequency', 1)
-        self.time_frequency = settings['time_frequency']
-        self.step_frequency = settings['step_frequency']
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 operation: operations.AggregateOperation,
+                 settings: KratosMultiphysics.Parameters):
+        super().__init__(model_part, operation)
+        settings.AddMissingParameters(KratosMultiphysics.Parameters("""{
+            "time_frequency" : 1.0,
+            "step_frequency" : 1
+        }"""))
+        self.time_frequency = settings['time_frequency'].GetDouble()
+        self.step_frequency = settings['step_frequency'].GetInt()
         self.current_time = 0.0
         self.current_step = 0
 
@@ -97,24 +97,27 @@ class TemporalController(Controller):
         self.current_time += delta_time
         self.current_step += 1
         if self.IsExecuteStep():
-            self.ExecuteOperations()
+            self.ExecuteOperation()
             self.current_time = 0.0
             self.current_step = 0
 ##!@}
 
 
-def Factory(model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, settings: KratosMultiphysics.Parameters) -> Controller:
+def Factory(model_part: KratosMultiphysics.ModelPart,
+            operation: operations.AggregateOperation,
+            parameters: KratosMultiphysics.Parameters) -> Controller:
     """!@brief Return the controller specified by the setting 'controller_type'.
     @detail Empty settings will contain default values after returning from the
     function call.
     """
-    settings.SetDefault('controller_type', 'default_controller')
-    controller_type = settings['controller_type']
+    parameters.AddMissingParameters(KratosMultiphysics.Parameters("""{
+        "controller_type" : "default_controller"
+    }"""))
+    controller_type = parameters['controller_type'].GetString()
     if controller_type == 'default_controller':
-        return DefaultController(model_part, io)
+        return DefaultController(model_part, operation)
     elif controller_type == 'temporal_controller':
-        return TemporalController(model_part, io, settings)
+        return TemporalController(model_part, operation, parameters)
     else:
-        raise ValueError(
-            '"controller_type" has invalid value "' + controller_type + '"')
+        raise ValueError(f'"controller_type" has invalid value "{controller_type}"')
 ##!@}
