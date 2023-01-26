@@ -34,7 +34,7 @@ namespace Kratos {
         // Exchange elements
         rModelPart.GetCommunicator().TransferObjects(rSendElements, rRecvElements);
 
-        // Attention: To loop over one element container "slot" k is only possible, 
+        // Attention: Loop over one element container "slot" k is only possible, 
         // because all containers hold same elements. This might change in the future.
         unsigned int k = 0;
         if( size > 1 && rank == 0){
@@ -51,6 +51,7 @@ namespace Kratos {
         );
         
         rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+        //rModelPart.GetCommunicator().LocalMesh().Elements() = rModelPart.Elements();
 
         rSendElements.clear();
     }
@@ -89,6 +90,7 @@ namespace Kratos {
         );
 
         rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+        //rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
 
         rSendConditions.clear();
     }
