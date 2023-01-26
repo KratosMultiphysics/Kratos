@@ -38,6 +38,17 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     // We get the model parts
     ModelPart& r_skin_model_part_1 = mrModel.GetModelPart(r_skin_model_part_1_name);
     ModelPart& r_skin_model_part_2 = mrModel.GetModelPart(r_skin_model_part_2_name);
+    
+    // Checking that the model part contains conditions
+    KRATOS_ERROR_IF(r_skin_model_part_1.NumberOfConditions() == 0) << "The first model part does not contain conditions" << std::endl;
+    KRATOS_ERROR_IF(r_skin_model_part_2.NumberOfConditions() == 0) << "The second model part does not contain conditions" << std::endl;
+    if constexpr (TDim == 2) { // 2D
+        KRATOS_ERROR_IF_NOT(r_skin_model_part_1.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "Conditions from first model part must be lines in 2D space" << std::endl;
+        KRATOS_ERROR_IF_NOT(r_skin_model_part_2.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) << "Conditions from second model part must be lines in 2D space" << std::endl;
+    } else { // 3D
+        KRATOS_ERROR_IF_NOT(r_skin_model_part_1.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Conditions from first model part must be triangles in 3D space" << std::endl;
+        KRATOS_ERROR_IF_NOT(r_skin_model_part_2.Conditions().begin()->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) << "Conditions from second model part must be triangles in 3D space" << std::endl;
+    }
 
     // We get the coordinates of the bounding box
     using NodeType = Node<3>;
@@ -63,9 +74,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     auto p_point_6 = Kratos::make_intrusive<Node<3>>(6, max_x, min_y, max_z);
     auto p_point_7 = Kratos::make_intrusive<Node<3>>(7, max_x, max_y, max_z);
     auto p_point_8 = Kratos::make_intrusive<Node<3>>(8, min_x, max_y, max_z);
-
-    Hexahedra3D8<Node<3>> geometry(
-        p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
+    Hexahedra3D8<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
     Parameters mesher_parameters(R"({
         "number_of_divisions"        : -1,
