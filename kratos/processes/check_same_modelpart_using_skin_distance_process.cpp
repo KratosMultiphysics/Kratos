@@ -32,15 +32,11 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     KRATOS_TRY
 
     // We get the names of the model parts
-    // const std::string& r_model_part_1_name = mThisParameters["model_part_1_name"].GetString();
-    // const std::string& r_model_part_2_name = mThisParameters["model_part_2_name"].GetString();
     const std::string& r_skin_model_part_1_name = mThisParameters["skin_model_part_1_name"].GetString();
     const std::string& r_skin_model_part_2_name = mThisParameters["skin_model_part_2_name"].GetString();
 
     // We get the model parts
-    // ModelPart& r_model_part_1 = mrModel.GetModelPart(r_model_part_1_name);
     ModelPart& r_skin_model_part_1 = mrModel.GetModelPart(r_skin_model_part_1_name);
-    // ModelPart& r_model_part_2 = mrModel.GetModelPart(r_model_part_2_name);
     ModelPart& r_skin_model_part_2 = mrModel.GetModelPart(r_skin_model_part_2_name);
 
     // We get the coordinates of the bounding box
@@ -139,9 +135,7 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
 
     const Parameters default_parameters = Parameters(R"(
     {
-        //"model_part_1_name"                   : "PLEASE_SPECIFY_MODEL_PART_1_NAME", // The background mesh is generated automatically
         "skin_model_part_1_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
-        //"model_part_2_name"                   : "PLEASE_SPECIFY_MODEL_PART_2_NAME", // The background mesh is generated automatically
         "skin_model_part_2_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "tolerance"                           : 1.0e-3,
         //"continuous_distance"               : false, // TODO: Add continuous version if needed in the future
