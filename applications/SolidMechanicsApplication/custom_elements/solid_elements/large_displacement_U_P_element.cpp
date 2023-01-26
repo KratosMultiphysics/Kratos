@@ -122,7 +122,7 @@ LargeDisplacementUPElement::~LargeDisplacementUPElement()
 
 
 
-void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     rElementalDofList.resize( 0 );
 
@@ -144,7 +144,7 @@ void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -176,7 +176,7 @@ void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -208,7 +208,7 @@ void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -237,7 +237,7 @@ void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -270,7 +270,7 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-LargeDisplacementUPElement::SizeType LargeDisplacementUPElement::GetDofsSize()
+LargeDisplacementUPElement::SizeType LargeDisplacementUPElement::GetDofsSize() const
 {
   KRATOS_TRY
 
@@ -1020,7 +1020,7 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1037,7 +1037,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
     // Not Lumped Mass Matrix (numerical integration):
 
     //reading integration points
-    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
@@ -1115,7 +1115,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1191,7 +1191,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
 
@@ -1206,7 +1206,7 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
 
@@ -1239,7 +1239,7 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHan
 //************************************************************************************
 //************************************************************************************
 
-int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -1251,7 +1251,7 @@ int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 
@@ -1268,9 +1268,6 @@ int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW))
       KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
 
     return ErrorCode;
 

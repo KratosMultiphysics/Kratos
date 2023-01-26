@@ -49,18 +49,32 @@ The application provides the following direct solvers for dense systems of equat
 
 ## Generalized eigensystem solvers
 
-The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
+The application provides the following generalized eigensystem `Ax=λBx` solver for sparse matrices.
+
+| Python class                           | solver_type                | Matrix kind A | Matrix kind B | Domain   | Dependencies |
+|----------------------------------------|----------------------------|:-------------:|:-------------:|:--------:|:------------:|
+| EigensystemSolver                      | `eigen_eigensystem`        | Symmetric     | SPD*          | Real     | None         |
+| SpectraSymGEigsShiftSolver             | `spectra_sym_g_eigs_shift` | Symmetric     | SPD*          | Real     | None         |
+| FEASTGeneralEigensystemSolver**        | `feast`                    | General       | General       | Real     | Intel® MKL   |
+| ComplexFEASTGeneralEigensystemSolver** | `feast_complex`            | General       | General       | Complex  | Intel® MKL   |
+
+*SPD = Symmetric Positive Definite
+**A special version for symmetric matrices can be triggered in the solver settings.
+
+`EigensystemSolver` and `SpectraSymGEigsShiftSolver` compute the smallest eigenvalues and corresponding eigenvectors of the system. MKL routines are used automatically if they are available.
+
+`SpectraSymGEigsShiftSolver` interfaces a solver from the [Spectra library](https://spectralib.org/), and has a shift mode that can be used to compute the smallest eigenvalues > `shift`.
 
 **Example:**
 
 ```json
 {
-    "solver_type": "eigen_eigensystem",
-    "number_of_eigenvalues": 1,
+    "solver_type": "spectra_sym_g_eigs_shift",
+    "number_of_eigenvalues": 3,
     "max_iteration": 1000,
-    "tolerance": 1e-6,
     "echo_level": 1
 }
+
 ```
 If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex systems (symmetric or unsymmetric). The cmake switch `USE_EIGEN_FEAST` must be set to `ON` with
 ```batch
@@ -118,13 +132,13 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
     **Windows:**
 
     ```batch
-    call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64 lp64
+    call "C:\Program Files (x86)\Intel\oneAPI\mkl\latest\env\vars.bat" intel64 lp64
     ```
 
     **Linux:**
 
     ```bash
-    source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+    source /opt/intel/oneapi/setvars.sh intel64
     ```
 
 2. Add the following flag to CMake to your configure script:
@@ -147,51 +161,45 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl) (see belo
 
     **Windows:**
 
-    Copy the required MKL libraries to the Kratos `lib`
-
     ```batch
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_core.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_rt.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_intel_thread.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_def.dll
-    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\compiler\libiomp5md.dll
+    call "C:\Program Files (x86)\Intel\oneAPI\mkl\latest\env\vars.bat" intel64 lp64
     ```
-
-    or add the folders to your `PATH`/`LD_LIBRARY_PATH` variable.
 
     **Linux:**
 
     Set the environment before using MKL
+    
     ```bash
-    source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+    source /opt/intel/oneapi/setvars.sh intel64
     ```
 
 ## Install MKL on Ubuntu with apt
 
-Intel MKL can be installed with apt on Ubuntu. A guide can be found in https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo.
-For example to install the MKL 2020 version
+Intel MKL can be installed with apt on Ubuntu. A guide can be found in [here](https://neelravi.com/post/intel-oneapi-install/).
+For example to install the MKL 2022 version
 
 ```bash
 sudo bash
 # <type your user password when prompted.  this will put you in a root shell>
-# cd to /tmp where this shell has write permission
-cd /tmp
-# now get the key:
-wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-# now install that key
-apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-# now remove the public key file exit the root shell
-rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-# add the repository for mkl only (other packages are not needed here)
-sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
-apt-get update -y
-# install specific version of intel-mkl
-apt-get install -y intel-mkl-2020.0-088
+# If they are not installed, you can install using the following command:
+sudo apt update
+sudo apt -y install cmake pkg-config build-essential
+# use wget to fetch the Intel repository public key
+wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# add to your apt sources keyring so that archives signed with this key will be trusted.
+sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# remove the public key
+rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# Configure apt client to use Intel repository
+sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+# Install all MKL related dependencies. You can install full HPC with: sudo apt install intel-hpckit
+sudo apt install intel-oneapi-mkl-devel
+# Exit
 exit
 ```
 
 To enable the MKL environment (needs to be done before build/run) use
 
 ```bash
-source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+source /opt/intel/oneapi/setvars.sh intel64
 ```

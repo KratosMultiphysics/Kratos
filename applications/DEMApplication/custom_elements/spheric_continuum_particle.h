@@ -18,17 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/timer.h"
 #include "Particle_Contact_Element.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
-
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
 namespace Kratos
 {
@@ -86,9 +76,9 @@ namespace Kratos
             return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
         }
 
-        void SetInitialSphereContacts(const ProcessInfo& r_process_info);
+        virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info);
         void SetInitialFemContacts();
-        void CreateContinuumConstitutiveLaws();
+        virtual void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
         void GetStressTensorFromNeighbourStep1();
         void GetStressTensorFromNeighbourStep2();
@@ -98,13 +88,13 @@ namespace Kratos
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         virtual void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info);
+        virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
-        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
-        virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3],
+        virtual void CalculateOnContinuumContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], double ElasticLocalRotationalMoment[3],
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
 
 
@@ -151,17 +141,10 @@ namespace Kratos
 
         void Initialize(const ProcessInfo& r_process_info) override;
         virtual double GetInitialDeltaWithFEM(int index) override;
-        virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
+        virtual void ComputeBallToBallContactForceAndMoment(SphericParticle::ParticleDataBuffer &,
                                                 const ProcessInfo& r_process_info,
                                                 array_1d<double, 3>& rElasticForce,
-                                                array_1d<double, 3>& rContactForce,
-                                                double& RollingResistance) override final;
-
-        virtual void ComputeRollingResistance(double& RollingResistance,
-                                            const double& NormalLocalContactForce,
-                                            const double& equiv_rolling_friction_coeff,
-                                            const unsigned int i) override;
-
+                                                array_1d<double, 3>& rContactForce) override;
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,

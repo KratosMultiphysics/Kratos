@@ -66,7 +66,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of LaplaceElement
-    KRATOS_CLASS_POINTER_DEFINITION(LaplaceElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplaceElement);
 
     ///@}
     ///@name Life Cycle
@@ -285,7 +285,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output

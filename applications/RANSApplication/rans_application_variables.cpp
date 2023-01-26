@@ -63,7 +63,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, TURBULENCE_RANS_A1 )
     KRATOS_CREATE_VARIABLE( double, TURBULENCE_RANS_BETA_1 )
     KRATOS_CREATE_VARIABLE( double, TURBULENCE_RANS_BETA_2 )
-    KRATOS_CREATE_VARIABLE( double, WALL_VON_KARMAN )
+    KRATOS_CREATE_VARIABLE( double, VON_KARMAN )
 
     // wall function condition specific additional variables
     KRATOS_CREATE_VARIABLE( double, RANS_Y_PLUS )

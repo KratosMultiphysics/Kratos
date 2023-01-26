@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType FrictionalViscoplastic2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType FrictionalViscoplastic2DLaw::GetStrainSize() { return 3; }
+    ConstitutiveLaw::SizeType FrictionalViscoplastic2DLaw::GetStrainSize() const { return 3; }
 
     void FrictionalViscoplastic2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -61,17 +61,16 @@ namespace Kratos
         Vector &r_strain_vector = rValues.GetStrainVector();
         Vector &r_stress_vector = rValues.GetStressVector();
 
-        const double dynamic_viscosity = this->GetEffectiveDynamicViscosity(rValues);
-        const double friction_angle = r_properties[FRICTION_ANGLE];
-        const double cohesion = r_properties[COHESION];
+        const double dynamic_viscosity = this->GetEffectiveMaterialParameter(rValues, DYNAMIC_VISCOSITY);
+        const double friction_angle = this->GetEffectiveMaterialParameter(rValues, INTERNAL_FRICTION_ANGLE);
+        const double cohesion = this->GetEffectiveMaterialParameter(rValues, COHESION);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity = 0;
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
-        const GeometryType &r_geometry = rValues.GetElementGeometry();
 
-        const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
+        const double theta_momentum = this->GetThetaMomentumForPressureIntegration();
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
 
         if (mean_pressure > 0.0) // cutoff for tractions
@@ -84,17 +83,17 @@ namespace Kratos
                       4.0 * r_strain_vector[2] * r_strain_vector[2]);
 
         // Ensuring that the case of equivalent_strain_rate = 0 is not problematic
-        const double tolerance=1e-12;
+        const double tolerance = 1e-12;
         if (equivalent_strain_rate < tolerance)
         {
             effective_dynamic_viscosity = dynamic_viscosity;
         }
         else
         {
-            const double friction_angle_rad= friction_angle*Globals::Pi/180.0;
-            const double tanFi=std::tan(friction_angle_rad);
+            const double friction_angle_rad = friction_angle * Globals::Pi / 180.0;
+            const double tanFi = std::tan(friction_angle_rad);
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity + regularization * (cohesion + tanFi * fabs(mean_pressure) / equivalent_strain_rate); 
+            effective_dynamic_viscosity = dynamic_viscosity + regularization * ((cohesion + tanFi * fabs(mean_pressure)) / equivalent_strain_rate);
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];
@@ -108,78 +107,43 @@ namespace Kratos
             this->EffectiveViscousConstitutiveMatrix2D(effective_dynamic_viscosity, rValues.GetConstitutiveMatrix());
         }
     }
-    
+
     std::string FrictionalViscoplastic2DLaw::Info() const { return "FrictionalViscoplastic2DLaw"; }
 
     //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW******************
     //*****************************************************************************
 
     int FrictionalViscoplastic2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                           const ProcessInfo &rCurrentProcessInfo)
+                                           const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
-        KRATOS_CHECK_VARIABLE_KEY(COHESION);
-        KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
-        KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
+            << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for FrictionalViscoplastic2DLaw: "
+            << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for FrictionalViscoplastic2DLaw: "
-                         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[INTERNAL_FRICTION_ANGLE] < 0.0)
+            << "Incorrect or missing INTERNAL_FRICTION_ANGLE provided in process info for FrictionalViscoplastic2DLaw: "
+            << rMaterialProperties[INTERNAL_FRICTION_ANGLE] << std::endl;
 
-        if (rMaterialProperties[FRICTION_ANGLE] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing FRICTION_ANGLE provided in process info for FrictionalViscoplastic2DLaw: "
-                         << rMaterialProperties[FRICTION_ANGLE] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[COHESION] < 0.0)
+            << "Incorrect or missing COHESION provided in process info for FrictionalViscoplastic2DLaw: "
+            << rMaterialProperties[COHESION] << std::endl;
 
-        if (rMaterialProperties[COHESION] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing COHESION provided in process info for FrictionalViscoplastic2DLaw: "
-                         << rMaterialProperties[COHESION] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
+            << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for FrictionalViscoplastic2DLaw: "
+            << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
 
-        if (rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for FrictionalViscoplastic2DLaw: "
-                         << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
-        }
-
-        if (rMaterialProperties[BULK_MODULUS] <= 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for FrictionalViscoplastic2DLaw: "
-                         << rMaterialProperties[BULK_MODULUS] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
+            << "Incorrect or missing BULK_MODULUS provided in process info for FrictionalViscoplastic2DLaw: "
+            << rMaterialProperties[BULK_MODULUS] << std::endl;
 
         return 0;
     }
 
-    double FrictionalViscoplastic2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetConstitutiveMatrix()(2, 2);
-    }
 
-    double FrictionalViscoplastic2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
+    double FrictionalViscoplastic2DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {
-        return rParameters.GetMaterialProperties()[DENSITY];
-    }
-
-    double FrictionalViscoplastic2DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
-    }
-
-    double FrictionalViscoplastic2DLaw::GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[FRICTION_ANGLE];
-    }
-
-    double FrictionalViscoplastic2DLaw::GetEffectiveCohesion(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[COHESION];
+        return rParameters.GetMaterialProperties()[rVariable];
     }
 
     void FrictionalViscoplastic2DLaw::save(Serializer &rSerializer) const

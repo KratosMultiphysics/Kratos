@@ -8,6 +8,8 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEMFabric2D : public DEM_KDEM2D {
 
+        typedef DEM_KDEM2D BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEMFabric2D);
@@ -17,8 +19,6 @@ namespace Kratos {
         ~DEM_KDEMFabric2D() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
 
@@ -31,7 +31,8 @@ namespace Kratos {
                                               double ElasticLocalRotationalMoment[3],
                                               double ViscoLocalRotationalMoment[3],
                                               double equiv_poisson,
-                                              double indentation) override;
+                                              double indentation,
+                                              double LocalElasticContactForce[3]) override;
 
     private:
 

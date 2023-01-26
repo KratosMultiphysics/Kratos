@@ -1,19 +1,20 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -26,9 +27,7 @@
 #include "custom_python/add_custom_linear_solvers_to_python.h"
 #include "custom_python/add_custom_frictional_laws_to_python.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -63,7 +62,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     /* Mortar contact */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSIDER_TESSELLATION )                                 // If we consider tesellation when doing the mortar segmentation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INNER_LOOP_ITERATION )                                  // The number of loops in the simplified semi-smooth inner iteration
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUXILIAR_COORDINATES )               // Auxiliary coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_COORDINATES )                  // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER_CONTACT )                             // The integration order considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE_THRESHOLD )                                    // The distance threshold considered
@@ -96,8 +95,6 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 }
 
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Python::Kratos.
 
 #endif // KRATOS_PYTHON defined

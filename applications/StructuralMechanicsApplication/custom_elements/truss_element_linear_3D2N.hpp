@@ -32,7 +32,7 @@ namespace Kratos {
  * @author Klaus B Sautter
  */
 
-class TrussElementLinear3D2N : public TrussElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElementLinear3D2N : public TrussElement3D2N
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussElementLinear3D2N);
@@ -121,7 +121,7 @@ public:
      */
 
     void UpdateInternalForces(
-        BoundedVector<double,msLocalSize>& rInternalForces) override;
+        BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

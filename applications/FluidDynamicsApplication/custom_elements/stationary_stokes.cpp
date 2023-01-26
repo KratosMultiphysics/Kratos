@@ -17,24 +17,11 @@ Element::Pointer StationaryStokes<TDim>::Create(IndexType NewId,GeometryType::Po
 }
 
 template< unsigned int TDim >
-int StationaryStokes<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int StationaryStokes<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int Result = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-    if(PRESSURE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check if the application was correctly registered.","");
-
     // Checks on nodes
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
@@ -64,14 +51,14 @@ int StationaryStokes<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
 }
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::Initialize()
+void StationaryStokes<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
 
-    this->mIntegrationMethod = GeometryData::GI_GAUSS_2;
+    this->mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->mIntegrationMethod );
 
@@ -106,7 +93,7 @@ void StationaryStokes<TDim>::Initialize()
 }
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     // Obtain required constants
     GeometryType& rGeom = this->GetGeometry();
@@ -167,9 +154,9 @@ void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatri
 
 template< unsigned int TDim >
 void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
-                                  ProcessInfo &rCurrentProcessInfo)
+                                  const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -182,16 +169,16 @@ void StationaryStokes<TDim>::GetDofList(DofsVectorType &rElementalDofList,
     {
         rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_X);
         rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_Y);
-        if(TDim > 2) rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_Z);
+        if constexpr (TDim > 2) rElementalDofList[Index++] = rGeom[i].pGetDof(VELOCITY_Z);
         rElementalDofList[Index++] = rGeom[i].pGetDof(PRESSURE);
     }
 }
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
+void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -204,16 +191,16 @@ void StationaryStokes<TDim>::EquationIdVector(Element::EquationIdVectorType &rRe
     {
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
-        if(TDim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
+        if constexpr (TDim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
         rResult[Index++] = rGeom[i].GetDof(PRESSURE).EquationId();
     }
 }
 
 
 template< unsigned int TDim >
-void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step)
+void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = (TDim + 1) * NumNodes;
 
@@ -226,7 +213,7 @@ void StationaryStokes<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step
     {
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
-        if(TDim > 2) rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
+        if constexpr (TDim > 2) rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
         rValues[Index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
     }
 }

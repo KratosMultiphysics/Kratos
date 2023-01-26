@@ -22,8 +22,9 @@
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 #include "processes/process.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/variable_utils.h"
+#include "utilities/entities_utilities.h"
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
@@ -72,7 +73,7 @@ namespace Kratos {
  * @tparam TLinearSolver Linear solver template type
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class FractionalStepStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class FractionalStepStrategy : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -81,13 +82,13 @@ public:
     /// Counted pointer of FractionalStepStrategy
     KRATOS_CLASS_POINTER_DEFINITION(FractionalStepStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -174,6 +175,9 @@ public:
                 }
             }
         }
+
+        // Initialize all the elemnets and conditions
+        EntitiesUtilities::InitializeAllEntities(BaseType::GetModelPart());
     }
 
     int Check() override

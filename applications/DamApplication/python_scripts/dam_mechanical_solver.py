@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
@@ -351,7 +350,6 @@ class DamMechanicalSolver(object):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.main_model_part,
                                                                                scheme,
-                                                                               self.linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -363,7 +361,6 @@ class DamMechanicalSolver(object):
                 self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
                 solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
                                                                                scheme,
-                                                                               self.linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                max_iters,

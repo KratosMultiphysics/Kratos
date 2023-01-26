@@ -54,42 +54,42 @@ class PrebucklingSolver(MechanicalSolver):
 
         return new_time
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     # Builder and Solver Eigen
-    def get_builder_and_solver_eigen(self):
+    def _GetBuilderAndSolverEigen(self):
         if not hasattr(self, '_builder_and_solver_eigen'):
-            self._builder_and_solver_eigen = self._create_builder_and_solver_eigen()
+            self._builder_and_solver_eigen = self._CreateBuilderAndSolverEigen()
         return self._builder_and_solver_eigen
 
-    def _create_builder_and_solver_eigen(self):
-        linear_solver = self.get_linear_solver_eigen()
+    def _CreateBuilderAndSolverEigen(self):
+        linear_solver = self._GetLinearSolverEigen()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
-    def get_linear_solver_eigen(self):
+    def _GetLinearSolverEigen(self):
         if not hasattr(self, '_linear_solver_eigen'):
-            self._linear_solver_eigen = self._create_linear_solver_eigen()
+            self._linear_solver_eigen = self._CreateLinearSolverEigen()
         return self._linear_solver_eigen
 
-    def _create_linear_solver_eigen(self):
+    def _CreateLinearSolverEigen(self):
         """Create the eigensolver"""
         return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
     # Builder and Solver Static
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         """This method is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = '"Elimination Builder is required. \n'
             warn_msg += '"use_block_builder" specification will be ignored'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
     # Convergence Criterion
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         """This method is overridden to make sure it always uses "displacement_criterion" """
         convergence_criterion_setting = self._get_convergence_criterion_settings()
         if convergence_criterion_setting["convergence_criterion"].GetString() != "displacement_criterion":
@@ -101,11 +101,11 @@ class PrebucklingSolver(MechanicalSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(convergence_criterion_setting)
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_mechanical_solution_strategy(self):
-        solution_scheme = self.get_solution_scheme()
-        eigen_solver = self.get_builder_and_solver_eigen() # The eigensolver is created here.
-        builder_and_solver = self.get_builder_and_solver() # The linear solver is created here.
-        convergence_criteria = self.get_convergence_criterion()
+    def _CreateSolutionStrategy(self):
+        solution_scheme = self._GetScheme()
+        eigen_solver = self._GetBuilderAndSolverEigen() # The eigensolver is created here.
+        builder_and_solver = self._GetBuilderAndSolver() # The linear solver is created here.
+        convergence_criteria = self._GetConvergenceCriterion()
         computing_model_part = self.GetComputingModelPart()
         buckling_settings = self.settings["buckling_settings"]
 

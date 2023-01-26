@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "custom_utilities/AuxiliaryFunctions.h"
@@ -82,10 +83,10 @@ virtual ~StressFailureCheckUtilities(){}
 
 void ExecuteFinalizeSolutionStep()
 {
-    std::vector<double> ThreadSigma1(OpenMPUtils::GetNumThreads(), 0.0);
-    // std::vector<double> ThreadSigma2(OpenMPUtils::GetNumThreads(), 0.0);
-    std::vector<double> ThreadSigma3(OpenMPUtils::GetNumThreads(), 0.0);
-    std::vector<int> ThreadNParticles(OpenMPUtils::GetNumThreads(), 0);
+    std::vector<double> ThreadSigma1(ParallelUtilities::GetNumThreads(), 0.0);
+    // std::vector<double> ThreadSigma2(ParallelUtilities::GetNumThreads(), 0.0);
+    std::vector<double> ThreadSigma3(ParallelUtilities::GetNumThreads(), 0.0);
+    std::vector<int> ThreadNParticles(ParallelUtilities::GetNumThreads(), 0);
 
     ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
 
@@ -121,7 +122,7 @@ void ExecuteFinalizeSolutionStep()
     double Sigma1Average = 0.0;
     double Sigma3Average = 0.0;
     int NParticles = 0;
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++) {
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
         Sigma1Average += ThreadSigma1[k];
         Sigma3Average += ThreadSigma3[k];
         NParticles += ThreadNParticles[k];

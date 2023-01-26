@@ -25,19 +25,6 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/bins_dynamic.h"
 
-// External includes
-//#define CUSTOMTIMER
-
-/* Timer defines */
-#include "utilities/timer.h"
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
-
 namespace Kratos
 {
 
@@ -142,11 +129,8 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       GeometricalObjectType::ContainerType BinsConditionPointerToGeometricalObjecPointerTemporalVector;
       RadiusArrayType Radius_out;
 
-      int num_of_threads = OpenMPUtils::GetNumThreads();
-      std::vector<unsigned int> total_dem_partition_index;
+      int num_of_threads = ParallelUtilities::GetNumThreads();
       std::vector<unsigned int> total_fem_partition_index;
-
-      OpenMPUtils::CreatePartition(num_of_threads, elements_sear.size(), total_dem_partition_index);
       OpenMPUtils::CreatePartition(num_of_threads, conditions_bins.size(), total_fem_partition_index);
 
       //std::vector<GeometricalObjectType::ContainerType> Vector_SearElementPointerToGeometricalObjecPointerTemporalVector(num_of_threads);

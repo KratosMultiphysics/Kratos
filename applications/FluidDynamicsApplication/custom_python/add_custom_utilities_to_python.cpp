@@ -27,16 +27,18 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/fluid_post_process_utilities.h"
+#include "custom_utilities/fluid_auxiliary_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
+#include "custom_utilities/fluid_characteristic_numbers_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/fluid_test_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -64,24 +66,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Estimate time step utilities
-    py::class_<EstimateDtUtility < 2 > >(m,"EstimateDtUtility2D")
+    py::class_<EstimateDtUtility>(m,"EstimateDtUtility")
         .def(py::init< ModelPart&, const double, const double, const double >())
         .def(py::init< ModelPart&, Parameters& >())
-        .def("SetCFL",&EstimateDtUtility < 2 > ::SetCFL)
-        .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
-        .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
-        .def("EstimateDt",&EstimateDtUtility < 2 > ::EstimateDt)
-        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<2>::CalculateLocalCFL )
+        .def("SetCFL",&EstimateDtUtility::SetCFL)
+        .def("SetDtMax",&EstimateDtUtility::SetDtMin)
+        .def("SetDtMax",&EstimateDtUtility::SetDtMax)
+        .def("EstimateDt",&EstimateDtUtility::EstimateDt)
         ;
 
-    py::class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
-        .def(py::init< ModelPart&, const double, const double, const double >())
-        .def(py::init< ModelPart&, Parameters& >())
-        .def("SetCFL",&EstimateDtUtility < 3 > ::SetCFL)
-        .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
-        .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
-        .def("EstimateDt",&EstimateDtUtility < 3 > ::EstimateDt)
-        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<3>::CalculateLocalCFL )
+    // Fluid characteristic numbers utilities
+    py::class_<FluidCharacteristicNumbersUtilities>(m,"FluidCharacteristicNumbersUtilities")
+        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &FluidCharacteristicNumbersUtilities::CalculateLocalCFL)
         ;
 
     // Periodic boundary conditions utilities
@@ -173,10 +169,36 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
 
-    // Post process utilities
-    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
-        .def(py::init<>())
-        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
+    // Auxiliary utilities
+    py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
+        .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart);})
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
+        .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
+        .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
+        ;
+
+    py::class_<FluidTestUtilities>(m, "FluidTestUtilities")
+        .def_static("RandomFillHistoricalVariable", py::overload_cast<ModelPart&, const Variable<double>&, const double, const double, const int>(&FluidTestUtilities::RandomFillHistoricalVariable<double>))
+        .def_static("RandomFillHistoricalVariable", py::overload_cast<ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double, const int>(&FluidTestUtilities::RandomFillHistoricalVariable<array_1d<double, 3>>))
+        .def_static("RandomFillHistoricalVariable", py::overload_cast<ModelPart&, const Variable<double>&, const std::string&, const double, const double, const int>(&FluidTestUtilities::RandomFillHistoricalVariable<double>))
+        .def_static("RandomFillHistoricalVariable", py::overload_cast<ModelPart&, const Variable<array_1d<double, 3>>&, const std::string&, const double, const double, const int>(&FluidTestUtilities::RandomFillHistoricalVariable<array_1d<double, 3>>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::NodesContainerType&, const Variable<double>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::NodesContainerType, double>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::NodesContainerType&, const Variable<double>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::NodesContainerType, double>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ConditionsContainerType, double>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ConditionsContainerType&, const Variable<double>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ConditionsContainerType, double>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, double>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<double>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, double>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
+        .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         ;
 
 }

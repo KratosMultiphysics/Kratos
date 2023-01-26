@@ -840,7 +840,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainLM3DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
   {
     //Initilialize Tau for the stabilization
     double alpha_stab = 0.1;
@@ -919,7 +919,7 @@ namespace Kratos
   //********************************CALCULATE EXPLICIT MULTIPLIERS**********************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES).size()<<std::endl;
@@ -973,7 +973,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     //Contact face node1-node2-node3
@@ -1177,7 +1177,7 @@ namespace Kratos
 
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
 
 
@@ -1312,7 +1312,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     //Contact face node1-node2-node3
@@ -1530,7 +1530,7 @@ namespace Kratos
 
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
 
 

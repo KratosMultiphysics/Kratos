@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -82,18 +81,10 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         """
         self.fileTotalVolume = None
 
-        # check restart
-        self.restart = False
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True:
-            self.restart = True
-            self.step_count = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            if self.meshing_control_is_time:
-                self.next_meshing  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] + self.meshing_frequency
-            else:
-                self.next_meshing = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + self.meshing_frequency
+        if self.meshing_control_is_time:
+            self.next_meshing  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] + self.meshing_frequency
         else:
-            self.meshing_output = self.meshing_frequency
-
+            self.next_meshing = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + self.meshing_frequency
 
         self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, False);
 
@@ -135,12 +126,11 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.mesher_utils.SetModelPartNameToConditions(self.main_model_part)
 
         # find skin and boundary normals
-        if self.restart == False:
-            self.BuildMeshBoundaryForFluids()
+        self.BuildMeshBoundaryForFluids()
 
             # search nodal h
-            if self.neighbour_search_performed:
-                domain_utils.SearchNodalH(self.main_model_part, self.echo_level)
+        if self.neighbour_search_performed:
+            self.SearchNodalH(self.main_model_part, self.echo_level)
 
         # set the domain labels to nodes
         self.mesher_utils.SetModelPartNameToNodes(self.main_model_part)
@@ -225,6 +215,21 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.close()
 
+    #
+    def SearchNodalH(self, model_part, echo_level):
+        # define search utility
+        nodal_h_search = KratosMultiphysics.FindNodalHProcess(model_part)
+        # execute search:
+        nodal_h_search.Execute()
+
+        # to fix the nodal_h computation of the walls and to avoid setting a small and not representative nodal.H
+        # the previous function takes the minimum length of the neighbor fluid elements, this considers only the rigid ones. This avoids fluid leakage through the walls.
+        nodal_h_search_for_rigid_walls = KratosPfemFluid.FindNodalHForRigidWallsProcess(model_part)
+        # execute search:
+        nodal_h_search_for_rigid_walls.Execute()
+
+        if( echo_level > 0 ):
+            print("::[Remesh_Fluid_Domains_Process]:: Nodal H Search executed ")
 
     def ExecuteBeforeOutputStep(self):
 
@@ -263,14 +268,26 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
     #
     def IsMeshingStep(self):
 
-        #if( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= 0.025):
-            #return False
+        currentTime=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        deltaTime=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        currentStep=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
-        if(self.meshing_control_is_time):
-            #print( str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])+">"+ str(self.next_meshing) )
-            return ( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_meshing )
+        if (self.meshing_control_is_time):
+            tolerance=deltaTime*0.000001
+            timeDifference=abs(currentTime-self.next_meshing)
+            if (tolerance >= timeDifference):
+                self.next_meshing=currentTime + self.meshing_frequency
+                return True
+            else:
+                return False
         else:
-            return ( self.step_count >= self.next_meshing )
+            tolerance=0.1
+            stepDifference=abs(currentStep-self.next_meshing)
+            if (tolerance >= stepDifference):
+                self.next_meshing= currentStep + self.meshing_frequency
+                return True
+            else:
+                return False
 
     #
 

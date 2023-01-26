@@ -123,7 +123,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_vel[3])
     {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres(
@@ -137,7 +137,7 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
@@ -152,7 +152,7 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
@@ -164,7 +164,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
@@ -178,7 +178,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
@@ -192,7 +192,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::UpdateRotatedAngle(
@@ -200,7 +200,7 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const array_1d<double, 3 >& angular_velocity,
                 const double delta_t) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotatedAngle) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::UpdateRotatedAngle) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::UpdateAngularVelocity(
@@ -208,7 +208,7 @@ namespace Kratos {
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
                 array_1d<double, 3>& angular_velocity) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateAngularVelocity) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::UpdateAngularVelocity) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::CalculateLocalAngularAcceleration(
@@ -216,7 +216,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& angular_acceleration) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAcceleration) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::CalculateLocalAngularAcceleration) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations(
@@ -225,7 +225,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& local_torque,
                 const double moment_reduction_factor,
                 array_1d<double, 3 >& local_angular_acceleration) {
-            KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);
+            KRATOS_ERROR << "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::CalculateAngularVelocityRK(
@@ -235,7 +235,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-            KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead", 0);
+            KRATOS_ERROR << "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::CalculateAngularVelocityRK(
@@ -245,7 +245,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-            KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead", 0);
+            KRATOS_ERROR << "This function (DEMIntegrationScheme::CalculateAngularVelocityRK) shouldn't be accessed, use derived class instead" << std::endl;
     }
 
     void DEMIntegrationScheme::QuaternionCalculateMidAngularVelocities(
@@ -255,6 +255,6 @@ namespace Kratos {
                 const double dt,
                 const array_1d<double, 3>& InitialAngularVel,
                 array_1d<double, 3>& FinalAngularVel) {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::QuaternionCalculateMidAngularVelocities) shouldn't be accessed, use derived class instead", 0);
+        KRATOS_ERROR << "This function (DEMIntegrationScheme::QuaternionCalculateMidAngularVelocities) shouldn't be accessed, use derived class instead" << std::endl;
     }
 }

@@ -4,8 +4,6 @@
 //   Date:                $Date:           February 2016 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -68,14 +66,14 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
     // LargeDisplacementElement::Initialize();
     const GeometryType &rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_4);
     if (this->mCurrentTotalCauchyStress.size() != integration_points_number)
       this->mCurrentTotalCauchyStress.resize(integration_points_number);
 
@@ -89,7 +87,7 @@ namespace Kratos
       this->mUpdatedDeviatoricCauchyStress.resize(integration_points_number);
 
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }
@@ -106,7 +104,7 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
-                                                                                                 ProcessInfo &rCurrentProcessInfo)
+                                                                                                 const ProcessInfo &rCurrentProcessInfo)
   {
     // double theta = this->GetThetaContinuity();
     double theta = 1.0;
@@ -135,12 +133,12 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
     const GeometryType &rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_4);
 
     for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
     {
@@ -151,7 +149,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 
@@ -216,7 +214,7 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeElementalVariables(ElementalVariables &rElementalVariables)
   {
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }
@@ -227,26 +225,25 @@ namespace Kratos
     rElementalVariables.DeviatoricInvariant = 1;
     rElementalVariables.EquivalentStrainRate = 1;
     rElementalVariables.VolumetricDefRate = 1;
-    rElementalVariables.SpatialDefRate.resize(voigtsize);
-    rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
-    rElementalVariables.Fgrad.resize(TDim, TDim);
-    rElementalVariables.InvFgrad.resize(TDim, TDim);
-    rElementalVariables.FgradVel.resize(TDim, TDim);
-    rElementalVariables.InvFgradVel.resize(TDim, TDim);
-    rElementalVariables.SpatialVelocityGrad.resize(TDim, TDim);
+    rElementalVariables.SpatialDefRate.resize(voigtsize, false);
+    rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize, false);
+    rElementalVariables.Fgrad.resize(TDim, TDim, false);
+    rElementalVariables.InvFgrad.resize(TDim, TDim, false);
+    rElementalVariables.FgradVel.resize(TDim, TDim, false);
+    rElementalVariables.InvFgradVel.resize(TDim, TDim, false);
+    rElementalVariables.SpatialVelocityGrad.resize(TDim, TDim, false);
 
     rElementalVariables.MeanPressure = 0;
-    rElementalVariables.CurrentTotalCauchyStress.resize(voigtsize);
-    rElementalVariables.UpdatedTotalCauchyStress.resize(voigtsize);
-    rElementalVariables.CurrentDeviatoricCauchyStress.resize(voigtsize);
-    rElementalVariables.UpdatedDeviatoricCauchyStress.resize(voigtsize);
+    rElementalVariables.CurrentTotalCauchyStress.resize(voigtsize, false);
+    rElementalVariables.UpdatedTotalCauchyStress.resize(voigtsize, false);
+    rElementalVariables.CurrentDeviatoricCauchyStress.resize(voigtsize, false);
+    rElementalVariables.UpdatedDeviatoricCauchyStress.resize(voigtsize, false);
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalMomentumEquations(
-      MatrixType &rLeftHandSideMatrix,
-      VectorType &rRightHandSideVector,
-      ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
+                                                                                                              VectorType &rRightHandSideVector,
+                                                                                                              const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -261,12 +258,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != LocalSize)
       rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     if (rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize);
+      rRightHandSideVector.resize(LocalSize, false);
 
-    rRightHandSideVector = ZeroVector(LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -324,7 +321,6 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-
   template <>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::CalcElasticPlasticCauchySplitted(
       ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
@@ -378,6 +374,8 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[2] =
         2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[2] + rElementalVariables.CurrentTotalCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
   }
@@ -428,6 +426,8 @@ namespace Kratos
     rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
     rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
     rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
 
     rElementalVariables.UpdatedTotalCauchyStress[0] = +current_first_lame * rElementalVariables.VolumetricDefRate +
                                                       2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[0] +

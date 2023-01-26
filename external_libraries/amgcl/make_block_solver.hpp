@@ -24,7 +24,6 @@ class make_block_solver {
         typedef typename backend_type::params              backend_params;
         typedef typename backend_type::vector              vector;
         typedef typename math::scalar_of<value_type>::type scalar_type;
-        typedef typename math::rhs_of<value_type>::type    rhs_type;
 
         typedef typename make_solver<Precond, IterativeSolver>::params params;
 
@@ -42,29 +41,19 @@ class make_block_solver {
         std::tuple<size_t, scalar_type> operator()(
                 const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
-            const size_t n = backend::rows(system_matrix());
+            auto F = backend::reinterpret_as_rhs<value_type>(rhs);
+            auto X = backend::reinterpret_as_rhs<value_type>(x);
 
-            rhs_type const * fptr = reinterpret_cast<rhs_type const *>(&rhs[0]);
-            rhs_type       * xptr = reinterpret_cast<rhs_type       *>(&x[0]);
-
-            iterator_range<rhs_type const *> frng(fptr, fptr + n);
-            iterator_range<rhs_type       *> xrng(xptr, xptr + n);
-
-            return (*S)(A, frng, xrng);
+            return (*S)(A, F, X);
         }
 
         template <class Vec1, class Vec2>
         std::tuple<size_t, scalar_type>
         operator()(const Vec1 &rhs, Vec2 &&x) const {
-            const size_t n = backend::rows(system_matrix());
+            auto F = backend::reinterpret_as_rhs<value_type>(rhs);
+            auto X = backend::reinterpret_as_rhs<value_type>(x);
 
-            rhs_type const * fptr = reinterpret_cast<rhs_type const *>(&rhs[0]);
-            rhs_type       * xptr = reinterpret_cast<rhs_type       *>(&x[0]);
-
-            iterator_range<rhs_type const *> frng(fptr, fptr + n);
-            iterator_range<rhs_type       *> xrng(xptr, xptr + n);
-
-            return (*S)(frng, xrng);
+            return (*S)(F, X);
         }
 
         std::shared_ptr<typename Precond::matrix> system_matrix_ptr() const {
@@ -77,6 +66,10 @@ class make_block_solver {
 
         friend std::ostream& operator<<(std::ostream &os, const make_block_solver &p) {
             return os << *p.S << std::endl;
+        }
+
+        size_t bytes() const {
+            return backend::bytes(*S);
         }
     private:
         typedef make_solver<Precond, IterativeSolver> Solver;

@@ -1,9 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-import solid_mechanics_monolithic_solver as BaseSolver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_monolithic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return EigenSolver(Model, custom_settings)
@@ -41,7 +40,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         """)
 
         # Validate and transfer settings
-        from json_settings_utility import JsonSettingsUtility
+        from KratosMultiphysics.SolidMechanicsApplication.json_settings_utility import JsonSettingsUtility
         JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings, eigensolver_settings)
         self.eigensolver_settings = eigensolver_settings["eigensolver_settings"]
 
@@ -78,7 +77,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
             import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
             linear_solver = linear_solver_factory.ConstructSolver(feast_system_solver_settings)
-            if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":
+            if feast_system_solver_settings["solver_type"].GetString() == "skyline_lu_complex":
                 # default built-in feast system solver
                 linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings,linear_solver)
             elif feast_system_solver_settings["solver_type"].GetString() == "pastix":

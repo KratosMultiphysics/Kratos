@@ -96,13 +96,13 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access Get Values
@@ -119,7 +119,7 @@ public:
 
     void SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -128,7 +128,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    array_1d<double, 3> m_displacement;
 
     array_1d<double, 3> m_imposed_displacement;
     array_1d<double, 3> m_imposed_velocity;
@@ -138,8 +137,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate Shape Function Values in a given point
-    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
+    /// Calculate Shape Function Values as a vector
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     ///@}
 
@@ -152,7 +151,6 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
-        rSerializer.save("displacement",m_displacement);
         rSerializer.save("imposed_displacement",m_imposed_displacement);
         rSerializer.save("imposed_velocity",m_imposed_velocity);
         rSerializer.save("imposed_acceleration",m_imposed_acceleration);
@@ -162,7 +160,6 @@ private:
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
-        rSerializer.load("displacement",m_displacement);
         rSerializer.load("imposed_displacement",m_imposed_displacement);
         rSerializer.load("imposed_velocity",m_imposed_velocity);
         rSerializer.load("imposed_acceleration",m_imposed_acceleration);

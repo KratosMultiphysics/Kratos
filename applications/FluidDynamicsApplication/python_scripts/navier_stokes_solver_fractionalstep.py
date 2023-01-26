@@ -18,13 +18,13 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "FractionalStep",
+            "solver_type": "fractional_step",
             "model_part_name": "",
             "domain_size": -1,
             "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name",
-                    "reorder": false
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "material_import_settings": {
                 "materials_filename": ""
@@ -41,6 +41,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
+            "assign_neighbour_elements_to_conditions": true,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
@@ -69,7 +70,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
-            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -89,7 +89,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
         if custom_settings["formulation"]["element_type"].GetString() != "FractionalStep":

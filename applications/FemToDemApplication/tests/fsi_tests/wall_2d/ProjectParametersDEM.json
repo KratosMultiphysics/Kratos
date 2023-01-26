@@ -1,5 +1,5 @@
 {
-   "Dimension"                      : 2,
+   "Dimension"                      : 3,
    "PeriodicDomainOption"           : false,
    "BoundingBoxOption"              : false,
    "AutomaticBoundingBoxOption"     : false,
@@ -15,8 +15,8 @@
 
    "dem_inlet_option"               : false,
    "GravityX"                       : 0.0,
-   "GravityY"                       : -9.81,
-   "GravityZ"                       : 0.0,
+   "GravityY"                       : 0.0,
+   "GravityZ"                       : -9.81,
 
    "EnergyCalculationOption"        : false,
    "VelocityTrapOption"             : false,
@@ -24,6 +24,14 @@
    "CleanIndentationsOption"        : false,
    "RemoveBallsInEmbeddedOption"    : true,
 
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+		"material_import_settings"   : {
+					"materials_filename" : "fsi_tests/wall_2d/MaterialsDEM.json"
+		}
+    },
+    
    "DeltaOption"                    : "Absolute",
    "SearchTolerance"                : 0.0,
    "AmplifiedSearchRadiusExtension" : 0.0,
@@ -45,7 +53,7 @@
 
    "GraphExportFreq"                : 1e-3,
    "VelTrapGraphExportFreq"         : 1e-3,
-   "OutputTimeStep"                 : 10,
+   "OutputTimeStep"                 : 5,
    "PostBoundingBox"                : false,
    "PostDisplacement"               : true,
    "PostVelocity"                   : true,

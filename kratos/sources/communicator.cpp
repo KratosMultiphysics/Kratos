@@ -73,7 +73,7 @@ Communicator::Pointer Communicator::Create(const DataCommunicator& rDataCommunic
 
 Communicator::Pointer Communicator::Create() const
 {
-    return Kratos::make_shared<Communicator>();
+    return Create(mrDataCommunicator);
 }
 
 // Public Access //////////////////////////////////////////////////////////////
@@ -389,6 +389,11 @@ bool Communicator::SynchronizeVariable(Variable<Matrix> const& rThisVariable)
     return true;
 }
 
+bool Communicator::SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable)
 {
     return true;
@@ -434,12 +439,47 @@ bool Communicator::SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThi
     return true;
 }
 
+bool Communicator::SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
 {
     return true;
 }
 
 bool Communicator::SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable)
 {
     return true;
 }

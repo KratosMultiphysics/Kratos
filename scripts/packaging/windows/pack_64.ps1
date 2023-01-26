@@ -66,7 +66,7 @@ $kratosxml.save("$KRATOS_RLS\kratos.gid\kratos.xml")
 # Create the the zip file
 7z a -r "$KRATOS_RLS\kratos-$KRATOS_MAJOR.$KRATOS_MINOR.$KRATOS_PATCH-$GIT_NUMB-win-$KRATOS_ARCHY.zip" "$KRATOS_RLS\kratos.gid"
 
-# Rm the old release in the deploy directoy (Optional)
+# Rm the old release in the deploy directory (Optional)
 # Remove-Item "$DEPLOY_DIR\*.zip"
 
 # Move the current release to the deploy directory

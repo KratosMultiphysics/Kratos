@@ -145,7 +145,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_A1 )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_1 )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_2 )
-    KRATOS_REGISTER_VARIABLE( WALL_VON_KARMAN )
+    KRATOS_REGISTER_VARIABLE( VON_KARMAN )
 
     // formulation specific variables
     KRATOS_REGISTER_VARIABLE( ANALYSIS_STEPS )
@@ -238,5 +238,8 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
 
+    // registering constitutive laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian3DLaw", mRansNewtonian3DLaw);
 }
 } // namespace Kratos.

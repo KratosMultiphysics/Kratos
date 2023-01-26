@@ -37,6 +37,7 @@ def Factory(settings, Model):
     |                       |            | "file_access_mode": "exclusive"           |
     |                       |            | "file_driver": "sec2"                     |
     |                       |            | "file_name": "kratos"                     |
+    |                       |            | "max_files_to_keep": "unlimited"          |
     |                       |            | "io_type": "serial_hdf5_file_io"          |
     +-----------------------+------------+-------------------------------------------+
     | "list_of_operations"  | Parameters | [{                                        |
@@ -130,4 +131,5 @@ def Factory(settings, Model):
     algorithm, frequencies and IO operations can be configured by appending
     additional parameters to the json array.
     """
-    return core.Factory(ParametersWrapper(settings["Parameters"]), Model)
+    # TODO: decide whether to pass a KratosMultiphysics.Process or a KratosMultiphysics.OutputProcess
+    return core.Factory(ParametersWrapper(settings["Parameters"]), Model, KratosMultiphysics.Process)

@@ -26,6 +26,7 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG(IO, IGNORE_VARIABLES_ERROR, 4); // before adding a new flag be aware that some derived classes have some defined.
     KRATOS_CREATE_LOCAL_FLAG(IO, SKIP_TIMER, 5);
     KRATOS_CREATE_LOCAL_FLAG(IO, MESH_ONLY, 6);
+    KRATOS_CREATE_LOCAL_FLAG(IO, SCIENTIFIC_PRECISION, 7);
 }  // namespace Kratos.
 
 

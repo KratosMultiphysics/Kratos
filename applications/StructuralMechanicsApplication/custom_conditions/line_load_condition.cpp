@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/line_load_condition.h"
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/beam_math_utilities.hpp"
 #include "utilities/integration_utilities.h"
@@ -190,7 +191,7 @@ void LineLoadCondition<TDim>::CalculateAll(
 
     // Pressure applied to the element itself
     double pressure_on_condition = 0.0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         if( this->Has( PRESSURE ) ) {
             pressure_on_condition += this->GetValue( PRESSURE );
         }

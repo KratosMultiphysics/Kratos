@@ -20,13 +20,13 @@ namespace Kratos {
 
         ~DEM_D_Linear_confined() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         using DEM_D_Linear_viscous_Coulomb::CalculateNormalForce;
 
         double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]) override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
     }; //class DEM_D_Linear_confined
 

@@ -58,7 +58,7 @@ namespace Kratos
  * @author Riccardo Rossi
  */
 template< class TDataType >
-class GlobalPointersVector
+class GlobalPointersVector final
 {
 public:
     ///@name Type Definitions
@@ -102,7 +102,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~GlobalPointersVector() {}
+    ~GlobalPointersVector() {}
 
     template < class TContainerType >
     void FillFromContainer( TContainerType& container)
@@ -158,7 +158,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "GlobalPointersVector" ;
@@ -166,13 +166,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "GlobalPointersVector";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     GlobalPointersVector& operator=(const GlobalPointersVector& rOther)
     {

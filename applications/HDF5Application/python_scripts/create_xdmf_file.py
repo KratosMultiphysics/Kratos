@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 
 
 from KratosMultiphysics.HDF5Application.xdmf_utils import WriteMultifileTemporalAnalysisToXdmf
+from KratosMultiphysics.HDF5Application.xdmf_utils import WriteSinglefileTemporalAnalysisToXdmf
 
 
 def main():
@@ -29,6 +30,9 @@ def main():
     if args.type == "multiple" and args.analysis == "temporal":
         WriteMultifileTemporalAnalysisToXdmf(
             args.file_name, args.mesh_path, args.results_path)
+    elif args.type == "single" and args.analysis == "temporal":
+        WriteSinglefileTemporalAnalysisToXdmf(
+            args.file_name, args.mesh_path, args.results_path)        
     else:
         raise RuntimeError("Unsupported command line options.")
 

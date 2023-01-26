@@ -166,6 +166,24 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 2, given " << BaseType::PointsNumber() << std::endl;
     }
 
+    /// Constructor with Geometry Id
+    explicit Point2D(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 1 ) << "Invalid points number. Expected 1, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Point2D(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 1) << "Invalid points number. Expected 1, given " << this->PointsNumber() << std::endl;
+    }
+
     /** Copy constructor.
     Construct this geometry as a copy of given geometry.
 
@@ -201,11 +219,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Point;
+        return GeometryData::KratosGeometryFamily::Kratos_Point;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Point2D;
+        return GeometryData::KratosGeometryType::Kratos_Point2D;
     }
 
     ///@}
@@ -251,26 +269,35 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer(new Point2D(ThisPoints));
+        return typename BaseType::Pointer( new Point2D( NewGeometryId, rThisPoints ) );
     }
 
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Point2D< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Point2D( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
 //     /**
 //      * @brief Lumping factors for the calculation of the lumped mass matrix
@@ -528,14 +555,6 @@ public:
 //       return 0;
 //          }
 
-
-
-    //      virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
-    //	{
-    //		  KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    //	}
-
-
     ///@}
     ///@name Input and output
     ///@{
@@ -747,7 +766,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 template<class TPointType>
 const GeometryData Point2D<TPointType>::msGeometryData(
         &msGeometryDimension,
-        GeometryData::GI_GAUSS_1,
+        GeometryData::IntegrationMethod::GI_GAUSS_1,
         Point2D<TPointType>::AllIntegrationPoints(),
         Point2D<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients());

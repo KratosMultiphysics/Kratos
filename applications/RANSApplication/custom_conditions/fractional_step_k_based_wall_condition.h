@@ -31,6 +31,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -281,7 +282,7 @@ public:
     }
 
     /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -290,28 +291,6 @@ public:
         if (Check != 0) {
             return Check;
         } else {
-            // Check that all required variables have been registered
-            if (VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "VELOCITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "MESH_VELOCITY Key is 0. Check if the "
-                                   "application was correctly registered.",
-                                   "");
-            if (NORMAL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "NORMAL Key is 0. Check if the application "
-                                   "was correctly registered.",
-                                   "")
-            if (Y_WALL.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,
-                                   "Y_WALL Key is 0. Check if the application "
-                                   "was correctly registered.",
-                                   "")
-
             // Checks on nodes
 
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -346,7 +325,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -408,7 +387,7 @@ public:
         }
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>>& rVariable,
         std::vector<array_1d<double, 3>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -429,7 +408,7 @@ public:
         }
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -446,7 +425,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 6>>& rVariable,
         std::vector<array_1d<double, 6>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -457,7 +436,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -468,7 +447,7 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
@@ -531,29 +510,40 @@ protected:
             CalculateConditionGeometryData(r_geometry, this->GetIntegrationMethod(),
                                            gauss_weights, shape_functions);
             const IndexType num_gauss_points = gauss_weights.size();
-
-            const double c_mu_25 =
-                std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-            const double kappa = rCurrentProcessInfo[WALL_VON_KARMAN];
-            const double inv_kappa = 1.0 / kappa;
-            const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
-            const double y_plus_limit =
-                rCurrentProcessInfo[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
-
             const double eps = std::numeric_limits<double>::epsilon();
+            const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+            const double kappa = rCurrentProcessInfo[VON_KARMAN];
 
-            double tke, rho, nu;
+            // get parent element
+            auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+            auto p_constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+
+            // get fluid properties from parent element
+            const auto& r_elem_properties = r_parent_element.GetProperties();
+            const double rho = r_elem_properties[DENSITY];
+            ConstitutiveLaw::Parameters cl_parameters(r_geometry, r_elem_properties, rCurrentProcessInfo);
+
+            // get surface properties from condition
+            const PropertiesType& r_cond_properties = this->GetProperties();
+            const double beta = r_cond_properties.GetValue(WALL_SMOOTHNESS_BETA);
+            const double y_plus_limit = r_cond_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
+            const double inv_kappa = 1.0 / kappa;
+
+            double tke, nu;
             array_1d<double, 3> wall_velocity;
 
-                for (size_t g = 0; g < num_gauss_points; ++g)
+            for (size_t g = 0; g < num_gauss_points; ++g)
             {
                 const Vector& gauss_shape_functions = row(shape_functions, g);
 
-                EvaluateInPoint(r_geometry, gauss_shape_functions,
-                                std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                                std::tie(rho, DENSITY),
-                                std::tie(nu, KINEMATIC_VISCOSITY),
-                                std::tie(wall_velocity, VELOCITY));
+                cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
+                p_constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+                nu /= rho;
+
+                FluidCalculationUtilities::EvaluateInPoint(
+                    r_geometry, gauss_shape_functions,
+                    std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                    std::tie(wall_velocity, VELOCITY));
 
                 const double wall_velocity_magnitude = norm_2(wall_velocity);
 
@@ -611,12 +601,19 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
-    }
+        KRATOS_TRY
 
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+
+        KRATOS_CATCH("");
+    }
     void load(Serializer& rSerializer) override
     {
+        KRATOS_TRY
+
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+
+        KRATOS_CATCH("");
     }
 
     ///@}

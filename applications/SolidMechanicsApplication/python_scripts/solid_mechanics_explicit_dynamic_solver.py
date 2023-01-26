@@ -1,10 +1,9 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Import the mechanical solver base class
-import solid_mechanics_monolithic_solver as BaseSolver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_monolithic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return ExplicitMonolithicSolver(Model, custom_settings)
@@ -39,7 +38,7 @@ class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
         # Validate and transfer settings
         if( custom_settings.Has("solving_strategy_settings") ):
-            from json_settings_utility import JsonSettingsUtility
+            from KratosMultiphysics.SolidMechanicsApplication.json_settings_utility import JsonSettingsUtility
             JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings["solving_strategy_settings"], explicit_solver_settings["solving_strategy_settings"])
         self.explicit_solver_settings = explicit_solver_settings["solving_strategy_settings"]
 

@@ -11,23 +11,19 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <vector>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/dem_variables.h"
-#include "includes/kernel.h"
-#include "includes/node.h"
+#include "includes/kratos_application.h"
 
-#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
 
+    KRATOS_CREATE_VARIABLE( Matrix, PERMEABILITY )
     KRATOS_CREATE_VARIABLE( int, PARTICLE_MATERIAL )
     KRATOS_CREATE_VARIABLE(int, NUMBER_OF_INIT_BASSET_STEPS)
     KRATOS_CREATE_VARIABLE( int, FRAME_OF_REFERENCE_TYPE )
@@ -174,6 +170,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( PARTICLE_ROTATE_SPRING_MOMENT )
 
     // Swimming DEM Application BEGINNING
+    KRATOS_REGISTER_VARIABLE( PERMEABILITY )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_REGISTER_VARIABLE( COUPLING_TYPE)
     KRATOS_REGISTER_VARIABLE( NON_NEWTONIAN_OPTION )

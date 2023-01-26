@@ -277,36 +277,21 @@ namespace Kratos
       if( mpVariable == nullptr ){
         KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
       }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*mpVariable));
-      }
 
       if( mpPrimaryVariable == nullptr ){
         KRATOS_ERROR << " time integration method PrimaryVariable not set " <<std::endl;
-      }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*mpPrimaryVariable));
       }
 
       // if( mpInputVariable == nullptr ){
       //   KRATOS_ERROR << " time integration method InputVariable not set " <<std::endl;
       // }
-      // else{
-      //   KRATOS_CHECK_VARIABLE_KEY((*mpInputVariable));
-      // }
 
       // if( mpFirstDerivative == nullptr ){
       //   KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
       // }
-      // else{
-      //   KRATOS_CHECK_VARIABLE_KEY((*mpFirstDerivative));
-      // }
 
       // if( mpSecondDerivative == nullptr ){
       //   KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
-      // }
-      // else{
-      //   KRATOS_CHECK_VARIABLE_KEY((*mpSecondDerivative));
       // }
 
       return 0;

@@ -121,7 +121,7 @@
                         "VELOCITY_Y",
                         "VELOCITY_POTENTIAL"
                     ],
-                    "input_file_name": "backward_facing_step_incompressible_potential_flow_field_test_results.json",
+                    "input_file_name": "backward_facing_step_incompressible_potential_flow_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
                     "tolerance": 1e-9,
                     "relative_tolerance": 1e-12,
@@ -142,7 +142,7 @@
                     "VELOCITY_Y",
                     "VELOCITY_POTENTIAL"
                 ],
-                "input_file_name": "backward_facing_step_incompressible_potential_flow_field_test_results.json",
+                "input_file_name": "backward_facing_step_incompressible_potential_flow_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "tolerance": 1e-9,
                 "relative_tolerance": 1e-12,
@@ -160,7 +160,7 @@
                     "VELOCITY_Y",
                     "VELOCITY_POTENTIAL"
                 ],
-                "output_file_name": "backward_facing_step_incompressible_potential_flow_field_test_results.json",
+                "output_file_name": "backward_facing_step_incompressible_potential_flow_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

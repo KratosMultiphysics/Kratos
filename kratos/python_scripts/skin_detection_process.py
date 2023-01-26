@@ -1,19 +1,17 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
-import KratosMultiphysics 
- 
-def Factory(settings, Model): 
-    if(type(settings) != KratosMultiphysics.Parameters): 
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string") 
+import KratosMultiphysics
+
+def Factory(settings, Model):
+    if(type(settings) != KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return SkinDetectionProcess(Model, settings["Parameters"])
- 
-## All the processes python should be derived from "Process" 
+
+## All the processes python should be derived from "Process"
 class SkinDetectionProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ): 
-        KratosMultiphysics.Process.__init__(self) 
- 
-        default_settings = KratosMultiphysics.Parameters(""" 
+    def __init__(self, Model, settings ):
+        KratosMultiphysics.Process.__init__(self)
+
+        default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                                  : "This process detects the skin from a given submodelpart and it generates the correspong conditions",
             "model_part_name"                       : "Main",

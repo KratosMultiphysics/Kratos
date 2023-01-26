@@ -23,6 +23,7 @@
 // External includes
 
 // Project includes
+#include "includes/global_variables.h"
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
 

@@ -53,8 +53,7 @@ class Solution(main_script.Solution):
         elif benchmark_number in listGeneric:
             file_name = "ProjectParametersDEMGeneric.json"
         else:
-            Logger.PrintInfo("DEM",'Benchmark number does not exist')
-            sys.exit()
+            raise Exception("Benchmark number does not exist")
 
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())
@@ -78,12 +77,6 @@ class Solution(main_script.Solution):
             import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
         elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
             import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericContPartDEMElement3D"):
-            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericPartDEMElement3D"):
-            import KratosMultiphysics.DEMApplication.thermal_sphere_strategy as SolverStrategy
-        elif (element_type == "SinteringSphericConPartDEMElement3D"):
-            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif (element_type == "IceContPartDEMElement3D"):
             import KratosMultiphysics.DEMApplication.ice_continuum_sphere_strategy as SolverStrategy
         else:

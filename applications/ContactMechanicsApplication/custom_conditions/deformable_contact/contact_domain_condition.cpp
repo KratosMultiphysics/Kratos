@@ -103,7 +103,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  ContactDomainCondition::IntegrationMethod ContactDomainCondition::GetIntegrationMethod()
+  ContactDomainCondition::IntegrationMethod ContactDomainCondition::GetIntegrationMethod() const
   {
     return mThisIntegrationMethod;
   }
@@ -112,7 +112,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo ) const
   {
     rConditionalDofList.resize( 0 );
 
@@ -130,7 +130,7 @@ namespace Kratos
     //ADD MASTER NODES
     for ( unsigned int i = 0; i < GetValue(MASTER_NODES).size(); i++ )
       {
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_X ) );
 	rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Y ) );
@@ -142,7 +142,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
   {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -166,7 +166,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rResult[index]   = MasterNode.GetDof( DISPLACEMENT_X ).EquationId();
 	rResult[index+1] = MasterNode.GetDof( DISPLACEMENT_Y ).EquationId();
@@ -178,7 +178,7 @@ namespace Kratos
   //*********************************DISPLACEMENT***************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
+  void ContactDomainCondition::GetValuesVector( Vector& rValues, int Step ) const
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -202,7 +202,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( DISPLACEMENT_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
@@ -217,7 +217,7 @@ namespace Kratos
   //************************************VELOCITY****************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+  void ContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -240,7 +240,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( VELOCITY_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
@@ -256,7 +256,7 @@ namespace Kratos
   //*********************************ACCELERATION***************************************
   //************************************************************************************
 
-  void ContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+  void ContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -279,7 +279,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
+	const Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( ACCELERATION_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
@@ -298,7 +298,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-                                                            std::vector<double>& rValues,
+                                                            const std::vector<double>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
 
@@ -308,7 +308,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                            std::vector<Vector>& rValues,
+                                                            const std::vector<Vector>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
 
@@ -319,47 +319,17 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                            std::vector<Matrix>& rValues,
+                                                            const std::vector<Matrix>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
 
   }
 
-  //*********************************GET DOUBLE VALUE***********************************
-  //************************************************************************************
-
-  void ContactDomainCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                                            std::vector<double>& rValues,
-                                                            const ProcessInfo& rCurrentProcessInfo )
-  {
-    this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-  }
-
-  //**********************************GET VECTOR VALUE**********************************
-  //************************************************************************************
-
-  void ContactDomainCondition::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                            std::vector<Vector>& rValues,
-                                                            const ProcessInfo& rCurrentProcessInfo )
-  {
-    this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-  }
-
-  //***********************************GET MATRIX VALUE*********************************
-  //************************************************************************************
-
-  void ContactDomainCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                            std::vector<Matrix>& rValues,
-                                                            const ProcessInfo& rCurrentProcessInfo )
-  {
-    this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-  }
-
 
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::Initialize()
+  void ContactDomainCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -370,7 +340,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
 
     //0.- Initialize Iteration Counter
@@ -399,7 +369,7 @@ namespace Kratos
   ////************************************************************************************
   ////************************************************************************************
 
-  void ContactDomainCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+  void ContactDomainCondition::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
   {
     //Clear nodal contact forces
     ClearNodalForces();
@@ -410,7 +380,7 @@ namespace Kratos
   ////************************************************************************************
   ////************************************************************************************
 
-  void ContactDomainCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+  void ContactDomainCondition::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
   {
     //Calculte nodal contact forces
     CalculateNodalForces(CurrentProcessInfo);
@@ -423,7 +393,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+  void ContactDomainCondition::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -468,7 +438,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateNodalForces(ProcessInfo& CurrentProcessInfo)
+  void ContactDomainCondition::CalculateNodalForces(const ProcessInfo& CurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -506,7 +476,7 @@ namespace Kratos
 
   void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHSVector,
 						       const Variable<VectorType>& rRHSVariable,
-						       Variable<array_1d<double,3> >& rDestinationVariable,
+						       const Variable<array_1d<double,3> >& rDestinationVariable,
 						       const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -638,7 +608,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculateKinematics( ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
+  void ContactDomainCondition::CalculateKinematics( ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
   {
     KRATOS_TRY
 
@@ -683,7 +653,7 @@ namespace Kratos
     //Get Current DeformationGradient
     std::vector<Matrix> DeformationGradientVector ( integration_points_number );
     DeformationGradientVector[rPointNumber]=IdentityMatrix(dimension);
-    MasterElement.GetValueOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
+    MasterElement.CalculateOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
     rVariables.F = DeformationGradientVector[rPointNumber];
 
     rVariables.detF = MathUtils<double>::Det(rVariables.F);
@@ -691,7 +661,7 @@ namespace Kratos
     //Get Current Stress
     std::vector<Vector> StressVector ( integration_points_number );
     StressVector[rPointNumber]=ZeroVector(voigtsize);
-    MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    MasterElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
 
     // UL
     // ConstitutiveLaw Constitutive;
@@ -753,7 +723,7 @@ namespace Kratos
   //***********************COMPUTE LOCAL SYSTEM CONTRIBUTIONS***************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
   {
     //std::cout<<" CalculateRightHandSide "<<std::endl;
 
@@ -780,7 +750,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, const ProcessInfo& rCurrentProcessInfo )
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -817,7 +787,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
   {
     //std::cout<<" CalculateLocalSystem "<<std::endl;
 
@@ -871,7 +841,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -943,7 +913,7 @@ namespace Kratos
 						     const std::vector< Variable< MatrixType > >& rLHSVariables,
 						     std::vector< VectorType >& rRightHandSideVectors,
 						     const std::vector< Variable< VectorType > >& rRHSVariables,
-						     ProcessInfo& rCurrentProcessInfo )
+						     const ProcessInfo& rCurrentProcessInfo )
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -994,7 +964,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
   {
     //std::cout<<" CalculateLeftHandSide "<<std::endl;
 
@@ -1152,7 +1122,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateRelativeVelocity (ConditionVariables& rVariables, PointType & TangentVelocity, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainCondition::CalculateRelativeVelocity (ConditionVariables& rVariables, PointType & TangentVelocity, const ProcessInfo& rCurrentProcessInfo)
   {
     //if current tangent is not previously computed, do it here.
     rVariables.Contact.CurrentSurface.Tangent = this->CalculateCurrentTangent( rVariables.Contact.CurrentSurface.Tangent );
@@ -1216,7 +1186,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainCondition::CalculateRelativeDisplacement (ConditionVariables& rVariables, PointType & TangentDisplacement, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainCondition::CalculateRelativeDisplacement (ConditionVariables& rVariables, PointType & TangentDisplacement, const ProcessInfo& rCurrentProcessInfo)
   {
 
     // (Tangent vector previously computed)
@@ -1301,7 +1271,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-							ProcessInfo& rCurrentProcessInfo)
+							const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1686,7 +1656,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
@@ -1700,19 +1670,11 @@ namespace Kratos
     const double domain_size = this->GetGeometry().DomainSize();
     KRATOS_WARNING_IF( "DomainSize", domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 
 	// Nodal dofs
