@@ -359,7 +359,7 @@ private:
 
     }
 
-    bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
+    bool check_pipe_equilibrium(filtered_elements openPipeElements, double amax, unsigned int mPipingIterations)
     {
         bool equilibrium = false;
         bool converged = true;
@@ -393,8 +393,8 @@ private:
                     SteadyStatePwPipingElement<2, 4>::Pointer pElement = Kratos::static_pointer_cast<SteadyStatePwPipingElement<2, 4>>(OpenPipeElement);
 
                     // get open pipe element geometry and properties
-                    auto& pGeom = pElement->GetGeometry();
-                    auto& pProp = pElement->GetProperties();
+                    const auto& pGeom = pElement->GetGeometry();
+                    const auto& pProp = pElement->GetProperties();
 
                     // calculate equilibrium pipe height and get current pipe height
                     double eq_height = pElement->CalculateEquilibriumPipeHeight(pProp, pGeom);
