@@ -45,22 +45,23 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
 
     // We get the coordinates of the bounding box
     using NodeType = Node<3>;
-    const double max_x = 1.5 * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+    const double bounding_box_scale_factor = mThisParameters["bounding_box_scale_factor"].GetDouble();
+    const double max_x = bounding_box_scale_factor * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
         return rNode.X();
     });
-    const double min_x = 1.5 * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+    const double min_x = bounding_box_scale_factor * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
         return rNode.X();
     });
-    const double max_y = 1.5 * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+    const double max_y = bounding_box_scale_factor * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
         return rNode.Y();
     });
-    const double min_y = 1.5 * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+    const double min_y = bounding_box_scale_factor * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
         return rNode.Y();
     });
-    const double max_z = 1.5 * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+    const double max_z = bounding_box_scale_factor * block_for_each<MaxReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
         return rNode.Z();
     });
-    const double min_z = 1.5 * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+    const double min_z = bounding_box_scale_factor * block_for_each<MinReduction<double>>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
         return rNode.Z();
     });
 
@@ -151,6 +152,7 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
         "skin_model_part_2_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "tolerance"                           : 1.0e-3,
         //"continuous_distance"               : false, // TODO: Add continuous version if needed in the future
+        "bounding_box_scale_factor"           : 1.5,
         "number_of_divisions_background_mesh" : 30,
         "discontinuous_distance_settings": {
             "elemental_distances_variable"                          : "ELEMENTAL_DISTANCES",
