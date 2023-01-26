@@ -105,7 +105,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     // Interate over the elements
     auto it_elem_begin_1 = r_model_part_1.ElementsBegin();
     auto it_elem_begin_2 = r_model_part_2.ElementsBegin();
-    const Variable<Vector>& r_elem_dist_var = KratosComponents<Variable<Vector>>::Get(distance_parameters["elemental_distances_variable"].GetString());
+    const auto& r_elem_dist_var = KratosComponents<Variable<Vector>>::Get(distance_parameters["elemental_distances_variable"].GetString());
     const double error = IndexPartition<std::size_t>(r_model_part_1.NumberOfElements()).for_each<SumReduction<double>>([&](std::size_t i) {
         auto it_elem_1 = it_elem_begin_1 + i;
         auto it_elem_2 = it_elem_begin_2 + i;
