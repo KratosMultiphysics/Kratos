@@ -83,8 +83,8 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::CheckD
     mAlphaMax      = rParameters["benchmark_parameters"]["alpha_max"].GetDouble();
     mSigma         = rParameters["benchmark_parameters"]["sigma"].GetDouble();
     mOmega         = rParameters["benchmark_parameters"]["omega"].GetDouble();
-    mk              = rParameters["benchmark_parameters"]["k"].GetDouble();
-    mUchar              = rParameters["benchmark_parameters"]["u_char"].GetDouble();
+    mk             = rParameters["benchmark_parameters"]["k"].GetDouble();
+    mReynolds      = rParameters["benchmark_parameters"]["reynolds"].GetDouble();
     mX1Origin      = rParameters["benchmark_parameters"]["x1_origin"].GetDouble();
     mX2Origin      = rParameters["benchmark_parameters"]["x2_origin"].GetDouble();
     mBumpRadius    = rParameters["benchmark_parameters"]["bump_radius"].GetDouble();
@@ -110,7 +110,7 @@ const Parameters NonDivergenceFreeTransientPorositySolutionTransientBodyForcePro
                                                 "alpha_max"   : 1.0,
                                                 "sigma"       : 0.0,
                                                 "k"           : 100.0,
-                                                "u_char"      : 100.0,
+                                                "Reynolds"    : 1000.0,
                                                 "x1_origin"   : 0.5,
                                                 "x2_origin"   : 0.5,
                                                 "bump_radius" : 0.5,
@@ -164,8 +164,7 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetBod
     const double alpha_max = mAlphaMax;
     const double rho = mDensity;
     const double nu = mViscosity;
-    const double u_char = mUchar;
-    const double Re = std::pow(u_char,2) / (nu * alpha_min);
+    const double Re = mReynolds;
     const double a = mPlateauRadius;
     const double b = mBumpRadius;
     const double x10 = mX1Origin;
@@ -326,8 +325,7 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetVal
     const double alpha_max = mAlphaMax;
     const double rho = mDensity;
     const double nu = mViscosity;
-    const double u_char = mUchar;
-    const double Re = std::pow(u_char,2) / (nu * alpha_min);
+    const double Re = mReynolds;
     const double a = mPlateauRadius;
     const double b = mBumpRadius;
     const double x10 = mX1Origin;

@@ -296,7 +296,6 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
             }
 
-
         r_pressure = 2.0*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + 1.0/Re);
 
         r_Pressure = r_pressure;
@@ -327,6 +326,8 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
             r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + r_sigma(1,0) * r_u1 + r_sigma(1,1) * r_u2;
 
         }else{
+            r_sigma /= r_alpha;
+
             r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + r_sigma(0,0) * r_u1 + r_sigma(0,1) * r_u2;
 
             r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + r_sigma(1,0) * r_u1 + r_sigma(1,1) * r_u2;
@@ -334,8 +335,6 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        // it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-        // it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
     }
 
 }
@@ -356,7 +355,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
     const double nu = mViscosity;
     const double Re = std::pow(u_char,2) / (nu * alpha_min);
     Matrix I = IdentityMatrix(Dim, Dim);
-    Matrix sigma = ZeroMatrix(Dim,Dim);
+    Matrix sigma = ZeroMatrix(Dim, Dim);
 
     double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, dudt1, dudt2, dalphat, body_force1, body_force2;
 
@@ -547,6 +546,9 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
             body_force2 = alpha * du2dt + alpha * convective2 + alpha / rho * press_grad2 - 2.0 * nu * (alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (alpha * grad_of_div2 + grad_alpha_div2) + sigma(1,0) * u1 + sigma(1,1) * u2;
 
         }else{
+
+            sigma /= alpha;
+
             body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * u1 + sigma(0,1) * u2;
 
             body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0) * u1 + sigma(1,1) * u2;

@@ -150,7 +150,7 @@ public:
     double                                                mOmega;
     double                                     mSqueezeAmplitude;
     double                                                    mk;
-    double                                                mUchar;
+    double                                             mReynolds;
     double                                             mX1Origin;
     double                                             mX2Origin;
     double                                           mBumpRadius;
