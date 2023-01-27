@@ -14,6 +14,10 @@
 #if !defined(KRATOS_RESIDUALBASED_SIMPLE_STEADY_SCHEME_DEM_COUPLED_DEM_COUPLED )
 #define  KRATOS_RESIDUALBASED_SIMPLE_STEADY_SCHEME_DEM_COUPLED
 
+
+// External includes
+#include "boost/smart_ptr.hpp"
+
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -24,9 +28,11 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
-#include "fluid_dynamics_application_variables.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "linear_solvers/amgcl_solver.h"
+
+// Applications includes
+#include "fluid_dynamics_application_variables.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 
 namespace Kratos {
@@ -68,7 +74,7 @@ public:
   ResidualBasedSimpleSteadySchemeDEMCoupled(double VelocityRelaxationFactor,
                                   double PressureRelaxationFactor,
                                   unsigned int DomainSize)
-      : Scheme<TSparseSpace, TDenseSpace>(),
+      : ResidualBasedSimpleSteadyScheme<TSparseSpace, TDenseSpace>(VelocityRelaxationFactor, PressureRelaxationFactor, DomainSize),
         mVelocityRelaxationFactor(VelocityRelaxationFactor),
         mPressureRelaxationFactor(PressureRelaxationFactor),
         mRotationTool(DomainSize,DomainSize+1,SLIP)
@@ -79,12 +85,11 @@ public:
       double PressureRelaxationFactor,
       unsigned int DomainSize,
       Process::Pointer pTurbulenceModel)
-      : Scheme<TSparseSpace, TDenseSpace>(),
+      : ResidualBasedSimpleSteadyScheme<TSparseSpace, TDenseSpace>(VelocityRelaxationFactor, PressureRelaxationFactor, DomainSize, pTurbulenceModel),
         mVelocityRelaxationFactor(VelocityRelaxationFactor),
         mPressureRelaxationFactor(PressureRelaxationFactor),
         mRotationTool(DomainSize,DomainSize+1,SLIP),
         mpTurbulenceModel(pTurbulenceModel)
-
   {}
 
   ~ResidualBasedSimpleSteadySchemeDEMCoupled() override {}
@@ -93,6 +98,26 @@ public:
   ///@}
   ///@name Operators
   ///@{
+
+  double GetVelocityRelaxationFactor() const
+  {
+    return mVelocityRelaxationFactor;
+  }
+
+  void SetVelocityRelaxationFactor(double factor)
+  {
+    mVelocityRelaxationFactor = factor;
+  }
+
+  double GetPressureRelaxationFactor() const
+  {
+    return mPressureRelaxationFactor;
+  }
+
+  void SetPressureRelaxationFactor(double factor)
+  {
+    mPressureRelaxationFactor = factor;
+  }
 
   void InitializeNonLinIteration(
         ModelPart &rModelPart,
@@ -119,6 +144,7 @@ public:
 
       KRATOS_INFO_IF("ResidualBasedSimpleSteadySchemeDEMCoupled", rModelPart.GetCommunicator().MyPID() == 0)<< "Computing OSS projections" << std::endl;
 
+      ProcessInfo& ProcessInfo = rModelPart.GetProcessInfo();
       const int number_of_nodes = rModelPart.NumberOfNodes();
       const int number_of_elements = rModelPart.NumberOfElements();
 
@@ -208,6 +234,8 @@ void LumpedProjection(ModelPart& rModelPart)
       KRATOS_INFO_IF("ResidualBasedSimpleSteadySchemeDEMCoupled", rModelPart.GetCommunicator().MyPID() == 0)
           << "Computing OSS projections" << std::endl;
 
+      ProcessInfo& ProcessInfo = rModelPart.GetProcessInfo();
+
       const int number_of_nodes = rModelPart.NumberOfNodes();
 
       #pragma omp parallel for
@@ -224,7 +252,7 @@ void LumpedProjection(ModelPart& rModelPart)
       #pragma omp parallel for private(output)
       for (int i = 0; i < number_of_elements; i++) {
         ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
-        it_elem->Calculate(ADVPROJ,output,CurrentProcessInfo);
+        it_elem->Calculate(ADVPROJ,output,ProcessInfo);
       }
 
       rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
@@ -256,8 +284,8 @@ private:
 
   double mVelocityRelaxationFactor;
   double mPressureRelaxationFactor;
-  CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
-  Process::Pointer mpTurbulenceModel;
+  CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool = nullptr;
+  Process::Pointer mpTurbulenceModel = nullptr;
   MatrixType mGlobalDivProjMassMatrix;
   MatrixType mGlobalAdvProjMassMatrix;
   bool mMassMatrixAlreadyComputed = false;
