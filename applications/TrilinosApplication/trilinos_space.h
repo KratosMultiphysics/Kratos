@@ -21,7 +21,7 @@
 #include "Epetra_Import.h"
 #include "Epetra_MpiComm.h"
 #include "Epetra_Map.h"
-#include "Epetra_Vector.h"
+#include "Epetra_FEVector.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
