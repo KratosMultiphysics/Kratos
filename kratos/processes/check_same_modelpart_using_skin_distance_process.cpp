@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "ggeometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
 #include "utilities/auxiliar_model_part_utilities.h"
@@ -52,30 +53,6 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
 
     // We get the coordinates of the bounding box
     using NodeType = Node<3>;
-    using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
-    double max_x, min_x, max_y, min_y, max_z, min_z;
-    std::tie(max_x, min_x, max_y, min_y, max_z, min_z) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
-        return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y(),rNode.Z(),rNode.Z());
-    });
-    const double bounding_box_scale_factor = mThisParameters["bounding_box_scale_factor"].GetDouble();
-    max_x *= bounding_box_scale_factor;
-    min_x *= bounding_box_scale_factor;
-    max_y *= bounding_box_scale_factor;
-    min_y *= bounding_box_scale_factor;
-    max_z *= bounding_box_scale_factor;
-    min_z *= bounding_box_scale_factor;
-
-    // Generate background mesh
-    auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, min_x, min_y, min_z);
-    auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, max_x, min_y, min_z);
-    auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, max_x, max_y, min_z);
-    auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, min_x, max_y, min_z);
-    auto p_point_5 = Kratos::make_intrusive<Node<3>>(5, min_x, min_y, max_z);
-    auto p_point_6 = Kratos::make_intrusive<Node<3>>(6, max_x, min_y, max_z);
-    auto p_point_7 = Kratos::make_intrusive<Node<3>>(7, max_x, max_y, max_z);
-    auto p_point_8 = Kratos::make_intrusive<Node<3>>(8, min_x, max_y, max_z);
-    Hexahedra3D8<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
-
     Parameters mesher_parameters(R"({
         "number_of_divisions"        : -1,
         "element_name"               : "Element3D4N",
@@ -83,7 +60,51 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     })");
     mesher_parameters["number_of_divisions"].SetInt(mThisParameters["number_of_divisions_background_mesh"].GetInt());
     ModelPart& r_model_part_1 = mrModel.CreateModelPart("BACKGROUND_MESH_1");
-    StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
+    const double bounding_box_scale_factor = mThisParameters["bounding_box_scale_factor"].GetDouble();
+    if constexpr (TDim == 2) { // 2D
+        mesher_parameters["element_name"].SetString("Element2D3N");
+        using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
+        double max_x, min_x, max_y, min_y;
+        std::tie(max_x, min_x, max_y, min_y) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+            return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y());
+        });
+        max_x *= bounding_box_scale_factor;
+        min_x *= bounding_box_scale_factor;
+        max_y *= bounding_box_scale_factor;
+        min_y *= bounding_box_scale_factor;
+
+        // Generate background mesh
+        auto p_point_1 = Kratos::make_intrusive<NodeType>(1, min_x, min_y, 0.0);
+        auto p_point_2 = Kratos::make_intrusive<NodeType>(2, max_x, min_y, 0.0);
+        auto p_point_3 = Kratos::make_intrusive<NodeType>(3, max_x, max_y, 0.0);
+        auto p_point_4 = Kratos::make_intrusive<NodeType>(4, min_x, max_y, 0.0);
+        Quadrilateral2D4<NodeType> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
+    } else { // 3D
+        using BBReduction = CombinedReduction<MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>, MaxReduction<double>, MinReduction<double>>;
+        double max_x, min_x, max_y, min_y, max_z, min_z;
+        std::tie(max_x, min_x, max_y, min_y, max_z, min_z) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
+            return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y(),rNode.Z(),rNode.Z());
+        });
+        max_x *= bounding_box_scale_factor;
+        min_x *= bounding_box_scale_factor;
+        max_y *= bounding_box_scale_factor;
+        min_y *= bounding_box_scale_factor;
+        max_z *= bounding_box_scale_factor;
+        min_z *= bounding_box_scale_factor;
+
+        // Generate background mesh
+        auto p_point_1 = Kratos::make_intrusive<NodeType>(1, min_x, min_y, min_z);
+        auto p_point_2 = Kratos::make_intrusive<NodeType>(2, max_x, min_y, min_z);
+        auto p_point_3 = Kratos::make_intrusive<NodeType>(3, max_x, max_y, min_z);
+        auto p_point_4 = Kratos::make_intrusive<NodeType>(4, min_x, max_y, min_z);
+        auto p_point_5 = Kratos::make_intrusive<NodeType>(5, min_x, min_y, max_z);
+        auto p_point_6 = Kratos::make_intrusive<NodeType>(6, max_x, min_y, max_z);
+        auto p_point_7 = Kratos::make_intrusive<NodeType>(7, max_x, max_y, max_z);
+        auto p_point_8 = Kratos::make_intrusive<NodeType>(8, min_x, max_y, max_z);
+        Hexahedra3D8<NodeType> geometry(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
+        StructuredMeshGeneratorProcess(geometry, r_model_part_1, mesher_parameters).Execute();
+    }
 
     // Using the same geometry, we create the second background mesh, but values are stored in a different model part
     ModelPart& r_model_part_2 = AuxiliarModelPartUtilities(r_model_part_1).DeepCopyModelPart("BACKGROUND_MESH_2", &mrModel);
