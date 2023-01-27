@@ -1,10 +1,14 @@
 import KratosMultiphysics
 import KratosMultiphysics.TrilinosApplication
 from KratosMultiphysics import mpi
+import sys
 
 def run():
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    KratosMultiphysics.Tester.RunTestSuite("TrilinosApplicationFastSuite")
+    if len(sys.argv) < 2:
+        KratosMultiphysics.Tester.RunTestSuite("KratosTrilinosApplicationMPITestSuite")
+    else:
+        KratosMultiphysics.Tester.RunTestCases(sys.argv[1])
 
 if __name__ == '__main__':
     run()
