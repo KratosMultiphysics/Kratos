@@ -8,34 +8,36 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TRILINOS_SPACE_H_INCLUDED )
-#define  KRATOS_TRILINOS_SPACE_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
-// Trilinos includes
-#include "Epetra_Import.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsMatrix.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
-#include "Epetra_SerialDenseVector.h"
-#include "EpetraExt_CrsMatrixIn.h"
+/* Trilinos includes */
+#include <Epetra_Import.h>
+#include <Epetra_MpiComm.h>
+#include <Epetra_Map.h>
+#include <Epetra_Vector.h>
+#include <Epetra_FEVector.h>
+#include <Epetra_FECrsMatrix.h>
+#include <Epetra_IntSerialDenseVector.h>
+#include <Epetra_SerialDenseMatrix.h>
+#include <Epetra_SerialDenseVector.h>
+#include <EpetraExt_CrsMatrixIn.h>
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "spaces/ublas_space.h"
+#include "includes/parallel_environment.h"
+#include "mpi/includes/mpi_data_communicator.h"
 #include "custom_utilities/trilinos_dof_updater.h"
-
 
 namespace Kratos
 {
@@ -59,9 +61,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-
-/** Detail class definition.
+/**
+ * @class TrilinosSpace
+ * @ingroup TrilinosApplication
+ * @brief The space adapted for Trilinos vectors and matrices
+ * @author Riccardo Rossi
  */
 template<class TMatrixType, class TVectorType>
 class TrilinosSpace
@@ -140,7 +144,6 @@ public:
     }
 
     /// return size of vector rV
-
     static IndexType Size(VectorType const& rV)
     {
         int size;
@@ -149,7 +152,6 @@ public:
     }
 
     /// return number of rows of rM
-
     static IndexType Size1(MatrixType const& rM)
     {
         int size1;
@@ -158,7 +160,6 @@ public:
     }
 
     /// return number of columns of rM
-
     static IndexType Size2(MatrixType const& rM)
     {
         int size1;
@@ -167,50 +168,70 @@ public:
     }
 
     /// rXi = rMij
-
     static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "GetColumn method is not currently implemented", "")
+        KRATOS_ERROR << "GetColumn method is not currently implemented" << std::endl;
     }
-
 
     ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
     /// rMij = rXi
     //      static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX){rX = row(rM, j);}
 
     /// rY = rX
-
     static void Copy(MatrixType const& rX, MatrixType& rY)
     {
         rY = rX;
     }
 
     /// rY = rX
-
     static void Copy(VectorType const& rX, VectorType& rY)
     {
         rY = rX;
     }
 
     /// rX * rY
-
     static double Dot(VectorType& rX, VectorType& rY)
     {
         double value;
         double *temp = new double[1];
-        rY.Dot(rX, temp); //it is prepared to handle vectors with multiple components
+        const int sucess = rY.Dot(rX, temp); //it is prepared to handle vectors with multiple components
+        KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing dot product" <<  std::endl;
+        value = temp[0];
+        delete [] temp;
+        return value;
+    }
+
+    /// Maximum alue
+    static double Max(const VectorType& rX)
+    {
+        double value;
+        double *temp = new double[1];
+        const int sucess = rX.MaxValue(temp); //it is prepared to handle vectors with multiple components
+        KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing maximum value" <<  std::endl;
+        value = temp[0];
+        delete [] temp;
+        return value;
+    }
+
+    /// Minimum alue
+    static double Min(const VectorType& rX)
+    {
+        double value;
+        double *temp = new double[1];
+        const int sucess = rX.MinValue(temp); //it is prepared to handle vectors with multiple components
+        KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing minimum value" <<  std::endl;
         value = temp[0];
         delete [] temp;
         return value;
     }
 
     /// ||rX||2
-
     static double TwoNorm(VectorType const& rX)
     {
         double value;
         double *temp = new double[1];
-        rX.Norm2(temp); //it is prepared to handle vectors with multiple components
+        const int sucess = rX.Norm2(temp); //it is prepared to handle vectors with multiple components
+        KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing norm" <<  std::endl;
         value = temp[0];
         delete [] temp;
         return value;
@@ -233,7 +254,6 @@ public:
 
     //********************************************************************
     //checks if a multiplication is needed and tries to do otherwise
-
     static void InplaceMult(VectorType& rX, const double A)
     {
         if (A != 1.00)
@@ -304,50 +324,27 @@ public:
 
     static void Resize(MatrixType& rA, SizeType m, SizeType n)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Matrix", "")
+        KRATOS_ERROR << "Resize is not defined for Trilinos Sparse Matrix" << std::endl;
 
     }
 
     static void Resize(VectorType& rX, SizeType n)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
+        KRATOS_ERROR << "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer" << std::endl;
     }
 
     static void Resize(VectorPointerType& pX, SizeType n)
     {
-//         if(pX != NULL)
-//             KRATOS_ERROR << "trying to resize a null pointer" ;
+        //KRATOS_ERROR_IF(pX != NULL) << "trying to resize a null pointer" << std::endl;
         int global_elems = n;
         Epetra_Map Map(global_elems, 0, pX->Comm());
         VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
         pX.swap(pNewEmptyX);
     }
 
-    // 	static void Clear(MatrixType& rA)
-    // 	{
-    // 		int global_elems = 0;
-    // 		Epetra_Map Map(global_elems,0,rA.Comm() );
-    // 		TMatrixType temp(::Copy,Map,0);
-    //
-    // // 		int global_elems = 0;
-    // // 		Epetra_Map my_map(global_elems,0,rA.Comm() );
-    // // 		Epetra_FECrsGraph Agraph(Copy, my_map, 0);
-    // // 		Agraph.GlobalAssemble();
-    // //    		TMatrixType temp(Copy,Agraph);
-    //
-    // // int NumGlobalElements = 10;
-    // //  Epetra_Map Map(NumGlobalElements,0,rA.Comm() );
-    // //
-    // //   // create a diagonal FE crs matrix (one nonzero per row)
-    // //   Epetra_FECrsMatrix temp(Copy,Map,1);
-    //
-    //   		rA = temp;
-    // 	}
-
     static void Clear(MatrixPointerType& pA)
     {
-        if(pA != NULL)
-        {
+        if(pA != NULL) {
             int global_elems = 0;
             Epetra_Map Map(global_elems, 0, pA->Comm());
             MatrixPointerType pNewEmptyA = MatrixPointerType(new TMatrixType(::Copy, Map, 0));
@@ -357,8 +354,7 @@ public:
 
     static void Clear(VectorPointerType& pX)
     {
-        if(pX != NULL)
-        {
+        if(pX != NULL) {
             int global_elems = 0;
             Epetra_Map Map(global_elems, 0, pX->Comm());
             VectorPointerType pNewEmptyX = VectorPointerType(new VectorType(Map));
@@ -383,7 +379,7 @@ public:
         MatrixType& A,
         Matrix& LHS_Contribution,
         std::vector<std::size_t>& EquationId
-    )
+        )
     {
         unsigned int system_size = Size1(A);
         //unsigned int local_size = LHS_Contribution.size1();
@@ -394,25 +390,20 @@ public:
             if (EquationId[i] < system_size)
                 active_indices += 1;
 
-        if (active_indices > 0)
-        {
+        if (active_indices > 0) {
             //size Epetra vectors
             Epetra_IntSerialDenseVector indices(active_indices);
             Epetra_SerialDenseMatrix values(active_indices, active_indices);
 
             //fill epetra vectors
             int loc_i = 0;
-            for (unsigned int i = 0; i < EquationId.size(); i++)
-            {
-                if (EquationId[i] < system_size)
-                {
+            for (unsigned int i = 0; i < EquationId.size(); i++) {
+                if (EquationId[i] < system_size) {
                     indices[loc_i] = EquationId[i];
 
                     int loc_j = 0;
-                    for (unsigned int j = 0; j < EquationId.size(); j++)
-                    {
-                        if (EquationId[j] < system_size)
-                        {
+                    for (unsigned int j = 0; j < EquationId.size(); j++) {
+                        if (EquationId[j] < system_size) {
                             values(loc_i, loc_j) = LHS_Contribution(i, j);
                             loc_j += 1;
                         }
@@ -422,12 +413,7 @@ public:
             }
 
             int ierr = A.SumIntoGlobalValues(indices, values);
-            if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-
-
-
-
-
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
 
@@ -439,7 +425,7 @@ public:
         VectorType& b,
         Vector& RHS_Contribution,
         std::vector<std::size_t>& EquationId
-    )
+        )
     {
         unsigned int system_size = Size(b);
         //unsigned int local_size = RHS_Contribution.size();
@@ -450,18 +436,15 @@ public:
             if (EquationId[i] < system_size)
                 active_indices += 1;
 
-        if (active_indices > 0)
-        {
+        if (active_indices > 0) {
             //size Epetra vectors
             Epetra_IntSerialDenseVector indices(active_indices);
             Epetra_SerialDenseVector values(active_indices);
 
             //fill epetra vectors
             int loc_i = 0;
-            for (unsigned int i = 0; i < EquationId.size(); i++)
-            {
-                if (EquationId[i] < system_size)
-                {
+            for (unsigned int i = 0; i < EquationId.size(); i++) {
+                if (EquationId[i] < system_size) {
                     indices[loc_i] = EquationId[i];
                     values[loc_i] = RHS_Contribution[i];
                     loc_i += 1;
@@ -469,9 +452,7 @@ public:
             }
 
             int ierr = b.SumIntoGlobalValues(indices, values);
-            if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-
-            //EPETRA_TEST_ERR( ierr );
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
         }
     }
 
@@ -526,11 +507,9 @@ public:
 
         Epetra_CrsMatrix* pp = nullptr;
 
-
         int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
 
-        if(error_code != 0)
-            KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
+        KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
         Comm.Barrier();
 
@@ -542,8 +521,7 @@ public:
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
 
-        for(IndexType i = 0; i < NumMyRows; ++i)
-        {
+        for(IndexType i = 0; i < NumMyRows; ++i) {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
             IndexType GlobalRow = MyGlobalElements[i];
 
@@ -555,13 +533,11 @@ public:
 
             error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
 
-            if(error_code != 0)
-                KRATOS_ERROR << "error thrown in ExtractGlobalRowCopy : " << error_code;
+            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ExtractGlobalRowCopy : " << error_code;
 
             error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
 
-            if(error_code != 0)
-                KRATOS_ERROR << "error thrown in ReplaceGlobalValues : " << error_code;
+            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ReplaceGlobalValues : " << error_code;
 
             delete [] Values;
             delete [] Indices;
@@ -607,16 +583,180 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method checks and corrects the zero diagonal values
+     * @details This method returns the scale norm considering for scaling the diagonal
+     * @param rProcessInfo The problem process info
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     * @param ScalingDiagonal The type of caling diagonal considered
+     * @param rDataCommunicator The data coomunicator considered
+     * @return The scale norm
+     */
+    static double CheckAndCorrectZeroDiagonalValues(
+        const ProcessInfo& rProcessInfo,
+        MatrixType& rA,
+        VectorType& rb,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING,
+        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        )
+    {
+        // Define  zero value tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
+        // The diagonal considered
+        const double scale_factor = GetScaleNorm(rProcessInfo, rA, ScalingDiagonal, rDataCommunicator);
+
+        for (int i = 0; i < rA.NumMyRows(); i++) {
+            int numEntries; // Number of non-zero entries
+            double* vals;   // Row non-zero values
+            int* cols;      // Column indices of row non-zero values
+            rA.ExtractMyRowView(i, numEntries, vals, cols);
+            const int row_gid = rA.RowMap().GID(i);
+            bool empty = true;
+            int j;
+            for (j = 0; j < numEntries; j++) {
+                const int col_gid = rA.ColMap().GID(cols[j]);
+                // Check diagonal value
+                if (col_gid == row_gid) {
+                    if(std::abs(vals[j]) > zero_tolerance) {
+                        empty = false;
+                    }
+                    break;
+                }
+            }
+
+            // If diagonal empty assign scale factor
+            if (empty) {
+                vals[j] = scale_factor;
+                rb[0][i] = 0.0;
+            }
+        }
+
+        return scale_factor;
+    }
+
+    /**
+     * @brief This method returns the scale norm considering for scaling the diagonal
+     * @param rProcessInfo The problem process info
+     * @param rA The LHS matrix
+     * @param ScalingDiagonal The type of caling diagonal considered
+     * @param rDataCommunicator The data coomunicator considered
+     * @return The scale norm
+     */
+    static double GetScaleNorm(
+        const ProcessInfo& rProcessInfo,
+        const MatrixType& rA,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING,
+        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        )
+    {
+        switch (ScalingDiagonal) {
+            case SCALING_DIAGONAL::NO_SCALING:
+                return 1.0;
+            case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
+                KRATOS_ERROR_IF_NOT(rProcessInfo.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
+                return rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
+            }
+            case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
+                return GetDiagonalNorm(rA, rDataCommunicator)/static_cast<double>(Size1(rA));
+            case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
+                return GetMaxDiagonal(rA, rDataCommunicator);
+            default:
+                return GetMaxDiagonal(rA, rDataCommunicator);
+        }
+    }
+
+    /**
+     * @brief This method returns the diagonal norm considering for scaling the diagonal
+     * @param rA The LHS matrix
+     * @return The diagonal norm
+     */
+    static double GetDiagonalNorm(
+        const MatrixType& rA,
+        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        )
+    {
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        const int global_elems = Size1(rA);
+        Epetra_Map map(global_elems, 0, epetra_comm);
+        Epetra_Vector diagonal(map);
+        rA.ExtractDiagonalCopy(diagonal);
+
+        return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::TwoNorm(diagonal);
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @param rDataCommunicator The data coomunicator considered
+     * @return The diagonal  max value
+     */
+    static double GetAveragevalueDiagonal(
+        const MatrixType& rA,
+        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        )
+    {
+        return 0.5 * (GetMaxDiagonal(rA, rDataCommunicator) + GetMinDiagonal(rA, rDataCommunicator));
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @param rDataCommunicator The data coomunicator considered
+     * @return The diagonal  max value
+     */
+    static double GetMaxDiagonal(
+        const MatrixType& rA,
+        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        )
+    {
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        const int global_elems = Size1(rA);
+        Epetra_Map map(global_elems, 0, epetra_comm);
+        Epetra_Vector diagonal(map);
+        rA.ExtractDiagonalCopy(diagonal);
+        return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Max(diagonal);
+    }
+
+    /**
+     * @brief This method returns the diagonal min value
+     * @param rA The LHS matrix
+     * @param rDataCommunicator The data coomunicator considered
+     * @return The diagonal min value
+     */
+    static double GetMinDiagonal(
+        const MatrixType& rA,
+        const DataCommunicator& rDataCommunicator = ParallelEnvironment::GetDefaultDataCommunicator()
+        )
+    {
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        const int global_elems = Size1(rA);
+        Epetra_Map map(global_elems, 0, epetra_comm);
+        Epetra_Vector diagonal(map);
+        rA.ExtractDiagonalCopy(diagonal);
+        return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
+    }
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -670,75 +810,59 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -750,41 +874,10 @@ private:
     /// Copy constructor.
     TrilinosSpace(TrilinosSpace const& rOther);
 
-
     ///@}
-
 }; // Class TrilinosSpace
 
-
-
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream,
-// 				    TrilinosSpace& rThis);
-
-//   /// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream,
-// 				    const TrilinosSpace& rThis)
-//     {
-//       rThis.PrintInfo(rOStream);
-//       rOStream << std::endl;
-//       rThis.PrintData(rOStream);
-
-//       return rOStream;
-//     }
-///@}
-
 
 } // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_SPACE_H_INCLUDED  defined
