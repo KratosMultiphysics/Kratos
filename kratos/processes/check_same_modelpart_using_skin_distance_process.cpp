@@ -52,7 +52,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     }
 
     // We get the coordinates of the bounding box
-    const double zero_tolerance = std::numeric_limits<double>::epsilon;
+    const double zero_tolerance = std::numeric_limits<double>::epsilon();
     using NodeType = Node<3>;
     Parameters mesher_parameters(R"({
         "number_of_divisions"        : -1,
