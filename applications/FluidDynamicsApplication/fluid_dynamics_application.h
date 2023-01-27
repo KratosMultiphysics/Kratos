@@ -272,9 +272,12 @@ private:
     const QSVMS< QSVMSData<2,4> > mQSVMS2D4N;
     const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mQSVMSDEMCoupled2D3N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mQSVMSDEMCoupled2D6N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mQSVMSDEMCoupled2D9N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mQSVMSDEMCoupled3D27N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeQSVMSDEMCoupled2D6N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
@@ -287,10 +290,14 @@ private:
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mDVMSDEMCoupled2D6N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mDVMSDEMCoupled2D9N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<3,27> > mDVMSDEMCoupled3D27N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeDVMSDEMCoupled2D3N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeDVMSDEMCoupled2D6N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeDVMSDEMCoupled3D4N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeDVMSDEMCoupled2D4N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeDVMSDEMCoupled2D9N;

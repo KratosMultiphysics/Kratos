@@ -197,6 +197,21 @@ public:
         array_1d<double, 3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
@@ -206,7 +221,6 @@ public:
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const override;
-
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -276,6 +290,11 @@ protected:
         const TElementData& rData,
         const array_1d<double,3>& rConvectionVelocity,
         array_1d<double,3> &rMomentumRHS) const override;
+
+    void AddReactionStabilization(
+        TElementData& rData,
+        auto& rLHS,
+        VectorType& rLocalRHS);
 
     void AddMassStabilization(
         TElementData& rData,
