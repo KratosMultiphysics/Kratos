@@ -220,12 +220,19 @@ public:
     * @param rCurrentProcessInfo: The model part process info
     */
 
-    virtual void InterpolateInteralVariables(
-        const int& number_elem,
-        const Element::Pointer father_elem,
-        Element::Pointer child_elem,
-        const ProcessInfo& rCurrentProcessInfo
-        );
+    template<typename TGeometricalObjectPointerType>
+    void InterpolateInteralVariables(
+            const int& number_elem,
+            const TGeometricalObjectPointerType father_elem,
+            TGeometricalObjectPointerType child_elem,
+            const ProcessInfo& rCurrentProcessInfo
+            )
+    {
+        // NOTE: Right now there is not an interpolation at all, it just copying the values
+        std::vector<Vector> values;
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+    }
 
     virtual void UpdateSubModelPartNodes(ModelPart &rModelPart);
 
@@ -247,7 +254,34 @@ protected:
             TIteratorType GeometricalObjectsBegin,
             TIteratorType GeometricalObjectsEnd,
             compressed_matrix<int>& rCoord
-					  );
+					  )
+    {
+        KRATOS_TRY;
+
+        for (TIteratorType it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it)
+        {
+            if (it->GetValue(SPLIT_ELEMENT) == true)
+            {
+                Element::GeometryType& geom = it->GetGeometry(); // Nodes of the element
+                for (unsigned int i = 0; i < geom.size(); i++)
+                {
+                    int index_i = geom[i].Id() - 1;
+                    for (unsigned int j = 0; j < geom.size(); j++)
+                    {
+                        int index_j = geom[j].Id() - 1;
+                        if (index_j > index_i)
+                        {
+                            rCoord(index_i, index_j) = -2;
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+
     ///@}
     ///@name Protected Operations
     ///@{

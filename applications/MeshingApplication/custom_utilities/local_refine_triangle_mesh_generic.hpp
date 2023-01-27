@@ -137,6 +137,8 @@ public:
             if (create_object == true)
             {
                 to_be_deleted++;
+                GlobalPointersVector<TGeometricalObjectType> &rChildObjects = GetNeighbour(it); 
+                rChildObjects.resize(0);
                 for (int i = 0; i < number_object; i++)
                 {
 
@@ -171,6 +173,7 @@ public:
                         p_object->GetValue(SPLIT_ELEMENT) = false;
                         //p_element->SetValue(REFINEMENT_LEVEL, 1);
                         rNew_Objects.push_back(p_object);
+                        rChildObjects.push_back( TGeometricalObjectType::WeakPointer(p_object) );
                     }
                     else
                     {
@@ -194,6 +197,7 @@ public:
                         p_object->GetData() = it->GetData();
                         p_object->GetValue(SPLIT_ELEMENT) = false;
                         rNew_Objects.push_back(p_object);
+                        rChildObjects.push_back( TGeometricalObjectType::WeakPointer(p_object) );
                     }
 
                     current_id++;
@@ -300,6 +304,16 @@ public:
 	    }
     }
 
+    GlobalPointersVector<Element>& GetNeighbour(ElementsArrayType::iterator it_elem)
+    {
+        return it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+    }
+
+    GlobalPointersVector<Condition>& GetNeighbour(ConditionsArrayType::iterator it_cond)
+    {
+        return it_cond->GetValue(NEIGHBOUR_CONDITIONS);
+    }
+    
 };
 
 } // namespace Kratos.

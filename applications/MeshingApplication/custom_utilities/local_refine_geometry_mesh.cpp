@@ -172,41 +172,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-        /***********************************************************************************/
-    /***********************************************************************************/
-
-    template<typename TIteratorType>
-    void LocalRefineGeometryMesh::SearchEdgeToBeRefinedGeneric(
-            TIteratorType GeometricalObjectsBegin,
-            TIteratorType GeometricalObjectsEnd,
-            compressed_matrix<int>& rCoord
-    )
-    {
-        KRATOS_TRY;
-
-        for (TIteratorType it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it)
-        {
-            if (it->GetValue(SPLIT_ELEMENT) == true)
-            {
-                Element::GeometryType& geom = it->GetGeometry(); // Nodes of the element
-                for (unsigned int i = 0; i < geom.size(); i++)
-                {
-                    int index_i = geom[i].Id() - 1;
-                    for (unsigned int j = 0; j < geom.size(); j++)
-                    {
-                        int index_j = geom[j].Id() - 1;
-                        if (index_j > index_i)
-                        {
-                            rCoord(index_i, index_j) = -2;
-                        }
-                    }
-                }
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -479,20 +444,6 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
 
-    void LocalRefineGeometryMesh::InterpolateInteralVariables(
-            const int& number_elem,
-            const Element::Pointer father_elem,
-            Element::Pointer child_elem,
-            const ProcessInfo& rCurrentProcessInfo
-            )
-    {
-        // NOTE: Right now there is not an interpolation at all, it just copying the values
-        std::vector<Vector> values;
-        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
-        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
-    }
-
-
     void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
     {
         for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
@@ -541,8 +492,5 @@ namespace Kratos
             ( iNode->GetValue(FATHER_NODES) ).clear();
         }
     }
-
-    template void LocalRefineGeometryMesh::SearchEdgeToBeRefinedGeneric<ModelPart::ElementsContainerType::iterator>  (ModelPart::ElementsContainerType::iterator GeometricalObjectsBegin, ModelPart::ElementsContainerType::iterator   GeometricalObjectsEnd, compressed_matrix<int>& rCoord);
-    //template void LocalRefineGeometryMesh::SearchEdgeToBeRefinedGeneric<ModelPart::ConditionsContainerType::iterator>(ModelPart::ElementsContainerType::iterator GeometricalObjectsBegin, ModelPart::ConditionsContainerType::iterator GeometricalObjectsEnd, compressed_matrix<int>& rCoord);
 
 } // Namespace Kratos.

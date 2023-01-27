@@ -101,6 +101,12 @@ public:
             interpolate_internal_variables
         );
 
+        // Now update the elements in SubModelParts
+        if (New_Elements.size() > 0)
+        {
+            UpdateSubModelPartElements(this_model_part.GetRootModelPart(), New_Elements);
+        }
+
     }
 
     /***********************************************************************************/
@@ -236,6 +242,69 @@ public:
 
         KRATOS_CATCH("");
     }
+
+    /**
+    * Updates recursively the elements in the submodelpars
+    * @param NewElements: list of elems
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    void UpdateSubModelPartElements(ModelPart& this_model_part, PointerVector< Element >& NewElements)
+      {
+          for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+                  iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+          {
+              unsigned int to_be_deleted = 0;
+              NewElements.clear();
+
+              // Create list of new elements in SubModelPart
+              // Count how many elements will be removed
+              for (ModelPart::ElementIterator iElem = iSubModelPart->ElementsBegin();
+                      iElem != iSubModelPart->ElementsEnd(); iElem++)
+              {
+                  if( iElem->GetValue(SPLIT_ELEMENT) )
+                  {
+                      to_be_deleted++;
+                      GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+
+                      for ( auto iChild = rChildElements.ptr_begin();
+                              iChild != rChildElements.ptr_end(); iChild++ )
+                      {
+                          NewElements.push_back((*iChild)->shared_from_this());
+                      }
+                  }
+              }
+
+              // Add new elements to SubModelPart
+              iSubModelPart->Elements().reserve( iSubModelPart->Elements().size() + NewElements.size() );
+              for (PointerVector< Element >::iterator it_new = NewElements.begin();
+                      it_new != NewElements.end(); it_new++)
+              {
+                  iSubModelPart->Elements().push_back(*(it_new.base()));
+              }
+
+              // Delete old elements
+              iSubModelPart->Elements().Sort();
+              iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
+              /*
+              KRATOS_WATCH(iSubModelPart->Info());
+              KRATOS_WATCH(to_be_deleted);
+              KRATOS_WATCH(iSubModelPart->Elements().size());
+              KRATOS_WATCH(this_model_part.Elements().size());
+              */
+
+            //NEXT LEVEL
+            if (NewElements.size() > 0)
+            {
+               ModelPart &rSubModelPart = *iSubModelPart;
+               UpdateSubModelPartElements(rSubModelPart,NewElements);
+            }
+
+
+          }
+      }
+    /***********************************************************************************/
+    /***********************************************************************************/
+
 
 };
 
