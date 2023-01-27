@@ -57,7 +57,7 @@ class FluidDEMSolver(FluidSolver):
                 scheme = KratosSDEM.BDF2TurbulentSchemeDEMCoupled()
             # Time scheme for steady state fluid solver
             elif self.settings["time_scheme"].GetString() == "steady":
-                scheme = KratosCFD.ResidualBasedSimpleSteadySchemeDEMCoupled(
+                scheme = KratosSDEM.ResidualBasedSimpleSteadySchemeDEMCoupled(
                         self.settings["velocity_relaxation"].GetDouble(),
                         self.settings["pressure_relaxation"].GetDouble(),
                         domain_size)
