@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/bdf2_turbulent_schemeDEMCoupled.h"
 #include "custom_strategies/strategies/adams_bashforth_strategy.h"
 #include "custom_strategies/strategies/residualbased_derivative_recovery_strategy.h"
+#include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/strategies/residualbased_simple_steady_schemeDEMCoupled.h"
 
 //schemes
@@ -145,12 +146,17 @@ namespace Kratos
              .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
              ;
 
-             py::class_< ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>,
+             py::class_<ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>,
              typename ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::Pointer,
              BaseSchemeType>(m, "ResidualBasedSimpleSteadySchemeDEMCoupled")
-             .def(py::init<>())                 // default constructor
-             .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+             .def(py::init<double, double, unsigned int>()) // constructor without a turbulence model
+             .def(py::init<double, double, unsigned int, Process::Pointer>())
+             .def("GetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::GetVelocityRelaxationFactor)
+             .def("SetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::SetVelocityRelaxationFactor)
+             .def("GetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::GetPressureRelaxationFactor)
+             .def("SetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::SetPressureRelaxationFactor)
              ;
+
              }
 	}  // namespace Python.
 
