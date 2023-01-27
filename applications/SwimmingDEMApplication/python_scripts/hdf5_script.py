@@ -34,7 +34,7 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_L2_error_norm, pressure_L2_error_norm, velocity_H1_error_seminorm, pressure_H1_error_seminorm, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler_number, reynolds_number):
+    def WriteData(self, error_model_part, velocity_L2_error_norm, pressure_L2_error_norm, velocity_H1_error_seminorm, pressure_H1_error_seminorm, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler, omega,reynolds_number):
         self.error_model_part = error_model_part
         self.projection_type = projection_type
         self.model_type = model_type
@@ -43,20 +43,13 @@ class ErrorProjectionPostProcessTool(object):
         self.max_iteration = max_iteration
         self.relax_alpha = relax_alpha
         self.lowest_alpha = lowest_alpha
-        self.damkohler_number = damkohler_number
+        self.damkohler_number = damkohler
+        self.omega = omega
 
-        # for Element in self.error_model_part.Elements:
-        #     self.element_size = Element.GetGeometry().Length()
-        #     break
         element_size = [Element.GetGeometry().Length() for Element in self.error_model_part.Elements]
         self.element_size = np.max(element_size)
 
         self.reynolds_number = reynolds_number
-        # iterations = 0.0
-        # for Element in self.error_model_part.Elements:
-        #     iterations += Element.GetValue(Fluid.ADJOINT_FLUID_SCALAR_1)
-
-        #self.mean_iteration.append(iterations/len(self.error_model_part.Elements))
 
         self.n_iterations.append(n_iterations)
         self.time.append(self.error_model_part.ProcessInfo[Kratos.TIME])
@@ -87,6 +80,7 @@ class ErrorProjectionPostProcessTool(object):
         self.sub_group.attrs['relaxation_alpha'] = str(self.relax_alpha)
         self.sub_group.attrs['lowest_alpha'] = str(self.lowest_alpha)
         self.sub_group.attrs['damkohler_number'] = str(self.damkohler_number)
+        self.sub_group.attrs['omega'] = str(self.omega)
         self.sub_group.attrs['reynolds_number'] = str(self.reynolds_number)
 
         for name, datum in zip(names, data):
