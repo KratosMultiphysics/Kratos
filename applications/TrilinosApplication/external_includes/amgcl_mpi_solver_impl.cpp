@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:    Denis Demidov 
+//                   Riccardo Rossi
 //
 
 // System includes
