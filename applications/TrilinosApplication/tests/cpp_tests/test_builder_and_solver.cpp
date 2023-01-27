@@ -268,7 +268,7 @@ namespace Kratos::Testing
         // The data communicator
         const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
 
-        // Generate Epetra coomunicator
+        // Generate Epetra communicator
         KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
         Epetra_MpiComm epetra_comm(raw_mpi_comm);
