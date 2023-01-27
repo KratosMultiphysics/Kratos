@@ -52,6 +52,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
     }
 
     // We get the coordinates of the bounding box
+    const double zero_tolerance = std::numeric_limits<double>::epsilon;
     using NodeType = Node<3>;
     Parameters mesher_parameters(R"({
         "number_of_divisions"        : -1,
@@ -68,10 +69,26 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         std::tie(max_x, min_x, max_y, min_y) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
             return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y());
         });
-        max_x *= bounding_box_scale_factor;
-        min_x *= bounding_box_scale_factor;
-        max_y *= bounding_box_scale_factor;
-        min_y *= bounding_box_scale_factor;
+        if (max_x > zero_tolerance) {
+            max_x *= bounding_box_scale_factor;
+        } else {
+            max_x /= bounding_box_scale_factor;
+        }
+        if (min_x > zero_tolerance) {
+            min_x /= bounding_box_scale_factor;
+        } else {
+            min_x *= bounding_box_scale_factor;
+        }
+        if (max_y > zero_tolerance) {
+            max_y *= bounding_box_scale_factor;
+        } else {
+            max_y /= bounding_box_scale_factor;
+        }
+        if (min_y > zero_tolerance) {
+            min_y /= bounding_box_scale_factor;
+        } else {
+            min_y *= bounding_box_scale_factor;
+        }
 
         // Generate background mesh
         auto p_point_1 = Kratos::make_intrusive<NodeType>(1, min_x, min_y, 0.0);
@@ -86,12 +103,36 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
         std::tie(max_x, min_x, max_y, min_y, max_z, min_z) = block_for_each<BBReduction>(r_skin_model_part_1.Nodes(), [&](NodeType& rNode) {
             return std::make_tuple(rNode.X(),rNode.X(),rNode.Y(),rNode.Y(),rNode.Z(),rNode.Z());
         });
-        max_x *= bounding_box_scale_factor;
-        min_x *= bounding_box_scale_factor;
-        max_y *= bounding_box_scale_factor;
-        min_y *= bounding_box_scale_factor;
-        max_z *= bounding_box_scale_factor;
-        min_z *= bounding_box_scale_factor;
+        if (max_x > zero_tolerance) {
+            max_x *= bounding_box_scale_factor;
+        } else {
+            max_x /= bounding_box_scale_factor;
+        }
+        if (min_x > zero_tolerance) {
+            min_x /= bounding_box_scale_factor;
+        } else {
+            min_x *= bounding_box_scale_factor;
+        }
+        if (max_y > zero_tolerance) {
+            max_y *= bounding_box_scale_factor;
+        } else {
+            max_y /= bounding_box_scale_factor;
+        }
+        if (min_y > zero_tolerance) {
+            min_y /= bounding_box_scale_factor;
+        } else {
+            min_y *= bounding_box_scale_factor;
+        }
+        if (max_z > zero_tolerance) {
+            max_z *= bounding_box_scale_factor;
+        } else {
+            max_z /= bounding_box_scale_factor;
+        }
+        if (min_z > zero_tolerance) {
+            min_z /= bounding_box_scale_factor;
+        } else {
+            min_z *= bounding_box_scale_factor;
+        }
 
         // Generate background mesh
         auto p_point_1 = Kratos::make_intrusive<NodeType>(1, min_x, min_y, min_z);
