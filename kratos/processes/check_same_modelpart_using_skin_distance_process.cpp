@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "ggeometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
 #include "utilities/auxiliar_model_part_utilities.h"
