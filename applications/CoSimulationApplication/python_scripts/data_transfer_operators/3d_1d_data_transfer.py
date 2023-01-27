@@ -81,13 +81,14 @@ class Kratos3D1DDataTransferOperator(CoSimulationDataTransferOperator):
             else:
                 self.origin_is_3d = False
             self.__data_transfer_process[identifier_tuple] = KratosCoSim.DataTransfer3D1DProcess(model_part_origin, model_part_destination, parameters.Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other data transfers
+            self.__data_transfer_process[inverse_identifier_tuple] = self.__data_transfer_process[identifier_tuple]
 
             # Execute the data transfer
             if self.origin_is_3d:
-                self.__data_transfer_process[inverse_identifier_tuple].Set(KM.Mapper.USE_TRANSPOSE)
+                self.__data_transfer_process[identifier_tuple].Set(KM.Mapper.USE_TRANSPOSE)
             self.__data_transfer_process[identifier_tuple].Execute()
             if self.origin_is_3d:
-                self.__data_transfer_process[inverse_identifier_tuple].Reset(KM.Mapper.USE_TRANSPOSE)
+                self.__data_transfer_process[identifier_tuple].Reset(KM.Mapper.USE_TRANSPOSE)
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
