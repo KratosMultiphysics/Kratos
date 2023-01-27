@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/bdf2_turbulent_schemeDEMCoupled.h"
 #include "custom_strategies/strategies/adams_bashforth_strategy.h"
 #include "custom_strategies/strategies/residualbased_derivative_recovery_strategy.h"
+#include "custom_strategies/strategies/residualbased_simple_steady_schemeDEMCoupled.h"
 
 //schemes
 #include "custom_strategies/schemes/dem_integration_scheme.h"
@@ -140,6 +141,13 @@ namespace Kratos
              py::class_< BDF2TurbulentSchemeDEMCoupled<SparseSpaceType, LocalSpaceType>,
              typename BDF2TurbulentSchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::Pointer,
              BaseSchemeType>(m, "BDF2TurbulentSchemeDEMCoupled")
+             .def(py::init<>())                 // default constructor
+             .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+             ;
+
+             py::class_< ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>,
+             typename ResidualBasedSimpleSteadySchemeDEMCoupled<SparseSpaceType, LocalSpaceType>::Pointer,
+             BaseSchemeType>(m, "ResidualBasedSimpleSteadySchemeDEMCoupled")
              .def(py::init<>())                 // default constructor
              .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
              ;
