@@ -79,7 +79,7 @@ SparseMatrixType GenerateDummySparseMatrix(
     return A;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrili
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplicationMPITestSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
