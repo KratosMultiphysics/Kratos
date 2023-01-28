@@ -117,6 +117,25 @@ class TestContainerData(kratos_unittest.TestCase):
         for element in a.GetContainer():
             self.assertVectorAlmostEqual(element.Properties[Kratos.ACCELERATION], Kratos.Array3([10, 11, 12]), 12)
 
+    def test_GetContainer(self):
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.NodalHistorical)
+        self.assertEqual(self.model_part.Nodes, a.GetContainer())
+
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.NodalNonHistorical)
+        self.assertEqual(self.model_part.Nodes, a.GetContainer())
+
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.ConditionNonHistorical)
+        self.assertEqual(self.model_part.Conditions, a.GetContainer())
+
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.ConditionProperties)
+        self.assertEqual(self.model_part.Conditions, a.GetContainer())
+
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.ElementNonHistorical)
+        self.assertEqual(self.model_part.Elements, a.GetContainer())
+
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.ElementProperties)
+        self.assertEqual(self.model_part.Elements, a.GetContainer())
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

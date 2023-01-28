@@ -87,16 +87,6 @@ public:
 
     double InnerProduct(const ContainerData& rOther) const;
 
-    std::variant<
-        std::reference_wrapper<ModelPart::NodesContainerType>,
-        std::reference_wrapper<ModelPart::ConditionsContainerType>,
-        std::reference_wrapper<ModelPart::ElementsContainerType>> GetContainer();
-
-    std::variant<
-        std::reference_wrapper<const ModelPart::NodesContainerType>,
-        std::reference_wrapper<const ModelPart::ConditionsContainerType>,
-        std::reference_wrapper<const ModelPart::ElementsContainerType>> GetContainer() const;
-
     ///@}
     ///@name Operators
     ///@{
@@ -132,6 +122,16 @@ public:
     const ModelPart& GetModelPart() const;
 
     ModelPart& GetModelPart();
+
+    std::variant<
+        std::reference_wrapper<ModelPart::NodesContainerType>,
+        std::reference_wrapper<ModelPart::ConditionsContainerType>,
+        std::reference_wrapper<ModelPart::ElementsContainerType>> GetContainer();
+
+    std::variant<
+        std::reference_wrapper<const ModelPart::NodesContainerType>,
+        std::reference_wrapper<const ModelPart::ConditionsContainerType>,
+        std::reference_wrapper<const ModelPart::ElementsContainerType>> GetContainer() const;
 
     /// Turn back information as a string.
     std::string Info() const;
