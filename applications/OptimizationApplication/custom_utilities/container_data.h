@@ -115,6 +115,8 @@ public:
 
     Vector& GetData();
 
+    IndexType GetDataDimension() const;
+
     const Vector& GetData() const;
 
     const ContainerDataType& GetContainerDataType() const;
@@ -148,6 +150,7 @@ private:
     ModelPart& mrModelPart;
     Vector mData;
     const ContainerDataType& mrContainerDataType;
+    IndexType mDataDimension;
 
     ///@}
 };

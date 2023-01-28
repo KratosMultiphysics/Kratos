@@ -55,13 +55,15 @@ ContainerData::ContainerData(
     ModelPart& rModelPart,
     const ContainerDataType& rContainerDataType)
     : mrModelPart(rModelPart),
-      mrContainerDataType(rContainerDataType)
+      mrContainerDataType(rContainerDataType),
+      mDataDimension(0)
 {
 }
 
 ContainerData::ContainerData(const ContainerData& rOther)
     : mrModelPart(rOther.mrModelPart),
-      mrContainerDataType(rOther.mrContainerDataType)
+      mrContainerDataType(rOther.mrContainerDataType),
+      mDataDimension(rOther.mDataDimension)
 {
     this->mData.resize(rOther.mData.size(), false);
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
@@ -79,24 +81,26 @@ void ContainerData::AssignDataToContainerVariable(const Variable<TDataType>& rVa
            "with name "
         << mrModelPart.FullName() << ".\n";
 
+    mDataDimension = OptimizationUtils::GetLocalSize<TDataType>(mrModelPart.GetProcessInfo()(DOMAIN_SIZE));
+
     switch (mrContainerDataType) {
         case ContainerDataType::NodalHistorical:
-            OptimizationUtils::AssignVectorToContainerHistoricalVariable(mrModelPart, rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
+            OptimizationUtils::AssignVectorToContainerHistoricalVariable(mrModelPart, rVariable, mDataDimension, mData);
             break;
         case ContainerDataType::NodalNonHistorical:
-            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Nodes(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
+            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Nodes(), rVariable, mDataDimension, mData);
             break;
         case ContainerDataType::ConditionNonHistorical:
-            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
+            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Conditions(), rVariable, mDataDimension, mData);
             break;
         case ContainerDataType::ConditionProperties:
-            OptimizationUtils::AssignVectorToContainerPropertiesVariable(mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
+            OptimizationUtils::AssignVectorToContainerPropertiesVariable(mrModelPart.Conditions(), rVariable, mDataDimension, mData);
             break;
         case ContainerDataType::ElementNonHistorical:
-            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
+            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Elements(), rVariable, mDataDimension, mData);
             break;
         case ContainerDataType::ElementProperties:
-            OptimizationUtils::AssignVectorToContainerPropertiesVariable(mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
+            OptimizationUtils::AssignVectorToContainerPropertiesVariable(mrModelPart.Elements(), rVariable, mDataDimension, mData);
             break;
     }
 
@@ -113,24 +117,26 @@ void ContainerData::ReadDataFromContainerVariable(const Variable<TDataType>& rVa
            "with name "
         << mrModelPart.FullName() << ".\n";
 
+    mDataDimension = OptimizationUtils::GetLocalSize<TDataType>(mrModelPart.GetProcessInfo()(DOMAIN_SIZE));
+
     switch (mrContainerDataType) {
         case ContainerDataType::NodalHistorical:
-            OptimizationUtils::GetHistoricalContainerVariableToVector(mData, mrModelPart, rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+            OptimizationUtils::GetHistoricalContainerVariableToVector(mData, mrModelPart, rVariable, mDataDimension);
             break;
         case ContainerDataType::NodalNonHistorical:
-            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Nodes(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Nodes(), rVariable, mDataDimension);
             break;
         case ContainerDataType::ConditionNonHistorical:
-            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Conditions(), rVariable, mDataDimension);
             break;
         case ContainerDataType::ConditionProperties:
-            OptimizationUtils::GetContainerPropertiesVariableToVector(mData, mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+            OptimizationUtils::GetContainerPropertiesVariableToVector(mData, mrModelPart.Conditions(), rVariable, mDataDimension);
             break;
         case ContainerDataType::ElementNonHistorical:
-            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Elements(), rVariable, mDataDimension);
             break;
         case ContainerDataType::ElementProperties:
-            OptimizationUtils::GetContainerPropertiesVariableToVector(mData, mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+            OptimizationUtils::GetContainerPropertiesVariableToVector(mData, mrModelPart.Elements(), rVariable, mDataDimension);
             break;
     }
 
@@ -147,7 +153,7 @@ void ContainerData::SetDataForContainerVariable(const Variable<TDataType>& rVari
         << mrModelPart.FullName() << ".\n";
 
     IndexType number_of_entities = 0;
-    const IndexType local_size = OptimizationUtils::GetLocalSize<TDataType>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+    mDataDimension = OptimizationUtils::GetLocalSize<TDataType>(mrModelPart.GetProcessInfo()(DOMAIN_SIZE));
 
     switch (mrContainerDataType) {
         case ContainerDataType::NodalHistorical:
@@ -164,13 +170,13 @@ void ContainerData::SetDataForContainerVariable(const Variable<TDataType>& rVari
             break;
     }
 
-    if (this->mData.size() != local_size * number_of_entities) {
-        this->mData.resize(local_size * number_of_entities, false);
+    if (this->mData.size() != mDataDimension * number_of_entities) {
+        this->mData.resize(mDataDimension * number_of_entities, false);
     }
 
     IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index) {
-        for (IndexType i = 0; i < local_size; ++i) {
-            ContainerDataHelperUtilities::AssignValueToVector(this->mData, Index * local_size, i, rValue);
+        for (IndexType i = 0; i < mDataDimension; ++i) {
+            ContainerDataHelperUtilities::AssignValueToVector(this->mData, Index * mDataDimension, i, rValue);
         }
     });
 }
@@ -219,6 +225,11 @@ Vector& ContainerData::GetData()
 const Vector& ContainerData::GetData() const
 {
     return mData;
+}
+
+IndexType ContainerData::GetDataDimension() const
+{
+    return mDataDimension;
 }
 
 const ContainerData::ContainerDataType& ContainerData::GetContainerDataType() const

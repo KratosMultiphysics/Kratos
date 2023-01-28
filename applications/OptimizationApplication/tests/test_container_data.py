@@ -136,6 +136,22 @@ class TestContainerData(kratos_unittest.TestCase):
         a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.ElementProperties)
         self.assertEqual(self.model_part.Elements, a.GetContainer())
 
+    def test_GetDataDimension(self):
+        a = KratosOA.ContainerData(self.model_part, KratosOA.ContainerDataType.NodalNonHistorical)
+        self.assertEqual(a.GetDataDimension(), 0)
+
+        a.SetDataForContainerVariable(Kratos.PRESSURE, 1.0)
+        self.assertEqual(a.GetDataDimension(), 1)
+
+        a.SetDataForContainerVariable(Kratos.VELOCITY, Kratos.Array3([1, 2, 3]))
+        self.assertEqual(a.GetDataDimension(), 3)
+
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        self.assertEqual(a.GetDataDimension(), 1)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        self.assertEqual(a.GetDataDimension(), 3)
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

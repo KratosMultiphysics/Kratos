@@ -25,6 +25,9 @@
 #include "custom_utilities/solver_utilities/gradient_projection_solver_utils.h"
 #include "custom_utilities/container_data.h"
 
+#include "custom_utilities/mappers/container_data_mapper.h"
+#include "custom_utilities/mappers/vertex_morphing_container_data_mapper.h"
+
 // Include base h
 #include "add_custom_utilities_to_python.h"
 
@@ -61,6 +64,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InnerProduct", &ContainerData::InnerProduct)
         .def("GetContainerDataType", &ContainerData::GetContainerDataType)
         .def("GetData", py::overload_cast<>(&ContainerData::GetData))
+        .def("GetDataDimension", &ContainerData::GetDataDimension)
         .def("GetModelPart", py::overload_cast<>(&ContainerData::GetModelPart))
         .def("GetContainer", py::overload_cast<>(&ContainerData::GetContainer))
         .def(py::self + py::self)
@@ -125,6 +129,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<GradientProjectionSolverUtils >(m, "GradientProjectionSolverUtils")
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &GradientProjectionSolverUtils::CalculateProjectedSearchDirectionAndCorrection)
         .def_static("CalculateControlUpdate", &GradientProjectionSolverUtils::CalculateControlUpdate)
+        ;
+
+    // add mappers
+    py::class_<ContainerDataMapper, ContainerDataMapper::Pointer>(m, "ContainerDataMapper")
+        .def(py::init<>())
+        .def("Update", &ContainerDataMapper::Update)
+        .def("Map", &ContainerDataMapper::Map)
+        .def("InverseMap", &ContainerDataMapper::InverseMap)
+        ;
+
+    py::class_<VertexMorphingContainerDataMapper, VertexMorphingContainerDataMapper::Pointer, ContainerDataMapper>(m, "VertexMorphingContainerDataMapper")
+        .def(py::init<ModelPart&, ModelPart&, const ContainerData::ContainerDataType&>())
         ;
 }
 
