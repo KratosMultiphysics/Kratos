@@ -34,12 +34,12 @@ public:
     ///@{
 
     enum ContainerDataType {
-        NodalHistorical = 0,
-        NodalNonHistorical = 1,
+        NodalHistorical        = 0,
+        NodalNonHistorical     = 1,
         ConditionNonHistorical = 2,
-        ConditionProperties = 3,
-        ElementNonHistorical = 4,
-        ElementProperties = 5
+        ConditionProperties    = 3,
+        ElementNonHistorical   = 4,
+        ElementProperties      = 5
     };
 
     ///@}
