@@ -259,7 +259,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
     */
-    KRATOS_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
     {
         // The base model part
         Model current_model;
