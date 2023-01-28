@@ -585,7 +585,8 @@ namespace Kratos {
         {
             #pragma omp for nowait
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+              if (mListOfSphericParticles[i]->mMoving)
+                  mListOfSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
 
             #pragma omp for nowait
@@ -1827,6 +1828,10 @@ namespace Kratos {
 
       mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
 
+      // Particles movement
+      for (int i = 0; i < (int)mListOfSphericParticles.size(); i++)
+        mListOfSphericParticles[i]->mMoving = true;
+
       // Open files
       RVEOpenFiles();
     }
@@ -1989,7 +1994,8 @@ namespace Kratos {
       RVEWriteFiles();
 
       // Stop compression
-      const double limit_stress = GetModelPart().GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+      ModelPart& r_dem_model_part = GetModelPart();
+      const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
 
       if (mRVE_Compress && std::abs(mRVE_EffectStress) >= limit_stress) {
         mRVE_Compress = false;
@@ -2005,7 +2011,19 @@ namespace Kratos {
           }
         }
         else {
-          // TODO
+          for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_dem_model_part.SubModelPartsBegin(); sub_model_part != r_dem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            ModelPart& submp = *sub_model_part;
+            array_1d<double, 3>& linear_velocity = submp[LINEAR_VELOCITY];
+            if (linear_velocity[0] != 0.0 || linear_velocity[1] != 0.0 || linear_velocity[2] != 0.0) {
+              linear_velocity[0] = 0.0;
+              linear_velocity[1] = 0.0;
+              linear_velocity[2] = 0.0;
+            }
+          }
+
+          for (int i = 0; i < (int)mListOfSphericParticles.size(); i++)
+            if (mListOfSphericParticles[i]->mWall)
+              mListOfSphericParticles[i]->mMoving = false;
         }
       }
     }
