@@ -35,31 +35,31 @@ class ContainerData:
     def IsSameContainer(self, other):
         return isinstance(other, ContainerData) and self.__model_part == other.__model_part and self.__container_type == other.__container_type
 
-    def ReadDataFromContainer(self, variable: any):
+    def ReadDataFromContainerVariable(self, variable: any):
         domain_size = self.__model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         if self.__container_type == ContainerData.ContainerEnum.NODES:
-            KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__model_part.Nodes, variable, domain_size, self.__data)
+            KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__data, self.__model_part.Nodes, variable, domain_size)
         elif self.__container_type == ContainerData.ContainerEnum.CONDITIONS:
-            KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__model_part.Conditions, variable, domain_size, self.__data)
+            KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__data, self.__model_part.Conditions, variable, domain_size)
         elif self.__container_type == ContainerData.ContainerEnum.ELEMENTS:
-            KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__model_part.Elements, variable, domain_size, self.__data)
+            KratosOA.OptimizationUtils.GetContainerVariableToVector(self.__data, self.__model_part.Elements, variable, domain_size)
         elif self.__container_type == ContainerData.ContainerEnum.CONDITION_PROPERTIES:
-            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.__model_part.Conditions, variable, self.__data)
+            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.__data, self.__model_part.Conditions, variable, domain_size)
         elif self.__container_type == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
-            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.__model_part.Elements, variable, self.__data)
+            KratosOA.OptimizationUtils.GetContainerPropertiesVariableToVector(self.__data, self.__model_part.Elements, variable, domain_size)
 
     def AssignDataToContainer(self, variable: any):
         domain_size = self.__model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         if self.__container_type == ContainerData.ContainerEnum.NODES:
-            KratosOA.OptimizationUtils.AssignVectorToContainer(self.__model_part.Nodes, variable, domain_size, self.__data)
+            KratosOA.OptimizationUtils.AssignVectorToContainerVariable(self.__model_part.Nodes, variable, domain_size, self.__data)
         elif self.__container_type == ContainerData.ContainerEnum.CONDITIONS:
-            KratosOA.OptimizationUtils.AssignVectorToContainer(self.__model_part.Conditions, variable, domain_size, self.__data)
+            KratosOA.OptimizationUtils.AssignVectorToContainerVariable(self.__model_part.Conditions, variable, domain_size, self.__data)
         elif self.__container_type == ContainerData.ContainerEnum.ELEMENTS:
-            KratosOA.OptimizationUtils.AssignVectorToContainer(self.__model_part.Elements, variable, domain_size, self.__data)
+            KratosOA.OptimizationUtils.AssignVectorToContainerVariable(self.__model_part.Elements, variable, domain_size, self.__data)
         elif self.__container_type == ContainerData.ContainerEnum.CONDITION_PROPERTIES:
-            KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.__model_part.Conditions, variable, self.__data)
+            KratosOA.OptimizationUtils.AssignVectorToContainerPropertiesVariable(self.__model_part.Conditions, variable, domain_size, self.__data)
         elif self.__container_type == ContainerData.ContainerEnum.ELEMENT_PROPERTIES:
-            KratosOA.OptimizationUtils.AssignVectorToContainerProperties(self.__model_part.Elements, variable, self.__data)
+            KratosOA.OptimizationUtils.AssignVectorToContainerPropertiesVariable(self.__model_part.Elements, variable, domain_size, self.__data)
 
     def NormInf(self) -> float:
         return KratosOA.OptimizationUtils.NormInf(self.__data)

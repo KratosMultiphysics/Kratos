@@ -79,8 +79,8 @@ void OptimizationUtils::AssignValueFromVector(
 
 template<class TContainerType>
 void OptimizationUtils::GetContainerIds(
-    const TContainerType& rContainer,
-    std::vector<IndexType>& rOutput)
+    std::vector<IndexType>& rOutput,
+    const TContainerType& rContainer)
 {
     KRATOS_TRY
 
@@ -97,10 +97,10 @@ void OptimizationUtils::GetContainerIds(
 
 template<class TContainerType, class TDataType>
 void OptimizationUtils::GetContainerVariableToVector(
+    Vector& rOutput,
     const TContainerType& rContainer,
     const Variable<TDataType>& rVariable,
-    const IndexType DomainSize,
-    Vector& rOutput)
+    const IndexType DomainSize)
 {
     KRATOS_TRY
 
@@ -121,10 +121,10 @@ void OptimizationUtils::GetContainerVariableToVector(
 
 template<class TDataType>
 void OptimizationUtils::GetHistoricalContainerVariableToVector(
+    Vector& rOutput,
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
-    const IndexType DomainSize,
-    Vector& rOutput)
+    const IndexType DomainSize)
 {
     KRATOS_TRY
 
@@ -147,20 +147,25 @@ void OptimizationUtils::GetHistoricalContainerVariableToVector(
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
+template<class TContainerType, class TDataType>
 void OptimizationUtils::GetContainerPropertiesVariableToVector(
+    Vector& rOutput,
     const TContainerType& rContainer,
-    const Variable<double> & rVariable,
-    Vector& rOutput)
+    const Variable<TDataType> & rVariable,
+    const IndexType DomainSize)
 {
     KRATOS_TRY
 
     const IndexType number_of_entities = rContainer.size();
+    const IndexType local_size = GetLocalSize<TDataType>(DomainSize);
 
-    rOutput.resize(number_of_entities);
+    rOutput.resize(number_of_entities * local_size);
 
     IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
-        rOutput[Index] = (rContainer.begin() + Index)->GetProperties()[rVariable];
+        const auto& values = (rContainer.begin() + Index)->GetProperties().GetValue(rVariable);
+        for (IndexType i = 0; i < local_size; ++i) {
+            AssignValueToVector(values, i, Index * local_size, rOutput);
+        }
     });
 
     KRATOS_CATCH("")
@@ -238,30 +243,39 @@ double OptimizationUtils::CalculateVectorL2Norm(const Vector& rInput)
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-void OptimizationUtils::AssignVectorToContainerProperties(
+template<class TContainerType, class TDataType>
+void OptimizationUtils::AssignVectorToContainerPropertiesVariable(
     TContainerType& rContainer,
-    const Variable<double>& rPropertiesVariable,
+    const Variable<TDataType>& rPropertiesVariable,
+    const IndexType DomainSize,
     const Vector& rValues)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(rContainer.size() == rValues.size())
-        << "Container size and values size mismatch. [ rContainer.size() = "
-        << rContainer.size() << ", values.size() = " << rValues.size() << " ].\n";
+    const IndexType number_of_entities = rContainer.size();
+    const IndexType local_size = GetLocalSize<TDataType>(DomainSize);
 
-    IndexPartition<IndexType>(rValues.size()).for_each([&](const IndexType Index) {
-        (rContainer.begin() + Index)->GetProperties()[rPropertiesVariable] = rValues[Index];
+    KRATOS_ERROR_IF_NOT(number_of_entities * local_size == rValues.size())
+        << "Container size and values size mismatch. [ Values size = "
+        << rValues.size() << ", container size = " << number_of_entities
+        << ", local size = " << local_size << " ].\n";
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
+        TDataType value;
+        for (IndexType i = 0; i < local_size; ++i) {
+            AssignValueFromVector(value, i, Index * local_size, rValues);
+        }
+        (rContainer.begin() + Index)->GetProperties().SetValue(rPropertiesVariable, value);
     });
 
     KRATOS_CATCH("");
 }
 
 template<class TContainerType, class TDataType>
-void OptimizationUtils::AssignVectorToContainer(
+void OptimizationUtils::AssignVectorToContainerVariable(
     TContainerType& rContainer,
-    const IndexType DomainSize,
     const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
     const Vector& rValues)
 {
     KRATOS_TRY
@@ -309,10 +323,10 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
 }
 
 template<class TDataType>
-void OptimizationUtils::AssignVectorToHistoricalContainer(
+void OptimizationUtils::AssignVectorToContainerHistoricalVariable(
     ModelPart& rModelPart,
-    const IndexType DomainSize,
     const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
     const Vector& rValues)
 {
     KRATOS_TRY
@@ -434,20 +448,26 @@ double OptimizationUtils::NormInf(
 }
 
 // template instantiations
-template void OptimizationUtils::GetContainerIds(const ModelPart::NodesContainerType&, std::vector<IndexType>&);
-template void OptimizationUtils::GetContainerIds(const ModelPart::ConditionsContainerType&, std::vector<IndexType>&);
-template void OptimizationUtils::GetContainerIds(const ModelPart::ElementsContainerType&, std::vector<IndexType>&);
+template void OptimizationUtils::GetContainerIds(std::vector<IndexType>&, const ModelPart::NodesContainerType&);
+template void OptimizationUtils::GetContainerIds(std::vector<IndexType>&, const ModelPart::ConditionsContainerType&);
+template void OptimizationUtils::GetContainerIds(std::vector<IndexType>&, const ModelPart::ElementsContainerType&);
 
-template void OptimizationUtils::GetHistoricalContainerVariableToVector(const ModelPart&, const Variable<double>&, const IndexType, Vector&);
-template void OptimizationUtils::GetHistoricalContainerVariableToVector(const ModelPart&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
+template void OptimizationUtils::GetHistoricalContainerVariableToVector(Vector&, const ModelPart&, const Variable<double>&, const IndexType);
+template void OptimizationUtils::GetHistoricalContainerVariableToVector(Vector&, const ModelPart&, const Variable<array_1d<double, 3>>&, const IndexType);
 
-template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::NodesContainerType&, const Variable<double>&, const IndexType, Vector&);
-template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType, Vector&);
-template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType, Vector&);
+template void OptimizationUtils::GetContainerVariableToVector(Vector&, const ModelPart::NodesContainerType&, const Variable<double>&, const IndexType);
+template void OptimizationUtils::GetContainerVariableToVector(Vector&, const ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType);
+template void OptimizationUtils::GetContainerVariableToVector(Vector&, const ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType);
 
-template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
-template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
-template void OptimizationUtils::GetContainerVariableToVector(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, Vector&);
+template void OptimizationUtils::GetContainerVariableToVector(Vector&, const ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const IndexType);
+template void OptimizationUtils::GetContainerVariableToVector(Vector&, const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType);
+template void OptimizationUtils::GetContainerVariableToVector(Vector&, const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType);
+
+template void OptimizationUtils::GetContainerPropertiesVariableToVector(Vector&, const ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType);
+template void OptimizationUtils::GetContainerPropertiesVariableToVector(Vector&, const ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType);
+
+template void OptimizationUtils::GetContainerPropertiesVariableToVector(Vector&, const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType);
+template void OptimizationUtils::GetContainerPropertiesVariableToVector(Vector&, const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType);
 
 template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
@@ -455,22 +475,22 @@ template GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityG
 template void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ConditionsContainerType&);
 template void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ElementsContainerType&);
 
-template void OptimizationUtils::AssignVectorToContainerProperties(ModelPart::ConditionsContainerType&, const Variable<double>&, const Vector&);
-template void OptimizationUtils::AssignVectorToContainerProperties(ModelPart::ElementsContainerType&, const Variable<double>&, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerVariable(ModelPart::NodesContainerType&, const Variable<double>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerVariable(ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerVariable(ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType, const Vector&);
 
-template void OptimizationUtils::AssignVectorToContainer(ModelPart::NodesContainerType&, const IndexType, const Variable<double>&, const Vector&);
-template void OptimizationUtils::AssignVectorToContainer(ModelPart::ConditionsContainerType&, const IndexType, const Variable<double>&, const Vector&);
-template void OptimizationUtils::AssignVectorToContainer(ModelPart::ElementsContainerType&, const IndexType, const Variable<double>&, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerVariable(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerVariable(ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerVariable(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const Vector&);
 
-template void OptimizationUtils::AssignVectorToContainer(ModelPart::NodesContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Vector&);
-template void OptimizationUtils::AssignVectorToContainer(ModelPart::ConditionsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Vector&);
-template void OptimizationUtils::AssignVectorToContainer(ModelPart::ElementsContainerType&, const IndexType, const Variable<array_1d<double, 3>>&, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerPropertiesVariable(ModelPart::ConditionsContainerType&, const Variable<double>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerPropertiesVariable(ModelPart::ElementsContainerType&, const Variable<double>&, const IndexType, const Vector&);
 
-template void OptimizationUtils::AssignVectorToHistoricalContainer(ModelPart&, const IndexType, const Variable<double>&, const Vector&);
-template void OptimizationUtils::AssignVectorToHistoricalContainer(ModelPart&, const IndexType, const Variable<array_1d<double, 3>>&, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerPropertiesVariable(ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerPropertiesVariable(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const Vector&);
 
-template void OptimizationUtils::GetContainerPropertiesVariableToVector(const ModelPart::ConditionsContainerType&, const Variable<double>&, Vector&);
-template void OptimizationUtils::GetContainerPropertiesVariableToVector(const ModelPart::ElementsContainerType&, const Variable<double>&, Vector&);
+template void OptimizationUtils::AssignVectorToContainerHistoricalVariable(ModelPart&, const Variable<double>&, const IndexType, const Vector&);
+template void OptimizationUtils::AssignVectorToContainerHistoricalVariable(ModelPart&, const Variable<array_1d<double, 3>>&, const IndexType, const Vector&);
 
 template bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
 template bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);

@@ -48,6 +48,6 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             msg += "\n\tmaterial properties for ELEMENT_PROPERTIES container"
             raise RuntimeError(msg)
 
-        sensitivity_container.ReadDataFromContainer(sensitivity_variable)
+        sensitivity_container.ReadDataFromContainerVariable(sensitivity_variable)
 
 

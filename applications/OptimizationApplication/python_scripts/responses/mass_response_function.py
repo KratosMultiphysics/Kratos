@@ -47,4 +47,4 @@ class MassResponseFunction(ResponseFunction):
             raise RuntimeError(msg)
 
         # read the computed sensitivities to the vector
-        sensitivity_container.ReadDataFromContainer(sensitivity_variable)
+        sensitivity_container.ReadDataFromContainerVariable(sensitivity_variable)

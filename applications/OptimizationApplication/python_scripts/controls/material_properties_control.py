@@ -48,7 +48,7 @@ class MaterialPropertiesControl(Control):
 
     def UpdateControl(self, control_values: ContainerData):
         current_values_container = ContainerData(control_values.GetModelPart(), control_values.GetContainerTpe())
-        current_values_container.ReadDataFromContainer(self.control_variable)
+        current_values_container.ReadDataFromContainerVariable(self.control_variable)
         new_values_container = current_values_container + control_values
         new_values_container.AssignDataToContainer(self.control_variable)
 

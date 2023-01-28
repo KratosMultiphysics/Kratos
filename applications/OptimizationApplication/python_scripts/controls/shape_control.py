@@ -26,7 +26,7 @@ class ShapeControl(Control):
 
     def UpdateControl(self, control_values: ContainerData):
         model_part = control_values.GetModelPart()
-        KratosOA.OptimizationUtils.AssignVectorToHistoricalContainer(model_part, model_part.ProcessInfo[Kratos.DOMAIN_SIZE], Kratos.MESH_DISPLACEMENT, control_values.GetData())
+        KratosOA.OptimizationUtils.AssignVectorToContainerHistoricalVariable(model_part, Kratos.MESH_DISPLACEMENT, model_part.ProcessInfo[Kratos.DOMAIN_SIZE], control_values.GetData())
         self.mesh_moving_execution_policy_wrapper.Execute()
 
     def GetModelParts(self) -> 'list[Kratos.ModelPart]':

@@ -42,33 +42,34 @@ public:
 
     template<class TContainerType>
     static void GetContainerIds(
-        const TContainerType& rContainer,
-        std::vector<IndexType>& rOutput);
+        std::vector<IndexType>& rOutput,
+        const TContainerType& rContainer);
 
     template<class TContainerType, class TDataType>
     static void GetContainerVariableToVector(
+        Vector& rOutput,
         const TContainerType& rContainer,
         const Variable<TDataType>& rVariable,
-        const IndexType DomainSize,
-        Vector& rOutput);
+        const IndexType DomainSize);
 
     template<class TDataType>
     static void GetHistoricalContainerVariableToVector(
+        Vector& rOutput,
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const IndexType DomainSize,
-        Vector& rOutput);
+        const IndexType DomainSize);
 
     template<class TContainerType>
     static GeometryData::KratosGeometryType GetContainerEntityGeometryType(
         const TContainerType& rContainer,
         const DataCommunicator& rDataCommunicator);
 
-    template<class TContainerType>
+    template<class TContainerType, class TDataType>
     static void GetContainerPropertiesVariableToVector(
+        Vector& rOutput,
         const TContainerType& rContainer,
-        const Variable<double>& rVariable,
-        Vector& rOutput);
+        const Variable<TDataType>& rVariable,
+        const IndexType DomainSize);
 
     template<class TContainerType, class TDataType>
     static bool IsVariableExistsInAllContainerProperties(
@@ -88,24 +89,25 @@ public:
 
     static double CalculateVectorL2Norm(const Vector& rInput);
 
-    template<class TContainerType>
-    static void AssignVectorToContainerProperties(
+    template<class TContainerType, class TDataType>
+    static void AssignVectorToContainerPropertiesVariable(
         TContainerType& rContainer,
-        const Variable<double>& rPropertiesVariable,
+        const Variable<TDataType>& rPropertiesVariable,
+        const IndexType DomainSize,
         const Vector& rValues);
 
     template<class TContainerType, class TDataType>
-    static void AssignVectorToContainer(
+    static void AssignVectorToContainerVariable(
         TContainerType& rContainer,
-        const IndexType DomainSize,
         const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
         const Vector& rValues);
 
     template<class TDataType>
-    static void AssignVectorToHistoricalContainer(
+    static void AssignVectorToContainerHistoricalVariable(
         ModelPart& rModelPart,
-        const IndexType DomainSize,
         const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
         const Vector& rValues);
 
     template<class TContainerType>
