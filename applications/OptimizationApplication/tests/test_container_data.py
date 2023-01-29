@@ -189,7 +189,7 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
         b = KratosOA.NodalContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.VELOCITY)
-        b.CopyData(a)
+        b.CopyDataFrom(a)
 
         b.AssignDataToContainerVariable(Kratos.ACCELERATION)
         for node in b.GetContainer():
@@ -199,7 +199,7 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
         b = KratosOA.NodalContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
-        b.CopyData(a)
+        b.CopyDataFrom(a)
 
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():

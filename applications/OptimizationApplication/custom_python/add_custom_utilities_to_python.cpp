@@ -68,7 +68,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<ContainerDataBase, ContainerDataBase::Pointer>(m, "ContainerDataBase")
         .def("NormInf", &ContainerDataBase::NormInf)
-        .def("CopyData", &ContainerDataBase::CopyData)
+        .def("CopyDataFrom", &ContainerDataBase::CopyDataFrom)
         .def("GetModelPart", py::overload_cast<>(&ContainerDataBase::GetModelPart))
         .def("__str__", &ContainerDataBase::Info)
         ;

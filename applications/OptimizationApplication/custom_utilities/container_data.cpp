@@ -20,7 +20,6 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
@@ -165,7 +164,7 @@ const Vector& ContainerDataBase::GetData() const
     return mData;
 }
 
-void ContainerDataBase::CopyData(const ContainerDataBase& rOther)
+void ContainerDataBase::CopyDataFrom(const ContainerDataBase& rOther)
 {
     KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
         << "Modelpart mismatch between origin and destination for copy.\n"

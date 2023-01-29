@@ -100,7 +100,7 @@ public:
 
     const Vector& GetData() const;
 
-    void CopyData(const ContainerDataBase& rOther);
+    void CopyDataFrom(const ContainerDataBase& rOther);
 
     ModelPart& GetModelPart();
 
