@@ -277,7 +277,7 @@ void ContainerData<TContainerDataType>::AssignDataToContainerVariable(const Vari
             TContainerDataType::SetValue(rEntity, rVariable, rVariable.Zero());
         });
     } else {
-        // no ghost elements or conditions, hence no special treatment required.
+        // no ghost settings required for elements or conditions nor historical values, hence no special treatment required.
         block_for_each(r_container, [&](auto& rEntity) {
             TContainerDataType::SetValue(rEntity, rVariable, rVariable.Zero());
         });
