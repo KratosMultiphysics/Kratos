@@ -8,18 +8,19 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 class TestContainerDataBase(ABC):
-    def CreateEntities(self):
-        self.model = Kratos.Model()
-        self.model_part = self.model.CreateModelPart("test")
-        self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+    @classmethod
+    def CreateEntities(cls):
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
         number_of_nodes = 10
         for id in range(1, number_of_nodes + 1):
-            node = self.model_part.CreateNewNode(id, id, id+1, id+2)
+            node = cls.model_part.CreateNewNode(id, id, id+1, id+2)
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
             node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
             node.SetValue(Kratos.PRESSURE, id+3)
@@ -27,19 +28,19 @@ class TestContainerDataBase(ABC):
 
         number_of_conditions = 11
         for id in range(1, number_of_conditions + 1):
-            properties = self.model_part.CreateNewProperties(id)
+            properties = cls.model_part.CreateNewProperties(id)
             properties.SetValue(Kratos.PRESSURE, id+400)
             properties.SetValue(Kratos.VELOCITY, Kratos.Array3([id+500, id+600, id+700]))
-            condition = self.model_part.CreateNewCondition("LineCondition2D2N", id + 1, [(id % number_of_nodes) + 1, ((id + 1) % number_of_nodes) + 1 ], properties)
+            condition = cls.model_part.CreateNewCondition("LineCondition2D2N", id + 1, [(id % number_of_nodes) + 1, ((id + 1) % number_of_nodes) + 1 ], properties)
             condition.SetValue(Kratos.PRESSURE, id+4)
             condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
 
         number_of_elements = 12
         for id in range(1, number_of_elements + 1):
-            properties = self.model_part.CreateNewProperties(id + number_of_conditions)
+            properties = cls.model_part.CreateNewProperties(id + number_of_conditions)
             properties.SetValue(Kratos.PRESSURE, id+500)
             properties.SetValue(Kratos.VELOCITY, Kratos.Array3([id+600, id+700, id+800]))
-            element = self.model_part.CreateNewElement("Element2D3N", id + 2, [(id % number_of_nodes) + 1, ((id + 1) % number_of_nodes) + 1, ((id + 2) % number_of_nodes) + 1 ], properties)
+            element = cls.model_part.CreateNewElement("Element2D3N", id + 2, [(id % number_of_nodes) + 1, ((id + 1) % number_of_nodes) + 1, ((id + 2) % number_of_nodes) + 1 ], properties)
             element.SetValue(Kratos.PRESSURE, id+5)
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
@@ -181,8 +182,9 @@ class TestContainerDataBase(ABC):
         pass
 
 class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
-    def setUp(self):
-        self.CreateEntities()
+    @classmethod
+    def setUpClass(cls):
+        cls.CreateEntities()
 
     def test_CopyData(self):
         a = self._GetContainerData()
@@ -215,8 +217,9 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
         return entity.GetSolutionStepValue(variable)
 
 class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
-    def setUp(self):
-        self.CreateEntities()
+    @classmethod
+    def setUpClass(cls):
+        cls.CreateEntities()
 
     def _GetContainerData(self):
         return KratosOA.NodalContainerData(self.model_part)
@@ -228,8 +231,9 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         return entity.GetValue(variable)
 
 class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase):
-    def setUp(self):
-        self.CreateEntities()
+    @classmethod
+    def setUpClass(cls):
+        cls.CreateEntities()
 
     def _GetContainerData(self):
         return KratosOA.ConditionContainerData(self.model_part)
@@ -241,8 +245,9 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
         return entity.GetValue(variable)
 
 class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
-    def setUp(self):
-        self.CreateEntities()
+    @classmethod
+    def setUpClass(cls):
+        cls.CreateEntities()
 
     def _GetContainerData(self):
         return KratosOA.ElementContainerData(self.model_part)
@@ -254,8 +259,9 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         return entity.GetValue(variable)
 
 class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContainerDataBase):
-    def setUp(self):
-        self.CreateEntities()
+    @classmethod
+    def setUpClass(cls):
+        cls.CreateEntities()
 
     def _GetContainerData(self):
         return KratosOA.ConditionPropertiesContainerData(self.model_part)
@@ -267,8 +273,9 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
         return entity.Properties[variable]
 
 class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainerDataBase):
-    def setUp(self):
-        self.CreateEntities()
+    @classmethod
+    def setUpClass(cls):
+        cls.CreateEntities()
 
     def _GetContainerData(self):
         return KratosOA.ElementPropertiesContainerData(self.model_part)
