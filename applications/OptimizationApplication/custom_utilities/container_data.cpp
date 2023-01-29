@@ -70,6 +70,112 @@ void AssignValueFromVector(
 
 } // namespace ContainerDataHelperUtilities
 
+ContainerDataBase::ContainerDataBase(
+    ModelPart& rModelPart,
+    const ContainerDataType& rContainerDataType)
+    : mrModelPart(rModelPart),
+      mDataDimension(0),
+      mContainerDataType(rContainerDataType)
+{
+}
+
+ContainerDataBase::ContainerDataBase(const ContainerDataBase& rOther)
+    : mrModelPart(rOther.mrModelPart),
+      mContainerDataType(rOther.mContainerDataType)
+{
+    this->mData.resize(rOther.mData.size(), false);
+    this->mDataDimension = rOther.mDataDimension;
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
+        this->mData[Index] = rOther.mData[Index];
+    });
+}
+
+double ContainerDataBase::NormInf() const
+{
+    return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(this->mData.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
+        return this->mData[Index];
+    }));
+}
+
+IndexType ContainerDataBase::GetDataDimension() const
+{
+    return mDataDimension;
+}
+
+Vector& ContainerDataBase::GetData()
+{
+    return mData;
+}
+
+const Vector& ContainerDataBase::GetData() const
+{
+    return mData;
+}
+
+void ContainerDataBase::CopyDataFrom(const ContainerDataBase& rOther)
+{
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Modelpart mismatch between origin and destination for copy.\n"
+        << "   Destination = " << *this << "\n"
+        << "   Origin = " << rOther << "\n.";
+
+    const bool valid_same_type_conversion = (this->mContainerDataType == rOther.mContainerDataType);
+
+    const bool valid_nodal_different_conversion =
+        (this->mContainerDataType == ContainerDataType::HistoricalContainerData && rOther.mContainerDataType == ContainerDataType::NodalContainerData) ||
+        (this->mContainerDataType == ContainerDataType::NodalContainerData && rOther.mContainerDataType == ContainerDataType::HistoricalContainerData);
+
+    const bool valid_condition_different_conversion =
+        (this->mContainerDataType == ContainerDataType::ConditionContainerData && rOther.mContainerDataType == ContainerDataType::ConditionPropertiesContainerData) ||
+        (this->mContainerDataType == ContainerDataType::ConditionPropertiesContainerData && rOther.mContainerDataType == ContainerDataType::ConditionContainerData);
+
+    const bool valid_element_different_conversion =
+        (this->mContainerDataType == ContainerDataType::ElementContainerData && rOther.mContainerDataType == ContainerDataType::ElementPropertiesContainerData) ||
+        (this->mContainerDataType == ContainerDataType::ElementPropertiesContainerData && rOther.mContainerDataType == ContainerDataType::ElementContainerData);
+
+    KRATOS_ERROR_IF_NOT(valid_same_type_conversion || valid_nodal_different_conversion || valid_condition_different_conversion || valid_element_different_conversion)
+        << "Copying from unsupported data container types. Followings are supported:\n"
+        << "   Copying from same data container type\n"
+        << "   Nodal historical         <-> nodal non-historical\n"
+        << "   Condition non-historical <-> condition properties\n"
+        << "   Element non-historical   <-> element properties\n"
+        << "\n"
+        << "   Destination data: " << *this << "\n"
+        << "   Origin data     : " << rOther << "\n";
+
+    if (this->mData.size() != rOther.mData.size()) {
+        this->mData.resize(rOther.mData.size(), false);
+    }
+
+    this->mDataDimension = rOther.mDataDimension;
+
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
+        this->mData[Index] = rOther.mData[Index];
+    });
+}
+
+ModelPart& ContainerDataBase::GetModelPart()
+{
+    return mrModelPart;
+}
+
+const ModelPart& ContainerDataBase::GetModelPart() const
+{
+    return mrModelPart;
+}
+
+std::string ContainerDataBase::Info() const
+{
+    KRATOS_ERROR << "Calling ContainerDataBase::Info. This should "
+                    "be implemented in the derrived class.";
+    return "";
+}
+
+void ContainerDataBase::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
 template<class TDataType>
 TDataType& HistoricalDataValueContainer::GetValue(
     typename ContainerType::data_type& rEntity,
@@ -123,85 +229,6 @@ void PropertiesDataValueContainer<TContainerType>::SetValue(
     const TDataType& rValue)
 {
     rEntity.GetProperties().SetValue(rVariable, rValue);
-}
-
-ContainerDataBase::ContainerDataBase(
-    ModelPart& rModelPart)
-    : mrModelPart(rModelPart),
-      mDataDimension(0)
-{
-}
-
-ContainerDataBase::ContainerDataBase(const ContainerDataBase& rOther)
-    : mrModelPart(rOther.mrModelPart)
-{
-    this->mData.resize(rOther.mData.size(), false);
-    this->mDataDimension = rOther.mDataDimension;
-    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
-        this->mData[Index] = rOther.mData[Index];
-    });
-}
-
-double ContainerDataBase::NormInf() const
-{
-    return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(this->mData.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
-        return this->mData[Index];
-    }));
-}
-
-IndexType ContainerDataBase::GetDataDimension() const
-{
-    return mDataDimension;
-}
-
-Vector& ContainerDataBase::GetData()
-{
-    return mData;
-}
-
-const Vector& ContainerDataBase::GetData() const
-{
-    return mData;
-}
-
-void ContainerDataBase::CopyDataFrom(const ContainerDataBase& rOther)
-{
-    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
-        << "Modelpart mismatch between origin and destination for copy.\n"
-        << "   Destination = " << *this << "\n"
-        << "   Origin = " << rOther << "\n.";
-
-    if (this->mData.size() != rOther.mData.size()) {
-        this->mData.resize(rOther.mData.size(), false);
-    }
-
-    this->mDataDimension = rOther.mDataDimension;
-
-    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
-        this->mData[Index] = rOther.mData[Index];
-    });
-}
-
-ModelPart& ContainerDataBase::GetModelPart()
-{
-    return mrModelPart;
-}
-
-const ModelPart& ContainerDataBase::GetModelPart() const
-{
-    return mrModelPart;
-}
-
-std::string ContainerDataBase::Info() const
-{
-    KRATOS_ERROR << "Calling ContainerDataBase::Info. This should "
-                    "be implemented in the derrived class.";
-    return "";
-}
-
-void ContainerDataBase::PrintInfo(std::ostream& rOStream) const
-{
-    rOStream << this->Info();
 }
 
 template<class TContainerDataType>

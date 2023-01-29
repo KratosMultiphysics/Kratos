@@ -26,46 +26,13 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class HistoricalDataValueContainer
-{
-public:
-    using ContainerType = ModelPart::NodesContainerType;
-
-    template<class TDataType>
-    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
-
-    template<class TDataType>
-    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
-};
+class HistoricalDataValueContainer;
 
 template<class TContainerType>
-class NonHistoricalDataValueContainer
-{
-public:
-    using ContainerType = TContainerType;
-
-    template<class TDataType>
-    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
-
-    template<class TDataType>
-    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
-};
+class NonHistoricalDataValueContainer;
 
 template<class TContainerType>
-class PropertiesDataValueContainer
-{
-public:
-    using ContainerType = TContainerType;
-
-    template<class TDataType>
-    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
-
-    template<class TDataType>
-    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
-};
-
-template<class TContainerDataType>
-class ContainerData;
+class PropertiesDataValueContainer;
 
 class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerDataBase {
 public:
@@ -113,8 +80,34 @@ public:
     void PrintInfo(std::ostream& rOStream) const;
 
     ///@}
-private:
-    ///@name Private member variables
+protected:
+    ///@name Enums
+    ///@{
+
+    enum ContainerDataType
+    {
+        HistoricalContainerData          = 0,
+        NodalContainerData               = 1,
+        ConditionContainerData           = 2,
+        ElementContainerData             = 3,
+        ConditionPropertiesContainerData = 4,
+        ElementPropertiesContainerData   = 5
+    };
+
+    ///@}
+    ///@name Protected life cycle
+    ///@{
+
+    /// Constructor
+    ContainerDataBase(
+        ModelPart& rModelPart,
+        const ContainerDataType& rContainerDataType);
+
+    /// Copy constructor
+    ContainerDataBase(const ContainerDataBase& rOther);
+
+    ///@}
+    ///@name Protected member variables
     ///@{
 
     ModelPart& mrModelPart;
@@ -124,23 +117,78 @@ private:
     IndexType mDataDimension;
 
     ///@}
-    ///@name Private life cycle
+private:
+    ///@name Private member variables
     ///@{
 
-    /// Constructor
-    ContainerDataBase(ModelPart& rModelPart);
-
-    /// Copy constructor
-    ContainerDataBase(const ContainerDataBase& rOther);
+    const ContainerDataType mContainerDataType;
 
     ///@}
     ///@name Friend classes
     ///@{
 
-    template<class TContainerDataType>
-    friend class ContainerData;
+    friend class HistoricalDataValueContainer;
+
+    template<class TContainerType>
+    friend class NonHistoricalDataValueContainer;
+
+    template<class TContainerType>
+    friend class PropertiesDataValueContainer;
 
     ///@}
+};
+
+class HistoricalDataValueContainer
+{
+public:
+    using ContainerType = ModelPart::NodesContainerType;
+
+    static constexpr ContainerDataBase::ContainerDataType ContainerDataType
+        = ContainerDataBase::ContainerDataType::HistoricalContainerData;
+
+    template<class TDataType>
+    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
+
+    template<class TDataType>
+    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+};
+
+template<class TContainerType>
+class NonHistoricalDataValueContainer
+{
+public:
+    using ContainerType = TContainerType;
+
+    static constexpr ContainerDataBase::ContainerDataType ContainerDataType
+        = std::is_same_v<TContainerType, ModelPart::NodesContainerType>
+            ? ContainerDataBase::ContainerDataType::NodalContainerData
+            : std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
+                ? ContainerDataBase::ContainerDataType::ConditionContainerData
+                : ContainerDataBase::ContainerDataType::ElementContainerData;
+
+    template<class TDataType>
+    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
+
+    template<class TDataType>
+    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+};
+
+template<class TContainerType>
+class PropertiesDataValueContainer
+{
+public:
+    using ContainerType = TContainerType;
+
+    static constexpr ContainerDataBase::ContainerDataType ContainerDataType
+        = std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
+            ? ContainerDataBase::ContainerDataType::ConditionPropertiesContainerData
+            : ContainerDataBase::ContainerDataType::ElementPropertiesContainerData;
+
+    template<class TDataType>
+    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
+
+    template<class TDataType>
+    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
 };
 
 template<class TContainerDataType>
@@ -162,7 +210,7 @@ public:
     ///@{
 
     /// Constructor
-    ContainerData(ModelPart& rModelPart) : BaseType(rModelPart) {}
+    ContainerData(ModelPart& rModelPart) : BaseType(rModelPart, TContainerDataType::ContainerDataType) {}
 
     /// Copy constructor
     ContainerData(const ContainerData& rOther) : BaseType(rOther) {}
