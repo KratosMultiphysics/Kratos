@@ -326,6 +326,11 @@ double ContainerData<TContainerDataType>::InnerProduct(const ContainerData<TCont
 template<class TContainerDataType>
 ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator+(const ContainerData<TContainerDataType>& rOther) const
 {
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Mismatching model parts found in addition.\n"
+        << "      Left operand data : " << *this << "\n"
+        << "      Right operand data: " << rOther << "\n";
+
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for +.\n"
         << "      Left operand data : " << *this << "\n"
@@ -345,6 +350,11 @@ ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator+(c
 template<class TContainerDataType>
 ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator+=(const ContainerData<TContainerDataType>& rOther)
 {
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Mismatching model parts found in addition.\n"
+        << "      Left operand data : " << *this << "\n"
+        << "      Right operand data: " << rOther << "\n";
+
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for +=.\n"
         << "      Left operand data : " << *this << "\n"
@@ -360,6 +370,11 @@ ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator+=
 template<class TContainerDataType>
 ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator-(const ContainerData<TContainerDataType>& rOther) const
 {
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Mismatching model parts found in substraction.\n"
+        << "      Left operand data : " << *this << "\n"
+        << "      Right operand data: " << rOther << "\n";
+
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for -.\n"
         << "      Left operand data : " << *this << "\n"
@@ -378,6 +393,11 @@ ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator-(c
 template<class TContainerDataType>
 ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator-=(const ContainerData<TContainerDataType>& rOther)
 {
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Mismatching model parts found in substraction.\n"
+        << "      Left operand data : " << *this << "\n"
+        << "      Right operand data: " << rOther << "\n";
+
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for -=.\n"
         << "      Left operand data : " << *this << "\n"
@@ -451,8 +471,8 @@ ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator=(
 {
     KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
         << "Mismatching model parts found in assignment.\n"
-        << "   Assignee = " << *this << "\n"
-        << "   Assignor = " << rOther << "\n.";
+        << "      Assignee data: " << *this << "\n"
+        << "      Assignor data: " << rOther << "\n";
 
     if (this->mData.size() != rOther.mData.size()) {
         this->mData.resize(rOther.mData.size(), false);
