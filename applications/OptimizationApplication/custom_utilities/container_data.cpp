@@ -269,9 +269,19 @@ void ContainerData<TContainerDataType>::AssignDataToContainerVariable(const Vari
         << ", local size = " << local_size << " ].\n";
 
     // initialize the container variables first
-    block_for_each(r_container, [&](auto& rEntity) {
-        TContainerDataType::SetValue(rEntity, rVariable, rVariable.Zero());
-    });
+    if constexpr(std::is_same_v<TContainerDataType, NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>) {
+        // initializes ghost nodes as well for the later synchronization
+        // only, the nodal non historical values needs to be set unless
+        // they are properly initialized.
+        block_for_each(this->mrModelPart.Nodes(), [&](auto& rEntity) {
+            TContainerDataType::SetValue(rEntity, rVariable, rVariable.Zero());
+        });
+    } else {
+        // no ghost elements or conditions, hence no special treatment required.
+        block_for_each(r_container, [&](auto& rEntity) {
+            TContainerDataType::SetValue(rEntity, rVariable, rVariable.Zero());
+        });
+    }
 
     IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
         auto& values = TContainerDataType::GetValue(*(r_container.begin() + Index), rVariable);
@@ -279,6 +289,15 @@ void ContainerData<TContainerDataType>::AssignDataToContainerVariable(const Vari
             ContainerDataHelperUtilities::AssignValueFromVector(values, i, Index * local_size, r_values);
         }
     });
+
+    // synchronize nodal values
+    auto& r_communicator = this->mrModelPart.GetCommunicator();
+
+    if constexpr(std::is_same_v<TContainerDataType, HistoricalDataValueContainer>) {
+        r_communicator.SynchronizeNodalSolutionStepsData();
+    } else if constexpr(std::is_same_v<TContainerDataType, NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>) {
+        r_communicator.SynchronizeNonHistoricalVariable(rVariable);
+    }
 
     KRATOS_CATCH("");
 }
@@ -316,11 +335,9 @@ double ContainerData<TContainerDataType>::InnerProduct(const ContainerData<TCont
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    // TODO: Make it MPI compatible with SumAll, but need to take care of ghost nodes in the case nodal historical/non historical
-    //       containers are used
-    return IndexPartition<IndexType>(this->mData.size()).for_each<SumReduction<double>>([&](const IndexType Index) {
+    return this->mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(IndexPartition<IndexType>(this->mData.size()).for_each<SumReduction<double>>([&](const IndexType Index) {
         return this->mData[Index] * rOther.mData[Index];
-    });
+    }));
 }
 
 template<class TContainerDataType>
@@ -342,7 +359,6 @@ ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator+(c
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         result.mData[Index] = this->mData[Index] + rOther.mData[Index];
     });
-
 
     return result;
 }
@@ -493,11 +509,11 @@ typename TContainerDataType::ContainerType& ContainerData<TContainerDataType>::G
     using container_type = typename TContainerDataType::ContainerType;
 
     if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
-        return this->GetModelPart().Nodes();
+        return this->GetModelPart().GetCommunicator().LocalMesh().Nodes();
     } else if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
-        return this->GetModelPart().Conditions();
+        return this->GetModelPart().GetCommunicator().LocalMesh().Conditions();
     } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
-        return this->GetModelPart().Elements();
+        return this->GetModelPart().GetCommunicator().LocalMesh().Elements();
     }
 }
 
@@ -507,11 +523,11 @@ const typename TContainerDataType::ContainerType& ContainerData<TContainerDataTy
     using container_type = typename TContainerDataType::ContainerType;
 
     if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
-        return this->GetModelPart().Nodes();
+        return this->GetModelPart().GetCommunicator().LocalMesh().Nodes();
     } else if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
-        return this->GetModelPart().Conditions();
+        return this->GetModelPart().GetCommunicator().LocalMesh().Conditions();
     } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
-        return this->GetModelPart().Elements();
+        return this->GetModelPart().GetCommunicator().LocalMesh().Elements();
     }
 }
 
