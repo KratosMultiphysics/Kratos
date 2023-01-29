@@ -14,8 +14,6 @@
 
 // System includes
 #include <string>
-#include <variant>
-#include <functional>
 
 // Project includes
 #include "includes/define.h"
@@ -28,23 +26,131 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerData {
+class HistoricalDataValueContainer
+{
 public:
-    ///@name  Enum's
-    ///@{
+    using ContainerType = ModelPart::NodesContainerType;
 
-    enum ContainerDataType {
-        NodalHistorical        = 0,
-        NodalNonHistorical     = 1,
-        ConditionNonHistorical = 2,
-        ConditionProperties    = 3,
-        ElementNonHistorical   = 4,
-        ElementProperties      = 5
-    };
+    template<class TDataType>
+    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
 
-    ///@}
+    template<class TDataType>
+    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+};
+
+template<class TContainerType>
+class NonHistoricalDataValueContainer
+{
+public:
+    using ContainerType = TContainerType;
+
+    template<class TDataType>
+    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
+
+    template<class TDataType>
+    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+};
+
+template<class TContainerType>
+class PropertiesDataValueContainer
+{
+public:
+    using ContainerType = TContainerType;
+
+    template<class TDataType>
+    static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
+
+    template<class TDataType>
+    static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+};
+
+template<class TContainerDataType>
+class ContainerData;
+
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerDataBase {
+public:
     ///@name Type definitions
     ///@{
+
+    using IndexType = std::size_t;
+
+    /// Pointer definition of ContainerDataBase
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerDataBase);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Destructor.
+    virtual ~ContainerDataBase() = default;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    double NormInf() const;
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    IndexType GetDataDimension() const;
+
+    Vector& GetData();
+
+    const Vector& GetData() const;
+
+    void CopyData(const ContainerDataBase& rOther);
+
+    ModelPart& GetModelPart();
+
+    const ModelPart& GetModelPart() const;
+
+    /// Turn back information as a string.
+    virtual std::string Info() const;
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const;
+
+    ///@}
+private:
+    ///@name Private member variables
+    ///@{
+
+    ModelPart& mrModelPart;
+
+    Vector mData;
+
+    IndexType mDataDimension;
+
+    ///@}
+    ///@name Private life cycle
+    ///@{
+
+    /// Constructor
+    ContainerDataBase(ModelPart& rModelPart);
+
+    /// Copy constructor
+    ContainerDataBase(const ContainerDataBase& rOther);
+
+    ///@}
+    ///@name Friend classes
+    ///@{
+
+    template<class TContainerDataType>
+    friend class ContainerData;
+
+    ///@}
+};
+
+template<class TContainerDataType>
+class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerData : public ContainerDataBase
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using BaseType = ContainerDataBase;
 
     using IndexType = std::size_t;
 
@@ -56,34 +162,28 @@ public:
     ///@{
 
     /// Constructor
-    ContainerData(
-        ModelPart& rModelPart,
-        const ContainerDataType& rContainerDataType);
+    ContainerData(ModelPart& rModelPart) : BaseType(rModelPart) {}
 
     /// Copy constructor
-    ContainerData(const ContainerData& rOther);
+    ContainerData(const ContainerData& rOther) : BaseType(rOther) {}
 
     /// Destructor.
-    ~ContainerData() = default;
+    virtual ~ContainerData() override = default;
 
     ///@}
-    ///@name Operations
+    ///@name Public operations
     ///@{
 
-    template<class TDataType>
-    void AssignDataToContainerVariable(const Variable<TDataType>& rVariable);
+    ContainerData<TContainerDataType> Clone();
 
     template<class TDataType>
     void ReadDataFromContainerVariable(const Variable<TDataType>& rVariable);
 
     template<class TDataType>
+    void AssignDataToContainerVariable(const Variable<TDataType>& rVariable);
+
+    template<class TDataType>
     void SetDataForContainerVariable(const Variable<TDataType>& rVariable, const TDataType& rValue);
-
-    ContainerData Clone();
-
-    bool IsSameContainer(const ContainerData& rOther) const;
-
-    double NormInf() const;
 
     double InnerProduct(const ContainerData& rOther) const;
 
@@ -113,41 +213,11 @@ public:
     ///@name Input and output
     ///@{
 
-    Vector& GetData();
+    typename TContainerDataType::ContainerType& GetContainer();
 
-    const Vector& GetData() const;
+    const typename TContainerDataType::ContainerType& GetContainer() const;
 
-    const ContainerDataType& GetContainerDataType() const;
-
-    const ModelPart& GetModelPart() const;
-
-    ModelPart& GetModelPart();
-
-    std::variant<
-        std::reference_wrapper<ModelPart::NodesContainerType>,
-        std::reference_wrapper<ModelPart::ConditionsContainerType>,
-        std::reference_wrapper<ModelPart::ElementsContainerType>> GetContainer();
-
-    std::variant<
-        std::reference_wrapper<const ModelPart::NodesContainerType>,
-        std::reference_wrapper<const ModelPart::ConditionsContainerType>,
-        std::reference_wrapper<const ModelPart::ElementsContainerType>> GetContainer() const;
-
-    /// Turn back information as a string.
-    std::string Info() const;
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const;
-
-    ///@}
-
-private:
-    ///@name Private members
-    ///@{
-
-    ModelPart& mrModelPart;
-    Vector mData;
-    const ContainerDataType& mrContainerDataType;
+    std::string Info() const override;
 
     ///@}
 };
@@ -156,8 +226,18 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const ContainerData& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const ContainerDataBase& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    return rOStream;
+}
+
+template<class TContainerDataType>
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const ContainerData<TContainerDataType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     return rOStream;

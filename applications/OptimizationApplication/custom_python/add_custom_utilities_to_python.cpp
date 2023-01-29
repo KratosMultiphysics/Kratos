@@ -33,36 +33,24 @@
 namespace Kratos {
 namespace Python {
 
-void  AddCustomUtilitiesToPython(pybind11::module& m)
+template<class ContainerDataType>
+void AddContainerTypeToPython(pybind11::module& m, const std::string& rName)
 {
     namespace py = pybind11;
 
-    py::enum_<ContainerData::ContainerDataType>(m,"ContainerDataType")
-        .value("NodalHistorical", ContainerData::ContainerDataType::NodalHistorical)
-        .value("NodalNonHistorical", ContainerData::ContainerDataType::NodalNonHistorical)
-        .value("ConditionNonHistorical", ContainerData::ContainerDataType::ConditionNonHistorical)
-        .value("ConditionProperties", ContainerData::ContainerDataType::ConditionProperties)
-        .value("ElementNonHistorical", ContainerData::ContainerDataType::ElementNonHistorical)
-        .value("ElementProperties", ContainerData::ContainerDataType::ElementProperties)
-        ;
-
-    py::class_<ContainerData, ContainerData::Pointer>(m, "ContainerData")
-        .def(py::init<ModelPart&, const ContainerData::ContainerDataType&>())
-        .def(py::init<const ContainerData&>())
-        .def("AssignDataToContainerVariable", &ContainerData::AssignDataToContainerVariable<double>)
-        .def("AssignDataToContainerVariable", &ContainerData::AssignDataToContainerVariable<array_1d<double, 3>>)
-        .def("ReadDataFromContainerVariable", &ContainerData::ReadDataFromContainerVariable<double>)
-        .def("ReadDataFromContainerVariable", &ContainerData::ReadDataFromContainerVariable<array_1d<double, 3>>)
-        .def("SetDataForContainerVariable", &ContainerData::SetDataForContainerVariable<double>)
-        .def("SetDataForContainerVariable", &ContainerData::SetDataForContainerVariable<array_1d<double, 3>>)
-        .def("Clone", &ContainerData::Clone)
-        .def("IsSameContainer", &ContainerData::IsSameContainer)
-        .def("NormInf", &ContainerData::NormInf)
-        .def("InnerProduct", &ContainerData::InnerProduct)
-        .def("GetContainerDataType", &ContainerData::GetContainerDataType)
-        .def("GetData", py::overload_cast<>(&ContainerData::GetData))
-        .def("GetModelPart", py::overload_cast<>(&ContainerData::GetModelPart))
-        .def("GetContainer", py::overload_cast<>(&ContainerData::GetContainer))
+    using container_type = ContainerData<ContainerDataType>;
+    py::class_<container_type, typename container_type::Pointer, ContainerDataBase>(m, rName.c_str())
+        .def(py::init<ModelPart&>())
+        .def(py::init<const container_type&>())
+        .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<double>)
+        .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<array_1d<double, 3>>)
+        .def("ReadDataFromContainerVariable", &container_type::template ReadDataFromContainerVariable<double>)
+        .def("ReadDataFromContainerVariable", &container_type::template ReadDataFromContainerVariable<array_1d<double, 3>>)
+        .def("SetDataForContainerVariable", &container_type::template SetDataForContainerVariable<double>)
+        .def("SetDataForContainerVariable", &container_type::template SetDataForContainerVariable<array_1d<double, 3>>)
+        .def("Clone", &container_type::Clone)
+        .def("InnerProduct", &container_type::InnerProduct)
+        .def("GetContainer", py::overload_cast<>(&container_type::GetContainer), py::return_value_policy::reference)
         .def(py::self + py::self)
         .def(py::self += py::self)
         .def(py::self - py::self)
@@ -71,8 +59,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::self *= float())
         .def(py::self / float())
         .def(py::self /= float())
-        .def("__str__", &ContainerData::Info)
         ;
+}
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
+
+    py::class_<ContainerDataBase, ContainerDataBase::Pointer>(m, "ContainerDataBase")
+        .def("NormInf", &ContainerDataBase::NormInf)
+        .def("CopyData", &ContainerDataBase::CopyData)
+        .def("GetModelPart", py::overload_cast<>(&ContainerDataBase::GetModelPart))
+        .def("__str__", &ContainerDataBase::Info)
+        ;
+
+    AddContainerTypeToPython<HistoricalDataValueContainer>(m, "HistoricalContainerData");
+    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>(m, "NodalContainerData");
+    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionContainerData");
+    AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementContainerData");
+    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionPropertiesContainerData");
+    AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementPropertiesContainerData");
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
         .def_static("GetContainerIds", [](const ModelPart::NodesContainerType& rNodes) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationUtils::GetContainerIds(values, rNodes); return values;})

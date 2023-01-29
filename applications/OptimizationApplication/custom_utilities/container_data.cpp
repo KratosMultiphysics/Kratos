@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
@@ -49,158 +50,270 @@ void AssignValueToVector(
 {
     rOutput[StartIndex + ComponentIndex] = rValue[ComponentIndex];
 }
+
+void AssignValueFromVector(
+    double& rOutput,
+    const IndexType ValueComponentIndex,
+    const IndexType VectoStartingIndex,
+    const Vector& rInput)
+{
+    rOutput = rInput[VectoStartingIndex];
 }
 
-ContainerData::ContainerData(
-    ModelPart& rModelPart,
-    const ContainerDataType& rContainerDataType)
+void AssignValueFromVector(
+    array_1d<double, 3>& rOutput,
+    const IndexType ValueComponentIndex,
+    const IndexType VectoStartingIndex,
+    const Vector& rInput)
+{
+    rOutput[ValueComponentIndex] = rInput[VectoStartingIndex + ValueComponentIndex];
+}
+
+} // namespace ContainerDataHelperUtilities
+
+template<class TDataType>
+TDataType& HistoricalDataValueContainer::GetValue(
+    typename ContainerType::data_type& rEntity,
+    const Variable<TDataType>& rVariable)
+{
+    return rEntity.FastGetSolutionStepValue(rVariable);
+}
+
+template<class TDataType>
+void HistoricalDataValueContainer::SetValue(
+    typename ContainerType::data_type& rEntity,
+    const Variable<TDataType>& rVariable,
+    const TDataType& rValue)
+{
+    rEntity.FastGetSolutionStepValue(rVariable) = rValue;
+}
+
+template<class TContainerType>
+template<class TDataType>
+TDataType& NonHistoricalDataValueContainer<TContainerType>::GetValue(
+    typename ContainerType::data_type& rEntity,
+    const Variable<TDataType>& rVariable)
+{
+    return rEntity.GetValue(rVariable);
+}
+
+template<class TContainerType>
+template<class TDataType>
+void NonHistoricalDataValueContainer<TContainerType>::SetValue(
+    typename ContainerType::data_type& rEntity,
+    const Variable<TDataType>& rVariable,
+    const TDataType& rValue)
+{
+    rEntity.SetValue(rVariable, rValue);
+}
+
+template<class TContainerType>
+template<class TDataType>
+TDataType& PropertiesDataValueContainer<TContainerType>::GetValue(
+    typename ContainerType::data_type& rEntity,
+    const Variable<TDataType>& rVariable)
+{
+    return rEntity.GetProperties().GetValue(rVariable);
+}
+
+template<class TContainerType>
+template<class TDataType>
+void PropertiesDataValueContainer<TContainerType>::SetValue(
+    typename ContainerType::data_type& rEntity,
+    const Variable<TDataType>& rVariable,
+    const TDataType& rValue)
+{
+    rEntity.GetProperties().SetValue(rVariable, rValue);
+}
+
+ContainerDataBase::ContainerDataBase(
+    ModelPart& rModelPart)
     : mrModelPart(rModelPart),
-      mrContainerDataType(rContainerDataType)
+      mDataDimension(0)
 {
 }
 
-ContainerData::ContainerData(const ContainerData& rOther)
-    : mrModelPart(rOther.mrModelPart),
-      mrContainerDataType(rOther.mrContainerDataType)
+ContainerDataBase::ContainerDataBase(const ContainerDataBase& rOther)
+    : mrModelPart(rOther.mrModelPart)
 {
     this->mData.resize(rOther.mData.size(), false);
+    this->mDataDimension = rOther.mDataDimension;
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
         this->mData[Index] = rOther.mData[Index];
     });
 }
 
-template<class TDataType>
-void ContainerData::AssignDataToContainerVariable(const Variable<TDataType>& rVariable)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
-        << "DOMAIN_SIZE variable is not found in process info of model part "
-           "with name "
-        << mrModelPart.FullName() << ".\n";
-
-    switch (mrContainerDataType) {
-        case ContainerDataType::NodalHistorical:
-            OptimizationUtils::AssignVectorToContainerHistoricalVariable(mrModelPart, rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
-            break;
-        case ContainerDataType::NodalNonHistorical:
-            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Nodes(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
-            break;
-        case ContainerDataType::ConditionNonHistorical:
-            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
-            break;
-        case ContainerDataType::ConditionProperties:
-            OptimizationUtils::AssignVectorToContainerPropertiesVariable(mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
-            break;
-        case ContainerDataType::ElementNonHistorical:
-            OptimizationUtils::AssignVectorToContainerVariable(mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
-            break;
-        case ContainerDataType::ElementProperties:
-            OptimizationUtils::AssignVectorToContainerPropertiesVariable(mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE], mData);
-            break;
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TDataType>
-void ContainerData::ReadDataFromContainerVariable(const Variable<TDataType>& rVariable)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
-        << "DOMAIN_SIZE variable is not found in process info of model part "
-           "with name "
-        << mrModelPart.FullName() << ".\n";
-
-    switch (mrContainerDataType) {
-        case ContainerDataType::NodalHistorical:
-            OptimizationUtils::GetHistoricalContainerVariableToVector(mData, mrModelPart, rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-            break;
-        case ContainerDataType::NodalNonHistorical:
-            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Nodes(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-            break;
-        case ContainerDataType::ConditionNonHistorical:
-            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-            break;
-        case ContainerDataType::ConditionProperties:
-            OptimizationUtils::GetContainerPropertiesVariableToVector(mData, mrModelPart.Conditions(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-            break;
-        case ContainerDataType::ElementNonHistorical:
-            OptimizationUtils::GetContainerVariableToVector(mData, mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-            break;
-        case ContainerDataType::ElementProperties:
-            OptimizationUtils::GetContainerPropertiesVariableToVector(mData, mrModelPart.Elements(), rVariable, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-            break;
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TDataType>
-void ContainerData::SetDataForContainerVariable(const Variable<TDataType>& rVariable, const TDataType& rValue)
-{
-
-    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
-        << "DOMAIN_SIZE variable is not found in process info of model part "
-           "with name "
-        << mrModelPart.FullName() << ".\n";
-
-    IndexType number_of_entities = 0;
-    const IndexType local_size = OptimizationUtils::GetLocalSize<TDataType>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-
-    switch (mrContainerDataType) {
-        case ContainerDataType::NodalHistorical:
-        case ContainerDataType::NodalNonHistorical:
-            number_of_entities = mrModelPart.NumberOfNodes();
-            break;
-        case ContainerDataType::ConditionNonHistorical:
-        case ContainerDataType::ConditionProperties:
-            number_of_entities = mrModelPart.NumberOfConditions();
-            break;
-        case ContainerDataType::ElementNonHistorical:
-        case ContainerDataType::ElementProperties:
-            number_of_entities = mrModelPart.NumberOfElements();
-            break;
-    }
-
-    if (this->mData.size() != local_size * number_of_entities) {
-        this->mData.resize(local_size * number_of_entities, false);
-    }
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index) {
-        for (IndexType i = 0; i < local_size; ++i) {
-            ContainerDataHelperUtilities::AssignValueToVector(this->mData, Index * local_size, i, rValue);
-        }
-    });
-}
-
-ContainerData ContainerData::Clone()
-{
-    return ContainerData(*this);
-}
-
-bool ContainerData::IsSameContainer(const ContainerData& rOther) const
-{
-    return this->mrModelPart == rOther.mrModelPart && this->mrContainerDataType == rOther.mrContainerDataType;
-}
-
-double ContainerData::NormInf() const
+double ContainerDataBase::NormInf() const
 {
     return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(this->mData.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
         return this->mData[Index];
     }));
 }
 
-double ContainerData::InnerProduct(const ContainerData& rOther) const
+IndexType ContainerDataBase::GetDataDimension() const
+{
+    return mDataDimension;
+}
+
+Vector& ContainerDataBase::GetData()
+{
+    return mData;
+}
+
+const Vector& ContainerDataBase::GetData() const
+{
+    return mData;
+}
+
+void ContainerDataBase::CopyData(const ContainerDataBase& rOther)
+{
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Modelpart mismatch between origin and destination for copy.\n"
+        << "   Destination = " << *this << "\n"
+        << "   Origin = " << rOther << "\n.";
+
+    if (this->mData.size() != rOther.mData.size()) {
+        this->mData.resize(rOther.mData.size(), false);
+    }
+
+    this->mDataDimension = rOther.mDataDimension;
+
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
+        this->mData[Index] = rOther.mData[Index];
+    });
+}
+
+ModelPart& ContainerDataBase::GetModelPart()
+{
+    return mrModelPart;
+}
+
+const ModelPart& ContainerDataBase::GetModelPart() const
+{
+    return mrModelPart;
+}
+
+std::string ContainerDataBase::Info() const
+{
+    KRATOS_ERROR << "Calling ContainerDataBase::Info. This should "
+                    "be implemented in the derrived class.";
+    return "";
+}
+
+void ContainerDataBase::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::Clone()
+{
+    return ContainerData<TContainerDataType>(*this);
+}
+
+template<class TContainerDataType>
+template<class TDataType>
+void ContainerData<TContainerDataType>::ReadDataFromContainerVariable(const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
+        << "DOMAIN_SIZE variable is not found in process info of model part "
+           "with name "
+        << this->GetModelPart().FullName() << ".\n";
+
+    const IndexType number_of_entities = this->GetContainer().size();
+    mDataDimension = OptimizationUtils::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
+
+    auto& r_data = this->mData;
+    auto& r_container = this->GetContainer();
+
+    r_data.resize(number_of_entities * mDataDimension);
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
+        const auto& values = TContainerDataType::GetValue(*(r_container.begin() + Index), rVariable);
+        for (IndexType i = 0; i < mDataDimension; ++i) {
+            ContainerDataHelperUtilities::AssignValueToVector(r_data, Index * mDataDimension, i, values);
+        }
+    });
+
+    KRATOS_CATCH("")
+}
+
+template<class TContainerDataType>
+template<class TDataType>
+void ContainerData<TContainerDataType>::AssignDataToContainerVariable(const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(this->GetModelPart().GetProcessInfo().Has(DOMAIN_SIZE))
+        << "DOMAIN_SIZE variable is not found in process info of model part "
+           "with name "
+        << this->GetModelPart().FullName() << ".\n";
+
+    const IndexType local_size = OptimizationUtils::GetLocalSize<TDataType>(this->GetModelPart().GetProcessInfo()[DOMAIN_SIZE]);
+
+    KRATOS_ERROR_IF_NOT(local_size == this->GetDataDimension())
+        << "Stored data dimension and requested assignment variable data "
+           "dimension mismatch. [ Sotred data dimension = "
+        << this->GetDataDimension()
+        << ", assignment requested variable data diemension = " << local_size << " ].\n";
+
+    const IndexType number_of_entities = this->GetContainer().size();
+
+    const auto& r_values = this->mData;
+    auto& r_container = this->GetContainer();
+
+    KRATOS_ERROR_IF_NOT(number_of_entities * local_size == r_values.size())
+        << "Container size and values size mismatch. [ Values size = "
+        << r_values.size() << ", container size = " << number_of_entities
+        << ", local size = " << local_size << " ].\n";
+
+    // initialize the container variables first
+    block_for_each(r_container, [&](auto& rEntity) {
+        TContainerDataType::SetValue(rEntity, rVariable, rVariable.Zero());
+    });
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index){
+        auto& values = TContainerDataType::GetValue(*(r_container.begin() + Index), rVariable);
+        for (IndexType i = 0; i < local_size; ++i) {
+            ContainerDataHelperUtilities::AssignValueFromVector(values, i, Index * local_size, r_values);
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerDataType>
+template<class TDataType>
+void ContainerData<TContainerDataType>::SetDataForContainerVariable(const Variable<TDataType>& rVariable, const TDataType& rValue)
+{
+
+    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
+        << "DOMAIN_SIZE variable is not found in process info of model part "
+           "with name "
+        << mrModelPart.FullName() << ".\n";
+
+    mDataDimension = OptimizationUtils::GetLocalSize<TDataType>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+
+    const IndexType number_of_entities = this->GetContainer().size();
+
+    if (this->mData.size() != mDataDimension * number_of_entities) {
+        this->mData.resize(mDataDimension * number_of_entities, false);
+    }
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const IndexType Index) {
+        for (IndexType i = 0; i < mDataDimension; ++i) {
+            ContainerDataHelperUtilities::AssignValueToVector(this->mData, Index * mDataDimension, i, rValue);
+        }
+    });
+}
+
+template<class TContainerDataType>
+double ContainerData<TContainerDataType>::InnerProduct(const ContainerData<TContainerDataType>& rOther) const
 {
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for +.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    KRATOS_ERROR_IF_NOT(this->IsSameContainer(rOther))
-        << "Data containers are of not same type.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -211,119 +324,16 @@ double ContainerData::InnerProduct(const ContainerData& rOther) const
     });
 }
 
-Vector& ContainerData::GetData()
-{
-    return mData;
-}
-
-const Vector& ContainerData::GetData() const
-{
-    return mData;
-}
-
-const ContainerData::ContainerDataType& ContainerData::GetContainerDataType() const
-{
-    return mrContainerDataType;
-}
-
-const ModelPart& ContainerData::GetModelPart() const
-{
-    return mrModelPart;
-}
-
-ModelPart& ContainerData::GetModelPart()
-{
-    return mrModelPart;
-}
-
-std::string ContainerData::Info() const
-{
-    std::stringstream msg;
-    msg << "ContainerData [ ModelPartName: " << mrModelPart.FullName() << ", ContainerType: ";
-    switch (mrContainerDataType) {
-        case ContainerDataType::NodalHistorical:
-            msg << "NodalHistorical";
-            break;
-        case ContainerDataType::NodalNonHistorical:
-            msg << "NodalNonHistorical";
-            break;
-        case ContainerDataType::ConditionNonHistorical:
-            msg << "ConditionNonHistorical";
-            break;
-        case ContainerDataType::ConditionProperties:
-            msg << "ConditionProperties";
-            break;
-        case ContainerDataType::ElementNonHistorical:
-            msg << "ElementNonHistorical";
-            break;
-        case ContainerDataType::ElementProperties:
-            msg << "ElementProperties";
-            break;
-    }
-    msg << ", DataSize = " << mData.size() << " ]";
-    return msg.str();
-}
-
-void ContainerData::PrintInfo(std::ostream& rOStream) const
-{
-    rOStream << this->Info();
-}
-
-std::variant<
-    std::reference_wrapper<ModelPart::NodesContainerType>,
-    std::reference_wrapper<ModelPart::ConditionsContainerType>,
-    std::reference_wrapper<ModelPart::ElementsContainerType>> ContainerData::GetContainer()
-{
-    switch (mrContainerDataType) {
-        case ContainerDataType::NodalHistorical:
-        case ContainerDataType::NodalNonHistorical:
-            return mrModelPart.Nodes();
-        case ContainerDataType::ConditionNonHistorical:
-        case ContainerDataType::ConditionProperties:
-            return mrModelPart.Conditions();
-        case ContainerDataType::ElementNonHistorical:
-        case ContainerDataType::ElementProperties:
-            return mrModelPart.Elements();
-    }
-
-    KRATOS_ERROR << "Unsupported container data type.";
-    return mrModelPart.Nodes();
-}
-
-std::variant<
-    std::reference_wrapper<const ModelPart::NodesContainerType>,
-    std::reference_wrapper<const ModelPart::ConditionsContainerType>,
-    std::reference_wrapper<const ModelPart::ElementsContainerType>> ContainerData::GetContainer() const
-{
-    switch (mrContainerDataType) {
-        case ContainerDataType::NodalHistorical:
-        case ContainerDataType::NodalNonHistorical:
-            return mrModelPart.Nodes();
-        case ContainerDataType::ConditionNonHistorical:
-        case ContainerDataType::ConditionProperties:
-            return mrModelPart.Conditions();
-        case ContainerDataType::ElementNonHistorical:
-        case ContainerDataType::ElementProperties:
-            return mrModelPart.Elements();
-    }
-
-    KRATOS_ERROR << "Unsupported container data type.";
-    return mrModelPart.Nodes();
-}
-
-ContainerData ContainerData::operator+(const ContainerData& rOther) const
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator+(const ContainerData<TContainerDataType>& rOther) const
 {
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for +.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    KRATOS_ERROR_IF_NOT(this->IsSameContainer(rOther))
-        << "Data containers are of not same type.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    ContainerData result(this->mrModelPart, this->mrContainerDataType);
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
     result.mData.resize(this->mData.size(), false);
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         result.mData[Index] = this->mData[Index] + rOther.mData[Index];
@@ -333,15 +343,11 @@ ContainerData ContainerData::operator+(const ContainerData& rOther) const
     return result;
 }
 
-ContainerData& ContainerData::operator+=(const ContainerData& rOther)
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator+=(const ContainerData<TContainerDataType>& rOther)
 {
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for +=.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    KRATOS_ERROR_IF_NOT(this->IsSameContainer(rOther))
-        << "Data containers are of not same type.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -352,19 +358,16 @@ ContainerData& ContainerData::operator+=(const ContainerData& rOther)
     return *this;
 }
 
-ContainerData ContainerData::operator-(const ContainerData& rOther) const
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator-(const ContainerData<TContainerDataType>& rOther) const
 {
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for -.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    KRATOS_ERROR_IF_NOT(this->IsSameContainer(rOther))
-        << "Data containers are of not same type.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    ContainerData result(this->mrModelPart, this->mrContainerDataType);
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
     result.mData.resize(this->mData.size(), false);
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         result.mData[Index] = this->mData[Index] - rOther.mData[Index];
@@ -373,15 +376,11 @@ ContainerData ContainerData::operator-(const ContainerData& rOther) const
     return result;
 }
 
-ContainerData& ContainerData::operator-=(const ContainerData& rOther)
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator-=(const ContainerData<TContainerDataType>& rOther)
 {
     KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
         << "Data size mismatch in operands for -=.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    KRATOS_ERROR_IF_NOT(this->IsSameContainer(rOther))
-        << "Data containers are of not same type.\n"
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
@@ -392,9 +391,11 @@ ContainerData& ContainerData::operator-=(const ContainerData& rOther)
     return *this;
 }
 
-ContainerData ContainerData::operator*(const double Value) const
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator*(const double Value) const
 {
-    ContainerData result(this->mrModelPart, this->mrContainerDataType);
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
     result.mData.resize(this->mData.size(), false);
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         result.mData[Index] = this->mData[Index] * Value;
@@ -403,7 +404,8 @@ ContainerData ContainerData::operator*(const double Value) const
     return result;
 }
 
-ContainerData& ContainerData::operator*=(const double Value)
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator*=(const double Value)
 {
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         this->mData[Index] *= Value;
@@ -412,14 +414,16 @@ ContainerData& ContainerData::operator*=(const double Value)
     return *this;
 }
 
-ContainerData ContainerData::operator/(const double Value) const
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator/(const double Value) const
 {
     KRATOS_ERROR_IF(std::abs(Value) < std::numeric_limits<double>::epsilon())
         << "Division by zero.\n"
         << "      Left operand data : " << *this << "\n"
         << "      divisor           : " << Value << "\n";
 
-    ContainerData result(this->mrModelPart, this->mrContainerDataType);
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
     result.mData.resize(this->mData.size(), false);
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         result.mData[Index] = this->mData[Index] / Value;
@@ -428,7 +432,8 @@ ContainerData ContainerData::operator/(const double Value) const
     return result;
 }
 
-ContainerData& ContainerData::operator/=(const double Value)
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator/=(const double Value)
 {
     KRATOS_ERROR_IF(std::abs(Value) < std::numeric_limits<double>::epsilon())
         << "Division by zero.\n"
@@ -442,16 +447,19 @@ ContainerData& ContainerData::operator/=(const double Value)
     return *this;
 }
 
-ContainerData& ContainerData::operator=(const ContainerData& rOther)
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator=(const ContainerData<TContainerDataType>& rOther)
 {
-    KRATOS_ERROR_IF_NOT(this->IsSameContainer(rOther))
-        << "Data containers are of not same type.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
+    KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
+        << "Mismatching model parts found in assignment.\n"
+        << "   Assignee = " << *this << "\n"
+        << "   Assignor = " << rOther << "\n.";
 
     if (this->mData.size() != rOther.mData.size()) {
         this->mData.resize(rOther.mData.size(), false);
     }
+
+    this->mDataDimension = rOther.mDataDimension;
 
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         this->mData[Index] = rOther.mData[Index];
@@ -460,15 +468,109 @@ ContainerData& ContainerData::operator=(const ContainerData& rOther)
     return *this;
 }
 
+template<class TContainerDataType>
+typename TContainerDataType::ContainerType& ContainerData<TContainerDataType>::GetContainer()
+{
+    using container_type = typename TContainerDataType::ContainerType;
+
+    if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
+        return this->GetModelPart().Nodes();
+    } else if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
+        return this->GetModelPart().Conditions();
+    } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
+        return this->GetModelPart().Elements();
+    }
+}
+
+template<class TContainerDataType>
+const typename TContainerDataType::ContainerType& ContainerData<TContainerDataType>::GetContainer() const
+{
+    using container_type = typename TContainerDataType::ContainerType;
+
+    if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
+        return this->GetModelPart().Nodes();
+    } else if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
+        return this->GetModelPart().Conditions();
+    } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
+        return this->GetModelPart().Elements();
+    }
+}
+
+template<class TContainerDataType>
+std::string ContainerData<TContainerDataType>::Info() const
+{
+    std::stringstream msg;
+
+    if constexpr(std::is_same_v<TContainerDataType, HistoricalDataValueContainer>) {
+        msg << "NodalHistoricalDataContainer";
+    } else if constexpr(std::is_same_v<TContainerDataType, NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>) {
+        msg << "NodalNonHistoricalDataContainer";
+    } else if constexpr(std::is_same_v<TContainerDataType, NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>) {
+        msg << "ConditionNonHistoricalDataContainer";
+    } else if constexpr(std::is_same_v<TContainerDataType, NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>) {
+        msg << "ElementNonHistoricalDataContainer";
+    } else if constexpr(std::is_same_v<TContainerDataType, PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>) {
+        msg << "ConditionPropertiesDataContainer";
+    } else if constexpr(std::is_same_v<TContainerDataType, PropertiesDataValueContainer<ModelPart::ElementsContainerType>>) {
+        msg << "ElementPropertiesDataContainer";
+    }
+
+    msg << " [ ";
+    msg << "ModelPartName = " << this->GetModelPart().FullName() << ", ";
+    msg << "Number of entities = " << this->GetContainer().size() << ", ";
+    msg << "Data size = " << this->mData.size() << ", ";
+    msg << "Data dimension = " << this->GetDataDimension() << " ].\n";
+
+    return msg.str();
+}
+
 // template instantiations
+template class ContainerData<HistoricalDataValueContainer>;
+template void ContainerData<HistoricalDataValueContainer>::AssignDataToContainerVariable(const Variable<double>&);
+template void ContainerData<HistoricalDataValueContainer>::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<HistoricalDataValueContainer>::ReadDataFromContainerVariable(const Variable<double>&);
+template void ContainerData<HistoricalDataValueContainer>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<HistoricalDataValueContainer>::SetDataForContainerVariable(const Variable<double>&, const double&);
+template void ContainerData<HistoricalDataValueContainer>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
 
-template void ContainerData::AssignDataToContainerVariable(const Variable<double>&);
-template void ContainerData::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template class ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>;
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::ReadDataFromContainerVariable(const Variable<double>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
 
-template void ContainerData::ReadDataFromContainerVariable(const Variable<double>&);
-template void ContainerData::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template class ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>;
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::ReadDataFromContainerVariable(const Variable<double>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
 
-template void ContainerData::SetDataForContainerVariable(const Variable<double>&, const double&);
-template void ContainerData::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+template class ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>;
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::ReadDataFromContainerVariable(const Variable<double>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
+template void ContainerData<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+
+template class ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>;
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::ReadDataFromContainerVariable(const Variable<double>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
+
+template class ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>;
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::AssignDataToContainerVariable(const Variable<double>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::AssignDataToContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::ReadDataFromContainerVariable(const Variable<double>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::ReadDataFromContainerVariable(const Variable<array_1d<double, 3>>&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<double>&, const double&);
+template void ContainerData<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>::SetDataForContainerVariable(const Variable<array_1d<double, 3>>&, const array_1d<double, 3>&);
 
 } // namespace Kratos
