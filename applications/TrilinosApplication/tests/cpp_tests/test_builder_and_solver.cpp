@@ -69,10 +69,15 @@ namespace Kratos::Testing
     */
     static inline void BasicTestBuilderAndSolverDisplacement(
         ModelPart& rModelPart,
+        const DataCommunicator& rDataCommunicator,
         const bool WithConstraint = false,
         const bool AdditionalNode = false
         )
     {
+        // Set MPI coomunicator
+        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
+
+        // Add variables
         rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -175,13 +180,23 @@ namespace Kratos::Testing
         //         rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
         //     }
         // }
+
+        // Compute communicaton plan and fill communicator meshes correctly
+        ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
     }
 
     /**
     * @brief It generates a truss structure with an expected solution with an element with null contribution
     */
-    static inline void BasicTestBuilderAndSolverDisplacementWithZeroContribution(ModelPart& rModelPart)
+    static inline void BasicTestBuilderAndSolverDisplacementWithZeroContribution(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataCommunicator
+        )
     {
+        // Set MPI coomunicator
+        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
+
+        // Add variables
         rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -274,13 +289,24 @@ namespace Kratos::Testing
             auto pnode = rModelPart.pGetNode(1);
             pnode->Fix(DISPLACEMENT_X);
         }
+
+        // Compute communicaton plan and fill communicator meshes correctly
+        ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
     }
 
     /**
     * @brief It generates a truss structure with an expected solution
     */
-    static inline void ExtendedTestBuilderAndSolverDisplacement(ModelPart& rModelPart, const bool WithConstraint = false)
+    static inline void ExtendedTestBuilderAndSolverDisplacement(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataCommunicator, 
+        const bool WithConstraint = false
+        )
     {
+        // Set MPI coomunicator
+        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
+
+        // Add variables
         rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -395,6 +421,9 @@ namespace Kratos::Testing
         // if (WithConstraint) {
         //     rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
         // }
+
+        // Compute communicaton plan and fill communicator meshes correctly
+        ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
     }
 
     static TrilinosSparseSpaceType::MatrixType BuildSystem(
@@ -468,57 +497,57 @@ namespace Kratos::Testing
         }
     }
 
-    // static void DebugLHS(
-    //     const TrilinosSparseSpaceType::MatrixType& rA,
-    //     const DataCommunicator& rDataCommunicator
-    //     )
-    // {
-    //     const int world_size = rDataCommunicator.Size();
-    //     KRATOS_ERROR_IF_NOT(world_size == 1) << "Debug must be done with one MPI core" << std::endl;
-    //     std::cout << "\n        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");\n";
-    //     std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");\n";
-    //     std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");\n";
+    static void DebugLHS(
+        const TrilinosSparseSpaceType::MatrixType& rA,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        const int world_size = rDataCommunicator.Size();
+        KRATOS_ERROR_IF_NOT(world_size == 1) << "Debug must be done with one MPI core" << std::endl;
+        std::cout << "\n        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), " << rA.NumGlobalRows() << ");\n";
+        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), " << rA.NumGlobalCols() << ");\n";
+        std::cout << "        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), " << rA.NumGlobalNonzeros() << ");\n";
 
-    //     std::vector<int> row_indexes;
-    //     std::vector<int> column_indexes;
-    //     std::vector<double> values;
-    //     for (int i = 0; i < rA.NumMyRows(); i++) {
-    //         int numEntries; // Number of non-zero entries
-    //         double* vals;   // Row non-zero values
-    //         int* cols;      // Column indices of row non-zero values
-    //         rA.ExtractMyRowView(i, numEntries, vals, cols);
-    //         const int row_gid = rA.RowMap().GID(i);
-    //         int j;
-    //         for (j = 0; j < numEntries; j++) {
-    //             const int col_gid = rA.ColMap().GID(cols[j]);
-    //             if (std::abs(vals[j]) > 0.99) {
-    //                 row_indexes.push_back(row_gid);
-    //                 column_indexes.push_back(col_gid);
-    //                 values.push_back(vals[j]);
-    //             }
-    //         }
-    //     }
-    //     std::cout << "\n        // Values to check\n";
-    //     std::cout << "        std::vector<int> row_indexes = {";
-    //     for(std::size_t i = 0; i < row_indexes.size() - 1; ++i) {
-    //         std::cout << row_indexes[i] << ", ";
-    //     }
-    //     std::cout << row_indexes[row_indexes.size() - 1] << "};";
-    //     std::cout << "\n        std::vector<int> column_indexes = {";
-    //     for(std::size_t i = 0; i < column_indexes.size() - 1; ++i) {
-    //         std::cout << column_indexes[i] << ", ";
-    //     }
-    //     std::cout << column_indexes[column_indexes.size() - 1] << "};";
-    //     std::cout << "\n        std::vector<double> values = {";
-    //     for(std::size_t i = 0; i < values.size() - 1; ++i) {
-    //         std::cout << std::fixed;
-    //         std::cout << std::setprecision(16);
-    //         std::cout << values[i] << ", ";
-    //     }
-    //     std::cout << std::fixed;
-    //     std::cout << std::setprecision(16);
-    //     std::cout << values[values.size() - 1] << "};" << std::endl;
-    // }
+        std::vector<int> row_indexes;
+        std::vector<int> column_indexes;
+        std::vector<double> values;
+        for (int i = 0; i < rA.NumMyRows(); i++) {
+            int numEntries; // Number of non-zero entries
+            double* vals;   // Row non-zero values
+            int* cols;      // Column indices of row non-zero values
+            rA.ExtractMyRowView(i, numEntries, vals, cols);
+            const int row_gid = rA.RowMap().GID(i);
+            int j;
+            for (j = 0; j < numEntries; j++) {
+                const int col_gid = rA.ColMap().GID(cols[j]);
+                if (std::abs(vals[j]) > 0.99) {
+                    row_indexes.push_back(row_gid);
+                    column_indexes.push_back(col_gid);
+                    values.push_back(vals[j]);
+                }
+            }
+        }
+        std::cout << "\n        // Values to check\n";
+        std::cout << "        std::vector<int> row_indexes = {";
+        for(std::size_t i = 0; i < row_indexes.size() - 1; ++i) {
+            std::cout << row_indexes[i] << ", ";
+        }
+        std::cout << row_indexes[row_indexes.size() - 1] << "};";
+        std::cout << "\n        std::vector<int> column_indexes = {";
+        for(std::size_t i = 0; i < column_indexes.size() - 1; ++i) {
+            std::cout << column_indexes[i] << ", ";
+        }
+        std::cout << column_indexes[column_indexes.size() - 1] << "};";
+        std::cout << "\n        std::vector<double> values = {";
+        for(std::size_t i = 0; i < values.size() - 1; ++i) {
+            std::cout << std::fixed;
+            std::cout << std::setprecision(16);
+            std::cout << values[i] << ", ";
+        }
+        std::cout << std::fixed;
+        std::cout << std::setprecision(16);
+        std::cout << values[values.size() - 1] << "};" << std::endl;
+    }
 
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
@@ -537,14 +566,8 @@ namespace Kratos::Testing
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
         Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
-        // Set MPI coomunicator
-        ModelPartCommunicatorUtilities::SetMPICommunicator(r_model_part, r_comm);
-
         // Basic build
-        BasicTestBuilderAndSolverDisplacement(r_model_part);
-
-        // Compute communicaton plan and fill communicator meshes correctly
-        ParallelFillCommunicator(r_model_part, r_comm).Execute();
+        BasicTestBuilderAndSolverDisplacement(r_model_part, r_comm);
 
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
@@ -587,14 +610,8 @@ namespace Kratos::Testing
         auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
         Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
-        // Set MPI coomunicator
-        ModelPartCommunicatorUtilities::SetMPICommunicator(r_model_part, r_comm);
-
         // Basic build
-        BasicTestBuilderAndSolverDisplacementWithZeroContribution(r_model_part);
-
-        // Compute communicaton plan and fill communicator meshes correctly
-        ParallelFillCommunicator(r_model_part, r_comm).Execute();
+        BasicTestBuilderAndSolverDisplacementWithZeroContribution(r_model_part, r_comm);
 
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
@@ -620,6 +637,7 @@ namespace Kratos::Testing
         CheckAssembly(rA, row_indexes, column_indexes, values);
     }
 
+    // NOTE: Fails with more than one partition
     // /**
     // * Checks if the elimination builder and solver performs correctly the assemble of the system
     // */
@@ -637,14 +655,8 @@ namespace Kratos::Testing
     //     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
     //     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
-    //     // Set MPI coomunicator
-    //     ModelPartCommunicatorUtilities::SetMPICommunicator(r_model_part, r_comm);
-
     //     // Basic build
-    //     BasicTestBuilderAndSolverDisplacement(r_model_part);
-
-    //     // Compute communicaton plan and fill communicator meshes correctly
-    //     ParallelFillCommunicator(r_model_part, r_comm).Execute();
+    //     BasicTestBuilderAndSolverDisplacement(r_model_part, r_comm);
 
     //     // Create the solvers and things required
     //     auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
@@ -665,6 +677,51 @@ namespace Kratos::Testing
     //     std::vector<int> row_indexes = {0, 0, 1, 1};
     //     std::vector<int> column_indexes = {0, 1, 0, 1};
     //     std::vector<double> values = {4138000000.0000000000000000, -2069000000.0000000000000000, -2069000000.0000000000000000, 2069000000.0000000000000000};
+
+    //     // Check assembly
+    //     CheckAssembly(rA, row_indexes, column_indexes, values);
+    // }
+
+    // NOTE: Fails with more than one partition
+    // /**
+    // * Checks if the elimination builder and solver performs correctly the assemble of the system with zero contribution
+    // */
+    // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementEliminationBuilderAndSolver, KratosTrilinosApplicationMPITestSuite)
+    // {
+    //     // The base model part
+    //     Model current_model;
+    //     ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+    //     // The data communicator
+    //     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+    //     // Generate Epetra communicator
+    //     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    //     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    //     Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    //     // Basic build
+    //     BasicTestBuilderAndSolverDisplacementWithZeroContribution(r_model_part, r_comm);
+
+    //     // Create the solvers and things required
+    //     auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+    //     auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+    //     auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosResidualBasedEliminationBuilderAndSolverType(epetra_comm, 15, p_solver) );
+
+    //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+    //     // // To create the solution of reference
+    //     // DebugLHS(rA, r_comm);
+
+    //     // The solution check
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 2);
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 2);
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 4);
+
+    //     // Values to check
+    //     std::vector<int> row_indexes = {0};
+    //     std::vector<int> column_indexes = {0};
+    //     std::vector<double> values = {2069000000.0000000000000000};
 
     //     // Check assembly
     //     CheckAssembly(rA, row_indexes, column_indexes, values);
