@@ -78,9 +78,9 @@ class TestStructuralRom(KratosUnittest.TestCase):
             self.assertLess(l2, self.relative_tolerance)
 
     def testStructuralDynamicRom2D(self):
-        self.work_folder = "structural_dynamic_test_files"
-        parameters_filename = "ProjectParameters.json"
-        expected_output_filename = "ExpectedOutput.npy"
+        self.work_folder = "structural_dynamic_test_files/ROM/"
+        parameters_filename = "ProjectParametersROM.json"
+        expected_output_filename = "ExpectedOutputROM.npy"
 
         time_snapshots = [2,4,6,8,10]
 
