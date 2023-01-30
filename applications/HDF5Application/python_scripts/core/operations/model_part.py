@@ -398,14 +398,14 @@ class AggregateOperation(KratosMultiphysics.Operation):
         # {operation_type, operation_parameters}
         self.__operations: "list[tuple[type, KratosMultiphysics.Parameters]]" = []
         for i in range(parameters["list_of_operations"].size()):
-            self.Add(parameters["list_of_operations"][i])
+            self.__Add(parameters["list_of_operations"][i])
 
     def Execute(self) -> None:
         with OpenHDF5File(self.__io_parameters, self.__model_part) as file:
             for operation, operation_parameters in self.__operations:
                 operation(self.__model_part, operation_parameters, file).Execute()
 
-    def Add(self, operation_parameters: KratosMultiphysics.Parameters) -> None:
+    def __Add(self, operation_parameters: KratosMultiphysics.Parameters) -> None:
         # Convert input snake case name to the internal camel case name
         operation_type = self.__SnakeToCamel(operation_parameters["operation_type"].GetString())
         operation: typing.Type[IOOperation] = next((op for op in GetSubclasses(IOOperation) if op.__name__ == operation_type), None)
