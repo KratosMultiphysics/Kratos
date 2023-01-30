@@ -79,6 +79,7 @@ import test_graph_utilities
 import test_point_locator
 import test_particles_utilities
 import test_combine_model_part_modeler
+import test_check_same_modelpart_using_skin_distance
 
 if sympy_available:
     import test_sympy_fe_utilities
@@ -175,6 +176,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_point_locator.TestPointLocator]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_particles_utilities.TestParticlesUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_combine_model_part_modeler.TestCombineModelPartModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_check_same_modelpart_using_skin_distance.TestCheckSameModelPartUsingSkinDistanceProcess]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))

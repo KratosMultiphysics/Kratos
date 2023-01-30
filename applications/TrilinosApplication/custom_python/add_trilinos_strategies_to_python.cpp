@@ -20,9 +20,6 @@
 #include "includes/define_python.h"
 #include "custom_python/add_trilinos_strategies_to_python.h"
 
-//Trilinos includes
-#include "Epetra_FEVector.h"
-
 // Project includes
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"

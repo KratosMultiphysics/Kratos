@@ -17,7 +17,6 @@
 // External includes
 
 //Trilinos includes
-#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define.h"
