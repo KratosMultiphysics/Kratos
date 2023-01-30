@@ -279,7 +279,6 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
             self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerData()
-        b = KratosOA.NodalContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -314,7 +313,6 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerData()
-        b = KratosOA.HistoricalContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -349,7 +347,6 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
             self.assertVectorAlmostEqual(node.Properties[Kratos.ACCELERATION], self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerData()
-        b = KratosOA.ConditionPropertiesContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -384,7 +381,6 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
             self.assertVectorAlmostEqual(node.Properties[Kratos.ACCELERATION], self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerData()
-        b = KratosOA.ElementPropertiesContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -419,7 +415,6 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
             self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerData()
-        b = KratosOA.ConditionContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
@@ -454,7 +449,6 @@ class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainer
             self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
         a = self._GetContainerData()
-        b = KratosOA.ElementContainerData(self.model_part)
 
         a.ReadDataFromContainerVariable(Kratos.PRESSURE)
         b.CopyDataFrom(a)
