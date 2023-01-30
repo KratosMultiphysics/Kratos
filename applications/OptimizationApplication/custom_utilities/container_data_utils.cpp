@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <cmath>
 
 // Project includes
 #include "includes/define.h"
@@ -24,6 +25,27 @@
 
 namespace Kratos
 {
+
+double ContainerDataUtils::EntityMaxNormL2(const ContainerDataBase& rContainer)
+{
+    if (rContainer.GetDataDimension() == 0) {
+        return 0.0;
+    }
+
+    const auto& r_data = rContainer.GetData();
+    const IndexType data_dimension = rContainer.GetDataDimension();
+
+    const IndexType number_of_entities = r_data.size() / data_dimension;
+
+    return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&](const IndexType Index) {
+        double value = 0.0;
+        const IndexType local_start = Index * data_dimension;
+        for (IndexType i = 0; i < data_dimension; ++i) {
+            value += std::pow(r_data[local_start + i], 2);
+        }
+        return value;
+    })));
+}
 
 
 double ContainerDataUtils::NormInf(const ContainerDataBase& rContainer)

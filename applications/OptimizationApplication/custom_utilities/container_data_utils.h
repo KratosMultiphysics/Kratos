@@ -40,6 +40,8 @@ public:
 
     static double NormInf(const ContainerDataBase& rContainer);
 
+    static double EntityMaxNormL2(const ContainerDataBase& rContainer);
+
     static double InnerProduct(
         const ContainerDataBase& rContainer1,
         const ContainerDataBase& rContainer2);

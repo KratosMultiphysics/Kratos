@@ -89,6 +89,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<ContainerDataUtils>(m, "ContainerDataUtils")
         .def_static("NormInf", &ContainerDataUtils::NormInf, py::arg("container_data"))
+        .def_static("EntityMaxNormL2", &ContainerDataUtils::EntityMaxNormL2, py::arg("container_data"))
         .def_static("InnerProduct", &ContainerDataUtils::InnerProduct, py::arg("container_data_1"), py::arg("container_data_2"))
         ;
 
