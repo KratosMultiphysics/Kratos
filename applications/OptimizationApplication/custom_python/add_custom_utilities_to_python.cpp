@@ -41,8 +41,8 @@ void AddContainerTypeToPython(pybind11::module& m, const std::string& rName)
 
     using container_type = ContainerData<ContainerDataType>;
     py::class_<container_type, typename container_type::Pointer, ContainerDataBase>(m, rName.c_str())
-        .def(py::init<ModelPart&>(), py::arg("model_part"))
-        .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"))
+        .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container data object with model_part."))
+        .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new same type container data object by copying data from other_container_data_to_copy_from."))
         .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<double>, py::arg("scalar_variable"))
         .def("AssignDataToContainerVariable", &container_type::template AssignDataToContainerVariable<array_1d<double, 3>>, py::arg("Array3_variable"))
         .def("ReadDataFromContainerVariable", &container_type::template ReadDataFromContainerVariable<double>, py::arg("scalar_variable"))
@@ -87,9 +87,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionPropertiesContainerData");
     AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementPropertiesContainerData");
 
-    py::class_<ContainerDataUtils >(m, "ContainerDataUtils")
-        .def_static("NormInf", &ContainerDataUtils::NormInf)
-        .def_static("InnerProduct", &ContainerDataUtils::InnerProduct)
+    py::class_<ContainerDataUtils>(m, "ContainerDataUtils")
+        .def_static("NormInf", &ContainerDataUtils::NormInf, py::arg("container_data"))
+        .def_static("InnerProduct", &ContainerDataUtils::InnerProduct, py::arg("container_data_1"), py::arg("container_data_2"))
         ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
