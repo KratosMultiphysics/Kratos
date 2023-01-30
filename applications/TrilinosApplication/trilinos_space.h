@@ -193,35 +193,26 @@ public:
     static double Dot(VectorType& rX, VectorType& rY)
     {
         double value;
-        double *temp = new double[1];
-        const int sucess = rY.Dot(rX, temp); //it is prepared to handle vectors with multiple components
+        const int sucess = rY.Dot(rX, &value); //it is prepared to handle vectors with multiple components
         KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing dot product" <<  std::endl;
-        value = temp[0];
-        delete [] temp;
         return value;
     }
 
-    /// Maximum alue
+    /// Maximum value
     static double Max(const VectorType& rX)
     {
         double value;
-        double *temp = new double[1];
-        const int sucess = rX.MaxValue(temp); //it is prepared to handle vectors with multiple components
+        const int sucess = rX.MaxValue(&value); //it is prepared to handle vectors with multiple components
         KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing maximum value" <<  std::endl;
-        value = temp[0];
-        delete [] temp;
         return value;
     }
 
-    /// Minimum alue
+    /// Minimum value
     static double Min(const VectorType& rX)
     {
         double value;
-        double *temp = new double[1];
-        const int sucess = rX.MinValue(temp); //it is prepared to handle vectors with multiple components
+        const int sucess = rX.MinValue(&value); //it is prepared to handle vectors with multiple components
         KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing minimum value" <<  std::endl;
-        value = temp[0];
-        delete [] temp;
         return value;
     }
 
@@ -229,11 +220,8 @@ public:
     static double TwoNorm(VectorType const& rX)
     {
         double value;
-        double *temp = new double[1];
-        const int sucess = rX.Norm2(temp); //it is prepared to handle vectors with multiple components
+        const int sucess = rX.Norm2(&value); //it is prepared to handle vectors with multiple components
         KRATOS_ERROR_IF_NOT(sucess == 0) << "Error computing norm" <<  std::endl;
-        value = temp[0];
-        delete [] temp;
         return value;
     }
 
