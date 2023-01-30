@@ -31,14 +31,28 @@ class EmpiricalCubatureMethod():
 
     """
     Method for setting up the element selection
-    input:  ResidualsBasis: numpy array containing a basis to the residuals projected
+    input:  - ResidualsBasis: numpy array containing a basis to the residuals projected
+            - constrain_sum_of_weights: enable the user to constrain weights to be the sum of the number of entities.
+            - constrain_conditions: enable the user to enforce weights to consider conditions (for specific boundary conditions).
     """
-    def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True):
+    def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = 0):
 
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
-        if constrain_sum_of_weights:
-            self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+        total_number_of_entities = np.shape(self.G)[1]
+        conditions_begin = total_number_of_entities - number_of_conditions
+        elements_constraint = np.ones(total_number_of_entities)
+        self.add_constrain_count = None
+        if constrain_sum_of_weights and constrain_conditions:#Only for models which contains conditions
+            elements_constraint[conditions_begin:] = 0
+            self.G = np.vstack([ self.G , elements_constraint ] )
+            conditions_constraint = np.ones(total_number_of_entities)
+            conditions_constraint[:conditions_begin] = 0
+            self.G = np.vstack([ self.G , conditions_constraint ] )
+            self.add_constrain_count = -2
+        elif constrain_sum_of_weights:
+            self.G = np.vstack([ self.G , elements_constraint ] )
+            self.add_constrain_count = -1
         self.b = self.G @ self.W
 
 
@@ -50,7 +64,7 @@ class EmpiricalCubatureMethod():
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
         self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
-        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
+        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:self.add_constrain_count,:], self.G[:self.add_constrain_count,:]), 0))
         if self.Filter_tolerance > 0:
             TOL_REMOVE = self.Filter_tolerance * normB
             rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
