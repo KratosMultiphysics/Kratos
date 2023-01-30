@@ -278,6 +278,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
     {
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = mMP.volume_acceleration * mMP.mass;
+//         std::cout << "mass Elem System:  " << mMP.mass << "\n";
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -312,16 +313,16 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
             rVariables.PressureGradient[i] += rVariables.DN_DX(j,i) * r_geometry[j].FastGetSolutionStepValue(PRESSURE);
         }
     }
-
     ConvertPressureGradientInVoigt(rVariables.PressureGradient,rVariables.PressureGradientVoigt);
 
+    // Set the identity matrix tensor
     CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
 
+    // Set if the model is dynamic
     const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
         ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
         : false;
-
-    //if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+        //if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
 
     // Compute Residual Projection in integration points
@@ -335,11 +336,11 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
             nodal_resprojdispl= r_geometry[j].FastGetSolutionStepValue(RESPROJ_DISPL,0);
             for (unsigned int k = 0; k < dimension; k++)
             {
-                rVariables.ResProjDisplGP[k] += r_N(0, j) * nodal_resprojdispl[k];
+                 rVariables.ResProjDisplGP[k] += r_N(0, j) * nodal_resprojdispl[k];
             }
         }
-    }
 
+    }
 
     // Compute Shear modulus and Bulk Modulus
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
@@ -355,7 +356,6 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
 
         if (rVariables.BulkModulus!=rVariables.BulkModulus)
             rVariables.BulkModulus= 1e16;
-
     }
     else if (GetProperties().Has(DYNAMIC_VISCOSITY))
     {
@@ -623,7 +623,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf1(i) * rIntegrationWeight;
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] + rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) -VolumetricStrainFunction + rVariables.ResProjPressGP) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction + rVariables.ResProjPressGP) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             indexi++;
         }
     }
@@ -881,12 +881,13 @@ void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentPro
     GeometryType& r_geometry = this->GetGeometry();
     const unsigned int number_of_nodes  = r_geometry.size();
     const unsigned int dimension        = r_geometry.WorkingSpaceDimension();
-    const Matrix& r_N                   = r_geometry.ShapeFunctionsValues();
     const double density                = GetProperties()[DENSITY];
-    std::vector<double> mp_mass(1);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    // std::vector<double> mp_mass(1);
     double mp_volume = 0;
+    double mp_mass = 0;
     std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
-    std::vector<array_1d<double, 3>> volume_force = { ZeroVector(3) };
+//     std::vector<array_1d<double, 3>> volume_force = { ZeroVector(3) };
 //     Vector mp_volume_acceleration = ZeroVector(3);
 //     Vector volume_force = ZeroVector(3);
     unsigned int particles_per_element  = GetProperties()[PARTICLES_PER_ELEMENT];
@@ -896,6 +897,17 @@ void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentPro
 
     GeneralVariables Variables;
     this-> InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    this-> CalculateKinematics(Variables, rCurrentProcessInfo);
+    this-> SetGeneralVariables(Variables, Values, r_N);
     this-> SetSpecificVariables(Variables,rCurrentProcessInfo);
 
 // CAMBIAR MÁS ADELANTE PARA QUE LEA CUANTAS PARTICULAS PER ELEMENT HAY.
@@ -913,16 +925,20 @@ void UpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentPro
     // Loop over the material points that fall in each grid element
     for (unsigned int PointNumber = 0; PointNumber < particles_per_element; PointNumber++)
     {
-        UpdatedLagrangian::SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
+        //UpdatedLagrangian::SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
+        //std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+        UpdatedLagrangian::CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
         mp_volume =  int_volumes[PointNumber];
-        mp_mass[0] = int_volumes[PointNumber]*density;
+        mp_mass   = int_volumes[PointNumber]*density;
 
-//         for(unsigned int k = 0; k<3; k++) volume_force[k] = mp_mass[0] * mp_volume_acceleration[k];
+        //Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        Vector volume_force = ZeroVector(3);
 
-        Vector volume_force1 = ZeroVector(3);
+        //for(unsigned int k = 0; k<3; k++) volume_force[k] = mp_mass * mp_volume_acceleration[k];
+
         Vector MomentumRes = ZeroVector(3);
         double ConservRes = 0.0;
-        this->ComputeResidual(Variables,volume_force1,MomentumRes,ConservRes);
+        this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes);
 
         // Loop over the nodes
         for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -958,11 +974,9 @@ void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vecto
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = rVolumeForce[k] + rVariables.PressureGradient[k];
-    rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);
+    rResidualP =   - rVariables.PressureGP/rVariables.BulkModulus + (1.0 - 1.0 / rVariables.detFT);
 
 }
-
-
 
 
 void UpdatedLagrangianUPVMS::save( Serializer& rSerializer ) const
