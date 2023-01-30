@@ -16,9 +16,6 @@
 
 // External includes
 
-/* Trilinos includes */
-#include "Epetra_FEVector.h"
-
 // Project includes
 #include "includes/define_python.h"
 #include "custom_python/add_trilinos_schemes_to_python.h"
