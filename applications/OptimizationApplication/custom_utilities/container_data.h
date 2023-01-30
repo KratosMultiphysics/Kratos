@@ -26,6 +26,9 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+///@name Forward declarations
+///@{
+
 class HistoricalDataValueContainer;
 
 template<class TContainerType>
@@ -33,6 +36,13 @@ class NonHistoricalDataValueContainer;
 
 template<class TContainerType>
 class PropertiesDataValueContainer;
+
+template<class TContainerDataType>
+class ContainerData;
+
+///@}
+///@name Class declarations
+///@{
 
 class KRATOS_API(OPTIMIZATION_APPLICATION) ContainerDataBase {
 public:
@@ -50,12 +60,6 @@ public:
 
     /// Destructor.
     virtual ~ContainerDataBase() = default;
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    double NormInf() const;
 
     ///@}
     ///@name Input and output
@@ -140,23 +144,41 @@ private:
 
 class HistoricalDataValueContainer
 {
-public:
+private:
+    ///@name Private type definitions
+    ///@{
+
     using ContainerType = ModelPart::NodesContainerType;
 
     static constexpr ContainerDataBase::ContainerDataType ContainerDataType
         = ContainerDataBase::ContainerDataType::HistoricalContainerData;
+
+    ///@}
+    ///@name Private static operations
+    ///@{
 
     template<class TDataType>
     static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
 
     template<class TDataType>
     static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+
+    ///@}
+    ///@name Friend classes
+    ///@{
+
+    friend class ContainerData<HistoricalDataValueContainer>;
+
+    ///@}
 };
 
 template<class TContainerType>
 class NonHistoricalDataValueContainer
 {
-public:
+private:
+    ///@name Private type definitions
+    ///@{
+
     using ContainerType = TContainerType;
 
     static constexpr ContainerDataBase::ContainerDataType ContainerDataType
@@ -166,17 +188,32 @@ public:
                 ? ContainerDataBase::ContainerDataType::ConditionContainerData
                 : ContainerDataBase::ContainerDataType::ElementContainerData;
 
+    ///@}
+    ///@name Private static operations
+    ///@{
+
     template<class TDataType>
     static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
 
     template<class TDataType>
     static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+
+    ///@}
+    ///@name Friend classes
+    ///@{
+
+    friend class ContainerData<NonHistoricalDataValueContainer<TContainerType>>;
+
+    ///@}
 };
 
 template<class TContainerType>
 class PropertiesDataValueContainer
 {
-public:
+private:
+    ///@name Private type definitions
+    ///@{
+
     using ContainerType = TContainerType;
 
     static constexpr ContainerDataBase::ContainerDataType ContainerDataType
@@ -184,11 +221,23 @@ public:
             ? ContainerDataBase::ContainerDataType::ConditionPropertiesContainerData
             : ContainerDataBase::ContainerDataType::ElementPropertiesContainerData;
 
+    ///@}
+    ///@name Private static operations
+    ///@{
+
     template<class TDataType>
     static TDataType& GetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable);
 
     template<class TDataType>
     static void SetValue(typename ContainerType::data_type& rEntity, const Variable<TDataType>& rVariable, const TDataType& rValue);
+
+    ///@}
+    ///@name Friend classes
+    ///@{
+
+    friend class ContainerData<PropertiesDataValueContainer<TContainerType>>;
+
+    ///@}
 };
 
 template<class TContainerDataType>
@@ -216,7 +265,7 @@ public:
     ContainerData(const ContainerData& rOther) : BaseType(rOther) {}
 
     /// Destructor.
-    virtual ~ContainerData() override = default;
+    ~ContainerData() override = default;
 
     ///@}
     ///@name Public operations
@@ -233,8 +282,6 @@ public:
     template<class TDataType>
     void SetDataForContainerVariable(const Variable<TDataType>& rVariable, const TDataType& rValue);
 
-    double InnerProduct(const ContainerData& rOther) const;
-
     ///@}
     ///@name Operators
     ///@{
@@ -243,9 +290,17 @@ public:
 
     ContainerData& operator+=(const ContainerData& rOther);
 
+    ContainerData operator+(const double Value) const;
+
+    ContainerData& operator+=(const double Value);
+
     ContainerData operator-(const ContainerData& rOther) const;
 
     ContainerData& operator-=(const ContainerData& rOther);
+
+    ContainerData operator-(const double Value) const;
+
+    ContainerData& operator-=(const double Value);
 
     ContainerData operator*(const double Value) const;
 
@@ -254,6 +309,10 @@ public:
     ContainerData operator/(const double Value) const;
 
     ContainerData& operator/=(const double Value);
+
+    ContainerData operator^(const double Value) const;
+
+    ContainerData& operator^=(const double Value);
 
     ContainerData& operator=(const ContainerData& rOther);
 
@@ -270,6 +329,7 @@ public:
     ///@}
 };
 
+///@}
 ///@name Input and output
 ///@{
 

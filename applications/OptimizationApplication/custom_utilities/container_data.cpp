@@ -13,6 +13,7 @@
 // System includes
 #include <sstream>
 #include <limits>
+#include <cmath>
 
 // Project includes
 #include "includes/data_communicator.h"
@@ -88,13 +89,6 @@ ContainerDataBase::ContainerDataBase(const ContainerDataBase& rOther)
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
         this->mData[Index] = rOther.mData[Index];
     });
-}
-
-double ContainerDataBase::NormInf() const
-{
-    return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(this->mData.size()).for_each<MaxReduction<double>>([&](const IndexType Index) {
-        return this->mData[Index];
-    }));
 }
 
 IndexType ContainerDataBase::GetDataDimension() const
@@ -355,19 +349,6 @@ void ContainerData<TContainerDataType>::SetDataForContainerVariable(const Variab
 }
 
 template<class TContainerDataType>
-double ContainerData<TContainerDataType>::InnerProduct(const ContainerData<TContainerDataType>& rOther) const
-{
-    KRATOS_ERROR_IF_NOT(this->mData.size() == rOther.mData.size())
-        << "Data size mismatch in operands for +.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    return this->mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(IndexPartition<IndexType>(this->mData.size()).for_each<SumReduction<double>>([&](const IndexType Index) {
-        return this->mData[Index] * rOther.mData[Index];
-    }));
-}
-
-template<class TContainerDataType>
 ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator+(const ContainerData<TContainerDataType>& rOther) const
 {
     KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
@@ -411,6 +392,29 @@ ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator+=
 }
 
 template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator+(const double Value) const
+{
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
+    result.mData.resize(this->mData.size(), false);
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
+        result.mData[Index] = this->mData[Index] + Value;
+    });
+
+    return result;
+}
+
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator+=(const double Value)
+{
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
+        this->mData[Index] += Value;
+    });
+
+    return *this;
+}
+
+template<class TContainerDataType>
 ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator-(const ContainerData<TContainerDataType>& rOther) const
 {
     KRATOS_ERROR_IF(this->mrModelPart != rOther.mrModelPart)
@@ -448,6 +452,29 @@ ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator-=
 
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         this->mData[Index] -= rOther.mData[Index];
+    });
+
+    return *this;
+}
+
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator-(const double Value) const
+{
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
+    result.mData.resize(this->mData.size(), false);
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
+        result.mData[Index] = this->mData[Index] - Value;
+    });
+
+    return result;
+}
+
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator-=(const double Value)
+{
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
+        this->mData[Index] -= Value;
     });
 
     return *this;
@@ -504,6 +531,29 @@ ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator/=
 
     IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
         this->mData[Index] /= Value;
+    });
+
+    return *this;
+}
+
+template<class TContainerDataType>
+ContainerData<TContainerDataType> ContainerData<TContainerDataType>::operator^(const double Value) const
+{
+    ContainerData<TContainerDataType> result(this->mrModelPart);
+    result.mDataDimension = this->mDataDimension;
+    result.mData.resize(this->mData.size(), false);
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
+        result.mData[Index] = std::pow(this->mData[Index], Value);
+    });
+
+    return result;
+}
+
+template<class TContainerDataType>
+ContainerData<TContainerDataType>& ContainerData<TContainerDataType>::operator^=(const double Value)
+{
+    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index) {
+        this->mData[Index] = std::pow(this->mData[Index], Value);
     });
 
     return *this;
