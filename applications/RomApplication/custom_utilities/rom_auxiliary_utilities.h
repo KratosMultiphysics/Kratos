@@ -144,6 +144,20 @@ public:
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
+
+    /**
+     * @brief Obtain the left elemental basis (Psi) matrix for a particular element.
+     * @param rPsiElemental The matrix to store the result in. Must have the appropiate size already.
+     * @param rDofs The set of dofs of the element.
+     * @param rGeom The geometry of the element.
+     * @rVarToRowMapping A map from each variables's key to its row in the basis matrix.
+     */
+    static void GetPsiElemental(
+        Matrix &rPsiElemental,
+        const Element::DofsVectorType& rDofs,
+        const Element::GeometryType& rGeom,
+        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
+
     ///@}
 
     private:

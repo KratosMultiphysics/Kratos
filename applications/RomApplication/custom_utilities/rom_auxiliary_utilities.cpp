@@ -469,4 +469,36 @@ void RomAuxiliaryUtilities::GetPhiElemental(
         }
     }
 
+void RomAuxiliaryUtilities::GetPsiElemental(
+        Matrix &rPsiElemental,
+        const Element::DofsVectorType& rDofs,
+        const Element::GeometryType& rGeom,
+        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
+    {
+        for(std::size_t i = 0; i < rDofs.size(); ++i)
+        {
+            const Dof<double>& r_dof = *rDofs[i];
+            if (r_dof.IsFixed())
+            {
+                noalias(row(rPsiElemental, i)) = ZeroVector(rPsiElemental.size2());
+            }
+            else
+            {
+                const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
+                    [&](const Node<3>& rNode)
+                    {
+                        return rNode.Id() == r_dof.Id();
+                    });
+                KRATOS_DEBUG_ERROR_IF(it_node == rGeom.end());
+
+                const Matrix& nodal_rom_basis = it_node->GetValue(ROM_LEFT_BASIS);
+
+                const auto variable_key = r_dof.GetVariable().Key();
+                const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
+
+                noalias(row(rPsiElemental, i)) = row(nodal_rom_basis, row_id);
+            }
+        }
+    } 
+
 } // namespace Kratos
