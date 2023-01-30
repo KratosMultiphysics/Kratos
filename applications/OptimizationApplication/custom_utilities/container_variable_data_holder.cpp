@@ -84,11 +84,16 @@ ContainerVariableDataHolderBase::ContainerVariableDataHolderBase(const Container
     : mrModelPart(rOther.mrModelPart),
       mContainerVariableDataHolderType(rOther.mContainerVariableDataHolderType)
 {
-    this->mData.resize(rOther.mData.size(), false);
-    this->mDataDimension = rOther.mDataDimension;
-    IndexPartition<IndexType>(this->mData.size()).for_each([&](const IndexType Index){
-        this->mData[Index] = rOther.mData[Index];
-    });
+    this->CopyDataFrom(rOther);
+}
+
+ContainerVariableDataHolderBase::ContainerVariableDataHolderBase(
+    const ContainerVariableDataHolderBase& rOther,
+    const ContainerVariableDataHolderType& rContainerVariableDataHolderType)
+    : mrModelPart(rOther.mrModelPart),
+      mContainerVariableDataHolderType(rContainerVariableDataHolderType)
+{
+    this->CopyDataFrom(rOther);
 }
 
 IndexType ContainerVariableDataHolderBase::GetDataDimension() const
@@ -619,17 +624,17 @@ std::string ContainerVariableDataHolder<TContainerVariableDataHolderType>::Info(
     std::stringstream msg;
 
     if constexpr(std::is_same_v<TContainerVariableDataHolderType, HistoricalDataValueContainer>) {
-        msg << "NodalHistoricalDataContainer";
+        msg << "HistoricalContainerVariableDataHolder";
     } else if constexpr(std::is_same_v<TContainerVariableDataHolderType, NonHistoricalDataValueContainer<ModelPart::NodesContainerType>>) {
-        msg << "NodalNonHistoricalDataContainer";
+        msg << "NodalContainerVariableDataHolder";
     } else if constexpr(std::is_same_v<TContainerVariableDataHolderType, NonHistoricalDataValueContainer<ModelPart::ConditionsContainerType>>) {
-        msg << "ConditionNonHistoricalDataContainer";
+        msg << "ConditionContainerVariableDataHolder";
     } else if constexpr(std::is_same_v<TContainerVariableDataHolderType, NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>) {
-        msg << "ElementNonHistoricalDataContainer";
+        msg << "ElementContainerVariableDataHolder";
     } else if constexpr(std::is_same_v<TContainerVariableDataHolderType, PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>) {
-        msg << "ConditionPropertiesDataContainer";
+        msg << "ConditionPropertiesContainerVariableDataHolder";
     } else if constexpr(std::is_same_v<TContainerVariableDataHolderType, PropertiesDataValueContainer<ModelPart::ElementsContainerType>>) {
-        msg << "ElementPropertiesDataContainer";
+        msg << "ElementPropertiesContainerVariableDataHolder";
     }
 
     msg << " [ ";

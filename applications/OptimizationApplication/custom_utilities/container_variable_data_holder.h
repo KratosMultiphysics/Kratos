@@ -112,6 +112,11 @@ protected:
     /// Copy constructor
     ContainerVariableDataHolderBase(const ContainerVariableDataHolderBase& rOther);
 
+    /// Copy constructor with ability change the contaienr type if they are compatible.
+    ContainerVariableDataHolderBase(
+        const ContainerVariableDataHolderBase& rOther,
+        const ContainerVariableDataHolderType& rContainerVariableDataHolderType);
+
     ///@}
     ///@name Protected member variables
     ///@{
@@ -261,10 +266,16 @@ public:
     ///@{
 
     /// Constructor
-    ContainerVariableDataHolder(ModelPart& rModelPart) : BaseType(rModelPart, TContainerVariableDataHolderType::ContainerVariableDataHolderType) {}
+    ContainerVariableDataHolder(ModelPart& rModelPart)
+        : BaseType(rModelPart, TContainerVariableDataHolderType::ContainerVariableDataHolderType) {}
 
     /// Copy constructor
-    ContainerVariableDataHolder(const ContainerVariableDataHolder& rOther) : BaseType(rOther) {}
+    ContainerVariableDataHolder(const ContainerVariableDataHolder& rOther)
+        : BaseType(rOther) {}
+
+    /// Copy constructor with base class used to transfer data between compatible data containers
+    ContainerVariableDataHolder(const ContainerVariableDataHolderBase& rOther)
+        : BaseType(rOther, TContainerVariableDataHolderType::ContainerVariableDataHolderType) {}
 
     /// Destructor.
     ~ContainerVariableDataHolder() override = default;
