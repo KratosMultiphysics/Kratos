@@ -100,7 +100,7 @@ public:
             mYieldStressType = mrResponseSettings["yield_stress_type"].GetString();
             if(!(mYieldStressType=="VON_MISES_STRESS" || mYieldStressType=="VON_MISES_STRESS_BOTTOM_SURFACE" || mYieldStressType=="VON_MISES_STRESS_TOP_SURFACE" \
                 || mYieldStressType=="VON_MISES_STRESS_MIDDLE_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS_TOP_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS_MIDDLE_SURFACE" \ 
-                || mYieldStressType=="MAX_PRINCIPAL_STRESS_BOTTOM_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS"))
+                || mYieldStressType=="MAX_PRINCIPAL_STRESS_BOTTOM_SURFACE" || mYieldStressType=="MAX_PRINCIPAL_STRESS" || mYieldStressType=="BENDING_VON_MISES"))
                 KRATOS_ERROR << "StressOptResponse: "<<mYieldStressType<<" is not supported and available yield_stress_types are VON_MISES_STRESS, VON_MISES_STRESS_BOTTOM_SURFACE,\n"<< \
                 "VON_MISES_STRESS_TOP_SURFACE, MAX_PRINCIPAL_STRESS_TOP_SURFACE, MAX_PRINCIPAL_STRESS_MIDDLE_SURFACE, MAX_PRINCIPAL_STRESS_BOTTOM_SURFACE, MAX_PRINCIPAL_STRESS, and VON_MISES_STRESS_MIDDLE_SURFACE !! "<< std::endl;
 
@@ -321,8 +321,12 @@ public:
             if(pow_val>700)
                 pow_val = 700;
             if(pow_val<-700) 
-                pow_val = -700;             
-            elem_value += gp_weights_vector[i] * (1.0/(1+std::exp(pow_val))) * std::pow(ratio,mHeavisidePenaltyFactor);
+                pow_val = -700;
+
+            if(mYieldStressType.find("BENDING") != std::string::npos)            
+                elem_value += gp_weights_vector[i] * gp_stress;
+            else
+                elem_value += gp_weights_vector[i] * (1.0/(1+std::exp(pow_val))) * std::pow(ratio,mHeavisidePenaltyFactor);
         }
 
         return elem_value;          
@@ -376,7 +380,10 @@ public:
             if(mHeavisidePenaltyFactor>0)
                 penal_derv_mult += (1.0/(1+std::exp(pow_val))) * (mHeavisidePenaltyFactor) * std::pow(ratio,mHeavisidePenaltyFactor-1) / mYieldStressLimit;
 
-            der_at_gp[k] = gp_int_w[k] * (heav_derv_mult + penal_derv_mult);
+            if(mYieldStressType.find("BENDING") != std::string::npos)
+                der_at_gp[k] = gp_int_w[k];
+            else
+                der_at_gp[k] = gp_int_w[k] * (heav_derv_mult + penal_derv_mult);
         }
     }
 
@@ -484,6 +491,16 @@ public:
                 elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_TOP_SURFACE"), tmp_stress_gp_tensor, rCurrentProcessInfo);
             if (mYieldStressType.find("BOTTOM_SURFACE") != std::string::npos)
                 elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_BOTTOM_SURFACE"), tmp_stress_gp_tensor, rCurrentProcessInfo);          
+            if (mYieldStressType.find("BENDING_VON_MISES") != std::string::npos){
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_TOP_SURFACE"), tmp_stress_gp_tensor, rCurrentProcessInfo);
+                std::vector<Matrix> tmp_bot_stress_gp_tensor;
+                elem_i.CalculateOnIntegrationPoints(KratosComponents<Variable<Matrix>>::Get("SHELL_STRESS_BOTTOM_SURFACE"), tmp_bot_stress_gp_tensor, rCurrentProcessInfo); 
+
+                for(int k=0;k<tmp_stress_gp_tensor.size();k++){
+                    noalias(tmp_stress_gp_tensor[k]) -= tmp_bot_stress_gp_tensor[k];
+                    tmp_stress_gp_tensor[k] /= 2.0;
+                }                
+            }                                 
         }
         else
             elem_i.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, tmp_stress_gp_tensor, rCurrentProcessInfo);
@@ -582,16 +599,16 @@ public:
             dual deg_120 = 2.0 / 3.0 * 3.14159265359;             
 
             for (IndexType j = 0; j < 3; ++j){
-                if(norm * (aux2 + aux1 * cos(phi_3 + deg_120 * j))>to_return)
-                    to_return = norm * (aux2 + aux1 * cos(phi_3 + deg_120 * j));
+                //if(norm * (aux2 + aux1 * cos(phi_3 + deg_120 * j))>to_return)
+                    to_return += norm * (aux2 + aux1 * cos(phi_3 + deg_120 * j));
             } 
         } else {
-                if(stress_comps.sxx>to_return)
-                    to_return = stress_comps.sxx;                
-                if(stress_comps.syy>to_return)
-                    to_return = stress_comps.syy;
-                if(stress_comps.szz>to_return)
-                    to_return = stress_comps.szz;
+                //if(stress_comps.sxx>to_return)
+                    to_return += stress_comps.sxx;                
+                //if(stress_comps.syy>to_return)
+                    to_return += stress_comps.syy;
+                //if(stress_comps.szz>to_return)
+                    to_return += stress_comps.szz;
         }
 
         return to_return;
