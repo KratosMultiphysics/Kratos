@@ -77,6 +77,8 @@ public:
 
     const ModelPart& GetModelPart() const;
 
+    bool IsCompatibleWithContainerData(const ContainerDataBase& rOther) const;
+
     /// Turn back information as a string.
     virtual std::string Info() const;
 

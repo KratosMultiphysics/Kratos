@@ -287,6 +287,14 @@ class TestHistoricalContainerData(kratos_unittest.TestCase, TestContainerDataBas
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
+    def test_IsCompatibleWithContainerData(self):
+        a = self._GetContainerData()
+        self.assertTrue(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+
     def _GetContainerData(self):
         return KratosOA.HistoricalContainerData(self.model_part)
 
@@ -320,6 +328,14 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():
             self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
+
+    def test_IsCompatibleWithContainerData(self):
+        a = self._GetContainerData()
+        self.assertTrue(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
 
     def _GetContainerData(self):
         return KratosOA.NodalContainerData(self.model_part)
@@ -355,6 +371,14 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
         for node in b.GetContainer():
             self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
 
+    def test_IsCompatibleWithContainerData(self):
+        a = self._GetContainerData()
+        self.assertTrue(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+
     def _GetContainerData(self):
         return KratosOA.ConditionContainerData(self.model_part)
 
@@ -388,6 +412,14 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():
             self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
+
+    def test_IsCompatibleWithContainerData(self):
+        a = self._GetContainerData()
+        self.assertTrue(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
 
     def _GetContainerData(self):
         return KratosOA.ElementContainerData(self.model_part)
@@ -423,6 +455,14 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
+    def test_IsCompatibleWithContainerData(self):
+        a = self._GetContainerData()
+        self.assertTrue(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ElementPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
+
     def _GetContainerData(self):
         return KratosOA.ConditionPropertiesContainerData(self.model_part)
 
@@ -456,6 +496,14 @@ class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainer
         b.AssignDataToContainerVariable(Kratos.DENSITY)
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
+
+    def test_IsCompatibleWithContainerData(self):
+        a = self._GetContainerData()
+        self.assertTrue(KratosOA.ElementContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.HistoricalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.NodalContainerData(self.model_part).IsCompatibleWithContainerData(a))
+        self.assertFalse(KratosOA.ConditionPropertiesContainerData(self.model_part).IsCompatibleWithContainerData(a))
 
     def _GetContainerData(self):
         return KratosOA.ElementPropertiesContainerData(self.model_part)

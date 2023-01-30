@@ -113,21 +113,7 @@ void ContainerDataBase::CopyDataFrom(const ContainerDataBase& rOther)
         << "   Destination = " << *this << "\n"
         << "   Origin = " << rOther << "\n.";
 
-    const bool valid_same_type_conversion = (this->mContainerDataType == rOther.mContainerDataType);
-
-    const bool valid_nodal_different_conversion =
-        (this->mContainerDataType == ContainerDataType::HistoricalContainerData && rOther.mContainerDataType == ContainerDataType::NodalContainerData) ||
-        (this->mContainerDataType == ContainerDataType::NodalContainerData && rOther.mContainerDataType == ContainerDataType::HistoricalContainerData);
-
-    const bool valid_condition_different_conversion =
-        (this->mContainerDataType == ContainerDataType::ConditionContainerData && rOther.mContainerDataType == ContainerDataType::ConditionPropertiesContainerData) ||
-        (this->mContainerDataType == ContainerDataType::ConditionPropertiesContainerData && rOther.mContainerDataType == ContainerDataType::ConditionContainerData);
-
-    const bool valid_element_different_conversion =
-        (this->mContainerDataType == ContainerDataType::ElementContainerData && rOther.mContainerDataType == ContainerDataType::ElementPropertiesContainerData) ||
-        (this->mContainerDataType == ContainerDataType::ElementPropertiesContainerData && rOther.mContainerDataType == ContainerDataType::ElementContainerData);
-
-    KRATOS_ERROR_IF_NOT(valid_same_type_conversion || valid_nodal_different_conversion || valid_condition_different_conversion || valid_element_different_conversion)
+    KRATOS_ERROR_IF_NOT(this->IsCompatibleWithContainerData(rOther))
         << "Copying from unsupported data container types. Followings are supported:\n"
         << "   Copying from same data container type\n"
         << "   Nodal historical         <-> nodal non-historical\n"
@@ -156,6 +142,25 @@ ModelPart& ContainerDataBase::GetModelPart()
 const ModelPart& ContainerDataBase::GetModelPart() const
 {
     return mrModelPart;
+}
+
+bool ContainerDataBase::IsCompatibleWithContainerData(const ContainerDataBase& rOther) const
+{
+    const bool valid_same_type_conversion = (this->mContainerDataType == rOther.mContainerDataType);
+
+    const bool valid_nodal_different_conversion =
+        (this->mContainerDataType == ContainerDataType::HistoricalContainerData && rOther.mContainerDataType == ContainerDataType::NodalContainerData) ||
+        (this->mContainerDataType == ContainerDataType::NodalContainerData && rOther.mContainerDataType == ContainerDataType::HistoricalContainerData);
+
+    const bool valid_condition_different_conversion =
+        (this->mContainerDataType == ContainerDataType::ConditionContainerData && rOther.mContainerDataType == ContainerDataType::ConditionPropertiesContainerData) ||
+        (this->mContainerDataType == ContainerDataType::ConditionPropertiesContainerData && rOther.mContainerDataType == ContainerDataType::ConditionContainerData);
+
+    const bool valid_element_different_conversion =
+        (this->mContainerDataType == ContainerDataType::ElementContainerData && rOther.mContainerDataType == ContainerDataType::ElementPropertiesContainerData) ||
+        (this->mContainerDataType == ContainerDataType::ElementPropertiesContainerData && rOther.mContainerDataType == ContainerDataType::ElementContainerData);
+
+    return (this->mrModelPart == rOther.mrModelPart) && (valid_same_type_conversion ||  valid_nodal_different_conversion || valid_condition_different_conversion || valid_element_different_conversion);
 }
 
 std::string ContainerDataBase::Info() const

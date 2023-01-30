@@ -24,6 +24,7 @@
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/solver_utilities/gradient_projection_solver_utils.h"
 #include "custom_utilities/container_data.h"
+#include "custom_utilities/container_data_utils.h"
 
 // Include base h
 #include "add_custom_utilities_to_python.h"
@@ -75,6 +76,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<ContainerDataBase, ContainerDataBase::Pointer>(m, "ContainerDataBase")
         .def("CopyDataFrom", &ContainerDataBase::CopyDataFrom, py::arg("origin_container_data"))
         .def("GetModelPart", py::overload_cast<>(&ContainerDataBase::GetModelPart))
+        .def("IsCompatibleWithContainerData", &ContainerDataBase::IsCompatibleWithContainerData, py::arg("other_container_data"))
         .def("__str__", &ContainerDataBase::Info)
         ;
 
@@ -84,6 +86,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddContainerTypeToPython<NonHistoricalDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementContainerData");
     AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ConditionsContainerType>>(m, "ConditionPropertiesContainerData");
     AddContainerTypeToPython<PropertiesDataValueContainer<ModelPart::ElementsContainerType>>(m, "ElementPropertiesContainerData");
+
+    py::class_<ContainerDataUtils >(m, "ContainerDataUtils")
+        .def_static("NormInf", &ContainerDataUtils::NormInf)
+        .def_static("InnerProduct", &ContainerDataUtils::InnerProduct)
+        ;
 
     py::class_<OptimizationUtils >(m, "OptimizationUtils")
         .def_static("GetContainerIds", [](const ModelPart::NodesContainerType& rNodes) -> std::vector<IndexType> { std::vector<IndexType> values; OptimizationUtils::GetContainerIds(values, rNodes); return values;})
