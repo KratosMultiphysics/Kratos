@@ -56,9 +56,9 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
     def Execute(self) -> None:
         raise RuntimeError("Call to a pure abstract method")
 
-    #@abc.abstractstaticmethod # <== missing the ABCMeta metaclass
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
+    #@abc.abstractclassmethod # <== missing the ABCMeta metaclass
+    @classmethod
+    def GetDefaultParameters(cls: "typing.Type[IOOperation]") -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
             "operation_type" : "",
             "prefix" : "/",
@@ -91,9 +91,9 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
 class ModelPartIOOperation(IOOperation):
     """ @brief Base class for HDF5 IO operations on @ref ModelPart s."""
 
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
-        parameters = super(ModelPartIOOperation, ModelPartIOOperation).GetDefaultParameters()
+    @classmethod
+    def GetDefaultParameters(cls: "typing.Type[ModelPartIOOperation]") -> KratosMultiphysics.Parameters:
+        parameters = super(cls, cls).GetDefaultParameters()
         parameters["prefix"].SetString("/ModelData")
         return parameters
 
@@ -121,9 +121,9 @@ class PartitionedModelPartOutput(ModelPartIOOperation):
 
 class ProcessInfoIOOperation(IOOperation):
 
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
-        parameters = super(ProcessInfoIOOperation, ProcessInfoIOOperation).GetDefaultParameters()
+    @classmethod
+    def GetDefaultParameters(cls: "typing.Type[ProcessInfoIOOperation]") -> KratosMultiphysics.Parameters:
+        parameters = super(cls, cls).GetDefaultParameters()
         parameters["prefix"].SetString("/ProcessInfo")
         return parameters
 
@@ -152,9 +152,9 @@ class VariableIOOperation(IOOperation):
         super().__init__(model_part, parameters, file)
         self.parameters.AddValue("list_of_variables", parameters["list_of_variables"])
 
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
-        parameters = super(VariableIOOperation, VariableIOOperation).GetDefaultParameters()
+    @classmethod
+    def GetDefaultParameters(cls: "typing.Type[VariableIOOperation]") -> KratosMultiphysics.Parameters:
+        parameters = super(cls, cls).GetDefaultParameters()
         parameters["prefix"].SetString("/ResultsData")
         parameters.AddEmptyArray("list_of_variables")
         return parameters
@@ -341,9 +341,9 @@ class PrimalBossakOutput(VariableIOOperation):
         primal_io.SetAlphaBossak(self.__alpha_bossak)
         primal_io.WriteNodalResults(self.model_part)
 
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
-        parameters = super(PrimalBossakOutput, PrimalBossakOutput).GetDefaultParameters()
+    @classmethod
+    def GetDefaultParameters(cls: "typing.Type[PrimalBossakOutput]") -> KratosMultiphysics.Parameters:
+        parameters = super(cls, cls).GetDefaultParameters()
         parameters.AddDouble("alpha_bossak", -0.3)
         return parameters
 
@@ -408,7 +408,7 @@ class AggregateOperation(KratosMultiphysics.Operation):
     def Add(self, operation_parameters: KratosMultiphysics.Parameters) -> None:
         # Convert input snake case name to the internal camel case name
         operation_type = self.__SnakeToCamel(operation_parameters["operation_type"].GetString())
-        operation: type = next((op for op in GetSubclasses(IOOperation) if op.__name__ == operation_type), None)
+        operation: typing.Type[IOOperation] = next((op for op in GetSubclasses(IOOperation) if op.__name__ == operation_type), None)
 
         # Found an operation with a matching name
         if not (operation is None):
@@ -427,8 +427,8 @@ class AggregateOperation(KratosMultiphysics.Operation):
             else:
                 self.__operations.append((operation, operation_parameters))
 
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
+    @classmethod
+    def GetDefaultParameters(cls: "typing.Type[AggregateOperation]") -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
             "model_part_name" : "",
             "list_of_operations" : [],
