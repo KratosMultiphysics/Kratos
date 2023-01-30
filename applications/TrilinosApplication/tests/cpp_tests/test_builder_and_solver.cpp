@@ -177,6 +177,226 @@ namespace Kratos::Testing
         // }
     }
 
+    /**
+    * @brief It generates a truss structure with an expected solution with an element with null contribution
+    */
+    static inline void BasicTestBuilderAndSolverDisplacementWithZeroContribution(ModelPart& rModelPart)
+    {
+        rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
+        rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+        rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+        rModelPart.AddNodalSolutionStepVariable(REACTION);
+        rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        // Create properties
+        auto p_prop_1 = rModelPart.CreateNewProperties(1, 0);
+        p_prop_1->SetValue(YOUNG_MODULUS, 206900000000.0);
+        p_prop_1->SetValue(NODAL_AREA, 0.01);
+
+        auto p_prop_2 = rModelPart.CreateNewProperties(2, 0);
+        p_prop_2->SetValue(YOUNG_MODULUS, 0.0);
+        p_prop_2->SetValue(NODAL_AREA, 0.0);
+
+        // MPI data
+        const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        const int rank =  r_comm.Rank();
+        const int world_size = r_comm.Size();
+
+        // Initially everything in one partition
+        if (world_size == 1) {
+            NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+
+            /// Add PARTITION_INDEX
+            for (auto& r_node : rModelPart.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+            }
+
+            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop_1));
+            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop_2));
+        } else {
+            if (rank == 0) {
+                // Create nodes
+                auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+                pnode1->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+                auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+                pnode2->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
+
+                // Create elements
+                GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+                rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop_1));
+            } else if (rank == 1) {
+                // Create nodes
+                auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+                pnode2->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
+                auto pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+                pnode3->FastGetSolutionStepValue(PARTITION_INDEX) = 1;
+
+                // Create elements
+                GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+                rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop_2));
+            }
+        }
+
+        /// Add dof
+        for (auto& node : rModelPart.Nodes()) {
+            node.AddDof(DISPLACEMENT_X, REACTION_X);
+            node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+            node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+        }
+
+        /// Initialize elements
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& elem : rModelPart.Elements()) {
+            elem.Initialize(r_process_info);
+            elem.InitializeSolutionStep(r_process_info);
+        }
+
+        // Set initial solution
+        for (auto& node : rModelPart.Nodes()) {
+            (node.FastGetSolutionStepValue(DISPLACEMENT)).clear();
+            (node.FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
+            (node.FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
+        }
+
+        // Fix dofs
+        for (auto& node : rModelPart.Nodes()) {
+            node.Fix(DISPLACEMENT_Y);
+            node.Fix(DISPLACEMENT_Z);
+        }
+
+        // Fix X in first node
+        if (rModelPart.HasNode(1)) {
+            auto pnode = rModelPart.pGetNode(1);
+            pnode->Fix(DISPLACEMENT_X);
+        }
+    }
+
+    /**
+    * @brief It generates a truss structure with an expected solution
+    */
+    static inline void ExtendedTestBuilderAndSolverDisplacement(ModelPart& rModelPart, const bool WithConstraint = false)
+    {
+        rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
+        rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+        rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+        rModelPart.AddNodalSolutionStepVariable(REACTION);
+        rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        // Create properties
+        auto p_prop = rModelPart.CreateNewProperties(1, 0);
+        p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
+        p_prop->SetValue(NODAL_AREA, 0.01);
+
+        // MPI data
+        const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        const int rank =  r_comm.Rank();
+        const int world_size = r_comm.Size();
+
+        // Initially everything in one partition
+        if (world_size == 1) {
+            NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 10.0, -5.0, 0.0);
+            NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 8.0, -4.0, 0.0);
+            NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 6.0, -3.0, 0.0);
+            NodeType::Pointer pnode4 = rModelPart.CreateNewNode(4,10.0, 0.0, 0.0);
+            NodeType::Pointer pnode5 = rModelPart.CreateNewNode(5, 8.0, 0.0, 0.0);
+            NodeType::Pointer pnode6 = rModelPart.CreateNewNode(6, 6.0, 0.0, 0.0);
+            NodeType::Pointer pnode7 = rModelPart.CreateNewNode(7, 4.0, -2.0, 0.0);
+            NodeType::Pointer pnode8 = rModelPart.CreateNewNode(8, 4.0, 0.0, 0.0);
+            NodeType::Pointer pnode9 = rModelPart.CreateNewNode(9, 2.0, -1.0, 0.0);
+            NodeType::Pointer pnode10 = rModelPart.CreateNewNode(10, 2.0, 0.0, 0.0);
+            NodeType::Pointer pnode11 = rModelPart.CreateNewNode(11, 0.0, 0.0, 0.0);
+
+            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode11, pnode10})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
+            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode8})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+            GeometryType::Pointer pgeom3 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode6})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 3, pgeom3, p_prop));
+            GeometryType::Pointer pgeom4 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode5})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 4, pgeom4, p_prop));
+            GeometryType::Pointer pgeom5 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode4})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 5, pgeom5, p_prop));
+            GeometryType::Pointer pgeom6 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode4, pnode1})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 6, pgeom6, p_prop));
+            GeometryType::Pointer pgeom7 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 7, pgeom7, p_prop));
+            GeometryType::Pointer pgeom8 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 8, pgeom8, p_prop));
+            GeometryType::Pointer pgeom9 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode7})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 9, pgeom9, p_prop));
+            GeometryType::Pointer pgeom10 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode9})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 10, pgeom10, p_prop));
+            GeometryType::Pointer pgeom11 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode11})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 11, pgeom11, p_prop));
+            GeometryType::Pointer pgeom12 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode9})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 12, pgeom12, p_prop));
+            GeometryType::Pointer pgeom13 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode8})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 13, pgeom13, p_prop));
+            GeometryType::Pointer pgeom14 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode7})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 14, pgeom14, p_prop));
+            GeometryType::Pointer pgeom15 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode6})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 15, pgeom15, p_prop));
+            GeometryType::Pointer pgeom16 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode3})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 16, pgeom16, p_prop));
+            GeometryType::Pointer pgeom17 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode5})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 17, pgeom17, p_prop));
+            GeometryType::Pointer pgeom18 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode2})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 18, pgeom18, p_prop));
+            GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode4})});
+            rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 19, pgeom19, p_prop));
+        } else {
+            KRATOS_ERROR << "Pending to do the proper partitions" << std::endl;
+        }
+
+        /// Add dof
+        for (auto& node : rModelPart.Nodes()) {
+            node.AddDof(DISPLACEMENT_X, REACTION_X);
+            node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+            node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+        }
+
+        /// Initialize elements
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& elem : rModelPart.Elements()) {
+            elem.Initialize(r_process_info);
+            elem.InitializeSolutionStep(r_process_info);
+        }
+
+        // Set initial solution
+        for (auto& node : rModelPart.Nodes()) {
+            (node.FastGetSolutionStepValue(DISPLACEMENT)).clear();
+            (node.FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
+            (node.FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
+        }
+
+        // Fix dofs
+        for (auto& node : rModelPart.Nodes()) {
+            node.Fix(DISPLACEMENT_Z);
+        }
+        // Fix X in first node
+        if (rModelPart.HasNode(1)) {
+            auto pnode = rModelPart.pGetNode(1);
+            pnode->Fix(DISPLACEMENT_X);
+        }
+        // Fix X and Y in fourth node
+        if (rModelPart.HasNode(4)) {
+            auto pnode = rModelPart.pGetNode(1);
+            pnode->Fix(DISPLACEMENT_X);
+            pnode->Fix(DISPLACEMENT_Y);
+        }
+
+        // // TODO: Fix this once MPC work!
+        // if (WithConstraint) {
+        //     rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
+        // }
+    }
+
     static TrilinosSparseSpaceType::MatrixType BuildSystem(
         ModelPart& rModelPart,
         TrilinosSchemeType::Pointer pScheme,
@@ -338,5 +558,80 @@ namespace Kratos::Testing
             }
         }
     }
+
+    /**
+    * Checks if the block builder and solver performs correctly the assemble of the system with zero contribution
+    */
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverWithZeroContribution, KratosTrilinosApplicationMPITestSuite)
+    {
+        // The base model part
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        // The data communicator
+        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+
+        // Generate Epetra communicator
+        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+        // Set MPI coomunicator
+        ModelPartCommunicatorUtilities::SetMPICommunicator(r_model_part, r_comm);
+
+        // Basic build
+        BasicTestBuilderAndSolverDisplacementWithZeroContribution(r_model_part);
+
+        // Compute communicaton plan and fill communicator meshes correctly
+        ParallelFillCommunicator(r_model_part, r_comm).Execute();
+
+        // Create the solvers and things required
+        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+
+        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA,r_comm);
+
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
+        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
+
+        // Values to check
+        std::vector<int> row_indexes = {0, 2};
+        std::vector<int> column_indexes = {0, 2};
+        std::vector<double> values = {2069000000.0000000000000000, 2069000000.0000000000000000};
+
+        int row, column;
+        double value;
+        for (std::size_t counter = 0; counter < row_indexes.size(); ++counter) {
+            row = row_indexes[counter];
+            column = column_indexes[counter];
+            value = values[counter];
+            for (int i = 0; i < rA.NumMyRows(); i++) {
+                int numEntries; // Number of non-zero entries
+                double* vals;   // Row non-zero values
+                int* cols;      // Column indices of row non-zero values
+                rA.ExtractMyRowView(i, numEntries, vals, cols);
+                const int row_gid = rA.RowMap().GID(i);
+                if (row == row_gid) {
+                    int j;
+                    for (j = 0; j < numEntries; j++) {
+                        const int col_gid = rA.ColMap().GID(cols[j]);
+                        if (col_gid == column) {
+                            KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], tolerance)
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
 
 }  // namespace Kratos::Testing.
