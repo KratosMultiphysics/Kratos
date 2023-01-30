@@ -221,7 +221,6 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
             break;
         default:
             KRATOS_ERROR << "Unexpected geometry type for different order interpolation element" << this->Id() << std::endl;
-            break;
     }
 
     // resize mStressVector:

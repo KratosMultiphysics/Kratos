@@ -473,23 +473,15 @@ bool SmallStrainUDSM3DLaw::loadUDSM(const Properties &rMaterialProperties)
    KRATOS_TRY;
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::loadUDSM()") << std::endl;
 
-   bool isLoaded = false;
-
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-   isLoaded = loadUDSMWindows(rMaterialProperties);
+   const auto isLoaded = loadUDSMWindows(rMaterialProperties);
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::loadUDSM()") << std::endl;
-
    return isLoaded;
-#endif
-
-#if defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
-   isLoaded = loadUDSMLinux(rMaterialProperties);
-   return isLoaded;
-#endif
-
+#elif defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
+   return loadUDSMLinux(rMaterialProperties);
+#else
    KRATOS_ERROR << "loadUDSM is not supported yet for Mac OS applications" << std::endl;
-
-   return isLoaded;
+#endif
 
    KRATOS_CATCH(" ");
 }
@@ -518,7 +510,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
    {
       KRATOS_INFO("Error in loadUDSMLinux") << "cannot load the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "Cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
    
    // resolve function GetParamCount address
@@ -530,7 +521,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
       {
          KRATOS_INFO("Error in loadUDSMLinux") << "cannot load function GetParamCount in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "Cannot load function GetParamCount in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -545,7 +535,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
       {
          KRATOS_INFO("Error in loadUDSMLinux") << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -553,7 +542,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
 
 #else
    KRATOS_ERROR << "loadUDSMLinux should be called in Linux applications" << rMaterialProperties[UDSM_NAME] << std::endl;
-   return false;
 #endif
 }
 
@@ -584,7 +572,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
    {
       KRATOS_INFO("Error in loadUDSMWindows") << "cannot load the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
 
    // resolve function GetParamCount address
@@ -597,7 +584,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
       {
          KRATOS_INFO("Error in loadUDSMWindows") << "cannot load function GetParamCount in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "cannot load function GetParamCount in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -613,7 +599,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
       {
          KRATOS_INFO("Error in loadUDSMWindows") << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
          KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-         return false;
       }
    }
 
@@ -622,7 +607,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
    return true;
 #else
    KRATOS_ERROR << "loadUDSMWindows should be called in Windows applications" << rMaterialProperties[UDSM_NAME] << std::endl;
-   return false;
 #endif
 
    KRATOS_CATCH("")
