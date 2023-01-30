@@ -64,6 +64,7 @@ void AddContainerTypeToPython(pybind11::module& m, const std::string& rName)
         .def(py::self /= float())
         .def("__pow__", &container_type::operator^)
         .def("__ipow__", &container_type::operator^=)
+        .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
         ;
 }
 

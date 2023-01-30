@@ -183,6 +183,25 @@ class TestContainerDataBase(ABC):
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) ** 4, 12)
 
+    def test_ContainerDataNeg(self):
+        a = self._GetContainerData()
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+
+        c = -a
+
+        c.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        for node in c.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * (-1.0), 12)
+
+        a = self._GetContainerData()
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+
+        c = -a
+
+        c.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in c.GetContainer():
+            self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) * (-1.0), 12)
+
     def test_SetDataForContainerVariable(self):
         a = self._GetContainerData()
         a.SetDataForContainerVariable(Kratos.VELOCITY, Kratos.Array3([1, 2, 3]))
