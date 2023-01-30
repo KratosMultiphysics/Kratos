@@ -57,13 +57,10 @@ SparseMatrixType GenerateDummySparseMatrix(
     // Create an integer vector NumNz that is used to build the EPetra Matrix.
     // NumNz[i] is the Number of OFF-DIAGONAL term for the ith global equation
     // on this processor
-    int* NumNz = new int[NumMyElements];
-    for ( int i=0; i<NumMyElements; i++) {
-        NumNz[i] = 1;
-    }
-
+    std::vector<int> NumNz(NumMyElements, 1);
+    
     // Create a Epetra_Matrix
-    SparseMatrixType A(Copy, Map, NumNz);
+    SparseMatrixType A(Copy, Map, NumNz.data());
 
     double value;
     for( int i=0 ; i<NumMyElements; ++i ) {
