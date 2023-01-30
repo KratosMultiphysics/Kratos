@@ -302,6 +302,27 @@ class TestNodalContainerData(kratos_unittest.TestCase, TestContainerDataBase):
     def setUpClass(cls):
         cls.CreateEntities()
 
+    def test_CopyData(self):
+        a = self._GetContainerData()
+        b = KratosOA.HistoricalContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        for node in b.GetContainer():
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
+
+        a = self._GetContainerData()
+        b = KratosOA.HistoricalContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetSolutionStepValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
+
     def _GetContainerData(self):
         return KratosOA.NodalContainerData(self.model_part)
 
@@ -315,6 +336,27 @@ class TestConditionContainerData(kratos_unittest.TestCase, TestContainerDataBase
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
+
+    def test_CopyData(self):
+        a = self._GetContainerData()
+        b = KratosOA.ConditionPropertiesContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        for node in b.GetContainer():
+            self.assertVectorAlmostEqual(node.Properties[Kratos.ACCELERATION], self._GetValue(node, Kratos.VELOCITY), 12)
+
+        a = self._GetContainerData()
+        b = KratosOA.ConditionPropertiesContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
 
     def _GetContainerData(self):
         return KratosOA.ConditionContainerData(self.model_part)
@@ -330,6 +372,27 @@ class TestElementContainerData(kratos_unittest.TestCase, TestContainerDataBase):
     def setUpClass(cls):
         cls.CreateEntities()
 
+    def test_CopyData(self):
+        a = self._GetContainerData()
+        b = KratosOA.ElementPropertiesContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        for node in b.GetContainer():
+            self.assertVectorAlmostEqual(node.Properties[Kratos.ACCELERATION], self._GetValue(node, Kratos.VELOCITY), 12)
+
+        a = self._GetContainerData()
+        b = KratosOA.ElementPropertiesContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.Properties[Kratos.DENSITY], self._GetValue(node, Kratos.PRESSURE), 12)
+
     def _GetContainerData(self):
         return KratosOA.ElementContainerData(self.model_part)
 
@@ -344,6 +407,27 @@ class TestConditionPropertiesContainerData(kratos_unittest.TestCase, TestContain
     def setUpClass(cls):
         cls.CreateEntities()
 
+    def test_CopyData(self):
+        a = self._GetContainerData()
+        b = KratosOA.ConditionContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        for node in b.GetContainer():
+            self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
+
+        a = self._GetContainerData()
+        b = KratosOA.ConditionContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
+
     def _GetContainerData(self):
         return KratosOA.ConditionPropertiesContainerData(self.model_part)
 
@@ -357,6 +441,27 @@ class TestElementPropertiesContainerData(kratos_unittest.TestCase, TestContainer
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
+
+    def test_CopyData(self):
+        a = self._GetContainerData()
+        b = KratosOA.ElementContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.VELOCITY)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.ACCELERATION)
+        for node in b.GetContainer():
+            self.assertVectorAlmostEqual(node.GetValue(Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
+
+        a = self._GetContainerData()
+        b = KratosOA.ElementContainerData(self.model_part)
+
+        a.ReadDataFromContainerVariable(Kratos.PRESSURE)
+        b.CopyDataFrom(a)
+
+        b.AssignDataToContainerVariable(Kratos.DENSITY)
+        for node in b.GetContainer():
+            self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
     def _GetContainerData(self):
         return KratosOA.ElementPropertiesContainerData(self.model_part)
