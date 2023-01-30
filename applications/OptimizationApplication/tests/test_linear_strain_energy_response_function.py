@@ -7,10 +7,10 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import ContainerEnum
+from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_wrapper import ExecutionPolicyWrapper
-from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import ResponseFunctionWrapper
-from KratosMultiphysics.OptimizationApplication.responses.response_function_wrapper import CreateResponseFunctionWrapper
+from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utils import Factory
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
@@ -45,28 +45,23 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
                 "echo_level"               : 0
             }""")
             cls.execution_policy_wrapper = ExecutionPolicyWrapper(cls.model, execution_policy_wrapper_settings)
-            cls.optimization_info.AddOptimizationRoutine(cls.execution_policy_wrapper)
+            cls.optimization_info.AddOptimizationRoutine(ExecutionPolicyWrapper, "primal", cls.execution_policy_wrapper)
 
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
             # creating the response function wrapper
-            response_function_wrapper_settings = Kratos.Parameters("""{
+            response_function_settings = Kratos.Parameters("""{
                 "name"     : "strain_energy",
                 "module"   : "KratosMultiphysics.OptimizationApplication.responses",
                 "type"     : "LinearStrainEnergyResponseFunction",
-                "objective": "maximization",
-                "scaling"  : 2.0,
                 "settings" : {
-                    "model_part_name"      : "Structure.structure",
-                    "primal_analysis_name" : "primal",
-                    "perturbation_size"    : 1e-8
+                    "evaluated_model_part_name": "Structure.structure",
+                    "primal_analysis_name"     : "primal",
+                    "perturbation_size"        : 1e-8
                 }
             }""")
-            cls.response_function_wrapper = CreateResponseFunctionWrapper(cls.model, response_function_wrapper_settings, cls.optimization_info)
-            cls.optimization_info.AddOptimizationRoutine(cls.response_function_wrapper)
-
-            cls.execution_policy_wrapper.Initialize()
-            cls.response_function_wrapper.Initialize()
+            cls.response_function: ResponseFunction = Factory(response_function_settings["module"].GetString(), response_function_settings["type"].GetString(), cls.model, response_function_settings["settings"], cls.optimization_info, ResponseFunction)
+            cls.optimization_info.AddOptimizationRoutine(ResponseFunction, response_function_settings["name"].GetString(), cls.response_function)
 
             # now replace the properties
             process_parameters = Kratos.Parameters("""{
@@ -76,27 +71,29 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
             }""")
             cls.process: Kratos.Process = KratosOA.EntitySpecificPropertiesProcess(cls.model, process_parameters)
 
-            cls.response_function: ResponseFunctionWrapper = cls.optimization_info.GetOptimizationRoutine("ResponseFunctionWrapper", "strain_energy")
+            cls.execution_policy_wrapper.Initialize()
+            cls.response_function.Initialize()
+
             cls.execution_policy_wrapper.InitializeSolutionStep()
-            cls.response_function_wrapper.InitializeSolutionStep()
+            cls.response_function.InitializeSolutionStep()
+            cls.process.ExecuteInitialize()
             cls.process.ExecuteInitializeSolutionStep()
-            cls.ref_value = cls.response_function.GetValue()
-            cls.standardize_ref_value = cls.response_function.GetStandardizedValue()
+            cls.ref_value = cls.response_function.CalculateValue()
 
     @classmethod
     def tearDownClass(cls):
         with kratos_unittest.WorkFolderScope("linear_element_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
-    def _CalculateSensitivity(self, sensitivity_variable, sensitivity_container_type: ContainerEnum):
-        self.response_function.GetSensitivity(sensitivity_variable, self.model_part, sensitivity_container_type)
+    def _CalculateSensitivity(self, sensitivity_variable, sensitivity_container_type: ContainerData.ContainerEnum):
+        self.response_function.CalculateSensitivity(sensitivity_variable, ContainerData(self.model_part, sensitivity_container_type))
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, rel_tol, abs_tol):
         for entity in entities:
             adjoint_sensitivity = sensitivity_method(entity)
             update_method(entity, delta)
             response_function.InitializeSolutionStep()
-            value = response_function.GetValue()
+            value = response_function.CalculateValue()
             fd_sensitivity = (value - self.ref_value)/delta
             update_method(entity, -delta)
             self.assertTrue(
@@ -119,49 +116,48 @@ class TestLinearStrainEnergyResponseFunctionBase(kratos_unittest.TestCase):
 
     def test_CalculateValue(self):
         self.assertAlmostEqual(self.ref_value, 71515947.17480606, 6)
-        self.assertAlmostEqual(self.standardize_ref_value, -2 * 71515947.17480606, 6)
 
     def test_CalculateYoungModulusSensitivity(self):
-        self._CalculateSensitivity(KratosOA.YOUNG_MODULUS_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+        self._CalculateSensitivity(KratosOA.YOUNG_MODULUS_SENSITIVITY, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         # calculate element density sensitivity
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.YOUNG_MODULUS_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.YOUNG_MODULUS, x, y),
             1e-7,
             1e-6,
             1e-5)
 
     def test_CalculatePoissonRatioSensitivity(self):
-        self._CalculateSensitivity(KratosOA.POISSON_RATIO_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+        self._CalculateSensitivity(KratosOA.POISSON_RATIO_SENSITIVITY, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         # calculate element density sensitivity
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.POISSON_RATIO_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.POISSON_RATIO_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.POISSON_RATIO, x, y),
             1e-7,
             1e-4,
             1e-5)
 
     def test_CalculateDensitySensitivity(self):
-        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerEnum.ELEMENT_PROPERTIES)
+        self._CalculateSensitivity(KratosOA.DENSITY_SENSITIVITY, ContainerData.ContainerEnum.ELEMENT_PROPERTIES)
 
         # calculate element density sensitivity
         self._CheckSensitivity(
             self.response_function,
             self.model_part.Elements,
-            lambda x: x.GetValue(KratosOA.DENSITY_SENSITIVITY),
+            lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
             1.0,
             1e-6,
             1e-5)
 
     def test_CalculateShapeSensitivity(self):
-        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerEnum.NODES)
+        self._CalculateSensitivity(Kratos.SHAPE_SENSITIVITY, ContainerData.ContainerEnum.NODES)
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
             self.response_function,

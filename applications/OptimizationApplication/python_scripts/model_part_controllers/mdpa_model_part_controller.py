@@ -1,11 +1,9 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.mesh_controllers.mesh_controller import MeshController
+from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 
-class MdpaImportOnlyMeshController(MeshController):
+class MdpaModelPartController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
-        super().__init__(model, parameters, optimization_info)
-
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",
@@ -23,11 +21,19 @@ class MdpaImportOnlyMeshController(MeshController):
             raise RuntimeError("Empty \"input_filename\" is not allowed which is given with following parameters:\n" + str(parameters))
 
         self.domain_size = parameters["domain_size"].GetInt()
-        if self.domain_size <= 0 or self.domain_size > 3:
-            raise RuntimeError("\"domain_size\"  should be in [1, 3] range." + str(parameters))
+        if self.domain_size not in [1, 2, 3]:
+            raise RuntimeError("\"domain_size\"  should be in either 1, 2 or 3." + str(parameters))
 
-        self.model_part = self.model.CreateModelPart(model_part_name)
+        self.model_part = model.CreateModelPart(model_part_name)
+        self.optimization_info = optimization_info
 
     def ImportModelPart(self):
         Kratos.ModelPartIO(self.input_filename, Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(self.model_part)
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = self.domain_size
+
+    def GetModelPart(self) -> Kratos.ModelPart:
+        return self.model_part
+
+    def InitializeSolutionStep(self):
+        self.model_part.ProcessInfo[Kratos.STEP] = self.optimization_info["step"]
+        self.model_part.ProcessInfo[Kratos.TIME] = self.optimization_info["step"]

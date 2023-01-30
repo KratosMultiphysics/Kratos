@@ -23,10 +23,16 @@ from test_mass_response_function import TestMassResponseFunctionShells
 from test_mass_response_function import TestMassResponseFunctionSolids
 from test_entity_specific_properties_process import TestEntitySpecificPropertiesProcess
 from test_linear_strain_energy_response_function import TestLinearStrainEnergyResponseFunctionBase
-from test_properties_control import TestPropertiesControl
+from test_material_properties_control import TestMaterialPropertiesControl
 from test_mass_optimization import TestMassOptimization
 from test_shape_control import TestShapeControl
 from test_optimization_info import TestOptimizationInfo
+from test_container_data import TestHistoricalContainerData
+from test_container_data import TestNodalContainerData
+from test_container_data import TestConditionContainerData
+from test_container_data import TestElementContainerData
+from test_container_data import TestConditionPropertiesContainerData
+from test_container_data import TestElementPropertiesContainerData
 
 # Nightly tests
 
@@ -58,9 +64,15 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEntitySpecificPropertiesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLinearStrainEnergyResponseFunctionBase]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPropertiesControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMaterialPropertiesControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestShapeControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizationInfo]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHistoricalContainerData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNodalContainerData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionContainerData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementContainerData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConditionPropertiesContainerData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestElementPropertiesContainerData]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']

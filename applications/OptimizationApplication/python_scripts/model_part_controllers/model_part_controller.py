@@ -3,10 +3,9 @@ from abc import abstractmethod
 
 import KratosMultiphysics as Kratos
 
-class OptimizationRoutine(ABC):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-        self.model = model
-        self.parameters = parameters
+class ModelPartController(ABC):
+    def __init__(self):
+        pass
 
     def Initialize(self):
         pass
@@ -21,5 +20,11 @@ class OptimizationRoutine(ABC):
         pass
 
     @abstractmethod
-    def GetName(self) -> str:
+    def ImportModelPart(self):
         pass
+
+    @abstractmethod
+    def GetModelPart(self) -> Kratos.ModelPart:
+        pass
+
+

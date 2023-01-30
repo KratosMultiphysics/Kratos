@@ -3,16 +3,12 @@ import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.optimization_routine import OptimizationRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_info import OptimizationInfo
 
 class TestOptimizationInfo(kratos_unittest.TestCase):
-    class TestRoutine(OptimizationRoutine):
-        def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
-            super().__init__(model, parameters)
-
-        def GetName(self) -> str:
-            return "TestRoutine"
+    class TestRoutine:
+        def __init__(self):
+            pass
 
     def test_AdvanceSolutionStepGet(self):
         optimization_info = OptimizationInfo()
@@ -76,14 +72,13 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
     def test_OptimizationRoutines(self):
         optimization_info = OptimizationInfo()
         optimization_info.SetBufferSize(1)
-        temp = TestOptimizationInfo.TestRoutine(None, None)
-        optimization_info.AddOptimizationRoutine(temp)
+        temp = TestOptimizationInfo.TestRoutine()
+        optimization_info.AddOptimizationRoutine(TestOptimizationInfo.TestRoutine, "temp", temp)
 
-
-        self.assertTrue(optimization_info.HasOptimizationRoutine("TestRoutine", "TestRoutine"))
-        self.assertTrue(optimization_info.HasOptimizationRoutineType("TestRoutine"))
-        self.assertEqual(temp, optimization_info.GetOptimizationRoutine("TestRoutine", "TestRoutine"))
-        self.assertEqual([temp], optimization_info.GetOptimizationRoutines("TestRoutine"))
+        self.assertTrue(optimization_info.HasOptimizationRoutine(TestOptimizationInfo.TestRoutine, "temp"))
+        self.assertTrue(optimization_info.HasOptimizationRoutineType(TestOptimizationInfo.TestRoutine))
+        self.assertEqual(temp, optimization_info.GetOptimizationRoutine(TestOptimizationInfo.TestRoutine, "temp"))
+        self.assertEqual([temp], optimization_info.GetOptimizationRoutines(TestOptimizationInfo.TestRoutine))
 
 
 

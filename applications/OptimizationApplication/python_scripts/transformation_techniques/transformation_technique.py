@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 from KratosMultiphysics.OptimizationApplication.utilities.container_data import ContainerData
 
-class ResponseFunction(ABC):
+class TransformationTechnique(ABC):
     def __init__(self):
         pass
 
@@ -20,14 +20,9 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def Check(self):
+    def TransformSensitivity(self, container_data: ContainerData):
         pass
 
     @abstractmethod
-    def CalculateValue(self) -> float:
+    def TransformUpdate(self, container_data: ContainerData):
         pass
-
-    @abstractmethod
-    def CalculateSensitivity(self, sensitivity_variable, sensitivity_container: ContainerData):
-        pass
-
