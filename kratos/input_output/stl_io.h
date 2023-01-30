@@ -77,7 +77,7 @@ namespace Kratos
    endsolid 3 triangles
 
 */
-class StlIO 
+class KRATOS_API(KRATOS_CORE) StlIO 
     : public IO
 {
 public:
